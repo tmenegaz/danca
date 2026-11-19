@@ -54,8 +54,14 @@ const SALAS = [{ id: 'rosa', nome: 'Rosa', dias: ['ter'], horarios: { ter: '19:0
   duracaoMin: 60, frequencia: 1, periodoInicio: '2026-02-01', periodoFim: '2026-12-01' }];
 
 function aPagina() {
+  /* O PROFESSOR DESTA PÁGINA TEM RÉGUA (19/11/2026) — e não é decoração da bancada: desde hoje a
+   * sala não se cria sem quem a meça («a sala não vai nascer sem ter um professor responsável por
+   * ela»), e a trava do «Avançar» fecha quando nenhum professor da escola tem régua. Uma página
+   * sem régua nenhuma é uma escola que não pode cadastrar salas — o que não é o cenário desta
+   * prova, que é o de compor e não gravar. */
   return bastidores.paginaProducao('breu', { escola: 'breu' },
-    [{ nome: 'Bri Volet', slug: 'bri', modalidades: ['Ballet Clássico'] }],
+    [{ nome: 'Bri Volet', slug: 'bri', modalidades: ['Ballet Clássico'],
+      rubrica: { nome: 'Salto', niveis: ['bom', 'regular', 'baixo'] } }],
     ['abreu'], 'Brise Volet', 'brise-volet', SALAS, [], {}, [], [], [],
     { professores: new Set(), turmas: new Set(), termos: new Set(), planos: 0 },
     { modo: 'clara', paleta: 'bordo' }, null, [], new Set(),

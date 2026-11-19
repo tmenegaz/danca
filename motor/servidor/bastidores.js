@@ -5291,6 +5291,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
    * não de uma leitura nova: é o mesmo registo que já deu o nome de quem dá a aula, e o mapa serve
    * três leitores (o cartão da sala, o passo 2 das Salas e a aba da régua em Professores). */
   const rubricasDosProfs = rubricasDosProfessores(profs, registoDoDonoPrincipal, donoSlug);
+  /* HÁ QUEM MEÇA A SALA? (19/11/2026) — a pergunta que o portão do cadastro das Salas faz.
+   *
+   * «A sala não vai nascer sem ter um professor responsável por ela», e o professor responsável é
+   * aquele cuja régua mede a sala. Conta o principal como qualquer outro: ele vive no registo dele,
+   * e `rubricasDosProfs` já o inclui pelo mesmo slug que a lista usa. */
+  const temProfessorComRegua = Object.keys(rubricasDosProfs)
+    .some((sl) => ((rubricasDosProfs[sl] || {}).niveis || []).length > 0);
   const professoresDaEscola = (() => {
     const out = [];
     const nomeDoPrincipal = String(dono || '').trim();
@@ -6153,13 +6160,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
                 'data-tradicao-modalidade="' + esc(String(t.modalidade || '')) + '">…</span></div>'
               : '') +
             '</div>' +
+            /* O QUE FALTA DIZ-SE ONDE SE COMPLETA, E O SÍTIO MUDOU (19/11/2026).
+             *
+             * «Não existe mais passo dois com professor aqui nas salas, então essa mensagem está
+             * errada.» Estava: a modalidade e o professor passaram os dois para o passo 2
+             * («Associar»), e a frase continuava a mandar a modalidade ao passo 1. Uma frase que
+             * ensina o caminho errado é pior do que nenhuma — manda procurar num sítio onde o campo
+             * já não está. */
             (nomeDoProfessorSala && nomeDaModalidadeSala ? '' :
               '<p class="trio-nota">Falta ' + (nomeDoProfessorSala ? 'a modalidade' : 'o professor') +
-              ' desta sala — a modalidade completa-se em «Editar», no passo 1; o professor, no passo 2 ' +
-              'desta mesma faixa.</p>')
-          : '<p class="trio-frase">Esta sala ainda não diz a modalidade que aí se ensina.</p>' +
-            '<p class="trio-nota">A modalidade escolhe-se em «Editar», no passo 1; o professor, no ' +
-            'passo 2 — e é dela que sai a lista de quem a pode dar.</p>';
+              ' desta sala — completa-se em «Editar», no passo «Associar»: é lá que se escolhem a ' +
+              'modalidade e o professor, e é do par que sai a régua.</p>')
+          : '<p class="trio-frase">Esta sala ainda não diz quem a dá, nem a modalidade que aí se ' +
+            'ensina.</p>' +
+            '<p class="trio-nota">As duas escolhem-se em «Editar», no passo «Associar» — primeiro a ' +
+            'modalidade, que é ela que recorta a lista de professores.</p>';
         // O «EDITAR RUBRICA» QUE VIVIA AQUI SAIU (18/10/2026). A régua continua a abrir e a
         // mostrar a escala — o painel é LEITURA. A edição da rubrica passou a ser uma das
         // três coisas que o «Editar» do cartão da turma abre, e um segundo botão de edição
@@ -8318,6 +8333,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // tempo. A régua SAIU daqui: ela é da escola, e mora no passo seguinte.
     '<div class="passo-painel" id="passo-turma">' +
     '<div class="col-form">' +
+    /* A SALA NÃO NASCE SEM QUEM A MEÇA (19/11/2026).
+     *
+     * «A sala ela só pode estar disponível para cadastrar uma sala se existir professor com régua,
+     * né? Que a régua é obrigatória também. Senão não tem como cadastrar uma sala. Uma sala ela não
+     * vai nascer sem ter um professor responsável pela sala.»
+     *
+     * O SERVIDOR JÁ RECUSAVA — a rota do par responde 400 quando a régua de quem se escolheu não
+     * existe, e diz o nome dele. O que faltava era a tela dizê-lo ANTES: sem este aviso, compõe-se o
+     * ritmo inteiro, avança-se, escolhe-se a modalidade e o professor, e só no «Gravar sala» se
+     * descobre que não havia com que medir. O aviso nasce do dado que a página já tem
+     * (`professoresDaEscola`, com a régua de cada um) e não de uma leitura nova.
+     *
+     * ELE É ESTADO, e por isso tem `id`: deixa de existir no dia em que houver um professor com
+     * régua, e é a tela que o reescreve — como todos os avisos desta casa. */
+    (temProfessorComRegua ? '' :
+      '<p class="aviso" id="sala-sem-regua">Nenhum professor desta escola tem régua ainda — e é a ' +
+      'régua de quem dá a aula que mede a sala. Crie-a em <b>Professores</b>, no passo «Rubrica» do ' +
+      'cadastro (o nome e os níveis), e a sala passa a poder ser cadastrada.</p>') +
     '<form id="form-turma">' +
     // O «EDITAR» DA TURMA É UMA DERIVAÇÃO (16/10/2026). A escola pensa que edita; o que fica
     // gravado é um elo novo com data de vigência, e o anterior desce para o histórico. Por
@@ -9973,6 +10006,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var dur = document.getElementById("tduracao");' +
     '  var ini = document.getElementById("tinicio");' +
     '  var fim = document.getElementById("tfim");' +
+    /* A SALA NÃO SE CRIA SEM QUEM A MEÇA (19/11/2026) — «a sala não vai nascer sem ter um professor
+     * responsável por ela». A condição só vale a CRIAR (`!turmaEmFoco()`): uma sala que já existe
+     * continua a poder ser corrigida, e travar-lhe a correcção por falta de régua de OUTRA pessoa
+     * seria fechar o único caminho que a escola tem para arrumar o que já lá está. O servidor
+     * continua a recusar a conclusão sem régua, com o nome de quem falta. */
+    '  if (!turmaEmFoco() && !TEM_PROFESSOR_COM_REGUA) falta.push("um professor com régua — crie-a em Professores, no passo «Rubrica»");' +
     '  if (!nome || !String(nome.value || "").trim()) falta.push("o nome da turma");' +
     '  if (!marcados("dia").length) falta.push("os dias da semana");' +
     '  if (!dur || !(Number(dur.value) > 0)) falta.push("a duração de cada aula");' +
@@ -12642,7 +12681,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    body: JSON.stringify(corpo)' +
     '  }).then(function(r){ return r.json(); }).then(function(d){' +
     '    if (d.ok) {' +
-    '      if (typeof aoOk === "function") aoOk(d);' +
+    /* QUEM ENCADEIA MANDA NA RECARGA (19/11/2026) — e sem isto a cadeia NÃO ACONTECIA.
+     *
+     * O DEFEITO, medido: o «Gravar sala» de uma sala que já existe faz DOIS pedidos — a sala
+     * (`turma-editar` ou `turma-derivar`) e o par modalidade+professor (`turma-professor`) —, e o
+     * segundo vive no `aoOk` do primeiro. O `aoOk` era chamado e, na linha seguinte,
+     * `location.reload()` derrubava a página com o segundo pedido ainda em voo: a sala ficava
+     * gravada e o professor **nunca**. Era isso que ela viu — «quando eu gravei o professor na
+     * listagem não aparece nada no nicho professor», com a modalidade e a régua certas no passo 2.
+     *
+     * A REGRA: um `aoOk` que devolve uma promessa está a dizer «eu continuo o trabalho» — e então a
+     * recarga é dele, não desta função. Quem devolve `undefined` (o `concluirCuradoria`, o
+     * `concluirTurma`, o `esquecerRascunhoDoProfessor`) não mudou nada, e a recarga fica aqui como
+     * sempre. É a mesma divisão que o `postar` já faz, e o motivo de ela estar escrita: um
+     * `reload()` depois de um `aoOk` assíncrono é uma corrida que se perde em silêncio. */
+    '      if (typeof aoOk === "function") {' +
+    '        var seguir = aoOk(d);' +
+    '        if (seguir && typeof seguir.then === "function") return;' +
+    '      }' +
     /* A RECARGA DEPOIS DE GRAVAR VOLTOU A SER A REGRA — E O RECADO DA CADEIA VAI COM ELA
      * (10/11/2026).
      *
@@ -12814,7 +12870,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '  var aoGravarASala = function(d){' +
     '    var alvo = (d && d.id) || turma;' +
-    '    enviar("/api/bastidores/turma-professor",' +
+    /* O `return` É O QUE FAZ A CADEIA CHEGAR AO FIM (19/11/2026): a promessa devolvida diz ao
+     * `enviar` que ele não recarregue — quem recarrega é este segundo pedido, quando ele próprio
+     * responder. Sem o `return`, a página recarregava por cima do pedido do professor. */
+    '    return enviar("/api/bastidores/turma-professor",' +
     '      {turma: alvo, modalidade: modalidade, professor: professor, concluir: true},' +
     '      "gravando a sala...", true, concluirTurma);' +
     '  };' +
@@ -12883,6 +12942,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // submetido.
     'var ROTULOS_DE_TRADICAO = ' + JSON.stringify(CATALOGO.ROTULOS || {}) + ';' +
     'var PROFESSORES_DA_ESCOLA = ' + JSON.stringify(professoresDaEscola) + ';' +
+    /* HÁ QUEM MEÇA A SALA? (19/11/2026) — o mesmo booleano que o servidor usou para escrever o
+     * aviso do passo 1. O cliente precisa dele para a trava do «Avançar» sobreviver ao primeiro
+     * campo escrito: `aplicarTravas` reescreve o `disabled` a cada alteração, e uma trava que só
+     * existisse no markup do servidor desaparecia ao primeiro carácter. */
+    'var TEM_PROFESSOR_COM_REGUA = ' + (temProfessorComRegua ? 'true' : 'false') + ';' +
     'var CATALOGO_DE_MODALIDADES = ' + JSON.stringify(
       ((MODALIDADES && MODALIDADES.modalidades) || []).map((m) => ({
         id: m.id, nome: m.nome, temConteudo: Boolean(m.temConteudo) }))) + ';' +
@@ -21417,7 +21481,23 @@ async function fetch(request, env, extras) {
     const CAMPOS_DO_FORMULARIO = ['nome', 'frequencia', 'dias', 'horarios', 'duracaoMin',
       'periodoInicio', 'periodoFim', 'modalidade', 'professor'];
     const ajustado = {};
-    for (const k of CAMPOS_DO_FORMULARIO) if (k in declarado) ajustado[k] = declarado[k];
+    for (const k of CAMPOS_DO_FORMULARIO) {
+      if (!(k in declarado)) continue;
+      /* O PAR (modalidade, professor) NÃO SE APAGA POR UMA GRAVAÇÃO QUE NÃO O TRAZ (19/11/2026).
+       *
+       * O `normalizarTurma` emite os dois SEMPRE — vazios quando o corpo não os manda —, e o
+       * `'modalidade' in declarado` era verdadeiro com `''`. Como o passo 1 já não os recolhe
+       * (foram para o «Associar»), corrigir o ritmo de uma sala passava a apagá-los: a sala ficava
+       * gravada, sem professor, e a listagem voltava a dizer «esta sala ainda não diz quem a dá».
+       * Era o mesmo defeito que o passo 2 tapava quando a cadeia chegava ao fim — e ficava à vista
+       * sempre que ela não chegava. Em branco aqui significa «não mexi», como no contato do
+       * professor: apagar a associação não é um efeito de não a reescrever.
+       *
+       * Quem os escreve é a rota do par (`/turma-professor`), que é a única que sabe se há
+       * professor com régua para os dois. */
+      if ((k === 'modalidade' || k === 'professor') && !declarado[k]) continue;
+      ajustado[k] = declarado[k];
+    }
     const indice = lista.findIndex((t) => t && t.id === idAntigo);
     lista[indice] = Object.assign({}, alvo, ajustado, { id: novoId });
     await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(lista));
@@ -21507,7 +21587,23 @@ async function fetch(request, env, extras) {
     const CAMPOS_DO_FORMULARIO = ['nome', 'frequencia', 'dias', 'horarios', 'duracaoMin',
       'periodoInicio', 'periodoFim', 'modalidade', 'professor'];
     const ajustado = {};
-    for (const k of CAMPOS_DO_FORMULARIO) if (k in declarado) ajustado[k] = declarado[k];
+    for (const k of CAMPOS_DO_FORMULARIO) {
+      if (!(k in declarado)) continue;
+      /* O PAR (modalidade, professor) NÃO SE APAGA POR UMA GRAVAÇÃO QUE NÃO O TRAZ (19/11/2026).
+       *
+       * O `normalizarTurma` emite os dois SEMPRE — vazios quando o corpo não os manda —, e o
+       * `'modalidade' in declarado` era verdadeiro com `''`. Como o passo 1 já não os recolhe
+       * (foram para o «Associar»), corrigir o ritmo de uma sala passava a apagá-los: a sala ficava
+       * gravada, sem professor, e a listagem voltava a dizer «esta sala ainda não diz quem a dá».
+       * Era o mesmo defeito que o passo 2 tapava quando a cadeia chegava ao fim — e ficava à vista
+       * sempre que ela não chegava. Em branco aqui significa «não mexi», como no contato do
+       * professor: apagar a associação não é um efeito de não a reescrever.
+       *
+       * Quem os escreve é a rota do par (`/turma-professor`), que é a única que sabe se há
+       * professor com régua para os dois. */
+      if ((k === 'modalidade' || k === 'professor') && !declarado[k]) continue;
+      ajustado[k] = declarado[k];
+    }
     const nova = Object.assign({}, anterior, ajustado);
     nova.id = idDerivado(anterior.nome, vigencia, lista);
     nova.nome = anterior.nome;

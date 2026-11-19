@@ -53197,3 +53197,69 @@ enquanto há um registo a meio, com as três obrigações da peça), e `ARQUITET
 `provar-sala-e-portao` 27, `provar-avancar-nao-grava` 24, `provar-salas-e-elencos` 132,
 `provar-abas-da-audicao` 125, `provar-estado-da-turma` 28, `provar-teste` 41,
 `provar-cadastro-visivel` 12, `check-identidade` ok.
+
+### 19/11/2026 — A sala ficava gravada e o professor não; e o nicho dizia o caminho de ontem
+
+«Eu escolhi o professor, a tradição veio correto, a régua também veio de forma correta, mas quando eu
+gravei o professor na listagem não aparece nada no nicho professor. […] A listagem do campo professor
+diz que esta sala ainda não diz a modalidade que aí se ensina. A modalidade escolhe-se em editar no
+passo um, o professor no passo dois. Não existe mais passo dois com professor aqui nas salas, então
+essa mensagem está errada.»
+
+**O primeiro defeito era uma corrida, e ela perdia sempre.** O «Gravar sala» de uma sala que já
+existe faz **dois** pedidos — a sala (`turma-editar` ou `turma-derivar`) e o par modalidade+professor
+(`turma-professor`) —, e o segundo vivia no `aoOk` do primeiro. O `enviar` chamava o `aoOk` e, na
+linha seguinte, `location.reload()`. A navegação derrubava o segundo pedido a meio do voo: a sala
+ficava gravada, o professor não, e nada dizia que faltava alguma coisa. Era exactamente o estado que
+ela descreveu — modalidade e régua certas no passo 2, nicho do professor vazio na listagem.
+
+A correção: **quem encadeia manda na recarga**. Um `aoOk` que devolve uma promessa está a dizer «eu
+continuo o trabalho», e a recarga é dele; quem devolve `undefined` (o `concluirCuradoria`, o
+`concluirTurma`) não mudou nada, e a recarga fica no `enviar` como sempre. É a divisão que o `postar`
+já fazia — o `enviar` é que não a tinha, e por isso o defeito só apareceu quando um formulário passou
+a ter duas escritas em cadeia.
+
+**O segundo defeito é o mesmo, visto do outro lado — e ficaria depois de o primeiro ser corrigido.**
+O `normalizarTurma` emite `modalidade` e `professor` **sempre** — vazios quando o corpo não os manda
+—, e `turma-editar`/`turma-derivar` copiam os campos presentes: `'modalidade' in declarado` era
+verdadeiro com `''`, e a edição **apagava a associação**. Como o passo 1 já não recolhe os dois
+(mudaram para o «Associar» a 19/11), corrigir o ritmo de uma sala limpava o professor em silêncio. A
+correção: um vazio nestes dois campos não se copia — em branco significa «não mexi», a mesma regra do
+contato do professor. Quem escreve o par é a rota do par.
+
+**O terceiro era a frase, e ela tinha razão.** O painel do professor mandava a modalidade ao «passo
+1» e o professor ao «passo 2», quando os dois estão no mesmo passo («Associar») desde a mudança de
+hoje. Uma frase que ensina o caminho errado é pior do que nenhuma: manda procurar num sítio onde o
+campo já não está. Agora diz o passo «Associar» e a ordem real — a modalidade primeiro, que é ela que
+recorta a lista.
+
+**O quarto é o portão que ela pediu.** «A sala só pode estar disponível para cadastrar uma sala se
+existir professor com régua […] Uma sala não vai nascer sem ter um professor responsável por ela.» O
+servidor já recusava a associação sem régua, com o nome de quem falta; o que faltava era a tela
+dizê-lo **antes** de se compor o ritmo inteiro. Há agora um `.aviso` no passo 1 quando nenhum
+professor da escola tem régua, e o «Avançar» fica travado com a razão no `title` — inclusive depois
+de se escrever o primeiro carácter, porque `aplicarTravas` reescreve o estado e a trava vive também no
+cliente. A condição só vale a **criar**: uma sala que já existe continua a poder ser corrigida.
+
+**Medido** — `experimentos/provar-associar-grava.js`, novo, 28 asserções em jsdom, com as **duas
+respostas presas na mão** (é isso que torna a corrida observável). Controles negativos, um por
+defeito: com o `aoOk` antigo, falham as duas asserções da cadeia — a página recarrega **entre** a
+resposta da sala e a do par, e recarrega **duas** vezes; com o `ajustado[k] = declarado[k]`
+incondicional, falham as duas da secção D — o professor e a modalidade voltam `""`.
+
+A recarga mede-se pelo que o jsdom **anuncia** («Not implemented: navigation»): o `location` dele não
+se substitui, e um espião posto depois da construção não chegaria aos `location.reload()` do script.
+Contar os anúncios é medir o gesto, e não o efeito dele.
+
+Uma bancada antiga mudou de fixture, com nota: `provar-avancar-nao-grava` montava uma escola **sem
+nenhum professor com régua** e esperava o «Avançar» aceso. Com o portão novo, essa escola não pode
+cadastrar salas — e é assim que deve ser. O professor do fixture recebeu uma régua; a bancada mede o
+mesmo, e continua 24/24.
+
+`ARQUITETURA-GERAL.md` §3.3 ganhou os dois parágrafos: «quem encadeia manda na recarga» e «o que não
+veio do formulário não se apaga».
+
+**Bancadas, medidas:** `provar-associar-grava` 28, `provar-salas-e-elencos` 132,
+`provar-avancar-nao-grava` 24, `provar-sala-e-portao` 27, `provar-estado-da-turma` 28,
+`provar-cadastro-do-professor` 80, `provar-habilitacao-do-professor` 81, `provar-regua-do-professor`
+44, `provar-passos-uniformes` 45, `provar-teste` 41, `check-identidade` ok.
