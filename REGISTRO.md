@@ -53469,3 +53469,55 @@ reposto): `provar-conteudos-e-estado-da-turma` 2 de 78 e `provar-derivacao-da-tu
 
 `ARQUITETURA-GERAL.md` §3.3 ganhou «a história não é o cadastro», e `experimentos/README.md` a linha
 da bancada.
+
+### 19/11/2026 — o apelido é rótulo; a etiqueta e a guarda passam a perguntar pelo id
+
+**Os dois relatos, na letra dela:**
+
+1. «eu criei a aluna B e eu fiz a anamnese da aluna B. E na listagem das alunas cadastradas, tá
+   dizendo que a aluna B, ela tá desligada. Essa aluna B, ela não é aquela aluna B antiga que nós
+   fizemos que não tinha CPF, agora tem CPF. […] é um outro CPF, então é uma outra aluna B. É o
+   homônimo, apenas isso.»
+2. «a aluna A na anamnese de alunos tá dizendo que ela é uma aluna livre. Mas essa aluna, ela tá
+   diretamente ligada a um elenco que está ligado a uma turma. […] Tá errado também essa etiqueta.
+   Você tem que verificar aí na documentação e colocar as etiquetas corretas e também verificar as
+   validações, porque as validações que você tá usando estão erradas.»
+
+**1 — A IDENTIDADE.** `estadoDaAluna` perguntava às fontes só pelo APELIDO, e o apelido é rótulo
+desde 18/11. A aluna nova, criada depois de a homónima ter saído, herdava a memória dela (a Turma
+substituída) e lia-se «desligada» no dia do cadastro. O fio que resolve já existia e era ignorado:
+o elenco guarda em `lida` o carimbo da anamnese que leu para cada apelido, e a anamnese declara
+`alunaId` — elenco → anamnese → pessoa. Sem esse fio, o apelido designa o primeiro titular, que é a
+regra dos envelopes antigos. Uma Turma resolve-se pelo elenco que declara (`linhaDeBase`). O PO fica
+de fora (declara `sujeitos` por apelido, sem dizer de que elenco), e a limitação está declarada.
+
+A chave do agrupamento da estante acompanhou: a anamnese passou a agrupar-se por
+`(escola, aluna, alunaId)` — com o id a qualificar o apelido, e não a substituí-lo.
+
+**2 — A ETIQUETA E A VALIDAÇÃO.** «Livre» é a palavra que promete «podes apagar isto, não há
+história», e havia: o elenco que leu o retrato e a Turma que declara a aluna. O selo `vinculada`
+cresceu para os dois, e a guarda do `DELETE` passou a perguntar o mesmo (`porta.citacaoDaAnamnese`)
+— antes apagava o retrato que um elenco tinha citado, porque só olhava para os POs. A recusa nomeia
+quem cita («elenco «Tami»», «turma «Rosa»»). Um selo e uma guarda que discordam são a mesma família
+de defeito que a lista já conheceu.
+
+**Medido** — `experimentos/provar-a-homonima.js`, novo, **21 asserções**: a derivação isolada (os
+dois lados do homónimo), a listagem da Produção, a listagem da anamnese e a guarda do apagar, com
+o caso negativo do retrato que continua apagável. **Controle negativo** (o `motor/` de antes):
+**13 falhas em 21** — e as duas primeiras que ela leu estão lá, na letra: «a aluna B nova leva o
+selo desligada» e a anamnese da aluna A a oferecer «Apagar».
+
+**Bancadas, medidas:** `provar-a-homonima` 21 (negativo 13), `provar-listas-do-acervo` 113,
+`provar-anamnese-da-aluna-certa` 18, `provar-alunas-da-anamnese` 16, `provar-apagar-da-listagem`
+ok, `provar-vigente-na-listagem` 20 de 21 (a falha é anterior — conferido com o `motor/` reposto),
+`provar-lista-que-falha` 39, `provar-listas-sem-repeticao` 17, `provar-aluna-nova-no-elenco` 34,
+`provar-salas-e-elencos` 132, `provar-cadastro-do-professor` 80, `provar-sala-e-portao` 27,
+`provar-excluir-travado` 29, `provar-passos-uniformes` 45, `provar-estado-da-turma` 28,
+`provar-teste` 41, `check-identidade` ok.
+
+Ficam vermelhas, e **já estavam** antes desta frente (conferido com o `motor/` reposto):
+`provar-cadastro-da-aluna` (rebenta na secção K), `provar-ajustes-anamnese`, `provar-custo-da-listagem`
+(1), `provar-estante-do-po` (a `escola/batata` foi expurgada). Trabalho próprio, com laudo próprio.
+
+`ARQUITETURA-GERAL.md` §«A aluna desligada» ganhou «o apelido não é a pessoa» e «livre passou a
+querer dizer podes apagar isto»; `experimentos/README.md` a linha da bancada.

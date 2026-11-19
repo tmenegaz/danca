@@ -1952,6 +1952,35 @@ async function turmasComPlano(env, escola) {
   return new Set(pares.map((p) => p.turma));
 }
 
+/**
+ * DE QUEM É CADA ANAMNESE — `Map<carimbo, alunaId>` (19/11/2026).
+ *
+ * A PÁGINA PRECISA DISTO PARA NÃO CONFUNDIR HOMÓNIMAS, e o consumidor é um só:
+ * `desligamento.estadoDaAluna`, chamada pelo cartão de cada aluna. O elenco guarda no `lida` o
+ * CARIMBO da anamnese que leu — e é por esse carimbo que se chega à pessoa. Sem o mapa, a
+ * resolução cai no apelido, e a aluna B que hoje se cadastrou herda a memória da homónima que
+ * saiu: foi assim que ela a viu «desligada» no dia em que a criou.
+ *
+ * UMA LEITURA DO ÍNDICE, e não uma por envelope: é a mesma regra da estante (`resumosDeEnvelopes`
+ * traz os resumos, e o resumo já declara o `alunaId` desde 18/11). Os registos anteriores a essa
+ * data não declararam id nenhum, e a ausência do mapa — quando a leitura falha — deixa a
+ * derivação no comportamento de antes, que é o certo para o acervo sem id.
+ */
+async function identidadesDasAnamneses(env, escola) {
+  const legado = criarCloudflare(env);
+  const armazenamento = acervo.combinar(acervo.doAmbiente(env, { legado, escola }), legado);
+  const por = new Map();
+  try {
+    const todas = await porta.resumosDeEnvelopes(armazenamento, /^anamnese-.*\.json$/);
+    for (const { nome, resumo } of todas) {
+      const carimbo = String((resumo && resumo.id) || String(nome).replace(/\.json$/, '')).trim();
+      const alunaId = String((resumo && resumo.alunaId) || '').trim();
+      if (carimbo && alunaId) por.set(carimbo, alunaId);
+    }
+  } catch (e) { /* sem índice, sem mapa: a derivação cai no apelido, como antes */ }
+  return por;
+}
+
 /** A turma está presa a um plano? `null` (não deu para ler) conta como presa. */
 function turmaVinculadaA(planoDeTurmas, nome) {
   if (!planoDeTurmas) return true;
@@ -5164,7 +5193,7 @@ function lateralDaProducao(opcoes) {
     '</nav>';
 }
 
-function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia, turmaEmFoco, linhas, alunasObservadas, dadosDaEscola, matriculasDaEscola, registoDoDonoPrincipal, registosDeAlunas) {
+function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia, turmaEmFoco, linhas, alunasObservadas, dadosDaEscola, matriculasDaEscola, registoDoDonoPrincipal, registosDeAlunas, anamnesesDaEscola) {
   /* O ID DE CADA ALUNA, À MÃO PARA O CARTÃO (18/11/2026). Ver `idLegadoDaAluna`: o vínculo é
    * filtrado pelo id, e não pelo apelido, porque o apelido pode ter pertencido a outra pessoa.
    * O mapa é derivado da lista de registos que a rota já leu — nenhuma leitura nova, e o default
@@ -5650,18 +5679,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   const itensAlunas = aluns.length
     ? aluns.map((a) => {
         const presa = alunaVinculadaA(pares, curs, a);
+        /* DE QUEM É ESTE CARTÃO (19/11/2026). O `id` sai do registo ACTIVO com aquele apelido — é a
+         * pessoa que a lista mostra. É ele que a derivação usa para não confundir homónimas: «eu
+         * criei a aluna B e […] tá dizendo que a aluna B, ela tá desligada. Essa aluna B, ela não é
+         * aquela aluna B antiga […] é um outro CPF, então é uma outra aluna B.» */
+        const idDela = idPorApelido.get(String(a).trim()) || idLegadoDaAluna(a);
         const desligada = presa ? { desligada: false } : desligamento.estadoDaAluna({
           aluna: a,
+          alunaId: idPorApelido.get(String(a).trim()) || '',
           linhas: Array.isArray(linhas) ? linhas : [],
           curadorias: Array.isArray(curs) ? curs : [],
           observada: Boolean(alunasObservadas && alunasObservadas.has(String(a).trim())),
+          /* O FIO QUE DIZ DE QUEM É CADA ELENCO: `lida` → carimbo → pessoa. Sem ele, o elenco da
+           * «Aluna B» antiga continuava a ser lido como sendo desta. */
+          anamneses: anamnesesDaEscola || null,
         });
         const turmasDela = turmasDaAluna.get(String(a).trim()) || [];
         /* O VÍNCULO É DELA, E NÃO DO NOME (18/11/2026). Ver `idLegadoDaAluna`: o apelido passou a
          * poder pertencer a outra pessoa quando a anterior saiu, e um vínculo sem `alunaId`
          * (gravado antes de hoje) pertence ao primeiro titular. Filtrar só por `aluna` fazia a
          * segunda «Aluno A» herdar a anamnese e o professor da primeira. */
-        const idDela = idPorApelido.get(String(a).trim()) || idLegadoDaAluna(a);
         const idDoVinculo = (m) => String(m.alunaId || '').trim() || idLegadoDaAluna(m.aluna);
         const meus = (Array.isArray(matriculasDaEscola) ? matriculasDaEscola : [])
           .filter((m) => m && !m.substituidaPor && idDoVinculo(m) === idDela);
@@ -19967,10 +20004,13 @@ async function fetch(request, env, extras) {
      * leitura independente, e é o rasto mais forte de que uma aluna já esteve numa turma — o único
      * que sobrevive quando a Turma foi regravada sem ela e a linha de base também já não a
      * declara. Sem ele, a etiqueta degrada para «livre», que é o comportamento de antes. */
-    const [aparencia, linhas, alunasObservadas] = await Promise.all([
+    const [aparencia, linhas, alunasObservadas, anamnesesDaEscola] = await Promise.all([
       aparenciaDaEscola(kv, escola),
       linhasDeBase(kv, escola, repoLinhas),
       alunasDosPlanosDeObservacao(env, escola),
+      /* DE QUEM É CADA ANAMNESE (19/11/2026) — ver `identidadesDasAnamneses`. Entra nesta espera
+       * porque é independente das outras três: são quatro leituras que já não se esperam em fila. */
+      identidadesDasAnamneses(env, escola),
     ]);
     // O ATALHO «VER A TURMA» VEM COM O NOME DELA (22/10/2026). O plano de ensino da porta
     // conhece a turma pelo NOME; a Produção filtra a listagem por ID. A resolução é aqui,
@@ -19983,7 +20023,7 @@ async function fetch(request, env, extras) {
     const matriculasDaEscola = await matriculas(kv, escola);
     return html(paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usos,
       aparencia, turmaEmFoco, linhas, alunasObservadas, dadosDaEscola, matriculasDaEscola,
-      registoDoDonoPrincipal, registosDasAlunas));
+      registoDoDonoPrincipal, registosDasAlunas, anamnesesDaEscola));
   }
 
   // GET /api/bastidores/alunas — a lista para o seletor da anamnese.

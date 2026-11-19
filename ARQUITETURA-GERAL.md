@@ -725,7 +725,35 @@ desligamento do professor, que é um **ato** com data e motivo (§ abaixo). A al
 próprio a declarar: quem a tira do elenco é uma versão nova do elenco. Marcá-la obrigaria a
 desmarcá-la à mão no regresso, e um sinal que se esquece de limpar é um sinal que mente.
 
-**O que NÃO muda, e é deliberado.** O «Excluir» do cadastro continua habilitado: apagar o
+**E O APELIDO NÃO É A PESSOA — a pergunta é feita ao `id` (19/11/2026).** «eu criei a aluna B e eu
+fiz a anamnese da aluna B. E na listagem das alunas cadastradas, tá dizendo que a aluna B, ela tá
+desligada. Essa aluna B, ela não é aquela aluna B antiga […] é um outro CPF, então é uma outra aluna
+B. É o homônimo, apenas isso.»
+
+A derivação perguntava às fontes só pelo **apelido**, e o apelido é rótulo desde 18/11. A aluna que
+chegou herdava a memória da homónima que saiu e lia-se «desligada» no dia do cadastro. **O fio que
+resolve já existia e estava a ser ignorado**: o elenco guarda em `lida` o carimbo da anamnese que
+leu para cada apelido, e a anamnese declara `alunaId`. Elenco → anamnese → pessoa. Sem esse fio, o
+apelido designa o **primeiro titular** — a única pessoa que ele podia designar quando o registo foi
+escrito, que é a regra dos envelopes antigos. Uma Turma resolve-se pelo elenco que declara
+(`linhaDeBase`), e o `id` viaja nas respostas (`turma`, por pessoa).
+
+O PO fica de fora deste fio, e diz-se: o resumo dele declara os `sujeitos` por apelido e não diz de
+que elenco os tirou. Para ele vale a regra do primeiro titular — o que erra para o lado da memória,
+e é o que o dado permite sem inventar.
+
+**«LIVRE» PASSOU A QUERER DIZER «PODES APAGAR ISTO» — e por isso cresceu (19/11/2026).** «a aluna A
+na anamnese de alunos tá dizendo que ela é uma aluna livre. Mas essa aluna, ela tá diretamente
+ligada a um elenco que está ligado a uma turma. Então ela não é mais uma aluna livre.»
+
+O selo `vinculada` perguntava só ao Plano de Observação; tudo o resto caía em «livre», e a linha
+oferecia «Apagar». Mas «livre» é a palavra que promete «não há história» — e havia: o **elenco que
+leu o retrato** (o `lida`) e a **Turma que a declara**. As duas entram agora no selo, e a guarda do
+`DELETE` pergunta o mesmo (`porta.citacaoDaAnamnese`): um registo citado não se apaga, e a recusa
+diz quem o cita. Um selo e uma guarda que discordam são a mesma família de defeito que a lista já
+conheceu — a tela a prometer o que o servidor recusa.
+
+**O que NÃO muda, e é deliberado.** O «Excluir» do **cadastro** continua habilitado: apagar o
 **apelido** é limpeza, e não remove o que ficou dela nos elencos, nos planos e na anamnese — o ato
 substantivo é o do elenco. O «Novo registo» da anamnese continua disponível, que é o que ela pediu:
 «se ela for entrar de novo ela é um novo registro». E a anamnese continua **travada** enquanto um

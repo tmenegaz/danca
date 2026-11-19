@@ -66,6 +66,11 @@
  */
 
 const enquadramento = require('./enquadramento.js');
+/* A DERIVAÇÃO DO ID A PARTIR DO APELIDO VEM DO NÚCLEO DA LINHA DE BASE (19/11/2026) — é a MESMA
+ * regra com que `porta.js` resolve o titular de um envelope antigo (`recorte.idDe`). Uma segunda
+ * cópia aqui daria duas respostas a «de quem é este apelido», e a que ficasse para trás seria a da
+ * etiqueta. */
+const { idDe } = require('./linha-de-base.js');
 
 /** O professor do registo (KV) que responde a um nome OU a um slug — `null` quando não há. */
 function acharProfessor(professores, alvo) {
@@ -250,6 +255,46 @@ function alunasDaLinha(linha) {
   return lista.map((a) => String(a == null ? '' : a).trim()).filter(Boolean);
 }
 
+/** O id de quem um apelido designa quando a fonte não diz mais do que isso: o primeiro titular. */
+function idDoApelido(apelido) {
+  return idDe(apelido);
+}
+
+/**
+ * QUEM É, DE FACTO, A «Aluna B» DESTE ELENCO — o apelido sozinho não chega (19/11/2026).
+ *
+ * O DEFEITO, na letra dela: «eu criei a aluna B e eu fiz a anamnese da aluna B. E na listagem das
+ * alunas cadastradas, tá dizendo que a aluna B, ela tá desligada. Essa aluna B, ela não é aquela
+ * aluna B antiga […] é um outro CPF, então é uma outra aluna B. É o homônimo, apenas isso.»
+ *
+ * PORQUE É QUE ACONTECIA. `estadoDaAluna` perguntava às fontes só pelo APELIDO. O apelido é rótulo
+ * e não identidade desde 18/11 (ver `idLegadoDaAluna`, no `bastidores.js`): duas pessoas podem
+ * tê-lo, em momentos diferentes. O elenco antigo dizia «Aluna B» e a Turma antiga dizia «Aluna B»
+ * — e a aluna nova, que nunca esteve em nenhuma das duas, herdava a memória da primeira e lia-se
+ * «desligada» no dia em que se cadastrou.
+ *
+ * O QUE RESOLVE, E É EVIDÊNCIA E NÃO SUPOSIÇÃO. O elenco guarda `lida` — o carimbo da anamnese que
+ * ele LEU para cada apelido (`{«Aluna B»: «anamnese-20261117-1407»}`) —, e a anamnese nova declara
+ * de quem é (`alunaId`). É esse o fio: elenco → anamnese lida → pessoa. Sem o fio, o apelido
+ * designa o PRIMEIRO titular, que era a única pessoa que ele podia designar quando o registo foi
+ * escrito. É a mesma regra dos envelopes antigos, e pela mesma razão.
+ */
+function idDaAlunaNoElenco(linha, apelido, anamneses) {
+  const nome = String(apelido == null ? '' : apelido).trim();
+  if (!nome) return '';
+  const carimbo = String((linha && linha.lida && linha.lida[nome]) || '').trim();
+  const declarado = carimbo && anamneses && typeof anamneses.get === 'function'
+    ? String(anamneses.get(carimbo) || '').trim() : '';
+  return declarado || idDoApelido(nome);
+}
+
+/** O mesmo fio, para a Turma: ela declara o ELENCO, e é o elenco que diz quem é quem. */
+function idDaAlunaNaCuradoria(curadoria, apelido, linhasPorId, anamneses) {
+  const elenco = curadoria && curadoria.linhaDeBase
+    ? linhasPorId.get(String(curadoria.linhaDeBase)) : null;
+  return elenco ? idDaAlunaNoElenco(elenco, apelido, anamneses) : idDoApelido(apelido);
+}
+
 /** As SALAS (o ritmo) que uma curadoria declara — `turmas` é a forma nova, `turma` a antiga. */
 function salasDaCuradoria(c) {
   const nomes = Array.isArray(c && c.turmas) && c.turmas.length
@@ -279,19 +324,43 @@ function quandoDaCuradoria(c) {
  * distinguem «desligada» de «nunca esteve aqui» sem abrir o ficheiro do elenco.
  */
 function estadoDaAluna({
-  aluna, linhas, curadorias, observada,
+  aluna, alunaId, linhas, curadorias, observada, anamneses,
 } = {}) {
   const apelido = String(aluna == null ? '' : aluna).trim();
   if (!apelido) return { desligada: false };
 
+  /* DE QUEM SE ESTÁ A FALAR — e é aqui que o homónimo se separa (19/11/2026).
+   *
+   * `alunaId` é a pessoa do registo (o cartão sabe-o). Sem ele — a bancada antiga, o registo
+   * anterior ao id — responde-se pelo apelido, que era o comportamento de antes e é a regra certa
+   * para o acervo sem id: nesse tempo só havia um titular.
+   *
+   * AS FONTES SÃO LIDAS PELA MESMA PERGUNTA. Um elenco que declara «Aluna B» refere-se a quem o
+   * seu `lida` diz (a anamnese que ele leu); sem esse fio, ao primeiro titular. Uma Turma
+   * declara o elenco (`linhaDeBase`), e é o elenco que responde. Assim, a aluna nova que hoje se
+   * cadastrou não herda a memória da homónima que saiu — ver `idDaAlunaNoElenco`. */
+  const alvo = String(alunaId || '').trim() || idDoApelido(apelido);
   const daLista = Array.isArray(linhas) ? linhas : [];
-  const emElencoVigente = daLista.some((l) => l && !l.apagada_em && alunasDaLinha(l).indexOf(apelido) !== -1);
+  const linhasPorId = new Map();
+  for (const l of daLista) if (l && l.id) linhasPorId.set(String(l.id), l);
+
+  const emElencoVigente = daLista.some((l) => l && !l.apagada_em
+    && alunasDaLinha(l).indexOf(apelido) !== -1
+    && idDaAlunaNoElenco(l, apelido, anamneses) === alvo);
 
   const todasAsCuradorias = Array.isArray(curadorias) ? curadorias : [];
-  const daAluna = todasAsCuradorias.filter((c) => c && alunasDaLinha(c).indexOf(apelido) !== -1);
-  const emTurmaVigente = daAluna.some((c) => !c.substituidaPor);
+  const daAluna = todasAsCuradorias.filter((c) => c && alunasDaLinha(c).indexOf(apelido) !== -1
+    && idDaAlunaNaCuradoria(c, apelido, linhasPorId, anamneses) === alvo);
+  const vigentesDela = daAluna.filter((c) => !c.substituidaPor);
+  const emTurmaVigente = vigentesDela.length > 0;
+  /* ONDE ELA ESTÁ HOJE, e só a DELA (19/11/2026). O nome da turma viaja na resposta porque é ele
+   * que a etiqueta da anamnese usa para dizer «vinculada à turma …» — e dizê-lo pelo apelido
+   * punha a aluna nova a ler a turma da homónima que saiu. */
+  const turmaDeHoje = vigentesDela.length ? (salasDaCuradoria(vigentesDela[0])[0] || '') : '';
 
-  if (emElencoVigente || emTurmaVigente) return { desligada: false };
+  if (emElencoVigente || emTurmaVigente) {
+    return { desligada: false, turma: turmaDeHoje, emElenco: emElencoVigente };
+  }
 
   /* OS TRÊS RASTOS. A ordem é a da força: quem a observou, quem a teve numa Turma, e o ato de
    * transferência. O primeiro que existir responde — e os três podem existir juntos, que é o caso
@@ -303,14 +372,23 @@ function estadoDaAluna({
   const daTransferencia = daLista
     .map((l) => {
       if (!l) return null;
-      if (l.transferida && String(l.transferida.aluna || '').trim() === apelido) return l.transferida;
-      if (l.recebida && String(l.recebida.aluna || '').trim() === apelido) return l.recebida;
+      if (l.transferida && String(l.transferida.aluna || '').trim() === apelido
+        && idDaAlunaNoElenco(l, apelido, anamneses) === alvo) return l.transferida;
+      if (l.recebida && String(l.recebida.aluna || '').trim() === apelido
+        && idDaAlunaNoElenco(l, apelido, anamneses) === alvo) return l.recebida;
       return null;
     })
     .find(Boolean) || null;
 
-  const jaEsteve = Boolean(observada) || Boolean(anterior) || Boolean(daTransferencia);
-  if (!jaEsteve) return { desligada: false };
+  /* O PO É O ÚNICO RASTO QUE NÃO SE RESOLVE PELO `lida`: o resumo de um Plano de Observação
+   * declara os `sujeitos` por APELIDO, e não diz de que elenco os tirou. Fica, por isso, com a
+   * regra do primeiro titular — o apelido dele designa quem o tinha quando foi escrito. É uma
+   * limitação declarada, e é a que o dado permite: inventar aqui seria pior. */
+  const observadaDela = Boolean(observada)
+    && (alvo === idDoApelido(apelido) || !alunaId);
+
+  const jaEsteve = observadaDela || Boolean(anterior) || Boolean(daTransferencia);
+  if (!jaEsteve) return { desligada: false, turma: '', emElenco: false };
 
   const sala = anterior ? (salasDaCuradoria(anterior)[0] || '') : '';
   const em = (anterior ? quandoDaCuradoria(anterior) : '')
@@ -319,7 +397,9 @@ function estadoDaAluna({
     desligada: true,
     sala,
     em,
-    por: observada ? 'plano-de-observacao' : (anterior ? 'turma' : 'transferencia'),
+    turma: '',
+    emElenco: false,
+    por: observadaDela ? 'plano-de-observacao' : (anterior ? 'turma' : 'transferencia'),
   };
 }
 
@@ -402,4 +482,10 @@ module.exports = {
   motivoDaRecusaDoDono,
   estadoDaAluna,
   estadoDoProfessor,
+  /* A IDENTIDADE DE UM APELIDO NUMA FONTE (19/11/2026) — exportada porque a listagem da anamnese
+   * precisa de fazer a MESMA pergunta por fora: «esta linha de base leu o retrato desta pessoa?».
+   * Uma segunda cópia da regra divergiria, e a que ficasse para trás seria a da etiqueta. */
+  idDoApelido,
+  idDaAlunaNoElenco,
+  idDaAlunaNaCuradoria,
 };

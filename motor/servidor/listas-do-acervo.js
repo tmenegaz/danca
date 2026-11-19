@@ -1627,8 +1627,7 @@ async function estadosDosPos(armazenamento, resumos) {
   return estados;
 }
 
-function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, derivados, filiacao, memoriaDaAluna, direcao) {
-  const { gerados, historico, revalidar } = derivados || {};
+function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, derivados, filiacao, memoriaDaAluna, direcao) {  const { gerados, historico, revalidar } = derivados || {};
   /* AS VERSÕES QUE A LINHA GUARDOU (03/11/2026). A estante mostra o documento vigente; o que ele
    * substituiu continua no acervo, com a cadeia inteira. Dizer quantas são é o mínimo: uma linha
    * que aparece sozinha onde havia três, sem uma palavra, faz concluir que o sistema apagou o
@@ -1644,7 +1643,6 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, deriv
     const quando = dia(r.gerado_em);
     const anteriores = versoesAnteriores(r.id);
     if (familia === 'anamnese') {
-      const turma = turmasDaAluna.get(r.aluna) || '';
       /* A LINHA DE BASE A QUE A ALUNA PERTENCE (05/11/2026). A etiqueta que a pesquisadora pediu
        * por palavras próprias: «vou acrescentar também a etiqueta dizendo qual é o nome da linha
        * de base que ela pertence, essa aluna, na anamnese». Ela é lida das linhas de base da
@@ -1662,10 +1660,42 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, deriv
        * ela não ser uma marca. */
       const desligada = desligamento.estadoDaAluna({
         aluna: r.aluna,
+        /* DE QUE PESSOA É ESTE REGISTO (19/11/2026). O resumo do envelope declara-o; os anteriores
+         * a 18/11 não, e aí a derivação cai no apelido — que era o certo quando só havia um
+         * titular. Sem esta linha, a aluna B nova lia-se «desligada» por causa da homónima. */
+        alunaId: r.alunaId,
         linhas: (memoriaDaAluna && memoriaDaAluna.linhas) || [],
         curadorias: (memoriaDaAluna && memoriaDaAluna.curadorias) || [],
         observada: Boolean(estado.vinculada),
+        anamneses: (memoriaDaAluna && memoriaDaAluna.anamneses) || null,
       });
+      /* A TURMA DELA, E NÃO A DE QUEM TEM O MESMO APELIDO (19/11/2026). `turmasDaAluna` é um mapa
+       * por apelido — serve para a leitura rápida, mas um homónimo aparece debaixo do mesmo nome.
+       * A derivação por identidade (`estadoDaAluna`) responde pela PESSOA, e é ela que manda
+       * quando sabe; o mapa fica como recurso para o acervo antigo, onde só há um titular. */
+      const turma = desligada.turma || turmasDaAluna.get(r.aluna) || '';
+      /* O REGISTO ESTÁ PRESO A ALGUMA COISA? (19/11/2026) — e é esta pergunta que o selo responde.
+       *
+       * «a aluna A na anamnese de alunos tá dizendo que ela é uma aluna livre. Mas essa aluna, ela
+       * tá diretamente ligada a um elenco que está ligado a uma turma. Então ela não é mais uma
+       * aluna livre. Essa anamnese não é de uma aluna livre.»
+       *
+       * O QUE ESTAVA A ACONTECER. «Vinculada» perguntava só ao Plano de Observação, e «livre» era
+       * tudo o resto — mas «livre» quer dizer «podes apagar isto, não há história», e a história
+       * já existia em dois sítios que ninguém consultava: o elenco que LEU este retrato (o `lida`
+       * da linha de base aponta para o carimbo) e a Turma que a declarou. Uma aluna que já está
+       * numa turma com plano de ensino lia-se «livre», e a linha oferecia «Apagar».
+       *
+       * Agora o selo responde ao que a pessoa pode fazer: `vinculada` quando o registo é
+       * proveniência — um PO a usa, um elenco a leu, ou a Turma a declara hoje. E a guarda do
+       * `DELETE` pergunta o mesmo (ver `porta.estadoDaAnamnese`), para a tela e o servidor não
+       * darem duas respostas. */
+      const lidaPorElenco = (memoriaDaAluna && memoriaDaAluna.lidaPorCarimbo
+        && memoriaDaAluna.lidaPorCarimbo.get(String(r.id || ''))) || '';
+      const presaAoTempo = Boolean(estado.vinculada) || Boolean(lidaPorElenco) || Boolean(turma);
+      const porQuePresa = estado.vinculada ? (estado.por || []).join(', ')
+        : lidaPorElenco ? 'lida pelo elenco «' + lidaPorElenco + '»'
+          : turma ? 'turma ' + turma : '';
       return {
         nome: r.aluna || 'Anamnese sem sujeito',
         /* O NOME É O LINK (27/10/2026). É o gesto que a pesquisadora descreveu: passar o mouse
@@ -1680,11 +1710,16 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, deriv
          * a ficha está livre ou se o selo é que não veio.
          *
          * Os três estados, e o que cada um quer dizer para quem vai mexer:
-         *   · vinculada — um Plano de Observação já a usa; não se edita, acrescenta-se um elo;
+         *   · vinculada — o registo é proveniência: um Plano de Observação já a usa, um elenco
+         *                 já LEU este retrato, ou a Turma a declara hoje; não se edita nem se
+         *                 apaga, acrescenta-se um elo;
          *   · nova      — a aluna ainda não está em curadoria nenhuma NEM tem linha de base; é a
          *                 porta de entrada;
-         *   · livre     — a aluna já tem turma ou linha de base, e nenhum PO a usa; edita-se e
+         *   · livre     — a aluna já tem turma ou linha de base, e nada a prende; edita-se e
          *                 apaga-se.
+         *
+         * «VINCULADA» CRESCEU A 19/11/2026 — ver `presaAoTempo`. Ela era só o PO, e por isso a
+         * aluna que já estava numa turma com plano de ensino lia-se «livre».
          *
          * «NOVA» PRECISOU DE UMA SEGUNDA CONDIÇÃO (05/11/2026). Ela era `!turma`, e a turma vinha
          * só da curadoria — numa escola sem curadorias, TODA a gente era «nova» para sempre,
@@ -1697,7 +1732,7 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, deriv
          * presente», que é exactamente o que a palavra precisa de dizer. Ver
          * `desligamento.estadoDaAluna`. */
         selo: desligada.desligada ? 'desligada'
-          : estado.vinculada ? 'vinculada'
+          : presaAoTempo ? 'vinculada'
             : ((r.aluna && !turma && !temLinhaDeBase) ? 'nova' : 'livre'),
         /* A CLASSE É A COR, e a cor não distingue «nova» de «livre» de propósito: as duas dizem
          * a mesma coisa a quem vai mexer no registo — pode-se editar. O que distingue é o TEXTO,
@@ -1706,7 +1741,7 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, deriv
          *
          * A DESLIGADA É A EXCEPÇÃO, e por isso usa a classe `legado`: o que ela diz é diferente
          * do que «livre» diz — não é «podes mexer», é «isto é memória». */
-        seloClasse: desligada.desligada ? 'legado' : (estado.vinculada ? 'vinculada' : 'livre'),
+        seloClasse: desligada.desligada ? 'legado' : (presaAoTempo ? 'vinculada' : 'livre'),
         turma: turma,
         professor: quem,
         contexto: desligada.desligada
@@ -1719,7 +1754,11 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, deriv
               : temLinhaDeBase
                 ? 'linha de base «' + nomeDaLinha + '» — ainda sem turma'
                 : 'aluna nova — sem turma e sem linha de base',
-        acoes: acoesDaLinha('anamnese', r, estado),
+        /* O SELO E A ACÇÃO PERGUNTAM O MESMO (19/11/2026). O `estado` que a acção recebia dizia
+         * só «um PO usa isto»; o selo passou a dizer mais (o elenco que leu, a Turma que a
+         * declara). Passar o mesmo facto aos dois é o que impede a linha de dizer «vinculada» e
+         * oferecer «Apagar». */
+        acoes: acoesDaLinha('anamnese', r, Object.assign({}, estado, { vinculada: presaAoTempo })),
         ...(anteriores ? { fatos: [anteriores] } : {}),
         caixas: [
           { rotulo: 'Turma', valor: turma || 'sem turma',
@@ -2072,7 +2111,32 @@ async function pagina(caminho, { env, menu, escola, curadorias, linhasDeBase, li
    * curadorias — com as substituídas, que são a memória de quem já esteve numa Turma. É a mesma
    * leitura que a página já fez; não há aqui uma chamada nova. */
   const memoriaDaAluna = chave === 'anamnese'
-    ? { linhas: Array.isArray(linhasDeBase) ? linhasDeBase : [], curadorias }
+    ? {
+      linhas: Array.isArray(linhasDeBase) ? linhasDeBase : [],
+      curadorias,
+      /* DE QUEM É CADA ANAMNESE (19/11/2026). O resumo do envelope declara o `alunaId` desde
+       * 18/11; é ele que desfaz o homónimo, porque é ele que diz a que pessoa um elenco se
+       * refere quando leu «Aluna B» (o `lida` da linha de base traz o CARIMBO, e o carimbo traz
+       * esta identidade). Sem o mapa, a derivação cai no apelido — e a aluna nova herda a
+       * memória da homónima. Nenhuma leitura nova: são os resumos que esta página já recebeu. */
+      anamneses: new Map((Array.isArray(resumos) ? resumos : [])
+        .map(({ resumo }) => [String((resumo && resumo.id) || ''), String((resumo && resumo.alunaId) || '')])
+        .filter(([id]) => id)),
+      /* QUEM LEU ESTE RETRATO (19/11/2026). O `lida` da linha de base é `{apelido: carimbo}`: o
+       * elenco diz QUAL anamnese leu para cada aluna. É o segundo facto que prende um registo —
+       * e não se apaga o retrato que um elenco já citou. */
+      lidaPorCarimbo: (() => {
+        const por = new Map();
+        for (const l of (Array.isArray(linhasDeBase) ? linhasDeBase : [])) {
+          if (!l || l.apagada_em || !l.lida) continue;
+          for (const carimbo of Object.values(l.lida)) {
+            const c = String(carimbo || '').trim();
+            if (c && !por.has(c)) por.set(c, String(l.nome || l.id || ''));
+          }
+        }
+        return por;
+      })(),
+    }
     : null;
   const linhas = linhasDe(chave, registos, estados, turmasDasAlunas(curadorias, linhasDeBase),
     turmaDoPlano, { gerados, historico, revalidar }, filiacao, memoriaDaAluna, direcao);
