@@ -117,7 +117,21 @@ async function escrever({ f, token, dono, repo, ref, termos, sha, mensagem }) {
   };
 }
 
-const CATEGORIAS = ['passo', 'posicao', 'direcao', 'ligacao', 'salto', 'giro'];
+/**
+ * AS CATEGORIAS VÊM DO CATÁLOGO, E NÃO DE UMA LISTA AQUI (19/11/2026).
+ *
+ * Estavam escritas à mão — seis —, e o vocabulário já usava OITO: há um `conceito` (Aplomb) e
+ * quatro `qualidade` (Adagio, Allegro, Ballon, Legato) que esta lista não tinha. O efeito era o
+ * mesmo de sempre que há duas listas do mesmo vocabulário: nenhuma delas mente sozinha, e juntas
+ * recusam o que existe. Medido a 19/11/2026: editar qualquer um desses cinco termos respondia
+ * «termo inválido — escolha a categoria», e a tela nem sequer oferecia a categoria que o termo já
+ * tinha. Pior: o `<select>` caía na primeira opção, e gravar mudava a categoria em silêncio.
+ *
+ * A lista é a do dado (`tradicoes.json` → `categorias`), que é a mesma de que saem os `<option>`
+ * da tela. Uma fonte, e o dia em que o dicionário ganhar uma categoria nova não há nada para
+ * lembrar aqui.
+ */
+const CATEGORIAS = Object.keys(require('./catalogo-seed.js').CATEGORIAS || {});
 const MEMBROS = ['pes', 'pernas', 'bracos'];
 
 /**
@@ -163,11 +177,26 @@ function validarTermo(corpo, tradicoes) {
   if (Array.isArray(tradicoes) && tradicoes.length && tradicoes.indexOf(tradicao) === -1) {
     erros.push('escolha a tradição: ' + tradicoes.join(' · '));
   }
-  let membro = String((corpo && corpo.membro) || '').trim();
-  if (categoria === 'posicao') {
-    if (MEMBROS.indexOf(membro) === -1) erros.push('uma posição tem de dizer de que membro é: ' + MEMBROS.join(' · '));
-  } else if (membro && MEMBROS.indexOf(membro) === -1) {
-    erros.push('membro desconhecido: ' + membro);
+  /* O MEMBRO É VALIDADO SÓ QUANDO VEM (19/11/2026) — e a regra antiga era uma herança morta.
+   *
+   * Exigia-se sempre: «uma posição tem de dizer de que membro é». A exigência nasceu quando o
+   * MEMBRO ERA PERGUNTADO — no passo 2 do formulário do verbete («Posição em que o exercício
+   * acontece»), que a pesquisadora mandou extinguir a 02/11/2026. Verificado a 19/11/2026: não há
+   * hoje nenhuma tela que pergunte o membro. A régua ficou a exigir uma resposta que ninguém tem
+   * onde dar, e o único efeito observável era o que ela viveu:
+   *
+   *   «Eu fui em categoria e mudei para posição e agora eu salvo o plié e nada disso dá certo e diz
+   *    que tem um erro, termo inválido. Uma posição tem de dizer de que membro é, pés, perna e
+   *    braço. Isso daqui é herança errada de quando pertencia ao estilo.»
+   *
+   * A REGRA DO DADO NÃO DESAPARECE: o `membro` continua a ser guardado quando vem, e continua a ser
+   * recusado quando é inventado — um valor fora da lista deixaria o verbete a apontar para uma
+   * posição de membro nenhum. O que deixa de acontecer é a edição ser recusada por um campo que o
+   * formulário não mostra. Quem escreve o membro é o dado que já existe (9 posições o têm) e a
+   * edição não o apaga: `editarTermo` preserva o que o corpo não traz. */
+  const membro = String((corpo && corpo.membro) || '').trim();
+  if (membro && MEMBROS.indexOf(membro) === -1) {
+    erros.push('membro desconhecido: ' + membro + ' (os membros são: ' + MEMBROS.join(' · ') + ')');
   }
   /* A COMPLEXIDADE É VALIDADA SÓ QUANDO VEM (19/11/2026). Vazia não é erro: é «ainda não
    * classificado», e é o estado de todos os verbetes que já existem. */
@@ -272,27 +301,62 @@ async function criarTermo({ f, token, dono, repo, ref, corpo, tradicoes, escola,
  * chaveado pelo NOME do exercício) não é migrado aqui: quem muda o nome de um exercício em uso
  * tem de saber que está a mudar uma referência, e a tela di-lo antes de gravar.
  */
-async function editarTermo({ f, token, dono, repo, ref, idAntigo, corpo, tradicoes }) {
+async function editarTermo({ f, token, dono, repo, ref, idAntigo, corpo, tradicoes, escola }) {
   const lido = await ler({ f, token, dono, repo, ref });
   if (!lido.ok) return lido;
-  const idx = lido.termos.findIndex((t) => t && t.id === idAntigo);
-  if (idx === -1) return { ok: false, status: 404, erro: 'termo não encontrado' };
+  /* O TERMO É ACHADO PELO DONO, E NÃO SÓ PELO `id` (19/11/2026) — e este era o defeito que ela
+   * leu como «não persiste».
+   *
+   * O ficheiro guarda DUAS cópias de um termo que a escola tem: a do catálogo e a dela, com o mesmo
+   * `id` e donos diferentes. Procurar só pelo `id` acha a PRIMEIRA — que é a do catálogo, porque é
+   * a que está mais acima —, e a edição ia para lá. As duas consequências, medidas a 19/11/2026:
+   * a escola continuava a ver a cópia DELA («mudei a complexidade do plié para complexo e não
+   * gravou») e o catálogo de todas as escolas mudava sem ninguém o pedir. O `getElementById` da
+   * tela já estava certo; o que estava errado era o servidor a responder por outro termo.
+   *
+   * A ORDEM DA PROCURA É A DA COMPOSIÇÃO: a cópia desta escola, depois a do catálogo, e nenhuma
+   * outra — o termo de OUTRA escola não se edita daqui, e o filtro de `termos()` também não o
+   * mostra: 404 é a resposta certa, e não uma edição cruzada.
+   *
+   * E QUANDO SÓ EXISTE A DO CATÁLOGO, A ESCOLA GANHA A SUA. «Cada escola vai construir o seu
+   * próprio dicionário. […] é discricionário de cada escola usar o dicionário com o termo que
+   * quiser.» Editar um termo do catálogo a partir da Produção de uma escola não pode reescrevê-lo
+   * para as outras: nasce a cópia dela (`criouVersao: true`), que passa a vencer na composição
+   * sem tocar na do catálogo — é a mesma regra que o `compor` já aplica. */
+  const alvo = String(escola || '').trim();
+  const donoDe = (t) => String((t && t.escola) || '').trim();
+  let idx = lido.termos.findIndex((t) => t && t.id === idAntigo && alvo && donoDe(t) === alvo);
+  const doCatalogo = lido.termos.findIndex((t) => t && t.id === idAntigo && !donoDe(t));
+  const criarVersao = idx === -1 && alvo !== '' && doCatalogo !== -1;
+  if (idx === -1) idx = doCatalogo;
+  if (idx === -1) {
+    return { ok: false, status: 404, erro: 'termo não encontrado' + (alvo ? ' no dicionário desta escola' : '') };
+  }
   const conferido = validarTermo(corpo, tradicoes);
   if (!conferido.ok) return { ok: false, status: 400, erro: 'termo inválido', erros: conferido.erros };
 
   const antes = lido.termos[idx];
-  const donoDoTermo = String(antes.escola || '').trim();
+  // A CÓPIA DA ESCOLA NASCE DELA, e não do catálogo — o dono é o que a faz vencer na composição.
+  const donoDoTermo = criarVersao ? alvo : donoDe(antes);
   const novo = Object.assign({}, antes, conferido.termo, {
     escola: antes.escola,
     alternativos: antes.alternativos || [],
     fonte: antes.fonte || '',
     observacoes: antes.observacoes || '',
   });
+  if (criarVersao) novo.escola = alvo;
+  /* O `membro` QUE O CORPO NÃO TRAZ FICA ONDE ESTAVA. `validarTermo` só o devolve quando vem (a
+   * régua deixou de o exigir a 19/11/2026), e o `Object.assign` acima já o preserva do `antes` —
+   * esta linha é a mesma garantia para o caso de o corpo o trazer vazio: apagar um campo que a
+   * tela não mostra é a maneira mais silenciosa de perder dado. */
+  if (!String((corpo && corpo.membro) || '').trim() && String(antes.membro || '').trim()) {
+    novo.membro = antes.membro;
+  }
   if (antes.estado) novo.estado = antes.estado;
 
   if (novo.id !== idAntigo) {
     const colide = lido.termos.some((t, i) => i !== idx && t && t.id === novo.id
-      && String(t.escola || '').trim() === donoDoTermo);
+      && donoDe(t) === donoDoTermo);
     if (colide) {
       return { ok: false, status: 409, erro: 'já existe «' + novo.termo + '» no dicionário'
         + (donoDoTermo ? ' desta escola' : '') };
@@ -300,17 +364,27 @@ async function editarTermo({ f, token, dono, repo, ref, idAntigo, corpo, tradico
   }
 
   const mudouNome = novo.termo !== antes.termo;
-  lido.termos[idx] = novo;
+  /* A CÓPIA DA ESCOLA ACRESCENTA-SE, e não substitui a do catálogo — é o que faz as outras escolas
+   * continuarem a ver o que sempre viram. A posição na lista composta não muda: `compor` guarda a
+   * ordem do catálogo quando o `id` já lá estava. */
+  if (criarVersao) lido.termos.push(novo);
+  else lido.termos[idx] = novo;
   const escrito = await escrever({
     f, token, dono, repo, ref, termos: lido.termos, sha: lido.sha,
     mensagem: 'docs(biblioteca): ajustar «' + novo.termo + '» no vocabulário do balé clássico'
-      + (mudouNome ? ' (era «' + antes.termo + '»)' : '') + '\n\n'
-      + 'Editado pela Produção (Sistema Lastro).\n',
+      + (mudouNome ? ' (era «' + antes.termo + '»)' : '')
+      + (criarVersao ? ' para a escola «' + alvo + '»' : '') + '\n\n'
+      + 'Editado pela Produção (Sistema Lastro)'
+      + (criarVersao ? ': a escola passa a ter a sua versão, e a do catálogo fica como estava.\n' : '.\n'),
   });
   if (!escrito.ok) {
     return { ok: false, status: escrito.status, erro: 'o repositório recusou a gravação (HTTP ' + escrito.status + ')' };
   }
-  return { ok: true, status: 200, de: idAntigo, para: novo.id, termo: novo, commit: escrito.commit };
+  return {
+    ok: true, status: criarVersao ? 201 : 200, de: idAntigo, para: novo.id, termo: novo,
+    ...(criarVersao ? { criouVersao: true } : {}),
+    commit: escrito.commit,
+  };
 }
 
 /**
@@ -320,14 +394,22 @@ async function editarTermo({ f, token, dono, repo, ref, idAntigo, corpo, tradico
  * ou numa relação turma↔conteúdo. Por isso a edição é RECUSADA quando o termo antigo é usado: quem
  * edita tem de saber que está a mexer numa referência, e não só numa etiqueta.
  */
-async function editarNomeDoTermo({ f, token, dono, repo, ref, idAntigo, novoNome }) {
+async function editarNomeDoTermo({ f, token, dono, repo, ref, idAntigo, novoNome, escola }) {
   const lido = await ler({ f, token, dono, repo, ref });
   if (!lido.ok) return lido;
-  const idx = lido.termos.findIndex((t) => t && t.id === idAntigo);
+  /* A MESMA PROCURA PELO DONO (19/11/2026). Este é o contrato antigo — só muda o nome —, e tinha o
+   * mesmo defeito do `editarTermo`: com duas cópias do mesmo `id`, o `findIndex` achava a do
+   * catálogo e renomeava-a, deixando a da escola com o nome velho. */
+  const alvoDaEscola = String(escola || '').trim();
+  let idx = lido.termos.findIndex((t) => t && t.id === idAntigo
+    && alvoDaEscola && String((t && t.escola) || '').trim() === alvoDaEscola);
+  if (idx === -1) idx = lido.termos.findIndex((t) => t && t.id === idAntigo && !String((t && t.escola) || '').trim());
   if (idx === -1) return { ok: false, status: 404, erro: 'termo não encontrado' };
   const novoId = idDe(novoNome);
   if (!novoId) return { ok: false, status: 400, erro: 'informe o novo nome' };
-  if (lido.termos.some((t) => t && t.id === novoId && t.id !== idAntigo)) {
+  const donoDeste = String((lido.termos[idx] && lido.termos[idx].escola) || '').trim();
+  if (lido.termos.some((t, i) => i !== idx && t && t.id === novoId
+    && String((t && t.escola) || '').trim() === donoDeste)) {
     return { ok: false, status: 409, erro: 'já existe um termo com esse nome' };
   }
   const antes = lido.termos[idx].termo;

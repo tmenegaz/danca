@@ -940,9 +940,25 @@ async function aOrigemDoVocabulario() {
   checar('e o `409` já não aparece como desfecho possível deste formulário',
     corpoDoPasso1.indexOf('já está no vocabulário') === -1);
 
+  /* O `membro` DEIXOU DE SER OBRIGATÓRIO (19/11/2026) — e a asserção que o exigia era a régua
+   * velha, não a certa. A exigência nasceu quando o membro era PERGUNTADO (o passo 2 do formulário
+   * do verbete, extinto a 02/11/2026); desde então nenhuma tela o pede, e o único efeito era
+   * recusar a edição de um termo no Dicionário — o que a pesquisadora viveu:
+   *
+   *   «Eu fui em categoria e mudei para posição e agora eu salvo o plié e nada disso dá certo e diz
+   *    que tem um erro, termo inválido. Uma posição tem de dizer de que membro é […] Isso daqui é
+   *    herança errada de quando pertencia ao estilo.»
+   *
+   * O QUE CONTINUA A SER MEDIDO, e é o que a regra protege: um membro INVENTADO é recusado, e o
+   * membro que o termo já tem não se perde numa edição que não o traz (a prova está no
+   * `provar-dicionario` §I, que é onde a edição acontece). */
   const semMembro = termoRepo.validarTermo({ termo: 'Première position', categoria: 'posicao' }, TRADICOES);
-  checar('uma posição sem `membro` é recusada — pés e braços não partilham o nome',
-    !semMembro.ok && /membro/.test(semMembro.erros.join(' ')), semMembro.erros);
+  checar('uma posição sem `membro` é ACEITE — a régua deixou de exigir um campo que nenhuma tela '
+    + 'pergunta desde 02/11/2026', semMembro.ok === true, semMembro.erros);
+  const membroInventado = termoRepo.validarTermo(
+    { termo: 'Première position', categoria: 'posicao', membro: 'rabo' }, TRADICOES);
+  checar('…mas um `membro` inventado continua a ser recusado — pés e braços não partilham o nome',
+    !membroInventado.ok && /membro/.test(membroInventado.erros.join(' ')), membroInventado.erros);
 
   // A ORIGEM: o KV está vazio, e o vocabulário aparece assim mesmo. É o que prova que a cópia
   // por escola deixou de existir — e que o botão de semear já não tem o que semear.

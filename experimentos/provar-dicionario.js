@@ -33,6 +33,15 @@
  *      campo, e não por uma lista de nomes escrita à mão. Sem esta secção, um campo novo do
  *      vocabulário (a `complexidade`, a 19/11/2026) fica no ficheiro e a tela mostra-o vazio: a
  *      gravação é aceite, o commit é feito, e o sintoma lê-se como «não grava».
+ *   I. A EDIÇÃO GRAVA NO TERMO CERTO — o da escola, e não o do catálogo. Com duas cópias do mesmo
+ *      `id` no ficheiro, procurar só pelo `id` editava a do catálogo: a escola não via a sua
+ *      mudança («mudei a complexidade para complexo e não gravou») e as outras mudavam sem ninguém
+ *      pedir. E o `membro`: a régua exigia-o sempre, mas nenhuma tela o pergunta desde 02/11/2026 —
+ *      a exigência só bloqueava a edição.
+ *   H. O DICIONÁRIO É DE CADA ESCOLA, E O FILTRO É AUTOMÁTICO. O termo de `breu` não aparece em
+ *      `viva`, e o de `batata` não aparece em `breu` — e quem o decide é o `ESCOLA_SLUG` do Worker
+ *      que serve a página, sem nenhum campo de escolha na tela. Sem esta secção, o dono está
+ *      escrito no ficheiro e ignorado na leitura: o vocabulário de uma escola aparece em todas.
  *
  *   node experimentos/provar-dicionario.js
  */
@@ -353,8 +362,14 @@ console.log('\nG. O que o vocabulário diz chega inteiro à tela');
    * porque o defeito é precisamente uma perda no meio do caminho. */
   const vocabulario = require(path.join(raiz, 'biblioteca/modalidades/bale-classico/vocabulario.json'));
   const mem = new Map();
+  /* A ESCOLA É A `viva`, E NÃO A `breu` (19/11/2026) — e é a correcção de uma asserção minha, não
+   * do produto. Esta secção compara o FICHEIRO com o que a tela recebe, campo a campo; com o filtro
+   * por escola ligado, a `breu` recebe a versão DELA do «Plié» (é a regra: a escola vence o
+   * catálogo), e a comparação acusava uma perda que não existe. A `viva` não tem termo próprio
+   * nenhum, e por isso o que ela recebe é o catálogo — que é o que esta secção quer medir. O termo
+   * da escola mede-se na secção H, pela pergunta que lhe compete. */
   const env = {
-    ESCOLA_SLUG: 'breu', SENHA_ADMIN: 's', GITHUB_TOKEN: 'x',
+    ESCOLA_SLUG: 'viva', SENHA_ADMIN: 's', GITHUB_TOKEN: 'x',
     PADD_KV: {
       async get(k) { return mem.has(k) ? mem.get(k) : null; },
       async put(k, v) { mem.set(k, String(v)); },
@@ -400,13 +415,253 @@ console.log('\nG. O que o vocabulário diz chega inteiro à tela');
     plie && { categoriaRotulo: plie.categoriaRotulo, tradicaoRotulo: plie.tradicaoRotulo });
 }
 
+/* ============================================================================================= */
+console.log('\nH. O dicionário é de cada escola, e o filtro é automático');
+
+{
+  /* AS TRÊS ESCOLAS QUE TÊM TERMO PRÓPRIO, e uma que não tem nenhum. A pergunta que ela fez —
+   * «é automático isso com a escola que está em evidência fazendo o filtro ou precisa colocar lá em
+   * dicionários um campo para escolher a escola?» — mede-se aqui, pela única coisa que a resposta
+   * pode ser: o MESMO pedido, com `ESCOLA_SLUG` diferente, dá listas diferentes. */
+  async function termosDaEscola(slug) {
+    const mem = new Map();
+    const env = {
+      ESCOLA_SLUG: slug, SENHA_ADMIN: 's', GITHUB_TOKEN: 'x',
+      PADD_KV: {
+        async get(k) { return mem.has(k) ? mem.get(k) : null; },
+        async put(k, v) { mem.set(k, String(v)); },
+        async delete(k) { mem.delete(k); },
+        async list() { return { keys: [...mem.keys()].map((name) => ({ name })), list_complete: true }; },
+      },
+    };
+    const r = await bastidores.fetch(
+      new Request('https://escola.tmenegaz77.workers.dev/api/bastidores/termos'), env);
+    const d = r && r.json ? await r.json() : {};
+    return (d && d.termos) || [];
+  }
+
+  const daBreu = await termosDaEscola('breu');
+  const daViva = await termosDaEscola('viva');
+  const daBatata = await termosDaEscola('batata');
+  const ids = (lista) => new Set(lista.map((t) => String(t.id)));
+  const deBreu = ids(daBreu);
+  const deViva = ids(daViva);
+  const deBatata = ids(daBatata);
+
+  /* «TANDU» É DA BREU, e só dela. O `viva` não tem termo próprio nenhum: vê o catálogo. */
+  provar('o termo próprio da breu está na breu', deBreu.has('tandu'), [...deBreu].length);
+  provar('…e NÃO está na viva', !deViva.has('tandu'), [...deViva].size);
+  provar('…nem na batata', !deBatata.has('tandu'), [...deBatata].size);
+  /* O PEDIDO É O MESMO — `ESCOLA_SLUG` é a única diferença. É isto que responde «é automático?». */
+  provar('o MESMO pedido dá listas diferentes: o filtro é a escola do Worker, e não um campo da tela',
+    daBreu.length !== daViva.length, { breu: daBreu.length, viva: daViva.length });
+  provar('…e nenhuma escola vê o termo da outra',
+    !deBreu.has('fora') && !deViva.has('tandu') && !deBatata.has('tandu'), null);
+
+  /* O TERMO DO CATÁLOGO CONTINUA EM TODAS — o filtro separa as ESCOLAS, e não esconde o catálogo. */
+  provar('o termo do catálogo aparece em todas as escolas',
+    deBreu.has('releve') && deViva.has('releve') && deBatata.has('releve'), null);
+  /* E QUEM TEM VERSÃO PRÓPIA DO MESMO `id` VÊ A SUA — a composição é a mesma dos produtos. */
+  const plieDaBreu = daBreu.find((t) => t.id === 'plie');
+  const plieDaViva = daViva.find((t) => t.id === 'plie');
+  provar('quem tem versão própria do mesmo termo vê a SUA (a escola vence o catálogo)',
+    plieDaBreu && plieDaBreu.origem === 'escola' && plieDaViva && plieDaViva.origem === 'catalogo',
+    { breu: plieDaBreu && plieDaBreu.origem, viva: plieDaViva && plieDaViva.origem });
+}
+
+/* ============================================================================================= */
+console.log('\nI. A edição grava no termo certo — e o «membro» deixou de bloquear');
+
+{
+  /* AS ROTAS DE VERDADE, com o repositório fingido — é a única forma de medir o que se grava. O
+   * defeito que ela viveu («grava e não persiste») tem duas metades que só se vêem juntas: o que a
+   * rota responde (ok) e QUAL linha do ficheiro mudou. */
+  const vocabulario = require(path.join(raiz, 'biblioteca/modalidades/bale-classico/vocabulario.json'));
+  const guardado = JSON.parse(JSON.stringify(vocabulario));
+  const estado = { termos: guardado };
+
+  const f = async (url, opcoes) => {
+    const doVocabulario = /\/contents\/biblioteca\/modalidades\/[^/]+\/vocabulario\.json/.test(String(url));
+    if (!opcoes || !opcoes.method || opcoes.method === 'GET') {
+      if (doVocabulario) {
+        return { ok: true, status: 200, json: async () => ({
+          sha: 'abc', content: Buffer.from(JSON.stringify(estado.termos), 'utf8').toString('base64'),
+        }) };
+      }
+      /* AS OUTRAS LEITURAS DO ACERVO RESPONDEM «NÃO HÁ NADA», e não uma excepção. A guarda de
+       * proveniência (`usosDosPlanos`) devolve `null` quando a leitura dos planos falha — e `null`
+       * significa «não sei se está em uso», que ela traduz em «não apago». Um stub que atira ao
+       * chão todas as leituras recursava TODOS os apagamentos, e a prova teria de os declarar
+       * impossíveis em vez de medir o caminho. A árvore vazia é a resposta honesta desta bancada:
+       * nesta escola de prova não há plano nenhum. */
+      /* A ÁRVORE VEM COM `ok: true`, e não só com `status: 200` — o acervo confere `r.ok`, e um
+       * objecto de prova sem ele é «não li a árvore» (falhou a medir isto antes de o perceber). */
+      if (/git\/trees/.test(String(url))) {
+        return { ok: true, status: 200, json: async () => ({ tree: [], truncated: false }) };
+      }
+      return { status: 404, json: async () => ({ message: 'Not Found' }), text: async () => '' };
+    }
+    if (!doVocabulario) {
+      /* AS OUTRAS ESCRITAS SÃO DO ACERVO (o índice dos envelopes), e o seu conteúdo não é o
+       * vocabulário. Tratá-las como vocabulário reescreveria o dicionário com um índice — a prova
+       * passaria a medir o seu próprio estrago. */
+      /* A RESPOSTA TEM DE PARECER A DO GITHUB: o acervo lê o `sha` do ficheiro que acabou de
+       * escrever, e uma resposta sem ele faz a escrita do índice falhar — e, com ela, a listagem
+       * dos planos, que é o que a guarda de proveniência consulta antes de deixar apagar. */
+      return { status: 200, json: async () => ({ content: { sha: 'indice' }, commit: { sha: 'indice' } }) };
+    }
+    const corpo = JSON.parse(opcoes.body || '{}');
+    estado.termos = JSON.parse(Buffer.from(corpo.content, 'base64').toString('utf8'));
+    return { status: 200, json: async () => ({ commit: { sha: 'def' } }) };
+  };
+
+  const mem = new Map();
+  const env = {
+    ESCOLA_SLUG: 'breu', SENHA_ADMIN: 's', GITHUB_TOKEN: 'x',
+    PADD_KV: {
+      async get(k) { return mem.has(k) ? mem.get(k) : null; },
+      async put(k, v) { mem.set(k, String(v)); },
+      async delete(k) { mem.delete(k); },
+      async list() { return { keys: [...mem.keys()].map((name) => ({ name })), list_complete: true }; },
+    },
+  };
+
+  async function chamar(metodo, corpo, escola) {
+    const e = escola ? Object.assign({}, env, { ESCOLA_SLUG: escola }) : env;
+    const anterior = globalThis.fetch;
+    globalThis.fetch = f;
+    try {
+      const resposta = await bastidores.fetch(new Request(
+        'https://escola.tmenegaz77.workers.dev/api/bastidores/termo',
+        { method: metodo, headers: { 'Content-Type': 'application/json' },
+          /* `senhaDirecao` E NÃO `token`: quando o corpo traz um `token`, é ele que a guarda
+           * confere — e um token de prova inválido responde 401 antes de a rota olhar para o
+           * termo. A senha da direção é a que o formulário usa. */
+          body: JSON.stringify(Object.assign({ senhaDirecao: env.SENHA_ADMIN }, corpo)) }), e);
+      return resposta && resposta.json ? await resposta.json() : resposta;
+    } finally { globalThis.fetch = anterior; }
+  }
+
+  /* A RÉGUA CONHECE AS CATEGORIAS QUE O DADO USA — e não conhecia: seis escritas à mão contra oito
+   * no vocabulário. Medido a 19/11/2026: os cinco termos de `conceito`/`qualidade` não se podiam
+   * editar, e o `<select>` da tela caía na primeira opção (gravar mudava a categoria em silêncio). */
+  const categoriasDoDado = [...new Set(vocabulario.map((t) => String(t.categoria || '')))].sort();
+  const categoriasDaRegua = [...termoRepo.CATEGORIAS].sort();
+  provar('a régua conhece TODAS as categorias que o vocabulário usa',
+    categoriasDoDado.every((c) => categoriasDaRegua.indexOf(c) !== -1),
+    { doDado: categoriasDoDado, daRegua: categoriasDaRegua });
+
+  const copiasDePlie = () => estado.termos.filter((t) => t && t.id === 'plie')
+    .map((t) => ({ dono: String(t.escola || ''), complexidade: t.complexidade, categoria: t.categoria }));
+
+  /* ── O CASO DELA, EXACTO: só a complexidade, de «simples» para «complexo». ─────────────── */
+  const antes = copiasDePlie();
+  const r1 = await chamar('PUT', {
+    id: 'plie', nome: 'Plié', categoria: 'passo', tradicao: 'compartilhada',
+    complexidade: 'complexo', descricao: 'flexão contínua',
+  });
+  provar('editar só a complexidade é aceite', r1 && r1.ok === true, r1);
+  const depois = copiasDePlie();
+  provar('…e grava na cópia DA ESCOLA, que é a que a tela mostra',
+    depois.some((c) => c.dono === 'breu' && c.complexidade === 'complexo'), depois);
+  provar('…e NÃO reescreve a do catálogo, que é de todas as escolas',
+    depois.some((c) => c.dono === '' && c.complexidade === antes.find((a) => a.dono === '').complexidade),
+    depois);
+  provar('…e não acrescenta uma terceira cópia do mesmo termo',
+    depois.length === antes.length, { antes: antes.length, depois: depois.length });
+
+  /* ── O «MEMBRO»: a herança que bloqueava, e o que continua a ser recusado. ─────────────── */
+  const r2 = await chamar('PUT', {
+    id: 'plie', nome: 'Plié', categoria: 'posicao', tradicao: 'francesa',
+    complexidade: 'complexo', descricao: 'flexão contínua',
+  });
+  provar('mudar a categoria para «posição» sem dizer o membro é aceite — a régua exigia um campo '
+    + 'que nenhuma tela pergunta desde 02/11/2026', r2 && r2.ok === true, r2);
+  const plieDaBreu = estado.termos.find((t) => t && t.id === 'plie' && String(t.escola || '') === 'breu');
+  provar('…e a categoria e a tradição gravam-se',
+    plieDaBreu && plieDaBreu.categoria === 'posicao' && plieDaBreu.tradicao === 'francesa',
+    plieDaBreu && { categoria: plieDaBreu.categoria, tradicao: plieDaBreu.tradicao });
+  const r3 = await chamar('PUT', {
+    id: 'retire', nome: 'Retiré', categoria: 'posicao', tradicao: 'compartilhada',
+    membro: 'rabo', descricao: 'd',
+  });
+  provar('…mas um MEMBRO INVENTADO continua a ser recusado', r3 && r3.ok === false
+    && JSON.stringify(r3.erros || []).indexOf('rabo') !== -1, r3 && r3.erros);
+  provar('…e nada é gravado quando a régua recusa',
+    !estado.termos.some((t) => t && t.id === 'retire' && String(t.escola || '') === 'breu'), null);
+  /* O MEMBRO QUE JÁ EXISTE NÃO SE PERDE. O «Retiré» do catálogo declara «pernas»; uma edição que
+   * não traz o campo (é o caso desta tela, que o não pergunta) não pode apagá-lo. */
+  const membroDoCatalogo = String((estado.termos.find((t) => t && t.id === 'retire'
+    && !String(t.escola || '')) || {}).membro || '');
+  const r3b = await chamar('PUT', {
+    id: 'retire', nome: 'Retiré', categoria: 'posicao', tradicao: 'compartilhada', descricao: 'd',
+  });
+  const retireDaBreu = estado.termos.find((t) => t && t.id === 'retire' && String(t.escola || '') === 'breu');
+  provar('…e o membro que o termo já tinha não se perde numa edição que não o traz',
+    r3b && r3b.ok === true && retireDaBreu && retireDaBreu.membro === membroDoCatalogo,
+    retireDaBreu && { membro: retireDaBreu.membro, esperado: membroDoCatalogo });
+
+  /* ── A ESCOLA QUE AINDA NÃO TINHA CÓPIA GANHA A SUA, e o catálogo fica como estava. ───── */
+  const antesDoFork = estado.termos.length;
+  /* O TERMO DA PROVA É O «APLOMB», e não um qualquer: a guarda de proveniência recusa apagar o que
+   * um plano, uma turma ou o ALFABETO referem — e «Plié», «Relevé», «Battement tendu/jeté/fondu»
+   * estão nos quatro sítios ao mesmo tempo. O «Aplomb» não está em nenhum, e por isso o ciclo
+   * completo (a escola ganha a sua versão → apaga-a → o catálogo volta) pode ser medido. */
+  const doCatalogo = estado.termos.find((t) => t && t.id === 'aplomb' && !String(t.escola || ''));
+  const r4 = await chamar('PUT', {
+    id: 'aplomb', nome: 'Aplomb', categoria: 'conceito', tradicao: 'compartilhada',
+    complexidade: 'complexo', descricao: 'nova definição',
+  }, 'viva');
+  provar('uma escola sem cópia própria edita — e ganha a dela', r4 && r4.ok === true, r4);
+  provar('…o ficheiro ganha uma cópia, e não uma reescrita',
+    estado.termos.length === antesDoFork + 1, { antes: antesDoFork, agora: estado.termos.length });
+  provar('…e a versão do catálogo fica intacta para as outras escolas',
+    String(estado.termos.find((t) => t && t.id === 'aplomb' && !String(t.escola || '')).descricao)
+      === String(doCatalogo.descricao), null);
+  provar('…e a nova é DELA',
+    estado.termos.some((t) => t && t.id === 'aplomb' && String(t.escola || '') === 'viva'),
+    estado.termos.filter((t) => t && t.id === 'aplomb').map((t) => String(t.escola || '')));
+
+  /* ── O TERMO DE OUTRA ESCOLA NÃO SE EDITA DAQUI. ──────────────────────────────────────── */
+  const r5 = await chamar('PUT', {
+    id: 'tandu', nome: 'Tandu', categoria: 'passo', tradicao: 'compartilhada',
+    complexidade: 'complexo', descricao: 'x',
+  }, 'viva');
+  provar('o termo de OUTRA escola não se edita — a resposta é 404, e não uma edição cruzada',
+    r5 && r5.ok === false && r5.status === 404, r5 && { status: r5.status, erro: r5.erro });
+
+  /* ── APAGAR: sai a cópia da escola, e a do catálogo volta a valer. ───────────────────────
+   *
+   * O CASO É O DA `breu` E É O QUE ELA VAI VIVER: a `breu` ganhou agora uma versão sua do «Relevé»
+   * (a asserção do fork acima correu na `viva`; esta repete-a na `breu`), e apagá-la não pode
+   * levar consigo a do catálogo — que é a de todas as outras escolas. */
+  const r6a = await chamar('PUT', {
+    id: 'aplomb', nome: 'Aplomb', categoria: 'conceito', tradicao: 'compartilhada',
+    complexidade: 'complexo', descricao: 'versão da breu',
+  });
+  provar('a breu ganha a sua versão do «Aplomb»', r6a && r6a.ok === true
+    && estado.termos.some((t) => t && t.id === 'aplomb' && String(t.escola || '') === 'breu'), r6a);
+  const r6 = await chamar('DELETE', { id: 'aplomb' });
+  provar('apagar o termo da escola é aceite', r6 && r6.ok === true, r6);
+  provar('…e o catálogo continua lá — a tela passa a mostrar a versão dele',
+    r6 && r6.voltouAoCatalogo === true
+      && estado.termos.some((t) => t && t.id === 'aplomb' && !String(t.escola || '')), r6);
+  provar('…e só a cópia da escola desapareceu',
+    !estado.termos.some((t) => t && t.id === 'aplomb' && String(t.escola || '') === 'breu'),
+    estado.termos.filter((t) => t && t.id === 'aplomb').map((t) => String(t.escola || '')));
+  provar('…e a versão da outra escola (a `viva`) não foi tocada',
+    estado.termos.some((t) => t && t.id === 'aplomb' && String(t.escola || '') === 'viva'), null);
+}
+
 console.log('\n' + (falhas
   ? 'FALHOU — ' + falhas + ' de ' + provas + ' asserção(ões).'
   : 'TUDO CERTO — ' + provas + ' asserções: o Dicionário é irmão das outras secções e guarda o '
     + 'exercício (nome, categoria, tradição, complexidade, definição); o Estilo escolhe dele e '
     + 'ficou com cinco passos; a complexidade é opcional e não se escreve em cima do dono; '
     + '«Carregar verbetes» adopta a progressão de referência, sem duplicar; e o que o vocabulário '
-    + 'diz chega inteiro à tela — a ponte do catálogo não perde campo.'));
+    + 'diz chega inteiro à tela — a ponte do catálogo não perde campo; e o dicionário é de cada '
+    + 'escola, filtrado automaticamente pela escola do Worker; e a edição grava no termo dessa '
+    + 'escola, não no do catálogo.'));
 process.exit(falhas ? 1 : 0);
 }
 

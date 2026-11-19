@@ -3199,6 +3199,18 @@ catálogo **entrega-se com limites**, e o que a escola constrói **não é do pr
 > `experimentos/provar-dicionario.js`: a secção **G** (o termo chega à tela campo a campo, sem
 > perda) e a secção **H** (o termo de `breu` não aparece em `viva`, e o mesmo pedido com
 > `ESCOLA_SLUG` diferente dá listas diferentes).
+>
+> **E as duas ESCRITAS do dicionário passaram a ser da escola (19/11/2026).** Com o filtro ligado,
+> o ficheiro guarda **duas** cópias de um termo que a escola tem — a do catálogo e a dela, com o
+> mesmo `id` —, e as duas rotas procuravam só pelo `id`: achavam a do catálogo, que é a primeira.
+> Medido: a `breu` mudava a complexidade do «Plié», a rota respondia `ok`, e a tela continuava a
+> mostrar a versão dela (o sintoma lê-se como «não grava»), enquanto o catálogo de **todas** as
+> escolas mudava sem ninguém pedir. Agora `editarTermo` e o `DELETE` resolvem o termo por
+> **(dono, `id`)** — a cópia da escola primeiro, a do catálogo depois, e nenhuma outra (o termo de
+> outra escola responde `404`) —, e **editar um termo do catálogo a partir da escola cria a versão
+> dela** (`criouVersao`), sem tocar na do catálogo: é o `compor` aplicado à escrita. Apagar segue a
+> mesma ordem ao contrário — sai a cópia da escola e o catálogo volta a valer —, e a guarda de
+> proveniência só limpa as relações de turma quando o `id` deixa de existir por completo.
 
 **O repositório é privado** (`tmenegaz/danca`, verificado a 02/11/2026). Não há hoje distribuição
 pública de nada — logo não há obrigação criada por distribuição, e a decisão é de negócio, não de

@@ -53931,3 +53931,65 @@ asserções do rail repostas), `provar-acoes-da-linha` 75, `provar-menu-da-produ
 `provar-conteudos-e-estado-da-turma` ok, `check-identidade` ok. `provar-verbete` continua com a
 única falha que já reprovava no `HEAD` (§J), e `provar-producao` 142/159, as mesmas do `HEAD`.
 
+### 19/11/2026 — «Termo inválido: uma posição tem de dizer de que membro é» — a régua morta, e a edição que ia para o termo errado
+
+**O relato, e são dois defeitos juntos.**
+
+> «Eu cliquei em editar e aí eu fui ali em complexidade e mudei para complexo. Eu fui em tradução
+> compartilhada e mudei para francesa. Eu fui em categoria e mudei para posição e agora eu salvo o
+> plié e nada disso dá certo e diz que tem um erro, termo inválido. Uma posição tem de dizer de que
+> membro é, pés, perna e braço. Isso daqui é herança errada de quando pertencia ao estilo. […]
+> Quando eu tento editar somente a complexidade […] ele não persiste também.»
+
+**1. O `membro`: uma régua que exigia uma resposta que ninguém tem onde dar.** A exigência nasceu
+quando o membro era **perguntado** — no passo 2 do formulário do verbete, «Posição em que o exercício
+acontece», que ela mandou **extinguir a 02/11/2026**. Verificado a 19/11/2026: **nenhuma tela
+pergunta o membro**. A régua ficou a exigir o que não se pode responder, e o único efeito observável
+era recusar a edição. Passou a ser validada **só quando vem** — a mesma forma da `complexidade` —, e
+o valor continua a ser recusado quando é inventado (um membro fora da lista deixaria o verbete a
+apontar para uma posição de membro nenhum), e o `membro` que o termo já tem **não se perde** numa
+edição que não o traz.
+
+**2. A edição ia para o termo errado — e é por isso que «não persistia».** O ficheiro guarda
+**duas** cópias de um termo que a escola tem: a do catálogo e a dela, com o mesmo `id` e donos
+diferentes. As rotas procuravam só pelo `id`, e o `findIndex` achava a **primeira** — a do catálogo.
+Medido antes da correcção: a `breu` mudava a complexidade do «Plié», a rota respondia `ok`, e as
+cópias ficavam `catalogo: complexo`, `breu: simples` — a escola continuava a ver a sua («não gravou»)
+e o catálogo de **todas** as escolas mudava sem ninguém pedir. Agora o termo é resolvido por
+**(dono, `id`)**: a cópia da escola, depois a do catálogo, e nenhuma outra — o termo de outra escola
+responde `404`, e não uma edição cruzada. E **editar um termo do catálogo a partir da escola cria a
+versão dela** (`criouVersao`, `201`), sem tocar na do catálogo: é o `compor` aplicado à escrita, e é
+o que a frase dela pede — «cada escola vai construir o seu próprio dicionário […] é discricionário de
+cada escola usar o dicionário com o termo que quiser».
+
+**3. O `DELETE` tinha o mesmo defeito, ao contrário.** Apagava a cópia do **catálogo** quando quem
+pedia era a escola a tirar a sua. Corrigido pela mesma ordem: sai a cópia da escola e o catálogo
+volta a valer (`voltouAoCatalogo`); a do catálogo só sai quando não há cópia da escola — e é o caso
+em que o aviso «deixa de existir para TODAS as escolas» é verdade, agora com um texto que distingue
+os dois. As relações de turma só se limpam quando o `id` deixa de existir por completo — antes,
+apagar a cópia da escola levava consigo uma associação de turma que continuava válida.
+
+**4. As categorias: seis escritas à mão contra oito no dado.** `termo-repo.js` tinha
+`['passo','posicao','direcao','ligacao','salto','giro']` e o vocabulário usa também `conceito`
+(Aplomb) e `qualidade` (Adagio, Allegro, Ballon, Legato). Consequência medida: **os cinco termos não
+se podiam editar** — «termo inválido, escolha a categoria» — e o `<select>` da tela, sem a opção,
+caía na primeira, de modo que gravar **mudava a categoria em silêncio**. A lista passou a derivar do
+dado (`CATALOGO.CATEGORIAS`, o mesmo mapa que serve os `<option>`), e as duas categorias que faltavam
+entraram no `tradicoes.json` com rótulo — que é texto meu, e é o primeiro que se corrige se ela
+quiser outro.
+
+**Medido.** `provar-dicionario` passou a **88** asserções (a secção **I**, vinte e uma novas: editar
+só a complexidade grava na cópia da escola e não na do catálogo; a categoria «posição» sem membro é
+aceite e membro inventado é recusado; o membro existente sobrevive; a escola sem cópia ganha a sua
+sem tocar no catálogo; o termo de outra escola dá 404; apagar deixa o catálogo e não toca a versão da
+outra escola; e a régua conhece todas as categorias que o dado usa). **Controlo negativo, dois
+eixos:** repondo o `termo-repo.js` do `HEAD`, **14 de 88 reprovam**, e as mensagens são exactamente
+os dois defeitos dela — `{dono: "", complexidade: "complexo"}` com a cópia da `breu` em `simples`, e
+`uma posição tem de dizer de que membro é: pes · pernas · bracos`. Repondo o `tradicoes.json`, a
+asserção das categorias reprova com `{doDado: 8 categorias, daRegua: 6}`.
+
+`provar-verbete` tinha uma asserção a exigir a régua velha («uma posição sem `membro` é recusada») —
+reescrita para a regra de hoje, com a negativa ao lado (membro inventado continua recusado). Resta
+nela a falha da §J, que já reprovava no `HEAD`. Vizinhas: `provar-producao` 142/159 (as mesmas do
+`HEAD`, medido nos dois lados), `provar-produtos` 87/89 (as mesmas do `HEAD`), `provar-menu-da-
+producao` 55/55, `provar-painel` ok.

@@ -17513,9 +17513,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var t = null;' +
     '  DICIONARIO.forEach(function(x){ if (x && String(x.id) === String(id)) t = x; });' +
     '  var nome = t ? String(t.termo || "") : String(id || "");' +
-    '  if (!confirm("Excluir «" + nome + "» do dicionário?\\n\\n' +
+    /* A FRASE DIZ O QUE VAI ACONTECER, E AGORA NÃO É SEMPRE A MESMA (19/11/2026). Com o dicionário
+     * de cada escola, apagar um termo tem dois efeitos possíveis, e o aviso prometia só um deles:
+     * a versão da escola sai e a do catálogo volta a valer; ou — quando não há versão da escola —
+     * o termo sai mesmo do ficheiro, para todas. Dizer «deixa de existir para TODAS» no primeiro
+     * caso é assustar sem motivo; dizer o contrário no segundo é esconder o que se vai perder. */
+    '  var daEscola = t && String(t.origem || "") === "escola";' +
+    '  var aviso = daEscola' +
+    '    ? "Excluir «" + nome + "» do dicionário desta escola?\\n\\n' +
+    'A versão do catálogo volta a valer aqui. As outras escolas nunca viram esta." ' +
+    '    : "Excluir «" + nome + "» do dicionário?\\n\\n' +
     'O verbete deixa de existir para TODAS as escolas: o vocabulário é um ficheiro só. ' +
-    'Se algum plano ou alguma turma o usar, o sistema recusa — e diz onde.")) return;' +
+    'Se algum plano ou alguma turma o usar, o sistema recusa — e diz onde.";' +
+    '  if (!confirm(aviso)) return;' +
     '  ocupar("excluindo\\u2026", null);' +
     '  fetch("/api/bastidores/termo", {' +
     '    method: "DELETE",' +
@@ -24477,9 +24487,20 @@ function parDaSalaNoCorpo(corpo, registo) {
           categoria: String(corpo.categoria || '').trim(),
           tradicao: String(corpo.tradicao || 'compartilhada').trim(),
           complexidade: String(corpo.complexidade || '').trim(),
+          /* O MEMBRO PASSA, QUANDO VEM (19/11/2026). A régua deixou de o EXIGIR — nenhuma tela o
+           * pergunta desde 02/11/2026 —, mas continua a RECUSÁ-LO quando é inventado, e para isso
+           * tem de o ver: sem esta linha, um `membro: 'rabo'` era aceite em silêncio e gravado no
+           * termo, porque a rota o descartava antes de a validação correr. */
+          membro: String(corpo.membro || '').trim(),
           descricao: String(corpo.descricao || '').trim(),
         },
         tradicoes: TRADICOES_DO_VOCABULARIO,
+        /* A ESCOLA VAI JUNTO (19/11/2026), e é ela que decide QUAL cópia se edita. O ficheiro
+         * guarda duas de um termo que a escola tem — a do catálogo e a dela —, e procurar só pelo
+         * `id` editava a do catálogo: a escola não via a sua mudança («mudei a complexidade para
+         * complexo e não gravou») e as outras escolas mudavam sem ninguém pedir. É o mesmo
+         * `escolaDe` que o resto das rotas usa — a escola do Worker que serve a página. */
+        escola: escolaDe(env, url),
       });
       return json(r.ok ? 200 : (r.status || 400), r);
     }
@@ -24491,6 +24512,7 @@ function parDaSalaNoCorpo(corpo, registo) {
       token: env && env.GITHUB_TOKEN,
       dono: 'tmenegaz', repo: 'danca', ref: 'main',
       idAntigo, novoNome,
+      escola: escolaDe(env, url),
     });
     return json(r.ok ? 200 : (r.status || 400), r);
   }
@@ -24535,7 +24557,19 @@ function parDaSalaNoCorpo(corpo, registo) {
       dono: 'tmenegaz', repo: 'danca', ref: 'main',
     });
     if (!lido.ok) return json(lido.status || 502, { ok: false, erro: lido.erro });
-    const idxNoRepo = lido.termos.findIndex((t) => t && t.id === id);
+    /* APAGA-SE A CÓPIA DA ESCOLA, E SÓ A DELA (19/11/2026). O ficheiro guarda duas cópias de um
+     * termo que a escola tem, e procurar só pelo `id` apagava a do CATÁLOGO — a de todas as
+     * escolas — quando quem pediu era a `breu` a tirar o termo dela. A regra passa a ser a da
+     * composição, ao contrário: se a escola tem versão própria, é essa que sai, e a do catálogo
+     * volta a valer para ela (é o que o aviso da tela já promete). Só quando não há cópia da
+     * escola é que se apaga a do catálogo — e é o caso em que a frase «deixa de existir para TODAS
+     * as escolas» é verdadeira. */
+    const escolaDaVez = escolaDe(env, url);
+    let idxNoRepo = lido.termos.findIndex((t) => t && t.id === id
+      && escolaDaVez && String((t && t.escola) || '').trim() === escolaDaVez);
+    if (idxNoRepo === -1) {
+      idxNoRepo = lido.termos.findIndex((t) => t && t.id === id && !String((t && t.escola) || '').trim());
+    }
     if (idxNoRepo === -1) return json(404, { ok: false, erro: 'termo não encontrado no vocabulário' });
     lido.termos.splice(idxNoRepo, 1);
     const escrito = await escreverVocabulario({
@@ -24547,16 +24581,28 @@ function parDaSalaNoCorpo(corpo, registo) {
     if (!escrito.ok) {
       return json(escrito.status || 400, { ok: false, erro: 'o repositório recusou a gravação (HTTP ' + escrito.status + ')' });
     }
-    const rel = await relacoes(kv, escola);
-    let mudou = false;
-    for (const k of Object.keys(rel)) {
-      if (Array.isArray(rel[k]) && rel[k].indexOf(id) !== -1) {
-        rel[k] = rel[k].filter((x) => x !== id);
-        mudou = true;
+    /* AS RELAÇÕES SÓ CAEM QUANDO O TERMO DEIXA DE EXISTIR (19/11/2026). Se o que saiu foi a cópia
+     * da escola, o termo do catálogo continua lá, com o mesmo `id` — e limpar as relações da turma
+     * apagaria uma associação que continua válida. A pergunta certa é «ficou algum termo com este
+     * `id`?», e não «o que é que eu acabei de apagar?». */
+    const aindaExiste = lido.termos.some((t) => t && t.id === id);
+    if (!aindaExiste) {
+      const rel = await relacoes(kv, escola);
+      let mudou = false;
+      for (const k of Object.keys(rel)) {
+        if (Array.isArray(rel[k]) && rel[k].indexOf(id) !== -1) {
+          rel[k] = rel[k].filter((x) => x !== id);
+          mudou = true;
+        }
       }
+      if (mudou) await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel));
     }
-    if (mudou) await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel));
-    return json(200, { ok: true, termo: id, removido: true });
+    /* `voltouAoCatalogo` DIZ O QUE ACONTECEU, e é o que a tela precisa para não prometer o
+     * contrário: a cópia da escola saiu e a versão do catálogo passou a valer para ela. */
+    return json(200, {
+      ok: true, termo: id, removido: true,
+      ...(aindaExiste ? { voltouAoCatalogo: true } : {}),
+    });
   }
 
   // POST /api/bastidores/turma-conteudo — associar um termo a uma turma (sem duplicar).
