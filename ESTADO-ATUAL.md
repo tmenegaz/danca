@@ -4621,9 +4621,41 @@ anamnese, e a nota da passagem — sem a grelha de **nichos** que o cartão da S
 mesmos factos. **Não foi tocado** nesta entrega, por ordem dela (primeiro a anamnese); o registo da
 correcção da anamnese está no `REGISTRO.md` a 19/11/2026.
 
+**RESOLVIDO a 19/11/2026 — o gesto que gravava e depois dizia que não.** O relato dela juntava duas
+frases que pareciam contraditórias — «deu `Erro: limparOVerbete is not defined`» e «apareceu a
+mensagem informando que foi gravado» — e as duas eram verdadeiras: **o servidor gravou**, a resposta
+chegou com `ok`, e a excepção veio **depois**, de uma função que ficou chamada e sem corpo numa
+reescrita. O `.catch` escreveu-a no `.res`, e um erro de JavaScript ficou com a cara de uma recusa do
+produto. **CONFIRMADO** por A/B: a prova nova, corrida contra o `bastidores.js` anterior, nomeia os
+três nomes órfãos (`limparOVerbete` ×1, `recadoDoDicionario` ×2); hoje, zero. Correcção em
+`ARQUITETURA-GERAL.md` §5.32, com a regra que sai dela: *o que vem depois da gravação não se reporta
+como se fosse a gravação*.
+
+**RESOLVIDO a 19/11/2026 — o glossário que travava o fecho dos derivados.** A verificação 8 do
+`check-indices` reprovava o glossário do «Código de dança» (`.md` e `.html`) por «sem tipo
+declarado», o passo «Commitar os derivados» ficava `skipped` e o derivado não fechava. **Causa:** o
+`slugDe` escreve `_` (foi feito para **chaves**), e os padrões de declaração só conheciam `[a-z]` e
+`[a-z0-9-]` — é o primeiro glossário cujo slug tem mais de uma palavra. Os dois padrões passaram a
+aceitar `_`, e `indices/esquema/**` entrou nos `paths` do `derivados.yml`. **CONFIRMADO:** o
+`derivados` voltou a passar (run 76, `success`).
+
+**PENDENTE dela — o nome de arquivo do glossário é `_` ou `-`?** O ficheiro ficou
+`…-glossario-codigo_de_danca.md` porque o `slugDe` foi escrito para chaves e passou a nomear ficheiros.
+Renomear para kebab-case (`…-glossario-codigo-de-danca.md`) alinharia com a convenção dos outros
+nomes, mas mexe em **dado e em âncora**: o nome já está no `DOCS` do manifesto e no pacote publicado.
+Não se muda sem ela decidir.
+
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **19/11/2026** — **Um erro de código com a cara de uma recusa do produto.** O `limparOVerbete` ficou
+  chamado e sem corpo, a gravação aconteceu e a tela mostrou `Erro: limparOVerbete is not defined`
+  por cima do aviso a dizer «gravado». **CONFIRMADO** por A/B (a prova nova nomeia os três nomes
+  órfãos no `bastidores.js` anterior; hoje, zero). A regra está na §5.32 do `ARQUITETURA-GERAL.md`:
+  *o que vem depois da gravação não se reporta como se fosse a gravação*. No mesmo dia, o fecho dos
+  derivados voltou a passar — a verificação 8 do `check-indices` reprovava o glossário do «Código de
+  dança» por «sem tipo declarado», por causa do `_` que o `slugDe` põe nos nomes. Ver o `REGISTRO.md`.
 
 - **18/11/2026** — **Uma prova que parecia morta estava viva: 26 de 30 passavam.** A
   `provar-passo-um-do-verbete` aparecia na §9 como vermelha, e a leitura fácil era «não serve
