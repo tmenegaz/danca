@@ -1712,6 +1712,7 @@ Verificado nesta fotografia, com os comandos da §9.
 
 `PLANO-AULA-E-OBSERVACAO.md` · `PLANO-TABELA-DE-ATIVIDADES.md` · `PLANO-NAVEGACAO.md` ·
 `PLANO-INDICES.md` · `PLANO-CICLO-DA-TURMA.md` · `PLANO-PERGUNTAS-DA-PROVENIENCIA.md` ·
+`PLANO-FLUXOS-DE-DERIVACAO.md` (os nove passos dos fluxos, um a um) ·
 `DIAGNOSTICO-IDENTIDADE.md` · `IMPLEMENTACAO-IDENTIDADE.md` · `ARQUITETURA-*.md` · `IDEIA-*.md`
 
 ### Código
@@ -1732,7 +1733,7 @@ Verificado nesta fotografia, com os comandos da §9.
 | `motor/nucleo/derivar-ciclo.js` | a fonte da aula: as oito secções, e a origem de cada uma |
 | `motor/nucleo/notacao.js` | o compositor: verbete + música → a grade de contagens |
 | `porta/`, `tools/templates/` | a folha e o desenho (peças do catálogo) |
-| `experimentos/provar-*.js` | **91** provas versionadas (104 no disco) |
+| `experimentos/provar-*.js` | **257** provas versionadas (**270** no disco). Medido a 19/11/2026 — a linha dizia «91 (104)», e era um número escrito sem ser medido |
 | `tools/regerar-derivados.js` | põe as fontes derivadas de um ciclo em dia a partir dos envelopes |
 | `tools/` | infraestrutura — **congelado** |
 
@@ -4646,6 +4647,20 @@ rótulo. O fim do gesto — aviso no canto, formulário limpo, secção recolhid
 com formulário. **O que a prova mede é a ausência**, e não a presença: enquanto um `textContent = …`
 decidir o texto de um botão, a nona secção divergirá na primeira vez que precisar de um caso novo.
 
+**ABERTO a 19/11/2026 — os fluxos de derivação, e a decisão que os destranca.** A verificação da
+verdade mediu o que dispara hoje: **cinco** rotas percorrem a cadeia (`turma-editar`, `turma-derivar`,
+`linha-de-base`, `elenco-mover`, `curadoria-derivar`), e **oito gestos** que deviam percorrê-la não a
+percorrem — o primeiro é o que ela nomeou, **mudar o professor de uma sala**. A causa de fundo não é o
+gatilho que falta: é a **cópia**. A Turma guarda `professor`, `modalidade` e `tradicao` copiados da
+Sala, e o gesto de Salas escreve só na Sala — medido: a Sala diz `redinha-rosa`, a Turma diz
+`pe-torto`, o professor novo não vê a turma que passou a dar, e a cadeia **não** apanha a troca (a
+etapa não fica `bloqueada`; sobra a data). Ligar o gatilho hoje derivaria o nome errado — é o que o
+comentário da própria rota diz, e tem razão. **O T1 do [`PLANO-FLUXOS-DE-DERIVACAO.md`](PLANO-FLUXOS-DE-DERIVACAO.md)
+está à espera de uma decisão dela:** a Turma passa a **ler** o par da Sala (A, recomendada), ou a Sala
+**propaga** para a Turma (B)? E, com o T7, falta o dado de que a regra «o passado não se mexe» precisa:
+o sistema conhece o **período**, não a **data de cada aula** — só sabe que aulas foram lançadas.
+**CONFIRMADO** por `provar-os-fluxos-da-derivacao` (29) e pela §3.4 do `ARQUITETURA-GERAL.md`.
+
 **PENDENTE dela — o nome de arquivo do glossário é `_` ou `-`?** O ficheiro ficou
 `…-glossario-codigo_de_danca.md` porque o `slugDe` foi escrito para chaves e passou a nomear ficheiros.
 Renomear para kebab-case (`…-glossario-codigo-de-danca.md`) alinharia com a convenção dos outros
@@ -4655,6 +4670,15 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **19/11/2026** — **A verificação da verdade dos fluxos: um gatilho que falta, e as duas cópias do
+  professor.** Nenhum código mudou — mediu-se. Cinco rotas percorrem a cadeia e oito gestos que deviam
+  não a percorrem; o gesto de **mudar o professor de uma sala** grava a Sala e deixa a Turma a dizer o
+  antigo, não traz `cadeia` na resposta, e o professor novo **não vê** a turma que passou a dar,
+  enquanto o antigo continua autorizado a escrever-lhe o plano. A cadeia, com a cópia velha, **não
+  apanha** a troca; com a cópia nova diz `bloqueada` com a frase da autoria. E a regra «o passado não
+  se mexe» **não tem o dado de que precisa**: sabe-se o período, não a data de cada aula. Ver a §3.4
+  nova do `ARQUITETURA-GERAL.md`, o `PLANO-FLUXOS-DE-DERIVACAO.md` (nove passos) e o `REGISTRO.md`.
 
 - **19/11/2026** — **«Gravar é gravar»: oito botões, um rótulo, e o fim do gesto em todas as
   secções.** Os oito botões que gravam um formulário diziam oito frases diferentes — «Criar

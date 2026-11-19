@@ -54330,3 +54330,68 @@ o gesto da Audição num DOM. **A/B medido:** contra o `motor/servidor/bastidore
 `provar-cadastro-da-aluna` (a secção K lê `#tmodalidade`, que deixou de existir em 19/11/2026 — a
 modalidade passou para o passo 2) e `provar-acordeoes` (uma excepção em `parentElement`, idêntica
 antes e depois). Nenhuma delas é deste dia.
+
+### 19/11/2026 — A verificação da verdade dos fluxos: um gatilho que falta, e as duas cópias do professor
+
+> «Eu preciso que você faça uma verificação da verdade. […] tem situações que eu acho que já não
+> correspondem mais à verdade dos fluxos que desenhamos lá na arquitetura geral. […] Se eu mudar um
+> professor de sala, preciso que dispare o processo todo […] Em turma, eu não tenho mais um vínculo
+> com professor. Eu tenho uma relação direta com a sala. É a sala que é associada a um professor.»
+
+Este dia não corrigiu código: **mediu**. A regra de casa é que um número escrito sem ser medido é uma
+mentira por omissão, e a pergunta dela — «isto ainda é verdade?» — só se responde com bancada.
+
+**1. O que dispara, hoje.** Cinco rotas chamam `rodarCadeia`: `turma-editar` e `turma-derivar` (a Sala),
+`linha-de-base` (o Elenco), `elenco-mover` (a aluna transferida) e `curadoria-derivar` (a Turma). É
+menos do que a §3.3 do `ARQUITETURA-GERAL` dava a entender: as tabelas de lá foram escritas quando o
+par (modalidade, professor) vivia na Turma, e descrevem o que o sistema **faz**, não o que deixa de
+fazer.
+
+**2. O que não dispara — e é a lista das divergências.** Mudar o professor (ou a modalidade) de uma
+Sala; os conteúdos da Sala, um a um; editar o Estilo; editar o Dicionário; mudar a régua do professor;
+desligar o professor (marca, não percorre); apagar o elenco que uma Turma declara. Está tudo nomeado na
+§3.4 nova, com a razão de cada um.
+
+**3. A causa de fundo: o professor da Turma é uma cópia.** A Turma continua a guardar `professor`,
+`modalidade` e `tradicao`, copiados da Sala no dia em que foi gravada. A Sala passou a ser a autoridade
+a 18/11/2026, e a cópia ficou — duas cópias do mesmo facto, que é o que o §5.8 diz que acaba a divergir.
+Divergiu, e mediu-se:
+
+| o que se mediu | resultado |
+|:--|:--|
+| depois de `turma-professor`, a Sala diz | `redinha-rosa` |
+| …e a Turma diz | `pe-torto` |
+| …e a resposta do gesto traz `cadeia`? | **não** |
+| …e o professor novo vê a turma em `curadoria-professor`? | **não** (0) |
+| …e o antigo continua a vê-la? | **sim** (1) |
+| …e a cadeia apanha a troca de professor? | **não** — a etapa não fica `bloqueada`; o que sobra é a data |
+| e com a cópia **nova** na Turma? | `bloqueada`, com a frase certa: *«a autoria não se reescreve»* |
+
+**E é por isso que o gatilho não está ligado — e o comentário que lá está tem razão.** A rota
+`turma-professor` diz: «o professor da sala não está no plano: o envelope traz o seu próprio
+`contexto.professor`». É verdade: ligar a cadeia hoje derivaria um elo a declarar o professor **antigo**.
+A correcção não é ligar o gatilho; é **primeiro** resolver a cópia (T1 do plano) e só depois ligá-lo (T2).
+
+**4. Dois nomes que enganam.** `indice().completa` significa «as quatro peças **existem**» — vem `true`
+com etapas `pendente`. E o `-aula-01.md` é o **único** documento de aula que a geração escreve: a §8 do
+plano aponta para uma `aula-02` «ainda não elaborada», e os marcos são `N: texto`, **sem data**.
+
+**5. O calendário — a regra dela não tem hoje o dado de que precisa.** O calendário do ciclo é o
+**período** (`{inicio, fim}`); não há data por aula. O que o sistema sabe é **que aulas foram lançadas**
+(o `aulas[n]` do `-dados.json`, que a geração **preserva**). Logo: a evidência do que aconteceu está
+protegida, e o **programado** é reescrito sem olhar a se o que mudou é passado ou futuro — porque, sem
+data por aula, não há como saber. É o T7, e é o maior.
+
+**6. O que continua verdadeiro.** A ordem da cadeia; «a autoria não se deriva»; o plano a exigir a
+Turma (403 na porta) — «somente a partir da turma definida é que podemos ter um plano de ensino», como
+ela disse; o `aulas` preservado; e a cadeia a nunca derrubar o gesto que a chamou.
+
+**Medido.** Prova nova `experimentos/provar-os-fluxos-da-derivacao.js` — **29 asserções**, e a matriz de
+gatilhos é lida do **fonte** (as cinco rotas que chamam `rodarCadeia`, e as seis que deviam e não
+chamam, nomeadas uma a uma), para o documento e a prova não poderem divergir em silêncio. É a bancada
+desta frente: cada passo do `PLANO-FLUXOS-DE-DERIVACAO.md` acrescenta-lhe asserções, e nenhum deles
+fecha antes de a bancada ficar verde.
+
+**Documentação.** `ARQUITETURA-GERAL.md` **§3.4** nova — a verificação da verdade, com as duas tabelas,
+as duas cópias, os dois nomes que enganam e o calendário. `PLANO-FLUXOS-DE-DERIVACAO.md` novo — os nove
+passos, um a um, com a dependência, o que muda, como se mede, e o que fica para ela decidir em cada um.

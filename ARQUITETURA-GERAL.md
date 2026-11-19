@@ -1054,6 +1054,99 @@ derivação e o log) é de `motor/servidor/cadeia.js`. O log das travessias lê-
 
 ---
 
+### 3.4 A verificação da verdade dos fluxos — o que dispara hoje, e o que não dispara *(19/11/2026)*
+
+> «Eu preciso que você faça uma verificação da verdade. […] tem situações que eu acho que já não
+> correspondem mais à verdade dos fluxos que desenhamos lá na arquitetura geral. […] Se eu mudar um
+> professor de sala, preciso que dispare o processo todo […] Em turma, eu não tenho mais um vínculo
+> com professor. Eu tenho uma relação direta com a sala. É a sala que é associada a um professor.»
+
+**Esta secção existe porque as tabelas acima descrevem o que o sistema FAZ por gesto, e não o que
+ele DEIXA DE FAZER.** Elas foram escritas quando o par (modalidade, professor) vivia na Turma; a
+18/11/2026 ele passou para a Sala, e a 19/11/2026 a régua passou para o professor. O que se mede
+abaixo é o estado do código a 19/11/2026 — `experimentos/provar-os-fluxos-da-derivacao.js`,
+**29 asserções**, que é a bancada desta secção.
+
+#### O que percorre a cadeia, hoje
+
+Cinco rotas chamam `rodarCadeia` — e são as cinco que a §3.3 nomeia:
+
+| rota | o gesto |
+|:--|:--|
+| `POST /api/bastidores/turma-editar` | a **Sala**, corrigida no lugar |
+| `POST /api/bastidores/turma-derivar` | a **Sala**, derivada (elo novo) |
+| `POST /api/bastidores/linha-de-base` | o **Elenco**, gravado ou concluído |
+| `POST /api/bastidores/elenco-mover` | a **aluna transferida** entre elencos |
+| `POST /api/bastidores/curadoria-derivar` | a **Turma**, derivada |
+
+#### O que NÃO percorre — e é a lista das divergências
+
+| rota | o gesto | por que importa |
+|:--|:--|:--|
+| `POST /api/bastidores/turma-professor` | **mudar o professor (ou a modalidade) de uma Sala** — «eu faço isso em salas» | é o primeiro gesto que ela nomeia, e é o único que muda quem dá a aula. Não dispara nada |
+| `POST /api/bastidores/curadoria` | a Turma gravada no lugar (elenco, nível, grau, tradição) | só acontece quando a Turma **não tem** plano — a vinculada já é recusada (409) e vai pela derivação. O buraco é o **elenco**: trocá-lo aqui re-carimba o corpo sem passar pela cadeia |
+| `POST /api/bastidores/turma-conteudo` (e `DELETE`) | os **conteúdos** da Sala, um a um (o mapa antigo `turma-conteudos`) | escreve a relação que os documentos derivados leem, **sem guarda nenhuma** — nem a de ter plano |
+| `POST/PUT/DELETE /api/bastidores/verbete` | o **Estilo** — o exercício com verbete | muda a notação e o glossário que os documentos derivados imprimem |
+| `POST/PUT/DELETE /api/bastidores/termo` | o **Dicionário** — o exercício | o mesmo, quando o exercício está em uso por uma Turma |
+| `POST /api/bastidores/rubrica-do-professor` | a **régua** do professor | é a escala contra a qual o PO mede. Muda o instrumento, e nada é marcado |
+| `POST /api/bastidores/professor-desligar` | o professor que sai | encerra a direção e marca a Turma `descontinuada` — **marca**, mas não percorre |
+| `DELETE /api/bastidores/linha-de-base` | apagar o elenco que uma Turma declara | deixa a Turma a apontar para um elenco que já não existe. A cadeia sabe dizê-lo (`bloqueada`), mas ninguém a corre |
+
+#### A causa de fundo: o professor da Turma é uma CÓPIA
+
+A Turma continua a **guardar** `professor`, `modalidade` e `tradicao` — copiados da Sala no dia em
+que foi gravada. A Sala passou a ser a autoridade (18/11/2026), e a cópia ficou. São **duas cópias
+do mesmo facto**, que é exactamente o que o §5.8 diz que acaba a divergir — e divergiu:
+
+- `turma-professor` escreve na **Sala** e não toca na **Turma**. Medido: depois do gesto, a Sala diz
+  `redinha-rosa` e a Turma diz `pe-torto`;
+- a **lista que autoriza o plano** (`GET /api/bastidores/curadoria-professor`) filtra pelo professor
+  da **Turma**: medido, o professor novo não vê a turma que passou a dar, e o antigo continua a
+  vê-la — e continua autorizado a escrever-lhe o plano (a porta recusa 403 ao novo);
+- a **cadeia** compara a direção do documento com o professor da **Turma** (`direcaoDeHoje`). Como a
+  cópia velha diz o antigo, a guarda que existe para apanhar a troca de professor (`professorMudou`)
+  **não a apanha**: medido, a etapa do plano não fica `bloqueada`; o único motivo que sobra é a data.
+  Com a cópia **nova** na Turma — o estado que a derivação da Turma produz —, a cadeia diz
+  `bloqueada` e a frase é a certa: *«a autoria não se reescreve — este professor escreve o plano
+  dele»*.
+
+**E é por isso que o gesto de Salas não dispara a cadeia: disparar hoje gravaria o nome errado.** O
+comentário que está na rota (`turma-professor`) di-lo com todas as letras — «o professor da sala não
+está no plano: o envelope traz o seu próprio `contexto.professor`» —, e é verdade: derivar o plano
+com a cópia velha produziria um elo que declara o professor antigo. A correcção não é ligar o
+gatilho; é **primeiro** resolver a cópia, e só depois ligar.
+
+#### Dois nomes que enganam
+
+| nome | o que parece | o que é |
+|:--|:--|:--|
+| `indice().completa` | «está tudo em dia» | «as **quatro peças existem**» — vem `true` com etapas `pendente`. Medido |
+| `-aula-01.md` | «a aula 1 do ciclo» | o **único** documento de aula que a geração escreve. A §8 do plano aponta para uma `aula-02` «ainda não elaborada», e os marcos são `N: texto` — **sem data** |
+
+#### O calendário: o que o sistema sabe sobre «o que já passou»
+
+O calendário do ciclo é `contexto-calendario = {inicio, fim}` — o **período**. Não há data por aula.
+O que o sistema sabe com precisão é **que aulas foram lançadas**: o `-dados.json` traz
+`aulas[n]` (presentes, ausentes, marcas), e a geração **preserva** esse mapa em cada derivação. Logo:
+
+- a **evidência do que aconteceu** está protegida (o `aulas` não se reescreve);
+- o **programado** (o `-plano.md` e o `-aula-01.md`) é reescrito a cada geração, sem olhar a se o que
+  mudou é passado ou futuro — porque, sem data por aula, **não há como saber**;
+- a regra que ela fixou — *«com a data da mudança, o que está para trás não se mexe e o que está
+  para a frente se altera»* — **não tem hoje o dado de que precisa**. É a tarefa maior do
+  [`PLANO-FLUXOS-DE-DERIVACAO.md`](PLANO-FLUXOS-DE-DERIVACAO.md) (T8), e não se resolve com um `if`.
+
+#### O que continua verdadeiro nas tabelas acima
+
+- a **ordem** da cadeia (elenco → Turma → PE → PO) é a de hoje;
+- a **autoria não se deriva** — a regra de 12/11/2026 continua a valer, e é o que a cadeia faz quando
+  a cópia da Turma está certa;
+- o **plano de ensino exige a Turma**: a porta recusa **403** quando a sala não está atribuída ao
+  professor que a pede — «somente a partir da turma definida é que podemos ter um plano de ensino»,
+  como ela disse. O que muda, com a divergência acima, é **quem** conta como «o professor da turma».
+
+---
+
 ## 4. Por que sistema de arquivos e não banco de dados
 
 ### 4.1 Proveniência é história, não estado

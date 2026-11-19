@@ -1672,3 +1672,9 @@ experimentos/modelo-formulario/*
 # o script servido não o reescreve —, e a asserção é negativa de propósito: é a reescrita que reabre
 # a divergência na próxima secção nova.
 !experimentos/provar-gravar-e-gravar.js
+
+# A VERIFICAÇÃO DA VERDADE SOBRE OS FLUXOS (19/11/2026). Oitava vez que a armadilha do
+# `experimentos/*` aparece. Ela mede o que nenhuma outra mede: que o gesto de mudar o professor de
+# uma sala grava a Sala e deixa a Turma a dizer o antigo, não dispara a cadeia, e o professor novo
+# não vê a turma que passou a dar — e lista, do código, as rotas que disparam e as que deviam.
+!experimentos/provar-os-fluxos-da-derivacao.js
