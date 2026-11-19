@@ -52827,3 +52827,81 @@ Professor com a da Audição.
 `provar-regua-do-professor` 42/42, `provar-salas-e-elencos` 132, `provar-abas-da-audicao` 125,
 `provar-menu-da-producao` 55/55, `provar-estado-da-turma` 28/28, `check-identidade` 11 checagens ok;
 `provar-producao` 147 de 159 — as mesmas 12 de antes, nenhuma nova.
+
+### 19/11/2026 — «eu nem cliquei em gravar, e ele gravou»: o Avançar deixa de gravar
+
+> «Eu criei a sala chamada Rosa. Aí cliquei em avançar. Aí cliquei em voltar. Aí mudou o nome da
+> sala, cliquei em avançar de novo, gravou a sala. Então agora eu tenho duas salas gravadas e eu nem
+> cliquei ainda em gravar a sala. Isso está errado. […] Isso está acontecendo em audição também
+> acontece isso, em estilo também acontece isso. Todos os que têm step isso está acontecendo. Em
+> professores isso também acontece. Tem que corrigir.»
+
+**A causa era a mesma nos quatro.** O botão do passo 1 era `<button type="submit">`, e o `submit` de
+cada formulário gravava. «Avançar» prometia IR e fazia GRAVAR: cada passagem pelo passo 1 deixava um
+registo no KV — na sala, duas salas com nomes diferentes —, e quem voltasse para corrigir uma vírgula
+pagava o erro com um registo a mais.
+
+**O que passou a acontecer:** o passo 1 COMPÕE e não escreve; a sequência tem UM ponto de gravação,
+no fim, e é ele que leva tudo o que os passos compostos juntaram.
+
+1. **Salas.** `#t-enviar` passou a `type="button"` (navega), e o `submit` — que fica, para o Enter não
+   submeter por GET — faz o mesmo. O «Gravar sala» do passo 2 envia a sala inteira: os campos do
+   passo 1 e o par (modalidade, professor). E `POST /api/bastidores/turma-professor` passou a saber
+   CRIAR: quando não encontra a sala, cria-a pelas mesmas três regras do `POST /turma` (nome, nome
+   único entre as vigentes, ritmo completo), com as mesmas frases de recusa. Sem isso, o passo 2 teria
+   de recusar a sala que a pessoa acabou de compor. Quando a sala já existe, são duas escritas — a
+   sala e o par — porque são dois actos; falhando o segundo, a sala fica sem par, que é um estado
+   visível (o cartão diz «sem professor») e não um estado mentiroso.
+2. **Professores.** `#prof-enviar` passou a `type="button"`: valida, guarda a ficha composta num
+   rascunho (`producao:professor-rascunho`) e abre o passo 2. O «Gravar cadastrar professor» passou a
+   gravar a ficha (do rascunho) **e** a régua, pela ordem certa: a ficha devolve o `slug`, e é esse
+   slug que a régua usa. O rascunho é esquecido ao gravar e no «Cancelar». `postar()` ganhou um
+   terceiro argumento (o que fazer no sucesso) e um quarto (o botão a ocupar) — sem este último, o
+   ecrã não dizia que o pedido estava a decorrer, porque o formulário deixou de ter um `submit`.
+3. **Audição.** `irParaPassoLb` deixou de gravar: avança, e diz o que falta quando um passo não abre.
+   A leitura das anamneses continua a gravar quando não encontra registo — é ela que precisa de onde
+   guardar, e é a decisão de 05/11/2026, que fica.
+4. **Estilo.** O «Seguir» do passo 1 cria o exercício do dicionário, e continua: um exercício é uma
+   entidade própria, não duplica (o `exercicioExistente` resolve o caso em casa) e é ele que o passo 2
+   escolhe. O verbete grava-se no «Gravar verbete», como sempre.
+5. **O professor só se escolhe depois da modalidade.** «O nome do professor só pode ser carregado a
+   partir da modalidade. É pela modalidade que eu vou saber quais são os professores.» A lista nasce
+   VAZIA e o campo desabilitado; quem o acende é a escolha da modalidade. Antes, sem modalidade, a
+   lista oferecia a escola inteira — e uma escolha feita nessa lista valia até alguém tocar no campo
+   que deveria tê-la recortado.
+
+**Duas armadilhas apanhadas a medir, e as duas já conhecidas desta casa:**
+
+- **um `+` que faltou** no fim de uma linha de concatenação: o script saía truncado a meio (a página
+  ficava com metade das funções) e o `node --check` do fonte passava, porque o fonte está certo — quem
+  estava errado era o que ele emite;
+- **três chamadas de arranque a ler uma `var` ainda sem valor.** `filtrarProfessoresPelaModalidade()`
+  e `pintarReguaDoProfessor()` corriam a meio do script, antes de `PROFESSORES_DA_ESCOLA`; e
+  `perfilDoProfessor` era chamada por `preencherPerfisVisiveis` antes de `PERFIS` existir, e
+  `Object.prototype.hasOwnProperty.call(undefined, …)` lançava «Cannot convert undefined or null to
+  object». A excepção abortava as instruções seguintes — entre elas a atribuição de
+  `MOTOR_DO_PROFESSOR` e o ouvinte de clique do «Editar»: a página parecia inteira e nenhum botão
+  respondia. A guarda é a mesma de `pintarReguaDoProfessor` (sem mapa, «não sei»), e as chamadas
+  desceram para o fim.
+
+**E um defeito de leitura que só apareceu por causa do passo novo:** `alvoDoRecado()` escolhia o
+PRIMEIRO `.res` da secção, e o do passo 1 fica escondido quando o passo 2 abre. O recado do «Gravar
+cadastrar professor» era escrito num elemento invisível: o erro acontecia, a mensagem existia no DOM,
+e a tela ficava igual. Passou a preferir o `.res` que está à vista.
+
+**Medido, e não estimado** — `experimentos/provar-avancar-nao-grava.js`, 24 asserções em jsdom com o
+`fetch` interceptado: **14 falham no `HEAD`, 24/24 agora**. Mede o gesto pelo efeito (quantos pedidos
+de escrita saíram), e não pelo texto do script: clicar «Avançar» três vezes, mudando o nome pelo meio,
+não produz uma única escrita; o «Gravar sala» produz exactamente uma, com o nome composto e o par.
+
+**Bancadas vizinhas, medidas antes e depois:** `provar-salas-e-elencos` 132 (uma asserção atualizada:
+sem modalidade a lista já não oferece ninguém), `provar-abas-da-audicao` 125,
+`provar-turma-sem-professor` 23, `provar-estado-da-turma` 28, `provar-menu-da-producao` 55,
+`provar-pagina-do-professor` 17, `provar-regua-do-professor` 42, `provar-sala-e-portao` 27,
+`check-identidade` ok, `provar-producao` 147/159 (as mesmas 12).
+
+**Três bancadas foram reparadas, porque codificavam o desenho antigo e uma delas escondia um defeito
+de verdade:** `provar-teste` (44 verificações, agora passa — media `#vinc-rubrica`, que já não
+existe), `provar-editar-professor-principal` (**13 falhas no `HEAD`, 33/33** — e passou a apanhar os
+erros do CARREGAMENTO, que é onde a excepção do `perfilDoProfessor` vivia sem deixar rasto) e
+`provar-cadastro-visivel` (**8 de 12 no `HEAD`, 12/12** — o botão medido mudou de passo).

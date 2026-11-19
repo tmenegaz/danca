@@ -290,16 +290,25 @@ async function estadoForaDaEdicao() {
   const d1 = semEdicao.window.document;
   assert.equal(d1.getElementById('tnome').value, '');
   assert.equal(d1.getElementById('rubr-nome').value, '');
-  assert.equal(d1.getElementById('vinc-rubrica').value, '');
-  ok('sem «Editar», o estado antigo não restaura: turma, rubrica e associação ficam vazias');
+  /* O `#vinc-rubrica` SAIU (19/11/2026): a régua deixou de se associar à sala por um `select` da
+   * escola — ela vem com o professor, e a régua compõe-se em Professores. O passo 2 das Salas passou
+   * a perguntar a modalidade e o professor. A asserção mede a mesma coisa (o estado antigo não
+   * restaura) nos campos que existem hoje. */
+  assert.equal(d1.getElementById('vinc-modalidade').value, '');
+  assert.equal(d1.getElementById('vinc-professor').value, '');
+  ok('sem «Editar», o estado antigo não restaura: sala, régua e o par modalidade × professor ficam vazios');
   semEdicao.window.close();
 
   const emEdicao = await abrir(true);
   const d2 = emEdicao.window.document;
   assert.equal(d2.getElementById('tnome').value, 'Turma Antiga');
-  assert.equal(d2.getElementById('rubr-nome').value, 'Régua Antiga');
-  assert.equal(d2.getElementById('vinc-rubrica').value, 'r1');
-  ok('com «Editar», o mesmo estado volta a preencher os três formulários');
+  /* A RÉGUA JÁ NÃO VOLTA PELO ESTADO DA SALA (19/11/2026) — «a régua é do professor». O campo
+   * `#rubr-nome` existe nesta página, mas é o do passo 2 do cadastro DELE, e ele não se preenche
+   * com o estado de uma sala: `estadoDoFormulario` deixou de capturar a rubrica, e a régua vem do
+   * registo da pessoa (`professores/<slug>/rubrica`). O que continua a valer — e é o que esta
+   * secção mede — é a memória do que a pessoa escreveu: o nome da sala. */
+  assert.equal(d2.getElementById('rubr-nome').value, '');
+  ok('com «Editar», o estado volta a preencher a sala (e a régua já não vem por aqui)');
   emEdicao.window.close();
   srv.close();
 }

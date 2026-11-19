@@ -740,13 +740,19 @@ const RITMO = {
       };
       await new Promise((r) => winG.setTimeout(r, 300));
 
-      /* ---- 1. SEM MODALIDADE, TODOS — a lista existe antes da escolha. ----
+      /* ---- 1. SEM MODALIDADE, NINGUÉM (19/11/2026, mudando a regra do dia anterior). ----
        *
        * O `select` MUDOU DE NOME A 19/11/2026: era `rubr-professor` (a régua dizia de quem era) e
-       * passou a `vinc-professor` (escolhe-se a PESSOA). A regra que esta secção guarda é a mesma —
-       * a modalidade do passo 1 recorta a lista do passo 2 —, e é isso que continua medido. */
-      conferir('sem modalidade escolhida, o professor da rubrica oferece os três',
-        valores('vinc-professor').length === 3, valores('vinc-professor'));
+       * passou a `vinc-professor` (escolhe-se a PESSOA).
+       *
+       * E A REGRA DA LISTA MUDOU NO MESMO DIA, por palavras dela: «o nome do professor só pode ser
+       * carregado a partir da modalidade. É pela modalidade que eu vou saber quais são os
+       * professores.» Antes, sem modalidade, a lista oferecia a escola inteira — e uma escolha feita
+       * nessa lista valia até alguém tocar no campo da modalidade. A lista nasce VAZIA e o campo
+       * desabilitado; quem o acende é a escolha da modalidade. Medido em `provar-avancar-nao-grava`,
+       * secção F, e aqui na sequência. */
+      conferir('sem modalidade escolhida, o professor da rubrica NÃO oferece ninguém',
+        valores('vinc-professor').filter((v) => v !== '').length === 0, valores('vinc-professor'));
 
       /* ---- 2. ESCOLHIDO JAZZ, SAEM OS QUE DECLARAM OUTRA MODALIDADE. ---- */
       /* A MODALIDADE MUDOU DE PASSO A 19/11/2026: era `tmodalidade` no passo 1 e passou a ser

@@ -7860,7 +7860,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * segunda aba só faz sentido depois de a primeira existir. O botão diz o que vai acontecer —
      * grava, e passa à aba seguinte, já com o professor em foco. */
     '<span class="par-botoes">' +
-    '<button type="submit" class="acao grande" id="prof-enviar">Avançar</button>' +
+    /* «AVANÇAR» É IR, E NÃO GRAVAR (19/11/2026) — `type="button"`, e não `submit`.
+     *
+     * «Em professores isso também acontece. Todos os que têm step isso está acontecendo.» O
+     * `submit` deste formulário gravava o professor; o passo 1 passou a compor, e a gravação é uma
+     * só — no fim, no «Gravar cadastrar professor», que leva a ficha E a régua. */
+    '<button type="button" class="acao grande" id="prof-enviar">Avançar</button>' +
     /* O «CANCELAR» EXISTE NOS DOIS PASSOS, E É O MESMO ATO (19/11/2026) — «quando clico em editar,
      * está faltando o botão cancelar». Ele é pintado por `pintarCancelarDoProfessor`, a partir do
      * MODO que a tela declara (`#prof-modo`) e não de um caminho de clique: assim aparece em
@@ -8316,7 +8321,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // explicação — um botão. `aplicarEditando` mostra-o quando há algo para cancelar.
     '<div class="res" data-res="turmas"></div>' +
     '<span class="par-botoes">' +
-    '<button type="submit" class="acao grande" id="t-enviar" disabled>Avançar</button>' +
+    /* «AVANÇAR» É IR, E NÃO GRAVAR (19/11/2026) — `type="button"`, e não `submit`.
+     *
+     * «Eu criei a sala chamada Rosa. Aí cliquei em avançar. Aí cliquei em voltar. Aí mudou o nome
+     * da sala, cliquei em avançar de novo, gravou a sala. Então agora eu tenho duas salas gravadas
+     * e eu nem cliquei ainda em gravar a sala.»
+     *
+     * O botão era `type="submit"`, e o `submit` deste formulário grava. Cada passagem pelo passo 1
+     * escrevia uma sala no KV — e voltar para corrigir o nome escrevia outra. A sequência passa a
+     * ter UMA gravação, no fim: o «Gravar sala» do passo 2, que leva consigo o que este passo
+     * compôs. */
+    '<button type="button" class="acao grande" id="t-enviar" disabled>Avançar</button>' +
     '<button type="button" class="acao secundario cancelar-edicao" id="t-cancelar" hidden>Cancelar</button>' +
     '</span>' +
     '</form>' +
@@ -8371,9 +8386,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     /* O `select` DO PROFESSOR NASCE NO SERVIDOR com as opções (a peça da casa: marcação, e não
      * `createElement`). Ele é REPINTADO pelo cliente quando a modalidade muda — e é por isso que a
      * lista canónica de professores viaja na página (`PROFESSORES_DA_ESCOLA`). */
+    /* O PROFESSOR SÓ SE CARREGA A PARTIR DA MODALIDADE (19/11/2026).
+     *
+     * «O nome do professor só pode ser carregado a partir da modalidade. É pela modalidade que eu vou
+     * saber quais são os professores. Quando eu escolher o professor, aí vem todas as informações que
+     * precisam estar ali para o professor.»
+     *
+     * O `select` nascia no servidor com a ESCOLA INTEIRA e só se recortava depois de a modalidade
+     * mudar — e quem abria o passo 2 sem modalidade via todos os professores da casa, escolhia um, e
+     * a escolha ficava a valer até a modalidade ser tocada. A lista passou a nascer vazia e
+     * desabilitada, e é a escolha da modalidade que a acende (ver `filtrarProfessoresPelaModalidade`).
+     * A lista completa continua a viajar na página (`PROFESSORES_DA_ESCOLA`): é dela que o filtro
+     * constrói as opções. */
     '<label class="campo-rotulo" for="vinc-professor">Professor que aplica a régua</label>' +
-    '<select id="vinc-professor" name="professor"><option value="">— escolher —</option>' +
-    (opcoesDeProfessorDaRubrica || '') +
+    '<select id="vinc-professor" name="professor" disabled>' +
+    '<option value="">— escolha a modalidade primeiro —</option>' +
     '</select>' +
     /* A TRADIÇÃO E A RÉGUA SÃO LEITURA, e a leitura é do par (professor × modalidade): um professor
      * de clássico e jazz tem tradições diferentes em cada um, e a pergunta feita aqui é «nesta
@@ -9796,7 +9823,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * professores. Sem ela o passo 2 pergunta «quem?» sobre uma lista inteira, e o par que a
      * curadoria deriva nasce sem a primeira metade. */
     '  var selM = document.getElementById("vinc-modalidade");' +
-    '  if (!turmaEmFoco()) falta.push("escolher a sala");' +
+    /* A SALA NÃO PRECISA DE ESTAR GRAVADA PARA ESTE PASSO ACENDER (19/11/2026).
+     *
+     * Ela exigia `turmaEmFoco()` — «há uma sala gravada». Desde que o «Avançar» deixou de gravar, o
+     * passo 2 é justamente onde a sala NASCE: o «Gravar sala» cria-a. Pedir aqui uma sala gravada
+     * deixava o botão apagado no caminho de criar, e a sequência não fechava.
+     *
+     * O que se exige é uma sala COMPOSTA: em foco (quem a abriu em «Editar») ou completa no
+     * formulário do passo 1 (quem a está a criar). Sem nenhuma das duas, aí sim falta. */
+    '  if (!turmaEmFoco() && faltaDaTurma().length) falta.push("compor a sala no passo 1");' +
     '  if (!selM || !String(selM.value || "").trim()) falta.push("escolher a modalidade");' +
     '  if (!selP || !String(selP.value || "").trim()) falta.push("escolher o professor");' +
     // A EXIGÊNCIA DE «PELO MENOS UM CONTEÚDO» SAIU A 03/11/2026, e pelo mesmo motivo que a do
@@ -10022,8 +10057,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var v = e.vincular;' +
     '  if (v) {' +
     // A SALA EM FOCO é restaurada pela chave própria (`producao:vinc-turma`), que é a que
-    // `ajustarTurma` e `avancarParaProfessor` escrevem. O estado guarda-a como cópia, para o
-    // caso de a chave se perder.
+    // `ajustarTurma` escreve (ao abrir «Editar») e `concluirTurma`, ao fim da gravação. O estado
+    // guarda-a como cópia, para o caso de a chave se perder.
     '    if (v.turma) { try { sessionStorage.setItem("producao:vinc-turma", v.turma); } catch (err) {} }' +
     /* O PROFESSOR ESCOLHIDO VOLTA (19/11/2026) — e a reposição é por OPÇÃO EXISTENTE, como era a
      * régua: escrever o valor às cegas num `<select>` cuja lista ainda não chegou deixa o campo em
@@ -10082,25 +10117,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * «vincular». Manter o nome antigo mandaria a pessoa para uma chave de `sessionStorage` que já
      * não tem painel — o `mostrarPasso` devolvê-la-ia ao passo 1, e o «Avançar» não avançaria nada,
      * que é exactamente a queixa que a 12/11/2026 já tinha corrigido uma vez. */
-    'function avancarParaProfessor(d){' +
-    '  try {' +
-    '    var e = estadoDoFormulario();' +
-    '    if (d && d.id) {' +
-    '      sessionStorage.setItem("producao:vinc-turma", d.id);' +
-    '      e.turma = e.turma || {};' +
-    '      e.turma.__derivar = d.id;' +
-    // O MODO VEM DA RESPOSTA, e o «criar» NÃO LIGA A EDIÇÃO (19/10/2026). Antes este
-    // caminho gravava `producao:editando` mesmo quando a turma acabara de NASCER — e era
-    // isso que fazia a rubrica e a associação de uma turma anterior reaparecerem no
-    // processo de criar. Só «editar» e «derivar» ligam o modo; «criar» segue vazio.
-    '      e.turma.__modo = d.modo === "derivar" ? "derivar" : d.modo === "editar" ? "editar" : "criar";' +
-    '      if (d.modo === "editar" || d.modo === "derivar") sessionStorage.setItem("producao:editando", "turma");' +
-    '      else sessionStorage.removeItem("producao:editando");' +
-    '    }' +
-    '    gravarEstadoObjeto(e);' +
-    '    sessionStorage.setItem("producao:passo", "vincular");' +
-    '  } catch (err) {}' +
-    '}' +
+    /* `avancarParaProfessor` MORREU A 19/11/2026, e é bom que se saiba porquê: ela era o `aoOk` do
+     * `submit` do formulário da sala, o callback que punha a sala criada em foco e mandava ao passo
+     * 2. Esse `submit` deixou de gravar — o «Avançar» agora só navega —, e quem cria a sala é o
+     * «Gravar sala», cujo `concluirTurma` fecha o formulário e limpa a memória. Um callback sem
+     * chamador é código morto: fica a parecer que há um segundo caminho de gravação.
+     *
+     * O que ela fazia e continua a ser preciso — pôr a sala em foco e o modo — é feito agora por
+     * `ajustarTurma` (ao clicar «Editar» na listagem) e pelo `concluirTurma` (ao gravar). */
     // «GRAVAR TURMA» CONCLUI: o formulário fecha e a memória do preenchimento é limpa —
     // senão a próxima turma começaria com os dados da anterior.
     /* CONCLUIR A TURMA (a curadoria) — E O FORMULÁRIO VOLTA VAZIO (11/11/2026).
@@ -10462,7 +10486,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    var doVerbete = secao.querySelector(".res[data-res=verbetes]");' +
     '    if (doVerbete) return doVerbete;' +
     '  }' +
-    '  var proprio = secao ? secao.querySelector(".res") : null;' +
+    /* O PRIMEIRO `.res` DA SECÇÃO PODE ESTAR DENTRO DE UM PASSO ESCONDIDO (19/11/2026).
+     *
+     * O formulário do professor tem um `.res` por passo, e o passo 1 esconde-se quando o passo 2
+     * abre. O recado do «Gravar cadastrar professor» era escrito no `.res` do passo 1 — escondido —,
+     * e a pessoa não via nada: o erro acontecia, a mensagem existia no DOM, e a tela ficava igual.
+     * É a pior espécie de silêncio, porque o trabalho foi feito e a resposta não chegou.
+     *
+     * A escolha passa a preferir o `.res` que está À VISTA: um `.res` dentro de um `[hidden]` não
+     * serve para dizer nada. Sem nenhum à vista, cai no primeiro (é o que as outras secções usam) e
+     * depois no `#res` do topo. */
+    '  var candidatos = secao ? secao.querySelectorAll(".res") : [];' +
+    '  for (var i = 0; i < candidatos.length; i++) {' +
+    '    var dentroDeEscondido = candidatos[i].closest("[hidden]");' +
+    '    if (!dentroDeEscondido) return candidatos[i];' +
+    '  }' +
+    '  var proprio = candidatos.length ? candidatos[0] : null;' +
     '  return proprio || document.getElementById("res");' +
     '}' +
     // O mesmo elemento, e o recado anterior da OUTRA secção não fica a mentir: ao escolher um
@@ -10564,9 +10603,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * gravava e devolvia a pessoa à aba 1, com o professor em foco perdido — ou seja, o botão não
      * avançava nada. O slug vem na RESPOSTA (`d.slug`), e é por isso que a chave só pode ser
      * escrita aqui: um professor novo não tem slug antes de o servidor o atribuir. */
-    'function postar(id, corpo) {' +
+    /* O TERCEIRO ARGUMENTO É O QUE FAZER NO SUCESSO (19/11/2026). Sem ele, recarrega — que é a
+     * regra da casa e continua a ser o comportamento de todos os chamadores de antes. Com ele, é o
+     * chamador que decide, e é isso que permite gravar a ficha E a régua no mesmo gesto: a régua
+     * precisa do slug que só a resposta da ficha traz. */
+    'function postar(id, corpo, aoOk, botao) {' +
     '  corpo.token = TOKEN;' +
-    '  var form = document.getElementById(id);' +
+    /* O BOTÃO PODE NÃO SER O `submit` DO FORMULÁRIO (19/11/2026). O `ocuparBotao` procurava o
+     * `button[type=submit]` dentro do `<form>` — e desde que o «Avançar» passou a `type="button"`,
+     * o formulário do professor não tem nenhum. O resultado era o pior dos silêncios: o pedido
+     * saía, e nada na tela dizia que estava a decorrer. O botão que se carregou é passado por quem
+     * o tem à mão. */
+    '  var form = botao || document.getElementById(id);' +
     '  var antes = ocuparBotao(form, "cadastrando...");' +
     '  function devolverRotulo() { liberarBotao(antes); }' +
     '  recado("", "cadastrando...");' +
@@ -10585,6 +10633,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '          sessionStorage.setItem("producao:aba-professor", "cadastro");' +
     '        } catch (err) {}' +
     '      }' +
+    '      if (typeof aoOk === "function") { devolverRotulo(); aoOk(d); return; }' +
     '      location.reload(); return;' +
     '    }' +
     '    devolverRotulo(); recado("erro", "Erro: " + (d.erro || "desconhecido"));' +
@@ -10727,6 +10776,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    sessionStorage.removeItem("producao:professor-em-foco");' +
     '    sessionStorage.removeItem("producao:aba-professor");' +
     '    sessionStorage.removeItem("producao:professor-passo");' +
+    /* O RASCUNHO TAMBÉM (19/11/2026): ele é a ficha composta no passo 1 à espera de gravação. Um
+     * «Cancelar» que o deixasse faria o passo 2 seguinte compor a régua de um professor que ninguém
+     * está a cadastrar — e o botão diria «Gravar cadastrar professor». */
+    '    sessionStorage.removeItem("producao:professor-rascunho");' +
     '  } catch (err) {}' +
     '  var nomeDaRegua = document.getElementById("rubr-nome");' +
     '  if (nomeDaRegua) nomeDaRegua.value = "";' +
@@ -10743,12 +10796,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * gravar», e um formulário que se fecha depois de gravar seria outra regra. */
     '  cancelarOFormularioDe("sec-professores");' +
     '}' +
-    'document.getElementById("form-prof").addEventListener("submit", function(e){' +
-    '  e.preventDefault();' +
-    '  var nome = valorDoCampo("pnome").trim();' +
-    '  var sobrenome = valorDoCampo("psobrenome").trim();' +
+    /* ---------------------------- O CADASTRO DO PROFESSOR, EM DOIS PASSOS QUE GRAVAM UMA VEZ
+     *
+     * «Em professores isso também acontece. Todos os que têm step isso está acontecendo. Tem que
+     * corrigir.» (19/11/2026)
+     *
+     * O passo 1 COMPÕE e não escreve: quem grava é o «Gravar cadastrar professor», no passo 2, e
+     * grava a ficha E a régua. Para isso, a ficha composta fica num RASCUNHO — uma chave própria no
+     * `sessionStorage`, com o corpo já montado —, e é dele que o passo 2 colhe o que falta quando o
+     * professor ainda não existe (o caso de CRIAR: não há slug antes de o servidor o atribuir).
+     *
+     * O rascunho é esquecido quando a gravação conclui e no «Cancelar»: uma ficha a meio é trabalho
+     * de ontem, e reaparecer sozinha no dia seguinte é o defeito que a 19/10/2026 já corrigiu uma vez
+     * no formulário da sala. */
+    'function corpoDoProfessor(){' +
     '  var corpo = {' +
-    '    nome: nome, sobrenome: sobrenome,' +
+    '    nome: valorDoCampo("pnome").trim(), sobrenome: valorDoCampo("psobrenome").trim(),' +
     '    cpf: valorDoCampo("pcpf").trim(),' +
     '    telefone: valorDoCampo("ptelefone").trim(),' +
     '    email: valorDoCampo("pemail").trim(),' +
@@ -10756,13 +10819,38 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    senha: valorDoCampo("psenha")' +
     '  };' +
     /* O MODO DE EDIÇÃO MANDA O SLUG (é ele que identifica a pessoa); o de cadastro, não. */
-    '  if (modoDoProfessor() === "editar") {' +
-    '    corpo.editar = valorDoCampo("prof-alvo");' +
-    '    if (!corpo.editar) { recado("erro", "Erro: não se sabe qual professor editar — recarregue a página."); return; }' +
-    '  } else if (!nome) {' +
+    '  if (modoDoProfessor() === "editar") corpo.editar = valorDoCampo("prof-alvo");' +
+    '  return corpo;' +
+    '}' +
+    'function rascunhoDoProfessor(){' +
+    '  try { var t = sessionStorage.getItem("producao:professor-rascunho"); return t ? (JSON.parse(t) || null) : null; }' +
+    '  catch (err) { return null; }' +
+    '}' +
+    'function guardarRascunhoDoProfessor(corpo){' +
+    '  try { sessionStorage.setItem("producao:professor-rascunho", JSON.stringify(corpo || {})); } catch (err) {}' +
+    '}' +
+    'function esquecerRascunhoDoProfessor(){' +
+    '  try { sessionStorage.removeItem("producao:professor-rascunho"); } catch (err) {}' +
+    '}' +
+    /* O «AVANÇAR» DO PASSO 1: valida, guarda o rascunho e abre o passo 2. Não escreve no KV. */
+    'function avancarDoCadastroDoProfessor(){' +
+    '  var corpo = corpoDoProfessor();' +
+    '  if (modoDoProfessor() === "editar" && !corpo.editar) {' +
+    '    recado("erro", "Erro: não se sabe qual professor editar — recarregue a página."); return;' +
+    '  }' +
+    '  if (modoDoProfessor() !== "editar" && !corpo.nome) {' +
     '    recado("erro", "Erro: informe o nome do professor."); return;' +
     '  }' +
-    '  postar("form-prof", corpo);' +
+    '  guardarRascunhoDoProfessor(corpo);' +
+    '  recado("", "");' +
+    '  mostrarPassoDoProfessor("rubrica");' +
+    '}' +
+    'document.getElementById("prof-enviar").addEventListener("click", avancarDoCadastroDoProfessor);' +
+    /* O `submit` DEIXA DE GRAVAR (19/11/2026) — o Enter dentro de um campo leva ao passo 2, como o
+     * botão, e um `<form>` sem `submit` tratado voltaria a submeter por GET. */
+    'document.getElementById("form-prof").addEventListener("submit", function(e){' +
+    '  e.preventDefault();' +
+    '  avancarDoCadastroDoProfessor();' +
     '});' +
     /* ================= O CADASTRO DA ALUNA EM DOIS PASSOS (18/11/2026) =================
      *
@@ -11479,8 +11567,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     'function mostrarPassoDoProfessor(qual){' +
     '  var alvo = String(qual) === "rubrica" ? "rubrica" : "cadastro";' +
-    // Sem professor não há passo 2: a régua é DELE, e não se compõe a régua de ninguém.
-    '  if (alvo === "rubrica" && !professorEmFoco()) alvo = "cadastro";' +
+    /* SEM PROFESSOR NÃO HÁ PASSO 2 — COM UMA EXCEPÇÃO DECLARADA (19/11/2026).
+     *
+     * A regra é a de sempre: a régua é DELE, e não se compõe a régua de ninguém. Mas desde que o
+     * «Avançar» deixou de gravar, o passo 1 pode estar composto e o professor ainda NÃO existir —
+     * é justamente o caminho de criar, e o passo 2 é onde a sequência termina. A excepção está
+     * declarada numa chave própria (`producao:professor-rascunho`), escrita pelo «Avançar»: uma
+     * ficha composta à espera de ser gravada. Sem ela, a sequência não fecharia nunca. */
+    '  if (alvo === "rubrica" && !professorEmFoco() && !rascunhoDoProfessor()) alvo = "cadastro";' +
     '  var sec = document.getElementById("pf-cadastro-paineis");' +
     '  if (sec) {' +
     '    Array.prototype.slice.call(sec.querySelectorAll(".passo-painel")).forEach(function(pp){' +
@@ -11493,8 +11587,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    if (ativo) { b.setAttribute("aria-current", "step"); } else { b.removeAttribute("aria-current"); }' +
     // A TIRA SÓ FICA ACESSA ONDE HÁ ALGUÉM: no passo 1 sem professor, o 2 apagado diz que falta.
     '    if (b.getAttribute("data-passo-prof") === "rubrica") {' +
-    '      b.disabled = !professorEmFoco();' +
-    '      if (!professorEmFoco()) b.setAttribute("title", "Cadastre ou abra um professor para compor a régua dele.");' +
+    '      var haQuem = !!professorEmFoco() || !!rascunhoDoProfessor();' +
+    '      b.disabled = !haQuem;' +
+    '      if (!haQuem) b.setAttribute("title", "Componha o cadastro no passo 1, ou abra um professor em Editar.");' +
     '      else b.removeAttribute("title");' +
     '    }' +
     '  });' +
@@ -12416,69 +12511,94 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '  pintarCadeia(guardado.cadeia, res, false, Boolean(guardado.cadeia.porOrcamento));' +
     '}' +
+    /* O `submit` DEIXOU DE GRAVAR (19/11/2026), e fica por duas razões: o Enter dentro de um campo
+     * continua a levar ao passo seguinte, e um `<form>` sem `submit` tratado recarregaria a página
+     * por GET — a armadilha silenciosa que já custou uma vez. Ele faz o mesmo que o botão: avança.
+     *
+     * O corpo antigo (a derivação, a edição, o `derivarDe`) está preservado em `gravarSala()`, que
+     * é quem o «Gravar sala» do passo 2 chama com o resto da sala. */
     'document.getElementById("form-turma").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
+    '  irParaPassoTurma("vincular");' +
+    '});' +
+    /* O CORPO ANTIGO DO «submit», AGORA NUM SÍTIO SÓ (19/11/2026). Ele era o handler do formulário
+     * — e era ele que gravava a cada «Avançar». Passou a ser a função `gravarSala()`, chamada pelo
+     * botão que conclui a sequência (o «Gravar sala», no passo 2), que é o único gesto de gravação
+     * da sala. */
+    'function camposDaSala(){' +
     // DOIS MODOS no mesmo formulário (16/10/2026): cadastrar (sem `tderivar`) e AJUSTAR
     // (com `tderivar`). O ajuste é uma derivação — não sobrescreve a turma.
     '  var derivando = (document.getElementById("tderivar") || {}).value || "";' +
-    '  var campos = {' +
-    '    nome: document.getElementById("tnome").value,' +
-    // A POSIÇÃO NÃO SE ENVIA (18/10/2026): quem a decide é o servidor, pondo a turma nova no
-    // topo. Enviar o campo vazio obrigaria o servidor a distinguir «não quis dizer nada» de
-    // «quer no fim» — e o fim nunca é o que a direção quer ao criar uma turma.
-    // O ENQUADRAMENTO PEDAGÓGICO NÃO SE MANDA DAQUI (03/11/2026) — tradição e nível continuam na
-    // curadoria, e mandá-los em branco apagaria o que uma turma antiga guarda. Ver
-    // `motor/nucleo/enquadramento.js`.
+    '  return {' +
+    '    derivando: derivando,' +
+    '    campos: {' +
+    '      nome: document.getElementById("tnome").value,' +
+    // A POSIÇÃO NÃO SE ENVIA (18/10/2026): quem a decide é o servidor, pondo a turma nova no topo.
     //
-    // A MODALIDADE VOLTOU AO CADASTRO DA SALA (18/11/2026), e o PROFESSOR NÃO: ele é escolhido no
-    // passo 2, que é o passo de quem dá a aula. O servidor preserva o professor que a sala já tem
-    // — a lista de campos dele é que decide o que é reescrito, e `professor` não está nela quando
-    // o pedido não o traz.
-    // A NOTA TAMBÉM NÃO (03/11/2026): saiu do cadastro por decisão dela. Não se manda vazia —
-    // mandá-la vazia apagaria a nota de uma turma antiga. Simplesmente deixou de existir aqui.
-
-    // A frequência NÃO se envia mais do formulário: o servidor a calcula a partir dos
-    // dias. O campo continua a existir no JSON — só deixou de vir de um `<input>`.
-    '    dias: marcados("dia"),' +
-    '    horarios: horariosDoDia(),' +
-    '    duracaoMin: document.getElementById("tduracao").value,' +
-    '    periodoInicio: document.getElementById("tinicio").value,' +
-    '    periodoFim: document.getElementById("tfim").value' +
-    // A régua SAIU daqui: a turma nasce sem ela, e a régua entra pelo vínculo (aba
-    // «Vincular turma à rubrica»). Sem rubrica ligada, a leitura aplica a padrão.
+    // A MODALIDADE NÃO ESTÁ AQUI (19/11/2026): ela é a primeira escolha do passo 2, e é a esse
+    // passo que pertence — vai no corpo do «Gravar sala», ao lado do professor.
+    //
+    // A frequência NÃO se envia: o servidor a calcula a partir dos dias.
+    '      dias: marcados("dia"),' +
+    '      horarios: horariosDoDia(),' +
+    '      duracaoMin: document.getElementById("tduracao").value,' +
+    '      periodoInicio: document.getElementById("tinicio").value,' +
+    '      periodoFim: document.getElementById("tfim").value' +
+    '    }' +
     '  };' +
-    '  if (!derivando) {' +
-    '    enviar("/api/bastidores/turma", campos, "gravando a sala...", true, avancarParaProfessor); return;' +
+    '}' +
+    /* «GRAVAR SALA» GRAVA A SALA INTEIRA (19/11/2026) — e é o ÚNICO gesto que a grava.
+     *
+     * «Está errado isso de quando clicar em avançar gravar a sala, porque eu não concluí ainda a
+     * gravação da sala e se eu quiser voltar e mudar alguma coisa, aí eu estou criando outra sala.»
+     *
+     * A SEQUÊNCIA PASSA A TER UM PONTO DE ESCRITA. O passo 1 compõe (nome, dias, horários, duração,
+     * período) e não escreve nada; o passo 2 escolhe a modalidade e o professor e grava os dois
+     * lados de uma vez.
+     *
+     * DOIS CAMINHOS, E O NÚMERO DE ESCRITAS DIFERE DE PROPÓSITO:
+     *   · a sala AINDA NÃO EXISTE → UMA escrita (`turma-professor` cria a sala e associa o par —
+     *     é a rota que já sabe fazer as duas coisas e recusar o que falta);
+     *   · a sala JÁ EXISTE → primeiro a sala (editar ou derivar, conforme o modo), depois o par.
+     *     São dois actos que a rota antiga já separava: corrigir o ritmo de uma sala, e nomear quem
+     *     a dá. Se o segundo falhar, a recusa é dita e a sala fica sem par — um estado visível (o
+     *     cartão diz «sem professor»), não um estado mentiroso. */
+    'function gravarSala(){' +
+    '  var doFormulario = camposDaSala();' +
+    '  var campos = doFormulario.campos;' +
+    '  var turma = turmaEmFoco();' +
+    '  var falta = (turma ? [] : faltaDaTurma()).concat(faltaDaAssociacao());' +
+    '  if (falta.length) {' +
+    '    alert("Para gravar a sala, falta " + fraseDaFaltaNoCliente(falta) + "."); return;' +
     '  }' +
-    // DOIS CAMINHOS, e a diferença não é cosmética (16/10/2026): a turma LIVRE edita-se (o
-    // registo é substituído no lugar, e o nome pode mudar); a VINCULADA a um plano de ensino
-    // deriva (nasce um elo novo, com data, e o nome NÃO muda — é ele que o plano referencia).
+    '  var professor = document.getElementById("vinc-professor").value;' +
+    '  var modalidade = document.getElementById("vinc-modalidade").value;' +
+    // SEM SALA EM FOCO, ESTE É O PEDIDO QUE A CRIA — e leva o passo 1 inteiro no corpo.
+    '  if (!turma) {' +
+    '    enviar("/api/bastidores/turma-professor",' +
+    '      {sala: campos, modalidade: modalidade, professor: professor, concluir: true},' +
+    '      "gravando a sala...", true, concluirTurma);' +
+    '    return;' +
+    '  }' +
+    '  var aoGravarASala = function(d){' +
+    '    var alvo = (d && d.id) || turma;' +
+    '    enviar("/api/bastidores/turma-professor",' +
+    '      {turma: alvo, modalidade: modalidade, professor: professor, concluir: true},' +
+    '      "gravando a sala...", true, concluirTurma);' +
+    '  };' +
     '  var modo = (document.getElementById("tmodo") || {}).value || "derivar";' +
+    '  var derivando = doFormulario.derivando || turma;' +
     '  if (modo === "editar") {' +
     '    campos.id = derivando;' +
-    '    enviar("/api/bastidores/turma-editar", campos, "gravando a sala...", true, avancarParaProfessor); return;' +
+    '    enviar("/api/bastidores/turma-editar", campos, "gravando a sala...", true, aoGravarASala); return;' +
     '  }' +
-    /* A DATA NÃO VAI (18/11/2026): o servidor põe o dia do acto, no fuso da instalação. Ver
-   * `vigenciaDoAjuste`. Mandá-la daqui seria a tela a decidir o que o servidor já garante — e
-   * duas fontes para a mesma data divergem no primeiro fuso mal configurado. */
-
-    /* O ID DA SALA QUE SE ESTÁ A DERIVAR — E ELE FALTAVA (18/11/2026).
-     *
-     * O DEFEITO, na letra dela: «cliquei em derivar, preencheu a modalidade da sala, isso está
-     * certo […] e aí eu cliquei em avançar. Erro: turma não encontrada, vazio.»
-     *
-     * A CAUSA é minha, e é do dia de hoje. Ao tirar o campo da data (`ab173012`), apaguei com ele
-     * a linha que punha o id no corpo — a `campos.derivarDe = derivando;` vivia entre o `if (modo
-     * === "editar")` e o motivo, e saiu junto com o `campos.vigencia`. Ficaram DOIS caminhos
-     * certos (criar e editar) e um a mandar um corpo sem identidade: o servidor recebia
-     * `derivarDe` vazio, não encontrava a sala e respondia «turma não encontrada: (vazio)».
-     *
-     * PORQUE NÃO SE VIU. A vista de passo não grava — só navega —, e por isso «ir ao step 2 pelo
-     * step» funcionava; era o «Avançar» que chamava este `submit`. E a prova do cadastro da sala
-     * não cobria a derivação pelo botão: media o `ajustarTurma` a preencher, não o que ele envia. */
+    // A DATA NÃO VAI (18/11/2026): o servidor põe o dia do acto, no fuso da instalação.
     '  campos.derivarDe = derivando;' +
     '  campos.motivo = (document.getElementById("tmotivo") || {}).value || "";' +
-    '  enviar("/api/bastidores/turma-derivar", campos, "ajustando a sala...", true, avancarParaProfessor);' +
+    '  enviar("/api/bastidores/turma-derivar", campos, "ajustando a sala...", true, aoGravarASala);' +
+    '}' +
+    'document.getElementById("t-enviar").addEventListener("click", function(){' +
+    '  irParaPassoTurma("vincular");' +
     '});' +
     /* O `form-termo` SAIU COM A SECÇÃO DO VOCABULÁRIO (01/11/2026). O cadastro de exercício
      * vive agora num sítio só — o passo 1 do verbete —, e quem o grava é o handler do «Seguir →»
@@ -12854,6 +12974,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'var PERFIS = {};' +
     'function perfilDoProfessor(slug){' +
     '  if (!slug) return Promise.resolve(null);' +
+    /* `PERFIS` E `HABILITACOES_EM_CURSO` SÃO `var` — E A ORDEM VOLTOU A MORDER (19/11/2026).
+     *
+     * Esta função é chamada no ARRANQUE (`mostrarSecao` → `preencherPerfisVisiveis`, quando a
+     * secção dos professores é a que abre), e as duas `var` são atribuídas mais abaixo. `var` não
+     * tem zona morta: valem `undefined` até lá, e `Object.prototype.hasOwnProperty.call(undefined,
+     * …)` lança «Cannot convert undefined or null to object».
+     *
+     * A excepção abortava todas as instruções seguintes do script — entre elas a atribuição de
+     * `MOTOR_DO_PROFESSOR` e o ouvinte de clique do «Editar». O sintoma é o de sempre: a página
+     * parece inteira, os botões existem, e nenhum responde. Foi medido em
+     * `experimentos/provar-editar-professor-principal.js`, que desde hoje apanha os erros do
+     * CARREGAMENTO (e não só os do clique) — era o único sítio onde esta excepção deixava rasto.
+     *
+     * A guarda é a mesma de `pintarReguaDoProfessor`: sem mapa, responde-se «não sei» e a leitura
+     * verdadeira faz-se a seguir. */
+    '  PERFIS = PERFIS || {};' +
+    '  HABILITACOES = HABILITACOES || {};' +
+    '  HABILITACOES_EM_CURSO = HABILITACOES_EM_CURSO || {};' +
     '  if (Object.prototype.hasOwnProperty.call(PERFIS, slug)) {' +
     '    return Promise.resolve(PERFIS[slug]);' +
     '  }' +
@@ -12947,9 +13085,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var rotulo = function(p, sufixo){' +
     '    return p.nome + (p.principal ? " (principal)" : "") + (sufixo || "");' +
     '  };' +
-    // SEM MODALIDADE, TODOS — a lista existe antes da escolha, senão o `<select>` nasceria morto.
-    '  if (!nome) return Promise.resolve(PROFESSORES_DA_ESCOLA.map(function(p){' +
-    '    return { slug: p.slug, rotulo: rotulo(p, "") }; }));' +
+    /* SEM MODALIDADE, NINGUÉM (19/11/2026) — e esta é a diferença que ela pediu.
+     *
+     * «O nome do professor só pode ser carregado a partir da modalidade. É pela modalidade que eu vou
+     * saber quais são os professores.»
+     *
+     * A lista existia antes da escolha para o `<select>` não nascer morto. Mas nascer cheio de todos
+     * os professores da escola não é «não estar morto»: é oferecer quem talvez não possa dar esta
+     * modalidade, e aceitar a escolha até alguém tocar no campo da modalidade. A lista vazia diz o
+     * que falta, e a frase do `<select>` diz qual é o passo anterior. */
+    '  if (!nome) return Promise.resolve([]);' +
     '  var alvo = null;' +
     '  for (var i = 0; i < CATALOGO_DE_MODALIDADES.length; i++) {' +
     '    if (CATALOGO_DE_MODALIDADES[i].nome === nome) alvo = CATALOGO_DE_MODALIDADES[i];' +
@@ -13133,6 +13278,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function filtrarProfessoresPelaModalidade(){' +
     '  if (!temTela()) return;' +
     '  var mod = modalidadeQueManda();' +
+    /* SEM MODALIDADE NÃO HÁ LISTA — e o campo diz isso (19/11/2026). O caminho antigo deixava todos
+     * os professores à escolha enquanto a modalidade estivesse vazia; o novo fecha o campo e escreve
+     * o passo que falta. É a mesma frase do `select` que nasce no servidor. */
+    '  var selVazio = document.getElementById("vinc-professor");' +
+    '  if (!mod) {' +
+    '    if (selVazio) {' +
+    '      selVazio.innerHTML = "<option value=\'\'>— escolha a modalidade primeiro —</option>";' +
+    '      selVazio.disabled = true;' +
+    '    }' +
+    '    pintarOParDaSala();' +
+    '    aplicarTravas();' +
+    '    return;' +
+    '  }' +
     '  professoresDaModalidade(mod).then(function(lista){' +
     '    if (!temTela()) return;' +
     // A RESPOSTA DE UMA MODALIDADE QUE JÁ NÃO ESTÁ ESCOLHIDA NÃO SE APLICA: quem trocou enquanto a
@@ -13146,6 +13304,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * o step dois […] deve carregar apenas os professores da modalidade escolhida». */
     '    var selR = document.getElementById("vinc-professor");' +
     '    if (selR) {' +
+    '      selR.disabled = false;' +
     /* O PROFESSOR DA SALA VEM PRIMEIRO, E ESCOLHIDO SÓ QUANDO AINDA NÃO HÁ ESCOLHA. É a leitura do
      * pedido: «o professor que já foi filtrado no step 1 […] tem que ser o primeiro a aparecer».
      *
@@ -13255,8 +13414,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    else b2.removeAttribute("title");' +
     '  }' +
     '}' +
-    'filtrarProfessoresPelaModalidade();' +
-    'pintarReguaDoProfessor();' +
+    /* ESTAS DUAS CHAMADAS DESCERAM PARA O FIM DO SCRIPT (19/11/2026) — e é a SEGUNDA vez que a
+     * mesma armadilha custa a página.
+     *
+     * `filtrarProfessoresPelaModalidade()` lê `PROFESSORES_DA_ESCOLA`, uma `var` atribuída muito mais
+     * abaixo. `var` não tem zona morta: vale `undefined` até à linha que a atribui, e
+     * `undefined.map(...)` lança. Chamada aqui, a excepção abortava TODAS as instruções seguintes —
+     * entre elas o ouvinte de clique do «Editar» do professor e a `retomarAbaDoProfessor()`. O
+     * sintoma é o de sempre: o botão existe, parece vivo, e não faz nada.
+     *
+     * A 19/11/2026 de manhã foi a `retomarAbaDoProfessor` no mesmo estado; a lição ficou escrita e
+     * a chamada foi para o fim. Estas duas viviam ainda a meio, e passaram a correr à beira da
+     * `retomarAbaDoProfessor`, onde tudo o que elas leem já tem valor. */
     'function pintarModalidades(opcoes, nota){' +
     '  var sel = document.getElementById("cumodalidade");' +
     '  if (!sel) return;' +
@@ -13681,14 +13850,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * o passo era obrigatório de ATRAVESSAR (a sala tinha de seguir, mesmo sem régua); aqui é o fim
      * de um ato — e uma régua sem níveis mediria contra nada. O servidor recusa os dois casos; a
      * guarda daqui só evita a ida à rede. */
-    'document.getElementById("form-rubrica-prof").addEventListener("submit", function(e){' +
-    '  e.preventDefault();' +
-    '  var slug = professorEmFocoNaRegua();' +
-    '  if (!slug) { recado("erro", "Escolha o professor no Cadastro (ou abra-o em Editar) antes de gravar a régua dele."); return; }' +
+    'function gravarAReguaDoProfessor(slug){' +
     '  var nome = document.getElementById("rubr-nome").value.trim();' +
     '  var niveis = reguaDoEditor("rubr-niveis");' +
-    '  if (!nome) { alert("Dê um nome à régua — é por ele que a sala a reconhece."); return; }' +
-    '  if (!niveis.length) { alert("Declare pelo menos um nível — a régua vazia mediria contra nada."); return; }' +
+    '  if (!nome) { alert("Dê um nome à régua — é por ele que a sala a reconhece."); return false; }' +
+    '  if (!niveis.length) { alert("Declare pelo menos um nível — a régua vazia mediria contra nada."); return false; }' +
     /* A ABA E O FOCO SOBREVIVEM À RECARGA (19/11/2026). Gravar recarrega — é a regra da casa desde
      * 10/11/2026, e é o que faz a lista, o cartão da sala e o `PROFESSORES_DA_ESCOLA` voltarem
      * frescos. Sem estas duas chaves, a pessoa gravava a régua e aterrava no Cadastro, com o
@@ -13700,7 +13866,49 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  } catch (err) {}' +
     '  enviar("/api/bastidores/rubrica-do-professor", {' +
     '    professor: slug, nome: nome, niveis: niveis' +
-    '  }, "gravando a régua...", true);' +
+    '  }, "gravando a régua...", true, function(){' +
+    /* A FICHA A MEIO NÃO SOBREVIVE À GRAVAÇÃO (19/11/2026): o rascunho existia para o passo 2 ter o
+     * que o passo 1 compôs. Gravado o par, ele é trabalho concluído — e deixá-lo faria a próxima
+     * visita abrir o passo 1 com os dados de um professor que já está na lista. */
+    '    esquecerRascunhoDoProfessor();' +
+    '  });' +
+    '  return true;' +
+    '}' +
+    /* «GRAVAR CADASTRAR PROFESSOR» — O FIM DA SEQUÊNCIA, E A ÚNICA ESCRITA (19/11/2026).
+     *
+     * Ele gravava só a régua, porque a ficha já tinha sido gravada pelo «Avançar» do passo 1. Com o
+     * «Avançar» a não gravar, este botão passa a fechar o cadastro inteiro: primeiro a FICHA (que
+     * devolve o slug — numa criação, é a resposta que o dá) e depois a RÉGUA desse slug. A régua
+     * nunca é composta sobre um slug inventado, e a ficha nunca fica gravada sem a régua por causa
+     * de um passo esquecido: quando a régua falha, a recusa é dita e o professor fica na lista — um
+     * estado visível, com o passo 2 ainda aberto para a corrigir. */
+    'document.getElementById("form-rubrica-prof").addEventListener("submit", function(e){' +
+    '  e.preventDefault();' +
+    '  var slug = professorEmFocoNaRegua();' +
+    '  var rascunho = rascunhoDoProfessor();' +
+    /* A FICHA GRAVA-SE AQUI SEMPRE QUE HOUVER RASCUNHO (19/11/2026) — é o passo 1 composto, e este é
+     * o botão que conclui a sequência. Antes de hoje a ficha era gravada pelo «Avançar»; agora não
+     * é, e deixá-la de fora faria o passo 2 compor a régua de uma ficha que ninguém guardou.
+     *
+     * O `editar` viaja no próprio rascunho (foi `corpoDoProfessor` que o pôs), e é ele que diz ao
+     * servidor se está a corrigir alguém ou a criar. */
+    '  if (rascunho && String(rascunho.nome || "").trim()) {' +
+    '    postar("form-prof", rascunho, function(d){' +
+    '      var novo = (d && d.slug) || slug || "";' +
+    '      if (!novo) { recado("erro", "Erro: o servidor não devolveu o professor gravado."); return; }' +
+    '      var foco = document.getElementById("rubr-prof-alvo");' +
+    '      if (foco) foco.value = novo;' +
+    '      try { sessionStorage.setItem("producao:professor-em-foco", novo); } catch (err) {}' +
+    '      gravarAReguaDoProfessor(novo);' +
+    '    }, document.getElementById("rubr-gravar"));' +
+    '    return;' +
+    '  }' +
+    // SEM RASCUNHO, O PASSO 2 FOI ABERTO PELA TIRA (um professor em foco): grava-se só a régua.
+    '  if (!slug) {' +
+    '    recado("erro", "Componha o cadastro no passo 1 antes de gravar — é ele que cria o professor."); ' +
+    '    return;' +
+    '  }' +
+    '  gravarAReguaDoProfessor(slug);' +
     '});' +
     // ================= O PASSO 3 — ASSOCIAR ==================================
     // Dois blocos, uma turma. A turma NÃO se escolhe aqui (18/10/2026): ela é a que está em
@@ -13932,28 +14140,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * recusa com o nome de quem falta quando a régua ainda não foi composta. A rota antiga
      * (`turma-rubrica`) continua a existir para as réguas da escola, mas não é este botão que a
      * chama: dois caminhos para o mesmo fim voltariam a duplicar a validação. */
-    'document.getElementById("vinc-gravar").addEventListener("click", function(){' +
-    '  var turma = turmaEmFoco();' +
-    // A VALIDAÇÃO MÁXIMA, AQUI TAMBÉM (18/10/2026). O botão já nasce desabilitado e só acende
-    // com tudo preenchido; esta guarda é a segunda barreira, para o caso de o `disabled` ser
-    // retirado por fora (ferramentas do navegador, uma página antiga em cache).
-    //
-    // E ELA PERGUNTA O MESMO QUE AS TRAVAS (12/11/2026): a sala em foco já é uma sala. Perguntar
-    // pelo formulário aqui também devolveria o caminho de criar ao passo 1 — o `alert` em vez da
-    // gravação, desta vez.
-    '  var falta = (turma ? [] : faltaDaTurma()).concat(faltaDaAssociacao());' +
-    '  if (!turma || falta.length) {' +
-    '    alert("Para gravar a sala, falta " + fraseDaFaltaNoCliente(falta) + "."); return;' +
-    '  }' +
-    /* A MODALIDADE VAI JUNTO (19/11/2026) — é a primeira das duas escolhas do passo, e é dela que o
-     * servidor deriva a habilitação e grava o par. Sem ela no corpo, a rota recusaria por falta de
-     * modalidade — e a recusa viria depois de a pessoa ter escolhido tudo. */
-    '  var professor = document.getElementById("vinc-professor").value;' +
-    '  var modalidade = document.getElementById("vinc-modalidade").value;' +
-    '  enviar("/api/bastidores/turma-professor",' +
-    '    {turma: turma, modalidade: modalidade, professor: professor, concluir: true},' +
-    '    "gravando a sala...", true, concluirTurma);' +
-    '});' +
+    /* O «GRAVAR SALA» É O FIM DA SEQUÊNCIA (18/10/2026), e desde 19/11/2026 é o ÚNICO gesto que
+     * grava a sala: o «Avançar» do passo 1 deixou de escrever no KV. Toda a decisão — criar, editar
+     * ou derivar, e o par modalidade × professor — vive em «gravarSala()», um caminho só, para não
+     * haver dois que divergem. */
+    'document.getElementById("vinc-gravar").addEventListener("click", gravarSala);' +
     // ================= OS VERBETES DA NOTAÇÃO (28/10/2026) ==================
     // A tela CARREGA o alfabeto do servidor (que o lê do repositório) e monta as listas de
     // exercícios, posições e direções a partir dele — não de cópias escritas aqui, que
@@ -17914,19 +18105,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    pintarTravasLb();' +
     '    return;' +
     '  }' +
-    '  gravarLinha().then(function(ok){' +
-    '    if (!ok) return;' +
-    /* O PASSO QUE NÃO ABRE DIZ POR QUÊ (07/11/2026). Sem anamnese, o passo 2 está fechado — e o
-     * elenco ACABA DE SER GRAVADO como rascunho. Sem esta frase, o professor via o passo não mudar
-     * e não sabia se tinha gravado. */
-    '    var faltas = faltasAntesDeLb(Math.min(alvo, LB_TOTAL));' +
-    '    if (alvo > LB_PASSO && faltas.length) {' +
-    '      corpoRes("ok", "elenco gravado. Para seguir, falta " + faltas.join(", ") + ".");' +
-    '      pintarTravasLb();' +
-    '      return;' +
-    '    }' +
-    '    mostrarPassoLb(alvo);' +
-    '  });' +
+    /* «SEGUIR» AVANÇA, E NÃO GRAVA (19/11/2026) — a regra que ela pediu para todas as telas com
+     * passos: «Todos os que têm step isso está acontecendo. Tem que corrigir.» A gravação do elenco
+     * fica onde é um ato declarado: no «Concluir elenco».
+     *
+     * O QUE ISTO NÃO PARTE. O passo que precisa de um registo (a leitura das anamneses, no passo 3)
+     * grava-o ELE PRÓPRIO quando não o encontra — é a decisão de 05/11/2026, que continua a valer e
+     * é o que impede o «grave a linha de base primeiro» a quem não tem onde a gravar. E o rascunho
+     * que ela compôs sobrevive na tela: o formulário é um só, e trocar de painel não o limpa.
+     *
+     * A FRASE DE ANTES («elenco gravado») sai com a gravação que a justificava. O que fica é o que
+     * ainda é verdade: um passo que não abre diz o que falta. */
+    '  var faltas = faltasAntesDeLb(Math.min(alvo, LB_TOTAL));' +
+    '  if (alvo > LB_PASSO && faltas.length) {' +
+    '    corpoRes("aviso", "Para seguir, falta " + faltas.join(", ") + ".");' +
+    '    pintarTravasLb();' +
+    '    return;' +
+    '  }' +
+    '  mostrarPassoLb(alvo);' +
     '}' +
     // ------------------------------------------------------------------ PASSO 2 — AS ALUNAS
     //
@@ -19133,6 +19329,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * (atribuído a meio do script), e o documento inteiro, incluindo o véu. No meio do script ela
      * lançava com um professor em foco, e uma excepção a meio aborta todas as instruções seguintes
      * — inclusive os ouvintes de clique que esta página tem. */
+    /* O ARRANQUE QUE DEPENDE DO MAPA DOS PROFESSORES, DEPOIS DE ELE EXISTIR (19/11/2026). A ordem
+     * aqui não é estilo: as três leem `PROFESSORES_DA_ESCOLA`, e uma delas no arranque. */
+    'if (typeof filtrarProfessoresPelaModalidade === "function") filtrarProfessoresPelaModalidade();' +
+    'if (typeof pintarReguaDoProfessor === "function") pintarReguaDoProfessor();' +
     'if (typeof retomarAbaDoProfessor === "function") retomarAbaDoProfessor();' +
     '</script>' +
     // O PREENCHEDOR ENTRA DEPOIS DO SCRIPT GRANDE (19/10/2026): ele usa as funções e os
@@ -21354,14 +21554,59 @@ async function fetch(request, env, extras) {
     if (!(await autorizacaoDirecaoOk(env, corpo))) {
       return json(401, { ok: false, erro: 'senha da direção inválida' });
     }
-    const pedido = String(corpo.turma || corpo.id || '').trim();
-    const id = idDe(pedido);
-    if (!id) return json(400, { ok: false, erro: 'informe a sala' });
     const lista = await turmas(kv, escola);
-    const sala = lista.find((t) => t && t.id === pedido)
-      || lista.find((t) => t && t.id === id)
-      || turmaVigentePorNome(lista, pedido);
-    if (!sala) return json(404, { ok: false, erro: 'sala não encontrada: ' + pedido });
+    const pedido = String(corpo.turma || corpo.id || '').trim();
+    const idPeloNome = idDe(pedido);
+    let sala = pedido
+      ? (lista.find((t) => t && t.id === pedido)
+        || (idPeloNome ? lista.find((t) => t && t.id === idPeloNome) : null)
+        || turmaVigentePorNome(lista, pedido))
+      : null;
+    /* A SALA PODE AINDA NÃO EXISTIR — E É AQUI QUE ELA NASCE (19/11/2026).
+     *
+     * «Eu criei a sala chamada Rosa. Aí cliquei em avançar. Aí cliquei em voltar. Aí mudou o nome
+     * da sala, cliquei em avançar de novo, gravou a sala. Então agora eu tenho duas salas gravadas
+     * e eu nem cliquei ainda em gravar a sala.»
+     *
+     * O «Avançar» GRAVAVA. Ele é o gesto de IR ao passo seguinte, e não o de guardar: enquanto ele
+     * escrevia no KV, cada passagem pelo passo 1 deixava uma sala — e voltar para corrigir o nome
+     * deixava outra. A gravação é uma só, no fim da sequência, e é o «Gravar sala» que a faz.
+     *
+     * Por isso esta rota passou a saber CRIAR. Ela recebe o que o passo 1 compôs (`sala` com os
+     * campos) e, quando não encontra o registo, cria-o pelas mesmas regras do `POST /turma`: o
+     * nome é obrigatório, o nome não colide com uma sala vigente, e o ritmo tem de estar completo —
+     * as mesmas três recusas, com as mesmas frases. Sem isto, o passo 2 teria de recusar a sala que
+     * a pessoa acabou de compor, e a sequência não fecharia nunca. */
+    if (!sala) {
+      const declarada = normalizarTurma(
+        corpo.sala && typeof corpo.sala === 'object' ? Object.assign({}, corpo.sala) : { nome: pedido });
+      if (!declarada.nome) {
+        return json(400, { ok: false, erro: 'informe o nome da sala', falta: ['nome'] });
+      }
+      const faltaRitmo = faltaNoRitmoDaTurma(declarada);
+      if (faltaRitmo.length) {
+        return json(400, {
+          ok: false,
+          erro: 'a sala precisa de ' + fraseDaFalta(faltaRitmo) + ' — é o ritmo do ciclo, e é a '
+            + 'escola que o declara: é dele que saem o calendário e o número total de aulas do plano.',
+          falta: faltaRitmo,
+        });
+      }
+      const ocupa = turmaVigentePorNome(lista, declarada.nome);
+      if (ocupa) {
+        return json(409, {
+          ok: false,
+          erro: 'já existe uma sala com o nome «' + declarada.nome + '» — abra-a em «Editar» para a corrigir',
+        });
+      }
+      if (declarada.ordem === null) {
+        declarada.ordem = (lista.reduce((menor, t) => (t && Number.isFinite(Number(t.ordem))
+          ? Math.min(menor, Number(t.ordem)) : menor), 0)) - 1;
+      }
+      lista.push(declarada);
+      sala = declarada;
+      corpo.criada = true;
+    }
 
     /* A MODALIDADE É A PRIMEIRA DAS DUAS ESCOLHAS DESTE PASSO (19/11/2026).
      *
@@ -21440,6 +21685,11 @@ async function fetch(request, env, extras) {
     return json(200, {
       ok: true,
       turma: sala.nome,
+      /* O ID VAI NA RESPOSTA (19/11/2026): é ele que o cliente guarda em `producao:vinc-turma`, e
+       * sem ele a sala que este pedido acabou de criar não ficava em foco — a página recarregava, a
+       * lista mostrava a sala, e o passo 2 pedia uma sala que existia. */
+      id: sala.id,
+      criada: corpo.criada === true,
       professor,
       modalidade,
       rubrica: { nome: regua.nome, niveis: regua.niveis },

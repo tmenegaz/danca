@@ -199,9 +199,13 @@ try { ({ JSDOM, VirtualConsole } = require('jsdom')); } catch (e) { JSDOM = null
       doc.getElementById('tfim').value = '2027-06-30';
       return JSON.stringify(win.faltaDaTurma()) === '[]';
     })(), win.faltaDaTurma && win.faltaDaTurma());
-  provar('…e o «Associar» pede a modalidade, o professor e a sala',
+  /* A FALTA DA SALA MUDOU DE NOME E DE CONDIÇÃO (19/11/2026). Ela era «escolher a sala» e exigia
+   * uma sala GRAVADA; desde que o «Avançar» deixou de gravar, o passo 2 é onde a sala nasce, e o que
+   * se exige é que esteja COMPOSTA — aqui já está, porque a alínea de cima a preencheu. O que sobra
+   * é o par do passo: a modalidade e o professor. */
+  provar('…e o «Associar» pede a modalidade e o professor (a sala já está composta)',
     JSON.stringify(win.faltaDaAssociacao())
-      === JSON.stringify(['escolher a sala', 'escolher a modalidade', 'escolher o professor']),
+      === JSON.stringify(['escolher a modalidade', 'escolher o professor']),
     win.faltaDaAssociacao && win.faltaDaAssociacao());
 
   // -------------------------------------------------------------------------------------------

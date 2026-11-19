@@ -137,6 +137,10 @@ async function abrirNavegador(executavel) {
         expression: `document.getElementById('conteudo').hidden = false;
           var g = document.getElementById('painel-gate'); if (g) g.hidden = true;
           document.getElementById('sec-professores').hidden = false;
+          /* O FORMULÁRIO ABERTO — é o estado em que o gesto acontece. Recolhido, o .col-form
+           * está hidden e qualquer geometria medida dentro dele é zero (uma caixa escondida não
+           * tem altura), o que faria a bancada reprovar a posição do recado em vez do recado. */
+          if (typeof definirSecaoRecolhida === 'function') definirSecaoRecolhida('sec-professores', false);
           document.getElementById('form-prof').scrollIntoView({block:'center'});`,
       }, sid);
       await new Promise((s) => setTimeout(s, 600));
@@ -174,6 +178,18 @@ async function subirBancada({ respostaDoPost, atraso }) {
         res.end(JSON.stringify(respostaDoPost.corpo));
       }, atraso);
     }
+    /* A RÉGUA DO PROFESSOR (19/11/2026) — o segundo pedido do gesto que grava. Sem esta rota, o
+     * «Gravar cadastrar professor» gravava a ficha e falhava na régua, e a bancada leria o defeito
+     * da bancada como defeito do produto. */
+    if (u.pathname === '/api/bastidores/rubrica-do-professor' && req.method === 'POST') {
+      let corpoRegua = '';
+      req.on('data', (c) => { corpoRegua += c; });
+      req.on('end', () => {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true, professor: 'caneca-pequena' }));
+      });
+      return;
+    }
     if (u.pathname === '/api/bastidores/professores' || u.pathname === '/api/bastidores/aparencia') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ ok: true, escola: 'calango', professores: [], modo: 'clara', paleta: 'bordo' }));
@@ -190,27 +206,44 @@ async function subirBancada({ respostaDoPost, atraso }) {
   return { servidor, pedidos, porta: servidor.address().port };
 }
 
+/* O GESTO MUDOU DE BOTÃO (19/11/2026). O «Avançar» do passo 1 deixou de gravar — é o passo 2,
+ * «Gravar cadastrar professor», que envia a ficha. O que esta bancada mede é o mesmo: o botão diz
+ * «cadastrando...» durante o pedido, fica desabilitado, e volta com o recado no sítio. */
 const CLICAR = `
   (function(){
     document.getElementById('pnome').value = 'Caneca';
     document.getElementById('psobrenome').value = 'Pequena';
     document.getElementById('psenha').value = 'p';
-    document.querySelector('#form-prof button[type=submit]').click();
+    document.getElementById('prof-enviar').click();
+    document.getElementById('rubr-nome').value = 'Padrão';
+    var add = document.getElementById('rubr-add');
+    if (add) add.click();
+    var campos = document.querySelectorAll('#rubr-niveis input');
+    if (campos[0]) { campos[0].value = 'Ótimo'; campos[0].dispatchEvent(new Event('input', { bubbles: true })); }
+    document.getElementById('rubr-gravar').click();
     return JSON.stringify({ clicou: true });
   })()
 `;
 
 const ESTADO_DO_BOTAO = `
   (function(){
-    var b = document.querySelector('#form-prof button[type=submit]');
-    return JSON.stringify({ rotulo: b.textContent, desabilitado: b.disabled });
+    var b = document.getElementById('rubr-gravar');
+    return JSON.stringify({ rotulo: b ? b.textContent : '(sem botão)', desabilitado: b ? b.disabled : null });
   })()
 `;
 
 const ESTADO_DO_RECADO = `
   (function(){
     var sec = document.getElementById('sec-professores');
-    var r = sec.querySelector('.res');
+    /* O RECADO É O QUE ESTÁ À VISTA (19/11/2026), e não o primeiro da secção: cada passo do
+     * cadastro tem o seu \`.res\`, e o do passo 1 fica escondido quando o passo 2 abre. A regra é a
+     * mesma do produto (ver \`alvoDoRecado\`) — medi-la com outro critério mediria outra coisa. */
+    var todos = sec.querySelectorAll('.res');
+    var r = null;
+    for (var i = 0; i < todos.length; i++) {
+      if (!todos[i].closest('[hidden]')) { r = todos[i]; break; }
+    }
+    if (!r) r = todos[0] || document.getElementById('res');
     var q = r.getBoundingClientRect();
     return JSON.stringify({
       existe: !!r,
@@ -253,7 +286,7 @@ async function principais() {
     const recado = await nav.avaliar(ESTADO_DO_RECADO);
     const gets = bancada.pedidos.filter((p) => p.indexOf('GET /bastidores/producao') === 0).length;
 
-    conferir('no erro, o botão volta ao rótulo de antes', depois.rotulo === 'Cadastrar professor', depois);
+    conferir('no erro, o botão volta ao rótulo de antes', depois.rotulo === 'Gravar cadastrar professor', depois);
     conferir('…e volta a ficar habilitado', depois.desabilitado === false, depois);
     conferir('o recado existe DENTRO da secção dos professores', recado.existe === true, recado);
     conferir('…com o estado de erro', recado.classe === 'res erro', recado.classe);

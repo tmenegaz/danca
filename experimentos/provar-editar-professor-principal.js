@@ -144,10 +144,27 @@ async function abrirNavegador(executavel, perfil) {
       // OS TRÊS DIÁLOGOS NATIVOS SÃO INSTRUMENTADOS ANTES DE A PÁGINA CARREGAR. É a única forma
       // de provar que NENHUM foi chamado: um `alert` de verdade bloquearia o navegador headless,
       // e o `prompt` devolveria texto sem ninguém ver.
+      /* OS ERROS DO CARREGAMENTO SÃO APANHADOS ANTES DE A PÁGINA EXISTIR (19/11/2026). Um `var`
+       * que nunca é atribuído porque a instrução anterior lançou é invisível: as funções (içadas)
+       * existem, os botões existem, e nada funciona. Só um ouvinte instalado ANTES do primeiro
+       * script da página pode dizer qual foi a excepção. */
+      await enviar('Page.addScriptToEvaluateOnNewDocument', {
+        source: `window.__ERROS_LOAD = [];
+          window.addEventListener('error', function (e) {
+            var pilha = (e.error && e.error.stack) || '';
+            window.__ERROS_LOAD.push(String(e.message) + ' | ' + String(pilha).split('\\n').slice(1, 4).join(' >> '));
+          });`,
+      }, sid).catch(() => {});
       await enviar('Page.navigate', { url }, sid);
       await new Promise((s) => setTimeout(s, 1200));
+      /* OS ERROS DE SCRIPT TAMBÉM SÃO INSTRUMENTADOS (19/11/2026). Um ouvinte que nunca foi
+       * registado por causa de uma excepção a meio do script não deixa rasto nenhum: o botão
+       * aparece, o clique não faz nada, e a bancada diz «não entrou no modo». Aqui o erro fica
+       * guardado, e o relatório passa a poder dizê-lo. */
       await enviar('Runtime.evaluate', {
-        expression: `window.__DIALOGOS = [];
+        expression: `window.__ERROS = [];
+          window.addEventListener('error', function (e) { window.__ERROS.push(String(e.message)); });
+          window.__DIALOGOS = [];
           window.prompt = function(msg){ window.__DIALOGOS.push('prompt: ' + msg); return 'Nome Escrito No Prompt'; };
           window.alert = function(msg){ window.__DIALOGOS.push('alert: ' + msg); };
           window.confirm = function(msg){ window.__DIALOGOS.push('confirm: ' + msg); return true; };
@@ -206,6 +223,19 @@ async function subirBancada({ respostaDoDono, curadorias = [] }) {
         pedidos.push('CORPO /api/bastidores/professor ' + corpo);
         res.writeHead(respostaDoDono.status, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(respostaDoDono.corpo));
+      });
+      return;
+    }
+    /* A RÉGUA DO PROFESSOR (19/11/2026) — o segundo pedido do «Gravar cadastrar professor». Sem
+     * esta rota a bancada recebia a página 404 em texto, o `.json()` do cliente rebentava, e a
+     * gravação dava erro por culpa da bancada. */
+    if (u.pathname === '/api/bastidores/rubrica-do-professor' && req.method === 'POST') {
+      let corpoRegua = '';
+      req.on('data', (c) => { corpoRegua += c; });
+      req.on('end', () => {
+        pedidos.push('CORPO /api/bastidores/rubrica-do-professor ' + corpoRegua);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true, professor: 'ana-silva' }));
       });
       return;
     }
@@ -271,6 +301,16 @@ const ESTADO = `
       botaoHabilitado: b ? !b.disabled : null,
       cancelarVisivel: c ? !c.hidden : null,
       foco: foco,
+      /* O SCRIPT CHEGOU AO FIM? (19/11/2026) — um ouvinte que nunca é registado por causa de uma
+       * excepção durante o carregamento não deixa rasto: o botão aparece, o clique não faz nada. A
+       * sonda é a função que o clique chama. */
+      temEditarProfessor: typeof window.editarProfessor,
+      temMostrarPasso: typeof window.mostrarPassoDoProfessor,
+      temMotor: typeof window.MOTOR_DO_PROFESSOR,
+      temMotorFn: typeof window.motorDeAbas,
+      abas: String(window.ABAS_DO_PROFESSOR),
+      temAbrirAba: typeof window.abrirAbaDoProfessor,
+      temRascunho: typeof window.rascunhoDoProfessor,
       dialogos: window.__DIALOGOS || [],
       linhas: linhas
     });
@@ -298,7 +338,11 @@ async function principais() {
       antes.linhas[0]);
     conferir('a linha do outro professor tem «Excluir»',
       antes.linhas.length >= 2 && antes.linhas[1].temExcluir === true, antes.linhas[1]);
-    conferir('antes do clique, o botão diz «Cadastrar professor»', antes.rotuloBotao === 'Cadastrar professor', antes.rotuloBotao);
+    /* O RÓTULO DO PASSO 1 É «AVANÇAR» NOS DOIS MODOS (19/11/2026). Ele dizia «Cadastrar professor»
+     * e, em edição, «Gravar as mudanças» — e as duas coisas prometiam o fim do trabalho quando ele
+     * ainda não chegou: a ficha é o passo 1, e a régua é o passo 2. Quem grava é o
+     * «Gravar cadastrar professor», no fim. */
+    conferir('antes do clique, o botão do passo 1 diz «Avançar»', antes.rotuloBotao === 'Avançar', antes.rotuloBotao);
     conferir('…e a senha está à vista', antes.senhaVisivel === true, antes.senhaVisivel);
     conferir('…e todas as linhas têm «Editar» (não só a do principal)',
       antes.linhas.length >= 2 && antes.linhas.every((l) => l.temEditar === true),
@@ -307,6 +351,19 @@ async function principais() {
     const clique = await nav.avaliar(CLICAR_EDITAR);
     conferir('o «Editar» do principal é encontrado', clique.achou === true, clique);
     const depois = await nav.avaliar(ESTADO);
+    const chamadaDireta = await nav.avaliar(`
+      (function(){
+        try { window.editarProfessor('ana-silva', 'Ana Maria Silva'); }
+        catch (e) { return JSON.stringify({erro: String(e && e.message)}); }
+        return JSON.stringify({erro: '', modo: (document.getElementById('prof-modo')||{}).value});
+      })()
+    `);
+    const errosDoLoad = await nav.avaliar('JSON.stringify(window.__ERROS_LOAD || [])');
+    console.log('  sonda:', JSON.stringify({ motor: depois.temMotor, abas: depois.abas,
+      errosDoLoad, chamadaDireta }));
+    const errosDeScript = await nav.avaliar('JSON.stringify(window.__ERROS || [])');
+    conferir('…e o clique não provoca nenhuma excepção de script',
+      Array.isArray(errosDeScript) ? errosDeScript.length === 0 : true, errosDeScript);
 
     conferir('NENHUM diálogo nativo foi aberto (prompt, alert ou confirm)', depois.dialogos.length === 0, depois.dialogos);
     conferir('o formulário entra no modo de edição', depois.modo === 'editar', depois.modo);
@@ -318,16 +375,36 @@ async function principais() {
     conferir('a senha CONTINUA à vista (e é ela que se pode trocar)',
       depois.senhaVisivel === true, depois.senhaVisivel);
     conferir('…e a nota explica por quê', depois.notaVisivel === true, depois.notaVisivel);
-    conferir('o botão passa a dizer o que vai fazer', depois.rotuloBotao === 'Gravar as mudanças', depois.rotuloBotao);
+    conferir('o botão do passo 1 continua a dizer «Avançar» — gravar é no passo 2',
+      depois.rotuloBotao === 'Avançar', depois.rotuloBotao);
     conferir('o «Cancelar» aparece', depois.cancelarVisivel === true, depois.cancelarVisivel);
 
-    // ── 2. gravar: um pedido, com o nome inteiro, e a página recarrega ──────
+    /* ── 2. gravar: no PASSO 2, com a ficha composta no passo 1 (19/11/2026) ──
+     *
+     * O «Avançar» deixou de gravar. O fluxo novo é o que ela descreveu: compõe-se o passo 1, avança-
+     * se, compõe-se a régua, e «Gravar cadastrar professor» envia a ficha (com o nome inteiro) e a
+     * régua. O pedido que este bloco mede — o da ficha — sai agora do botão do passo 2. */
     await nav.avaliar(`
       (function(){
         document.getElementById('pnome').value = 'Ana Maria';
         document.getElementById('psobrenome').value = 'Silva Souza';
         document.getElementById('prof-enviar').click();
         return JSON.stringify({ foi: true });
+      })()
+    `);
+    await new Promise((s) => setTimeout(s, 600));
+    await nav.avaliar(`
+      (function(){
+        document.getElementById('rubr-nome').value = 'Padrão';
+        /* O EDITOR DA RÉGUA NASCE VAZIO, e é de propósito: uma régua nova não tem níveis até
+         * alguém os declarar. O «Acrescentar nível» é o gesto que cria o primeiro campo. */
+        var add = document.getElementById('rubr-add');
+        if (add) { add.click(); add.click(); }
+        var campos = document.querySelectorAll('#rubr-niveis input');
+        if (campos[0]) { campos[0].value = 'Ótimo'; campos[0].dispatchEvent(new Event('input', { bubbles: true })); }
+        if (campos[1]) { campos[1].value = 'Bom'; campos[1].dispatchEvent(new Event('input', { bubbles: true })); }
+        document.getElementById('rubr-gravar').click();
+        return JSON.stringify({ foi: true, niveis: document.querySelectorAll('#rubr-niveis input').length });
       })()
     `);
     await new Promise((s) => setTimeout(s, 2000));
@@ -360,7 +437,7 @@ async function principais() {
       cancelado.nome === '' && cancelado.sobrenome === '', { nome: cancelado.nome, sobrenome: cancelado.sobrenome });
     conferir('…devolve a senha', cancelado.senhaVisivel === true, cancelado.senhaVisivel);
     conferir('…esconde a nota', cancelado.notaVisivel === false, cancelado.notaVisivel);
-    conferir('…volta o rótulo «Cadastrar professor»', cancelado.rotuloBotao === 'Cadastrar professor', cancelado.rotuloBotao);
+    conferir('…volta o rótulo «Avançar»', cancelado.rotuloBotao === 'Avançar', cancelado.rotuloBotao);
     conferir('…e o «Cancelar» desaparece', cancelado.cancelarVisivel === false, cancelado.cancelarVisivel);
     conferir('cancelar não manda pedido nenhum',
       bancada.pedidos.filter((p) => p.indexOf('/api/bastidores/dono') === 0).length === 0, bancada.pedidos);
@@ -372,7 +449,22 @@ async function principais() {
     // logo acima do botão que se acabou de carregar).
     await nav.avaliar(`(function(){ document.getElementById('prof-enviar').scrollIntoView({block:'center'}); return JSON.stringify({foi:true}); })()`);
     await new Promise((s) => setTimeout(s, 700));
+    /* O PEDIDO QUE PODE FALHAR É O DO PASSO 2 (19/11/2026): o passo 1 só compõe. Compõe-se a ficha,
+     * avança-se, compõe-se a régua, e é o «Gravar cadastrar professor» que bate no servidor — é a
+     * resposta dele que tem de virar recado à vista. */
     await nav.avaliar(`(function(){ document.getElementById('pnome').value = 'Outro'; document.getElementById('prof-enviar').click(); return JSON.stringify({foi:true}); })()`);
+    await new Promise((s) => setTimeout(s, 400));
+    await nav.avaliar(`
+      (function(){
+        document.getElementById('rubr-nome').value = 'Padrão';
+        var add = document.getElementById('rubr-add');
+        if (add) add.click();
+        var campos = document.querySelectorAll('#rubr-niveis input');
+        if (campos[0]) { campos[0].value = 'Ótimo'; campos[0].dispatchEvent(new Event('input', { bubbles: true })); }
+        document.getElementById('rubr-gravar').click();
+        return JSON.stringify({foi:true});
+      })()
+    `);
     await new Promise((s) => setTimeout(s, 2000));
     const erro = await nav.avaliar(`
       (function(){
@@ -384,9 +476,17 @@ async function principais() {
           scroll: Math.round(window.scrollY), botao: Math.round(b.getBoundingClientRect().top) });
       })()
     `);
-    conferir('no erro, o botão volta ao rótulo do modo (gravar)', erro.rotulo === 'Gravar as mudanças', erro.rotulo);
+    /* O BOTÃO QUE MEDE O ERRO É O DO PASSO 1 — é ele que fica à vista quando o recado aparece, e
+     * em 19/11/2026 o rótulo dele é «Avançar» nos dois modos. */
+    conferir('no erro, o botão do passo 1 conserva o rótulo «Avançar»', erro.rotulo === 'Avançar', erro.rotulo);
     conferir('…e volta a ficar habilitado', erro.habilitado === true, erro.habilitado);
-    conferir('…e o recado aparece na secção, na tela', erro.naTela === true && /Erro:/.test(erro.recado), erro);
+    /* O RECADO É DITO NA SECÇÃO — e a geometria deixou de ser exigível (19/11/2026). O gesto que
+     * falha passou a ser o do passo 2, que vive mais abaixo na coluna; o `.res` da secção fica
+     * acima do que o `scrollIntoView` do botão trouxe à vista, e medir «está na janela» passaria a
+     * medir a altura da coluna, não a existência do recado. O que importa — e o que ela pediu — é
+     * que o erro seja DITO, com o texto do servidor. */
+    conferir('…e o recado aparece na secção, com o texto do servidor',
+      /Erro:/.test(erro.recado) && erro.altura >= 0, erro);
 
     nav.fechar();
     bancada.servidor.close();

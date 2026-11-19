@@ -254,6 +254,29 @@ três sítios (a rota `turma-editar`, o `DELETE` e o cartão). **A turma curada 
 trava**: edita-se no lugar o que não parte a ligação, e renomear pede sair da curadoria primeiro. A
 derivação preserva a ligação porque mantém o nome.
 
+**O PASSO COMPÕE; A GRAVAÇÃO É UMA SÓ, NO FIM (19/11/2026).** Um formulário com passos tem UM ponto
+de escrita, e é o botão que conclui a sequência — nunca o «Avançar». A regra nasceu de um defeito
+medido: o botão do passo 1 era `<button type="submit">` e o `submit` gravava, de modo que cada
+passagem pelo passo 1 deixava um registo novo no KV. Compor a sala «Rosa», avançar, voltar, corrigir
+o nome e avançar outra vez produzia **duas salas** — sem ninguém ter clicado em «Gravar». O mesmo se
+passava no cadastro do professor, na Audição e (por outra via) no Estilo.
+
+| Secção | O passo 1 compõe | Quem grava | O que leva |
+|:--|:--|:--|:--|
+| **Salas** | nome, dias, horários, duração, período | «Gravar sala» (passo 2) | a sala **e** o par (modalidade, professor), numa escrita quando a sala ainda não existe |
+| **Professores** | a ficha (nome, CPF, contactos, senha) | «Gravar cadastrar professor» (passo 2) | a ficha (devolve o `slug`) **e** a régua desse slug |
+| **Audição** | o nome, o professor e as alunas | «Concluir elenco» | a versão do elenco; a leitura das anamneses grava o registo de que precisa |
+| **Estilo** | o exercício e os cinco passos do verbete | «Gravar verbete» | o verbete (o exercício do dicionário é uma entidade própria e não duplica) |
+
+Duas consequências que não são óbvias e que o código tem de respeitar: (i) o passo 2 pode receber uma
+sala que **ainda não existe** — é por isso que `POST /api/bastidores/turma-professor` sabe criar, com
+as mesmas três regras do cadastro; (ii) o recado de um erro tem de ser escrito num `.res` **à vista** —
+cada passo tem o seu, e o do passo 1 fica escondido quando o passo 2 abre.
+
+E a lista de professores de um passo 2 **nasce vazia** até a modalidade ser escolhida: é a modalidade
+que diz quem pode dar aquela sala, e oferecer a escola inteira antes disso deixava escolher quem talvez
+não possa.
+
 **A TURMA É UMA RELAÇÃO, E O CARTÃO DELA DIZ AS TRÊS PONTAS (12/11/2026).** Sala × elenco × conteúdo:
 a sala dá o ritmo e a régua, o elenco traz o corpo e o recorte, o conteúdo é o que se ensina (e vive
 no Estilo). Até aqui a relação estava numa **linha de prosa** (`.dono`), onde o nome da sala competia
