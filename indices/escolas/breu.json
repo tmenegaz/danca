@@ -96,20 +96,24 @@
     {
       "ancora": {
         "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-17",
-        "caminho": "professores/demi-plie/ciclos/ciclo-01-breu.fipp",
+        "ancorado_em": "2026-11-19",
+        "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa.fipp",
         "cobertura": [
-          "professores/demi-plie/ciclos/ciclo-01-breu.conf",
+          "professores/demi-plie/ciclos/ciclo-01-breu-rosa-plano.md",
+          "professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
           "professores/demi-plie/ciclos/ciclo-01.conf"
         ],
-        "hash": "cd5006ddabba8c7e60a0f31abdb709d6412b3f504451d0f557084132b8d7e223",
-        "hash_conteudo": "f924dd09df9d488b40d0bcd2432b096ed6b70689d664d5c3ba46857a2efafbf0",
-        "id": "ciclo-01-breu",
+        "hash": "d168f21be2cf7cca4d38cc4587cc6133528ee1e47e9d27867ebbaabf23d032d1",
+        "hash_conteudo": "03ae5daf98254bfb7d67e1fcfc466bde3bdbf8b0579e512ad4e7148df1f1c801",
+        "id": "ciclo-01-breu-rosa",
         "lida": true,
         "parent_hash": ""
       },
       "aulas": [],
       "documentos": [
+        "professores/demi-plie/ciclos/ciclo-01-breu-rosa-plano.md",
+        "professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
+        "professores/demi-plie/ciclos/ciclo-01-breu-rosa.fipp",
         "professores/demi-plie/ciclos/ciclo-01-breu.conf",
         "professores/demi-plie/ciclos/ciclo-01-breu.fipp",
         "professores/demi-plie/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
@@ -124,13 +128,23 @@
       "tipos": [
         "ancora",
         "manifesto",
+        "plano",
         "schema"
       ]
     }
   ],
   "documentos": [
     {
-      "ancora_id": "ciclo-01-breu",
+      "ancora_id": "ciclo-01-breu-rosa",
+      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa.fipp",
+      "ciclo_id": "ciclo:demi-plie/01/breu",
+      "escola": "breu",
+      "id": "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu-rosa.fipp",
+      "professor": "demi-plie",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-rosa",
       "caminho": "professores/demi-plie/ciclos/ciclo-01-breu.fipp",
       "ciclo_id": "ciclo:demi-plie/01/breu",
       "escola": "breu",
@@ -139,7 +153,16 @@
       "tipo": "ancora"
     },
     {
-      "ancora_id": "ciclo-01-breu",
+      "ancora_id": "ciclo-01-breu-rosa",
+      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
+      "ciclo_id": "ciclo:demi-plie/01/breu",
+      "escola": "breu",
+      "id": "documento:manifesto:professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
+      "professor": "demi-plie",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-rosa",
       "caminho": "professores/demi-plie/ciclos/ciclo-01-breu.conf",
       "ciclo_id": "ciclo:demi-plie/01/breu",
       "escola": "breu",
@@ -148,7 +171,16 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": "ciclo-01-breu",
+      "ancora_id": "ciclo-01-breu-rosa",
+      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa-plano.md",
+      "ciclo_id": "ciclo:demi-plie/01/breu",
+      "escola": "breu",
+      "id": "documento:plano:professores/demi-plie/ciclos/ciclo-01-breu-rosa-plano.md",
+      "professor": "demi-plie",
+      "tipo": "plano"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-rosa",
       "caminho": "professores/demi-plie/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
       "ciclo_id": "ciclo:demi-plie/01/breu",
       "escola": "breu",
@@ -166,10 +198,10 @@
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
-      "planos": 0,
+      "planos": 1,
       "pos": 0,
       "recortes": 1,
-      "registros": 3
+      "registros": 4
     },
     "criada_em": "2026-11-17T00:41:45.598067+00:00",
     "expurgada": false,
@@ -186,18 +218,20 @@
     "registros": [
       "anamnese:anamnese-20261116-2201",
       "anamnese:anamnese-20261117-1407",
-      "anamnese:anamnese-20261118-1737"
+      "anamnese:anamnese-20261118-1737",
+      "plano:plano-20261119-1143"
     ],
     "slug": "breu"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 3,
+        "contagem": 4,
         "ids": [
           "anamnese:anamnese-20261116-2201",
           "anamnese:anamnese-20261117-1407",
-          "anamnese:anamnese-20261118-1737"
+          "anamnese:anamnese-20261118-1737",
+          "plano:plano-20261119-1143"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -257,12 +291,13 @@
     ],
     "professores": [
       {
-        "contagem": 4,
+        "contagem": 5,
         "ids": [
           "anamnese:anamnese-20261116-2201",
           "anamnese:anamnese-20261117-1407",
           "anamnese:anamnese-20261118-1737",
-          "ciclo:demi-plie/01/breu"
+          "ciclo:demi-plie/01/breu",
+          "plano:plano-20261119-1143"
         ],
         "rotulo": "demi-plie",
         "valor": "demi-plie"
@@ -286,14 +321,22 @@
         ],
         "rotulo": "Ciclo",
         "valor": "ciclo"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "plano:plano-20261119-1143"
+        ],
+        "rotulo": "Plano de ensino",
+        "valor": "plano"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "cd71c32"
+    "commit": "8e2a048"
   },
-  "gerado_em": "2026-11-19T12:47",
+  "gerado_em": "2026-11-19T14:44",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -506,6 +549,18 @@
       "id": "anamnese:anamnese-20261118-1737",
       "professor": "demi-plie",
       "tipo": "anamnese"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "plano-20261119-1143",
+      "ciclo": "01",
+      "data": "2026-11-19T11:43",
+      "id": "plano:plano-20261119-1143",
+      "objetivo": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
+      "professor": "demi-plie",
+      "tipo": "plano",
+      "turma": "Rosa"
     }
   ],
   "versao": 7

@@ -1,23 +1,27 @@
 {
   "ancora": {
     "algoritmo": "SHA-256",
-    "ancorado_em": "2026-11-17",
-    "caminho": "professores/demi-plie/ciclos/ciclo-01-breu.fipp",
+    "ancorado_em": "2026-11-19",
+    "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa.fipp",
     "cobertura": [
-      "professores/demi-plie/ciclos/ciclo-01-breu.conf",
+      "professores/demi-plie/ciclos/ciclo-01-breu-rosa-plano.md",
+      "professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
       "professores/demi-plie/ciclos/ciclo-01.conf"
     ],
-    "hash": "cd5006ddabba8c7e60a0f31abdb709d6412b3f504451d0f557084132b8d7e223",
-    "hash_conteudo": "f924dd09df9d488b40d0bcd2432b096ed6b70689d664d5c3ba46857a2efafbf0",
-    "id": "ciclo-01-breu",
+    "hash": "d168f21be2cf7cca4d38cc4587cc6133528ee1e47e9d27867ebbaabf23d032d1",
+    "hash_conteudo": "03ae5daf98254bfb7d67e1fcfc466bde3bdbf8b0579e512ad4e7148df1f1c801",
+    "id": "ciclo-01-breu-rosa",
     "lida": true,
     "parent_hash": ""
   },
   "aulas": [],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu-rosa.fipp",
     "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu.fipp",
+    "documento:manifesto:professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
     "documento:manifesto:professores/demi-plie/ciclos/ciclo-01-breu.conf",
+    "documento:plano:professores/demi-plie/ciclos/ciclo-01-breu-rosa-plano.md",
     "documento:schema:professores/demi-plie/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "breu",
@@ -25,14 +29,19 @@
   "filtros": {
     "tipos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "ancora",
         "valor": "ancora"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "manifesto",
         "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "plano",
+        "valor": "plano"
       },
       {
         "contagem": 1,
@@ -43,9 +52,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "cd71c32"
+    "commit": "8e2a048"
   },
-  "gerado_em": "2026-11-19T12:47",
+  "gerado_em": "2026-11-19T14:44",
   "id": "ciclo:demi-plie/01/breu",
   "professor": "demi-plie",
   "versao": 7
