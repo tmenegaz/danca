@@ -4639,6 +4639,13 @@ declarado», o passo «Commitar os derivados» ficava `skipped` e o derivado nã
 aceitar `_`, e `indices/esquema/**` entrou nos `paths` do `derivados.yml`. **CONFIRMADO:** o
 `derivados` voltou a passar (run 76, `success`).
 
+**RESOLVIDO a 19/11/2026 — o gesto de gravar tem um rótulo, e o fim do gesto é o mesmo em todas as
+secções.** Os oito botões dizem `Gravar` (de `ROTULO_DO_GRAVAR`, no servidor), e nenhum deles volta a
+ser reescrito pelo cliente: o **efeito** (criar ou regravar) vive no `title` e na resposta, e não no
+rótulo. O fim do gesto — aviso no canto, formulário limpo, secção recolhida — está nas sete secções
+com formulário. **O que a prova mede é a ausência**, e não a presença: enquanto um `textContent = …`
+decidir o texto de um botão, a nona secção divergirá na primeira vez que precisar de um caso novo.
+
 **PENDENTE dela — o nome de arquivo do glossário é `_` ou `-`?** O ficheiro ficou
 `…-glossario-codigo_de_danca.md` porque o `slugDe` foi escrito para chaves e passou a nomear ficheiros.
 Renomear para kebab-case (`…-glossario-codigo-de-danca.md`) alinharia com a convenção dos outros
@@ -4648,6 +4655,22 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **19/11/2026** — **«Gravar é gravar»: oito botões, um rótulo, e o fim do gesto em todas as
+  secções.** Os oito botões que gravam um formulário diziam oito frases diferentes — «Criar
+  dicionário», «Gravar verbete», «Cadastrar aluna», «Gravar cadastrar professor», «Atribuir turma»,
+  «Criar elenco»… — e cinco delas eram reescritas pelo cliente conforme o modo. Passaram todos a
+  `ROTULO_DO_GRAVAR` (`'Gravar'`), uma constante no servidor, e as reescritas foram **apagadas**.
+  **CONFIRMADO ao vivo:** a página servida tem oito «Gravar» na marcação e **zero** frases mortas no
+  script. No mesmo dia: o Dicionário recusava um formulário inteiro (o `POST` lia `termo`, o
+  formulário manda `nome`); a Audição não recolhia a secção nem tirava o recado de dentro do
+  formulário — a cadeia ganhou sítio próprio (`#lb-cadeia`, na coluna da lista); o cadastro do
+  professor limpava o passo 1 e deixava o 2, porque o fim do gesto esquecia o rascunho e não o foco
+  nem o passo; e a aluna **livre** voltou a poder ser corrigida — saiu a guarda que o proibia por a
+  anamnese já estar feita, porque **uma guarda nova não pode cobrar de quem não tem o que ela
+  protege** («livre edita-se, vinculada deriva-se», 16/10/2026). Prova nova
+  `provar-gravar-e-gravar` (**49**), **A/B: 29 de 49 reprovavam** contra o `bastidores.js` anterior.
+  Ver `ARQUITETURA-GERAL.md` §5.33 e o `REGISTRO.md`.
 
 - **19/11/2026** — **Um erro de código com a cara de uma recusa do produto.** O `limparOVerbete` ficou
   chamado e sem corpo, a gravação aconteceu e a tela mostrou `Erro: limparOVerbete is not defined`
