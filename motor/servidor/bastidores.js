@@ -11138,11 +11138,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '}' +
     'function concluirOGesto(idDaSecao, tipo, texto, semRecolher){' +
-    '  if (idDaSecao) limparOSFormularioDe(idDaSecao);' +
+    /* O AVISO SAI PRIMEIRO, e depois arruma-se a tela (19/11/2026). A ordem era a inversa, e a
+     * inversa é a que mente: se a arrumação atirar, o aviso nunca chega e o gesto — que está feito
+     * e gravado — fica sem resposta nenhuma. Assim, o pior desfecho é um formulário que não
+     * recolheu, e não uma pessoa convencida de que perdeu o trabalho. */
+    '  var aviso = avisar(tipo, texto);' +
     /* O RECOLHER VEM DEPOIS DO LIMPAR, e a ordem importa: o «Cancelar» de algumas secções limpa
      * ao fechar, e limpar primeiro garante que o que ele faça a seguir não encontra nada. */
-    '  if (idDaSecao && !semRecolher) cancelarOFormularioDe(idDaSecao);' +
-    '  return avisar(tipo, texto);' +
+    '  try {' +
+    '    if (idDaSecao) limparOSFormularioDe(idDaSecao);' +
+    '    if (idDaSecao && !semRecolher) cancelarOFormularioDe(idDaSecao);' +
+    '  } catch (err) {}' +
+    '  return aviso;' +
     '}' +
     'function recado(estado, texto) {' +
     '  limparRecados();' +
@@ -17833,7 +17840,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      ? ("«" + nome + "» saiu do dicionário desta escola — a versão do catálogo volta a valer aqui.")' +
     '      : ("«" + nome + "» saiu do dicionário."));' +
     '  }).catch(function(err){' +
-    '    liberar(); recadoDoDicionario("Erro: " + (err && err.message ? err.message : err), "erro");' +
+    '    liberar(); avisar("erro", "Erro: " + (err && err.message ? err.message : err));' +
     '  });' +
     '}' +
     'var formDicionario = document.getElementById("form-dicionario");' +
@@ -17885,7 +17892,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      ? (n + (n === 1 ? " verbete carregado" : " verbetes carregados") + " — passam a ser desta escola.")' +
     '      : "os verbetes da progressão já estavam todos aqui.");' +
     '  }).catch(function(err){' +
-    '    liberar(); recadoDoDicionario("Erro: " + (err && err.message ? err.message : err), "erro");' +
+    '    liberar(); avisar("erro", "Erro: " + (err && err.message ? err.message : err));' +
     '  });' +
     '});' +
     'var listaVerbetes = document.getElementById("lista-verbetes");' +
@@ -18067,9 +18074,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    }' +
     '    pintarDesacordo();' +
     '    carregarVerbetes();' +
-    /* E O FORMULÁRIO LIMPA-SE E RECOLHE — a regra dela, e é a MESMA sequência do «Cancelar». */
-    '    limparOVerbete();' +
-    '    cancelarOFormularioDe("sec-verbetes");' +
+    /* E O FORMULÁRIO LIMPA-SE E RECOLHE — a regra dela, e é a MESMA sequência do «Cancelar».
+     *
+     * DEBAIXO DE UM `try` PORQUE ESTA PARTE VEM DEPOIS DA GRAVAÇÃO (19/11/2026). Foi aqui que um
+     * `limparOVerbete()` sem corpo virou, na tela, «Erro: limparOVerbete is not defined» por cima
+     * de um trabalho feito — o `catch` da promessa apanhou a excepção e escreveu-a no `.res`, e a
+     * resposta do servidor já tinha chegado com `ok`. Uma falha a arrumar a tela depois de gravar
+     * NÃO é uma falha de gravação, e não se pode dizer que é: o pior desfecho aceitável é o
+     * formulário ficar aberto, nunca a pessoa achar que perdeu o que gravou. */
+    '    try { limparOVerbete(); cancelarOFormularioDe("sec-verbetes"); } catch (err) {}' +
     '  });' +
     '});' +
     // ---------------------------------------------------------------------------
@@ -18353,17 +18366,32 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * A ORDEM É A DO GESTO: primeiro abandonar o estado (a correcção, os sinais, os contadores),
      * depois limpar o que está escrito, e só no fim fechar — fechar antes de limpar esconderia um
      * formulário que continuaria preenchido para quem o reabrisse. */
-    'var bCancelarVerbete = document.getElementById("vb-cancelar");' +
-    'if (bCancelarVerbete) bCancelarVerbete.addEventListener("click", function(){' +
+    /* LIMPAR O VERBETE É UMA FUNÇÃO, E NÃO UM BLOCO DENTRO DO «CANCELAR» (19/11/2026).
+     *
+     * Depois de gravar, a regra dela é a mesma do cancelar: «precisa limpar completamente o
+     * formulário […] e colapsa ele». Ter a sequência escrita duas vezes daria duas limpezas a
+     * divergir na primeira vez que um estado novo entrasse — e a que ficasse para trás seria a do
+     * caminho de gravar, que é o mais usado.
+     *
+     * E ELA JÁ FALTOU UMA VEZ, por uma cirurgia mal feita: a chamada entrou no caminho de gravar e
+     * o corpo não. O sintoma foi o pior de todos — a gravação ACONTECIA (o `avisar` vem antes) e a
+     * tela dizia «Erro: limparOVerbete is not defined». Uma mensagem de erro por cima de um trabalho
+     * feito. A prova que o apanha está em `experimentos/provar-o-script-nao-chama-o-que-nao-existe.js`,
+     * e a que o mede a correr está na §L do `provar-dicionario`. */
+    'function limparOVerbete(){' +
     '  cancelarEdicaoDoVerbete();' +
     '  var f = document.getElementById("form-verbete");' +
-    '  if (f) f.reset();' +
+    '  if (f) { try { f.reset(); } catch (err) {} }' +
     '  var acao = document.getElementById("vbacao");' +
     '  if (acao) acao.value = "criar";' +
     '  MUSICA_ABERTA = "";' +
     '  irParaPassoVerbete(1);' +
     '  carregarRascunho();' +
     '  recado("", "");' +
+    '}' +
+    'var bCancelarVerbete = document.getElementById("vb-cancelar");' +
+    'if (bCancelarVerbete) bCancelarVerbete.addEventListener("click", function(){' +
+    '  limparOVerbete();' +
     '  cancelarOFormularioDe("sec-verbetes");' +
     '});' +
     // ACRESCENTAR O TRECHO. A recusa diz O QUE FALTA, campo a campo — e nunca «faltam campos».

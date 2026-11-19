@@ -3373,3 +3373,44 @@ campo que mudou (§5.30).
 `provar-dicionario` 118, com a secção **K** a correr a listagem do Estilo num DOM e a exigir o
 «Derivar» na versão do catálogo — **controle negativo: 2 reprovam** com a condição antiga
 (`i === 0 && m.escola`).
+
+### 5.32 O `catch` que escreve no `.res` transforma um erro de código numa mensagem do produto *(19/11/2026)*
+
+> «Tentei gravar o plié de uma derivação e deu esse erro no formulário `Erro: limparOVerbete is not
+> defined` e apareceu a mensagem na tela informando que foi gravado.»
+
+O relato parece contraditório e não é: as duas frases eram verdadeiras. **O servidor gravou**, a
+resposta chegou com `ok`, e o erro veio **depois** — de uma chamada a uma função que ficou sem corpo
+numa reescrita. O que o transformou em «erro do formulário» foi o `.catch` do caminho de submissão,
+que escreve no `.res` o que apanhou. Ele não distingue a recusa do servidor de uma excepção de
+JavaScript, e a tela também não: as duas aparecem no mesmo sítio, com a mesma cara.
+
+**A regra que sai daqui, e vale para qualquer caminho que grave:** *o que vem depois da gravação não
+pode reportar-se como se fosse a gravação.* A resposta do servidor chegou — aquele facto não se
+desdiz. Em concreto:
+
+- **a limpeza e o recolher vão debaixo de `try {}`** (no `funcionar` do verbete). O pior desfecho
+  aceitável é o formulário ficar aberto e limpo à mão; inaceitável é a pessoa achar que perdeu o
+  trabalho e gravar outra vez;
+- **no `concluirOGesto`, o aviso sai primeiro** e a arrumação vem depois. Era a ordem inversa, e a
+  inversa é a que mente: se a arrumação atirar, o gesto — feito — fica sem resposta nenhuma.
+
+**Um nome que não existe só falha no instante em que é chamado**, e é por isso que este atravessou
+todas as bancadas da casa: `provar-painel`, `provar-salas-e-elencos`, `check-identidade` lêem
+marcação e nunca aquele caminho; `provar-dicionario` corria jsdom, mas não exercitava o **submeter**
+do verbete. O que faltava não era mais uma asserção num teste que corre o caminho — era uma prova que
+**lê** o script emitido: `experimentos/provar-o-script-nao-chama-o-que-nao-existe.js` separa código
+de texto, comentário e regex e devolve as chamadas a nomes não declarados.
+
+**A armadilha do separador, e ela custou 28 falsos positivos:** `return /^\d+\|/` é código, não
+divisão — sem tratar o `return`, a barra seguinte abre uma «regex» que engole meio ficheiro. E uma
+aspa dentro de uma regex não abre uma string. As duas coisas ficaram como asserção, porque são a
+prova de que a prova mede o que diz medir.
+
+**Medido:** a prova nova tem **6 asserções**. **A/B contra o `bastidores.js` do `HEAD` anterior:** é
+vermelha e **nomeia** os três — `limparOVerbete` ×1, `recadoDoDicionario` ×2. Hoje, zero.
+`provar-dicionario` passou a **123** com a secção **L**, que submete o verbete num DOM e exige gravar,
+formulário limpo e recolhido, nenhum «is not defined» e nenhuma excepção — **controle negativo: 1 de
+123 reprova**, e o `.res` volta a dizer o erro **com o aviso a dizer «gravado»**, que é o sintoma
+dela reproduzido. Com o `try`, o mesmo defeito reprova pela outra ponta: o formulário que não
+recolheu.

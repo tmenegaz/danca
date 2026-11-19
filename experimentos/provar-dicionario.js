@@ -984,6 +984,122 @@ console.log('\nK. A listagem do Estilo dá os gestos à versão do CATÁLOGO tam
   dom.window.close();
 }
 
+/* ============================================================================================= */
+console.log('\nL. Gravar o verbete: o caminho que falhou, a correr');
+
+{
+  /* O DEFEITO QUE ISTO MEDE, na letra dela:
+   *
+   *   «Tentei gravar o plié de uma derivação e deu esse erro no formulário: Erro: limparOVerbete is
+   *    not defined — e apareceu a mensagem na tela informando que foi gravado.»
+   *
+   * As duas coisas eram verdade: a gravação aconteceu (o `avisar("ok", …)` é a linha anterior), e o
+   * erro veio depois — de uma chamada a uma função que nunca chegou a ser escrita. A prova da
+   * listagem (§K) não apanhava isto porque não SUBMETE o formulário: ela desenha a lista e olha
+   * para os botões. Este caminho só falha quando corre.
+   *
+   * O que se exige, e é o que ela pediu: submeter grava, o formulário fica LIMPO e RECOLHIDO, e
+   * nada escreve «is not defined» em sítio nenhum. */
+  const { JSDOM, VirtualConsole } = require('jsdom');
+  const vc = new VirtualConsole();
+  const erros = [];
+  vc.on('jsdomError', (e) => erros.push(String((e && e.message) || e)));
+  vc.on('error', (m) => erros.push(String(m)));
+
+  let gravou = 0;
+  const dom = new JSDOM(aPagina().replace(/<script src="[^"]*"><\/script>/g, ''), {
+    runScripts: 'dangerously', url: 'https://breu.workers.dev/bastidores/producao',
+    pretendToBeVisual: true, virtualConsole: vc,
+    beforeParse(w) {
+      w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+        addListener() {}, removeListener() {} });
+      w.confirm = () => true;
+      w.alert = () => {};
+      w.scrollTo = () => {};
+      const memoria = new Map();
+      Object.defineProperty(w, 'sessionStorage', {
+        configurable: true,
+        value: {
+          getItem: (k) => (memoria.has(k) ? memoria.get(k) : null),
+          setItem: (k, v) => memoria.set(k, String(v)),
+          removeItem: (k) => memoria.delete(k), clear: () => memoria.clear(),
+        },
+      });
+      const responde = (corpo) => Promise.resolve({
+        ok: true, status: 200,
+        json: () => Promise.resolve(corpo),
+        text: () => Promise.resolve(JSON.stringify(corpo)),
+      });
+      w.fetch = (u, o) => {
+        const url = String(u);
+        const metodo = (o && o.method) || 'GET';
+        if (url.indexOf('/api/bastidores/verbete') !== -1 && metodo === 'POST') {
+          gravou += 1;
+          return responde({ ok: true, versao: 7, ajustou: null, avisos: [] });
+        }
+        if (url.indexOf('/api/bastidores/verbete') !== -1) {
+          return responde({ ok: true, exercicios: [], exerciciosDoVocabulario: [], verbetes: {} });
+        }
+        if (url.indexOf('/api/bastidores/termos') !== -1) return responde({ ok: true, termos: [] });
+        return responde({ ok: true });
+      };
+    },
+  });
+  const w = dom.window;
+  const d = w.document;
+  await new Promise((r) => setTimeout(r, 200));
+
+  /* O FORMULÁRIO PREENCHIDO COMO ELA O PREENCHEU: o exercício escolhido, a música, e uma célula. */
+  w.eval('VERBETES = { ok: true, exercicios: [], exerciciosDoVocabulario: [], verbetes: {},'
+    + ' alfabeto: null };');
+  const por = (id, valor) => {
+    const el = d.getElementById(id);
+    if (el) el.value = valor;
+    return el;
+  };
+  por('vbacao', 'editar');
+  const nomes = por('vbnome', 'Plié');
+  if (nomes) {
+    const o = d.createElement('option');
+    o.value = 'Plié'; o.textContent = 'Plié';
+    nomes.appendChild(o); nomes.value = 'Plié';
+  }
+  por('vbtempos', '8');
+  const comp = d.getElementById('vbcompasso');
+  if (comp) {
+    const o = d.createElement('option');
+    o.value = '2/4'; o.textContent = '2/4';
+    comp.appendChild(o); comp.value = '2/4';
+  }
+  por('vb-frase', 'flexão contínua');
+  /* A CÉLULA: uma pista, um trecho com sinais, contagem e frase — o mínimo que a gravação aceita. */
+  w.eval('CELULAS = { devant: [{ sinais: ["×"], contagem: "1", categoria: "Pé",'
+    + ' descricao: "flexão contínua", repeticoes: 1 }] };'
+    + ' if (typeof CELULAS !== "undefined") { MUSICA_EM_FOCO = "8|2/4"; }');
+
+  const formulario = d.getElementById('form-verbete');
+  formulario.dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
+  await new Promise((r) => setTimeout(r, 260));
+
+  const textoDoRes = [...d.querySelectorAll('.res')].map((r) => r.textContent).join(' | ');
+  const textoDosAvisos = (d.getElementById('avisos') || {}).textContent || '';
+
+  provar('submeter o verbete chega a gravar', gravou === 1, gravou);
+  provar('…e NENHUM «is not defined» aparece na tela — nem no `.res`, nem no canto',
+    !/is not defined/i.test(textoDoRes) && !/is not defined/i.test(textoDosAvisos),
+    { res: textoDoRes.slice(0, 160), avisos: textoDosAvisos.slice(0, 160) });
+  provar('…e a página não atirou nenhuma excepção',
+    erros.filter((e) => /is not defined|undefined is not/i.test(e)).length === 0, erros.slice(0, 2));
+  provar('…e o aviso diz que gravou', /gravado/.test(textoDosAvisos), textoDosAvisos);
+  provar('…e o formulário fica LIMPO e RECOLHIDO, pronto ao próximo',
+    d.getElementById('vbacao').value === 'criar'
+      && d.getElementById('sec-verbetes').getAttribute('data-recolhido') === 'sim',
+    { acao: d.getElementById('vbacao').value,
+      recolhido: d.getElementById('sec-verbetes').getAttribute('data-recolhido') });
+
+  dom.window.close();
+}
+
 console.log('\n' + (falhas
   ? 'FALHOU — ' + falhas + ' de ' + provas + ' asserção(ões).'
   : 'TUDO CERTO — ' + provas + ' asserções: o Dicionário é irmão das outras secções e guarda o '
@@ -993,7 +1109,8 @@ console.log('\n' + (falhas
     + 'diz chega inteiro à tela — a ponte do catálogo não perde campo; e o dicionário é de cada '
     + 'escola, filtrado automaticamente pela escola do Worker; e a edição grava no termo dessa '
     + 'escola, não no do catálogo; gravar, apagar e semear mudam a lista no lugar, sem recarregar '
-    + 'a página; e a listagem do Estilo dá o gesto de derivar também à versão do catálogo.'));
+    + 'a página; a listagem do Estilo dá o gesto de derivar também à versão do catálogo; e gravar '
+    + 'o verbete limpa, recolhe e não escreve «is not defined» em sítio nenhum.'));
 process.exit(falhas ? 1 : 0);
 }
 

@@ -54159,3 +54159,56 @@ faz é recolher.
 `check-sem-destruicao` ok. Vizinhas: `provar-painel` ok, `provar-salas-e-elencos` 132,
 `provar-pagina-do-professor` 17, `provar-a-margem-da-aba` 12/12. `provar-verbete` mantém a falha da
 §J e `provar-producao` as 142/159 — as mesmas de antes, medidas nos dois lados.
+
+### 19/11/2026 — «limparOVerbete is not defined» — e a tela a dizer que gravou
+
+> «Tentei gravar o plié de uma derivação e deu esse erro no formulário `Erro: limparOVerbete is not
+> defined` e apareceu a mensagem na tela informando que foi gravado.»
+
+Os dois factos eram verdadeiros, e é por isso que o relato parece impossível: **a gravação aconteceu**
+e **o erro veio depois dela**. Na frente anterior eu pus no caminho de gravar do Estilo a chamada
+`limparOVerbete()` — a sequência do «Cancelar», para não haver duas limpezas a divergir — e, numa
+cirurgia ao ficheiro, **perdi-lhe o corpo**. O nome ficou chamado e nunca declarado. Um nome que não
+existe não falha ao ser escrito: falha no instante em que é chamado, e é por isso que atravessou
+todas as bancadas — as que medem marcação não o vêem, e as que correm jsdom não exercitavam aquele
+caminho.
+
+**1. A função foi escrita.** `limparOVerbete` passou a ser a sequência do «Cancelar» de facto, e o
+`#vb-cancelar` passou a chamá-la em vez de repetir os passos. E as **duas chamadas órfãs** a
+`recadoDoDicionario` — um nome que eu tinha apagado na reescrita da v6 do dicionário — passaram a
+`avisar("erro", …)`.
+
+**2. O `catch` que transforma um erro de código numa mensagem de produto.** A causa de o erro
+aparecer **por cima de uma gravação feita** é o `catch` da promessa, que escreve no `.res` o que
+apanhou — e o que ele apanhou foi uma excepção de JavaScript, não uma recusa do servidor. A resposta
+já tinha chegado com `ok`. Duas blindagens, e são regra e não remendo:
+
+- no **verbete**, a limpeza e o recolher vão debaixo de `try {}`: uma falha a arrumar a tela depois de
+  gravar **não é** uma falha de gravação, e não se pode dizer que é. O pior desfecho aceitável é o
+  formulário ficar aberto, nunca a pessoa achar que perdeu o que gravou;
+- no **`concluirOGesto`**, o aviso passou a sair **primeiro** e a arrumação depois, pela mesma razão ao
+  contrário: se a arrumação atirar, o aviso já está na tela. A ordem anterior é a que mente.
+
+**3. Uma prova nova, e ela lê em vez de executar.**
+`experimentos/provar-o-script-nao-chama-o-que-nao-existe.js` (**6 asserções**) lê o JavaScript que as
+páginas dos Bastidores emitem, separa código de texto, comentário e regex, e devolve as chamadas a
+nomes que ninguém declarou. **A/B medido:** corrida contra o `motor/servidor/bastidores.js` do `HEAD`
+anterior, reprova e **nomeia** — `limparOVerbete` ×1 e `recadoDoDicionario` ×2. Corrida hoje, zero.
+Traz a forma do defeito como asserção: `return /^\d+\|/` é código e não divisão (sem isso a barra
+seguinte abre uma «regex» que engole meio ficheiro — a primeira versão deu 28 falsos positivos), e uma
+aspa dentro de uma regex não abre uma string.
+
+**4. A secção L do `provar-dicionario`** (118 → **123**) submete o formulário do verbete num DOM e
+exige as quatro coisas: que grave, que o formulário fique limpo e recolhido, que **nenhum «is not
+defined»** apareça — nem no `.res`, nem no canto — e que a página não atire excepção nenhuma.
+**Controlo negativo, medido:** repondo o nome sem corpo, **1 de 123 reprova** e o `.res` volta a dizer
+`Erro: limparOVerbete is not defined` **com o aviso a dizer «gravado»** — o sintoma dela, reproduzido.
+Com a blindagem do `try`, o mesmo defeito já não escreve o «Erro»: reprova pela outra ponta, o
+formulário que não recolheu.
+
+**Medido.** `provar-dicionario` **123**, `provar-avisos` 25, `provar-o-script-nao-chama-o-que-nao-existe`
+6, `provar-painel` ok, `provar-salas-e-elencos` 132, `provar-pagina-do-professor` 17,
+`provar-a-margem-da-aba` 12/12, `provar-menu-da-producao` 55/55, `check-identidade` ok (22
+verificações), `check-sem-destruicao` ok. Vermelhas, e já estavam: `provar-verbete` (§J, o documento
+datado de antes do ajuste), `provar-producao` 142/159 e `provar-produtos` 87/89 — as mesmas, comparadas
+com o `HEAD`.
