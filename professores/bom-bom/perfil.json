@@ -3,8 +3,14 @@
   "slug": "bom-bom",
   "nome": "Bom Bom",
   "modalidades": [
+    "bale-classico",
     "danca-moderna"
   ],
+  "tradicoes": {
+    "bale-classico": [
+      "francesa"
+    ]
+  },
   "criado": "2026-11-19",
   "atualizado": "2026-11-19"
 }
