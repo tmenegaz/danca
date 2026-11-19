@@ -608,6 +608,20 @@ feito:
    «Cancelar»; recolhido, não há** — e clicá-lo fecha o formulário e descarta o que se escreveu. É
    uma função só (`pintarCancelares`, no script da Produção) porque são seis secções, e a cópia que
    ficasse de fora seria a que ninguém notaria até alguém desistir a meio.
+10. **Um formulário não traz prosa.** *(19/11/2026, no Desligamento: «é simplesmente colocar o nome
+    do professor, o motivo e desligar o professor. Só isso […] Não precisa ter nada de texto.»)*
+    Dentro de um formulário há **rótulo, campo e placeholder** — e mais nada. O que se quer dizer
+    **antes** de a pessoa agir não se escreve em parágrafo: ou cabe num rótulo, ou não é preciso. O
+    que se quer dizer **depois** é a resposta da rota (o recado, o `proximo`), que aparece quando há
+    um facto a contar. O parágrafo que aqui vivia explicava o que aconteceria à escola, às turmas e
+    ao registo — coisas verdadeiras, ditas no sítio errado: a explicação é do **resultado**, e quem
+    a lê é quem acabou de desligar.
+
+    **Como se distingue prosa de estado**, e é o critério que as bancadas medem: **prosa é o
+    parágrafo sem `id`**. O que não tem `id` não é reescrito por ninguém — está na página a explicar
+    o acto. O que diz **estado** («não há ninguém para desligar») tem `id`, é reescrito a cada
+    carga, e é a única prosa que um painel pode ter. Um painel que fica em branco quando não há
+    nada a fazer não é um painel limpo: é uma página que parece avariada.
 
 **Onde está declarada.** No `<style>` da própria página da Produção (`motor/servidor/bastidores.js`),
 e não em `tools/templates/ciclo.css`: a peça nasceu na Produção e é lá que ela vive. O `<style>` da

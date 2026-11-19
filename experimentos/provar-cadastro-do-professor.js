@@ -153,9 +153,14 @@ const comSenha = (corpo) => Object.assign({ senhaDirecao: '123' }, corpo || {});
       /<nav class="abas"[^>]*id="pf-abas"[^>]*data-abas="professor"/.test(html), null);
     const rotulos = [...html.matchAll(/<button[^>]*id="pf-aba-([a-z]+)"[^>]*>([^<]+)<\/button>/g)]
       .map((m) => [m[1], m[2].trim()]);
+    /* O RÓTULO DA PRIMEIRA É «Cadastro», e não «Cadastro de professor» (19/11/2026): o «de
+     * professor» repetia o título da secção, e o passo 1 da tira passou a ter o mesmo nome. Esta
+     * asserção ficou a afirmar o rótulo antigo e reprovava a página certa — corrigida aqui, com
+     * nota, como manda a regra: uma bancada que codifica o desenho antigo muda de sinal em
+     * público. */
     conferir('as três abas, pela ordem dela: cadastro, habilitações, desligamento',
       JSON.stringify(rotulos) === JSON.stringify([
-        ['cadastro', 'Cadastro de professor'], ['habilitacoes', 'Habilitações'], ['desligamento', 'Desligamento'],
+        ['cadastro', 'Cadastro'], ['habilitacoes', 'Habilitações'], ['desligamento', 'Desligamento'],
       ]), rotulos);
     conferir('a primeira nasce aberta, as outras fechadas',
       !/id="pf-painel-cadastro"[^>]*hidden/.test(html)
@@ -168,6 +173,27 @@ const comSenha = (corpo) => Object.assign({ senhaDirecao: '123' }, corpo || {});
     const posUltimoPainel = corpoDaSecao.lastIndexOf('id="pf-painel-desligamento"');
     conferir('a listagem vive DEPOIS dos painéis, fora deles (à vista nas três abas)',
       posColLista > posUltimoPainel && posUltimoPainel > 0, { posColLista, posUltimoPainel });
+    /* SEM PROSA NO DESLIGAMENTO (19/11/2026) — «é simplesmente colocar o nome do professor, o
+     * motivo e desligar o professor. Só isso […] Não precisa ter nada de texto.» A ficha pede os
+     * dois campos e o botão, e mais nada: um parágrafo a explicar o que acontece à escola antes de
+     * a pessoa agir é a prosa que a regra da casa não admite dentro de um formulário. O critério é
+     * o da Audição — prosa é o parágrafo SEM `id`, porque o que não tem `id` não é reescrito por
+     * ninguém; o que diz ESTADO («não há ninguém para desligar») tem `id` e é reescrito. */
+    const painelDesl = corpoDaSecao.slice(corpoDaSecao.indexOf('id="pf-painel-desligamento"'),
+      corpoDaSecao.indexOf('class="col-lista"'));
+    const prosasDesl = [...painelDesl.matchAll(/<p class="(?:sub|aviso|nota)"(?![^>]*\sid=")([^>]*)>/g)]
+      .map((m) => m[0].slice(0, 40));
+    conferir('o painel do Desligamento não traz prosa: nome, motivo e o botão',
+      prosasDesl.length === 0 && /<form id="form-desligar">/.test(painelDesl)
+        && /id="desl-professor"/.test(painelDesl) && /id="desl-motivo"/.test(painelDesl)
+        && /id="desl-enviar"/.test(painelDesl), prosasDesl);
+    /* E o painel VAZIO não fica em branco: o parágrafo que diz que não há ninguém tem `id`. */
+    const semNinguem = pagina([PROFS[0]]);
+    const painelVazio = semNinguem.slice(semNinguem.indexOf('id="pf-painel-desligamento"'),
+      semNinguem.indexOf('class="col-lista"'));
+    conferir('sem ninguém para desligar, o painel diz o estado — e o parágrafo tem id',
+      /<p class="aviso" id="desl-vazio">[^<]{20,}<\/p>/.test(painelVazio)
+        && !/<form id="form-desligar">/.test(painelVazio), painelVazio.slice(0, 200));
     conferir('o «Seções» do telemóvel existe, e a pílula diz qual folha abre',
       /id="pf-abas-folha"/.test(html) && /data-folha="pf-abas"/.test(html), null);
     /* A CONTAGEM É DENTRO DO MENU DO PROFESSOR (16/11/2026). Ela era feita no HTML inteiro, e
@@ -293,7 +319,15 @@ const comSenha = (corpo) => Object.assign({ senhaDirecao: '123' }, corpo || {});
       !d.getElementById('prof-senha').hidden && campo('psenha') === '', null);
     conferir('o modo é «editar» e o alvo é o slug', campo('prof-modo') === 'editar' && campo('prof-alvo') === 'brise-volet',
       { modo: campo('prof-modo'), alvo: campo('prof-alvo') });
-    conferir('o botão diz o que vai fazer', /Gravar as mudanças/.test(d.getElementById('prof-enviar').textContent), null);
+    /* O BOTÃO DO PASSO 1 DIZ «Avançar» — TAMBÉM EM EDIÇÃO (19/11/2026). Dizia «Gravar as mudanças»
+     * e com isso prometia o fim do trabalho quando ainda falta o passo 2, que é a régua do
+     * professor; e o passo 1 deixou de gravar (`type="button"`). Quem grava é o passo 2. A
+     * asserção afirmava o rótulo antigo e reprovava a página certa: passa a afirmar as duas
+     * metades do gesto. */
+    conferir('o passo 1 diz «Avançar», e quem grava é o passo 2',
+      /Avançar/.test(d.getElementById('prof-enviar').textContent)
+        && /Gravar/.test(d.getElementById('rubr-gravar').textContent),
+      { passo1: d.getElementById('prof-enviar').textContent, gravar: d.getElementById('rubr-gravar').textContent });
     dom.window.close();
   }
 

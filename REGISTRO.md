@@ -53081,3 +53081,43 @@ da Produção, e não da folha congelada (a folha não é tocada).
 **Por fazer, e é frente própria:** `provar-assets-sem-worker.js` não corre — lê
 `wrangler.calango.jsonc`, que já não existe (a `calango` foi apagada). Precisa de varrer os
 `wrangler.*.jsonc` que existem, em vez da lista fixa.
+
+### 19/11/2026 — O Desligamento fica com o nome, o motivo e o botão
+
+«Tem um texto informativo aqui em professores desligamento. Quando for acontecer o desligamento, é
+simplesmente colocar o nome do professor, o motivo e desligar o professor. Só isso. E aí ele é
+excluído. É isso, simples assim. Não precisa ter nada de texto.»
+
+Havia, antes do formulário, um parágrafo de cinco linhas a explicar o que aconteceria: a escola
+continua a operar, a direção pedagógica encerra com data, as turmas ficam sem professor, a direção
+decide entre remanejar a modalidade, dar aula recreativa ou atribuir outro professor, e o registo
+fica. Tudo verdadeiro — e dito no sítio errado. **Saiu inteiro.** O painel é o `<form>` e mais nada:
+o `<select>` do professor, o campo do motivo e o botão.
+
+**A explicação não se perdeu, mudou de tempo.** Ela já existia — e é lá que é lida — na **resposta**
+da rota (`proximo`, em `/api/bastidores/professor-desligar`) e no `title` do selo «desligado» da
+listagem. Antes de agir a pessoa não precisa de saber o que acontece às turmas; depois de agir,
+precisa. O que estava no ecrã era a mesma frase nos dois tempos, e no primeiro era ruído.
+
+**O que fica é ESTADO, e tem `id`.** Quando não há ninguém para desligar (o principal é a âncora da
+escola, e não se desliga) o painel não pode ficar em branco — um painel vazio lê-se como avaria. O
+parágrafo que o diz passou a `id="desl-vazio"`, com uma frase em vez de três. É o critério da casa
+para distinguir prosa de estado: **prosa é o parágrafo sem `id`**, porque o que não tem `id` não é
+reescrito por ninguém.
+
+**Medido.** `provar-cadastro-do-professor.js` ganhou duas asserções: o painel do Desligamento não
+tem um único `<p class="sub|aviso|nota">` sem `id` e traz os três controlos; e, sem ninguém para
+desligar, o parágrafo do estado tem `id` e o formulário não existe. **55/55** (eram 53).
+
+Duas asserções desta bancada estavam a afirmar o desenho de ontem e reprovavam a página certa;
+corrigidas com nota, como manda a regra: o rótulo da aba é «Cadastro» e não «Cadastro de professor»
+(19/11/2026), e o botão do passo 1 diz «Avançar» — quem grava é o passo 2, «Gravar cadastrar
+professor».
+
+`IDENTIDADE-VISUAL.md` §«Os passos dentro de uma aba» ganhou a **regra 10**: um formulário não traz
+prosa — rótulo, campo e placeholder; o que se diz depois é a resposta da rota.
+
+**Bancadas, medidas:** `provar-cadastro-do-professor` 55, `provar-transferencia-e-desligamento` 97,
+`provar-a-margem-da-aba` 12 (o painel do Desligamento passou a ter o `<form>` em primeiro e continua
+a 16 px — a regra não depende de quem está em primeiro), `provar-passos-uniformes` 45,
+`provar-pagina-do-professor` 17, `provar-cadastro-visivel` 12, `check-identidade` ok.

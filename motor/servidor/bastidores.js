@@ -8024,18 +8024,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *
      * O MOTIVO É OBRIGATÓRIO, e é o único campo de texto: é o que a direção de amanhã vai ter para
      * saber porque é que aquela turma parou de ter professor. Um desligamento sem motivo é um buraco
-     * na memória da escola. */
+     * na memória da escola.
+     *
+     * SEM PROSA NENHUMA (19/11/2026) — «é simplesmente colocar o nome do professor, o motivo e
+     * desligar o professor. Só isso […] Não precisa ter nada de texto.» Havia aqui um parágrafo a
+     * explicar o que acontece à escola, às turmas e ao registo; ele saiu inteiro. A explicação não
+     * se perdeu — ela é a RESPOSTA da rota (`proximo`, em `/professor-desligar`) e o `title` do
+     * selo «desligado» na listagem, que é onde ela é lida: depois do acto, e não antes. Antes de
+     * agir, a ficha pede o nome, o motivo e o botão — como todos os formulários da casa.
+     *
+     * O QUE FICA É ESTADO, e por isso tem `id`: quando não há ninguém para desligar o painel não
+     * pode ficar em branco, e o parágrafo que o diz é reescrito como os outros (a prosa é o
+     * parágrafo SEM id — ver `provar-abas-da-audicao.js`). A regra está na IDENTIDADE-VISUAL,
+     * §«Os passos dentro de uma aba», regra 10. */
     '<div class="aba-painel" id="pf-painel-desligamento" role="tabpanel" '
       + 'aria-labelledby="pf-aba-desligamento" tabindex="0" hidden>' +
-    /* A PROSA FICA FORA DO FORMULÁRIO (09/11/2026), e é a regra da casa, não preferência: «nenhum
-     * formulário traz parágrafo explicativo — rótulo, campo e placeholder, e nada mais». O `.aviso`
-     * é a peça da prosa que explica ANTES de agir (a mesma do `.lb-sem-anamnese`). */
     (temQuemDesligar
-      ? '<p class="aviso">A escola <b>continua a operar</b>. A direção pedagógica dele é encerrada ' +
-        'com data, e as turmas dele ficam marcadas como <b>sem professor</b> — para a direção ' +
-        'decidir: remanejar a modalidade, dar aula recreativa/ensaio, ou atribuir outro professor ' +
-        'habilitado. O registo dele fica: o nome continua nos documentos que assinou.</p>' +
-        '<form id="form-desligar">' +
+      ? '<form id="form-desligar">' +
         '<label class="campo-rotulo" for="desl-professor">Professor</label>' +
         '<select id="desl-professor">' + opcoesDeDesligamento + '</select>' +
         '<label class="campo-rotulo" for="desl-motivo">Motivo do desligamento</label>' +
@@ -8045,8 +8050,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         '<button type="submit" class="acao grande" id="desl-enviar">Desligar o professor</button>' +
         '</span>' +
         '</form>'
-      : '<p class="aviso">Nenhum professor para desligar: o responsável principal não se desliga ' +
-        '(é a âncora da escola), e os outros já saíram ou ainda não foram cadastrados.</p>') +
+      : '<p class="aviso" id="desl-vazio">Nenhum professor para desligar: o responsável principal ' +
+        'não se desliga — é a âncora da escola.</p>') +
     '</div>' +
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
