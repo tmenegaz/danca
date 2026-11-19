@@ -1195,7 +1195,7 @@
   {
     "id": "plie",
     "termo": "Plié",
-    "categoria": "passo",
+    "categoria": "posicao",
     "tradicao": "compartilhada",
     "complexidade": "simples",
     "alternativos": [],
