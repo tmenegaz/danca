@@ -3159,6 +3159,49 @@ function faltaNaCuradoria({ professor, modalidade, tradicao, turmas }) {
   return falta;
 }
 
+/**
+ * A SALA TEM DE DIZER QUEM A DÁ E QUE MODALIDADE AÍ ACONTECE (18/11/2026).
+ *
+ * O DEFEITO, medido no ar na `breu`. Depois de o formulário da Turma deixar de perguntar
+ * professor, modalidade e tradição — «a sala já traz quem é o professor, qual é a modalidade que
+ * ele ensina» —, a rota passou a derivá-los da sala e a gravá-los. Mas derivar não é o mesmo que
+ * TER: quando a sala ainda não declarava o professor, a derivação dava `''` e o registo nascia
+ * assim mesmo, com o `id` a acompanhar (`-rosa`, sem professor nem modalidade).
+ *
+ * PORQUE É QUE ISSO NÃO É UM PORMENOR. A curadoria é o que autoriza o plano de uma sala, e a
+ * lista de turmas do plano é filtrada por professor (`daCuradoria`, na porta). Um registo sem
+ * professor não pertence a ninguém: a sala fica atribuída, o professor não a vê, o select fica
+ * vazio e o «Começar» do plano nunca acende — e nada, em lado nenhum, diz porquê. Foi o que ela
+ * relatou: «eu gero a turma e daí da turma eu consigo fazer o plano de ensino, mas do jeito que tá
+ * agora eu não consigo — ele não reconhece a turma, a turma fica vazia».
+ *
+ * A RECUSA É A RESPOSTA CERTA, e não um valor por omissão: não há professor a inventar. O que a
+ * rota pode fazer é dizer qual é a sala, o que lhe falta e onde se completa.
+ */
+function faltaNaSalaParaATurma(sala, { professor, modalidade }) {
+  const falta = [];
+  if (!String(professor || '').trim()) falta.push(['professor', 'o professor']);
+  if (!String(modalidade || '').trim()) falta.push(['modalidade', 'a modalidade']);
+  return falta;
+}
+
+/** A FRASE DA SALA QUE AINDA NÃO DIZ O PAR — uma só, nas duas rotas que gravam a Turma. */
+function fraseDaSalaSemOPar(nomeDaSala, falta) {
+  if (!Array.isArray(falta) || !falta.length) return '';
+  const nomes = falta.map(([, nome]) => nome);
+  const qual = nomes.length === 1
+    ? nomes[0]
+    : nomes.slice(0, -1).join(', ') + ' e ' + nomes[nomes.length - 1];
+  const passos = [];
+  if (falta.some(([campo]) => campo === 'modalidade')) passos.push('a modalidade, no passo 1');
+  if (falta.some(([campo]) => campo === 'professor')) passos.push('o professor, no passo 2');
+  return 'a sala «' + (nomeDaSala || '—') + '» ainda não diz ' + qual + ' — e é DELA que a Turma '
+    + 'os deriva desde 18/11/2026: é a sala que sabe que modalidade acontece naquele horário, e é '
+    + 'quem a dá que a ensina. Atribuir assim gravaria uma Turma sem professor, e ela não '
+    + 'apareceria no plano de ensino de ninguém — sem erro nenhum à vista. Complete ' +
+    passos.join('; ') + ' (aba Salas, em «Editar»), e atribua depois.';
+}
+
 /** A FRASE DA RECUSA — a mesma nas duas rotas e no formulário, para não haver três redações. */
 function fraseDaCuradoriaIncompleta(falta) {
   const nomes = falta.map(([, nome]) => nome);
@@ -22708,6 +22751,22 @@ async function fetch(request, env, extras) {
     }
     const lista = await curadorias(kv, escola);
     const turmaPedida = turmasPedidas[0] || '';
+    /* A TURMA NÃO NASCE SEM QUEM A DIRIJA (18/11/2026) — ver `faltaNaSalaParaATurma`.
+     *
+     * A guarda fica AQUI, e não em `faltaNaCuradoria`, por uma razão de facto: os três campos que
+     * ela já não exige não se perdem — derivam-se da SALA, que é lida no topo desta rota. É essa
+     * leitura que pode devolver vazio, e é a ela que se responde. */
+    {
+      const faltaDoPar = faltaNaSalaParaATurma(salaDoCorpo, { professor, modalidade });
+      if (faltaDoPar.length) {
+        return json(400, {
+          ok: false,
+          erro: fraseDaSalaSemOPar(nomeDaSalaPedida, faltaDoPar),
+          falta: faltaDoPar.map(([campo]) => campo),
+          sala: nomeDaSalaPedida,
+        });
+      }
+    }
     // A MESMA PROFESSORA, A MESMA MODALIDADE, OUTRA TURMA (16/10/2026). O id passou a levar a
     // turma, e a procura é pelo trio — antes havia um só registo por professor × modalidade,
     // e a segunda turma substituía a primeira. Atribuir N turmas é agora N curadorias, que é
@@ -22726,7 +22785,17 @@ async function fetch(request, env, extras) {
     // sem isso ficava um órfão no id antigo e a lista mostrava a curadoria duas vezes.
     const turmaAntiga = atual ? (turmasDaCuradoria(atual)[0] || '') : '';
     const turmaMudou = !!atual && turmaAntiga !== turmaPedida;
-    const id = atual ? (turmaMudou ? idDoTrio : atual.id) : idDoTrio;
+    /* O ID DEGENERADO NÃO SOBREVIVE À CORREÇÃO (18/11/2026).
+     *
+     * Enquanto a Turma nascia sem professor, o id nascia com ele: `idCuradoria('', '', 'Rosa')` dá
+     * `-rosa` — o slug de duas coisas vazias, um hífen e a sala. O registo existe, é editável, e
+     * ficaria com esse nome para sempre por respeito ao «um id antigo não se renomeia por baixo de
+     * quem já o referencia» — só que NINGUÉM o referencia: um id degenerado nasce de um registo
+     * que nunca autorizou plano nenhum. Corrigida a sala e regravada a Turma, o id passa a dizer o
+     * trio, que é o que ele sempre devia ter dito. A guarda do «id nunca se repete» continua a
+     * valer para a renomeação. */
+    const idDegenerado = !!atual && String(atual.id || '').startsWith('-');
+    const id = atual ? ((turmaMudou || idDegenerado) ? idDoTrio : atual.id) : idDoTrio;
 
     /* O ID NUNCA SE REPETE (10/11/2026) — e este guarda nasceu de um dano que estava GRAVADO.
      *
@@ -23139,6 +23208,26 @@ async function fetch(request, env, extras) {
       }
     }
     const turmaFinal = turmasPedidas.length ? turmasPedidas[0] : (turmasDaCuradoria(anterior)[0] || '');
+    /* A TURMA DERIVADA TAMBÉM NÃO NASCE SEM QUEM A DIRIJA (18/11/2026).
+     *
+     * A derivação herda o par da curadoria anterior — e uma curadoria anterior gravada antes desta
+     * guarda pode não o ter. Derivar sobre ela prolongaria o vazio com uma data de vigência, que é
+     * pior do que o vazio: passaria a haver um elo a afirmar que aquela sala não tem professor.
+     * A origem do par aqui é a SALA (`porNome`, lida acima), e é por isso que a frase manda lá. */
+    {
+      const salaFinal = turmaFinal ? porNome.get(turmaFinal) : null;
+      const faltaDoParDeriv = faltaNaSalaParaATurma(salaFinal, {
+        professor: professorDerivado, modalidade: modalidadeDerivada,
+      });
+      if (faltaDoParDeriv.length) {
+        return json(400, {
+          ok: false,
+          erro: fraseDaSalaSemOPar(turmaFinal, faltaDoParDeriv),
+          falta: faltaDoParDeriv.map(([campo]) => campo),
+          sala: turmaFinal,
+        });
+      }
+    }
     /* TROCAR TUDO AO MESMO TEMPO É UM GESTO LEGÍTIMO (10/11/2026).
      *
      * Aqui esteve uma recusa: derivar não podia mudar a SALA, porque mudar de sala arrastava a

@@ -52562,3 +52562,72 @@ Duas causas, e nenhuma é do texto da prova:
 **O que fica dito, e é o que importa:** nenhuma das três foi «consertada» por relaxar a asserção.
 Onde a tela mudou por decisão, a asserção mudou com a decisão e o motivo está escrito ao lado; onde
 o que falta é a própria coisa medida, a prova continua vermelha.
+
+## 18/11/2026 — «Ele não reconhece a turma, a turma fica vazia» — a Turma que nascia sem dono
+
+**O relato, no meio do processo inteiro:**
+
+> «Aí eu fui nas turmas e aí eu tentei criar a turma. A primeira vez que eu tentei criar a turma deu
+> erro, não gerou. Aí eu tentei de novo, aí gerou a turma. […] Aí eu fui para o plano de ensino. […]
+> A turma não aparece aqui no plano de ensino. […] Eu tenho professor, ciclo e turma vazia,
+> completamente desabilitado. Mesmo que eu coloque a senha fica desabilitado.»
+
+**O que estava gravado no ar** — lido de `GET /api/bastidores/curadorias`, na `breu`, um pedido só:
+
+```json
+{"id":"-rosa","professor":"","modalidade":"","turmas":["Rosa"],"linhaDeBase":"tami",…}
+```
+
+A Turma existia, a sala existia, o elenco existia. O que faltava era **quem a dirige** — e a lista de
+turmas do plano é filtrada por professor (`GET /api/bastidores/curadoria-professor?professor=<slug>`,
+que compara `c.professor === slug`). Um registo com `professor: ""` não pertence a ninguém: não é
+recusado, não é anunciado, não aparece. O `<select>` da turma fica vazio, o `atualizarComecar` nunca
+acende, e o professor fica a olhar para um ecrã desabilitado sem uma frase que explique porquê.
+
+**A causa, e o `id` a denunciá-la.** A 18/11/2026 o formulário da Turma deixou de perguntar professor,
+modalidade e tradição — «a sala já traz quem é o professor, qual é a modalidade que ele ensina» — e a
+rota passou a **derivá-los da sala**. Mas derivar não é o mesmo que **ter**: quando a sala ainda não
+declarava o professor, a derivação devolvia `''` e a rota gravava-o assim mesmo. O comentário da
+altura prometia que a rota diria «esta sala não tem professor»; não dizia — gravava o vazio. E o `id`
+guardou a prova: `idCuradoria('', '', 'Rosa')` é `-rosa`, a conta de duas partes vazias.
+
+**A correção — três peças, todas do mesmo princípio (um vazio não é um valor):**
+
+1. **A rota recusa.** `faltaNaSalaParaATurma` + `fraseDaSalaSemOPar`: uma Turma que não consegue dizer
+   quem a dirige responde **400**, nomeia a sala, diz o que lhe falta e onde se completa («aba Salas,
+   em «Editar»»). A mesma guarda vale para `curadoria-derivar` — prolongar o vazio com data de
+   vigência seria pior do que o vazio.
+2. **O que falta não vem por omissão.** Continua a não haver professor a inventar: o par vem do corpo
+   (compatibilidade) ou da sala, e quando nenhum dos dois o tem, não há registo.
+3. **O `id` degenerado não sobrevive à correção.** Corrigida a sala e regravada a Turma, o id passa a
+   dizer o trio (`demi-plie-bale-classico-rosa`). Pode, porque um id degenerado nasce de um registo
+   que nunca autorizou plano nenhum — não há quem o referencie —, e a guarda do «id nunca se repete»
+   continua a valer para a renomeação.
+
+**Medido, e não estimado** — `experimentos/provar-turma-sem-professor.js`, 23 asserções contra o
+servidor de verdade: **10 falham sem a correção, 23 passam com ela**. As secções medem, por esta
+ordem: a sala nasce com modalidade e sem professor; a Turma é recusada e **nada é escrito no KV**;
+com a sala completa, o par é derivado e o `<select>` do plano passa a ver a turma (as duas metades que
+o alimentam — `curadoria-professor` e `opcoes` de `/api/bastidores/turmas` — medidas juntas, porque é
+a interseção delas que a tela mostra); e o registo `-rosa` escrito à mão é reparado.
+
+**O que NÃO se tocou.** A trava da modalidade continua a existir só na tela («o servidor NÃO a
+repete… um servidor que a exigisse recusaria gravar a correção do RITMO de uma sala antiga»), e essa
+decisão mantém-se: a guarda nova é da **Turma**, não da Sala. Uma sala antiga sem modalidade continua
+a poder ser corrigida.
+
+**O documento foi atualizado** — `ARQUITETURA-GERAL.md` §3.3, como ela pediu («a gente tem
+documentado esse processo […] tem que atualizar lá o documento para ele ficar de acordo com o que
+existe atualmente»): a Sala passou a declarar a modalidade e o professor, a Turma deriva-os dela e
+recusa sem eles.
+
+**As bancadas vizinhas, medidas antes e depois** (o mesmo comando, contra `HEAD` e contra a
+correção): `provar-identidade-da-turma` 7 falhas nas duas; `provar-enquadramento-da-turma` 2 de 57
+nas duas; `provar-plano-e-curadoria`, `provar-derivacao-da-turma` e `provar-turmas-do-professor`
+falham nas duas. Nenhuma delas é desta frente, e nenhuma foi mexida.
+
+**O resto do relato, verificado ao vivo:** a listagem de anamneses da `breu`
+(`/area-do-professor/anamnese/`) mostra «Aluna A — livre · 1 versão anterior guardada · turma Rosa ·
+linha de base «Tami» · Registada em 18/11/2026», e o elenco `tami--20261118-2039` lê
+`"lida": {"Aluna A": "anamnese-20261118-1737"}` — a anamnese da aluna certa está lá e está ligada. O
+«livre» é o estado do vínculo (não há Plano de Observação), não a falta do retrato.

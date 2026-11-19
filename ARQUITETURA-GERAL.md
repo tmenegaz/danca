@@ -397,10 +397,12 @@ A geração (pandoc/pdflatex) **não roda no Worker** — roda no GitHub Actions
 
 ### 3.3 O fluxo da escola — da fundação à aula dada, e as duas portas do elenco
 
-> **Retrato medido em 08/11/2026**, contra o código: `motor/servidor/bastidores.js` (as secções da
-> Produção), `motor/servidor/rotas.js` (a porta), `motor/servidor/escrever-ciclo.js` (as fontes do
-> ciclo) e `motor/nucleo/porta.js` (`revalidacaoPendente`, `vinculos`). Não é o desenho que se
-> pretende: é o que cada gesto grava **hoje**.
+> **Retrato medido em 08/11/2026 e revisto a 18/11/2026**, contra o código:
+> `motor/servidor/bastidores.js` (as secções da Produção), `motor/servidor/rotas.js` (a porta),
+> `motor/servidor/escrever-ciclo.js` (as fontes do ciclo) e `motor/nucleo/porta.js`
+> (`revalidacaoPendente`, `vinculos`). Não é o desenho que se pretende: é o que cada gesto grava
+> **hoje**. A revisão de 18/11/2026 é a da Sala que passou a declarar a modalidade e o professor —
+> ver a nota abaixo da tabela dos quatro nomes.
 
 **A cadeia, em uma linha** — é a rotina de uma escola, e é a espinha do produto:
 
@@ -414,16 +416,30 @@ os documentos antigos encontra os nomes velhos; esta tabela é a tradução:
 
 | Rótulo na Produção | Entidade (onde vive) | O que é | O que **não** é |
 |:--|:--|:--|:--|
-| **Sala** | `turmas` (KV da escola) | o **ritmo**: dias e horários, duração, período, rubrica | não tem professor, modalidade nem nível |
+| **Sala** | `turmas` (KV da escola) | o **ritmo** (dias e horários, duração, período) **e o enquadramento operacional** — a modalidade que aí acontece, quem a dá e a régua com que é medida | não tem nível nem tradição — esses são da Turma, que é a relação pedagógica |
 | **Audição** (o ato) → **Elenco** (o que fica) | `linhas-de-base` (repositório, *append-only*) | os **corpos** escolhidos, a leitura que se fez deles e o **recorte** | não declara ciclo, nem sala, nem nível |
 | **Turma** | `curadorias` (KV da escola) | a **relação**: professor × modalidade × tradição × nível × sala × elenco × conteúdos | não é o ritmo (é da Sala) e não é o elenco (é da Audição) |
 | **Estilo** | `verbetes` (KV da escola) | os exercícios que conduzem o elenco ao domínio daquele estilo | não é a turma nem o elenco; entra no plano pela notação (P-15/P-16) |
+
+**A 18/11/2026 a SALA passou a declarar quem a dá** — e isso mudou a origem de três campos da
+Turma. Ela: «a sala já traz quem é o professor, qual é a modalidade que ele ensina e qual é a
+tradição que ele ensina». O formulário da Turma deixou de os perguntar; a rota passou a **derivá-los
+da Sala**, e o registo continua a guardá-los (o `enquadramento.js` lê-os, e as turmas sem
+habilitação dependem deles).
+
+O que essa mudança custou, e está fechado: derivar não é o mesmo que **ter**. Enquanto nada o
+exigia, uma Sala sem professor produzia uma Turma com `professor: ""` e o `id` a acompanhar
+(`-rosa`, a conta das duas partes vazias). Essa Turma não pertence a ninguém — a lista de turmas do
+plano é filtrada por professor (`GET /api/bastidores/curadoria-professor`), e o resultado era o que
+ela viu: «ele não reconhece a turma, a turma fica vazia». Hoje a rota **recusa** (400) e nomeia a
+Sala e o que lhe falta; ver `faltaNaSalaParaATurma`. A bancada é
+`experimentos/provar-turma-sem-professor.js`.
 
 **O desenho, com as setas que existem de facto** (Mermaid, renderiza no GitHub):
 
 ```mermaid
 flowchart TB
-    E["Escola<br/>Worker · repositório · segredos"] --> S["Sala<br/>dias · horários · duração · período · rubrica"]
+    E["Escola<br/>Worker · repositório · segredos"] --> S["Sala<br/>dias · horários · duração · período<br/>modalidade · professor · régua"]
     E --> P["Professor<br/>habilitado na modalidade"]
     E --> ST["Estilo<br/>os verbetes da notação"]
     A["Alunas<br/>o apelido estável"] --> AN["Anamnese<br/>datada · sem ciclo"]
@@ -444,7 +460,7 @@ flowchart TB
 
 ```
 Escola — o Worker, o repositório e os segredos
-   │      mais Sala (o ritmo) · Professor (a modalidade) · Estilo (os verbetes)
+   │      mais Sala (o ritmo, a modalidade e quem a dá) · Professor (o perfil) · Estilo
    ▼
 Alunas — o apelido estável, e nada mais
    │
@@ -481,12 +497,12 @@ Aula lançada — o passado, que não se reescreve
 | # | Passo | Onde (Produção / porta) | O que fica gravado | Quem lê |
 |:--|:--|:--|:--|:--|
 | 0 | **Escola** | página `danca` → `provisionar-escola.js`; `tools/criar-escola.sh` | Worker, segredos, `escola/<slug>/indice.json`, professor já habilitado na modalidade, ciclo e pacote-zero | tudo o resto |
-| 1 | **Sala** | Produção → **Salas** (`POST /api/bastidores/turma`) | `turmas`: nome, dias com hora, duração, início e fim do período, rubrica. **Incompleta não grava** (400) | a Turma, o calendário, o prazo do lançamento |
+| 1 | **Sala** | Produção → **Salas** (`POST /api/bastidores/turma`, e `POST /api/bastidores/rubrica` no passo 2) | `turmas`: nome, dias com hora, duração, início e fim do período, **modalidade**, **professor** e a régua. **Incompleta não grava** (400) | a Turma (que dela deriva professor e modalidade), o calendário, o prazo do lançamento |
 | 2 | **Estilo** | Produção → **Estilo** (`POST /api/bastidores/verbete`) | `verbetes`: o exercício, a direção, o compasso, a contagem | o Plano de Ensino (notação) e a Aula 01 |
 | 3 | **Alunas** | Produção → **Alunas** (`POST /api/bastidores/aluna`) | `alunas`: **só o apelido estável** — não há nome completo, contacto nem saúde | a Audição (passo 2), a lista de presentes |
 | 4 | **Anamnese** | Área do Professor → `/anamnese/` (`POST /api/elicitar`, `fonte: anamnese`) | envelope `anamnese-<carimbo>.json`, cifrado, **datado e sem ciclo** (é da aluna, §5.4.2) | a Audição (passo 3), o PO, a §6 da Aula |
 | 5 | **Audição → Elenco** | Produção → **Audição**, quatro passos | `escola/<escola>/linhas-de-base/<id>--<carimbo>.json` — **um arquivo por ato**, com `anterior` | a Turma, o Plano de Ensino, o PO, a geração |
-| 6 | **Turma** | Produção → **Turmas** (`POST /api/bastidores/curadoria`) | `curadorias`: enquadramento, sala, elenco (`linhaDeBase`), conteúdos; o servidor **carimba `alunas`** a partir do elenco | o Plano de Ensino, o PO, a cascata |
+| 6 | **Turma** | Produção → **Turmas** (`POST /api/bastidores/curadoria`) | `curadorias`: enquadramento (**professor, modalidade e tradição derivados da Sala**), nível, sala, elenco (`linhaDeBase`), conteúdos; o servidor **carimba `alunas`** a partir do elenco. **Recusa sem professor**: uma Turma sem dono não aparece no plano de ninguém (400) | o Plano de Ensino, o PO, a cascata |
 | 7 | **Plano de Ensino** | `/plano-ensino/` | envelope `plano-<carimbo>.json`: ciclo, Sala (`contexto-turma`), objetivo, marcos, volume, condições | o PO, as fontes do ciclo |
 | 8 | **Plano de Observação** | `/plano-observacao/` | envelope `po-<carimbo>.json`: o `plano-de-ensino` que observa, os sujeitos **semeados do elenco** (§5.20) | as fontes do ciclo, o lançamento |
 | 9 | **«Guardar» do PO** | `/api/elicitar`, `fonte: po` | `-plano.md`, `-aula-01.md`, `-captura-aula-01.md`, `-dados.json`, `-harmonizacao.md`, `-notacao.md`, `-referencias.md`, `-glossario-*.md` — e a âncora `.fipp` | a página, o PDF, o formulário |

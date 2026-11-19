@@ -1647,3 +1647,4 @@ experimentos/modelo-formulario/*
 # uma escola criada do zero passa pelo mesmo caminho, sem dado semeado. Sexta aparição da armadilha
 # do `experimentos/*`: ela nasceu ignorada.
 !experimentos/provar-anamnese-da-aluna-certa.js
+!experimentos/provar-turma-sem-professor.js
