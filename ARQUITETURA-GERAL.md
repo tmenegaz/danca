@@ -299,6 +299,14 @@ uma sala com o nome **e o ritmo** de uma que já está gravada, é a mesma sala:
 o professor, numa escrita, e o ritmo dela não é tocado. Nome igual com ritmo diferente é outra coisa —
 duas intenções a disputar um nome —, e aí a recusa é a resposta certa (e diz-se à vista).
 
+**E NINGUÉM EXCLUI COM UMA FICHA ABERTA (19/11/2026).** Excluir é o único gesto que destrói, e com um
+registo aberto para correcção ele pode ser o próprio registo em edição: a lista recarrega, o
+formulário fica a apontar para o que já não existe. A regra vale nas seis secções, é **por secção**,
+e responde-se pelos sinais que cada uma já declara — uma tabela de sinais e uma função de pintura,
+não seis regras escritas à mão. E a guarda vive em duas camadas que perguntam à mesma função: o
+`disabled` (a aparência) e o ouvinte do clique (o gesto) — porque um `disabled` impede o rato, mas não
+um `click()` programático.
+
 **E O QUE NÃO VEIO DO FORMULÁRIO NÃO SE APAGA (19/11/2026).** `normalizarTurma` emite `modalidade` e
 `professor` sempre — vazios quando o corpo não os manda —, e a edição copia os campos presentes: um
 vazio copiado é um campo apagado. Como o passo 1 já não recolhe os dois, corrigir o ritmo de uma sala

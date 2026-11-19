@@ -649,6 +649,24 @@ feito:
     cancelar que deixe o passo 2 à vista mantém a tela a dizer «há um registo a meio» sobre um
     registo que já não existe.
 
+12. **Com uma ficha aberta em edição, ninguém exclui.** *(19/11/2026: «em qualquer um desses, e eu
+    estou no modo edição de qualquer um dos formulários ou derivação […] o botão excluir, daquilo que
+    é permitido excluir, deve ficar desabilitado.»)* Excluir é o único gesto que **destrói**, e com um
+    registo aberto para correcção ele pode ser o próprio registo em edição: a lista recarrega, o
+    formulário fica a apontar para o que já não existe, e o gesto seguinte responde «não encontrado»
+    a quem estava a trabalhar.
+
+    **A regra é por secção, e não global** — e são os sinais que a secção já tem que a respondem (o
+    `#prof-modo`, o `#aluna-em-derivacao`, o `#tmodo`, o `#lb-modo`, o `#vbacao`, o `#cuderivar`): uma
+    tabela de sinais, um `pintarExcluires()` para todos os `button.apagar` da página. Editar um
+    professor não trava a aluna; e um botão desenhado por um caminho novo fica coberto, porque a
+    pergunta é feita ao estado e não ao gesto que o desenhou.
+
+    **Três obrigações**: o `disabled` **com** `aria-disabled`; o `title` a dizer porquê — guardando o
+    que já lá estava (`data-title-livre`) e devolvendo-o quando o modo fecha; e a **guarda do gesto**
+    no ouvinte do clique, porque o `disabled` impede o rato mas não um `click()` programático. As duas
+    camadas perguntam à **mesma função** — é isso que as impede de discordar.
+
 **Onde está declarada.** No `<style>` da própria página da Produção (`motor/servidor/bastidores.js`),
 e não em `tools/templates/ciclo.css`: a peça nasceu na Produção e é lá que ela vive. O `<style>` da
 página é a segunda fonte de desenho que este documento reconhece (como o `.par-botoes`), e a
@@ -690,6 +708,7 @@ numa página: quem carrega a folha já as recebe desenhadas.
 | `.campos-do-ato` / `.acoes-do-ato` / `.estado-do-ato` | `ciclo.css` | os campos quebram em fileira; o estado tem `data-falta="sim"` para o que impede o avanço |
 | `.cota` | `ciclo.css` | base (o `<progress>` despido: `appearance:none`, altura de 0,55rem, pílula, fundo de faixa); `::-webkit-progress-bar` e `::-webkit-progress-value` (e o `::-moz-progress-bar`, porque o Firefox não usa os do WebKit); `[data-nivel="atencao"]` (âmbar, 80%) e `[data-nivel="agora"]` (falha, 95%); `[value="0"]` fica sem tinta — um zero com a cor da falha leria como problema. `prefers-reduced-motion` desliga a transição. Medido em `provar-monitoramento.js` |
 | `.abas` / `.aba` / `.aba-painel` | `ciclo.css` (as marcas e os estados) + **o `<style>` da Produção** (o ar debaixo da tira: `.aba-painel>:first-child{margin-top:1rem}`, ver «O ar debaixo das abas») | base; `:hover`; `:focus-visible`; `[aria-selected="true"]` (a aba que POUSA: fundo de superfície e o filete de baixo na cor dele); `[disabled]` (a que ainda não pode abrir — com `title` a dizer porquê, e sem desaparecer). Abaixo de 560px **a tira passa a rolar** (a peça nunca desaparece sozinha — uma página sem pílula ficaria sem forma de mudar de aba); onde há pílula das abas, é a página que esconde a tira na folha dela. Medido em `provar-abas.js` |
+| `.apagar` (o botão da exclusão) | `ciclo.css` (a cor do perigo e o `.acao:disabled`) + **o `<style>` da Produção** (a trava por modo de edição) | base; `:disabled` / `[aria-disabled="true"]` (a opacidade `.4` da folha) **com `title` a dizer porquê** (ver «Os passos dentro de uma aba», regra 12). O `title` que já lá estava é guardado em `data-title-livre` e devolvido |
 | `.paginas` | `ciclo.css` | `hidden` (uma página só, e o estado sem JavaScript), à vista a partir de duas |
 | `.escolhedor` | `ciclo.css` + a página que o emite | `.escolhidos`, `.escolhido`, `.entrada` |
 | `.rolagem` / `.rolagem-caixa` / `.rolagem-setas` | `ciclo.css` | `[data-rolagem="sim"]` (há para onde ir: a fileira das setas aparece) e `"nao"`/ausente (não há: nada ocupa lugar). A caixa é `role="region"` + `tabindex="0"`; a tabela de dentro **não** tem scroller próprio |

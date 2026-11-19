@@ -53359,3 +53359,64 @@ salas, uma chamada — sem tocar no KV e sem gastar cota.
 `provar-salas-e-elencos` 132, `provar-sala-e-portao` 27, `provar-estado-da-turma` 28,
 `provar-cadastro-do-professor` 80, `provar-habilitacao-do-professor` 81, `provar-abas-da-audicao` 125,
 `provar-passos-uniformes` 45, `provar-teste` 41, `check-identidade` ok.
+
+### 19/11/2026 — Com uma ficha aberta em edição, o «Excluir» fica desabilitado
+
+«Quando eu estou em professores ou alunas ou sala ou audição ou estilo ou turmas, em qualquer um
+desses, e eu estou no modo edição de qualquer um dos formulários ou derivação em qualquer um dos
+formulários, o botão excluir, daquilo que é permitido excluir, deve ficar desabilitado. Não pode
+permitir a exclusão enquanto estiver em modo de edição/derivação.»
+
+**Porque é uma regra e não seis ajustes.** Excluir é o único gesto que destrói, e com um registo
+aberto para correcção ele pode ser o próprio registo em edição: a lista recarrega, o formulário fica a
+apontar para o que já não existe, e o gesto seguinte responde «não encontrado» a quem estava a
+trabalhar.
+
+**Uma tabela de sinais, uma função.** Cada secção declara o seu modo num campo oculto próprio, e os
+nomes não são os mesmos — é a história de cada formulário: `#prof-modo` (`editar`), `#aluna-em-derivacao`
++ `#aluna-modo`, `#tmodo` + `#tderivar`, `#lb-modo` (o id do elenco aberto), `#vbacao` (`atualizar`) e
+`#cuderivar`. `MODOS_DE_EDICAO` é essa tabela; `modoDeEdicaoDaSecao` a pergunta; `pintarExcluires`
+percorre **todos** os `button.apagar` da página — os três contratos que a listagem usa (`data-tipo`, o
+`data-apagar-verbete` do Estilo e o `data-lb-apagar` da Audição) trazem a classe, e é por ela que se
+pergunta. Um caminho de desenho novo fica coberto: a pergunta é ao estado, não ao gesto que desenhou.
+
+**A regra é POR SECÇÃO.** Editar um professor não trava o «Excluir» de uma aluna — uma travagem global
+seria outra coisa, e a que ela pediu é a que protege o registo que está aberto.
+
+**Duas camadas, uma pergunta.** O `disabled` com `aria-disabled` (a aparência) e a guarda no ouvinte
+do clique (o gesto) — porque um `disabled` impede o rato, mas **não** um `click()` programático. As
+duas chamam `excluirTravado`/`modoDeEdicaoDaSecao`, e é isso que as impede de discordar.
+
+**O `title` que já lá estava é guardado**, em `data-title-livre`, e devolvido quando o modo fecha: os
+«Excluir» desta casa dizem o que se perde («o registo é a memória de quem deu estas aulas»), e
+substituí-los para sempre pela razão da trava seria trocar uma explicação por outra.
+
+**Três defeitos apanhados a medir — e são de ORDEM, os três:**
+1. `aplicarEditando()` (que pinta os cancelares) corre em `ajustarTurma` **antes** de `#tderivar` e
+   `#tmodo` serem escritos: a pintura lia o modo vazio. A pintura passou para o fim da função.
+2. `ajustarCuradoria` escrevia `#cuderivar` e não pintava: o «Excluir» da turma ficava vivo.
+3. A Audição e o Estilo não passam pelo `pintarCancelares` quando entram em edição — a pintura foi
+   para `pintarTravasLb` e `pintarTravasDaAluna`, que é onde esses dois caminhos passam.
+
+E as três funções de pintura que correm dentro de `.then` de rede (`pintarProfessores`,
+`pintarOParDaSala`, `pintarTradicaoDaSala`, `pintarTravasLb`, `pintarExcluires`) ganharam a guarda
+`temTela()`: uma resposta que chega depois de a página sair encontra `document` indefinido, e um erro
+dentro de um `.then` não tem quem o apanhe — sobe como excepção não tratada e derruba o processo.
+
+**Medido** — `experimentos/provar-excluir-travado.js`, novo, **29 asserções** em jsdom com as rotas a
+sério e o repositório vazio (um 404 em tudo: sem isso a bancada ia à rede e media a própria falta de
+acesso). As seis secções usam o **gesto verdadeiro** de cada uma — «Editar» na linha, «Derivar» na
+aluna, «Editar» na sala, abrir o elenco, abrir o verbete, abrir a turma — e medem o estado antes,
+durante e depois do «Cancelar». A secção G clica os botões travados com `dispatchEvent` e conta os
+`DELETE`: zero. A H mede que editar um professor **não** trava a aluna.
+
+**Controle negativo** (pintura e guarda repostas por comentário): **10 falhas** — as seis secções, o
+`title`, o `aria-disabled`, a guarda do gesto (que chega a fazer um `DELETE`) e a secção H.
+
+`IDENTIDADE-VISUAL.md` §«Os passos dentro de uma aba» ganhou a **regra 12**, e o Quadro 2 a linha do
+`.apagar`. `ARQUITETURA-GERAL.md` §3.3 a frase «e ninguém exclui com uma ficha aberta».
+
+**Bancadas, medidas:** `provar-excluir-travado` 29, `provar-cadastro-do-professor` 80,
+`provar-passos-uniformes` 45, `provar-salas-e-elencos` 132, `provar-estado-da-turma` 28,
+`provar-associar-grava` 49, `provar-avancar-nao-grava` 24, `provar-habilitacao-do-professor` 81,
+`provar-sala-e-portao` 27, `provar-abas-da-audicao` 125, `provar-teste` 41, `check-identidade` ok.

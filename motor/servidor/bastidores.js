@@ -6435,6 +6435,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
    * ESCRITA UMA VEZ, e é a mesma que o `pintar()` do motor usa no `title` e no servidor não há
    * o que escrever: quem sabe se há composição a meio é a tela. */
   const FRASE_DA_ABA_COM_CADASTRO_ABERTO = 'Conclua ou cancele o cadastro do professor para abrir esta aba.';
+  /* O «EXCLUIR» NÃO SE USA COM UM FORMULÁRIO ABERTO EM EDIÇÃO (19/11/2026).
+   *
+   * «Quando eu estou em professores ou alunas ou sala ou audição ou estilo ou turmas, em qualquer um
+   * desses, e eu estou no modo edição de qualquer um dos formulários ou derivação […] o botão
+   * excluir, daquilo que é permitido excluir, deve ficar desabilitado. Não pode permitir a exclusão
+   * enquanto estiver em modo de edição/derivação.»
+   *
+   * A RAZÃO É DE INTEGRIDADE DO TRABALHO, e não de gosto. Excluir é o único gesto que destrói; e
+   * estando uma ficha aberta para correcção ou derivação, o registo em edição pode ser o que se está
+   * a apagar — a lista recarrega, o formulário fica a apontar para um registo que já não existe, e o
+   * gesto seguinte responde «não encontrado» a quem estava a trabalhar. Fechar a edição primeiro é
+   * um passo, e é o passo que dá sentido ao que vem depois. */
+  const FRASE_DO_EXCLUIR_TRAVADO = 'Conclua ou cancele a edição para poder excluir.';
   const algumElencoTemAlunas = elencosParaMover.some((e) => e.alunas.length > 0);
   const podeMover = elencosParaMover.length >= 2 && algumElencoTemAlunas;
   const textoDeFalta = !algumElencoTemAlunas && elencosParaMover.length >= 2
@@ -9611,6 +9624,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'var ELENCOS_GRAVADOS = ' + (temElencoGravado ? 1 : 0) + ';' +
     'var FRASE_DA_ABA_SEM_ELENCO = ' + JSON.stringify(FRASE_DA_ABA_SEM_ELENCO) + ';' +
     'var FRASE_DA_ABA_COM_CADASTRO_ABERTO = ' + JSON.stringify(FRASE_DA_ABA_COM_CADASTRO_ABERTO) + ';' +
+    'var FRASE_DO_EXCLUIR_TRAVADO = ' + JSON.stringify(FRASE_DO_EXCLUIR_TRAVADO) + ';' +
     /* AS DUAS FRASES DO ELENCO VAZIO — do núcleo, como MODELO (12/11/2026). O `%ELENCO%` e o
      * `%TURMAS%` são preenchidos aqui com o que a lista já traz; a frase em si (e a sua
      * concordância) não se reescreve neste ficheiro, senão as duas versões divergiam. */
@@ -9732,6 +9746,89 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      if (b) b.hidden = !aberto;' +
     '    }' +
     '  }' +
+    /* O «EXCLUIR» ACOMPANHA A EDIÇÃO (19/11/2026) — e vai aqui porque este é o funil por onde
+     * passam os caminhos de ABRIR e FECHAR de quase todas as secções. As que não passam por ele
+     * chamam-no directamente (a aluna, ver `pintarTravasDaAluna`). */
+    '  if (typeof pintarExcluires === "function") pintarExcluires();' +
+    '}' +
+    /* O MODO DE EDIÇÃO DE CADA SECÇÃO — UMA PERGUNTA, SEIS RESPOSTAS (19/11/2026).
+     *
+     * «Em qualquer um desses, e eu estou no modo edição de qualquer um dos formulários ou derivação
+     * […] o botão excluir […] deve ficar desabilitado.»
+     *
+     * CADA SECÇÃO DECLARA O SEU MODO num campo oculto próprio, e os nomes não são os mesmos: é a
+     * história de cada formulário, não uma escolha de hoje. Uma tabela de sinais é o que impede a
+     * sétima secção de ficar de fora — quem acrescentar uma, acrescenta aqui a linha, e a regra
+     * vale sem mais nada.
+     *
+     * O `#lb-modo` DO ELENCO É UM ID, e não um modo: um elenco ABERTO para edição é a mesma coisa
+     * que «há uma ficha em curso» — é ele que o «Ler as anamneses» e o «Concluir» usam como sujeito.
+     */
+    'var MODOS_DE_EDICAO = [' +
+    '  ["sec-professores", function(v){ return v("prof-modo") === "editar"; }],' +
+    '  ["sec-alunas", function(v){ return v("aluna-em-derivacao") !== "" || v("aluna-modo") !== ""; }],' +
+    '  ["sec-turmas", function(v){ return v("tmodo") !== "" || v("tderivar") !== ""; }],' +
+    '  ["sec-corpo", function(v){ return v("lb-modo") !== ""; }],' +
+    '  ["sec-verbetes", function(v){ return v("vbacao") === "atualizar"; }],' +
+    '  ["sec-curadorias", function(v){ return v("cuderivar") !== ""; }]' +
+    '];' +
+    'function valorOculto(id){' +
+    '  var e = document.getElementById(id);' +
+    '  return e ? String(e.value || "") : "";' +
+    '}' +
+    'function modoDeEdicaoDaSecao(idDaSecao){' +
+    '  for (var i = 0; i < MODOS_DE_EDICAO.length; i++) {' +
+    '    if (MODOS_DE_EDICAO[i][0] !== String(idDaSecao || "")) continue;' +
+    '    try { return MODOS_DE_EDICAO[i][1](valorOculto) === true; } catch (err) { return false; }' +
+    '  }' +
+    '  return false;' +
+    '}' +
+    /* PINTA TODOS OS «EXCLUIR» DA PÁGINA — os três contratos que a listagem usa (`data-tipo`, o
+     * `data-apagar-verbete` do Estilo e o `data-lb-apagar` da Audição) trazem a classe `.apagar`,
+     * e é por ela que se pergunta. Um seletor por contrato seria a terceira cópia a esquecer-se.
+     *
+     * O `title` QUE JÁ LÁ ESTAVA É GUARDADO, e não perdido: os «Excluir» apagados desta casa têm
+     * uma frase que diz o que se perde («o registo é a memória de quem deu estas aulas»), e
+     * substituí-la para sempre pela razão da trava seria trocar uma explicação por outra. Guarda-se
+     * em `data-title-livre` e devolve-se quando o modo fecha. */
+    'function pintarExcluires(){' +
+    /* A GUARDA DA TELA (19/11/2026). Esta função é chamada de dentro de `.then` de leituras de rede
+     * (o perfil de cada professor, a lista de vínculos). Uma resposta que chega depois de a página
+     * sair encontra `document` indefinido — e um erro dentro de um `.then` não tem quem o apanhe:
+     * sobe como excepção não tratada e derruba o processo que correu a prova. É a mesma guarda que
+     * `filtrarProfessoresPelaModalidade` já usa, e a razão está escrita lá. */
+    '  if (typeof temTela === "function" && !temTela()) return;' +
+    '  var botoes = document.querySelectorAll("button.apagar");' +
+    '  for (var i = 0; i < botoes.length; i++) {' +
+    '    var b = botoes[i];' +
+    '    var secao = b.closest ? b.closest(".secao") : null;' +
+    '    var travado = secao ? modoDeEdicaoDaSecao(secao.id) : false;' +
+    '    if (travado) {' +
+    '      if (!b.hasAttribute("data-title-livre")) {' +
+    '        b.setAttribute("data-title-livre", b.getAttribute("title") || "");' +
+    '      }' +
+    '      b.disabled = true;' +
+    '      b.setAttribute("aria-disabled", "true");' +
+    '      b.setAttribute("title", FRASE_DO_EXCLUIR_TRAVADO);' +
+    '    } else {' +
+    '      b.disabled = false;' +
+    '      b.removeAttribute("aria-disabled");' +
+    '      var livre = b.getAttribute("data-title-livre");' +
+    '      if (livre !== null) {' +
+    '        if (livre) b.setAttribute("title", livre); else b.removeAttribute("title");' +
+    '      }' +
+    '    }' +
+    '  }' +
+    '}' +
+    /* A GUARDA DO GESTO, e não só a da aparência (19/11/2026). Um `disabled` impede o clique pelo
+     * rato — mas um `click()` programático, ou um botão desenhado num caminho que não passou pelo
+     * `pintarExcluires`, continua a chegar aqui. A pergunta é a MESMA função, e por isso as duas
+     * camadas não podem discordar. */
+    'function excluirTravado(botao){' +
+    '  var secao = botao && botao.closest ? botao.closest(".secao") : null;' +
+    '  if (!secao || !modoDeEdicaoDaSecao(secao.id)) return false;' +
+    '  recado("aviso", FRASE_DO_EXCLUIR_TRAVADO);' +
+    '  return true;' +
     '}' +
     /* O FORMULÁRIO NASCE COLAPSADO, E O ESTADO TEM TRÊS VALORES (18/11/2026).
      *
@@ -11176,6 +11273,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * casos, e tem de continuar — a tela não é a guarda. Isto é o mesmo que a guarda diz, dito
      * antes de a pessoa preencher tudo para o ouvir no fim. */
     'function pintarTravasDaAluna(){' +
+    '  if (typeof temTela === "function" && !temTela()) return;' +
     '  var b = document.getElementById("aluna-gravar");' +
     '  if (!b) return;' +
     '  var nome = String((document.getElementById("anome") || {}).value || "").trim();' +
@@ -11198,6 +11296,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    aviso.hidden = faltam.length === 0;' +
     '    aviso.textContent = faltam.length ? "Para gravar, falta " + faltam.join(", ") + "." : "";' +
     '  }' +
+    /* O «EXCLUIR» DA LISTAGEM ACOMPANHA O MODO DESTA SECÇÃO (19/11/2026). A aluna não passa pelo
+     * `pintarCancelares` quando entra em derivação — `derivarAluna` escreve os ocultos e chama
+     * `pintarTravasDaAluna` —, e por isso a pintura vem daqui, do sítio que já sabe que o modo
+     * mudou. Uma secção só, um caminho só. */
+    '  if (typeof pintarExcluires === "function") pintarExcluires();' +
     '}' +
     'function professoresDaAluna() {' +
     '  var sel = document.getElementById("amodalidade");' +
@@ -13065,6 +13168,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var focoEmDerivar = document.getElementById("tmotivo");' +
     '  (derivar && focoEmDerivar ? focoEmDerivar : nome).focus();' +
     '  gravarEstado();' +
+    /* OS «EXCLUIR» DEPOIS DE O MODO ESTAR ESCRITO (19/11/2026) — e a ORDEM não é estilo.
+     *
+     * `aplicarEditando()` corre mais acima, e é ele que chama o `pintarCancelares`. Mas `#tderivar`
+     * e `#tmodo` são escritos DEPOIS dessa chamada: a pintura que ali acontece lê o modo vazio, e
+     * os «Excluir» da sala ficavam vivos com a sala aberta em edição. Medido na bancada. */
+    '  if (typeof pintarExcluires === "function") pintarExcluires();' +
     '}' +
     'document.addEventListener("click", function(e){' +
     '  var b = e.target.closest ? e.target.closest("[data-turma-ajustar]") : null;' +
@@ -13379,6 +13488,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  sel.value = v;' +
     '}' +
     'function pintarProfessores(id, lista, valorAtual, rotuloVazio){' +
+    /* A GUARDA DA TELA (19/11/2026) — estas três correm DENTRO de `.then` de leituras de
+     * rede. Uma resposta que chega depois de a página sair encontra `document` indefinido, e
+     * um erro dentro de um `.then` não tem quem o apanhe: sobe como excepção não tratada e
+     * derruba o processo que correu a prova. É a guarda que `filtrarProfessoresPelaModalidade`
+     * já usa, e a razão está escrita lá. */
+    '  if (typeof temTela === "function" && !temTela()) return;' +
     '  if (!temTela()) return;' +
     '  var sel = document.getElementById(id);' +
     '  if (!sel) return;' +
@@ -14024,6 +14139,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  document.getElementById("form-curadoria").scrollIntoView({block: "start"});' +
     '  var focoCu = derivar ? document.getElementById("cumotivo") : null;' +
     '  (focoCu || document.getElementById("cu-enviar")).focus();' +
+    /* OS «EXCLUIR» DEPOIS DE O MODO ESTAR ESCRITO (19/11/2026) — a mesma ordem medida nas Salas.
+     * `#cuderivar` e `#cumodo` são escritos no alto desta função; a pintura tem de ser a última, ou
+     * lê o modo vazio e deixa os «Excluir» da turma vivos com a turma aberta em edição. */
+    '  if (typeof pintarExcluires === "function") pintarExcluires();' +
     '}' +
     /* A PÁGINA PERGUNTA O ESTADO OUTRA VEZ (15/11/2026) — a correcção da etiqueta mentirosa.
      *
@@ -14091,6 +14210,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    document.getElementById("cu-vigencia-campo").hidden = true;' +
     '    document.getElementById("cu-cancelar").hidden = true;' +
     '    document.getElementById("cu-enviar").textContent = "Atribuir turma";' +
+    /* O «EXCLUIR» VOLTA A PODER (19/11/2026) — cancelada a edição, não há ficha em curso, e a
+     * listagem tem de o dizer sem esperar por uma recarga. Este handler é o único caminho de saída
+     * da curadoria que não passa pelo `pintarCancelares`. */
+    '    if (typeof pintarExcluires === "function") pintarExcluires();' +
 
     '    document.getElementById("cuturma").disabled = false;' +
     '    document.getElementById("form-curadoria").reset();' +
@@ -14282,6 +14405,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * `location.reload()`, porque é o carregamento seguinte que o lê. Escrito depois, nunca
      * chegaria a ser lido — e a página voltava aberta, com o recado de cancelado. */
     '  cancelarOFormularioDe("sec-turmas");' +
+    /* O MODO SAI DO FORMULÁRIO ANTES DA RECARGA (19/11/2026). O estado de edição vive em dois
+     * sítios — a memória (`producao:editando`, já limpa) e os ocultos do formulário (`#tderivar`,
+     * `#tmodo`). A recarga leva-os consigo, mas deixá-los escritos até lá é deixar a tela a dizer
+     * «há uma sala em edição» sobre uma edição que acabou de ser cancelada — e, se a recarga não
+     * acontecer (uma falha de rede, uma prova), fica a dizer isso para sempre. */
+    '  var semModo = document.getElementById("tmodo"); if (semModo) semModo.value = "";' +
+    '  var semDerivar = document.getElementById("tderivar"); if (semDerivar) semDerivar.value = "";' +
+    '  if (typeof pintarCancelares === "function") pintarCancelares();' +
     '  if (location && typeof location.reload === "function") location.reload();' +
     '}' +
     'function rubricaDaTurma(t){' +
@@ -14323,6 +14454,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * conclui, e quem lê «—» não sabe se é falta de dado ou defeito da tela. A frase manda a
      * Professores, que é onde a régua se compõe. */
     'function pintarOParDaSala(){' +
+    /* A GUARDA DA TELA (19/11/2026) — estas três correm DENTRO de `.then` de leituras de
+     * rede. Uma resposta que chega depois de a página sair encontra `document` indefinido, e
+     * um erro dentro de um `.then` não tem quem o apanhe: sobe como excepção não tratada e
+     * derruba o processo que correu a prova. É a guarda que `filtrarProfessoresPelaModalidade`
+     * já usa, e a razão está escrita lá. */
+    '  if (typeof temTela === "function" && !temTela()) return;' +
     '  if (!temTela()) return;' +
     '  var selP = document.getElementById("vinc-professor");' +
     '  var slug = selP ? String(selP.value || "") : "";' +
@@ -14354,6 +14491,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * declarar. Partilham o mesmo `perfilDoProfessor`, e é isso que impede duas leituras da mesma
      * pessoa no mesmo pedido. */
     'function pintarTradicaoDaSala(slug){' +
+    /* A GUARDA DA TELA (19/11/2026) — estas três correm DENTRO de `.then` de leituras de
+     * rede. Uma resposta que chega depois de a página sair encontra `document` indefinido, e
+     * um erro dentro de um `.then` não tem quem o apanhe: sobe como excepção não tratada e
+     * derruba o processo que correu a prova. É a guarda que `filtrarProfessoresPelaModalidade`
+     * já usa, e a razão está escrita lá. */
+    '  if (typeof temTela === "function" && !temTela()) return;' +
     '  if (!temTela()) return;' +
     '  var alvo = document.getElementById("vinc-tradicao");' +
     '  if (!alvo) return;' +
@@ -18014,6 +18157,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // `turma`, `curadoria`, `rubrica`). Um botão que traz o seu próprio contrato — o verbete
     // traz `data-apagar-verbete` e trata do pedido no ouvinte da lista — não é deste caminho.
     '  var b = e.target.closest("button.apagar"); if (!b) return;' +
+    /* A GUARDA VEM ANTES DE TUDO (19/11/2026) — e antes do desvio do verbete, para valer nos três
+     * contratos: o genérico (`data-tipo`), o do Estilo (`data-apagar-verbete`) e o da Audição
+     * (`data-lb-apagar`). Excluir com uma ficha aberta em edição é o único gesto que destrói
+     * enquanto se corrige. */
+    '  if (typeof excluirTravado === "function" && excluirTravado(b)) return;' +
     '  if (b.hasAttribute("data-apagar-verbete")) return;' +
     '  var alvo = b.getAttribute("data-alvo");' +
     '  var tipo = b.getAttribute("data-tipo");' +
@@ -18268,6 +18416,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // o `input`/`change` da página também — senão quem preenche o nome via o botão continuar
     // apagado, e quem apagava um campo via-o continuar aceso.
     'function pintarTravasLb() {' +
+    /* A GUARDA DA TELA (19/11/2026) — ver a nota em `pintarProfessores`. Esta corre dentro do
+     * `.then` da leitura das linhas de base, e uma resposta depois de a página sair derrubava o
+     * processo com um `document` indefinido. */
+    '  if (typeof temTela === "function" && !temTela()) return;' +
     '  var semRetrato = !haAnamnese();' +
     '  Array.prototype.slice.call(document.querySelectorAll("#lb-tira button.passo")).forEach(function(b){' +
     '    var n = Number(b.getAttribute("data-passo")) || 0;' +
@@ -18353,6 +18505,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '  pintarCancelarLb();' +
     '  pintarTiraLb();' +
+    /* O «EXCLUIR» DO ELENCO ACOMPANHA O MODO (19/11/2026) — abrir um elenco para editar é o
+     * mesmo que «há uma ficha em curso», e `#lb-modo` é o sinal que esta secção usa. Vai aqui
+     * porque este é o funil por onde passam a abertura (`editarLinha`) e o fecho (`limparForm`). */
+    '  if (typeof pintarExcluires === "function") pintarExcluires();' +
     '}' +
     /* O «CANCELAR A EDIÇÃO» APARECE QUANDO HÁ EDIÇÃO (09/11/2026).
      *
@@ -19666,6 +19822,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * o nome, e os três só têm valor depois de a `retomarAbaDoProfessor` ter reposto o foco. Pintar
      * antes deixaria a tela a dizer «pode» sobre um cadastro que já está a meio. */
     'if (typeof pintarAbasDoProfessor === "function") pintarAbasDoProfessor();' +
+    /* OS «EXCLUIR» DEPOIS DE TUDO (19/11/2026). A página nasce com os botões desenhados pelo
+     * servidor; o estado de edição pode vir de antes (o `sessionStorage` do `producao:editando`, o
+     * `#prof-modo` de uma aba retomada), e é só aqui — com o documento inteiro e os modos lidos —
+     * que a pintura pode ser a verdadeira. */
+    'if (typeof pintarExcluires === "function") pintarExcluires();' +
     '</script>' +
     // O PREENCHEDOR NÃO ENTRA MAIS AQUI (19/11/2026) — ver a nota no alto de `paginaProducao`.
     // Ele continua a ser servido em `/scripts/teste-preenchimento.js` e injetado nas páginas da
