@@ -4,6 +4,7 @@
     "anamnese-20261116-2201.json",
     "anamnese-20261117-1407.json",
     "anamnese-20261118-1737.json",
+    "anamnese-20261119-1145.json",
     "plano-20261119-1143.json"
   ],
   "resumos": {
@@ -43,6 +44,19 @@
       "alunaId": "aluna-a-3",
       "modalidade": "Balé clássico",
       "metodo": "Cubana"
+    },
+    "anamnese-20261119-1145.json": {
+      "id": "anamnese-20261119-1145",
+      "fonte": "anamnese",
+      "escola": "breu",
+      "professor": "bom-bom",
+      "ciclo": null,
+      "ajuste_de": null,
+      "gerado_em": "2026-11-19T11:45",
+      "aluna": "Aluna B",
+      "alunaId": "aluna-b-2",
+      "modalidade": "Dança moderna",
+      "metodo": "Escola livre"
     },
     "plano-20261119-1143.json": {
       "id": "plano-20261119-1143",
