@@ -1230,5 +1230,63 @@
     "observacoes": "",
     "estado": "documentado",
     "escola": "calango"
+  },
+  {
+    "id": "battement-tendu",
+    "termo": "Battement tendu",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "complexidade": "simples",
+    "alternativos": [
+      "Tendu"
+    ],
+    "descricao": "Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo. Detalhe técnico: direcoes, devant,a la seconde,derriere funcao, fortalecimento do peito do pé e articulação do tornozelo.",
+    "fonte": "Dicionário Técnico Completo de Ballet Clássico v1.0.0 — fornecido pela pesquisadora (2026)",
+    "observacoes": "",
+    "estado": "documentado",
+    "escola": "breu"
+  },
+  {
+    "id": "grand-battement",
+    "termo": "Grand battement",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "complexidade": "simples",
+    "alternativos": [],
+    "descricao": "Lançamento amplo e vigoroso da perna de trabalho estendida a 90° ou mais no ar, retornando com controle passando pelo tendu até fechar na posição inicial. Detalhe técnico: foco, estabilidade absoluta da bacia e do tronco durante o lançamento.",
+    "fonte": "Dicionário Técnico Completo de Ballet Clássico v1.0.0 — fornecido pela pesquisadora (2026)",
+    "observacoes": "",
+    "estado": "documentado",
+    "escola": "breu"
+  },
+  {
+    "id": "battement-fondu",
+    "termo": "Battement fondu",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "complexidade": "simples",
+    "alternativos": [
+      "Fondu"
+    ],
+    "descricao": "Exercício de coordenação bi-lateral onde a perna de sustentação faz demi-plié enquanto a perna de trabalho flexiona no cou-de-pied, seguido pela extensão simultânea e harmoniosa de ambas as pernas no ar ou no chão. Detalhe técnico: alturas, à terre,45°,90° foco, sincronia exata no término do plié e no término da extensão.",
+    "fonte": "Dicionário Técnico Completo de Ballet Clássico v1.0.0 — fornecido pela pesquisadora (2026)",
+    "observacoes": "O nome mais comum é «battement fondu» (ou «fondu»), não «fondue».",
+    "estado": "documentado",
+    "escola": "breu"
+  },
+  {
+    "id": "rond-de-jambe-a-terre",
+    "termo": "Rond de jambe à terre",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "complexidade": "simples",
+    "alternativos": [
+      "Rond de jambe no chão"
+    ],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado",
+    "escola": "breu"
   }
 ]
