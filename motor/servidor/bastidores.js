@@ -884,16 +884,79 @@ function niveisLimpos(cru) {
     .filter((n, i, arr) => arr.indexOf(n) === i);
 }
 
-function rubricaDaTurma(turma, listaDeRubricas) {
+/* A RÉGUA PASSOU A SER DO PROFESSOR (19/11/2026) — e ela é o PRIMEIRO degrau da leitura.
+ *
+ * «Na sala, o associar passa a ser associar o professor pela modalidade e o professor. E aí que é
+ * assim que a sala sabe qual é a rubrica, pela associação ao professor.»
+ *
+ * O QUE MUDOU DE DONO, E PORQUÊ. A régua era uma coisa da ESCOLA («Régua do Nível 1»), criada uma
+ * vez e ligada a N turmas. Passou a ser do PROFESSOR: ele é quem aplica o critério, e a frase que
+ * fecha o circuito é dela — «é ele que vai dizer se é ótimo, bom, regular, insuficiente». Com o
+ * dono mudado, o vínculo também muda de lado: a sala não escolhe mais uma régua da lista, escolhe
+ * QUEM a dá, e a régua vem com ele.
+ *
+ * OS DEGRAUS, e a ordem é a da autoridade:
+ *
+ *   1. A RÉGUA DO PROFESSOR que dá a sala (`turma.professor` → `professores/<slug>/rubrica`). É a
+ *      regra de hoje, e é ela que manda quando existe.
+ *   2. O VÍNCULO ANTIGO — `turma.rubricaId` a apontar para uma rubrica da lista da escola. É o que
+ *      as salas de ontem têm, e continua a valer: um vínculo que aponta para uma rubrica já
+ *      apagada não quebra a turma, cai no degrau seguinte.
+ *   3. A RÉGUA PRÓPRIA da turma — `turma.rubrica`, o que existia antes de tudo isto.
+ *   4. O PADRÃO — uma turma nunca fica sem régua, porque uma régua vazia mediria contra nada.
+ *
+ * O `listoDeRubricas` e o `rubricasDosProfs` são OPCIONAIS: quem chama com dois argumentos (as
+ * bancadas antigas, um adaptador sem KV) recebe exactamente o que recebia antes desta data. */
+function reguaDaSala(turma, listaDeRubricas, rubricasDosProfs) {
+  const slug = String((turma && turma.professor) || '').trim();
+  const doProf = slug && rubricasDosProfs ? rubricasDosProfs[slug] : null;
+  if (doProf && Array.isArray(doProf.niveis) && doProf.niveis.length) {
+    return {
+      id: '', // a régua do professor não tem id de lista: ela é DELE, e o dono é a identidade
+      nome: String(doProf.nome || ''),
+      niveis: doProf.niveis,
+      origem: 'professor',
+      professor: slug,
+    };
+  }
   const ligada = String((turma && turma.rubricaId) || '').trim();
   if (ligada && Array.isArray(listaDeRubricas)) {
     const alvo = listaDeRubricas.find((r) => r && r.id === ligada);
     const niveis = alvo ? niveisLimpos(alvo.niveis) : [];
-    if (niveis.length) return niveis;
+    if (niveis.length) {
+      return { id: alvo.id, nome: String(alvo.nome || ''), niveis, origem: 'vinculo', professor: '' };
+    }
   }
   const proprios = niveisLimpos(turma && turma.rubrica);
-  if (proprios.length) return proprios;
-  return NIVEIS_DA_RUBRICA.slice();
+  if (proprios.length) return { id: '', nome: '', niveis: proprios, origem: 'propria', professor: '' };
+  return { id: '', nome: '', niveis: NIVEIS_DA_RUBRICA.slice(), origem: 'padrao', professor: '' };
+}
+
+/* O QUE A RÉGUA DE CADA PROFESSOR É, num mapa (`slug` → `{nome, niveis}`).
+ *
+ * Lê-se do próprio registo do professor — `bastidores/<escola>/professores[i].rubrica` e, para o
+ * principal, `bastidores/<escola>/dono.rubrica`. É a MESMA leitura que dá o nome de quem dá a aula,
+ * e por isso não custa nenhuma ida ao KV: a lista já vem inteira com a página.
+ *
+ * O que não tem níveis fica de fora do mapa, e não é um pormenor: um professor sem régua é um
+ * professor cuja sala ainda não pode ser concluída (`POST /api/bastidores/turma-professor`), e uma
+ * entrada vazia no mapa faria `reguaDaSala` acreditar que ele tem uma. */
+function rubricasDosProfessores(profs, registoDoDono, donoSlug) {
+  const mapa = {};
+  const juntar = (slug, r) => {
+    const s = String(slug || '').trim();
+    if (!s || !r) return;
+    const niveis = niveisLimpos(r.niveis);
+    if (!niveis.length) return;
+    mapa[s] = { nome: String(r.nome || '').trim(), niveis };
+  };
+  juntar(donoSlug, registoDoDono && registoDoDono.rubrica);
+  for (const p of (Array.isArray(profs) ? profs : [])) juntar(slugDoProfessor(p), p && p.rubrica);
+  return mapa;
+}
+
+function rubricaDaTurma(turma, listaDeRubricas, rubricasDosProfs) {
+  return reguaDaSala(turma, listaDeRubricas, rubricasDosProfs).niveis;
 }
 
 /** As RUBRICAS da escola: uma LISTA de `{id, nome, niveis}`. */
@@ -3701,6 +3764,61 @@ async function registoDoDono(env, kv, escola) {
 }
 
 /**
+ * A RÉGUA DE UM PROFESSOR, LIDA DO REGISTO DELE (19/11/2026).
+ *
+ * Devolve `{nome, niveis}` ou `null`. O `null` NÃO É UM ERRO: é «este professor ainda não compôs a
+ * régua», e é a resposta que a rota da sala usa para recusar em vez de a deixar cair na régua
+ * padrão em silêncio.
+ *
+ * O PRINCIPAL MORA NOUTRO SÍTIO. Ele não está na lista `professores` (vive em
+ * `bastidores/<escola>/dono`), e o desvio não é um caso de borda: numa escola criada pela página é
+ * ele que dá a maioria das aulas. Sem ele, a régua do principal nunca seria encontrada.
+ */
+async function rubricaDeUmProfessor({ env, kv, escola, slug }) {
+  const alvo = String(slug || '').trim();
+  if (!alvo) return null;
+  const doDono = String(slugDoDono(env) || '').trim();
+  const cru = alvo === doDono
+    ? ((await registoDoDono(env, kv, escola)) || {}).rubrica
+    : ((await professores(kv, escola)).find((p) => slugDoProfessor(p) === alvo) || {}).rubrica;
+  const niveis = niveisLimpos(cru && cru.niveis);
+  if (!niveis.length) return null;
+  return { nome: String((cru && cru.nome) || '').trim(), niveis };
+}
+
+/**
+ * GRAVA A RÉGUA NO REGISTO DO PROFESSOR (19/11/2026) — o par de `rubricaDeUmProfessor`.
+ *
+ * Duas escritas possíveis, e a escolha é do sítio onde a pessoa já vive: o principal no documento
+ * dele (`bastidores/<escola>/dono`), os outros na lista (`bastidores/<escola>/professores`). Escrever
+ * a régua do principal na lista criaria um segundo registo dele, e o `Object.assign` do «Editar»
+ * passaria a haver dois donos com dois nomes.
+ *
+ * O `Object.assign` É O MESMO CUIDADO DO «EDITAR»: o registo tem outros campos (o sal, o hash, a
+ * data de actualização) e perdê-los por causa de uma régua seria trocar a senha de alguém por uma
+ * escala de avaliação.
+ */
+async function gravarRubricaDoProfessor({ env, kv, escola, slug, nome, niveis }) {
+  const alvo = String(slug || '').trim();
+  const doDono = String(slugDoDono(env) || '').trim();
+  const rubrica = { nome: String(nome || '').trim(), niveis: niveisLimpos(niveis), atualizadoEm: new Date().toISOString() };
+  if (alvo === doDono) {
+    const bruto = await kv.get(RAIZ + '/' + escola + '/dono');
+    if (!bruto) return { ok: false, status: 404, erro: 'o professor principal desta escola não tem registo' };
+    let dono = {};
+    try { dono = JSON.parse(bruto) || {}; } catch (erro) { return { ok: false, status: 502, erro: 'o registo do principal está ilegível' }; }
+    await kv.put(RAIZ + '/' + escola + '/dono', JSON.stringify(Object.assign({}, dono, { rubrica })));
+    return { ok: true, rubrica };
+  }
+  const lista = await professores(kv, escola);
+  const i = lista.findIndex((p) => slugDoProfessor(p) === alvo);
+  if (i === -1) return { ok: false, status: 404, erro: 'professor não encontrado nesta escola: ' + alvo };
+  lista[i] = Object.assign({}, lista[i], { rubrica });
+  await kv.put(RAIZ + '/' + escola + '/professores', JSON.stringify(lista));
+  return { ok: true, rubrica };
+}
+
+/**
  * O E-MAIL DE UM PROFESSOR — onde ele vive de verdade (18/11/2026).
  *
  * O DEFEITO. A rota do vínculo lia `oProfessor.email`, e esse campo NÃO EXISTE no registo: o
@@ -3912,6 +4030,15 @@ const TITULOS_DAS_ABAS_DA_AUDICAO = [
  */
 const ABAS_DO_PROFESSOR_HTML = [
   ['cadastro', 'Cadastro de professor'],
+  /* A RÉGUA ENTRA ENTRE O CADASTRO E AS HABILITAÇÕES (19/11/2026) — e o lugar é o pedido:
+   * «uma aba do lado da aba cadastro de professor e antes da aba habilitações […] ele é o step dois
+   * do cadastro de professor».
+   *
+   * PORQUE É QUE ELA SAIU DAS SALAS. Lá ela era o passo 2 de um formulário que não era dela: a sala
+   * declara o ritmo, e a régua é o critério de quem avalia. Colada ao cadastro do professor, ela
+   * passa a ser o que é — um atributo da pessoa, escrito uma vez, lido por todas as salas que ela
+   * dá. */
+  ['rubrica', 'Régua do professor'],
   ['habilitacoes', 'Habilitações'],
   ['desligamento', 'Desligamento'],
 ];
@@ -5091,18 +5218,30 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
    * O NOME E O SLUG, e mais nada: a modalidade de cada um é lida à parte, quando for precisa, porque
    * ela vive no perfil (`professores/<slug>/perfil.json`) e são N leituras — caras ao abrir a página e
    * gratuitas quando ninguém escolhe modalidade nenhuma. */
+  /* A RÉGUA DE CADA PROFESSOR, num mapa (19/11/2026) — ver `rubricasDosProfessores`. Sai daqui e
+   * não de uma leitura nova: é o mesmo registo que já deu o nome de quem dá a aula, e o mapa serve
+   * três leitores (o cartão da sala, o passo 2 das Salas e a aba da régua em Professores). */
+  const rubricasDosProfs = rubricasDosProfessores(profs, registoDoDonoPrincipal, donoSlug);
   const professoresDaEscola = (() => {
     const out = [];
     const nomeDoPrincipal = String(dono || '').trim();
+    const doPrincipal = rubricasDosProfs[String(donoSlug || '').trim()];
     if (nomeDoPrincipal) {
-      out.push({ slug: String(donoSlug || '').trim(), nome: nomeDoPrincipal, principal: true });
+      out.push({
+        slug: String(donoSlug || '').trim(), nome: nomeDoPrincipal, principal: true,
+        rubrica: doPrincipal || null,
+      });
     }
     for (const p of (profs || [])) {
       if (!p || !p.nome) continue;
       if (desligamento.estaDesligado(p)) continue;
       const sl = slugDoProfessor(p);
       if (!sl || sl === donoSlug) continue;
-      out.push({ slug: sl, nome: String(p.nome) });
+      /* A RÉGUA VAI JUNTO (19/11/2026). É ela que a aba «Régua do professor» abre preenchida e é
+       * ela que o passo 2 das Salas lê para dizer com que critério a sala é medida. Sem ela aqui, o
+       * cliente teria de pedir uma segunda vez por professor — uma leitura por pessoa que abre a
+       * tela, para um dado que a página já tem na mão. */
+      out.push({ slug: sl, nome: String(p.nome), rubrica: rubricasDosProfs[sl] || null });
     }
     return out;
   })();
@@ -5661,7 +5800,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   // recebe este mapa para desenhar a escala sem resolver nada: ele mostra o que o servidor
   // decidiu. E as rubricas, por id, para o painel dizer com que rubrica a turma é medida.
   const reguaPorTurma = {};
-  for (const t of listaTurmas) if (t && t.id) reguaPorTurma[t.id] = rubricaDaTurma(t, listaRubricas);
+  for (const t of listaTurmas) if (t && t.id) reguaPorTurma[t.id] = rubricaDaTurma(t, listaRubricas, rubricasDosProfs);
   const rubricaPorId = new Map(listaRubricas.map((r) => [r.id, r]));
 
   // --- OS TRÊS PASSOS DA SECÇÃO TURMAS ---------------------------------------
@@ -5756,7 +5895,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         // `rubricaDaTurma(t)` SEM a lista, e por isso uma turma ligada a uma rubrica com
         // nome mostrava a escala PADRÃO: a resolução precisa da lista para seguir o
         // `rubricaId`. O mapa `reguaPorTurma` já a tem resolvida, e é dele que sai.
-        const regua = reguaPorTurma[t.id] || rubricaDaTurma(t, listaRubricas);
+        const regua = reguaPorTurma[t.id] || rubricaDaTurma(t, listaRubricas, rubricasDosProfs);
         // O HISTÓRICO do ajuste (16/10/2026, refeito a 10/11/2026): a escola precisa de ver que
         // já mexeu nesta sala, e o que valia antes. Sobe a cadeia por `substitui`, do mais
         // recente para o mais antigo, e cada linha diz a DIFERENÇA para quem tomou o lugar dela
@@ -5894,11 +6033,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         // medida e a escala dela; não edita. A edição da rubrica é uma das três coisas que o
         // «Editar» do cartão da turma abre, no passo 2 — um segundo botão aqui era a
         // duplicação que o dono do produto mandou remover.
-        const rubricaLigada = String(t.rubricaId || '');
-        const nomeDaRubrica = rubricaLigada && rubricaPorId.get(rubricaLigada)
-          ? rubricaPorId.get(rubricaLigada).nome : '';
+        /* A RÉGUA VEM DE QUEM DÁ A SALA (19/11/2026). O cartão lia o `turma.rubricaId` e o nome da
+         * lista da escola; agora a régua é do professor, e `reguaDaSala` é o único sítio que sabe
+         * resolvê-la (professor → vínculo antigo → própria → padrão). Ler aqui o `rubricaId` outra
+         * vez seria a segunda regra para a mesma pergunta, e a primeira a divergir. */
+        const reguaResolvida = reguaDaSala(t, listaRubricas, rubricasDosProfs);
+        const nomeDaRubrica = reguaResolvida.nome;
+        const deQuem = reguaResolvida.origem === 'professor'
+          ? nomeDoProfessorDaSala(t.professor, profs, donoSlug, dono) : '';
         const painelRegua = (nomeDaRubrica
-          ? '<p class="trio-nota">Medida por <b>' + esc(nomeDaRubrica) + '</b>.</p>' : '') +
+          ? '<p class="trio-nota">Medida por <b>' + esc(nomeDaRubrica) + '</b>'
+            + (deQuem ? ' — a régua de ' + esc(deQuem) + '.' : '.') + '</p>'
+          : '') +
           '<div class="trio-escala">' + regua.map((n, i) =>
             '<span class="' + classeDoNivel(n, i, regua.length) + '">' + esc(n) + '</span>').join('') + '</div>';
         /* O PAINEL DO PROFESSOR (18/11/2026) — o que ele ensina nesta sala.
@@ -6468,8 +6614,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
               if (!s) return '<p class="trio-nota">A sala declarada por esta Turma já não está no '
                 + 'cadastro desta escola.</p>';
               const faltaDaSala = faltaNoRitmoDaTurma(s);
-              const reguaDaSala = reguaPorTurma[s.id] || rubricaDaTurma(s, listaRubricas);
-              const rubricaDaSala = rubricaPorId.get(String(s.rubricaId || ''));
+              /* O NOME DA RÉGUA VEM DO RESOLVEDOR (19/11/2026) — e não do `rubricaId` da sala. A
+               * régua passou a ser do professor, e a sala pode não ter vínculo nenhum: ler só o
+               * `rubricaId` dizia «Medida pela régua padrão da escola» sobre uma sala que está a
+               * ser medida pela régua de quem a dá. */
+              const reguaResolvidaDaSala = reguaDaSala(s, listaRubricas, rubricasDosProfs);
+              /* O NOME DA VARIÁVEL IMPORTA: `reguaDaSala` é o RESOLVEDOR, e chamar assim aos níveis
+               * punha-os em TDZ dentro do próprio resolvedor («Cannot access 'reguaDaSala' before
+               * initialization») — o erro que a `provar-producao` deu. */
+              const niveisDaReguaDaSala = reguaResolvidaDaSala.niveis;
+              const rubricaDaSala = reguaResolvidaDaSala.nome
+                ? { nome: reguaResolvidaDaSala.nome,
+                    deQuem: reguaResolvidaDaSala.origem === 'professor'
+                      ? nomeDoProfessorDaSala(s.professor, profs, donoSlug, dono) : '' }
+                : null;
               return '<div class="trio-grade">' + camposDoRitmoDaSala(s).map(([k, v]) =>
                   '<div><span class="trio-k">' + esc(k) + '</span><span class="trio-v">'
                     + esc(v || '—') + '</span></div>').join('') + '</div>' +
@@ -6493,10 +6651,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
                  * `.trio-escala` (que também serve outros painéis). */
                 '<div class="trio-regua">' +
                 '<p class="trio-nota">' + (rubricaDaSala
-                  ? 'Medida por <b>' + esc(rubricaDaSala.nome) + '</b>.'
+                  ? 'Medida por <b>' + esc(rubricaDaSala.nome) + '</b>'
+                    + (rubricaDaSala.deQuem ? ' — a régua de ' + esc(rubricaDaSala.deQuem) : '') + '.'
                   : 'Medida pela régua padrão da escola.') + '</p>' +
-                '<div class="trio-escala">' + reguaDaSala.map((n, i) =>
-                  '<span class="' + classeDoNivel(n, i, reguaDaSala.length) + '">' + esc(n)
+                '<div class="trio-escala">' + niveisDaReguaDaSala.map((n, i) =>
+                  '<span class="' + classeDoNivel(n, i, niveisDaReguaDaSala.length) + '">' + esc(n)
                     + '</span>').join('') + '</div>' +
                 '</div>';
             }).join('')
@@ -7627,9 +7786,58 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</div>' +
     '<p class="sub" id="prof-senha-nota" hidden>Deixe a senha em branco para manter a que ele já usa.</p>' +
     '<div class="res" data-res="professores"></div>' +
+    /* «AVANÇAR», E NÃO «CADASTRAR PROFESSOR» (19/11/2026) — o cadastro deixou de ser um ato só.
+     *
+     * «Aqui, quando eu tenho o cadastro do professor, eu tenho ainda avançar. E aí na segunda aba
+     * que eu tenho o gravar cadastrar professor.»
+     *
+     * A ORDEM É A DA DEPENDÊNCIA, e é a mesma das Salas: o cadastro diz QUEM é a pessoa; a régua
+     * diz com que critério ela mede. Uma régua sem dono é uma escala solta, e é por isso que a
+     * segunda aba só faz sentido depois de a primeira existir. O botão diz o que vai acontecer —
+     * grava, e passa à aba seguinte, já com o professor em foco. */
     '<span class="par-botoes">' +
-    '<button type="submit" class="acao grande" id="prof-enviar">Cadastrar professor</button>' +
+    '<button type="submit" class="acao grande" id="prof-enviar">Avançar</button>' +
+    /* O «CANCELAR» EXISTE NOS DOIS PASSOS, E É O MESMO ATO (19/11/2026) — «quando clico em editar,
+     * está faltando o botão cancelar». Ele é pintado por `pintarCancelarDoProfessor`, a partir do
+     * MODO que a tela declara (`#prof-modo`) e não de um caminho de clique: assim aparece em
+     * qualquer porta que abra a edição, e não só naquela que alguém se lembrou de o mostrar. */
     '<button type="button" class="acao secundario" id="prof-cancelar" hidden>Cancelar</button>' +
+    '</span>' +
+    '</form>' +
+    '</div>' +
+    /* ---------------------------------------------- ABA 2 — A RÉGUA DO PROFESSOR (19/11/2026)
+     *
+     * «Vai ter que criar mais uma aba ali. É uma aba do lado da aba cadastro de professor e antes
+     * da aba habilitações. […] Apenas vai aparecer o nome do professor, a tradição que ele ensina,
+     * o nome que tem que colocar a rubrica, tem que ter esse campo para o usuário poder escrever.
+     * Tem que ter os níveis, tem que ter o acrescentar nível e tem que ter também o remover este
+     * nível.»
+     *
+     * O QUE ELA NÃO TEM, E É DE PROPÓSITO: um `select` de professor. A régua é de QUEM está em
+     * foco — o que se acabou de cadastrar («Avançar») ou o que se abriu em «Editar» —, e é o que
+     * faz da aba o passo 2 do cadastro e não uma segunda lista de nomes ao lado da primeira. O
+     * NOME aparece como leitura (`.turma-em-foco`, a peça que as Salas já usam), para não haver
+     * dúvida sobre de quem é a escala que se está a compor.
+     *
+     * O `#rubr-nome` e o `#rubr-niveis` SÃO OS MESMOS ids que as Salas tinham: as peças (o editor
+     * da régua, o «Acrescentar nível», o «✕» que remove) já existem e já têm prova. O que mudou foi
+     * a secção onde vivem — inventar ids novos obrigaria a duplicar os três handlers. */
+    '<div class="aba-painel" id="pf-painel-rubrica" role="tabpanel" aria-labelledby="pf-aba-rubrica" tabindex="0" hidden>' +
+    '<form id="form-rubrica-prof">' +
+    '<input type="hidden" id="rubr-prof-alvo" value="">' +
+    '<p class="turma-em-foco" id="rubr-prof-nome" hidden></p>' +
+    '<label class="campo-rotulo">Tradição que ele ensina (das habilitações dele)</label>' +
+    '<p class="sub" id="rubr-tradicao">—</p>' +
+    '<label class="campo-rotulo" for="rubr-nome">Nome da régua</label>' +
+    '<input id="rubr-nome" autocomplete="off" placeholder="ex.: Padrão">' +
+    '<label class="campo-rotulo">Níveis, do melhor ao pior</label>' +
+    '<div id="rubr-niveis"></div>' +
+    '<p><button type="button" class="acao secundario pequena" id="rubr-add">Acrescentar nível</button></p>' +
+    '<div class="res" data-res="rubrica-prof"></div>' +
+    '<span class="par-botoes">' +
+    '<button type="button" class="acao secundario" id="rubr-voltar">Voltar</button>' +
+    '<button type="submit" class="acao grande" id="rubr-gravar">Gravar cadastrar professor</button>' +
+    '<button type="button" class="acao secundario" id="rubr-cancelar" hidden>Cancelar</button>' +
     '</span>' +
     '</form>' +
     '</div>' +
@@ -7892,27 +8100,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // era isso que empurrava «Associar» para a segunda linha no telefone.
     '<li><button type="button" class="passo ativo" data-passo="turma" aria-current="step">' +
     '<span class="passo-n">1</span> <span class="passo-t">Sala</span> <span class="passo-alerta" aria-hidden="true">!</span></button></li>' +
-    /* O PASSO 2 CHAMA-SE «PROFESSOR» (18/11/2026), e o nome novo diz o que o passo é.
+    /* DOIS PASSOS, E NÃO TRÊS (19/11/2026) — «o step dois deixa de existir em salas».
      *
-     * «O step 2, que é a rubrica, ele vai mudar de nome agora. Ele vai passar a se chamar
-     * professor.» E é uma correção de leitura, não um gosto: o passo sempre perguntou DE QUEM é a
-     * régua — desde 18/11/2026 há um `select` de professor lá dentro —, e chamar-lhe «Rubricas»
-     * punha o nome da FERRAMENTA na porta do SUJEITO. Quem entra neste passo vem decidir quem dá a
-     * sala; a régua é o que ele aplica.
+     * O QUE SAIU. O passo 2 era «Professor», e dentro dele vivia a régua (o nome, os níveis, o
+     * acrescentar e o tirar). A régua foi para Professores, onde é atributo de quem avalia; o
+     * professor passou para o «Associar», onde é a pergunta que a sala faz.
      *
-     * O `data-passo="rubrica"` NÃO MUDA: é a chave do painel, do `sessionStorage` e das provas, e
-     * renomeá-la obrigaria a migrar memória de formulário por causa de um rótulo. */
-    '<li><button type="button" class="passo" data-passo="rubrica">' +
-    '<span class="passo-n">2</span> <span class="passo-t">Professor</span> <span class="passo-alerta" aria-hidden="true">!</span></button></li>' +
-    // «VINCULAR TURMA À RUBRICA» VIROU «ASSOCIAR» (18/10/2026), porque o passo passou a ter
-    // duas coisas: a régua com que a turma é medida e os conteúdos que ela usa.
-    //
-    // A 03/11/2026 SOBROU A RÉGUA — os conteúdos foram para a curadoria —, e o rótulo fica:
-    // «Associar» nunca foi o nome dos conteúdos, é o nome do ATO de ligar uma coisa da escola a
-    // esta turma. O que se associa a uma turma é a régua; o que se associa a uma curadoria é o
-    // que se ensina. Duas palavras iguais para o mesmo verbo, em dois sujeitos diferentes.
+     * O QUE FICA. Passo 1: a sala (nome, modalidade, dias, duração, período). Passo 2: quem a dá.
+     * «Associar» mantém o nome: ele nunca foi o nome dos conteúdos nem o da régua — é o nome do ATO
+     * de ligar uma coisa da escola a esta sala.
+     *
+     * A CHAVE DO PASSO 2 CONTINUA A SER `"vincular"`, e o passo 1 `"turma"`: são as chaves do
+     * painel, do `sessionStorage` e das provas. A chave `"rubrica"` desaparece com o painel — e com
+     * ela o `sessionStorage` de uma sessão aberta de ontem, que cai no passo 1 pela guarda de
+     * `mostrarPasso` (uma chave que já não é de nenhum painel devolve o professor ao início, e não
+     * a um ecrã vazio). */
     '<li><button type="button" class="passo" data-passo="vincular">' +
-    '<span class="passo-n">3</span> <span class="passo-t">Associar</span> <span class="passo-alerta" aria-hidden="true">!</span></button></li>' +
+    '<span class="passo-n">2</span> <span class="passo-t">Associar</span> <span class="passo-alerta" aria-hidden="true">!</span></button></li>' +
     '</ol>' +
     '</div>' +
     // O FORMULÁRIO DO PASSO — a coluna da esquerda. Ele deixou de envolver a faixa: a faixa é
@@ -8057,155 +8261,60 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</form>' +
     '</div>' +
     '</div>' +
-    // PASSO 2 — RUBRICAS. A régua ganha NOME: é o que a torna vinculável a mais de uma
-    // turma, e o que impede que a mesma decisão seja redigitada em cada cadastro.
-    '<div class="passo-painel" id="passo-rubrica" hidden>' +
-    '<div class="col-form">' +
-    '<form id="form-rubrica">' +
-    '<p class="turma-em-foco" id="rubr-turma" hidden></p>' +
-    '<input type="hidden" id="rubr-id">' +
-    // O NOME DA RUBRICA DESCE PARA DEPOIS DO PROFESSOR — ver o bloco acima do select.
-    /* A ORDEM DO PASSO 2, E ELA É A DO PEDIDO (18/11/2026).
+    /* O PASSO 2 DAS SALAS DEIXOU DE EXISTIR (19/11/2026) — e o que ele fazia mudou de secção.
      *
-     * «Eu vou ter a rubrica que eu vou colocar o nome dela. Eu tenho também o professor que já foi
-     * filtrado no step 1 […]. Ele tem que ser o primeiro a aparecer. O nome da rubrica que eu vou
-     * usar e também que balé que ele ensina, qual é a tradição que ele ensina.»
+     * «O step dois deixa de existir em salas. Todo o step dois, ele passa a ir para professores.»
      *
-     * PROFESSOR → NOME DA RUBRICA → TRADIÇÃO. O professor primeiro porque é o sujeito do passo; a
-     * rubrica é a ferramenta que ele aplica; e a tradição é o que ele já declarou nas habilitações —
-     * não se pergunta aqui, mostra-se aqui.
+     * A régua era um ato isolado dentro do cadastro da SALA: nome, níveis, acrescentar, remover. Mas
+     * a régua não é da sala — é o critério de quem avalia, e quem avalia é o professor. Enquanto
+     * viveu aqui, cada sala pôde apontar para uma régua diferente da de quem a dá, e a pergunta
+     * «com que escala esta aula é medida?» tinha duas respostas. Mudou-se inteira para
+     * Professores → «Régua do professor»: o campo, o editor dos níveis, o «Acrescentar» e o «✕».
      *
-     * A LISTA JÁ VEM RECOLHIDA PELA MODALIDADE DA SALA (passo 1), e o professor daquela sala vem
-     * primeiro e escolhido. Quem quiser outro escolhe outro: a sala manda na modalidade, não no
-     * nome de quem a dá.
-     */
-    '<label class="campo-rotulo" for="rubr-professor">Professor que aplica esta rubrica</label>' +
-    '<select id="rubr-professor">' +
-    '<option value="">— sem professor —</option>' +
-    opcoesDeProfessorDaRubrica +
-    '</select>' +
-    /* A TRADIÇÃO QUE ELE ENSINA — LEITURA, e não pergunta.
+     * O QUE FICA NO LUGAR: nada. O passo 1 continua a ser a sala, e o passo 2 passa a ser o
+     * «Associar» — que agora associa QUEM dá a sala, e a régua vem com ele. */
+    /* ------------------------------ PASSO 2 — ASSOCIAR (19/11/2026)
      *
-     * «A tradição também já está definida na sala, no step professor. Ali já está definido qual é a
-     * tradição desse professor. […] É apenas listar aqui […] a gente já sabe qual é a tradição
-     * dele. […] É lá que tem que existir qual é a tradição que ele ensina», e «lá» é a
-     * configuração dos professores, em habilidades.
+     * «Na sala, o associar passa a ser associar o professor pela modalidade e o professor. E aí que
+     * é assim que a sala sabe qual é a rubrica, pela associação ao professor.»
      *
-     * O QUE ESTE BLOCO NÃO É: um campo. Escrever a tradição aqui faria a mesma afirmação em dois
-     * sítios — e o segundo ganharia, porque é o que a pessoa acabou de mexer. O sítio de escrever
-     * é o perfil; este é o sítio de LER, para quem está a montar a sala saber em que linha a aula
-     * vai acontecer.
+     * O QUE ESTE PASSO PERGUNTA, E O QUE ELE SÓ MOSTRA. Pergunta UMA coisa — quem dá esta sala —, e
+     * a lista já vem recortada pela modalidade declarada no passo 1 (a mesma regra de sempre: a
+     * sala diz o que aí acontece, e a modalidade filtra quem o pode dar). Mostra duas: a TRADIÇÃO
+     * que ele ensina (das habilitações, leitura) e a RÉGUA dele (leitura). Mostrar em vez de
+     * perguntar é o que impede a segunda resposta para a mesma pergunta — a tradição já foi
+     * declarada no perfil, e a régua já foi composta em Professores.
      *
-     * O TEXTO NÃO É UM `input disabled` nem um `readonly`: não há valor a submeter. É um `<p>`,
-     * porque é uma frase — e as três frases possíveis («RAD, Vaganova», «não ensina tradição
-     * declarada», «ainda não declarou») são o que o servidor sabe, ditas por palavras. */
-    '<label class="campo-rotulo">Tradição que ele ensina (das habilitações dele)</label>' +
-    '<p class="sub" id="rubr-tradicao">—</p>' +
-    '<label class="campo-rotulo" for="rubr-nome">Nome da rubrica</label>' +
-    '<input id="rubr-nome" autocomplete="off" placeholder="ex.: Padrão">' +
-    '<label class="campo-rotulo">Níveis</label>' +
-    // OS NÍVEIS NASCEM VAZIOS (18/10/2026). Antes o editor vinha com os quatro níveis padrão
-    // («Satisfatório · Razoável · Em desenvolvimento · Não se aplica») já escritos — e isso
-    // tinha dois efeitos, os dois indesejados:
-    //
-    //   1. criar uma rubrica parecia ser aceitar a de fábrica, e não compor a sua;
-    //   2. e ABRIR UMA RUBRICA PARA EDITAR não mostrava nada: se ela tivesse exactamente
-    //      esses quatro níveis, o ecrã ficava igual e só o nome mudava. Parecia que o
-    //      «Editar» só trazia o nome. Não trazia — estava tudo lá, e era invisível porque já
-    //      lá estava antes.
-    //
-    // Agora o editor nasce vazio, e quem quiser a régua de quatro níveis escreve-a (ou usa a
-    // rubrica «Padrão», que é uma linha da lista como qualquer outra).
-    '<div id="rubr-niveis"></div>' +
-    '<p><button type="button" class="acao secundario pequena" id="rubr-add">Acrescentar nível</button></p>' +
-    // OS BOTÕES DO PASSO. «Avançar» faz duas coisas consoante o que houver no formulário: com
-    // nome, grava a rubrica e segue; sem nada, segue sem criar nenhuma — o passo é
-    // OBRIGATÓRIO DE PASSAR e OPCIONAL DE PREENCHER. O «Limpar formulário» saiu (18/10/2026):
-    // limpar não é uma operação do fluxo, e o «Cancelar» — só no modo edição — é o que repõe.
-    '<span class="par-botoes">' +
-    '<button type="button" class="acao secundario" id="rubr-voltar">Voltar</button>' +
-    '<button type="submit" class="acao grande" id="rubr-avancar">Avançar</button>' +
-    '<button type="button" class="acao secundario cancelar-edicao" id="rubr-cancelar" hidden>Cancelar</button>' +
-    '</span>' +
-    '</form>' +
-    '</div>' +
-    '</div>' +
-    // PASSO 3 — ASSOCIAR. A turma já existe; aqui ela recebe a RÉGUA com que é medida.
-    //
-    // ERAM DOIS ATOS (18/10/2026) — a régua e os CONTEÚDOS. A 03/11/2026 ficou um: os conteúdos
-    // passaram para a curadoria, que é onde se declara o que se ensina («é um ato pedagógico», e
-    // o cadastro da turma é o ritmo).
+     * SEM PROFESSOR NÃO SE GRAVA, e sem régua também não — mas quem diz isso é o servidor
+     * (`POST /api/bastidores/turma-professor`), com o nome de quem falta. A tela desabilita o
+     * botão; a regra não vive só na tela. */
     '<div class="passo-painel" id="passo-vincular" hidden>' +
     '<div class="col-form">' +
     '<form id="form-vincular">' +
-    // A TURMA NÃO SE ESCOLHE AQUI (18/10/2026). Ela é a que se acabou de gravar no passo 1 ou
-    // a que se mandou editar na listagem — o `select` repetia uma decisão já tomada e abria a
-    // porta a associar a turma errada. O nome dela sobe para o topo, e os dois blocos abaixo
-    // são sempre DELA.
+    // A SALA NÃO SE ESCOLHE AQUI (18/10/2026). Ela é a que se acabou de gravar no passo 1 ou a que
+    // se mandou editar na listagem. O nome dela sobe para o topo.
     '<p class="turma-em-foco" id="vinc-turma-nome" hidden></p>' +
     '<fieldset class="bloco-assoc">' +
-    '<legend>Com que régua esta sala é medida</legend>' +
-    '<label class="campo-rotulo" for="vinc-rubrica">Rubrica</label>' +
-    '<select id="vinc-rubrica">' +
-    // O VAZIO É O PADRÃO (18/10/2026): sem escolha explícita, «Gravar turma» não habilita.
-    // Antes a primeira rubrica da lista já vinha selecionada, e o botão parecia pronto sem
-    // que ninguém tivesse decidido nada.
-    '<option value="">' + (listaRubricas.length ? '— escolha uma rubrica —' : '— nenhuma rubrica criada —') + '</option>' +
-    listaRubricas.map((r) => '<option value="' + esc(r.id) + '">' + esc(r.nome) + '</option>').join('') +
+    '<legend>Quem dá esta sala</legend>' +
+    /* O `select` NASCE NO SERVIDOR com as opções (a peça da casa: marcação, e não `createElement`).
+     * Ele é REPINTADO pelo cliente quando a modalidade do passo 1 muda — e é por isso que a lista
+     * canónica de professores viaja na página (`PROFESSORES_DA_ESCOLA`). */
+    '<label class="campo-rotulo" for="vinc-professor">Professor que aplica a régua</label>' +
+    '<select id="vinc-professor" name="professor"><option value="">— escolher —</option>' +
+    (opcoesDeProfessorDaRubrica || '') +
     '</select>' +
-    /* OS DOIS BOTÕES SAÍRAM (18/11/2026) — e ela tinha razão duas vezes.
-     *
-     * O QUE ELA VIU: «não tem sentido ter esse botão de associar rubrica ou desassociar rubrica
-     * […] E ele também não faz nada. Então pode tirar esse botão daqui.»
-     *
-     * E NÃO FAZIA MESMO. O «Associar rubrica» e o «Gravar sala» chamam a MESMA rota
-     * (`/api/bastidores/turma-rubrica`) com o MESMO corpo — `{turma, rubricaId}` —, e a única
-     * diferença é que o segundo acrescenta `concluir: true`. Eram dois botões para um ato, e o
-     * que ficava à esquerda era o que não concluía nada.
-     *
-     * O QUE FICA: o `select` da rubrica e o «Gravar sala», que é o fim da sequência e o único
-     * gesto que grava. «Não, na verdade tem [sentido o passo 3], porque agora a gente vai colocar
-     * professor, né, no step dois» — e é isso: o passo continua a existir para ESCOLHER a régua;
-     * o que deixou de existir são os dois botões que a escolhiam sem concluir.
-     *
-     * A CONSEQUÊNCIA DECLARADA: desassociar uma rubrica deixou de ter botão. Quem quiser voltar
-     * uma turma à régua padrão escolhe outra rubrica e grava — o que é o mesmo ato com outro
-     * destino, e não um segundo gesto. O servidor continua a aceitar o pedido sem `rubricaId`
-     * (`DELETE` do vínculo não existe; a rota apaga com `delete turma.rubricaId`), portanto a
-     * capacidade não se perdeu: perdeu-se o botão que a ela chamava. */
-    /* DE QUEM É A RÉGUA QUE SE ACABOU DE ESCOLHER (18/11/2026).
-     *
-     * «aqui no associar, quando eu escolho a rubrica, que é o que eu vou associar, eu vou ter uma
-     * lista de rubricas que foi criada no step anterior. E aí ela já carrega então quem é o
-     * professor dessa rubrica. E aí ela vai ser listada aqui, o professor vai ser listado aqui com
-     * a modalidade que ele ensina.»
-     *
-     * É a linha que fecha o circuito: o passo 3 escolhe a FERRAMENTA, e esta linha diz de QUEM ela
-     * é — com a modalidade que a sala declarou no passo 1. Sem ela, quem escolhe a régua não fica a
-     * saber de quem é o critério que acabou de aplicar.
-     *
-     * `vinc-estado` continua a ser a frase da régua que a sala JÁ TEM (o presente). Este é sobre a
-     * que está ESCOLHIDA agora — e enquanto não se escolhe nada, fica calado. */
-    '<p class="nota" id="vinc-professor" hidden></p>' +
+    /* A TRADIÇÃO E A RÉGUA SÃO LEITURA, e a leitura é do par (professor × modalidade): um professor
+     * de clássico e jazz tem tradições diferentes em cada um, e a pergunta feita aqui é «nesta
+     * sala». Sem valor, a frase diz que falta — em vez de ficar em branco, que se lê como defeito. */
+    '<label class="campo-rotulo">Tradição que ele ensina (das habilitações dele)</label>' +
+    '<p class="sub" id="vinc-tradicao">—</p>' +
+    '<label class="campo-rotulo">Com que régua a sala é medida</label>' +
+    '<p class="sub" id="vinc-regua">—</p>' +
     '<p class="nota" id="vinc-estado"></p>' +
     '</fieldset>' +
-    // OS CONTEÚDOS SAÍRAM DESTE PASSO (03/11/2026). Aqui estava «Conteúdos desta turma» — os
-    // chips e o «Associar termo» —, e foi ela que o mandou sair: «o conteúdo prático/técnico a
-    // ser ensinado não deve pertencer ao cadastro estático da turma, pois isso é um ato
-    // pedagógico […] mover a atribuição e associação de conteúdo inteiramente para o formulário
-    // de Curadoria».
-    //
-    // Não é uma mudança de lugar por gosto: a turma é o ritmo, e o que se ENSINA nela é a
-    // curadoria — o mesmo par que a 03/11/2026 já tinha levado o professor, a modalidade, a
-    // tradição e o nível. Os conteúdos eram a última coisa do enquadramento a ficar para trás.
-    //
-    // O QUE JÁ ESTÁ ASSOCIADO NÃO SE PERDE: o mapa antigo (`turma-conteudos`) continua a ser
-    // LIDO — `motor/nucleo/conteudos.js` soma-o ao que as curadorias declaram —, e o cartão da
-    // turma continua a mostrar a lista. O que deixa de haver é o sítio que a escrevia.
-    // Os chips que se lêem no cartão e nos painéis vêm do mapa COMPOSTO (`conteudosDaEscola`).
-    // O FIM DA SEQUÊNCIA (18/10/2026). «Gravar turma» conclui: grava a régua escolhida (se
-    // mudou) e volta ao início, com a lista à vista. A turma já foi gravada no passo 1 — é o
-    // que permite associar aqui —, e o botão diz o que a direção sente: «terminei esta turma».
+    // OS CONTEÚDOS NÃO ESTÃO AQUI (03/11/2026) — eles passaram para a curadoria, que é onde se
+    // declara o que se ensina. A nota antiga fica na memória do registo: `motor/nucleo/conteudos.js`
+    // continua a LER o mapa antigo, e o cartão da turma continua a mostrá-lo.
     '<span class="par-botoes">' +
     '<button type="button" class="acao secundario" id="vinc-voltar">Voltar</button>' +
     '<button type="button" class="acao grande" id="vinc-gravar" disabled>Gravar sala</button>' +
@@ -9608,11 +9717,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     'function faltaDaAssociacao() {' +
     '  var falta = [];' +
-    '  var selR = document.getElementById("vinc-rubrica");' +
-    // A TURMA JÁ NÃO TEM `select` no passo 3: ela é a que está em foco (a que se acabou de
-    // gravar ou a que se mandou editar). Sem foco não há a quem associar.
-    '  if (!turmaEmFoco()) falta.push("escolher a turma");' +
-    '  if (!selR || !String(selR.value || "").trim()) falta.push("escolher a rubrica");' +
+    /* O PASSO 2 PERGUNTA UMA COISA SÓ: QUEM DÁ A SALA (19/11/2026).
+     *
+     * Antes ele pedia a RÉGUA (o `select` de rubricas da escola). A régua passou a ser do professor
+     * e a vir com ele, e pedi-la aqui outra vez seria a segunda resposta para a mesma pergunta — a
+     * que ganhasse era a que a pessoa acabou de mexer, e as duas podiam discordar em silêncio. */
+    '  var selP = document.getElementById("vinc-professor");' +
+    // A SALA JÁ NÃO TEM `select` neste passo: ela é a que está em foco (a que se acabou de gravar
+    // ou a que se mandou editar). Sem foco não há a quem associar.
+    '  if (!turmaEmFoco()) falta.push("escolher a sala");' +
+    '  if (!selP || !String(selP.value || "").trim()) falta.push("escolher o professor");' +
     // A EXIGÊNCIA DE «PELO MENOS UM CONTEÚDO» SAIU A 03/11/2026, e pelo mesmo motivo que a do
     // servidor: os conteúdos deixaram de se associar aqui. Uma trava no cliente que exige o que
     // o formulário já não oferece é um botão que nunca acende — e a escola ficaria sem conseguir
@@ -9774,19 +9888,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    t.__motivo = (document.getElementById("tmotivo") || {}).value || "";' +
     '    e.turma = t;' +
     '  }' +
-    '  var rid = document.getElementById("rubr-id");' +
-    '  if (rid) {' +
-    '    e.rubrica = {id: rid.value, nome: document.getElementById("rubr-nome").value,' +
-    /* O PROFESSOR ENTRA NA MEMÓRIA (18/11/2026). Cada operação recarrega a página, e a rubrica
-     * volta do rascunho: sem este campo, o dono desaparecia a cada gravação — e o «Avançar»
-     * seguinte apagava-o no servidor, em silêncio. É a mesma razão pela qual a data e o motivo
-     * sobrevivem. */
-    '      professor: (document.getElementById("rubr-professor") || {}).value || "",' +
-    '      niveis: reguaDoEditor("rubr-niveis")};' +
-    '  }' +
-    '  var selR = document.getElementById("vinc-rubrica");' +
-    '  if (selR) {' +
-    '    e.vincular = {turma: turmaEmFoco(), rubrica: selR.value || ""};' +
+    /* A RÉGUA DO PROFESSOR NÃO ENTRA NA MEMÓRIA DO FORMULÁRIO (19/11/2026).
+     *
+     * Ela saiu das Salas e passou a viver em `professores/<slug>/rubrica`. A memória aqui (o
+     * `sessionStorage` que sobrevive a cada recarregamento) existe para o que a pessoa escreveu e
+     * ainda não gravou; a régua passou a ser um registo do professor, com o seu próprio «Gravar», e
+     * guardá-la também aqui seria a segunda cópia do mesmo dado — a que diverge no primeiro dia em
+     * que uma das duas mudar.
+     *
+     * O PASSO 2 GUARDA O QUE ELE PERGUNTA: quem dá a sala. O professor em foco viaja na chave
+     * própria (`producao:vinc-professor`) porque é dela que `sincronizarAssociacao` o repõe. */
+    '  var selP = document.getElementById("vinc-professor");' +
+    '  if (selP) {' +
+    '    e.vincular = {turma: turmaEmFoco(), professor: selP.value || ""};' +
     '  }' +
     '  return e;' +
     '}' +
@@ -9833,27 +9947,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      if (!x.disabled && t.__horarios && t.__horarios[d]) x.value = t.__horarios[d];' +
     '    });' +
     '  }' +
-    '  var r = e.rubrica;' +
-    '  if (r && document.getElementById("rubr-id")) {' +
-    '    document.getElementById("rubr-id").value = r.id || "";' +
-    '    document.getElementById("rubr-nome").value = r.nome || "";' +
-    /* O PROFESSOR DA RUBRICA VOLTA COM ELA, e sem esta linha a memória do formulário
-     * desfazia-o: o nome aparecia, os níveis apareciam, e o select caía em «sem professor» — e o
-     * «Avançar» seguinte gravava `professor: ""`, apagando o dono da régua em silêncio. */
-    '    var selP = document.getElementById("rubr-professor");' +
-    '    if (selP) selP.value = r.professor || "";' +
-    '    pintarEditorDaRubrica(r.niveis || []);' +
-    '  }' +
     '  var v = e.vincular;' +
     '  if (v) {' +
-    // A TURMA EM FOCO é restaurada pela chave própria (`producao:vinc-turma`), que é a que
-    // `ajustarTurma` e `avancarParaRubricas` escrevem. O estado guarda-a como cópia, para o
+    // A SALA EM FOCO é restaurada pela chave própria (`producao:vinc-turma`), que é a que
+    // `ajustarTurma` e `avancarParaProfessor` escrevem. O estado guarda-a como cópia, para o
     // caso de a chave se perder.
     '    if (v.turma) { try { sessionStorage.setItem("producao:vinc-turma", v.turma); } catch (err) {} }' +
-    '    var selR = document.getElementById("vinc-rubrica");' +
-    '    if (selR && v.rubrica) {' +
-    '      for (var j = 0; j < selR.options.length; j++) {' +
-    '        if (selR.options[j].value === v.rubrica) { selR.value = v.rubrica; break; }' +
+    /* O PROFESSOR ESCOLHIDO VOLTA (19/11/2026) — e a reposição é por OPÇÃO EXISTENTE, como era a
+     * régua: escrever o valor às cegas num `<select>` cuja lista ainda não chegou deixa o campo em
+     * branco sem erro nenhum. */
+    '    var selP = document.getElementById("vinc-professor");' +
+    '    if (selP && v.professor) {' +
+    '      for (var j = 0; j < selP.options.length; j++) {' +
+    '        if (selP.options[j].value === v.professor) { selP.value = v.professor; break; }' +
     '      }' +
     '    }' +
     '  }' +
@@ -9895,9 +10001,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'document.addEventListener("change", function(){ gravarEstado(); aplicarTravas(); });' +
     // Depois de uma OPERAÇÃO bem-sucedida a página recarrega — e o passo e o estado já estão
     // gravados. O `aoOk` aponta o formulário para a turma gravada. No caminho de EDIÇÃO,
-    // voltar atrás edita a que existe; no de CRIAÇÃO, os passos 2 e 3 começam vazios — é o
-    // que o dono do produto pediu: sem «Editar» clicado, nada vem preenchido.
-    'function avancarParaRubricas(d){' +
+    // voltar atrás edita a que existe; no de CRIAÇÃO, o passo 2 começa vazio — é o que o dono do
+    // produto pediu: sem «Editar» clicado, nada vem preenchido.
+    /* «AVANÇAR» DA SALA VAI DIRETO AO ASSOCIAR (19/11/2026) — o passo do meio deixou de existir.
+     *
+     * A função chamava-se `avancarParaRubricas` e levava ao painel `rubrica`, que era a régua da
+     * sala. A régua foi para Professores; o painel desapareceu; e o passo seguinte passou a ser o
+     * «vincular». Manter o nome antigo mandaria a pessoa para uma chave de `sessionStorage` que já
+     * não tem painel — o `mostrarPasso` devolvê-la-ia ao passo 1, e o «Avançar» não avançaria nada,
+     * que é exactamente a queixa que a 12/11/2026 já tinha corrigido uma vez. */
+    'function avancarParaProfessor(d){' +
     '  try {' +
     '    var e = estadoDoFormulario();' +
     '    if (d && d.id) {' +
@@ -9913,11 +10026,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      else sessionStorage.removeItem("producao:editando");' +
     '    }' +
     '    gravarEstadoObjeto(e);' +
-    '    sessionStorage.setItem("producao:passo", "rubrica");' +
+    '    sessionStorage.setItem("producao:passo", "vincular");' +
     '  } catch (err) {}' +
-    '}' +
-    'function avancarParaAssociar(){' +
-    '  try { gravarEstado(); sessionStorage.setItem("producao:passo", "vincular"); } catch (err) {}' +
     '}' +
     // «GRAVAR TURMA» CONCLUI: o formulário fecha e a memória do preenchimento é limpa —
     // senão a próxima turma começaria com os dados da anterior.
@@ -10346,6 +10456,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         '  if (antes && antes.botao) { antes.botao.disabled = false; antes.botao.textContent = antes.rotulo; }' +
         '  liberar();' +
     '}' +
+    /* O CADASTRO DO PROFESSOR PASSA AO PASSO 2 (19/11/2026) — e a passagem sobrevive à recarga.
+     *
+     * `postar` recarrega em caso de sucesso (é a regra: a lista e os ids vêm do servidor). O que
+     * faltava era dizer PARA ONDE se volta: sem as duas chaves abaixo, o «Avançar» do cadastro
+     * gravava e devolvia a pessoa à aba 1, com o professor em foco perdido — ou seja, o botão não
+     * avançava nada. O slug vem na RESPOSTA (`d.slug`), e é por isso que a chave só pode ser
+     * escrita aqui: um professor novo não tem slug antes de o servidor o atribuir. */
     'function postar(id, corpo) {' +
     '  corpo.token = TOKEN;' +
     '  var form = document.getElementById(id);' +
@@ -10357,8 +10474,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    headers: {"Content-Type": "application/json"},' +
     '    body: JSON.stringify(corpo)' +
     '  }).then(function(r){ return r.json(); }).then(function(d){' +
-    '    if (d.ok) { location.reload(); }' +
-    '    else { devolverRotulo(); recado("erro", "Erro: " + (d.erro || "desconhecido")); }' +
+    '    if (d.ok) {' +
+    '      if (id === "form-prof" && d.slug) {' +
+    '        try {' +
+    '          sessionStorage.setItem("producao:professor-em-foco", String(d.slug));' +
+    '          sessionStorage.setItem("producao:aba-professor", "rubrica");' +
+    '        } catch (err) {}' +
+    '      }' +
+    '      location.reload(); return;' +
+    '    }' +
+    '    devolverRotulo(); recado("erro", "Erro: " + (d.erro || "desconhecido"));' +
     '  }).catch(function(err){ devolverRotulo(); recado("erro", "Erro: " + err.message); });' +
     '}' +
     /*
@@ -10418,6 +10543,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (oculto) oculto.value = "editar";' +
     '  var alvo = document.getElementById("prof-alvo");' +
     '  if (alvo) alvo.value = slug;' +
+    /* O MESMO SLUG É O FOCO DA ABA DA RÉGUA (19/11/2026). As duas abas são dois passos do mesmo
+     * cadastro, e o professor é o sujeito de ambos: escrevê-lo num sítio só deixaria a régua a
+     * mostrar — ou a gravar — a de outra pessoa. Um `hidden` e uma chave de memória, porque a
+     * recarga (depois de gravar) tem de o repor. */
+    '  var focoDaRegua = document.getElementById("rubr-prof-alvo");' +
+    '  if (focoDaRegua) focoDaRegua.value = slug;' +
+    '  try { sessionStorage.setItem("producao:professor-em-foco", slug); } catch (err) {}' +
+    '  if (typeof pintarReguaDoProfessor === "function") pintarReguaDoProfessor();' +
     /* O NOME VEM DA LISTA E O RESTO DO SERVIDOR. Preencher o nome já é útil enquanto a resposta
      * não chega: a ficha abre com a pessoa certa e os outros campos chegam a seguir. */
     '  var inteiro = String(nome || "").replace(/\\s+/g, " ").trim();' +
@@ -10434,9 +10567,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var nota = document.getElementById("prof-nota");' +
     '  if (nota) nota.hidden = false;' +
     '  var b = document.getElementById("prof-enviar");' +
-    '  if (b) b.textContent = "Gravar as mudanças";' +
-    '  var c = document.getElementById("prof-cancelar");' +
-    '  if (c) c.hidden = false;' +
+    /* O BOTÃO DO PASSO 1 DIZ «AVANÇAR», TAMBÉM EM EDIÇÃO (19/11/2026). Ele dizia «Gravar as
+     * mudanças», e com isso prometia o fim do trabalho quando ainda falta o passo 2 (a régua do
+     * professor). Corrigir a ficha e ir para a régua é o mesmo gesto nos dois modos: gravar, e
+     * avançar. */
+    '  if (b) b.textContent = "Avançar";' +
+    '  if (typeof pintarCancelarDoProfessor === "function") pintarCancelarDoProfessor();' +
     '  recado("", "");' +
     /* A RESPOSTA SÓ PREENCHE SE A FICHA AINDA FOR A MESMA (16/11/2026). A leitura é assíncrona, e
      * quem clica «Editar» e logo «Cancelar» recebia a ficha depois de ter mandado limpar o
@@ -10476,9 +10612,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var nota = document.getElementById("prof-nota");' +
     '  if (nota) nota.hidden = true;' +
     '  var b = document.getElementById("prof-enviar");' +
-    '  if (b) b.textContent = "Cadastrar professor";' +
-    '  var c = document.getElementById("prof-cancelar");' +
-    '  if (c) c.hidden = true;' +
+    '  if (b) b.textContent = "Avançar";' +
+    /* CANCELAR DESFAZ OS DOIS PASSOS (19/11/2026). A régua aberta é trabalho a meio tanto como a
+     * ficha: o foco e os campos dela saem, e a aba volta ao cadastro — que é o estado de quem
+     * acabou de chegar. Sem esta limpeza, o «Cancelar» da ficha deixava a régua de outra pessoa
+     * pronta a ser regravada por engano. */
+    '  var focoDaRegua = document.getElementById("rubr-prof-alvo");' +
+    '  if (focoDaRegua) focoDaRegua.value = "";' +
+    '  try { sessionStorage.removeItem("producao:professor-em-foco"); sessionStorage.removeItem("producao:aba-professor"); } catch (err) {}' +
+    '  var nomeDaRegua = document.getElementById("rubr-nome");' +
+    '  if (nomeDaRegua) nomeDaRegua.value = "";' +
+    '  if (typeof pintarEditorDaRubrica === "function") pintarEditorDaRubrica([]);' +
+    '  var notaRegua = document.getElementById("rubr-prof-nome");' +
+    '  if (notaRegua) { notaRegua.hidden = true; notaRegua.textContent = ""; }' +
+    '  var tradRegua = document.getElementById("rubr-tradicao");' +
+    '  if (tradRegua) tradRegua.textContent = "—";' +
+    '  if (typeof abrirAbaDoProfessor === "function") abrirAbaDoProfessor("cadastro");' +
+    '  if (typeof pintarCancelarDoProfessor === "function") pintarCancelarDoProfessor();' +
     '  recado("", "");' +
     /* E O FORMULÁRIO FECHA-SE (18/11/2026). Esta função tem um só chamador — o «Cancelar» —, e é
      * por isso que o fecho pode viver aqui: não há segundo caminho que a use para «acabei de
@@ -11161,7 +11311,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * responde pelo `data-abas` do seu `<nav>`: o botão diz A QUE GRUPO pertence pelo sítio onde
      * está, e não por um prefixo no atributo. */
     'var ABAS_DA_AUDICAO = ["1", "2", "3"];' +
-    'var ABAS_DO_PROFESSOR = ["cadastro", "habilitacoes", "desligamento"];' +
+    'var ABAS_DO_PROFESSOR = ["cadastro", "rubrica", "habilitacoes", "desligamento"];' +
     /* «A ESCOLA» DEIXOU DE SER TRÊS ABAS (17/11/2026). As abas deram lugar a três CAIXAS que se
      * abrem, no cartão da listagem — a peça da Audição —, e com isso o grupo saiu da página. O
      * aviso fica: quem procurar a tira da escola não a encontra porque a decisão foi outra. */
@@ -11195,6 +11345,28 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * aba do cadastro em vez de deixar a pessoa a olhar para as habilitações. O nome vai em
      * `data-aba-do-professor` no botão que o pede. */
     'function abrirCadastroDoProfessor() { abrirAbaDoProfessor("cadastro"); }' +
+    /* A ABA E O PROFESSOR VOLTAM DEPOIS DA RECARGA (19/11/2026).
+     *
+     * «Avançar» do cadastro e «Gravar» da régua recarregam — é a regra da casa, e é o que mantém a
+     * lista e o mapa dos professores frescos. O que a recarga não sabia era onde a pessoa estava:
+     * gravava o passo 1 e devolvia ao passo 1, com o professor em foco perdido, o que se lê como
+     * «não avançou». As duas chaves são escritas por quem sabe o slug (o `postar`, com a resposta
+     * do servidor) e lidas aqui, uma vez, no arranque.
+     *
+     * A ORDEM IMPORTA: o foco primeiro (é ele que preenche o nome, os níveis e a tradição), e só
+     * depois a aba — uma aba aberta sobre um painel vazio pareceria um defeito. */
+    'function retomarAbaDoProfessor() {' +
+    '  var slug = ""; var aba = "";' +
+    '  try {' +
+    '    slug = sessionStorage.getItem("producao:professor-em-foco") || "";' +
+    '    aba = sessionStorage.getItem("producao:aba-professor") || "";' +
+    '  } catch (err) {}' +
+    '  var foco = document.getElementById("rubr-prof-alvo");' +
+    '  if (foco && slug) foco.value = slug;' +
+    '  if (slug && typeof pintarReguaDoProfessor === "function") pintarReguaDoProfessor();' +
+    '  if (aba === "rubrica" && slug) abrirAbaDoProfessor("rubrica");' +
+    '}' +
+    'retomarAbaDoProfessor();' +
     'document.addEventListener("click", function(e){' +
     '  var alvo = e.target.closest ? e.target.closest("[data-aba]") : null;' +
     '  if (alvo) {' +
@@ -12086,7 +12258,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // «Vincular turma à rubrica»). Sem rubrica ligada, a leitura aplica a padrão.
     '  };' +
     '  if (!derivando) {' +
-    '    enviar("/api/bastidores/turma", campos, "gravando a sala...", true, avancarParaRubricas); return;' +
+    '    enviar("/api/bastidores/turma", campos, "gravando a sala...", true, avancarParaProfessor); return;' +
     '  }' +
     // DOIS CAMINHOS, e a diferença não é cosmética (16/10/2026): a turma LIVRE edita-se (o
     // registo é substituído no lugar, e o nome pode mudar); a VINCULADA a um plano de ensino
@@ -12094,7 +12266,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var modo = (document.getElementById("tmodo") || {}).value || "derivar";' +
     '  if (modo === "editar") {' +
     '    campos.id = derivando;' +
-    '    enviar("/api/bastidores/turma-editar", campos, "gravando a sala...", true, avancarParaRubricas); return;' +
+    '    enviar("/api/bastidores/turma-editar", campos, "gravando a sala...", true, avancarParaProfessor); return;' +
     '  }' +
     /* A DATA NÃO VAI (18/11/2026): o servidor põe o dia do acto, no fuso da instalação. Ver
    * `vigenciaDoAjuste`. Mandá-la daqui seria a tela a decidir o que o servidor já garante — e
@@ -12116,7 +12288,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * não cobria a derivação pelo botão: media o `ajustarTurma` a preencher, não o que ele envia. */
     '  campos.derivarDe = derivando;' +
     '  campos.motivo = (document.getElementById("tmotivo") || {}).value || "";' +
-    '  enviar("/api/bastidores/turma-derivar", campos, "ajustando a sala...", true, avancarParaRubricas);' +
+    '  enviar("/api/bastidores/turma-derivar", campos, "ajustando a sala...", true, avancarParaProfessor);' +
     '});' +
     /* O `form-termo` SAIU COM A SECÇÃO DO VOCABULÁRIO (01/11/2026). O cadastro de exercício
      * vive agora num sítio só — o passo 1 do verbete —, e quem o grava é o handler do «Seguir →»
@@ -12232,25 +12404,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    var d = x.getAttribute("data-dia");' +
     '    if (!x.disabled && t.horarios && t.horarios[d]) x.value = t.horarios[d];' +
     '  });' +
-    // «EDITAR» EDITA OS TRÊS PASSOS, E NÃO SÓ O PRIMEIRO (18/10/2026). A rubrica da turma entra
-    // no passo 2 pronta a corrigir; a rubrica escolhida e os conteúdos da turma entram no passo
-    // 3. É a possibilidade que o dono do produto pediu com todas as letras: um único botão,
-    // «Editar», e tudo o que é daquela turma fica editável.
-    '  var r = rubricaDaTurma(t);' +
-    '  var rid = (r && RUBRICAS.some(function(x){ return x.id === r.id; })) ? r.id : "";' +
-    '  document.getElementById("rubr-id").value = rid;' +
-    '  document.getElementById("rubr-nome").value = rid ? r.nome : "";' +
-    /* E O PROFESSOR DA RÉGUA (18/11/2026). «Editar» abre a rubrica da turma pronta a corrigir, e
-     * o dono dela é parte do que se corrige; sem esta linha o campo voltava vazio e um «Avançar»
-     * apagava-o. */
-    '  var selProf = document.getElementById("rubr-professor");' +
-    '  if (selProf) selProf.value = (rid && r.professor) ? r.professor : "";' +
-    '  pintarEditorDaRubrica(rid ? (r.niveis || []) : []);' +
-    // A RÉGUA DO PASSO 3 É A DESTA TURMA — explícita, e não a sugestão de `sincronizarAssociacao`
-    // (que só preenche um `select` vazio). Entrar em «Editar» é dizer «é esta turma»; a escolha
-    // anterior, de outra turma, não pode sobreviver.
-    '  var selR = document.getElementById("vinc-rubrica");' +
-    '  if (selR) selR.value = rid;' +
+    /* «EDITAR» ABRE O PASSO 2 COM O PROFESSOR DESTA SALA (19/11/2026).
+     *
+     * Era aqui que a régua da turma entrava no formulário — `#rubr-id`, `#rubr-nome`, os níveis, o
+     * dono. Esse formulário mudou de secção (Professores → «Régua do professor»), e o que resta
+     * neste passo é o que ele passou a perguntar: QUEM dá a sala. A régua vem com ele, e por isso
+     * não há nada para preencher do lado dela.
+     *
+     * A ESCOLHA É EXPLÍCITA, e não a sugestão de `sincronizarAssociacao`: entrar em «Editar» é dizer
+     * «é esta sala», e o professor de outra não pode sobreviver no campo. */
+    '  var selProf = document.getElementById("vinc-professor");' +
+    '  if (selProf) {' +
+    '    if (String(t.professor || "")) selProf.value = String(t.professor);' +
+    '    else selProf.value = "";' +
+    '  }' +
     '  atualizarTurmaEmFoco();' +
     '  sincronizarAssociacao();' +
     // A data de vigência nasce com hoje: é o caso normal (a escola descobre o erro e corrige
@@ -12768,50 +12935,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '  return v;' +
     '}' +
-    'function pintarTradicaoDoProfessor(slug){' +
-    '  if (!temTela()) return;' +
-    '  var alvo = document.getElementById("rubr-tradicao");' +
-    '  if (!alvo) return;' +
-    '  if (!slug) { alvo.textContent = "— escolha o professor para ver a tradição dele."; return; }' +
-    '  alvo.textContent = "…";' +
-    '  perfilDoProfessor(slug).then(function(corpo){' +
-    '    if (!temTela()) return;' +
-    '    var el = document.getElementById("rubr-tradicao");' +
-    '    if (!el) return;' +
-    '    var selP = document.getElementById("rubr-professor");' +
-    // A resposta de um professor que já não está escolhido não se aplica.
-    '    if (selP && String(selP.value || "") !== slug) return;' +
-    '    if (!corpo) {' +
-    '      el.textContent = "Não foi possível ler as habilitações deste professor agora.";' +
-    '      return;' +
-    '    }' +
-    /* O MAPA É POR ID, E A SALA GUARDA O NOME (18/11/2026).
-     *
-     * `perfil.json` → `tradicoes: {"bale-classico": ["RAD"]}`, porque um id é estável e um rótulo
-     * muda. A sala → `modalidade: "Balé clássico"`, porque é o que o `<option>` oferece e o que a
-     * curadoria já guarda (ver o comentário do `select` no passo 1). Ler o mapa com o NOME dava
-     * «não declarou» para toda a gente — a chave existia e ninguém a encontrava. É o mesmo par
-     * id/nome que o `idDaModalidade` do núcleo resolve do lado do servidor; aqui resolve-se com o
-     * catálogo que a página já traz. */
-    '    var modId = idDaModalidadeDoCatalogo(modalidadeQueManda());' +
-    '    var mapa = corpo.tradicoes || {};' +
-    '    var temChave = modId && Object.prototype.hasOwnProperty.call(mapa, modId);' +
-    '    if (!modId) {' +
-    '      el.textContent = "A modalidade ainda não está escolhida no passo 1 — sem ela não se sabe ' +
-        'que tradições dele valem aqui.";' +
-    '      return;' +
-    '    }' +
-    '    if (!temChave) {' +
-    '      el.textContent = "Este professor ainda não declarou a tradição para " + modalidadeQueManda() +' +
-    '        ". Declara-se na configuração dele, em habilidades.";' +
-    '      return;' +
-    '    }' +
-    '    var lista = Array.isArray(mapa[modId]) ? mapa[modId] : [];' +
-    '    el.textContent = lista.length' +
-    '      ? lista.join(" · ")' +
-    '      : "Este professor declarou que não ensina tradição em " + modalidadeQueManda() + ".";' +
-    '  });' +
-    '}' +
     'function filtrarProfessoresPelaModalidade(){' +
     '  if (!temTela()) return;' +
     '  var mod = modalidadeQueManda();' +
@@ -12821,39 +12944,109 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A RESPOSTA DE UMA MODALIDADE QUE JÁ NÃO ESTÁ ESCOLHIDA NÃO SE APLICA: quem trocou enquanto a
     // leitura corria ficaria com a lista da anterior.
     '    if (modalidadeQueManda() !== mod) return;' +
-    /* O PASSO 1 JÁ NÃO TEM `select` DE PROFESSOR (18/11/2026). A lista que aqui se desenha é a do
-     * passo 2 e mais nada — o passo 1 declara a modalidade e fica por aí. */
-    '    var selR = document.getElementById("rubr-professor");' +
-    '    if (selR) {' +
-    /* O PASSO 2 RECEBE A LISTA COM O PROFESSOR DA SALA À FRENTE (18/11/2026) — e, se a rubrica
-     * ainda não tem dono, ele já vem ESCOLHIDO. É a leitura do pedido: «o professor que já foi
-     * filtrado no step 1 […] tem que ser o primeiro a aparecer».
+    /* O PASSO 1 NÃO TEM `select` DE PROFESSOR (18/11/2026). A lista que aqui se desenha é a do
+     * passo 2 e mais nada — o passo 1 declara a modalidade e fica por aí.
      *
-     * NÃO SE IMPÕE QUANDO JÁ HÁ DONO. Uma rubrica que já tem professor é uma decisão tomada, e
-     * trocá-la ao abrir a página seria o sistema a desfazer o que alguém escolheu — a mesma regra
-     * do `sincronizarAssociacao`, que só sugere a régua em modo de edição. */
+     * E O PASSO 2 É AGORA «QUEM DÁ A SALA» (19/11/2026): o `select` passou a ser `vinc-professor`, e
+     * a lista continua a vir recortada pela modalidade — «ao escolher a modalidade aqui no step um,
+     * o step dois […] deve carregar apenas os professores da modalidade escolhida». */
+    '    var selR = document.getElementById("vinc-professor");' +
+    '    if (selR) {' +
+    /* O PROFESSOR DA SALA VEM PRIMEIRO, E ESCOLHIDO SÓ QUANDO AINDA NÃO HÁ ESCOLHA. É a leitura do
+     * pedido: «o professor que já foi filtrado no step 1 […] tem que ser o primeiro a aparecer».
+     *
+     * NÃO SE IMPÕE UMA ESCOLHA JÁ FEITA. Trocar o professor ao abrir a página seria o sistema a
+     * desfazer o que alguém decidiu — e no caminho de «Editar» a escolha é a da sala, que
+     * `ajustarTurma` já pôs. */
     '      var ordem = professoresComOSalaPrimeiro(lista);' +
-    '      pintarProfessores("rubr-professor", ordem, undefined, "— sem professor —");' +
+    '      pintarProfessores("vinc-professor", ordem, undefined, "— escolher —");' +
     '      if (!selR.value) {' +
     '        var daSala = professorDaSalaEmFoco();' +
     '        for (var q = 0; q < ordem.length; q++) {' +
     '          if (ordem[q].slug === daSala) { selR.value = daSala; }' +
     '        }' +
     '      }' +
-    '      pintarTradicaoDoProfessor(String(selR.value || ""));' +
+    '      pintarOParDaSala();' +
+    '      pintarTradicaoDaSala(String(selR.value || ""));' +
     '    }' +
     '  });' +
     '}' +
     'var selModSala = document.getElementById("tmodalidade");' +
     'if (selModSala) selModSala.addEventListener("change", function(){ filtrarProfessoresPelaModalidade(); });' +
-    /* TROCAR O PROFESSOR NO PASSO 2 REPINTA A TRADIÇÃO. É o gesto que muda a frase — e a frase é
-     * a única coisa que o passo mostra sobre o que ele ensina. */
-    'var selProfRubr = document.getElementById("rubr-professor");' +
-    'if (selProfRubr) selProfRubr.addEventListener("change", function(){' +
-    '  pintarTradicaoDoProfessor(String(this.value || ""));' +
-    '});' +
-    'pintarTradicaoDoProfessor(String((selProfRubr || {}).value || ""));' +
+    /* A TIRA DA RÉGUA EM PROFESSORES (19/11/2026) — a tradição e os níveis do professor EM FOCO.
+     *
+     * O foco é o `#rubr-prof-alvo` (o slug), e quem o põe é o «Editar» ou o «Avançar» do cadastro:
+     * a aba é o passo 2 do cadastro, e por isso não tem `select` de professor. Na abertura da
+     * página ele é reposto a partir do `sessionStorage`, e a régua é preenchida com o que o mapa
+     * `PROFESSORES_DA_ESCOLA` já traz — sem uma ida ao servidor. */
+    'function professorEmFocoNaRegua(){' +
+    '  var el = document.getElementById("rubr-prof-alvo");' +
+    '  return el ? String(el.value || "") : "";' +
+    '}' +
+    'function pintarTradicaoDaRegua(){' +
+    '  var slug = professorEmFocoNaRegua();' +
+    '  var alvo = document.getElementById("rubr-tradicao");' +
+    '  if (!alvo) return;' +
+    '  if (!slug) { alvo.textContent = "— cadastre ou abra um professor para ver a tradição dele."; return; }' +
+    /* AQUI NÃO HÁ «MODALIDADE DA SALA»: a pergunta é sobre a pessoa, e ela pode ensinar mais de uma.
+     * A função antiga caía na modalidade do passo 1 das Salas; aqui o perfil diz todas, e a frase
+     * lista-as por modalidade — e é isso que a frase dele diz. */
+    '  alvo.textContent = "…";' +
+    '  perfilDoProfessor(slug).then(function(corpo){' +
+    '    var el = document.getElementById("rubr-tradicao");' +
+    '    if (!el || professorEmFocoNaRegua() !== slug) return;' +
+    '    if (!corpo) { el.textContent = "Não foi possível ler as habilitações deste professor agora."; return; }' +
+    '    var mapa = corpo.tradicoes || {};' +
+    '    var mods = Array.isArray(corpo.modalidades) ? corpo.modalidades : [];' +
+    '    var partes = [];' +
+    '    for (var i = 0; i < mods.length; i++) {' +
+    '      var lista = Object.prototype.hasOwnProperty.call(mapa, mods[i]) ? mapa[mods[i]] : null;' +
+    '      if (lista === null) continue;' +
+    '      var rotulo = nomeDaModalidadeDoCatalogo(mods[i]);' +
+    '      partes.push(rotulo + " · " + (lista.length ? lista.join(" / ") : "(sem tradição)"));' +
+    '    }' +
+    '    el.textContent = partes.length ? partes.join(" · ")' +
+    '      : "Este professor ainda não declarou tradição — declara-se na aba Habilitações.";' +
+    '  });' +
+    '}' +
+    /* A RÉGUA DELE, PREENCHIDA — do mapa que a página já tem. Sem régua, o editor nasce vazio (o
+     * editor nasce vazio por decisão de 18/10/2026) e o nome também — é o estado de quem ainda não
+     * compôs nada, e não uma falta a inventar. */
+    'function pintarReguaDoProfessor(){' +
+    '  var slug = professorEmFocoNaRegua();' +
+    '  var nomeEl = document.getElementById("rubr-nome");' +
+    '  var alvo = document.getElementById("rubr-prof-nome");' +
+    '  var p = null;' +
+    '  for (var i = 0; i < PROFESSORES_DA_ESCOLA.length; i++) {' +
+    '    if (String(PROFESSORES_DA_ESCOLA[i].slug || "") === slug) p = PROFESSORES_DA_ESCOLA[i];' +
+    '  }' +
+    '  if (alvo) {' +
+    '    alvo.hidden = !slug;' +
+    '    alvo.textContent = slug ? "Régua de " + (p ? p.nome : slug) : "";' +
+    '  }' +
+    '  if (nomeEl) nomeEl.value = (p && p.rubrica) ? String(p.rubrica.nome || "") : "";' +
+    '  pintarEditorDaRubrica((p && p.rubrica && p.rubrica.niveis) ? p.rubrica.niveis : []);' +
+    '  pintarTradicaoDaRegua();' +
+    '  pintarCancelarDoProfessor();' +
+    '}' +
+    /* O «CANCELAR» DO PROFESSOR APARECE QUANDO HÁ O QUE CANCELAR (19/11/2026).
+     *
+     * «Quando clico em editar, está faltando o botão cancelar.» O botão existia e era mostrado por
+     * UM caminho (`editarProfessor`); em qualquer outra porta que abrisse a edição — ou depois de
+     * uma recarga com o modo já gravado — ele ficava escondido, e a pessoa não tinha como sair.
+     *
+     * A REGRA PASSA A SER DERIVADA DO MODO, e não do clique: há edição em curso quando `#prof-modo`
+     * diz «editar», ou quando há uma régua aberta para compor (a aba 2 é um trabalho a meio, e
+     * sair dele também é cancelar). Um botão que só uma função mostra é um botão que se esquece. */
+    'function pintarCancelarDoProfessor(){' +
+    '  var editando = modoDoProfessor() === "editar" || !!professorEmFocoNaRegua();' +
+    '  ["prof-cancelar", "rubr-cancelar"].forEach(function(id){' +
+    '    var b = document.getElementById(id);' +
+    '    if (b) b.hidden = !editando;' +
+    '  });' +
+    '}' +
     'filtrarProfessoresPelaModalidade();' +
+    'pintarReguaDoProfessor();' +
     'function pintarModalidades(opcoes, nota){' +
     '  var sel = document.getElementById("cumodalidade");' +
     '  if (!sel) return;' +
@@ -13246,36 +13439,53 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  for (var i = 0; i < niveis.length; i++) dono.appendChild(linhaDaReguaNoDom(niveis[i]));' +
     '}' +
     'document.getElementById("rubr-add").addEventListener("click", function(){' +
-    '  document.getElementById("rubr-niveis").appendChild(linhaDaReguaNoDom(""));' +
+    '  var dono = document.getElementById("rubr-niveis");' +
+    '  if (!dono) return;' +
+    '  dono.appendChild(linhaDaReguaNoDom(""));' +
     '  gravarEstado();' +
     '});' +
-    'document.getElementById("rubr-voltar").addEventListener("click", function(){ irParaPassoTurma("turma"); });' +
-    // O «EDITAR RUBRICA» SAIU DA LISTAGEM (18/10/2026). Ele era um segundo botão de edição,
-    // dentro do painel da régua, e o dono do produto foi explícito: o único botão que aciona
-    // edição é o «Editar» do cartão da turma — e ele abre os três passos, rubrica incluída.
-    // Sem entrada própria, a rubrica edita-se pelo passo 2, já preenchida por `ajustarTurma`.
-    'document.getElementById("form-rubrica").addEventListener("submit", function(e){' +
+    /* «VOLTAR» E «CANCELAR» DA ABA DA RÉGUA (19/11/2026).
+     *
+     * O «Voltar» leva ao CADASTRO — é o passo anterior desta aba, e não um passo das Salas. O
+     * `irParaPassoTurma` que aqui estava apontava para o painel `rubrica` das Salas, que já não
+     * existe: um botão que muda de secção por engano é pior do que um botão morto, porque a pessoa
+     * acredita que avançou. */
+    'document.getElementById("rubr-voltar").addEventListener("click", function(){' +
+    '  abrirAbaDoProfessor("cadastro");' +
+    '});' +
+    'document.getElementById("rubr-cancelar").addEventListener("click", function(){' +
+    '  sairDaEdicaoDoProfessor();' +
+    '});' +
+    /* GRAVAR A RÉGUA — e a régua é DELE (19/11/2026).
+     *
+     * «Na segunda aba que eu tenho o gravar cadastrar professor.» O rótulo diz o que o gesto faz: é
+     * o fim do cadastro do professor, e o que se grava é a régua dele. A rota é a nova
+     * (`rubrica-do-professor`) — a antiga (`rubrica`) continua a existir para as réguas da escola,
+     * mas não é esta aba que a chama: aquela grava numa lista e esta no registo da pessoa.
+     *
+     * O NOME E OS NÍVEIS SÃO OBRIGATÓRIOS AQUI, e não «opcional de passar» como era nas Salas. Lá
+     * o passo era obrigatório de ATRAVESSAR (a sala tinha de seguir, mesmo sem régua); aqui é o fim
+     * de um ato — e uma régua sem níveis mediria contra nada. O servidor recusa os dois casos; a
+     * guarda daqui só evita a ida à rede. */
+    'document.getElementById("form-rubrica-prof").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
+    '  var slug = professorEmFocoNaRegua();' +
+    '  if (!slug) { recado("erro", "Escolha o professor no Cadastro (ou abra-o em Editar) antes de gravar a régua dele."); return; }' +
     '  var nome = document.getElementById("rubr-nome").value.trim();' +
     '  var niveis = reguaDoEditor("rubr-niveis");' +
-    // O PASSO É OBRIGATÓRIO DE PASSAR, OPCIONAL DE PREENCHER: com nome, grava e segue; sem nada,
-    // segue sem criar. Nome sem níveis (ou níveis sem nome) é preenchimento pela metade.
-    '  if (!nome && !niveis.length) { irParaPassoTurma("vincular"); return; }' +
-    '  if (!nome) { alert("Dê um nome à rubrica antes de avançar — ou remova os níveis para passar sem criar."); return; }' +
+    '  if (!nome) { alert("Dê um nome à régua — é por ele que a sala a reconhece."); return; }' +
     '  if (!niveis.length) { alert("Declare pelo menos um nível — a régua vazia mediria contra nada."); return; }' +
-    '  enviar("/api/bastidores/rubrica", {' +
-    '    id: document.getElementById("rubr-id").value,' +
-    '    nome: nome,' +
-    /* O PROFESSOR VAI JUNTO (18/11/2026) — a régua é de quem a aplica. Vai vazio quando ela não
-     * escolhe ninguém, e o servidor grava `null`: «sem professor» é uma resposta, e não uma falta
-     * a inventar. */
-    '    professor: (document.getElementById("rubr-professor") || {}).value || "",' +
-    /* A SALA VAI JUNTO (18/11/2026), e é ela que recebe o professor: o campo saiu do passo 1, e o
-     * passo 2 é «lá» onde se escolhe quem dá a sala. Sem esta linha, a sala ficava sem professor no
-     * instante em que o formulário deixou de o pedir. */
-    '    turma: turmaEmFoco(),' +
-    '    niveis: niveis' +
-    '  }, "salvando a rubrica...", true, avancarParaAssociar);' +
+    /* A ABA E O FOCO SOBREVIVEM À RECARGA (19/11/2026). Gravar recarrega — é a regra da casa desde
+     * 10/11/2026, e é o que faz a lista, o cartão da sala e o `PROFESSORES_DA_ESCOLA` voltarem
+     * frescos. Sem estas duas chaves, a pessoa gravava a régua e aterrava no Cadastro, com o
+     * professor em foco perdido: o trabalho feito desaparecia do ecrã, e a leitura era «não gravou». */
+    '  try {' +
+    '    sessionStorage.setItem("producao:aba-professor", "rubrica");' +
+    '    sessionStorage.setItem("producao:professor-em-foco", slug);' +
+    '  } catch (err) {}' +
+    '  enviar("/api/bastidores/rubrica-do-professor", {' +
+    '    professor: slug, nome: nome, niveis: niveis' +
+    '  }, "gravando a régua...", true);' +
     '});' +
     // ================= O PASSO 3 — ASSOCIAR ==================================
     // Dois blocos, uma turma. A turma NÃO se escolhe aqui (18/10/2026): ela é a que está em
@@ -13345,70 +13555,133 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *
      * SEM DONO, DIZ-SE. Uma rubrica criada antes de 18/11/2026 não tem professor, e calar faria
      * parecer que tem — a mesma regra da frase `vinc-estado`. */
-    'function pintarProfessorDaRubricaEscolhida(){' +
+    /* QUEM DÁ A SALA, E O QUE ELE TRAZ — o par (professor × modalidade) (19/11/2026).
+     *
+     * O QUE ESTA PEÇA SUBSTITUI. Ela chamava-se `pintarProfessorDaRubricaEscolhida` e respondia à
+     * pergunta ao contrário: escolhia-se a RÉGUA e ela dizia de quem era o critério. Agora escolhe-se
+     * a PESSOA, e a régua vem com ela — a mesma informação, na direção em que a decisão acontece.
+     *
+     * AS DUAS LEITURAS SÃO DE COISAS DIFERENTES, e é por isso que são dois parágrafos:
+     *   · `vinc-tradicao` — a tradição que ele ensina NAQUELA modalidade, lida do perfil
+     *     (`professores/<slug>/perfil.json`). Um professor de clássico e jazz tem tradições
+     *     diferentes em cada um, e a pergunta feita aqui é «nesta sala».
+     *   · `vinc-regua` — o nome e os níveis da régua dele. Vem no mapa que a página já traz
+     *     (`PROFESSORES_DA_ESCOLA[i].rubrica`), e por isso não custa nenhuma ida ao servidor.
+     *
+     * O QUE FALTA É DITO, e não deixado em branco: um professor sem régua é uma sala que não
+     * conclui, e quem lê «—» não sabe se é falta de dado ou defeito da tela. A frase manda a
+     * Professores, que é onde a régua se compõe. */
+    'function pintarOParDaSala(){' +
     '  if (!temTela()) return;' +
-    '  var alvo = document.getElementById("vinc-professor");' +
-    '  if (!alvo) return;' +
-    '  var selR = document.getElementById("vinc-rubrica");' +
-    '  var idR = selR ? String(selR.value || "") : "";' +
-    '  if (!idR) { alvo.hidden = true; alvo.textContent = ""; return; }' +
-    '  var r = null;' +
-    '  for (var i = 0; i < RUBRICAS.length; i++) { if (RUBRICAS[i] && RUBRICAS[i].id === idR) r = RUBRICAS[i]; }' +
-    '  if (!r) { alvo.hidden = true; alvo.textContent = ""; return; }' +
-    '  var slug = String(r.professor || "");' +
-    '  var mod = modalidadeQueManda();' +
-    '  alvo.hidden = false;' +
-    '  if (!slug) {' +
-    '    alvo.textContent = "A rubrica «" + r.nome + "» não tem professor — o critério não é de ninguém.";' +
-    '    return;' +
+    '  var selP = document.getElementById("vinc-professor");' +
+    '  var slug = selP ? String(selP.value || "") : "";' +
+    '  var alvoRegua = document.getElementById("vinc-regua");' +
+    '  var p = null;' +
+    '  for (var i = 0; i < PROFESSORES_DA_ESCOLA.length; i++) {' +
+    '    if (String(PROFESSORES_DA_ESCOLA[i].slug || "") === slug) p = PROFESSORES_DA_ESCOLA[i];' +
     '  }' +
-    '  var nome = nomeDoProfessor(slug);' +
-    '  alvo.textContent = "A rubrica «" + r.nome + "» é de " + (nome || slug) +' +
-    '    (mod ? ", que ensina " + mod + " nesta sala." : ".");' +
+    '  if (alvoRegua) {' +
+    '    if (!slug) { alvoRegua.textContent = "—"; }' +
+    '    else if (p && p.rubrica && (p.rubrica.niveis || []).length) {' +
+    '      alvoRegua.textContent = "«" + (p.rubrica.nome || "sem nome") + "» — " + p.rubrica.niveis.join(" · ");' +
+    '    } else {' +
+    '      alvoRegua.textContent = "este professor ainda não tem régua — componha-a em Professores, na aba «Régua do professor»";' +
+    '    }' +
+    '  }' +
     '}' +
-    'var selRubrVinc = document.getElementById("vinc-rubrica");' +
-    'if (selRubrVinc) selRubrVinc.addEventListener("change", function(){ pintarProfessorDaRubricaEscolhida(); });' +
+    /* A TRADIÇÃO DA SALA, LIDA DO PERFIL — a MESMA leitura do passo 2 de antes
+     * (`perfilDoProfessor`), e o mesmo par id/nome que as Salas já resolviam:
+     * o perfil guarda a tradição por ID de modalidade, e a sala guarda o NOME. É a diferença que já
+     * custou uma vez — ler o mapa com o nome dava «não declarou» para toda a gente.
+     *
+     * DUAS FUNÇÕES E NÃO UMA porque são dois sítios com perguntas diferentes: esta responde na
+     * SALA («nesta modalidade»); a outra responde em PROFESSORES, onde a modalidade é a que ele
+     * declarar. Partilham o mesmo `perfilDoProfessor`, e é isso que impede duas leituras da mesma
+     * pessoa no mesmo pedido. */
+    'function pintarTradicaoDaSala(slug){' +
+    '  if (!temTela()) return;' +
+    '  var alvo = document.getElementById("vinc-tradicao");' +
+    '  if (!alvo) return;' +
+    '  if (!slug) { alvo.textContent = "—"; return; }' +
+    '  alvo.textContent = "…";' +
+    '  var mod = modalidadeQueManda();' +
+    '  perfilDoProfessor(slug).then(function(corpo){' +
+    '    var el = document.getElementById("vinc-tradicao");' +
+    '    var selP = document.getElementById("vinc-professor");' +
+    '    /* A resposta de um professor que já não está escolhido não se aplica — a mesma guarda do' +
+    '     * `pintarReguaDoProfessor`, e a mesma razão: o clique seguinte é mais rápido que a rede. */' +
+    '    if (!el || (selP && String(selP.value || "") !== slug)) return;' +
+    '    if (!corpo) { el.textContent = "não foi possível ler as habilitações dele agora"; return; }' +
+    '    var modId = idDaModalidadeDoCatalogo(mod);' +
+    '    if (!modId) { el.textContent = "a modalidade ainda não está escolhida no passo 1"; return; }' +
+    '    var mapa = corpo.tradicoes || {};' +
+    '    if (!Object.prototype.hasOwnProperty.call(mapa, modId)) {' +
+    '      el.textContent = "ainda não declarou a tradição em " + mod;' +
+    '      return;' +
+    '    }' +
+    '    var lista = Array.isArray(mapa[modId]) ? mapa[modId] : [];' +
+    '    el.textContent = lista.length ? lista.join(" · ") : "declarou que não ensina tradição em " + mod;' +
+    '  });' +
+    '}' +
+    'var selProfVinc = document.getElementById("vinc-professor");' +
+    'if (selProfVinc) selProfVinc.addEventListener("change", function(){' +
+    '  pintarOParDaSala();' +
+    '  pintarTradicaoDaSala(String(this.value || ""));' +
+    '});' +
     'function sincronizarAssociacao(){' +
     '  var id = turmaEmFoco();' +
     '  var t = turmaDoFoco();' +
     '  atualizarTurmaEmFoco();' +
     // O BLOCO DOS CONTEÚDOS SAIU DAQUI A 03/11/2026 — ele clonava os chips de um `<div hidden>`
     // por turma, e os dois lados dessa clonagem deixaram de existir quando os conteúdos passaram
-    // para a curadoria. O que sobra é a régua, que é o que este passo passou a ser.
-    // --- o bloco da RÉGUA: diz com que rubrica a turma está hoje ---------------------
-    '  var r = rubricaDaTurma(t);' +
-    '  var selR = document.getElementById("vinc-rubrica");' +
-    // A RÉGUA DA TURMA NÃO SE SUGERE FORA DA EDIÇÃO (19/10/2026). Antes o `select` era
-    // preenchido quando estava vazio — e quem abria o passo 3 para criar uma turma via a
-    // rubrica de outra já escolhida. O dono do produto pediu o contrário: sem «Editar»,
-    // nada vem escolhido. Em edição, `ajustarTurma` já põe a régua desta turma.
-    '  if (selR && modoEditando() && !selR.value && r && RUBRICAS.some(function(x){ return x.id === r.id; })) selR.value = r.id;' +
+    // para a curadoria.
+    //
+    // O QUE FICOU, E O QUE MUDOU A 19/11/2026: ficou a frase do PRESENTE («hoje esta sala é medida
+    // por…»), e o que mudou é a origem dela — a régua vem do professor que dá a sala, e não de um
+    // `select` de rubricas. A escolha em curso está em `vinc-regua`, pintada por `pintarOParDaSala`.
+    '  var selP = document.getElementById("vinc-professor");' +
+    // O PROFESSOR DA SALA NÃO SE SUGERE FORA DA EDIÇÃO (19/10/2026, a regra de então). Quem abre o
+    // passo 2 para criar uma sala não vê o professor de outra já escolhido; em edição,
+    // `ajustarTurma` já o pôs.
+    '  if (selP && modoEditando() && !selP.value && String((t && t.professor) || "")) selP.value = String(t.professor);' +
     '  var estado = document.getElementById("vinc-estado");' +
     '  if (estado) {' +
     '    if (!t) { estado.textContent = ""; }' +
-    '    else if (r) {' +
-    /* DE QUEM É A RÉGUA, na frase que o passo 3 já diz (18/11/2026). A rubrica passou a ter um
-     * professor — «é ele que vai dizer se é ótimo, bom, regular, insuficiente» —, e quem lê
-     * «medida por «Padrão»» precisa de saber de quem é o critério. Sem dono, a frase DIZ isso em
-     * vez de o omitir: uma rubrica antiga não tem professor, e calar seria fazer parecer que
-     * tem. */
-    '      var donoDaRegua = nomeDoProfessor((r && r.professor) || "");' +
-    '      estado.textContent = "Hoje: " + t.nome + " é medida por «" + r.nome + "» — " +' +
-    '        (r.niveis || []).join(" · ") + "." +' +
-    '        (donoDaRegua ? " Aplicada por " + donoDaRegua + "." : " Sem professor atribuído.");' +
-    '    } else if ((t.rubrica || []).length) {' +
-    '      estado.textContent = "Hoje: " + t.nome + " tem régua própria — " + t.rubrica.join(" · ") + ".";' +
-    '    } else {' +
-    '      estado.textContent = "Hoje: " + t.nome + " é medida pela régua padrão da escola.";' +
+    '    else {' +
+    '      var resolvida = reguaDaSalaNoCliente(t);' +
+    '      var deQuem = nomeDoProfessor(resolvida.professor);' +
+    '      estado.textContent = "Hoje: " + t.nome + " é medida por «" + (resolvida.nome || "régua padrão da escola") + "» — " +' +
+    '        (resolvida.niveis || []).join(" · ") + "." +' +
+    '        (deQuem ? " A régua é de " + deQuem + "." : "");' +
     '    }' +
     '  }' +
     '  try { if (id) sessionStorage.setItem("producao:vinc-turma", id); } catch (err) {}' +
-    // A escolha da turma no passo 3 entra no MESMO estado dos outros formulários, e as
-    // travas são reavaliadas: mudar de turma troca os chips, e são eles que decidem se
-    // «Gravar turma» pode ser premido.
     '  if (typeof gravarEstado === "function") gravarEstado();' +
     '  if (typeof aplicarTravas === "function") aplicarTravas();' +
-    '  pintarProfessorDaRubricaEscolhida();' +
+    '  pintarOParDaSala();' +
+    '}' +
+    /* A MESMA ORDEM DE LEITURA DO SERVIDOR, no cliente (19/11/2026) — `reguaDaSala`, em
+     * `motor/servidor/bastidores.js`. Duas ordens diferentes diriam coisas diferentes sobre a mesma
+     * sala, e a que a pessoa lê é a da tela. A daqui só precisa de responder à pergunta do
+     * presente; a que MEDE é a do servidor. */
+    'function reguaDaSalaNoCliente(t){' +
+    '  if (!t) return {nome: "", niveis: [], professor: ""};' +
+    '  var slug = String(t.professor || "");' +
+    '  var p = null;' +
+    '  for (var i = 0; i < PROFESSORES_DA_ESCOLA.length; i++) {' +
+    '    if (String(PROFESSORES_DA_ESCOLA[i].slug || "") === slug) p = PROFESSORES_DA_ESCOLA[i];' +
+    '  }' +
+    '  if (p && p.rubrica && (p.rubrica.niveis || []).length) {' +
+    '    return {nome: String(p.rubrica.nome || ""), niveis: p.rubrica.niveis, professor: slug};' +
+    '  }' +
+    '  var ligada = String(t.rubricaId || "");' +
+    '  for (var j = 0; j < RUBRICAS.length; j++) {' +
+    '    if (RUBRICAS[j] && RUBRICAS[j].id === ligada && (RUBRICAS[j].niveis || []).length) {' +
+    '      return {nome: String(RUBRICAS[j].nome || ""), niveis: RUBRICAS[j].niveis, professor: ""};' +
+    '    }' +
+    '  }' +
+    '  if ((t.rubrica || []).length) return {nome: "", niveis: t.rubrica, professor: ""};' +
+    '  return {nome: "", niveis: NIVEIS_PADRAO.slice(), professor: ""};' +
     '}' +
     /* --- o FIM DO PASSO 3: um gesto, um ato ------------------------------------------
      *
@@ -13432,9 +13705,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * segunda é a que decide: (i) ela mandou-o tirar, e (ii) ele era o único gesto do passo que
      * NÃO concluía nada — desassociar deixava a turma sem régua, e a régua padrão quem a aplica
      * é `rubricaDaTurma`, no servidor. Quem quiser trocar a régua escolhe outra e grava. */
-    'document.getElementById("vinc-voltar").addEventListener("click", function(){ irParaPassoTurma("rubrica"); });' +
-    // «GRAVAR TURMA» É O FIM DA SEQUÊNCIA (18/10/2026). Grava a régua escolhida (se alguma) e
-    // conclui: limpa o modo edição e volta ao passo 1. A turma em si já foi gravada no passo 1.
+    'document.getElementById("vinc-voltar").addEventListener("click", function(){ irParaPassoTurma("turma"); });' +
+    /* «GRAVAR SALA» É O FIM DA SEQUÊNCIA (18/10/2026; outro destino a 19/11/2026).
+     *
+     * ELE NÃO GRAVA A RÉGUA — GRAVA QUEM DÁ A SALA. É a rota `turma-professor`, e ela é o único
+     * gesto que conclui: o professor e a régua dele entram na sala no mesmo ato, e o servidor
+     * recusa com o nome de quem falta quando a régua ainda não foi composta. A rota antiga
+     * (`turma-rubrica`) continua a existir para as réguas da escola, mas não é este botão que a
+     * chama: dois caminhos para o mesmo fim voltariam a duplicar a validação. */
     'document.getElementById("vinc-gravar").addEventListener("click", function(){' +
     '  var turma = turmaEmFoco();' +
     // A VALIDAÇÃO MÁXIMA, AQUI TAMBÉM (18/10/2026). O botão já nasce desabilitado e só acende
@@ -13448,8 +13726,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!turma || falta.length) {' +
     '    alert("Para gravar a sala, falta " + fraseDaFaltaNoCliente(falta) + "."); return;' +
     '  }' +
-    '  var rubricaId = document.getElementById("vinc-rubrica").value;' +
-    '  enviar("/api/bastidores/turma-rubrica", {turma: turma, rubricaId: rubricaId, concluir: true},' +
+    '  var professor = document.getElementById("vinc-professor").value;' +
+    '  enviar("/api/bastidores/turma-professor", {turma: turma, professor: professor, concluir: true},' +
     '    "gravando a sala...", true, concluirTurma);' +
     '});' +
     // ================= OS VERBETES DA NOTAÇÃO (28/10/2026) ==================
@@ -20249,12 +20527,21 @@ async function fetch(request, env, extras) {
   if (path === '/api/bastidores/turmas') {
     const lista = turmasVigentes(await turmas(kv, escola));
     const todasAsRubricas = await rubricas(kv, escola);
+    /* A RÉGUA DE CADA PROFESSOR ENTRA NESTA LEITURA (19/11/2026). A régua da sala passou a ser a
+     * de quem a dá, e esta rota é a que serve a régua ao plano, à porta e à tela. Sem esta linha,
+     * `rubricaDaTurma` cairia sempre no padrão e o documento mediria contra uma escala que não é
+     * a do professor — em silêncio, porque a régua padrão também tem níveis.
+     *
+     * O registo do principal é uma leitura a mais, e é a única: ela já se paga porque a alternativa
+     * seria a régua dele nunca ser encontrada. */
+    const rubricasDosProfs = rubricasDosProfessores(
+      await professores(kv, escola), await registoDoDono(env, kv, escola), slugDoDono(env));
     // A régua sai SEMPRE preenchida (o cadastro antigo não a tinha): sem isto o plano
     // receberia uma régua vazia e mediria contra nada. E sai RESOLVIDA — quem lê não sabe se
     // ela veio de uma rubrica ligada, da régua própria da turma ou do padrão. É o que faz o
     // plano (`{daTurma: "rubrica"}`) continuar a funcionar sem tocar numa linha.
     const comRegua = lista.map((t) =>
-      (t ? Object.assign({}, t, { rubrica: rubricaDaTurma(t, todasAsRubricas) }) : t));
+      (t ? Object.assign({}, t, { rubrica: rubricaDaTurma(t, todasAsRubricas, rubricasDosProfs) }) : t));
     return json(200, { ok: true, escola, turmas: comRegua, opcoes: opcoesDeTurmas(lista) });
   }
 
@@ -20736,7 +21023,153 @@ async function fetch(request, env, extras) {
       ok: true,
       turma: turma.nome,
       rubricaId: turma.rubricaId || '',
-      rubrica: rubricaDaTurma(turma, existentes),
+      /* A RÉGUA DO PROFESSOR MANDA (19/11/2026) — ver `reguaDaSala`. Esta rota é a do vínculo
+       * antigo, e continua a existir; o que ela devolve é a régua que a sala REALMENTE aplica, e
+       * não a que acabou de ser ligada. */
+      rubrica: rubricaDaTurma(turma, existentes,
+        rubricasDosProfessores(await professores(kv, escola), await registoDoDono(env, kv, escola), slugDoDono(env))),
+    });
+  }
+
+  /* POST /api/bastidores/rubrica-do-professor — A RÉGUA É DELE (19/11/2026).
+   *
+   * «Lá em professor vai ter então a régua, que é dele […] apenas vai aparecer o nome do professor,
+   * a tradição que ele ensina, o nome que tem que colocar a rubrica, tem que ter esse campo para o
+   * usuário poder escrever. Tem que ter os níveis, tem que ter o acrescentar nível e tem que ter
+   * também o remover este nível.»
+   *
+   * O QUE ESTA ROTA SUBSTITUI, E O QUE ELA NÃO FAZ. Ela não substitui a lista da escola
+   * (`POST /api/bastidores/rubrica`), que continua a existir para as réguas antigas — o que ela faz
+   * é gravar a régua NO REGISTO DA PESSOA. Uma régua por professor, e não uma lista com um dono ao
+   * lado: o critério é de quem avalia, e duas réguas para a mesma pessoa seriam a pergunta «qual
+   * delas vale hoje?» sem resposta.
+   *
+   * O `id` NÃO EXISTE, e é a diferença que se paga uma vez: a régua do professor não é referível por
+   * id (não há duas), é referida pelo SLUG de quem ela é. Quem quiser mudá-la reescreve os níveis; a
+   * versão anterior não fica guardada, porque a régua é a ferramenta de hoje e não um documento
+   * assinado — o que se assina são os documentos que ela mede.
+   *
+   * O PRINCIPAL NÃO ESTÁ NA LISTA. O professor principal vive em `bastidores/<escola>/dono`, e não
+   * em `professores` — sem o desvio, a régua dele seria recusada com «não é professor desta escola»
+   * sobre o professor que mais aplica régua na escola nova.
+   */
+  if (path === '/api/bastidores/rubrica-do-professor' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!(await autorizacaoDirecaoOk(env, corpo))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const slug = String(corpo.professor || '').trim();
+    if (!slug) return json(400, { ok: false, erro: 'informe o professor — a régua é dele', falta: ['professor'] });
+    const nome = String(corpo.nome || '').trim();
+    if (!nome) return json(400, { ok: false, erro: 'dê um nome à régua', falta: ['nome'] });
+    const niveis = niveisLimpos(corpo.niveis);
+    if (!niveis.length) {
+      return json(400, {
+        ok: false,
+        erro: 'declare pelo menos um nível — a régua vazia mediria contra nada',
+        falta: ['niveis'],
+      });
+    }
+    const gravada = await gravarRubricaDoProfessor({ env, kv, escola, slug, nome, niveis });
+    if (!gravada.ok) return json(gravada.status || 400, { ok: false, erro: gravada.erro });
+    return json(200, { ok: true, professor: slug, rubrica: gravada.rubrica });
+  }
+
+  /* POST /api/bastidores/turma-professor — «GRAVAR SALA»: QUEM DÁ A SALA, E COM QUE RÉGUA.
+   *
+   * «Na sala, o associar passa a ser associar o professor pela modalidade e o professor. E aí que é
+   * assim que a sala sabe qual é a rubrica, pela associação ao professor.»
+   *
+   * É UM ATO SÓ, e não três. A sala recebe o professor, e a régua vem com ele — sem uma segunda
+   * chamada que deixasse a janela em que a sala já tem professor e ainda mede contra outra escala.
+   *
+   * A RECUSA SEM RÉGUA É O CENTRO DESTA ROTA. Sem ela, uma sala concluída por um professor que ainda
+   * não compôs a régua mediria contra a escala padrão da escola — e ninguém saberia: a régua padrão
+   * também tem níveis, e o documento sairia com a escala errada sem falhar em lado nenhum. O
+   * caminho é dito, com o nome de quem falta.
+   *
+   * A HABILITAÇÃO É A MESMA REGRA DA CURADORIA (`recusaPorHabilitacao`): a tela já filtra a lista
+   * pela modalidade da sala, e esta guarda é a mesma regra aplicada a quem escreve por outro
+   * caminho — um filtro de cliente não é uma regra.
+   *
+   * O QUE ESTA ROTA **NÃO** FAZ: não deriva a sala. O precedente é o do vínculo da régua, que nunca
+   * derivou: o plano traz no seu próprio contexto o professor e a régua com que foi escrito, e o que
+   * se muda aqui é o que os documentos NOVOS vão declarar — o passado não se reescreve (P-03).
+   */
+  if (path === '/api/bastidores/turma-professor' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!(await autorizacaoDirecaoOk(env, corpo))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const pedido = String(corpo.turma || corpo.id || '').trim();
+    const id = idDe(pedido);
+    if (!id) return json(400, { ok: false, erro: 'informe a sala' });
+    const lista = await turmas(kv, escola);
+    const sala = lista.find((t) => t && t.id === pedido)
+      || lista.find((t) => t && t.id === id)
+      || turmaVigentePorNome(lista, pedido);
+    if (!sala) return json(404, { ok: false, erro: 'sala não encontrada: ' + pedido });
+
+    const professor = String(corpo.professor || '').trim();
+    if (!professor) {
+      return json(400, {
+        ok: false,
+        erro: 'escolha o professor que dá esta sala — é ele que diz com que régua ela é medida',
+        falta: ['professor'],
+      });
+    }
+    /* O PROFESSOR TEM DE SER DESTA ESCOLA — a mesma conferência da régua, e a mesma mensagem que
+     * nomeia o slug em vez de dizer «inválido». */
+    {
+      const daCasa = new Set((await professores(kv, escola)).map((p) => slugDoProfessor(p)).filter(Boolean));
+      const doDono = String(slugDoDono(env) || '').trim();
+      if (doDono) daCasa.add(doDono);
+      if (!daCasa.has(professor)) {
+        return json(400, {
+          ok: false,
+          erro: 'o professor «' + professor + '» não é professor desta escola — escolha um da lista',
+          falta: ['professor'],
+        });
+      }
+    }
+    const recusa = await recusaPorHabilitacao(env, professor, sala.modalidade);
+    if (recusa) {
+      return json(409, { ok: false, erro: recusa, falta: ['professor'], habilitacao: true });
+    }
+    const regua = await rubricaDeUmProfessor({ env, kv, escola, slug: professor });
+    if (!regua) {
+      const nome = nomeDoProfessorDaSala(professor, await professores(kv, escola), slugDoDono(env),
+        await nomeDoDono(env, kv, escola));
+      return json(400, {
+        ok: false,
+        erro: 'a régua de ' + (nome || professor) + ' ainda não existe — e é ela que mede esta sala. '
+          + 'Crie-a em Professores, na aba «Régua do professor» (o nome e os níveis), e grave a sala '
+          + 'depois. Sem ela a sala cairia na régua padrão da escola, e o documento sairia medido '
+          + 'contra uma escala que não é a de quem dá a aula.',
+        falta: ['rubrica'], professor,
+      });
+    }
+    /* A SALA COMPLETA É A QUE PODE CONCLUIR. O ritmo é a mesma regra do cadastro — e é o que o
+     * botão «Gravar sala» significa: a sequência terminou. */
+    if (corpo.concluir === true || corpo.concluir === 'sim') {
+      const faltaRitmo = faltaNoRitmoDaTurma(sala);
+      if (faltaRitmo.length) {
+        return json(400, {
+          ok: false,
+          erro: 'a sala não está completa — falta ' + fraseDaFalta(faltaRitmo) + '.',
+          falta: faltaRitmo,
+        });
+      }
+    }
+    sala.professor = professor;
+    await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(lista));
+    return json(200, {
+      ok: true,
+      turma: sala.nome,
+      professor,
+      rubrica: { nome: regua.nome, niveis: regua.niveis },
     });
   }
 

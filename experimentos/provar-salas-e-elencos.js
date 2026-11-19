@@ -647,12 +647,20 @@ const RITMO = {
       semDono.corpo.rubrica && semDono.corpo.rubrica.professor === null,
       semDono.corpo.rubrica && semDono.corpo.rubrica.professor);
 
-    /* 4. O SELECT ESTÁ NO PASSO 2, com os professores da escola. */
+    /* 4. O SELECT ESTÁ NO PASSO 2, com os professores da escola.
+     *
+     * A 19/11/2026 ELE MUDOU DE NOME E DE SENTIDO: era `rubr-professor` (escolhia-se a régua e
+     * dizia-se de quem ela era) e passou a `vinc-professor` (escolhe-se a PESSOA, e a régua vem com
+     * ela). O passo deixou de ser das Salas e o professor passou a ser a pergunta do «Associar». */
     const pagina = umaPagina();
-    conferir('o passo 2 tem o select do professor da rubrica', /id="rubr-professor"/.test(pagina), null);
-    conferir('…com o vazio explícito, que é a rubrica sem dono',
-      /<option value="">— sem professor —<\/option>/.test(pagina), null);
+    conferir('o passo 2 tem o select do professor da sala', /id="vinc-professor"/.test(pagina), null);
+    conferir('…com o vazio explícito, que é a sala ainda sem quem a dê',
+      /<option value="">— escolher —<\/option>/.test(pagina), null);
     conferir('…e com o professor da escola como opção', new RegExp('<option value="' + DONO + '"').test(pagina), null);
+    /* E A RÉGUA DELE, EM LEITURA: quem escolhe o professor tem de ver com que escala a sala passa a
+     * ser medida. É um `<p>`, e não um campo — a régua compõe-se em Professores, não aqui. */
+    conferir('…e a régua do professor é LEITURA, não um campo',
+      /id="vinc-regua"/.test(pagina) && !/id="vinc-rubrica"/.test(pagina), null);
 
     /* 5. OS DOIS BOTÕES DO PASSO 3 SAÍRAM — e a página continua com o gesto que grava. */
     conferir('o «Associar rubrica» saiu do passo 3', !/id="vinc-associar"/.test(pagina), null);
@@ -728,56 +736,58 @@ const RITMO = {
       };
       await new Promise((r) => winG.setTimeout(r, 300));
 
-      /* ---- 1. SEM MODALIDADE, TODOS — a lista existe antes da escolha. ---- */
+      /* ---- 1. SEM MODALIDADE, TODOS — a lista existe antes da escolha. ----
+       *
+       * O `select` MUDOU DE NOME A 19/11/2026: era `rubr-professor` (a régua dizia de quem era) e
+       * passou a `vinc-professor` (escolhe-se a PESSOA). A regra que esta secção guarda é a mesma —
+       * a modalidade do passo 1 recorta a lista do passo 2 —, e é isso que continua medido. */
       conferir('sem modalidade escolhida, o professor da rubrica oferece os três',
-        valores('rubr-professor').length === 3, valores('rubr-professor'));
+        valores('vinc-professor').length === 3, valores('vinc-professor'));
 
       /* ---- 2. ESCOLHIDO JAZZ, SAEM OS QUE DECLARAM OUTRA MODALIDADE. ---- */
       await escolher('tmodalidade', 'Jazz');
       conferir('escolher «Jazz» tira quem declara outra modalidade — e só esse',
-        valores('rubr-professor').indexOf('pe-torto') === -1
-          && valores('rubr-professor').indexOf('leticia') !== -1,
-        valores('rubr-professor'));
+        valores('vinc-professor').indexOf('pe-torto') === -1
+          && valores('vinc-professor').indexOf('leticia') !== -1,
+        valores('vinc-professor'));
 
       /* ---- 3. QUEM NÃO DECLAROU NADA NÃO DESAPARECE, e é dito. ---- */
       await escolher('tmodalidade', 'Balé clássico');
       conferir('quem declara a modalidade fica',
-        valores('rubr-professor').indexOf('pe-torto') !== -1, valores('rubr-professor'));
+        valores('vinc-professor').indexOf('pe-torto') !== -1, valores('vinc-professor'));
       conferir('…e quem ainda não declarou habilitações fica também, marcado',
-        valores('rubr-professor').indexOf('marina') !== -1
-          && rotulos('rubr-professor').some((r) => /sem habilitações declaradas/.test(r)),
-        rotulos('rubr-professor'));
+        valores('vinc-professor').indexOf('marina') !== -1
+          && rotulos('vinc-professor').some((r) => /sem habilitações declaradas/.test(r)),
+        rotulos('vinc-professor'));
       conferir('…e quem declara OUTRA modalidade sai',
-        valores('rubr-professor').indexOf('leticia') === -1, valores('rubr-professor'));
+        valores('vinc-professor').indexOf('leticia') === -1, valores('vinc-professor'));
     }
   }
 
   // -------------------------------------------------------------------------------------------
   console.log('\nH. O PASSO 2 («PROFESSOR») E A TRADIÇÃO QUE ELE ENSINA (18/11/2026)');
 
-  /* «O step 2, que é a rubrica, ele vai mudar de nome agora. Ele vai passar a se chamar professor.
-   * […] Eu tenho também o professor que já foi filtrado no step 1 […]. Ele tem que ser o primeiro a
-   * aparecer. […] e também que balé que ele ensina, qual é a tradição que ele ensina.»
+  /* «Na sala, o associar passa a ser associar o professor pela modalidade e o professor. E aí que é
+   * assim que a sala sabe qual é a rubrica, pela associação ao professor.» (19/11/2026)
    *
-   * E a tradição vem das habilitações dele, filtrada pela modalidade DA SALA: um professor de
-   * clássico e jazz tem tradições diferentes em cada um, e a pergunta aqui é sobre esta sala. */
+   * O QUE MUDOU DE SÍTIO, E É O QUE ESTA SECÇÃO GUARDA. O passo 2 das Salas deixou de perguntar a
+   * RÉGUA e passou a perguntar a PESSOA; a régua passou a ser do professor e a ser LIDA aqui. A
+   * tradição continua a vir das habilitações dele, filtrada pela modalidade DA SALA — um professor
+   * de clássico e jazz tem tradições diferentes em cada um, e a pergunta aqui é sobre esta sala. */
   {
     let JSDOM3 = null;
     let VC3 = null;
     try { ({ JSDOM: JSDOM3, VirtualConsole: VC3 } = require('jsdom')); } catch (e) { JSDOM3 = null; }
     if (!JSDOM3) {
-      naoMedida('o passo 2 com o professor da sala à frente e a tradição lida', 'jsdom ausente');
+      naoMedida('o passo 2 com o professor da sala à frente, a tradição e a régua lidas', 'jsdom ausente');
     } else {
-      /* AS RUBRICAS VÊM DO SERVIDOR, e não empurradas por `eval` depois: o `<select>` do passo 3 é
-       * desenhado no HTML, e uma opção que não existe no DOM não pode ser escolhida — `sel.value`
-       * com um id desconhecido dá `""`. A primeira versão desta prova caía nisso. */
-      const RUBRICAS_H = [
-        { id: 'regua-da-leticia', nome: 'Régua da Leticia', professor: 'leticia', niveis: ['Ótimo', 'Bom'] },
-        { id: 'regua-orfa', nome: 'Régua Órfã', professor: '', niveis: ['X'] },
-      ];
+      /* A RÉGUA VEM NO REGISTO DO PROFESSOR, e não numa lista da escola: é o mapa
+       * `PROFESSORES_DA_ESCOLA[i].rubrica` que o passo 2 lê, e por isso o que a prova tem de
+       * fornecer é o registo — não uma rubrica solta. */
       const html3 = bastidores.paginaProducao('breu', {},
-        [{ nome: 'Petorto', slug: 'pe-torto' }, { nome: 'Marina Souza', slug: 'marina' }], [],
-        'Leticia', 'leticia', [], [], {}, [], RUBRICAS_H, []);
+        [{ nome: 'Petorto', slug: 'pe-torto', rubrica: { nome: 'Régua do Petorto', niveis: ['Ótimo', 'Bom'] } },
+          { nome: 'Marina Souza', slug: 'marina' }], [],
+        'Leticia', 'leticia', [], [], {}, [], [], []);
       const vc3 = new VC3();
       vc3.on('jsdomError', () => {});
       vc3.on('error', () => {});
@@ -817,35 +827,31 @@ const RITMO = {
       const esperar = (ms) => new Promise((r) => win3.setTimeout(r, ms || 300));
       const escolher = async (id, valor) => {
         const sel = win3.document.getElementById(id);
+        if (!sel) throw new Error('não há #' + id + ' na página');
         sel.value = valor;
         sel.dispatchEvent(new win3.Event('change'));
         await esperar(300);
       };
-      const tradicao = () => win3.document.getElementById('rubr-tradicao').textContent;
+      const tradicao = () => win3.document.getElementById('vinc-tradicao').textContent;
+      const regua = () => win3.document.getElementById('vinc-regua').textContent;
       const opcoes = (id) => [...win3.document.querySelectorAll('#' + id + ' option')].map((o) => o.value);
       await esperar();
 
-      /* 1. O PROFESSOR DA SALA VEM PRIMEIRO NO PASSO 2 — e escolhido, quando a rubrica não tem dono.
-       *    O dono da escola (`leticia`) já é o primeiro da lista do servidor; a prova escolhe a
-       *    Marina na sala para que o primeiro deixe de ser o dono por acidente. */
-      /* O PROFESSOR JÁ NÃO SE ESCOLHE NO PASSO 1 (18/11/2026): o campo saiu, e quem escolhe é aqui.
-       * A ordem da lista é a do servidor — o dono primeiro. O que a prova mede é que a lista existe
-       * e que a tradição da pessoa escolhida é lida. */
       await escolher('tmodalidade', 'Balé clássico');
       await esperar(300);
       /* O PRIMEIRO PROFESSOR DA LISTA — a posição 0 é o `<option value="">`, o vazio explícito. */
       conferir('o passo 2 oferece os professores da modalidade, e o dono vem à frente',
-        opcoes('rubr-professor')[1] === 'leticia', opcoes('rubr-professor'));
+        opcoes('vinc-professor')[1] === 'leticia', opcoes('vinc-professor'));
 
       /* 2. A TRADIÇÃO LIDA, e pelas habilitações DELE — a Marina não declarou nenhuma, e o ecrã
        *    diz isso em vez de inventar. */
-      await escolher('rubr-professor', 'marina');
+      await escolher('vinc-professor', 'marina');
       await esperar(300);
       conferir('…e a tradição dele é lida das habilitações, dizendo que ele não declarou',
         /ainda não declarou a tradição/.test(tradicao()), tradicao());
 
       /* 3. TROCAR PARA QUEM DECLARA, na mesma modalidade: aparecem as dele. */
-      await escolher('rubr-professor', 'leticia');
+      await escolher('vinc-professor', 'leticia');
       await esperar(300);
       conferir('…e quem declarou mostra as suas, na modalidade da sala',
         /RAD/.test(tradicao()) && /Vaganova/.test(tradicao()), tradicao());
@@ -857,23 +863,22 @@ const RITMO = {
       conferir('…e trocando a modalidade da sala, as tradições mudam com ela',
         /não ensina tradição em Jazz/.test(tradicao()), tradicao());
 
-      /* 5. O PASSO 3: escolher a rubrica diz de quem ela é, com a modalidade da sala. */
-      try { win3.sessionStorage.setItem('producao:vinc-turma', 'sala-de-prova-h'); } catch (err) {}
-      win3.eval('TURMAS.push({id: "sala-de-prova-h", nome: "Sala H", modalidade: "Jazz", '
-        + 'professor: "leticia"});');
-      await escolher('vinc-rubrica', 'regua-da-leticia');
+      /* 5. A RÉGUA QUE A SALA PASSA A APLICAR (19/11/2026). Escolher a pessoa mostra o NOME e os
+       *    NÍVEIS da régua dela — é a linha que fecha o circuito: a sala não escolhe a régua,
+       *    escolhe quem a aplica. */
+      await escolher('tmodalidade', 'Balé clássico');
       await esperar(300);
-      const linha = win3.document.getElementById('vinc-professor');
-      conferir('o passo 3 diz de quem é a rubrica escolhida, com a modalidade da sala',
-        linha && linha.hidden === false && /Leticia/.test(linha.textContent)
-          && /Jazz/.test(linha.textContent), linha && linha.textContent);
+      await escolher('vinc-professor', 'pe-torto');
+      await esperar(300);
+      conferir('…e escolher o professor mostra a régua DELE, com os níveis',
+        /Régua do Petorto/.test(regua()) && /Ótimo/.test(regua()) && /Bom/.test(regua()), regua());
 
-      /* 6. UMA RUBRICA SEM DONO DIZ QUE NÃO TEM — calar faria parecer que tem. */
-      await escolher('vinc-rubrica', 'regua-orfa');
+      /* 6. SEM RÉGUA, DIZ-SE — e com o caminho. Um professor que ainda não compôs a régua é uma
+       *    sala que não conclui; deixar o campo em «—» faria parecer defeito da tela. */
+      await escolher('vinc-professor', 'marina');
       await esperar(300);
-      conferir('…e uma rubrica sem professor di-lo, em vez de o omitir',
-        /não tem professor/.test(win3.document.getElementById('vinc-professor').textContent),
-        win3.document.getElementById('vinc-professor').textContent);
+      conferir('…e um professor sem régua di-lo, com o caminho onde se compõe',
+        /ainda não tem régua/.test(regua()) && /Régua do professor/.test(regua()), regua());
     }
   }
 

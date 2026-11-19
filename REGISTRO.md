@@ -52631,3 +52631,77 @@ falham nas duas. Nenhuma delas é desta frente, e nenhuma foi mexida.
 linha de base «Tami» · Registada em 18/11/2026», e o elenco `tami--20261118-2039` lê
 `"lida": {"Aluna A": "anamnese-20261118-1737"}` — a anamnese da aluna certa está lá e está ligada. O
 «livre» é o estado do vínculo (não há Plano de Observação), não a falta do retrato.
+
+## 19/11/2026 — «Você disse que fez a mudança, mas não fez» — a régua passa a ser do professor
+
+**O relato, e a correcção que ele obriga:**
+
+> «Eu estou aqui em salas e ainda tenho o step professor. […] A mudança é a seguinte […] Na sala, step
+> um, fica apenas o nome da sala do jeito que está agora. […] O step dois deixa de existir em salas.
+> Todo o step dois, ele passa a ir para professores. […] Vai ter que criar mais uma aba ali […] do lado
+> da aba cadastro de professor e antes da aba habilitações. […] Na sala, o associar passa a ser
+> associar o professor pela modalidade e o professor. E aí que é assim que a sala sabe qual é a
+> rubrica, pela associação ao professor. […] Quando clico em editar, está faltando o botão cancelar.»
+
+Ela tinha razão, e a razão é de método: na véspera eu descrevi a frente como «o próximo passo» e ela
+leu — correctamente — o desenho como já feito. O que existia era o desenho; não existia uma linha.
+
+**O que mudou, e porquê:**
+
+1. **A régua deixou de ser da escola e passou a ser do professor.** Ela vivia numa lista
+   (`bastidores/<escola>/rubricas`) ligada às salas por `turma.rubricaId`; passou a viver no registo
+   da pessoa — `professores/<slug>/rubrica`, e `dono.rubrica` no principal, que não está na lista
+   `professores` e por isso é o caso que se parte primeiro. A régua viaja na lista canónica dos
+   professores (`PROFESSORES_DA_ESCOLA`) e não custa nenhuma leitura nova: o registo já era lido
+   para dar o nome de quem dá a aula.
+2. **Professores ganhou a aba «Régua do professor», entre «Cadastro de professor» e «Habilitações».**
+   Tem o nome do professor em foco (leitura), a tradição que ele ensina (leitura, das habilitações),
+   o nome da régua (campo), os níveis com «Acrescentar nível» e o «✕» de remover, e o fecho
+   «Gravar cadastrar professor» com «Voltar» e «Cancelar». Não tem `select` de professor: é o
+   **passo 2 do cadastro**, e o sujeito vem do foco — o que se acabou de cadastrar («Avançar») ou o
+   que se abriu em «Editar».
+3. **As Salas ficaram com dois passos.** «Sala» (nome, modalidade, dias, duração, período) e
+   «Associar» (quem dá a sala). O painel da régua, o `select` de rubricas e o editor de níveis
+   saíram de lá.
+4. **`POST /api/bastidores/turma-professor`** grava o professor na sala, no mesmo acto em que a
+   conclui — e **recusa** quando o professor ainda não compôs a régua, com o nome dele e o caminho.
+   Sem essa guarda, a sala cairia na régua padrão e o documento sairia medido contra uma escala que
+   não é a de quem dá a aula: em silêncio, porque a régua padrão também tem níveis.
+5. **A leitura tem um resolvedor só** — `reguaDaSala(turma, listaDaEscola, rubricasDosProfessores)`,
+   com quatro degraus nesta ordem: régua do professor → vínculo antigo (`turma.rubricaId`) → régua
+   própria da sala (`turma.rubrica`) → padrão. Os três últimos existem para o passado continuar a
+   ler-se (P-03): nenhuma sala precisa de migração.
+6. **O «Cancelar» passou a ser derivado do estado**, e não do clique: `pintarCancelarDoProfessor`
+   acende-o quando `#prof-modo` diz «editar» **ou** quando há uma régua aberta — dois trabalhos a
+   meio, e sair de qualquer um deles é cancelar. Um botão que só uma função mostra é um botão que se
+   esquece; era isso que ela via como «falta o botão cancelar».
+7. **O «Avançar» do cadastro leva ao passo 2** — e a passagem sobrevive à recarga: o slug do
+   professor vem na resposta do servidor (um professor novo não tem slug antes de existir), e é
+   guardado em `sessionStorage` com a aba.
+
+**Medido, e não estimado** — `experimentos/provar-regua-do-professor.js`, 37 asserções contra o
+servidor de verdade: **23 falham sem a correcção, 37 passam com ela**. A secção A mede o registo de
+quem grava (o principal incluído, e sem lhe apagar a senha); a B mede a aba e cada peça que ela
+nomeou; a C mede os dois passos das Salas; a D mede a régua que a sala APLICA, lida pela rota que o
+plano lê, mais as duas recusas (sem régua, sem professor).
+
+**Bancadas vizinhas, medidas antes e depois** (o mesmo comando, contra `HEAD` e contra a correcção):
+`provar-salas-e-elencos` 131 → **132 asserções** (a secção F mudou de sujeito: era a régua a dizer de
+quem era, é o professor a trazer a régua; a secção G passou a apontar ao `vinc-professor`);
+`provar-producao` 142/159 nas duas (as 17 vermelhas são anteriores — as secções, o `f.reset` da
+bancada, e o bloco do enquadramento); `provar-identidade-da-turma` 7 falhas nas duas;
+`provar-enquadramento-da-turma` 2 de 57 nas duas; e `provar-cartao-da-turma`,
+`provar-plano-e-curadoria`, `provar-derivacao-da-turma` e `provar-turmas-do-professor` falham nas
+duas. Nenhuma dessas foi tocada.
+
+**Dois defeitos apanhados a medir, e que teriam passado:**
+
+- **A armadilha do ASI.** Duas linhas da marcação ficaram sem o `+` final. JavaScript não dá erro:
+  cada literal passa a ser uma expressão própria, e o `paginaProducao` devolvia uma página TRUNCADA
+  a meio da faixa dos passos — sem erro nenhum, e com o resto do ficheiro a carregar bem.
+- **A sombra do `reguaDaSala`.** Uma variável local com o nome do resolvedor punha os níveis em TDZ
+  dentro do próprio resolvedor («Cannot access 'reguaDaSala' before initialization»), e a página
+  inteira caía.
+
+**Documento actualizado:** `ARQUITETURA-GERAL.md` §3.3 — a tabela dos quatro nomes, a nota nova da
+régua com o quadro antes/agora, a tabela dos passos (1 e 6) e os dois diagramas.

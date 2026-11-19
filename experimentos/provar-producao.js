@@ -627,9 +627,14 @@ async function principal() {
   // com `aria-current="step"` no passo em que se está. Os nomes mudaram com o desenho:
   // «Criar rubrica» virou «Rubricas» (o passo cria E edita), e «Vincular turma à rubrica»
   // virou «Associar» — porque ali a turma recebe a régua E os conteúdos.
-  conferir('há três passos (turma, rubricas, associar)',
+  /* DOIS PASSOS, E NÃO TRÊS (19/11/2026) — «o step dois deixa de existir em salas».
+   *
+   * O passo do meio era a régua da sala, e a régua passou a ser do PROFESSOR (aba «Régua do
+   * professor», em Professores). O que sobra é o que a sala é: o ritmo, e quem o dá. A asserção
+   * continua a medir a LISTA de chaves — o que ela guarda é que o meio não voltou por descuido. */
+  conferir('há dois passos (sala, associar)',
     (html.match(/data-passo="[a-z]+"/g) || []).map((s) => s.replace(/^data-passo="|"$/g, '')),
-    ['turma', 'rubrica', 'vincular']);
+    ['turma', 'vincular']);
   // O RÓTULO MORA NUM `<span class="passo-t">` (18/10/2026): é ele que encolhe com
   // reticências quando a faixa não cabe no telefone, e por isso a asserção lê o span e não
   // «o texto a seguir ao número» — que agora é uma tag.
@@ -642,15 +647,15 @@ async function principal() {
     (html.slice(html.indexOf('aria-label="Etapas da sala"'), html.indexOf('id="turmas-paineis"'))
       .match(/class="passo-t">([^<]+)</g) || [])
       .map((s) => s.replace(/^[\s\S]*?>/, '').replace(/<$/, '').trim()),
-    ['Sala', 'Rubricas', 'Associar']);
+    ['Sala', 'Associar']);
   // «SÓ A PRIMEIRA NASCE VISÍVEL» lê o `hidden` de cada painel, e não o texto à volta do
   // `id`: uma janela de 60 caracteres a partir do `id` apanha também o conteúdo do painel,
   // e a asserção media outra coisa.
   conferir('…e só a primeira nasce visível',
-    ['passo-turma', 'passo-rubrica', 'passo-vincular'].map((id) => {
+    ['passo-turma', 'passo-vincular'].map((id) => {
       const m = html.match(new RegExp('id="' + id + '"(\\s*hidden)?'));
       return Boolean(m) && !m[1];
-    }), [true, false, false]);
+    }), [true, false]);
   conferir('o cadastro da turma NÃO declara mais a régua',
     (html.match(/id="trubrica"|id="form-regua"/g) || []).length, 0);
   // OS FORMULÁRIOS NÃO EXPLICAM (16/10/2026): só rótulo, campo e placeholder. O que era

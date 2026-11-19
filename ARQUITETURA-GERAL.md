@@ -397,12 +397,13 @@ A geração (pandoc/pdflatex) **não roda no Worker** — roda no GitHub Actions
 
 ### 3.3 O fluxo da escola — da fundação à aula dada, e as duas portas do elenco
 
-> **Retrato medido em 08/11/2026 e revisto a 18/11/2026**, contra o código:
+> **Retrato medido em 08/11/2026 e revisto a 18 e 19/11/2026**, contra o código:
 > `motor/servidor/bastidores.js` (as secções da Produção), `motor/servidor/rotas.js` (a porta),
 > `motor/servidor/escrever-ciclo.js` (as fontes do ciclo) e `motor/nucleo/porta.js`
 > (`revalidacaoPendente`, `vinculos`). Não é o desenho que se pretende: é o que cada gesto grava
-> **hoje**. A revisão de 18/11/2026 é a da Sala que passou a declarar a modalidade e o professor —
-> ver a nota abaixo da tabela dos quatro nomes.
+> **hoje**. A revisão de 18/11/2026 é a da Sala que passou a declarar a modalidade e o professor, e a
+> de 19/11/2026 é a da RÉGUA que passou a ser dele — ver as duas notas abaixo da tabela dos quatro
+> nomes.
 
 **A cadeia, em uma linha** — é a rotina de uma escola, e é a espinha do produto:
 
@@ -416,7 +417,7 @@ os documentos antigos encontra os nomes velhos; esta tabela é a tradução:
 
 | Rótulo na Produção | Entidade (onde vive) | O que é | O que **não** é |
 |:--|:--|:--|:--|
-| **Sala** | `turmas` (KV da escola) | o **ritmo** (dias e horários, duração, período) **e o enquadramento operacional** — a modalidade que aí acontece, quem a dá e a régua com que é medida | não tem nível nem tradição — esses são da Turma, que é a relação pedagógica |
+| **Sala** | `turmas` (KV da escola) | o **ritmo** (dias e horários, duração, período) e o **enquadramento operacional** — a modalidade que aí acontece e quem a dá | não tem nível nem tradição (são da Turma) e **não tem régua**: a régua é do professor, e a sala lê-a dele |
 | **Audição** (o ato) → **Elenco** (o que fica) | `linhas-de-base` (repositório, *append-only*) | os **corpos** escolhidos, a leitura que se fez deles e o **recorte** | não declara ciclo, nem sala, nem nível |
 | **Turma** | `curadorias` (KV da escola) | a **relação**: professor × modalidade × tradição × nível × sala × elenco × conteúdos | não é o ritmo (é da Sala) e não é o elenco (é da Audição) |
 | **Estilo** | `verbetes` (KV da escola) | os exercícios que conduzem o elenco ao domínio daquele estilo | não é a turma nem o elenco; entra no plano pela notação (P-15/P-16) |
@@ -435,12 +436,37 @@ ela viu: «ele não reconhece a turma, a turma fica vazia». Hoje a rota **recus
 Sala e o que lhe falta; ver `faltaNaSalaParaATurma`. A bancada é
 `experimentos/provar-turma-sem-professor.js`.
 
+**A 19/11/2026 a RÉGUA mudou de dono** — e o formulário das Salas ficou com dois passos por causa
+disso. Ela: «o step dois deixa de existir em salas. Todo o step dois, ele passa a ir para
+professores […] na sala, o associar passa a ser associar o professor pela modalidade e o professor.
+E aí que é assim que a sala sabe qual é a rubrica, pela associação ao professor.»
+
+| Antes (até 18/11) | Agora (19/11) |
+|:--|:--|
+| a régua era da ESCOLA: uma lista (`bastidores/<escola>/rubricas`), criada uma vez e ligada a N salas por `turma.rubricaId` | a régua é do **PROFESSOR**: `professores/<slug>/rubrica` (e `dono.rubrica` no principal) |
+| as Salas tinham **três passos**: Sala · Rubricas · Associar | as Salas têm **dois**: Sala · Associar (quem dá a sala) |
+| a régua editava-se no passo 2 das Salas | edita-se em **Professores → «Régua do professor»**, entre o Cadastro e as Habilitações |
+| a sala escolhia a régua num `select` | a sala escolhe **quem a dá**, e a régua vem com ele |
+
+A leitura resolve-se num sítio só — `reguaDaSala(turma, listaDaEscola, rubricasDosProfessores)` — e
+por quatro degraus, nesta ordem: **régua do professor** → vínculo antigo (`turma.rubricaId`) → régua
+própria da sala (`turma.rubrica`) → padrão da escola. Os três últimos existem para o passado
+continuar a ler-se (P-03): nenhuma sala precisa de migração, e uma sala de ontem com
+`rubricaId` continua medida pela régua que tinha.
+
+E a recusa que fecha o caso: `POST /api/bastidores/turma-professor` **não deixa concluir** uma sala
+cujo professor ainda não compôs a régua, e diz o nome dele e onde se compõe. Sem essa guarda a sala
+cairia na régua padrão e o documento sairia medido contra uma escala que não é a de quem dá a aula —
+em silêncio, porque a régua padrão também tem níveis. As bancadas são
+`experimentos/provar-regua-do-professor.js` (37 asserções) e
+`experimentos/provar-turma-sem-professor.js`.
+
 **O desenho, com as setas que existem de facto** (Mermaid, renderiza no GitHub):
 
 ```mermaid
 flowchart TB
-    E["Escola<br/>Worker · repositório · segredos"] --> S["Sala<br/>dias · horários · duração · período<br/>modalidade · professor · régua"]
-    E --> P["Professor<br/>habilitado na modalidade"]
+    E["Escola<br/>Worker · repositório · segredos"] --> S["Sala<br/>dias · horários · duração · período<br/>modalidade · quem a dá"]
+    E --> P["Professor<br/>habilitado na modalidade<br/>e a régua dele"]
     E --> ST["Estilo<br/>os verbetes da notação"]
     A["Alunas<br/>o apelido estável"] --> AN["Anamnese<br/>datada · sem ciclo"]
     AN --> AUD["Audição<br/>1 Identificação · 2 Alunas<br/>3 Leitura · 4 Recorte"]
@@ -460,7 +486,7 @@ flowchart TB
 
 ```
 Escola — o Worker, o repositório e os segredos
-   │      mais Sala (o ritmo, a modalidade e quem a dá) · Professor (o perfil) · Estilo
+   │      mais Sala (o ritmo, a modalidade e quem a dá) · Professor (o perfil e a régua) · Estilo
    ▼
 Alunas — o apelido estável, e nada mais
    │
@@ -497,7 +523,7 @@ Aula lançada — o passado, que não se reescreve
 | # | Passo | Onde (Produção / porta) | O que fica gravado | Quem lê |
 |:--|:--|:--|:--|:--|
 | 0 | **Escola** | página `danca` → `provisionar-escola.js`; `tools/criar-escola.sh` | Worker, segredos, `escola/<slug>/indice.json`, professor já habilitado na modalidade, ciclo e pacote-zero | tudo o resto |
-| 1 | **Sala** | Produção → **Salas** (`POST /api/bastidores/turma`, e `POST /api/bastidores/rubrica` no passo 2) | `turmas`: nome, dias com hora, duração, início e fim do período, **modalidade**, **professor** e a régua. **Incompleta não grava** (400) | a Turma (que dela deriva professor e modalidade), o calendário, o prazo do lançamento |
+| 1 | **Sala** | Produção → **Salas** (`POST /api/bastidores/turma` e, no passo 2, `POST /api/bastidores/turma-professor`) | `turmas`: nome, dias com hora, duração, início e fim do período, **modalidade** e **professor**. **Incompleta não grava** (400), e **sem professor não conclui** | a Turma (que dela deriva professor e modalidade), a régua (que vem do professor), o calendário, o prazo do lançamento |
 | 2 | **Estilo** | Produção → **Estilo** (`POST /api/bastidores/verbete`) | `verbetes`: o exercício, a direção, o compasso, a contagem | o Plano de Ensino (notação) e a Aula 01 |
 | 3 | **Alunas** | Produção → **Alunas** (`POST /api/bastidores/aluna`) | `alunas`: **só o apelido estável** — não há nome completo, contacto nem saúde | a Audição (passo 2), a lista de presentes |
 | 4 | **Anamnese** | Área do Professor → `/anamnese/` (`POST /api/elicitar`, `fonte: anamnese`) | envelope `anamnese-<carimbo>.json`, cifrado, **datado e sem ciclo** (é da aluna, §5.4.2) | a Audição (passo 3), o PO, a §6 da Aula |

@@ -1648,3 +1648,4 @@ experimentos/modelo-formulario/*
 # do `experimentos/*`: ela nasceu ignorada.
 !experimentos/provar-anamnese-da-aluna-certa.js
 !experimentos/provar-turma-sem-professor.js
+!experimentos/provar-regua-do-professor.js
