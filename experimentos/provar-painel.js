@@ -203,31 +203,30 @@ async function principais() {
   conferir('`/` abre mesmo sem o índice existir', semIndice.status === 200, semIndice.status);
   conferir('…e continua a explicar as listas', /Escolas do sistema/.test(semIndice.html), null);
 
-  /* ── 3. AS ACÇÕES SÃO A PEÇA DA CASA, E O ÍNDICE É A COLUNA (19/11/2026) ─────
+  /* ── 3. AS DUAS COLUNAS CONGELADAS ─────────────────────────────────────────
    *
-   * ESTAS TRÊS ASSERÇÕES EXIGIAM O RAIL, e o rail era o defeito: as acções viviam num
-   * `.rail rail-esq` — a coluna que existe para o índice ter onde grudar — a fazer de barra de
-   * acções, presa à esquerda. «A gente tem uma regra própria que já existe e você não está
-   * seguindo ela.»
+   * ESTAS ASSERÇÕES JÁ FORAM REESCRITAS POR MIM A 19/11/2026 — e a reescrita estava errada. Eu
+   * tirei o `.rail rail-esq` do painel da raiz e passei as acções para a `.acoes-da-lista`, com o
+   * argumento de que «o rail existe para o índice ter onde grudar». A pesquisadora: «por que é que
+   * você tirou os botões do lado esquerdo fixo onde estavam. Eu não pedi para fazer isso. […]
+   * Tem que rever isso e botar de volta no mesmo lugar: fixos empilhados do lado esquerdo.»
    *
-   * A REGRA É O `.acoes-da-lista`: a pílula «Ações» (a mesma do «Seções») sobe a folha no
-   * telemóvel, e no computador a pílula não aparece e a fileira fica à vista. O que a prova passa
-   * a exigir é isso — e a NEGATIVA que guarda a correcção: o rail das acções não pode voltar. */
-  const blocoDasAcoes = (/<div class="acoes-da-lista" id="acoes">([\s\S]*?)<div class="rail rail-dir"/.exec(home.html) || [])[1] || '';
-  const destinos = (blocoDasAcoes.match(/class="acao[^"]*"/g) || []).length;
-  conferir('as acções são uma `.acoes-da-lista`, e não um rail à esquerda',
-    /<div class="acoes-da-lista" id="acoes">/.test(home.html) && !/class="rail rail-esq"/.test(home.html), null);
-  conferir('…com a pílula do telemóvel, que declara a folha que abre',
-    /class="acoes-do-menu pilula-do-menu"[^>]*data-folha="acoes"/.test(home.html), null);
-  conferir('…e a folha com os mesmos destinos',
-    /class="menu-de-acoes folha-do-menu" id="acoes-menu"/.test(home.html)
-      && /class="folha-puxador"/.test(home.html), null);
-  conferir('…e a fileira à vista no computador, com os SEIS destinos e os dois gestos',
-    destinos === 8, destinos);
-  conferir('…incluindo «Professores»', /href="\/professores"[^>]*>Professores</.test(blocoDasAcoes), null);
+   * O que era uma preferência minha passou a ser uma asserção minha — e uma asserção a favor de
+   * uma mudança que ninguém pediu é a pior espécie: tranca a mudança e apaga o rasto de que ela foi
+   * indevida. A prova volta a exigir o rail, e passa a exigir TAMBÉM a coluna presa (o
+   * `position: sticky`), que é a metade que se perde sem ninguém notar. */
+  const railEsq = (/<div class="rail rail-esq">([\s\S]*?)<div class="rail rail-dir"/.exec(home.html) || [])[1] || '';
+  const destinos = (railEsq.match(/class="acao[^"]*"/g) || []).length;
+  conferir('a coluna das ações existe', /<div class="rail rail-esq">/.test(home.html), null);
+  conferir('…com os oito destinos empilhados', destinos === 8, destinos);
+  conferir('…incluindo «Professores»', /href="\/professores"[^>]*>Professores</.test(railEsq), null);
   conferir('…e os dois botões de sempre', /id="btn-apagar"/.test(home.html) && /id="btn-criar"/.test(home.html), null);
-  conferir('…e os dois gestos repetidos na folha, que fecham e chamam os mesmos',
-    /id="acoes-criar"/.test(home.html) && /id="acoes-apagar"/.test(home.html), null);
+  /* A COLUNA É PRESA E EMPILHADA — «fixos empilhados do lado esquerdo», que é a frase dela. Sem
+   * esta asserção, alguém (eu) volta a trocar a coluna por um bloco no topo e a bancada continua
+   * verde. */
+  conferir('…e a coluna é EMPILHADA e PRESA (sticky), e não um bloco no topo',
+    /\.rail\.rail-esq \{[\s\S]{0,160}?position: sticky/.test(home.html)
+      && /\.rail-esq \{[\s\S]{0,120}?flex-direction: column/.test(home.html), null);
   /* O RAIL DO ÍNDICE LEVA `data-dono` desde 25/11/2026 — a marca que o retira da página pública.
    * A asserção exigia `>` logo a seguir à classe e por isso reprovava sobre a marca, não sobre o
    * rail. O que se mede é a coluna, e não a ausência de atributos. (Falhava já no `HEAD`.) */

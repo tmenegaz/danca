@@ -65,26 +65,30 @@ function slugificar(nome) {
  * nunca o teve. O sintoma lia-se como «não grava», e a causa era esta linha: `Object.assign` do
  * dado primeiro, e só depois os valores por omissão dos campos que os têm.
  *
- * O QUE NÃO ATRAVESSA, e é a única excepção: `escola`. Ela existe no vocabulário (5 termos de
- * `breu`, `calango` e `batata`), e `termos()` conta com ela para não mostrar o termo de uma escola
- * na outra — mas hoje não a recebe, e por isso a composição a trata como catálogo. Honrá-la agora
- * mudaria o que se vê nas escolas de imediato, e um dos termos de escola que existem (o «Plié» da
- * `breu`) está com a definição do «Tandu». Fica declarado como pendência no ESTADO-ATUAL: primeiro
- * corrige-se o dado, depois liga-se o filtro.
+ * E O `escola` ATRAVESSA COM ELE (19/11/2026) — era a única excepção, e deixou de ser. «Cada escola
+ * vai construir o seu próprio dicionário. Pode até ser que plié seja o mesmo em todas as escolas, eu
+ * não sei, mas pode ser que sim. […] é discricionário de cada escola usar o dicionário com o termo
+ * que quiser. […] Pode ligar esse filtro, viu? É importante que esteja funcionando.»
+ *
+ * O CAMPO É O DONO DO TERMO, e quem o põe é o `termo-repo.js` (`escola: ESCOLA_SLUG`) quando a
+ * escola cria um. `termos(kv, escola)` separa os três grupos — catálogo (sem `escola`), os desta
+ * escola, e os das outras —, e `compor` só junta os dois primeiros: o termo de uma escola não
+ * aparece na outra. Antes desta linha o campo era DESCARTADO aqui, todos os termos chegavam ao
+ * filtro como «do catálogo», e o vocabulário de uma escola aparecia em todas.
+ *
+ * É AUTOMÁTICO, e não uma escolha na tela: a escola é a do Worker que serve a página
+ * (`ESCOLA_SLUG`, lido por `escolaDe` em `bastidores.js`). Um `<select>` de escola no Dicionário
+ * seria a segunda resposta para a mesma pergunta — e a que pode mentir.
  */
-const TERMOS = vocabulario.map((t) => {
-  const copia = Object.assign({}, t, {
-    id: t.id,
-    membro: t.membro || '',
-    alternativos: t.alternativos || [],
-    descricao: t.descricao || '',
-    fonte: t.fonte || '',
-    observacoes: t.observacoes || '',
-    estado: t.estado || 'documentado',
-  });
-  delete copia.escola;
-  return copia;
-});
+const TERMOS = vocabulario.map((t) => Object.assign({}, t, {
+  id: t.id,
+  membro: t.membro || '',
+  alternativos: t.alternativos || [],
+  descricao: t.descricao || '',
+  fonte: t.fonte || '',
+  observacoes: t.observacoes || '',
+  estado: t.estado || 'documentado',
+}));
 
 /** As turmas, na forma que `bastidores.js` consome (`normalizarTurma`). */
 const TURMAS = (progressao.turmas || []).map((t) => ({

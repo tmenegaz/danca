@@ -938,18 +938,28 @@ fita».
    pelo cliente ainda tem o «carregando…». Sem a chamada, a lista mostra tudo e o rodapé nunca
    aparece. O selector «por página» vive na barra (`data-tamanho-de`), e não no rodapé.
 
-### As acções de uma lista não são uma coluna *(19/11/2026)*
+### As acções de uma lista — a barra da secção, e a coluna do painel da raiz *(19/11/2026)*
 
 > «E aqui você inventou uma regra própria também de listagem que ficou no topo da página, no topo
 > das tabelas. E a gente tem uma regra própria que já existe e você não está seguindo ela.»
 
-O que eu inventei: um `.rail rail-esq` preso à esquerda com os botões do painel dentro. O `.rail`
-existe para uma coisa só — dar ao `.toc-local` um pai mais alto onde ele se possa prender —, e usá-lo
-como barra de acções era dar-lhe um segundo trabalho.
+**E eu li a frase dela ao contrário, no mesmo dia.** Concluí que o `.rail rail-esq` do painel da raiz
+era «uma regra inventada» e troquei-o por uma `.acoes-da-lista` no topo. Ela viu e devolveu:
 
-**A regra que já existia é a `.acoes-da-lista`** (o «Ações» da Área do Professor, o «Seções» da
-Produção, o «Abas» da Audição): a **pílula** no telemóvel, que sobe a folha com os mesmos destinos, e
-os **blocos à vista** no computador — a pílula não aparece lá, por desenho. A marcação, uma vez:
+> «Por que é que você tirou os botões do lado esquerdo fixo onde estavam. Eu não pedi para fazer isso.
+> Você precisa fazer apenas o que eu te peço. Tem que rever isso e botar de volta no mesmo lugar:
+> fixos empilhados do lado esquerdo.»
+
+**São duas peças, e cada uma tem o seu sítio.** A `.acoes-da-lista` é para as acções **de uma lista
+dentro de uma secção** (o «Ações» da Área do Professor, o «Seções» da Produção, o «Abas» da Audição).
+O **painel da raiz** (`danca.padd.com.br`) é outra coisa: ali as acções são a **coluna presa e
+empilhada à esquerda** — o `.rail rail-esq` com `position: sticky` e `flex-direction: column`, na
+grade de três colunas (13rem de acções, a prosa, 15rem de índice). Não se troca uma pela outra: o que
+mudou de sítio não foi uma regra, foi a vontade dela.
+
+**A regra da `.acoes-da-lista`** (o «Ações» da Área do Professor, o «Seções» da Produção, o «Abas»
+da Audição): a **pílula** no telemóvel, que sobe a folha com os mesmos destinos, e os **blocos à
+vista** no computador — a pílula não aparece lá, por desenho. A marcação, uma vez:
 
 ```
 <div class="acoes-da-lista" id="acoes">

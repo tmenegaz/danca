@@ -55,9 +55,15 @@ Três armadilhas que já custaram um ecrã errado, e as três são de vocabulár
    o `paginar()` que o acende — e ele corre no arranque, quando a lista ainda tem o «carregando…».
    Sem a chamada, a lista mostra tudo e não há rodapé.
 
-**As acções de uma lista não são uma coluna.** O `.rail` existe para o `.toc-local` ter onde
-grudar; pôr botões lá dentro é dar-lhe um segundo trabalho. A peça é a `.acoes-da-lista`: pílula no
-telemóvel (que sobe a folha com os mesmos destinos) e os blocos à vista no computador.
+**As acções de uma lista — a barra da secção, e a coluna do painel da raiz** *(19/11/2026)*.
+Duas peças, dois sítios:
+- nas **secções** (Produção, Área do Professor, Audição) as acções de uma lista são a
+  `.acoes-da-lista`: pílula no telemóvel (que sobe a folha com os mesmos destinos) e os blocos à
+  vista no computador;
+- no **painel da raiz** (`danca.padd.com.br`) as acções são a **coluna presa e empilhada à
+  esquerda** — `.rail rail-esq`, `position: sticky`, `flex-direction: column`, na grade de três
+  colunas. **Não se troca por uma `.acoes-da-lista`.** Eu troquei, e ela devolveu: «Eu não pedi para
+  fazer isso. […] botar de volta no mesmo lugar: fixos empilhados do lado esquerdo.»
 
 ## As seis regras que não se negociam
 

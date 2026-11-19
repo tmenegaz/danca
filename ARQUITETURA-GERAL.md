@@ -3184,20 +3184,21 @@ catálogo **entrega-se com limites**, e o que a escola constrói **não é do pr
 > `termo-repo.js` matou em 28/10/2026 (havia uma por escola no KV). O que impede a contaminação
 > entre escolas é o **dono no termo**, não o sítio do ficheiro.
 >
-> **Nota de correção (19/11/2026) — o dono está escrito, mas não está a ser lido.** A frase acima
-> («o que impede a contaminação entre escolas é o dono no termo») descreve o **desenho**, e o
-> desenho não estava a acontecer. `termos()` chama `separarPorEscola(CATALOGO.TERMOS, escola)`, e
-> `CATALOGO.TERMOS` vinha de `catalogo-seed.js` montado **campo a campo**, numa lista de dez nomes
-> onde o `escola` não estava: todos os termos chegavam ao filtro como «do catálogo», e os **5
-> termos de escola** que existem hoje (`breu` 2, `calango` 2, `batata` 1) aparecem em todas.
+> **Nota de correção (19/11/2026) — o dono estava escrito, e não estava a ser lido.** A frase acima
+> descreve o **desenho**, e o desenho não estava a acontecer. `termos()` chama
+> `separarPorEscola(CATALOGO.TERMOS, escola)`, e `CATALOGO.TERMOS` vinha de `catalogo-seed.js`
+> montado **campo a campo**, numa lista de dez nomes onde o `escola` não estava: todos os termos
+> chegavam ao filtro como «do catálogo», e os **5 termos de escola** que existem hoje (`breu` 2,
+> `calango` 2, `batata` 1) apareciam em todas.
 >
 > A ponte passou a deixar o termo atravessar **inteiro** — foi ela, também, que perdia a
 > `complexidade` que a pesquisadora classificou a 19/11/2026 («não grava», e gravava: o commit
-> `d0eacdd1` foi feito com o campo lá dentro; era o bundle que não o tinha). O `escola` continua
-> deliberadamente de fora **até o dado estar certo**: o «Plié» da `breu` está gravado com a
-> definição do «Tandu», e ligar o filtro agora punha-a no ecrã. A condição e o resto da pendência
-> estão no `ESTADO-ATUAL.md` §10, e a prova da ponte é a secção G de
-> `experimentos/provar-dicionario.js`.
+> `d0eacdd1` foi feito com o campo lá dentro; era o bundle que não o tinha) — e o `escola`
+> atravessa com ele: o filtro **está ligado**, e a escola que decide é a do Worker que serve a
+> página (`ESCOLA_SLUG`, lido por `escolaDe`), não um campo da tela. Duas provas, ambas em
+> `experimentos/provar-dicionario.js`: a secção **G** (o termo chega à tela campo a campo, sem
+> perda) e a secção **H** (o termo de `breu` não aparece em `viva`, e o mesmo pedido com
+> `ESCOLA_SLUG` diferente dá listas diferentes).
 
 **O repositório é privado** (`tmenegaz/danca`, verificado a 02/11/2026). Não há hoje distribuição
 pública de nada — logo não há obrigação criada por distribuição, e a decisão é de negócio, não de

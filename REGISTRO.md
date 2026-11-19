@@ -53873,3 +53873,61 @@ negativo:** repondo o `catalogo-seed.js` do `HEAD`, **3 de 61 reprovam**, e a me
 dela — `plie.complexidade: "simples" → undefined`, `{servidos: 94, comComplexidade: 0}`.
 Vizinhas sem alteração: `provar-producao` 142/159 (as mesmas do `HEAD`, medido nos dois lados),
 `provar-menu-da-producao` 55/55, `provar-painel` ok, `provar-verbete` (as 5 acima corrigidas).
+
+### 19/11/2026 — «Eu não pedi para fazer isso» — a coluna das acções volta, e o filtro por escola liga-se
+
+**1. O rail volta, e a lição é sobre o que uma asserção minha pode trancar.**
+
+> «Por que é que você tirou os botões do lado esquerdo fixo onde estavam. Eu não pedi para fazer
+> isso. Você precisa fazer apenas o que eu te peço. Tem que rever isso e botar de volta no mesmo
+> lugar: fixos empilhados do lado esquerdo.»
+
+Eu li «a gente tem uma regra própria e você não está seguindo ela» como se o `.rail rail-esq` do
+painel da raiz fosse a regra inventada. Não era: o defeito que ela apontou estava **noutro sítio** —
+nas listas do painel que cresciam sem paginação e nos botões que eu pôsse no topo das tabelas. A
+coluna presa à esquerda era dela, e eu troquei-a por uma `.acoes-da-lista` sem ninguém pedir.
+
+**O que torna isto pior do que um erro de gosto:** eu tinha reescrito as asserções do
+`provar-painel` para exigirem a mudança — inclusive uma **negativa** («o rail das acções não pode
+voltar»). Uma prova escrita a favor de uma alteração que ninguém pediu não protege nada: **tranca a
+alteração e apaga o rasto de que ela foi indevida**. As asserções voltaram ao rail, com uma a mais
+que faltava: a coluna é **empilhada e presa** (`flex-direction: column`, `position: sticky`) — a
+metade que se perde sem ninguém notar.
+
+`IDENTIDADE-VISUAL.md` foi corrigido no mesmo passo: são **duas peças, e cada uma tem o seu sítio** —
+a `.acoes-da-lista` para as acções de uma lista **dentro de uma secção** (Produção, Área do Professor,
+Audição), e a **coluna presa e empilhada** no painel da raiz. O texto que eu tinha escrito dizia o
+contrário, e ficou corrigido com a frase dela.
+
+**2. O filtro por escola do vocabulário — perguntou «é automático?», e é.**
+
+> «Você disse que cada termo declara de que escola é. Pode ligar esse filtro, viu? […] A minha
+> pergunta é: é automático isso com a escola que está em evidência fazendo o filtro ou precisa
+> colocar lá em dicionários um campo para escolher a escola? Eu acho que não precisa, mas verifica
+> isso. […] Porque cada escola vai construir o seu próprio dicionário.»
+
+**Não precisa de campo, e está verificado.** A escola é a do Worker que serve a página —
+`escolaDe(env, url)` lê `ESCOLA_SLUG`, que o deploy fixa por escola. O mesmo pedido, em dois
+Workers, devolve duas listas. Um `<select>` de escola no Dicionário seria a segunda resposta para a
+mesma pergunta — e a que pode mentir.
+
+**A causa era a mesma da complexidade, no mesmo ficheiro:** a ponte `catalogo-seed.js` montava o
+termo campo a campo e **descartava o `escola`**. Todos os termos chegavam a `separarPorEscola` como
+«do catálogo», e os 5 termos de escola apareciam em todas. Uma linha — o `delete` saiu — e a
+composição passa a fazer o que já sabia fazer: `breu` vê o seu «Tandu» e o seu «Plié», `viva` não
+vê nenhum dos dois, e o catálogo continua em todas.
+
+**E um dado que o filtro tornou visível, e que não é código:** o «Plié» da `breu` está gravado com a
+**definição do «Tandu»**. Com o filtro ligado, é essa a versão que a `breu` vê. A correcção é dela —
+editar o termo, ou apagá-lo para o do catálogo voltar. Fica no `ESTADO-ATUAL.md` §10.
+
+**Medido.** `provar-dicionario` passou a **68** asserções: a secção **G** (a ponte não perde campo —
+passou a correr na `viva`, que não tem termo próprio, para comparar o ficheiro com o catálogo) e a
+secção **H** (sete novas: o termo da `breu` está na `breu`, não está na `viva` nem na `batata`; o
+mesmo pedido dá listas diferentes; o catálogo aparece em todas; e quem tem versão própria vê a sua).
+**Controlo negativo:** repondo o `delete copia.escola` do `HEAD`, **5 de 68 reprovam** —
+`{breu: 94, viva: 94}` onde deviam ser listas diferentes. Vizinhas: `provar-painel` ok (com as
+asserções do rail repostas), `provar-acoes-da-linha` 75, `provar-menu-da-producao` 55/55,
+`provar-conteudos-e-estado-da-turma` ok, `check-identidade` ok. `provar-verbete` continua com a
+única falha que já reprovava no `HEAD` (§J), e `provar-producao` 142/159, as mesmas do `HEAD`.
+
