@@ -7,8 +7,8 @@
         "recorte:tami"
       ],
       "primeira": "20261117-1709",
-      "ultima": "20261119-2051",
-      "versoes": 5
+      "ultima": "20261119-2052",
+      "versoes": 6
     },
     {
       "aspecto": "cinco-posicoes-1a-bracos",
@@ -17,8 +17,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261119-2051",
-      "versoes": 2
+      "ultima": "20261119-2052",
+      "versoes": 3
     },
     {
       "aspecto": "cinco-posicoes-1a-pes",
@@ -27,8 +27,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261119-2051",
-      "versoes": 2
+      "ultima": "20261119-2052",
+      "versoes": 3
     },
     {
       "aspecto": "forca-excentrica-recuo-na-flexao-de-tronco",
@@ -37,8 +37,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261119-2051",
-      "versoes": 2
+      "ultima": "20261119-2052",
+      "versoes": 3
     },
     {
       "aspecto": "mobilidade-de-flexao-extensao-do-tornozelo",
@@ -47,8 +47,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261119-2051",
-      "versoes": 2
+      "ultima": "20261119-2052",
+      "versoes": 3
     },
     {
       "aspecto": "meia-ponta",
@@ -545,9 +545,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "006e489"
+    "commit": "3539cbd"
   },
-  "gerado_em": "2026-11-19T20:53",
+  "gerado_em": "2026-11-19T20:55",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -638,14 +638,27 @@
         "mobilidade-de-flexao-extensao-do-tornozelo",
         "mobilidade-de-quadril-en-dehors-de-origem"
       ],
-      "atualizada_em": "2026-11-19T20:51:23.030Z",
-      "enviada_em": "2026-11-19T20:51:23.502Z",
+      "atualizada_em": "2026-11-19T20:52:22.697Z",
+      "enviada_em": "2026-11-19T20:52:23.177Z",
       "id": "recorte:tami",
       "linha": "tami",
       "nome": "Tami",
       "professor": "demi-plie",
       "turma": null,
       "versoes": [
+        {
+          "alunas": 1,
+          "arquivo": "escola/breu/linhas-de-base/tami--20261119-2052.json",
+          "aspectos": [
+            "cinco-posicoes-1a-pes",
+            "cinco-posicoes-1a-bracos",
+            "mobilidade-de-quadril-en-dehors-de-origem",
+            "mobilidade-de-flexao-extensao-do-tornozelo",
+            "forca-excentrica-recuo-na-flexao-de-tronco"
+          ],
+          "enviada_em": "2026-11-19T20:52:23.177Z",
+          "versao": "20261119-2052"
+        },
         {
           "alunas": 1,
           "arquivo": "escola/breu/linhas-de-base/tami--20261119-2051.json",
