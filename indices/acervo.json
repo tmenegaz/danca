@@ -82,6 +82,7 @@
       "nome": "breu",
       "professor": "demi-plie",
       "professores": [
+        "bom-bom",
         "demi-plie"
       ],
       "registros": [
@@ -196,6 +197,11 @@
         "contagem": 1,
         "rotulo": "acucar-branco",
         "valor": "acucar-branco"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Bom Bom",
+        "valor": "bom-bom"
       },
       {
         "contagem": 0,
@@ -338,9 +344,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "291f2f7"
+    "commit": "cd71c32"
   },
-  "gerado_em": "2026-11-18T20:40",
+  "gerado_em": "2026-11-19T12:47",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -373,6 +379,16 @@
       "nome": null,
       "pasta": false,
       "slug": "acucar-branco"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "breu"
+      ],
+      "id": "professor:bom-bom",
+      "nome": "Bom Bom",
+      "pasta": true,
+      "slug": "bom-bom"
     },
     {
       "ciclos": [],
