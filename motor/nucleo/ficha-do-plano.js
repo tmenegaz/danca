@@ -253,7 +253,14 @@ function renderizar(conteudo, envelope) {
   const nomeDaTurma = textoDe(respostaDo(envelope, 'contexto-turma'))
     || textoDe(envelope && envelope.contexto && envelope.contexto.turma);
   const turma = Array.isArray(turmas)
-    ? turmas.find((t) => t && String(t.nome) === String(nomeDaTurma)) || null
+    ? (turmas.find((t) => t && !t.substituidaPor && String(t.nome) === String(nomeDaTurma))
+      /* A HISTÓRIA NÃO É O CADASTRO (19/11/2026). A sala deriva em elos com o MESMO nome — cada
+       * correcção deixa o anterior com um `substituidaPor` —, e o `find` simples devolvia o elo
+       * MAIS ANTIGO: o documento lia o ritmo de quando a sala nasceu, e não o de hoje. É a mesma
+       * leitura que impedia a Turma de nascer (ver `bastidores.js`, `turmaVigentePorNome`): o
+       * vigente primeiro, e só o arquivo se não houver vigente com aquele nome. */
+      || turmas.find((t) => t && String(t.nome) === String(nomeDaTurma))
+      || null)
     : null;
 
   const daTurma = (id) => {

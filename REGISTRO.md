@@ -53420,3 +53420,52 @@ durante e depois do «Cancelar». A secção G clica os botões travados com `di
 `provar-passos-uniformes` 45, `provar-salas-e-elencos` 132, `provar-estado-da-turma` 28,
 `provar-associar-grava` 49, `provar-avancar-nao-grava` 24, `provar-habilitacao-do-professor` 81,
 `provar-sala-e-portao` 27, `provar-abas-da-audicao` 125, `provar-teste` 41, `check-identidade` ok.
+
+### 19/11/2026 — a Turma lia o elo mais antigo da sala, e por isso não nascia
+
+**O relato, na letra dela:** «Fui criar uma turma na rota bastidores produção e não deu certo. Gerou o
+seguinte erro: Erro: a sala «Rosa» ainda não diz o professor e a modalidade […] Complete a modalidade,
+no passo 1; o professor, no passo 2 (aba Salas, em «Editar»), e atribua depois.»
+
+**O diagnóstico, medido no ar da `breu` antes de tocar em código** — e é o que separa este relato de
+uma hipótese: o `GET /api/bastidores/turmas` devolvia **uma** sala «Rosa», com `professor:
+"demi-plie"` e `modalidade: "Balé clássico"`; o `GET /api/bastidores/curadoria-meta` devolvia
+**oito** opções «Rosa». Oito, porque `turmas` é uma lista *append-only*: a sala deriva, e cada
+correcção deixa o elo anterior com o mesmo nome e um `substituidaPor`. A rota da Turma procurava a
+sala com `lista.find(t => t.nome === 'Rosa')` — o **primeiro** elo, que é o **mais antigo**, o único
+que nunca teve par. O par estava no oitavo.
+
+**A correcção, e é uma só regra em quatro leitores.** Quem procura uma sala **pelo nome** pergunta
+primeiro pelo vigente: `turmaVigentePorNome` na criação da Turma e na derivação, `turmasVigentes`
+antes do `Map` do ritmo, `opcoesDeTurmas(turmasVigentes(…))` no formulário, e `!substituidaPor` na
+ficha do plano. A derivação, que herdava o par do elo anterior **antes** de olhar para a sala, passou
+a tirá-lo da **sala** — a origem declarada do par desde 18/11 —, senão uma turma nascida sem par
+continuava sem par ao derivar, e derivar para corrigir respondia com a mesma recusa a quem tinha
+acabado de gravar o par. A marca `descontinuada` deixou de ser apagada no elo antigo (`findIndex` pelo
+nome) e passa a cair do vigente, que é o único que a listagem mostra.
+
+**A frase também estava errada, e é a parte que ela lê:** mandava «a modalidade, no passo 1» — e o
+passo 1 das Salas ficou com o nome, os dias, a duração e o período; a modalidade juntou-se ao
+professor no passo «Associar». Uma frase que ensina o caminho errado manda procurar um campo que já
+não está lá.
+
+**Medido** — `experimentos/provar-a-turma-le-a-sala-vigente.js`, novo, **20 asserções**, com as rotas
+a correr a sério sobre um KV em memória no estado que se contou no ar (oito elos «Rosa», sete sem
+par). Controle negativo contra `af365efa`: **17 falhas em 20** — as três que passam são as que
+afirmam a recusa que já existia.
+
+**E a leitura da folha do plano**, do outro lado do produto: `ficha-do-plano.js` recebia a lista
+inteira e procurava pelo nome, de modo que o documento lia o ritmo de quando a sala nasceu. A secção
+F da bancada mede-o com dois elos (30 minutos no antigo, 45 no vigente) e o documento a dizer 45.
+
+**Bancadas, medidas:** `provar-a-turma-le-a-sala-vigente` 20 (negativo 17),
+`provar-cadastro-do-professor` 80, `provar-passos-uniformes` 45, `provar-salas-e-elencos` 132,
+`provar-estado-da-turma` 28, `provar-associar-grava` 49, `provar-avancar-nao-grava` 24,
+`provar-habilitacao-do-professor` 81, `provar-sala-e-portao` 27, `provar-excluir-travado` 29,
+`provar-derivacao-e-identidade` 19, `provar-teste` 41, `check-identidade` ok.
+Duas bancadas alheias a esta frente continuam vermelhas como estavam antes (conferido com o ficheiro
+reposto): `provar-conteudos-e-estado-da-turma` 2 de 78 e `provar-derivacao-da-turma` (rebenta em
+`f.reset is not a function`, no duplo do formulário do Estilo) — trabalho próprio, com laudo próprio.
+
+`ARQUITETURA-GERAL.md` §3.3 ganhou «a história não é o cadastro», e `experimentos/README.md` a linha
+da bancada.

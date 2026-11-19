@@ -299,6 +299,29 @@ uma sala com o nome **e o ritmo** de uma que já está gravada, é a mesma sala:
 o professor, numa escrita, e o ritmo dela não é tocado. Nome igual com ritmo diferente é outra coisa —
 duas intenções a disputar um nome —, e aí a recusa é a resposta certa (e diz-se à vista).
 
+**E A HISTÓRIA NÃO É O CADASTRO — O NOME PROCURA O ELO VIGENTE (19/11/2026).** `turmas` é uma lista
+*append-only*: cada correcção de uma sala deixa o elo anterior **com o mesmo nome** e um
+`substituidaPor`, e o nome só muda no dia em que alguém renomeia a sala de facto. Uma leitura
+`lista.find(t => t.nome === 'Rosa')` devolve o elo **mais antigo** — e o mais antigo é, por
+construção, o que foi gravado antes de a sala saber o que hoje sabe.
+
+Foi assim que a Turma deixou de nascer, medido no ar da `breu` a 19/11/2026: ela compôs a sala,
+associou o professor no «Associar» (o que **deriva** a sala, criando o oitavo elo «Rosa» com o par),
+e o «Atribuir turma» respondeu «a sala «Rosa» ainda não diz o professor e a modalidade» — a procurar
+no primeiro elo, o único que nunca teve par. No mesmo estado, o `curadoria-meta` oferecia **oito**
+opções «Rosa» no `<select>`, todas com o mesmo rótulo.
+
+**A regra**: quem procura uma sala **pelo nome** pergunta primeiro pelo vigente — `turmaVigentePorNome`
+(no `bastidores.js`) e o mesmo filtro `!substituidaPor` (no `acharTurma`, no `compor-conf.js`, e na
+ficha do plano). O arquivo só se lê quando não há vigente com aquele nome, e aí é a dizer «esta sala
+já não vale», que é outra pergunta. Isto vale para o par que a Turma deriva, para a conferência do
+ritmo, para a marca `descontinuada` e para o documento impresso — **quatro leitores do mesmo
+cadastro, uma só resposta**. A bancada é `experimentos/provar-a-turma-le-a-sala-vigente.js`.
+
+E a frase da recusa mudou com o par: os dois campos passaram ao passo **«Associar»** a 19/11 (o
+passo 1 das Salas ficou com o nome, os dias, a duração e o período), e a frase que mandava «a
+modalidade, no passo 1» mandava procurar um campo que já não está lá.
+
 **E NINGUÉM EXCLUI COM UMA FICHA ABERTA (19/11/2026).** Excluir é o único gesto que destrói, e com um
 registo aberto para correcção ele pode ser o próprio registo em edição: a lista recarrega, o
 formulário fica a apontar para o que já não existe. A regra vale nas seis secções, é **por secção**,

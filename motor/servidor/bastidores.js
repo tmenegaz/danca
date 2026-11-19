@@ -3250,14 +3250,17 @@ function fraseDaSalaSemOPar(nomeDaSala, falta) {
   const qual = nomes.length === 1
     ? nomes[0]
     : nomes.slice(0, -1).join(', ') + ' e ' + nomes[nomes.length - 1];
-  const passos = [];
-  if (falta.some(([campo]) => campo === 'modalidade')) passos.push('a modalidade, no passo 1');
-  if (falta.some(([campo]) => campo === 'professor')) passos.push('o professor, no passo 2');
+  /* OS DOIS COMPLETAM-SE NO MESMO SÍTIO (19/11/2026). A frase mandava «a modalidade, no passo 1; o
+   * professor, no passo 2» — e o passo 1 já não tem a modalidade: o cadastro da sala ficou com o
+   * nome, os dias, a duração e o período, e a modalidade juntou-se ao professor no «Associar». Uma
+   * frase que ensina o caminho errado é pior do que nenhuma: manda procurar um campo que já não
+   * está lá, e a pessoa fica a olhar para um formulário completo. */
   return 'a sala «' + (nomeDaSala || '—') + '» ainda não diz ' + qual + ' — e é DELA que a Turma '
     + 'os deriva desde 18/11/2026: é a sala que sabe que modalidade acontece naquele horário, e é '
     + 'quem a dá que a ensina. Atribuir assim gravaria uma Turma sem professor, e ela não '
-    + 'apareceria no plano de ensino de ninguém — sem erro nenhum à vista. Complete ' +
-    passos.join('; ') + ' (aba Salas, em «Editar»), e atribua depois.';
+    + 'apareceria no plano de ensino de ninguém — sem erro nenhum à vista. Complete ' + qual
+    + ' em «Salas» → «Editar» → passo «Associar» (a modalidade primeiro: é ela que recorta a lista '
+    + 'de professores), grave a sala, e atribua depois.';
 }
 
 /** A FRASE DA RECUSA — a mesma nas duas rotas e no formulário, para não haver três redações. */
@@ -6220,9 +6223,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
            * nicho do professor, vai dizer ali qual é a modalidade que ele atende.»
            *
            * O QUE ELE DIZ, E PORQUE NÃO É UMA CONSULTA. O nicho mostra a modalidade DA SALA, que
-           * é a que o professor ali ensina — a sala declara as duas coisas juntas, no passo 1, e o
-           * formulário não a deixa escolher fora das habilitações dele. Ler o perfil outra vez aqui
-           * só para repetir o que a sala já diz seria uma leitura ao repositório por cartão.
+           * é a que o professor ali ensina — a sala declara as duas coisas juntas, no passo 2
+           * («Associar»), e o formulário não a deixa escolher fora das habilitações dele. Ler o
+           * perfil outra vez aqui só para repetir o que a sala já diz seria uma leitura ao
+           * repositório por cartão.
            *
            * E A AUSÊNCIA É DITA, NÃO ESCONDIDA: uma sala antiga, de antes desta regra, não tem
            * professor nem modalidade. Ela mostra «—» em vez de sumir com a caixa, porque uma caixa
@@ -24234,7 +24238,10 @@ function parDaSalaNoCorpo(corpo, registo) {
       modalidades: MODALIDADES.modalidades || [],
       tradicoes: tradicoesAdotaveis(),
       professores: professoresOpcoes,
-      turmas: opcoesDeTurmas(await turmas(kv, escola)),
+      /* SÓ AS SALAS VIGENTES (19/11/2026). A lista completa traz a história — oito «Rosa» para uma
+       * sala corrigida oito vezes —, e o `<select>` da Turma mostrava as oito, todas com o mesmo
+       * rótulo. A escolha é a mesma que o `/turmas` já oferece; o que não vale não se escolhe. */
+      turmas: opcoesDeTurmas(turmasVigentes(await turmas(kv, escola))),
       termos: (await termos(kv, escola)).map((t) => ({ valor: t.id, rotulo: t.termo, categoria: t.categoria })),
       alunas: (await alunas(kv, escola)).map((a) => ({ valor: a, rotulo: a })),
     });
@@ -24279,8 +24286,20 @@ function parDaSalaNoCorpo(corpo, registo) {
      * gravado e com um cliente de ontem — e é também o que permite à rota dizer «esta sala não tem
      * professor» em vez de gravar um vazio silencioso. */
     const nomeDaSalaPedida = String(corpo.turma || (Array.isArray(corpo.turmas) ? corpo.turmas[0] : '') || '').trim();
+    /* A SALA QUE SE LÊ É A VIGENTE, NÃO A PRIMEIRA DA HISTÓRIA (19/11/2026).
+     *
+     * A sala deriva em elos: cada correcção deixa o elo anterior com o MESMO NOME e um
+     * `substituidaPor`. Procurar pelo nome numa lista que tem a história inteira devolve o elo
+     * MAIS ANTIGO — e o mais antigo é, por construção, o que foi gravado antes de a sala saber o
+     * par. Foi o que se mediu no ar, na `breu`, a 19/11/2026: oito registos «Rosa», o primeiro
+     * sem professor nem modalidade, e a rota a responder «a sala «Rosa» ainda não diz o professor
+     * e a modalidade» a quem tinha acabado de os gravar no «Associar». A Turma não nascia, e a
+     * frase mandava completar uma sala que já estava completa.
+     *
+     * `turmaVigentePorNome` é a leitura certa, e já existia desde 16/10: é a mesma que a listagem
+     * das Salas usa para não mostrar um ritmo que já não vale. */
     const salaDoCorpo = nomeDaSalaPedida
-      ? (await turmas(kv, escola)).find((t) => t && String(t.nome || '') === nomeDaSalaPedida)
+      ? turmaVigentePorNome(await turmas(kv, escola), nomeDaSalaPedida)
       : null;
     const professor = String(corpo.professor || (salaDoCorpo && salaDoCorpo.professor) || '').trim();
     const modalidade = String(corpo.modalidade || (salaDoCorpo && salaDoCorpo.modalidade) || '').trim();
@@ -24365,8 +24384,11 @@ function parDaSalaNoCorpo(corpo, registo) {
     // dias, duração e período, o plano nasceria com quatro campos vazios e ninguém saberia
     // a dose. A recusa diz QUAL turma e o que falta — e o caminho é o cadastro da turma.
     if (turmasPedidas.length) {
-      const todas = await turmas(kv, escola);
-      const porNome = new Map(todas.map((t) => [t.nome, t]));
+      /* A VIGENTE, PELA MESMA RAZÃO DA LEITURA ACIMA: com a história na lista, o `Map` guarda o
+       * ÚLTIMO elo de cada nome — e «último da lista» não é «vigente», é só o último que se
+       * escreveu. As duas leituras têm de ser a mesma, senão a rota confere um ritmo e um par que
+       * vêm de elos diferentes. */
+      const porNome = new Map(turmasVigentes(await turmas(kv, escola)).map((t) => [t.nome, t]));
       const faltando = [];
       for (const nome of turmasPedidas) {
         const t = porNome.get(nome);
@@ -24715,14 +24737,18 @@ function parDaSalaNoCorpo(corpo, registo) {
      * desfaz a marca. Uma marca que só se acendesse seria uma pena perpétua por uma decisão que se
      * corrige — a regra já estava escrita do lado do acender, e faltava a do apagar. */
     if (turmaPedida) {
+      /* A MARCA CAI DO ELO VIGENTE — E NÃO DO PRIMEIRO COM AQUELE NOME (19/11/2026). `findIndex`
+       * devolvia o elo mais antigo da história: a marca ficava acesa no registo que já não vale, e o
+       * vigente — o único que a listagem mostra — continuava marcado para sempre. É a mesma leitura
+       * errada que impedia a Turma de nascer; a correcção é a mesma: perguntar qual é o vigente. */
       const todas = await turmas(kv, escola);
-      const i = todas.findIndex((t) => t && String(t.nome || '') === turmaPedida);
-      if (i !== -1 && todas[i].descontinuada) {
-        const resumo = enquadramento.resumoDoEnquadramento(todas[i], lista);
+      const vigenteDaSala = turmaVigentePorNome(todas, turmaPedida);
+      if (vigenteDaSala && vigenteDaSala.descontinuada) {
+        const resumo = enquadramento.resumoDoEnquadramento(vigenteDaSala, lista);
         if (resumo.temCuradoria) {
-          const semMarca = Object.assign({}, todas[i]);
+          const semMarca = Object.assign({}, vigenteDaSala);
           delete semMarca.descontinuada;
-          todas[i] = semMarca;
+          todas[todas.indexOf(vigenteDaSala)] = semMarca;
           await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(todas));
         }
       }
@@ -24763,15 +24789,37 @@ function parDaSalaNoCorpo(corpo, registo) {
       }
       return json(404, { ok: false, erro: 'curadoria não encontrada: ' + alvo });
     }
-    /* O PAR FINAL (09/11/2026). A derivação pode trocar professor e modalidade: o corpo traz os
-     * dois, e o que não vier herda o anterior. `undefined` é «não mexi»; vazio é uma declaração —
-     * e `faltaNaCuradoria` recusa-a mais adiante. O professor é guardado como slug, como na
-     * criação. */
+    /* O CADASTRO DAS SALAS — AS VIGENTES, E LIDAS ANTES DO PAR (19/11/2026).
+     *
+     * A sala deriva em elos com o mesmo nome; a história devolve o mais antigo, e o mais antigo é
+     * o que não sabe o par. Ver a nota gémea na rota de criação (`/curadoria`).
+     *
+     * A LEITURA SOBE PARA AQUI porque o par passou a ser DERIVADO DA SALA: era preciso conhecê-la
+     * antes de decidir quem dirige a turma. A conferência do ritmo continua a usar o mesmo mapa. */
+    const salasDaEscola = turmasVigentes(await turmas(kv, escola));
+    const porNome = new Map(salasDaEscola.map((t) => [t.nome, t]));
+    const turmasPedidas = Array.isArray(corpo.turmas)
+      ? corpo.turmas.map((x) => String(x).trim()).filter(Boolean)
+      : [String(corpo.turma || '').trim()].filter(Boolean);
+    const turmaFinal = turmasPedidas.length ? turmasPedidas[0] : (turmasDaCuradoria(anterior)[0] || '');
+    const salaFinal = turmaFinal ? porNome.get(turmaFinal) : null;
+    /* O PAR FINAL (09/11/2026; A SALA PASSA A SER A ORIGEM — 19/11/2026).
+     *
+     * A derivação pode trocar professor e modalidade: o corpo traz os dois, e o que não vier vem da
+     * SALA — a origem declarada do par desde 18/11 («é a sala que sabe que modalidade acontece
+     * naquele horário, e é quem a dá que a ensina»), e a que a própria frase da recusa já mandava
+     * preencher. A curadoria ANTERIOR só preenche o que a sala ainda não diga.
+     *
+     * HERDAR DO ANTERIOR ANTES DE OLHAR PARA A SALA ERA UM CÍRCULO FECHADO: a curadoria nascida
+     * sem par continuava sem par ao derivar, e derivar para corrigir a sala respondia «a sala ainda
+     * não diz o professor» a quem tinha acabado de o gravar — e mandava-a para o sítio onde já
+     * estava. `undefined` é «não mexi»; vazio é uma declaração, e `faltaNaCuradoria` recusa-a mais
+     * adiante. O professor é guardado como slug, como na criação. */
     const professorDerivado = corpo.professor === undefined
-      ? String(anterior.professor || '')
+      ? String((salaFinal && salaFinal.professor) || anterior.professor || '')
       : slugificar(String(corpo.professor || '').trim());
     const modalidadeDerivada = corpo.modalidade === undefined
-      ? String(anterior.modalidade || '')
+      ? String((salaFinal && salaFinal.modalidade) || anterior.modalidade || '')
       : String(corpo.modalidade || '').trim();
     /* DERIVAR É PROLONGAR A DIREÇÃO — e a de quem saiu da escola não se prolonga (08/11/2026).
      * O desligamento encerrou-a com data; derivar seria reabri-la por outro caminho, e o registo
@@ -24813,9 +24861,6 @@ function parDaSalaNoCorpo(corpo, registo) {
     const dataDoAjuste = vigenciaDoAjuste(corpo);
     if (!dataDoAjuste.ok) return json(400, { ok: false, erro: dataDoAjuste.erro });
     const vigencia = dataDoAjuste.vigencia;
-    const turmasPedidas = Array.isArray(corpo.turmas)
-      ? corpo.turmas.map((x) => String(x).trim()).filter(Boolean)
-      : [String(corpo.turma || '').trim()].filter(Boolean);
     if (turmasPedidas.length > 1) {
       return json(400, {
         ok: false,
@@ -24823,9 +24868,7 @@ function parDaSalaNoCorpo(corpo, registo) {
         turmas: turmasPedidas,
       });
     }
-    /* O CADASTRO DAS SALAS, lido UMA vez: serve à conferência do ritmo e à guarda da sala. */
-    const salasDaEscola = await turmas(kv, escola);
-    const porNome = new Map(salasDaEscola.map((t) => [t.nome, t]));
+    /* O CADASTRO DAS SALAS já foi lido acima (vigentes), e serve aqui à conferência do ritmo. */
     if (turmasPedidas.length) {
       const faltando = [];
       for (const nome of turmasPedidas) {
@@ -24841,15 +24884,13 @@ function parDaSalaNoCorpo(corpo, registo) {
         });
       }
     }
-    const turmaFinal = turmasPedidas.length ? turmasPedidas[0] : (turmasDaCuradoria(anterior)[0] || '');
     /* A TURMA DERIVADA TAMBÉM NÃO NASCE SEM QUEM A DIRIJA (18/11/2026).
      *
      * A derivação herda o par da curadoria anterior — e uma curadoria anterior gravada antes desta
      * guarda pode não o ter. Derivar sobre ela prolongaria o vazio com uma data de vigência, que é
      * pior do que o vazio: passaria a haver um elo a afirmar que aquela sala não tem professor.
-     * A origem do par aqui é a SALA (`porNome`, lida acima), e é por isso que a frase manda lá. */
+     * A origem do par é a SALA (`salaFinal`, lida acima), e é por isso que a frase manda lá. */
     {
-      const salaFinal = turmaFinal ? porNome.get(turmaFinal) : null;
       const faltaDoParDeriv = faltaNaSalaParaATurma(salaFinal, {
         professor: professorDerivado, modalidade: modalidadeDerivada,
       });
@@ -25071,14 +25112,15 @@ function parDaSalaNoCorpo(corpo, registo) {
      * a escola aceita é a escola a resolver o enquadramento. Uma marca que só se acendesse seria
      * uma pena perpétua por uma decisão que se corrige. */
     if (turmaFinal) {
+      /* A VIGENTE, como na criação (19/11/2026): a marca mora no registo que a listagem mostra. */
       const todas = await turmas(kv, escola);
-      const i = todas.findIndex((t) => t && String(t.nome || '') === turmaFinal);
-      if (i !== -1 && todas[i].descontinuada) {
-        const resumo = enquadramento.resumoDoEnquadramento(todas[i], lista);
+      const vigenteDaSalaDeriv = turmaVigentePorNome(todas, turmaFinal);
+      if (vigenteDaSalaDeriv && vigenteDaSalaDeriv.descontinuada) {
+        const resumo = enquadramento.resumoDoEnquadramento(vigenteDaSalaDeriv, lista);
         if (resumo.temCuradoria) {
-          const semMarca = Object.assign({}, todas[i]);
+          const semMarca = Object.assign({}, vigenteDaSalaDeriv);
           delete semMarca.descontinuada;
-          todas[i] = semMarca;
+          todas[todas.indexOf(vigenteDaSalaDeriv)] = semMarca;
           await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(todas));
         }
       }
