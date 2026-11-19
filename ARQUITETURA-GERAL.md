@@ -2643,7 +2643,66 @@ o contrário — a prova de uma regra e a prova da sua correcção não podem se
 perceba qual está de pé.
 
 
+### 5.28 O `sujeitos` do PO é cópia semeada — e o corpo não a escreve
+
+«Eu criei o plano de observação e tem um erro. […] a aluna B está dizendo que ela está sem turma e
+sem linha de base. […] Como é que você pode dizer que ela é uma aluna vinculada? Está errado isso.»
+
+As duas frases estavam na mesma linha e eram **verdade sobre coisas diferentes** — o registo e a
+pessoa — e, juntas, mentiam. A pergunta dela é melhor do que a resposta que existia, e a resposta
+estava na origem do dado: o `sujeitos` gravado no `po-20261119-1233` da `breu` era
+`["Aluna A","Aluna B","Aluna C"]`, e o elenco real da turma `Rosa` — lido em produção, em
+`/api/bastidores/alunas-da-turma` — era `["Aluna A"]`. Os outros dois nomes vinham do **fixture** de
+uma escola de teste, escritos pelo preenchedor automático.
+
+**A regra, e é a do §5.20 levada à escrita.** O `sujeitos` não é uma pergunta: é a **cópia** do
+elenco da turma do plano que o PO observa, e o §5.20 já o dizia — «o PO *declara* sujeitos, mas quem
+diz quem está na turma é o acto do passo 2 da linha de base; o PO herda-a». Uma cópia que não veio
+de elenco nenhum não é proveniência: é invenção, e como é dela que o §5.24 deriva o vínculo, inventa
+**cadeado** — o registo da Aluna B passava a não se poder editar nem apagar por causa de uma aluna
+que nunca esteve numa turma.
+
+**Onde a regra passou a existir, e por que no servidor.** Uma regra que só existe no cliente não é
+uma regra: quem manda um `POST` à mão escreveria o sujeito que quisesse. `porta.elicitar`, no ramo
+`fonte === 'po'` e **só** para um PO novo (sem `id` e sem `ajuste_de`), repõe a lista a partir do
+elenco — `elencoDoPlanoReferenciado` resolve `plano-de-ensino` → a turma do plano → `alunasDaTurma`,
+que é a **mesma** leitura de `/api/bastidores/alunas-da-turma`. O que se tirou do corpo é **dito na
+resposta** (`sujeitosDoElenco`), com o mesmo estatuto do `planoRetargetado`: uma substituição em
+silêncio é a que ninguém audita depois. E degrada, não rebenta: sem elenco legível (uma bancada, uma
+escola sem linha de base) fica o que veio no corpo — a reserva que o §5.20 já previa.
+
+**A edição e a derivação NÃO re-semeiam**, e é o outro lado da regra: elas trazem o `sujeitos` do
+envelope, e re-semeá-lo escreveria no documento de ontem a turma de hoje — a reescrita do passado
+que o sistema inteiro existe para não fazer. O passado não se corrige por dentro; corrige-se por
+fora, com um elo novo e o motivo declarado.
+
+**O preenchedor, que era o autor do estrago.** `teste-cliente.js` escrevia o `sujeitos` do fixture —
+primeiro numa linha própria, e depois pela cópia genérica das respostas, que também o levava. A
+segunda era a que sobrevivia, e por um motivo que vale a pena ver: a semente do formulário só age
+quando o campo está **vazio** (para não reescrever o que está gravado), portanto o valor do fixture
+passava a valer como resposta **e ganhava à semente**. Passa a haver `semeadoPeloSistema(id)`: um nó
+que o mapa declara `semeado` (o `sujeitos` é `"semeado": "turma"`) não é do professor, e o preenchedor
+preenche o que o professor escreveria. Depois da estante carregada, ele chama a semente — que é quem
+escreve a lista.
+
+**A prova.** `provar-a-homonima` passou a **25** com a secção E: um PO novo com três nomes inventados
+no corpo grava `["Aluna A"]` e diz que tirou dois; um PO **derivado** com o mesmo corpo mantém os
+três — a negativa que garante que o passado não é re-semeado. Contra o núcleo de `HEAD`, **reprova 2
+de 25**. E `provar-teste` passou a **42**: a asserção que existia («os sujeitos são as alunas do
+fixture») passava nos dois mundos, porque no fixture da `batata` o elenco e o `sujeitos` são os mesmos
+três nomes — e foi por isso que o defeito só apareceu na `breu`, onde o elenco verdadeiro tinha
+**menos** nomes. A prova nova **estraga o fixture de propósito** (dois «Fantasma») e exige que o
+formulário não mude: se o preenchedor escrevesse, os fantasmas apareciam.
+
+**O que isto não resolve, e fica dito.** O `po-20261119-1233` que já está gravado continua a
+declarar os três nomes — a regra nova impede a invenção seguinte, não reescreve a anterior. Corrigi-lo
+é um acto a declarar: apagar o PO e criá-lo de novo (agora nasce certo), ou ajustá-lo com o motivo.
+E é por isso que ele não foi tocado por conta própria.
+
+
 ## 6. Por que é mais barato
+
+
 | # | Motivo | Detalhe |
 |:--|:--|:--|
 | 1 | **Sem servidor de banco** | Não há instância paga, nem licença, nem DBA, nem réplica de backup. O storage é o próprio Git. |

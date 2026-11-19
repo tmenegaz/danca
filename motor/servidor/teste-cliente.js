@@ -71,6 +71,31 @@ const SCRIPT = String.raw`(function () {
     if (status) status.textContent = mensagem;
   }
 
+  /* O QUE O SISTEMA SEMEIA NÃO É DO PROFESSOR (19/11/2026).
+   *
+   * O mapa declara, nó a nó, quem se semeia: o 'sujeitos' do Plano de Observação é
+   * '"semeado": "turma"' — ele chega pronto de turma → linha de base → alunas, e o professor não
+   * o escreve. O preenchedor preenche o que o professor escreveria; escrever o semeado é a única
+   * forma de o fixture entrar no dado da escola.
+   *
+   * E a semente do formulário não corrige isso por si: ela só age quando o campo está VAZIO (para
+   * não reescrever o que está gravado), portanto um valor do fixture passava a valer como
+   * resposta — e ganhava à semente.
+   *
+   * O QUE ISTO FECHOU, medido na 'breu': o PO gravou «Aluna A», «Aluna B» e «Aluna C» — nomes do
+   * fixture, três de uma escola de teste —, e a «Aluna B» passou a ler-se «vinculada» a um Plano
+   * de Observação sem nunca ter estado em elenco nenhum, ao lado de «sem turma e sem linha de
+   * base». As duas frases eram verdade sobre coisas diferentes (o registo e a pessoa) e, juntas,
+   * mentiam. */
+  function semeadoPeloSistema(id) {
+    if (typeof MAPA === 'undefined' || !MAPA || !Array.isArray(MAPA.nos)) return false;
+    for (var i = 0; i < MAPA.nos.length; i++) {
+      var no = MAPA.nos[i];
+      if (no && no.id === id && no.semeado) return true;
+    }
+    return false;
+  }
+
   // ================= PORTA — ANAMNESE =======================================
 
   function garantirOpcao(sel, valor) {
@@ -105,7 +130,10 @@ const SCRIPT = String.raw`(function () {
     RESPOSTAS.clear();
     NOTAS.clear();
     SUGERIDAS.clear();
-    Object.keys(registro.respostas || {}).forEach(function (k) { RESPOSTAS.set(k, registro.respostas[k]); });
+    Object.keys(registro.respostas || {}).forEach(function (k) {
+      if (semeadoPeloSistema(k)) return;
+      RESPOSTAS.set(k, registro.respostas[k]);
+    });
     Object.keys(registro.notas || {}).forEach(function (k) { NOTAS.set(k, registro.notas[k]); });
     /* O CONTEXTO VOLTA A SER SEMEADO DA BARRA. O 'clear()' acima levou também as respostas que
        vêm do cabeçalho ('contexto-aluna' & cia), e sem esta linha a barra e o mapa divergiam —
@@ -243,7 +271,10 @@ const SCRIPT = String.raw`(function () {
     NOTAS.clear();
     SUGERIDAS.clear();
     RESPOSTAS.set('contexto-turma', turma);
-    Object.keys(registro.respostas || {}).forEach(function (k) { RESPOSTAS.set(k, registro.respostas[k]); });
+    Object.keys(registro.respostas || {}).forEach(function (k) {
+      if (semeadoPeloSistema(k)) return;
+      RESPOSTAS.set(k, registro.respostas[k]);
+    });
     Object.keys(registro.notas || {}).forEach(function (k) { NOTAS.set(k, registro.notas[k]); });
     // Depois do fixture, para nenhum fixture futuro poder reintroduzir a turma dele.
     RESPOSTAS.set('contexto-turma', turma);
@@ -383,16 +414,50 @@ const SCRIPT = String.raw`(function () {
     RESPOSTAS.clear();
     NOTAS.clear();
     SUGERIDAS.clear();
-    Object.keys(registro.respostas || {}).forEach(function (k) { RESPOSTAS.set(k, registro.respostas[k]); });
+    Object.keys(registro.respostas || {}).forEach(function (k) {
+      if (semeadoPeloSistema(k)) return;
+      RESPOSTAS.set(k, registro.respostas[k]);
+    });
     Object.keys(registro.notas || {}).forEach(function (k) { NOTAS.set(k, registro.notas[k]); });
-    if (registro.sujeitos) RESPOSTAS.set('sujeitos', registro.sujeitos.slice());
+    /* OS SUJEITOS NÃO SE PREENCHEM (19/11/2026) — e a linha que aqui estava fabricava três alunas.
+     *
+     * «Eu criei o plano de observação e tem um erro. […] a aluna B […] está dizendo que ela está
+     * sem turma e sem linha de base. […] Como é que você pode dizer que ela é uma aluna vinculada?»
+     *
+     * O que aconteceu: o preenchedor escrevia 'sujeitos' a partir do FIXTURE — «Aluna A», «Aluna
+     * B» e «Aluna C», nomes de uma escola de teste que não existem na 'breu' —, e o PO gravou-os.
+     * O 'sujeitos' é o campo que o SISTEMA semeia do elenco da turma (turma → linha de base →
+     * alunas, 'semearDaTurma'), e é ele que o 'porta.vinculos' lê para dizer «vinculada».
+     * Escrito por um fixture, inventa vínculo: a Aluna B passou a ler-se «ligada a um Plano de
+     * Observação» sem nunca ter estado em elenco nenhum.
+     *
+     * A REGRA, e é a mesma das outras que este ficheiro já respeita: o preenchedor preenche o que
+     * o professor escreveria. O que o sistema semeia — o elenco — não é do professor, e
+     * escrevê-lo é a única forma de o fixture entrar no dado da escola. Quem o impede é
+     * 'semeadoPeloSistema', no salto da cópia das respostas: nem o 'registro.sujeitos' nem o
+     * 'registro.respostas.sujeitos' do fixture chegam ao formulário. */
 
     // O «plano-de-ensino» só entra se a estante já chegou: é dela que sai o carimbo.
     var turma = turmaDoPlano(registro.turma);
     var carimbo = carimboDoPlanoDaTurma(turma);
     if (carimbo) {
       RESPOSTAS.set('plano-de-ensino', carimbo);
-      if (typeof carregarPlanoReferenciado === 'function') carregarPlanoReferenciado();
+      /* A SEMENTE DO ELENCO VEM DEPOIS DA ESTANTE (19/11/2026). O 'sujeitos' já não chega do
+       * fixture (ver 'semeadoPeloSistema'), e quem o escreve é a semente do formulário — que lê a
+       * turma do plano referenciado. 'carregarPlanoReferenciado' é assíncrono, e semear antes de
+       * ele resolver daria a lista vazia («sem linha de base»), que é o contrário do que se quer
+       * provar. */
+      var carregou = (typeof carregarPlanoReferenciado === 'function')
+        ? carregarPlanoReferenciado() : null;
+      if (typeof semearDaTurma === 'function') {
+        Promise.resolve(carregou).then(function () { return semearDaTurma(); }).then(function () {
+          if (typeof atualizarBarra === 'function') atualizarBarra();
+          if (typeof pintarRoteiro === 'function') pintarRoteiro();
+          if (typeof salvar === 'function') salvar();
+        }).catch(function (erro) {
+          dizer('A lista de sujeitos não veio da turma: ' + (erro && erro.message ? erro.message : erro));
+        });
+      }
     } else {
       dizer('Não achei nenhum plano de ensino na estante deste professor. ' +
         'Preenchi os outros campos; o nó «Plano de ensino» fica por escolher.');

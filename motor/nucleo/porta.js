@@ -1802,6 +1802,41 @@ function alunasDaTurma(curadorias, alvo, linhas) {
 }
 
 /**
+ * O ELENCO DA TURMA DO PLANO QUE O PO OBSERVA (19/11/2026).
+ *
+ * O `sujeitos` de um Plano de Observação é uma CÓPIA do elenco, e é a linha de base que declara
+ * quem está na turma (§5.20). Esta função dá essa lista a quem vai gravar um PO novo, para a
+ * cópia nascer da fonte — e não do que o cliente mandou.
+ *
+ * A leitura é a MESMA de todas as outras: `plano -> contexto.turma -> alunasDaTurma`. Nada de
+ * uma segunda derivação do elenco, que divergiria da primeira.
+ *
+ * Devolve `null` quando não se pode responder — sem a referência do plano, sem a turma dele, ou
+ * sem o elenco em `dados` (a bancada que não passa linhas). `null` e `[]` não são a mesma coisa:
+ * `[]` é «a turma não tem elenco» (e aí a reserva do corpo vale), `null` é «não sei».
+ */
+async function elencoDoPlanoReferenciado(armazenamento, respostas, dados) {
+  const elenco = dados && dados.elenco;
+  if (!elenco || !Array.isArray(elenco.linhas)) return null;
+  const cru = respostas && respostas['plano-de-ensino'];
+  const planoId = String((cru && cru.valor !== undefined ? cru.valor : cru) || '').trim();
+  if (!planoId) return null;
+  let turma = '';
+  try {
+    const plano = await lerEnvelope(armazenamento, planoId);
+    const doContexto = (plano && plano.contexto) || {};
+    turma = String(doContexto.turma || '').trim();
+    if (!turma) {
+      const respondido = plano && plano.respostas ? plano.respostas['contexto-turma'] : null;
+      turma = String((respondido && respondido.valor !== undefined ? respondido.valor : respondido) || '').trim();
+    }
+  } catch (erro) { return null; }
+  if (!turma) return null;
+  const lista = alunasDaTurma(elenco.curadorias || [], { turma }, elenco.linhas);
+  return Array.isArray(lista) ? lista : null;
+}
+
+/**
  * AS ALUNAS DE UM PROFESSOR — o recorte possível quando o PO ainda não tem plano escolhido.
  *
  * O nó `sujeitos` pode ser aberto ANTES do `plano-de-ensino`, e sem turma a rota devolveria a
@@ -2686,6 +2721,40 @@ async function elicitar(armazenamento, corpo, dados) {
         };
       }
     }
+    /* OS SUJEITOS DE UM PO NOVO VÊM DO ELENCO — NUNCA DO CORPO (19/11/2026).
+     *
+     * «Como é que você pode dizer que ela é uma aluna vinculada? Está errado isso.»
+     *
+     * O `sujeitos` é uma CÓPIA do elenco da turma, e é isso que o §5.20 diz: «O PO *declara*
+     * sujeitos, mas quem diz quem está na turma é o acto do passo 2 da linha de base; o PO
+     * herda-a, e quando herda mal […] é a linha de base que está certa.» A cópia existe para ser
+     * proveniência (o `## Sujeitos` do documento, o `-dados.json`, o vínculo da anamnese), e uma
+     * cópia que não veio de elenco nenhum não é proveniência — é invenção.
+     *
+     * O CASO QUE ISTO FECHOU, medido na `breu`: o preenchedor de teste escrevia o `sujeitos` do
+     * fixture (três nomes de uma escola de teste) e o PO gravava-os. Resultado: a Aluna B lia-se
+     * «vinculada» na lista da anamnese sem nunca ter estado em elenco nenhum, e a mesma linha
+     * dizia «aluna nova — sem turma e sem linha de base» ao lado. As duas frases eram verdadeiras
+     * sobre coisas diferentes (o registo e a pessoa) e, juntas, mentiam.
+     *
+     * A REGRA É DO SERVIDOR porque uma regra que só existe no cliente não é uma regra: quem manda
+     * um POST à mão escreveria o sujeito que quisesse. E só se aplica ao PO **novo** — a edição e
+     * a derivação trazem o `sujeitos` do envelope, e re-semeá-lo reescreveria o passado com a
+     * turma de hoje, que é exactamente o que a semente não faz.
+     *
+     * DEGRADA, NÃO REBENTA: sem elenco legível (uma bancada, uma escola sem linha de base), fica
+     * o que veio no corpo — o comportamento de antes, e a reserva que o §5.20 já previa. */
+    if (!corpo.ajuste_de && !opcoes.id) {
+      const doElenco = await elencoDoPlanoReferenciado(armazenamento, respostas, dados);
+      if (doElenco && doElenco.length) {
+        const antes = listaDeResposta({ respostas }, 'sujeitos');
+        respostas.sujeitos = {
+          valor: doElenco, origem: 'perguntado', respondente: 'professor', nota: null,
+        };
+        const tirados = antes.filter((a) => doElenco.indexOf(a) === -1);
+        if (tirados.length) opcoes.sujeitosDoElenco = { ficaram: doElenco, tirados };
+      }
+    }
   }
 
   if (!opcoes.id && fonte !== 'po' && fonte !== 'plano') {
@@ -2779,6 +2848,11 @@ async function elicitar(armazenamento, corpo, dados) {
     // PO passa a observar o topo da cadeia. Vai na resposta para a tela o poder dizer — uma
     // correção em silêncio é a que ninguém consegue auditar depois.
     ...(opcoes.planoRetargetado ? { planoRetargetado: opcoes.planoRetargetado } : {}),
+    /* O QUE SE TIROU DO CORPO, DITO NA RESPOSTA (19/11/2026). A semente dos sujeitos substitui
+     * o que o cliente mandou; uma substituição em silêncio é a que ninguém audita depois. Vai na
+     * resposta com o mesmo estatuto do `planoRetargetado` — o registo é do servidor, e a tela
+     * pode dizê-lo. */
+    ...(opcoes.sujeitosDoElenco ? { sujeitosDoElenco: opcoes.sujeitosDoElenco } : {}),
   };
 }
 

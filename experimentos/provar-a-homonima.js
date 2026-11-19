@@ -298,12 +298,61 @@ async function listagem({ anamneses, plano, po }) {
     provar('a anamnese de quem ninguém observa é «solta»', solta.vinculada === false, solta);
   }
 
+  /* ========================================================================================= */
+  console.log('\nE. O «sujeitos» de um PO novo nasce do elenco — e o corpo não o escreve');
+
+  {
+    /* O CASO, medido na «breu»: o preenchedor de teste escrevia o `sujeitos` do fixture — três
+     * nomes de uma escola de teste — e o PO gravava-os. A «Aluna B» passou a ler-se «vinculada»
+     * sem nunca ter estado em elenco nenhum, e a mesma linha dizia «sem turma e sem linha de
+     * base». As duas frases eram verdade sobre coisas diferentes (o registo e a pessoa) e,
+     * juntas, mentiam. O `sujeitos` é a única cópia do elenco num documento, e uma cópia que não
+     * veio do elenco não é proveniência: é invenção. */
+    const conteudoPO = require(path.join(raiz, 'porta/po/conteudo/po.json'));
+    const elenco = { linhas: LINHAS, curadorias: CURADORIAS };
+    const contexto = { escola: ESCOLA, professor: 'demi-plie', ciclo: '01' };
+    const inventados = ['Aluna A', 'Aluna B', 'Aluna C'];
+
+    async function gravar(corpo) {
+      const kv = kvDeMentira();
+      const arm = producao.__armazenamento({ ESCOLA_SLUG: ESCOLA, PADD_KV: kv });
+      await porta.gravarEnvelope(arm,
+        envelope({ id: 'plano-rosa', turma: 'Rosa', professor: 'demi-plie' }), relatorioDe('plano-rosa'));
+      const r = await porta.elicitar(arm, Object.assign({ fonte: 'po', contexto }, corpo), {
+        conteudoPO, esquema: {}, elenco, agora: () => '2026-11-19T13:00',
+      });
+      const env = r.gravado ? await porta.lerEnvelope(arm, r.id) : null;
+      return { r, sujeitos: env ? (env.respostas.sujeitos || {}).valor : null };
+    }
+
+    const novo = await gravar({
+      respostas: { 'plano-de-ensino': resposta('plano-rosa'), sujeitos: resposta(inventados) },
+    });
+    provar('um PO novo grava os sujeitos DO ELENCO, e não os do corpo',
+      JSON.stringify(novo.sujeitos) === '["Aluna A"]', novo.sujeitos);
+    provar('…e diz na resposta o que tirou do corpo',
+      JSON.stringify((novo.r.sujeitosDoElenco || {}).tirados) === '["Aluna B","Aluna C"]',
+      novo.r.sujeitosDoElenco);
+
+    /* O PASSADO NÃO SE RE-SEMEIA. A derivação é um elo novo com o conteúdo do anterior: os
+     * sujeitos que ele declara são a linha de base daquele momento, e re-semeá-los com o elenco
+     * de hoje reescreveria o passado — o modo de falha que a proveniência existe para impedir. */
+    const derivado = await gravar({
+      ajuste_de: 'po-rosa', motivo: 'corrigir a digitação',
+      respostas: { 'plano-de-ensino': resposta('plano-rosa'), sujeitos: resposta(inventados) },
+    });
+    provar('um PO DERIVADO mantém os sujeitos que o anterior declarou',
+      JSON.stringify(derivado.sujeitos) === JSON.stringify(inventados), derivado.sujeitos);
+    provar('…e a resposta não anuncia substituição nenhuma',
+      derivado.r.sujeitosDoElenco === undefined, derivado.r.sujeitosDoElenco);
+  }
+
   console.log('\n' + (falhas
     ? 'FALHOU — ' + falhas + ' de ' + provas + ' asserção(ões).'
     : 'TUDO CERTO — ' + provas + ' asserções: o apelido é rótulo e o id é identidade; quem chegou '
       + 'não herda a memória da homónima; a listagem da anamnese diz o estado do REGISTO pelas '
-      + 'palavras do documento (solta/vinculada/nova), e o cadeado continua a ser o Plano de '
-      + 'Observação.'));
+      + 'palavras do documento (solta/vinculada/nova), o cadeado continua a ser o Plano de '
+      + 'Observação, e os sujeitos de um PO novo vêm do elenco.'));
   process.exit(falhas ? 1 : 0);
 })().catch((erro) => {
   console.error('erro na prova:', erro && erro.stack ? erro.stack : erro);

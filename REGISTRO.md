@@ -53573,3 +53573,67 @@ organiza para não ficar bagunçado, porque alunas está cheia de etiquetas e de
 meio bagunçado isso.» O cartão da aluna hoje acumula selos, a linha do vínculo, o elenco e a
 passagem anterior sem a grelha de nichos do cartão da sala. **Não foi tocado nesta entrega**, por
 pedido dela: primeiro a anamnese.
+
+### 19/11/2026 — «Como é que você pode dizer que ela é uma aluna vinculada?» — o sujeito que o fixture inventou
+
+**O relato:**
+
+> «Eu criei o plano de observação e tem um erro. A aluna A está dentro da turma TAMI. E a aluna B,
+> está bem claro ali na legenda, ela está dizendo que ela está sem turma e sem linha de base. Veja
+> só, a aluna B foi feita a anamnese dela e aí eu consegui colocar a aluna B nos cadastros de alunas
+> cadastradas. Ela é uma aluna livre. Ela não está em nenhum elenco e, portanto, não está em nenhuma
+> turma. Como é que você pode dizer que ela é uma aluna vinculada? Está errado isso.»
+
+**As duas frases estavam na mesma linha e eram verdade sobre coisas diferentes** — o registo e a
+pessoa. E a que estava errada era a do registo, por um motivo que não era da tela: o dado.
+
+**O que estava gravado.** `po-20261119-1233` da `breu`, lido do repositório, com
+`sujeitos: ["Aluna A","Aluna B","Aluna C"]`. E o elenco real da turma `Rosa`, lido em produção pela
+rota que a tela usa — `/api/bastidores/alunas-da-turma?turma=Rosa` —, com **uma** aluna: `["Aluna A"]`.
+Os outros dois nomes eram do **fixture** de uma escola de teste, escritos pelo preenchedor
+automático. E como é do `sujeitos` que o §5.24 deriva o vínculo, os nomes inventados **fecharam o
+cadeado** sobre o retrato de uma aluna que nunca esteve em turma nenhuma.
+
+**A regra, e não foi inventada aqui.** O §5.20 já a tinha: o PO *declara* sujeitos, mas quem diz
+quem está na turma é o acto da linha de base — o PO **herda** a lista, e o nó do mapa diz
+`"semeado": "turma"`. Uma cópia que não veio do elenco não é proveniência: é invenção.
+
+**Onde passou a existir:** no **servidor**, no ramo `fonte === 'po'` do `porta.elicitar`, e só para
+um PO **novo**. `elencoDoPlanoReferenciado` resolve `plano-de-ensino` → a turma do plano →
+`alunasDaTurma` — a mesma leitura da rota, e não uma segunda derivação do elenco. O que se tirou do
+corpo é dito na resposta (`sujeitosDoElenco`), pela razão de sempre: uma substituição em silêncio é a
+que ninguém consegue auditar depois. Sem elenco legível, degrada para o que veio no corpo.
+
+**A edição e a derivação não re-semeiam**, e é a outra metade: elas trazem o `sujeitos` do envelope, e
+re-semeá-lo escreveria no documento de ontem a turma de hoje.
+
+**O preenchedor, que era o autor do estrago.** Havia duas escritas, e a que sobrevivia não era a que
+parecia: a cópia genérica das respostas também levava o `sujeitos` do fixture, e a semente do
+formulário **só age quando o campo está vazio** (para não reescrever o que está gravado) — logo o
+valor do fixture passava a valer como resposta e ganhava à semente. Passa a haver
+`semeadoPeloSistema(id)`: um nó que o mapa declara `semeado` não é do professor. O preenchedor
+preenche o que o professor escreveria, e depois chama a semente, que é quem escreve a lista.
+
+**Medido, e não estimado.** `provar-a-homonima` **25** (secção E nova): um PO novo com três nomes
+inventados no corpo grava `["Aluna A"]` e diz que tirou dois; um PO **derivado** com o mesmo corpo
+mantém os três. **Controle negativo contra `HEAD`: reprova 2 de 25.** `provar-teste` **42**: a
+asserção que já existia passava nos dois mundos, porque no fixture da `batata` o elenco e o
+`sujeitos` são os mesmos três nomes — e é por isso que o defeito só apareceu na `breu`, onde o elenco
+verdadeiro tinha **menos** nomes. A prova nova estraga o fixture de propósito (dois «Fantasma») e
+exige que o formulário não mude; com o `teste-cliente.js` de `HEAD`, **reprova**.
+
+`provar-listas-do-acervo` 113, `provar-salas-e-elencos` 132, `provar-alunas-da-anamnese` 16,
+`provar-anamnese-da-aluna-certa` 18, `provar-estado-da-turma` 28, `provar-derivacao-e-identidade` 19,
+`provar-o-suspenso-diz-a-verdade` 29, `provar-pedido-da-anamnese` 11, `provar-lista-que-falha` 39.
+Vermelhas anteriores, conferidas: `provar-estante-do-po` (a `escola/batata` foi expurgada).
+
+`ARQUITETURA-GERAL.md` §5.28 documenta a regra — «o `sujeitos` do PO é cópia semeada, e o corpo não a
+escreve».
+
+**O que NÃO foi feito, e é deliberado.** O `po-20261119-1233` que já está gravado continua a declarar
+os três nomes. A regra nova impede a invenção seguinte; não reescreve a anterior — e reescrever o
+passado é o que este sistema existe para não fazer. Corrigi-lo é um acto a declarar (apagar o PO e
+criá-lo de novo, agora nasce certo, ou ajustá-lo com o motivo), e é uma decisão dela.
+
+**PENDENTE — a listagem das ALUNAS CADASTRADAS**, nos nichos do cartão da sala (mantém-se da entrega
+anterior, e continua por fazer).

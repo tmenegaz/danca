@@ -873,6 +873,27 @@ async function porta() {
   assert.deepEqual(sujeitos, registro.sujeitos);
   ok('os sujeitos observados são as alunas do fixture');
 
+  /* A PROVA DE QUE ELES NÃO VÊM DO FIXTURE (19/11/2026). As três alunas do fixture da «batata»
+   * são exactamente as três do elenco que a estante devolve, e por isso a asserção acima passa nos
+   * dois mundos — não distingue «o sistema semeou» de «o preenchedor escreveu». A distinção mede-se
+   * estragando o fixture: se o preenchedor escrevesse o `sujeitos`, estes nomes impossíveis
+   * apareciam no formulário; se a lista vem do elenco, nada muda.
+   *
+   * Foi exactamente este o defeito da «breu»: lá o elenco verdadeiro tinha MENOS nomes do que o
+   * fixture, e os inventados entraram no dado da escola — a Aluna B passou a ler-se «vinculada» a
+   * um Plano de Observação sem nunca ter estado em elenco nenhum. O `sujeitos` é cópia semeada, e
+   * quem o escreve é o sistema. */
+  const sujeitosVerdadeiros = registro.sujeitos.slice();
+  registro.sujeitos = ['Fantasma Um', 'Fantasma Dois'];
+  registro.respostas.sujeitos = ['Fantasma Um', 'Fantasma Dois'];
+  const po2 = await abrir('plano-observacao/?professor=docente&ciclo=01');
+  const depois = JSON.parse(await po2.win.eval('JSON.stringify(RESPOSTAS.get("sujeitos"))'));
+  registro.sujeitos = sujeitosVerdadeiros;
+  registro.respostas.sujeitos = sujeitosVerdadeiros;
+  po2.dom.window.close();
+  assert.deepEqual(depois, sujeitosVerdadeiros);
+  ok('os sujeitos vêm do elenco e não do fixture — o preenchedor não os escreve');
+
   /* A DIMENSÃO é DERIVADA dos blocos da aula que o plano marca — não vem do fixture.
    *
    * E DESDE 04/11/2026 ELA É O BLOCO, sem prefixo: «o NOME GRAVADO É O BLOCO — o eixo vive no
