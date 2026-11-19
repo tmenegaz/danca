@@ -71,6 +71,13 @@ on:
       # `F5` seguinte ele desaparecia. Medido a 03/11/2026 nos commits `28cbc06` e `4cebff7`,
       # que ficaram sem run por esta razão.
       - 'biblioteca/modalidades/**'
+      # AS FIXTURES DAS ESCOLAS DE TESTE VÃO DENTRO DO BUNDLE (19/11/2026), e não são dado de
+      # bancada: `motor/servidor/teste-fixtures.js` faz `require('../../teste/<escola>.json')`, e
+      # o esbuild embute-os no Worker — é assim que o preenchedor da porta sabe o que escrever.
+      # Sem esta linha, corrigir a fixture chegava ao repositório e NUNCA ao Worker, que é o
+      # mesmo modo de falha do catálogo (03/11/2026) e o que este fluxo existe para matar:
+      # commit novo, Worker velho. Medido a 19/11/2026 no `a95ab579`, que ficou sem run.
+      - 'teste/**'
       - 'tools/templates/**'
       # A montagem é ela própria parte do que se publica, e a conferência de identidade também:
       # foi ela que impediu que uma folha velha chegasse à produção com aval de «ok».

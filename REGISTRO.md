@@ -53686,5 +53686,11 @@ sala ao elenco. O `sujeitos` do PO não é um campo a preencher — é essa leit
 que o PO foi gravado. **Por isso ela não viu nada de declaração de sujeito no «Ajustar» — e está
 certo que não visse.**
 
+**E a fixture não chegava ao Worker.** Ao publicar a correcção, o `a95ab579` **não** disparou o
+«Publicar o sistema»: a lista de caminhos do `publicar.yml` não tinha `teste/**`, e as fixtures são
+`require`-adas por `teste-fixtures.js` e **empacotadas no bundle**. É o mesmo modo de falha do
+catálogo (03/11/2026) — commit novo, Worker velho —, e é o que aquele fluxo existe para matar.
+`teste/**` passou a estar na lista, com o motivo escrito ao lado.
+
 **PENDENTE — a listagem das ALUNAS CADASTRADAS**, nos nichos do cartão da sala (mantém-se da entrega
 anterior, e continua por fazer).
