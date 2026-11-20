@@ -737,17 +737,21 @@ avisar que a linha caiu, e o aviso é uma frase, não uma pergunta.
 
 ### c) O que o modal da INCLUSÃO pergunta — e o que custa construí-lo
 
-O que já existe para a duração serve, e é a mesma forma: a rota recusa com `409` e um `impacto`, o
-cliente abre a janela, e o mesmo pedido é reenviado com a decisão.
+> **CONSTRUÍDO A 20/11/2026.** A tabela abaixo deixou de ser um plano. E numa coisa o plano estava
+> errado: **não é um `409` com o pedido reenviado**, é uma pergunta **antes** do pedido. A janela da
+> duração interrompe uma gravação já feita (o `409` chega depois de o servidor recusar); esta não
+> interrompe nada, porque a ficha ainda não nasceu — ela pergunta primeiro, e só depois o «Gravar»
+> da Turma leva a declaração no corpo. A diferença de forma vem da diferença de momento, e a segunda
+> é mais barata: não há pedido para refazer.
 
 | peça | onde | estado |
 |:--|:--|:--|
 | `objectivosDoPlano(plano)` — os marcos daquela turma, em texto | `motor/nucleo/derivar-plano-ciclo.js` (`marcosEmTexto` já existe) | **pronta** |
-| `impactoDaInclusao({ plano, exercicio, objectivos })` — o que muda no parâmetro e no item 10 | `motor/nucleo/`, ao lado de `impactoDaDuracao` | **a construir** — ~80 linhas: acrescenta o termo a `marcados` dos objectivos escolhidos, conta as linhas do item 10 que passam a poder citá-lo, e soma os tempos por bloco |
-| a rota devolve `409` com o impacto | `POST /api/bastidores/curadoria-derivar` | **a acrescentar** — o caminho do `409` já existe nesta página, para a duração. **A criação (`/curadoria`) fica de fora:** uma Turma sem plano não tem objectivos a que ligar o exercício, e é o interregno dela |
-| a gravação da declaração | **a curadoria** — o par `{termo, objetivos}` ao lado do `repertorio` | **a construir** — ver a decisão de desenho nº 1; escrever no envelope do plano seria o desvio que ela recusou |
-| a janela | `bastidores.js`, a de `perguntarDaDuracao` | **a generalizar** — hoje ela sabe uma pergunta; passar a receber `{título, corpo, pergunta, campos}` é o trabalho maior (~150 linhas, e as provas de uma e de outra) |
-| o gancho do cliente | `esc-conteudos` · `adicionarFicha` (ao acrescentar a ficha, e não ao gravar) | **a acrescentar** — é onde ela disse que o modal tem de abrir: «quando mando adicionar o Batman GT» |
+| `impactoDaInclusao({ plano, termo, objetivos, repertorio })` — o que muda no parâmetro e no item 10 | `motor/nucleo/objetivos-do-repertorio.js` | **pronta (20/11/2026)** — devolve a linha que ganha o termo (antes/depois), os blocos daquele objetivo, os marcos todos **sem pré-selecção** e as linhas do item 10 que já citam o exercício (`0` para um exercício novo, e dizê-lo evita a leitura de que o sistema fará a linha) |
+| a rota que enche a janela | `POST /api/bastidores/impacto-da-inclusao` | **pronta (20/11/2026)** — responde `precisaDecisao: 'objetivo'` só quando há o que perguntar; `sem-plano` (`motivo: 'sem-plano'`), `ja-na-aula`, `fora-do-repertorio` e `sem-objectivos` devolvem a ficha a entrar como sempre entrou, cada um com o seu motivo |
+| a gravação da declaração | **a Turma** — `objetivosDoRepertorio`, ao lado do `repertorio` | **pronta (20/11/2026)** — `declaracoesDaTurma` soma o que a janela respondeu, mantém o que já estava (P-03/P-04) e esquece o exercício que saiu do repertório |
+| a janela | `bastidores.js` — `perguntarOObjetivo` | **pronta (20/11/2026)**, e **não** generalizada: são duas janelas, cada uma com a sua pergunta. A generalização que aqui se anunciava ficou por fazer, e é a dívida a pagar se aparecer a terceira |
+| o gancho do cliente | `esc-conteudos` · o clique no «Adicionar» (e não no «Gravar») | **pronta (20/11/2026)** — é onde ela disse que a janela tem de abrir: «quando mando adicionar o Batman GT». O `adicionarFicha` fica intocado: quem pergunta é o gancho, e a ficha só nasce depois da resposta |
 
 **A pergunta que a janela faz** é uma só, e é de escolha múltipla: *«A que objectivo(s) este exercício
 serve?»* — com os marcos da turma, e sem pré-selecção. A partir dela o sistema sabe o que mostrar: a
@@ -773,16 +777,27 @@ professor, linha a linha — o sistema não escolhe pedagogia.
    código faz (`gerarOsCiclosDasTurmas` → `motivo: 'sem-plano'`), e é a razão de o custo ser
    defensável: «é só custo» deixou de ser o preço da regra.
 
-**Custo de construção:** pequeno no núcleo, médio na janela. **Custo de manutenção:** duas janelas a
-manter em paralelo, se não se generalizar — e é por isso que a generalização é a parte que não se deve
-adiar.
+**Custo de construção, medido:** um módulo de núcleo (`objetivos-do-repertorio.js`, 4 funções), uma
+rota, uma janela e um gancho. **Custo de manutenção:** duas janelas a manter em paralelo, e **a
+generalização ficou por fazer** — o que se disse que não se devia adiar foi adiado, e fica dito aqui
+para não se descobrir por acidente: quem escrever a terceira janela paga as três.
+
+**As provas.** `experimentos/provar-o-exercicio-novo.js` (34 asserções) mede o núcleo — que aplica uma
+vez e só uma, que não aplica o que a Turma não acordou, e que escreve o termo no parâmetro **e** no
+repertório do plano (sem o segundo, o documento apagava-o na leitura). A secção B3 de
+`provar-cadeia-automatica.js` mede o caminho inteiro até ao elo novo do plano, e a secção N de
+`provar-salas-e-elencos.js` mede a página: a janela abre ao acrescentar e não ao gravar, nenhum
+objetivo vem pré-marcado, o «Cancelar» e o `Escape` não escrevem nada, e a ficha só nasce depois da
+resposta. **A/B feito nos três**: sem o gancho, 5 asserções falham; sem a aplicação na cadeia, 3.
 
 ### d) O que se economiza, e o que se **paga**
 
 O gesto de hoje, quando se inclui um exercício, são **dois**: associá-lo à Turma, e depois ir ao
 plano de ensino marcar a coluna do objectivo a que ele serve — sem o que o exercício entra no
-repertório e não entra em aula nenhuma. Com o modal é **um**, e é o mesmo pedido que já leva a
-decisão. Cada gesto poupado é uma geração: **1 a 2 minutos**.
+repertório e não entra em aula nenhuma. Com a janela é **um**, e a declaração viaja no corpo do
+«Gravar» que já ia acontecer. Cada gesto poupado é uma geração: **1 a 2 minutos**, e sobretudo um
+segundo percurso que ninguém fazia — um exercício incluído e nunca declarado ficava no menu, com o
+sistema a parecer que o ignorou.
 
 **E a janela abre num sítio só:** ao **acrescentar a ficha** no conteúdo da Turma, e não ao gravar —
 é a diferença entre perguntar enquanto se decide e perguntar depois de já estar decidido. Na edição

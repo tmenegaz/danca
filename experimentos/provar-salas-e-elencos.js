@@ -1724,6 +1724,251 @@ const RITMO = {
   }
 
   /* ========================================================================
+   * N. O EXERCÍCIO NOVO NA TURMA — A QUE OBJETIVO ELE SERVE (20/11/2026)
+   *
+   * «Em que momento então é formado o elemento do exercício que vai para o caderno? É na turma, a
+   * antiga curadoria. Então quando eu vou derivar a turma é que vai nascer esse modal. […] eu
+   * escolho o conteúdo do estilo no formulário […] e aí quando eu mando adicionar o Batman GT é
+   * que o modal tem que aparecer.»
+   *
+   * O QUE SE MEDE, e cada asserção fecha uma porta:
+   *   · a janela abre ao ACRESCENTAR A FICHA — e não ao gravar, e não no Estilo;
+   *   · abre SÓ com a Turma vinculada: numa Turma sem plano não há objetivo a que ligar o
+   *     exercício, e o servidor responde `sem-plano` (a ficha entra, como sempre entrou);
+   *   · nenhum objetivo vem pré-marcado — a escolha é a declaração pedagógica;
+   *   · o «Gravar» acrescenta a ficha E guarda a declaração, que segue no corpo do pedido;
+   *   · o «Cancelar» não acrescenta ficha nenhuma;
+   *   · o `Escape` fecha, como na janela da duração.
+   * ====================================================================== */
+  {
+    let JSDOML = null;
+    let VCL = null;
+    try { ({ JSDOM: JSDOML, VirtualConsole: VCL } = require('jsdom')); } catch (e) { JSDOML = null; }
+    if (!JSDOML) {
+      naoMedida('a janela do exercício novo na Turma', 'jsdom ausente');
+    } else {
+      const SALA_N = { id: 'sala-n', nome: 'Rosa', dias: ['qua'], horarios: { qua: '10:30' },
+        duracaoMin: 90, periodoInicio: '2026-01-01', periodoFim: '2026-06-01',
+        modalidade: 'Balé clássico', professor: 'demi-plie' };
+      /* A TURMA VINCULADA: o par (professor, sala) está nos `pares`, e é isso que faz o
+       * `VINCULADAS` do cliente dizer que há plano. O repertório tem os dois exercícios que já
+       * estavam; o «Battement jeté» é o que vai entrar. */
+      const CURADORIA_N = {
+        id: 'cu-n', professor: 'demi-plie', modalidade: 'Balé clássico',
+        tradicao: 'francesa', grau: '1', nivel: 'Iniciante',
+        turmas: ['Rosa'], linhaDeBase: '', alunas: [],
+        repertorio: ['Plié', 'Battement tendu'],
+      };
+      /* O IMPACTO QUE O SERVIDOR DEVOLVE — a forma de `impactoDaInclusao` (`motor/nucleo/
+       * objetivos-do-repertorio.js`). Dois objetivos, e o segundo é onde o exercício cai. */
+      const impactoObjetivo = {
+        termo: 'Battement jeté', estado: 'nova',
+        objetivos: [
+          { n: 1, texto: 'reconhecer o vocabulário', jaObserva: false,
+            antes: ['Plié'], depois: ['Plié', 'Battement jeté'], blocos: ['Barra'] },
+        ],
+        blocos: ['Barra'], linhasDoItem10: 0,
+        marcos: [{ n: 1, texto: 'reconhecer o vocabulário' },
+          { n: 2, texto: 'sustentar o equilíbrio' }],
+      };
+
+      const TERMOS_N = [
+        { id: 'plie', termo: 'Plié', categoria: 'passo' },
+        { id: 'tendu', termo: 'Battement tendu', categoria: 'passo' },
+        { id: 'jete', termo: 'Battement jeté', categoria: 'passo' },
+      ];
+
+      const htmlN = bastidores.paginaProducao.apply(null, [
+        'breu', {},
+        [{ nome: 'Demi Plié', slug: 'demi-plie' }], [],
+        'Demi', 'demi-plie',
+        [SALA_N], TERMOS_N, { 'sala-n': ['plie', 'tendu'] },
+        [CURADORIA_N],
+        [{ id: 'padrao', nome: 'Padrão', professor: 'demi-plie', niveis: ['Ótimo'] }],
+        [{ professor: 'demi-plie', turma: 'Rosa', ciclo: '01' }],
+        { professores: new Set(), turmas: new Set(), termos: new Set(), planos: 1 },
+        null, 'sala-n',
+        [], new Set(), { ok: true, contrato: null },
+      ]);
+
+      /* `vinculada` diz se a rota é chamada a perguntar; o cenário de Turma sem plano passa
+       * `false` e mede que a ficha entra sem janela nenhuma. */
+      const correrON = async (vinculada) => {
+        const erros = [];
+        const pedidos = [];
+        const vc = new VCL();
+        vc.on('jsdomError', (e) => erros.push(String((e && e.message) || e)));
+        vc.on('error', () => {});
+        const dom = new JSDOML(htmlN.replace(/<script src="[^"]*"><\/script>/g, ''), {
+          runScripts: 'dangerously', url: BASE + '/bastidores/producao#turmas',
+          pretendToBeVisual: true, virtualConsole: vc,
+          beforeParse(w) {
+            w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+              addListener() {}, removeListener() {} });
+            w.alert = (m) => erros.push('ALERT: ' + m);
+            w.confirm = () => true;
+            w.fetch = (u, init) => {
+              const url = String(u);
+              let corpo = {};
+              try { corpo = JSON.parse((init && init.body) || '{}'); } catch (e) { corpo = {}; }
+              if (url.indexOf('/api/bastidores/impacto-da-inclusao') !== -1) {
+                pedidos.push({ rota: 'impacto', corpo });
+                const resposta = vinculada
+                  ? { ok: true, precisaDecisao: 'objetivo', impacto: impactoObjetivo }
+                  : { ok: true, precisaDecisao: null, motivo: 'sem-plano',
+                    aviso: 'esta Turma ainda não tem plano de ensino.' };
+                return Promise.resolve({ ok: true, status: 200,
+                  json: () => Promise.resolve(resposta), text: () => Promise.resolve('') });
+              }
+              if (url.indexOf('/api/bastidores/curadoria-derivar') !== -1) {
+                pedidos.push({ rota: 'derivar', corpo });
+                return Promise.resolve({ ok: true, status: 201,
+                  json: () => Promise.resolve({ ok: true, curadoria: CURADORIA_N }),
+                  text: () => Promise.resolve('') });
+              }
+              const generico = { ok: true, alunas: [], linhas: [], divergentes: [], campos: [],
+                grupos: [], curadorias: [CURADORIA_N], turmas: [SALA_N], elencos: [] };
+              return Promise.resolve({ ok: true, status: 200,
+                json: () => Promise.resolve(generico), text: () => Promise.resolve('') });
+            };
+          },
+        });
+        const w = dom.window;
+        const d = w.document;
+        const esperar = (ms) => new Promise((r) => w.setTimeout(r, ms || 400));
+        await esperar(400);
+        /* O FORMULÁRIO DA TURMA ABERTO NO MODO DERIVAR — é o estado em que o professor acrescenta
+         * um conteúdo. `cuderivar` é o id do elo de onde se deriva, e `cumodo` vazio é «derivar». */
+        w.eval(`(function(){
+          abrirOFormularioDe('sec-curadorias');
+          var a = document.getElementById('cuderivar'); if (a) a.value = 'cu-n';
+          var m = document.getElementById('cumodo'); if (m) m.value = '';
+          var s = document.getElementById('cuturma'); if (s) s.value = 'Rosa';
+          return true;
+        })()`);
+        await esperar(150);
+        const clicar = async (alvo) => {
+          if (!alvo) return false;
+          alvo.dispatchEvent(new w.MouseEvent('click', { bubbles: true, cancelable: true }));
+          await esperar(350);
+          return true;
+        };
+        /* O GESTO: escolher o «Battement jeté» no menu do conteúdo e carregar em «Adicionar». */
+        const escolherEJuntar = async (termo) => {
+          const sel = d.querySelector('#esc-conteudos select.opcoes');
+          if (!sel) return false;
+          sel.value = termo;
+          sel.dispatchEvent(new w.Event('change', { bubbles: true }));
+          const b = d.querySelector('#esc-conteudos .adicionar');
+          return clicar(b);
+        };
+        return { d, w, erros, pedidos, esperar, clicar, escolherEJuntar,
+          modal: () => d.getElementById('modal-objetivo'),
+          fichas: () => Array.prototype.slice.call(
+            d.querySelectorAll('#esc-conteudos .escolhido'))
+            .map((f) => f.getAttribute('data-valor')),
+          fechar: () => w.close() };
+      };
+
+      /* ── a Turma COM plano: a janela abre ao acrescentar ────────────────────── */
+      const cVin = await correrON(true);
+      conferir('a página da Produção corre com a janela do exercício novo', cVin.erros.length === 0,
+        cVin.erros.slice(0, 1));
+      conferir('…e o «Battement jeté» está no menu do conteúdo da Turma',
+        Boolean(cVin.d.querySelector('#esc-conteudos select.opcoes option[value="Battement jeté"]')),
+        null);
+      conferir('…e a ficha ainda NÃO existe antes do gesto', cVin.fichas().length === 0,
+        cVin.fichas());
+      await cVin.escolherEJuntar('Battement jeté');
+      conferir('acrescentar o exercício pergunta ao servidor o que ele muda',
+        cVin.pedidos.length === 1 && cVin.pedidos[0].rota === 'impacto',
+        cVin.pedidos.map((p) => p.rota));
+      conferir('…e diz de que exercício e de que Turma se trata',
+        cVin.pedidos[0] && cVin.pedidos[0].corpo.termo === 'Battement jeté'
+          && cVin.pedidos[0].corpo.curadoria === 'cu-n',
+        cVin.pedidos[0] && cVin.pedidos[0].corpo);
+      const mObj = cVin.modal();
+      conferir('…e a janela abre', !!mObj);
+      conferir('…e a FICHA AINDA NÃO ENTROU — o exercício só existe depois de declarado',
+        cVin.fichas().length === 0, cVin.fichas());
+      const opcoesObj = mObj ? mObj.querySelectorAll('input[name="obj-marco"]') : [];
+      conferir('…com os objetivos do plano, um por objectivo', opcoesObj.length === 2,
+        opcoesObj.length);
+      conferir('…e NENHUM vem pré-marcado — a escolha é do professor',
+        Array.prototype.every.call(opcoesObj, (o) => !o.checked),
+        Array.prototype.map.call(opcoesObj, (o) => o.checked));
+      conferir('…e as peças são as da folha (`modal`, `modal-caixa`, `escolhas`, `modal-acoes`)',
+        Boolean(mObj.querySelector('.modal-fundo')) && Boolean(mObj.querySelector('.modal-acoes'))
+          && Boolean(mObj.querySelector('fieldset.escolhas'))
+          && Boolean(mObj.querySelector('.modal-x')),
+        null);
+      conferir('…e o «Cancelar» está ao lado do «Gravar», e não depois dele',
+        (() => {
+          const acoes = mObj.querySelectorAll('.modal-acoes .acao');
+          return acoes.length === 2 && /Cancelar/.test(acoes[0].textContent)
+            && /Gravar/.test(acoes[1].textContent);
+        })(), mObj.querySelector('.modal-acoes').textContent);
+      /* O RESUMO DIZ O QUE VAI SAIR, e diz o contrário quando não há nada marcado — sem isso, o
+       * «Gravar» com a lista vazia seria um botão que não faz nada sem explicar porquê. */
+      conferir('…e o resumo começa por dizer que sem objetivo o exercício não entra em aula',
+        /não entra em aula nenhuma/.test((mObj.querySelector('#obj-resumo') || {}).textContent || ''),
+        (mObj.querySelector('#obj-resumo') || {}).textContent);
+      opcoesObj[1].checked = true;
+      opcoesObj[1].dispatchEvent(new cVin.w.Event('change', { bubbles: true }));
+      conferir('…e marcar um objetivo muda o resumo para o que vai ser declarado',
+        /objetivo\(s\) 2/.test((mObj.querySelector('#obj-resumo') || {}).textContent || ''),
+        (mObj.querySelector('#obj-resumo') || {}).textContent);
+      await cVin.clicar(cVin.d.getElementById('obj-gravar'));
+      conferir('…e gravar a decisão ACRESCENTA a ficha', cVin.fichas().indexOf('Battement jeté') !== -1,
+        cVin.fichas());
+      conferir('…e a janela fecha depois de decidir',
+        Boolean(cVin.modal() && cVin.modal().hidden), cVin.modal() && cVin.modal().hidden);
+      conferir('…e a declaração fica guardada, a espera do «Gravar» da Turma',
+        JSON.stringify(cVin.w.eval('OBJETIVOS_DECLARADOS'))
+          === JSON.stringify({ 'Battement jeté': [2] }),
+        cVin.w.eval('OBJETIVOS_DECLARADOS'));
+      /* O CORPO DO PEDIDO LEVA A DECLARAÇÃO — é o que faz a cadeia aplicá-la ao plano. */
+      await cVin.clicar(cVin.d.getElementById('cu-enviar'));
+      const doDerivar = cVin.pedidos.filter((p) => p.rota === 'derivar');
+      conferir('…e o «Gravar» da Turma envia a declaração no corpo',
+        doDerivar.length === 1
+          && JSON.stringify((doDerivar[0].corpo || {}).objetivosDoRepertorio)
+            === JSON.stringify({ 'Battement jeté': [2] }),
+        doDerivar.length ? doDerivar[0].corpo.objetivosDoRepertorio : 'sem pedido');
+      cVin.fechar();
+
+      /* ── a Turma SEM plano: a ficha entra, e não há janela ──────────────────── */
+      /* «pode ser que o estilo esteja com derivação em uma turma, mas essa turma ainda não foi
+       * elaborado o seu plano de ensino, então não faz sentido disparar o processo, porque aí é só
+       * custo». A ficha entra — o exercício é da Turma —, e a declaração nasce no plano. */
+      const cSem = await correrON(false);
+      await cSem.escolherEJuntar('Battement jeté');
+      conferir('na Turma sem plano a janela NÃO abre',
+        !cSem.modal() || cSem.modal().hidden, cSem.modal() && cSem.modal().hidden);
+      conferir('…e a ficha entra como sempre entrou',
+        cSem.fichas().indexOf('Battement jeté') !== -1, cSem.fichas());
+      cSem.fechar();
+
+      /* ── o CANCELAR, e o `Escape` ──────────────────────────────────────────── */
+      const cCancN = await correrON(true);
+      await cCancN.escolherEJuntar('Battement jeté');
+      await cCancN.clicar(cCancN.d.getElementById('obj-cancelar'));
+      conferir('o «Cancelar» da janela fecha e NÃO acrescenta ficha',
+        cCancN.fichas().length === 0 && Boolean(cCancN.modal() && cCancN.modal().hidden),
+        cCancN.fichas());
+      /* O `Escape` É O CONTRATO DA JANELA POR CIMA (20/11/2026): fecha, e não decide. */
+      await cCancN.escolherEJuntar('Battement jeté');
+      const mEsc = cCancN.modal();
+      mEsc.dispatchEvent(new cCancN.w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      await cCancN.esperar(100);
+      conferir('…e o `Escape` fecha a janela, sem acrescentar ficha',
+        Boolean(mEsc.hidden) && cCancN.fichas().length === 0,
+        { oculto: mEsc.hidden, fichas: cCancN.fichas() });
+      cCancN.fechar();
+    }
+  }
+
+  /* ========================================================================
    * M. AS ABAS 2 E 3 FECHAM COM UM ELENCO EM COMPOSIÇÃO (20/11/2026)
    *
    * «Se eu não pedir para esconder o recorte e a transferência quando eu estiver derivando ou

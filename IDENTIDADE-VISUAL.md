@@ -531,7 +531,7 @@ desenho.
 | **O resultado de uma ação** | `.res` | «ok», «erro», «gravando…» | barra acima da lista |
 | **Um alerta no meio do conteúdo** | `.aviso` | o que o leitor **não pode deixar passar** — o que impede o avanço | `<p class="aviso">` |
 | **Uma explicação que se procura** | `.ajuda` + `.explica` | o que o leitor procura **quando quer** — o que é o campo, o que preencher, a nota do conteúdo | `<button class="ajuda" aria-expanded>` + painel `hidden`; no telefone o painel sobe como folha |
-| **Uma janela por cima** | `.modal` (+ `.modal-fundo`, `.modal-caixa`, `.modal-cab`, `.modal-x`, `.modal-acoes`, e `.modal-largo` para o que não cabe em 440px) | decidir algo cuja consequência não se vê — a duração em minutos, uma exclusão. **É o último recurso**: abre só quando há decisão, e não para explicar, listar ou confirmar o que o sistema resolve sozinho | `modal-fundo` + `modal-caixa`; os botões são `.acao` dentro de `.modal-acoes`, **secundário primeiro** |
+| **Uma janela por cima** | `.modal` (+ `.modal-fundo`, `.modal-caixa`, `.modal-cab`, `.modal-x`, `.modal-acoes`, e `.modal-largo` para o que não cabe em 440px) | decidir algo cuja consequência não se vê — a duração em minutos, o objetivo a que serve um exercício novo, uma exclusão. **É o último recurso**: abre só quando há decisão, e não para explicar, listar ou confirmar o que o sistema resolve sozinho | `modal-fundo` + `modal-caixa`; os botões são `.acao` dentro de `.modal-acoes`, **secundário primeiro** |
 | **A barra do sistema** | `.topnav` | — | gerada por `nav-html.js`; **não** se escreve à mão |
 | **O índice da página** | `.toc-local` (+ `.toc-dobra`) | — | gerado; no celular recolhe |
 | **O menu de trabalho (a coluna)** | `.coluna` + `.folha-do-menu` (+ `.coluna-grupo`, `.coluna-titulo`, `.coluna-itens`, `.coluna-seta`, `.coluna-direto`, `.folha-puxador`) | o menu da escola: quatro destinos, e cada um leva a uma lista | gerado por `nav.js`; **não** se escreve à mão. Compacto: os grupos abrem no ponteiro; no celular é folha inferior. O menu dos Bastidores (`.lateral`) usa **as mesmas classes** — os dois são a mesma peça, e é por isso que se comportam e se vestem igual |
@@ -1015,6 +1015,9 @@ consequência ela não pode ver** — e só então. O caso canónico é a duraç
 | os blocos estão em **percentual** | **não** | a conta resolve-se sozinha: 30 % de 90 tempos são 27, de 165 são 49,5. Não há decisão nenhuma a tomar |
 | os blocos estão em **minutos** | **sim** | a soma tem de fechar com a duração, e os números foram escritos para a outra. Alguém tem de dizer quais são |
 | a duração mudou mas o volume é o mesmo | **não** | nada a decidir; e um modal com uma pergunta que não existe é um clique a mais |
+| um exercício novo entra no **conteúdo de uma Turma com plano** | **sim** | sem dizer a que objetivo ele serve, o exercício entra no repertório e não entra em aula nenhuma |
+| um exercício novo numa **Turma sem plano** | **não** | não há objetivos a que ligá-lo; a Turma fica em suspensão e o plano, quando nascer, leva o conteúdo |
+| mexer no **Estilo** | **não** | um exercício no Estilo nasce livre: não pertence a aula nenhuma, e nada a jusante depende dele |
 
 **A pergunta não começa por «Gravar».** A regra da casa — «não tem nada de gravar de um jeito,
 gravar de outro jeito, é só gravar» — é uma varredura de **texto**, e uma legenda «Gravar a
@@ -1056,6 +1059,34 @@ fechava-se com a primeira tecla.
 **O que um modal NÃO é.** Não é sítio para um formulário longo (é o `.modal-largo` com `.etapas`,
 que existe para o cadastro da escola), nem para uma lista de presença (é o `.eixo`, um acordeão), nem
 para uma explicação (é o `.explica`). Uma janela que abre para mostrar três linhas é o `.aviso`.
+
+#### O segundo caso — a janela do exercício novo *(20/11/2026)*
+
+**Onde ela abre, e é o que a distingue de todas as outras:** ao **acrescentar a ficha no conteúdo da
+Turma**, e nunca no Estilo. «Quando eu acrescento um exercício com verbete novo no estilo, ele nasce
+como livre. […] Em que momento então é formado o elemento do exercício que vai para o caderno? É na
+turma, a antiga curadoria. […] quando eu mando adicionar o Batman GT é que o modal tem que aparecer.»
+E só com a Turma **vinculada**: sem plano de ensino não há objetivos a que ligar o exercício, e
+disparar aí «é só custo».
+
+**A pergunta também não começa por «Gravar»:** *«A que objetivo «Battement jeté» serve?»* — com os
+objetivos do plano, um por um, **sem pré-seleção**. Nenhum vem marcado porque escolher o objetivo é
+a declaração pedagógica: um pré-marcado seria o sistema a decidir pedagogia com um clique a menos.
+
+**A ficha só nasce depois do «Gravar».** É a diferença que faz a janela valer: incluir sem declarar
+é incluir um exercício que nunca entra em aula, e o sistema não pergunta sobre um facto consumado.
+
+**E aqui o `×`, o fundo, o `Escape` e o `Cancelar` fazem a mesma coisa — fechar sem escrever nada.**
+Não é uma quebra da tabela de cima: é a mesma regra lida ao contrário. A diferença entre fechar e
+desistir nasce na janela da duração porque ela **interrompe um pedido já feito**, e o «Cancelar» tem
+um formulário de trás para limpar. Esta não interrompe nada e não tem formulário nenhum atrás — o
+que havia para abandonar ainda não foi escrito. Um «Cancelar» que fizesse outra coisa seria a
+diferença a inventar um efeito que não existe.
+
+**O resumo anda com as caixas.** Antes de gravar, a linha diz o que vai sair («o parâmetro de
+medição passa a observar «X» no(s) objetivo(s) 2»); sem nada marcado, diz a consequência («o
+exercício não entra em aula nenhuma»). Um botão que não faz nada sem explicar porquê é pior do que
+um botão desactivado.
 
 **Prova.** `experimentos/provar-salas-e-elencos.js`, secção L — **193 asserções**: o modal só abre
 em minutos; os botões são dois, o secundário primeiro, o «Cancelar» com `type="button"`; o `Escape`

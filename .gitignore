@@ -1700,3 +1700,10 @@ experimentos/modelo-formulario/*
 # bloqueio. É citada no REGISTRO e no rodapé `Auditoria:` do commit, e um arquivo citado que não
 # existe no clone é uma afirmação que ninguém pode conferir.
 !experimentos/provar-a-pergunta-da-duracao.js
+# O EXERCÍCIO NOVO (20/11/2026). Décima terceira vez. Mede o núcleo que a janela da Turma abriu: a
+# declaração do objetivo entra no parâmetro E no `repertorio` do plano — sem o segundo,
+# `parametroEmLinhas` filtra-a de volta e o documento sai como se nunca tivesse existido —, aplica
+# uma vez e só uma, e não aplica o que a Turma não acordou nem o que o plano não sabe medir. É
+# citada no REGISTRO e no rodapé `Auditoria:` do commit, e um arquivo citado que não existe no
+# clone é uma afirmação que ninguém pode conferir.
+!experimentos/provar-o-exercicio-novo.js

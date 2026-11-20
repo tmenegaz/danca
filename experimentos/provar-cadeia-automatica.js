@@ -489,6 +489,82 @@ async function ids(arm, familia) {
   }
 
   // ==========================================================================
+  console.log('\nB3. O EXERCÍCIO NOVO CHEGA AO PARÂMETRO — a declaração da Turma (20/11/2026)');
+
+  /* A DECLARAÇÃO NASCE NA TURMA E É A DERIVAÇÃO QUE A ESCREVE NO PLANO. A pergunta «a que objetivo
+   * serve este exercício?» foi feita ao acrescentar a ficha ao conteúdo da Turma; a resposta viajou
+   * no pedido (`declaracoes`), e o elo novo do plano tem de nascer com ela em `aula-1-parametro`
+   * — que é a matriz que o documento imprime como «**1** reconhecer… — observa: …».
+   *
+   * E COM ELA NO `repertorio` DO PLANO. Sem isso, `parametroEmLinhas` filtra o termo de volta (ele
+   * confere o parâmetro contra o repertório do próprio plano, e não contra o da Turma): a
+   * declaração seria escrita e apagada na leitura, e o documento sairia como se nunca tivesse
+   * existido. É o efeito que esta secção existe para tornar impossível.
+   */
+  {
+    const comONovo = curadoria({ repertorio: ['Battement tendu', 'Battement jeté'] });
+    const { cadeia, arm } = montar({ curadorias: [comONovo] });
+    await semear(arm);
+
+    const r = await cadeia.executar({
+      gatilho: 'troca-de-direcao', turmas: [TURMA], quando: QUANDO,
+      motivo: 'o «Battement jeté» entrou no conteúdo desta Turma',
+      declaracoes: { 'Battement jeté': [1] },
+    });
+    provar('a travessia corre com a declaração declarada', r.ok === true,
+      { erro: r.erro, etapas: (r.alvos || []).map((a) => a.etapas.map((e) => e.chave + ':' + e.estado)) });
+    const novos = (await ids(arm, 'plano')).filter((x) => x !== 'plano-20261103-2200');
+    provar('…e há UM elo novo de plano', novos.length === 1, novos);
+    const novo = novos.length ? await porta.lerEnvelope(arm, novos[0]) : null;
+    const matriz = ((novo && novo.respostas['aula-1-parametro']) || {});
+    const linhaDoUm = (matriz.valor || matriz || []).find((l) => Number(l.marco) === 1) || {};
+    provar('…e o objetivo 1 passa a observar o exercício novo',
+      (linhaDoUm.marcados || []).indexOf('Battement jeté') !== -1, linhaDoUm.marcados);
+    provar('…e o que já lá estava não se perde',
+      (linhaDoUm.marcados || []).indexOf('Battement tendu') !== -1, linhaDoUm.marcados);
+    const repDoNovo = ((novo && novo.respostas.repertorio) || {});
+    const listaDoNovo = repDoNovo.valor !== undefined ? repDoNovo.valor : repDoNovo;
+    provar('…e o termo entra na lista acordada do PLANO, senão é escrito e apagado na leitura',
+      (Array.isArray(listaDoNovo) ? listaDoNovo : [listaDoNovo]).indexOf('Battement jeté') !== -1,
+      listaDoNovo);
+
+    /* O ELO ANTERIOR NÃO SE TOCA — a proveniência acrescenta. */
+    const antes = await porta.lerEnvelope(arm, 'plano-20261103-2200');
+    const matrizAntes = ((antes.respostas['aula-1-parametro'] || {}).valor
+      || antes.respostas['aula-1-parametro'] || []);
+    provar('…e o elo ANTERIOR continua sem o exercício novo',
+      (matrizAntes.find((l) => Number(l.marco) === 1) || {}).marcados, ['Battement tendu']);
+
+    /* A SEGUNDA DERIVAÇÃO NÃO REAPLICA. O professor que desmarcar o exercício no plano não pode
+     * vê-lo voltar em cada elo — e é esta metade que torna a regra utilizável e não uma armadilha. */
+    const r2 = await cadeia.executar({
+      gatilho: 'troca-de-direcao', turmas: [TURMA], quando: QUANDO,
+      motivo: 'a mesma declaração outra vez',
+      declaracoes: { 'Battement jeté': [1] },
+    });
+    const todos = (await ids(arm, 'plano')).filter((x) => x !== 'plano-20261103-2200');
+    const segundo = await porta.lerEnvelope(arm, todos[todos.length - 1]);
+    const matriz2 = ((segundo && segundo.respostas['aula-1-parametro']) || {});
+    const marcos2 = (matriz2.valor || matriz2 || []).find((l) => Number(l.marco) === 1) || {};
+    provar('…e a derivação seguinte não duplica o termo na matriz',
+      (marcos2.marcados || []).filter((t) => t === 'Battement jeté').length, 1);
+    provar('…e a segunda travessia correu', r2.ok === true, r2.erro);
+
+    /* O CONTROLE NEGATIVO: sem declaração, o elo novo nasce como nasceria antes desta alteração. */
+    const { cadeia: c2, arm: arm2 } = montar({ curadorias: [comONovo] });
+    await semear(arm2);
+    await c2.executar({
+      gatilho: 'troca-de-direcao', turmas: [TURMA], quando: QUANDO, motivo: 'sem declaração',
+    });
+    const novos2 = (await ids(arm2, 'plano')).filter((x) => x !== 'plano-20261103-2200');
+    const novo2 = novos2.length ? await porta.lerEnvelope(arm2, novos2[0]) : null;
+    const matriz3 = ((novo2 && novo2.respostas['aula-1-parametro']) || {});
+    const marcos3 = (matriz3.valor || matriz3 || []).find((l) => Number(l.marco) === 1) || {};
+    provar('CONTROLE NEGATIVO: sem declaração, o parâmetro fica como estava',
+      marcos3.marcados, ['Battement tendu']);
+  }
+
+  // ==========================================================================
   console.log('\nC. O REGISTO INCOMPLETO — avança até onde pode, e diz o que falta');
 
   {

@@ -34,6 +34,10 @@
 const nucleoCadeia = require('../nucleo/cadeia.js');
 /* A faixa e o reescalonamento do volume vivem num sítio só (20/11/2026). */
 const volume = require('../nucleo/volume.js');
+/* A DECLARAÇÃO DO OBJECTIVO — o exercício que entra na Turma e passa a ser observado por um
+ * objectivo (20/11/2026). O núcleo pensa; esta camada passa-lhe as respostas do elo anterior e
+ * grava o elo novo. Ver `motor/nucleo/objetivos-do-repertorio.js`. */
+const objetivosDoRepertorio = require('../nucleo/objetivos-do-repertorio.js');
 // O RITMO que a Sala declara, na forma das respostas do plano (09/11/2026).
 const { respostasDoRitmo, acharTurma } = require('./compor-conf.js');
 /* A pergunta «isto é orçamento?» tem dono — o módulo que conta os subpedidos. Há duas frases
@@ -82,6 +86,17 @@ function criarCadeia({
     return Array.isArray(c && c.turmas) && c.turmas.length
       ? c.turmas.map((t) => String(t || '').trim()).filter(Boolean)
       : [String((c && c.turma) || '').trim()].filter(Boolean);
+  }
+
+  /**
+   * O CONTEÚDO ACORDADO DA TURMA — os exercícios que ela declara ensinar.
+   *
+   * É a régua da declaração do objectivo: só se declara um exercício que a Turma acordou. A lista é
+   * a do registo, e não a do pedido: a derivação acabou de gravar o elo com o exercício novo dentro,
+   * e é esse o estado que vale.
+   */
+  function repertorioDaCuradoria(c) {
+    return objetivosDoRepertorio.termosLimpios(c && c.repertorio);
   }
 
   /** O plano VIGENTE de uma turma — o que nenhum sucessor substituiu. `null` se não houver. */
@@ -419,7 +434,7 @@ function criarCadeia({
    * em tudo menos nos quatro campos que são do cadastro: esses são substituídos pelo valor de
    * hoje, e é isso que faz o documento novo dizer o horário novo.
    */
-  async function derivarPlano({ anterior, curadoria, turma, motivo, sala, ajusteDeVolume }) {
+  async function derivarPlano({ anterior, curadoria, turma, motivo, sala, ajusteDeVolume, declaracoes }) {
     // A GUARDA DA AUTORIA VEM ANTES DE TUDO (12/11/2026): sem ela, o elo novo recebia o nome do
     // professor de hoje sobre o texto do professor de ontem. Ver `autoriaIntacta`.
     if (!autoriaIntacta(anterior, curadoria, sala)) {
@@ -466,6 +481,31 @@ function criarCadeia({
             + ' para ' + ajusteDeVolume.paraMin + ' minutos, pela proporção que estava declarada';
         }
       }
+    }
+    /* A DECLARAÇÃO DO OBJECTIVO ENTRA ANTES DA GRAVAÇÃO (20/11/2026).
+     *
+     * É a única coisa que o exercício novo precisa: o objectivo que ele serve. A pergunta foi feita
+     * na TURMA, ao acrescentar a ficha, e a resposta chegou aqui — o elo novo nasce com o exercício
+     * na matriz do parâmetro, e com ele na lista acordada do plano.
+     *
+     * PORQUE AQUI, E NÃO ANTES: `aula-1-parametro` e `repertorio` são as RESPOSTAS do plano, e é a
+     * partir delas que o documento e a fonte do ciclo se compõem. Escrever depois de gravar seria
+     * gravar duas vezes e reescrever o que já estava escrito.
+     *
+     * A REGRA DE QUEM NÃO SE APLICA DUAS VEZES é do núcleo (`estadoDaDeclaracao`): um exercício que
+     * a aula já usa não volta a ser declarado, e é isso que deixa o professor desmarcar no plano
+     * sem que a Turma lhe reponha a marca em cada derivação. */
+    let declaracaoAplicada = null;
+    if (declaracoes) {
+      const r = objetivosDoRepertorio.aplicarDeclaracoes({
+        respostas,
+        declaracoes,
+        /* A lista ACORDADA da Turma — a que acabou de gravar, com o exercício novo dentro. Sem ela
+         * o núcleo recusaria a declaração: declarar o que a Turma não acordou seria escrever
+         * pedagogia que ninguém decidiu. */
+        repertorio: repertorioDaCuradoria(curadoria),
+      });
+      if (r.aplicadas.length) declaracaoAplicada = r.aplicadas;
     }
     /* A IDENTIDADE VAI COM O ELO (10/11/2026) — nas RESPOSTAS, que é o que o documento imprime.
      * O NOME É O DO AUTOR (12/11/2026): o do documento anterior, que é — pela guarda acima — o
@@ -517,7 +557,7 @@ function criarCadeia({
      * contra o relógio da aula. «Não tem relação com o tempo de trabalho. Ele vai dosar isso com o
      * que tem.» Mudar a duração não põe a dose em causa, e um aviso que a mandasse rever seria um
      * aviso falso. Ver `motor/nucleo/volume.js`. */
-    return { ok: true, id: envelope && envelope.id, de: anterior.id, fonte, avisos };
+    return { ok: true, id: envelope && envelope.id, de: anterior.id, fonte, avisos, declaracaoAplicada };
   }
 
   /**
@@ -681,7 +721,7 @@ function criarCadeia({
       : { plano: null, herdado: false, de: null, deOutro };
   }
 
-  async function porTurma({ turma, curadoria, elenco, quando, motivo, ajusteDeVolume }) {
+  async function porTurma({ turma, curadoria, elenco, quando, motivo, ajusteDeVolume, declaracoes }) {
     /* A SALA DE HOJE VAI COM O ESTADO (19/11/2026) — é dela que sai a DIREÇÃO, e não da cópia que
      * a curadoria guarda. Uma leitura por alvo, e a mesma que a derivação já fazia para o ritmo. */
     const sala = await salaDaTurma(turma);
@@ -758,7 +798,7 @@ function criarCadeia({
     let planoNovo = plano;
     const passoPlano = etapas.find((e) => e.chave === 'plano-de-ensino');
     if (passoPlano && passoPlano.estado === 'pendente') {
-      const r = await derivarPlano({ anterior: plano, curadoria, turma, motivo, sala, ajusteDeVolume });
+      const r = await derivarPlano({ anterior: plano, curadoria, turma, motivo, sala, ajusteDeVolume, declaracoes });
       if (r.ok) {
         marcar('plano-de-ensino', 'feita', { id: r.id, detalhe: 'elo novo: ' + r.de + ' → ' + r.id });
         planoNovo = await porta.lerEnvelope(armazenamento, String(r.id)) || plano;
@@ -952,7 +992,7 @@ function criarCadeia({
    * A EXECUÇÃO. `elencos` (a troca e a saída) e `turmas` (a troca de direção) dizem onde a
    * mudança tocou; a cadeia resolve as Turmas e corre uma a uma.
    */
-  async function executar({ gatilho, elencos = [], turmas = [], quando, motivo, ajusteDeVolume } = {}) {
+  async function executar({ gatilho, elencos = [], turmas = [], quando, motivo, ajusteDeVolume, declaracoes } = {}) {
     const agora = quando || (carimbar ? carimbar() : new Date().toISOString());
     /* O ORÇAMENTO DO PEDIDO — A TRAVESSIA NÃO COMEÇA O QUE NÃO CABE (09/11/2026).
      *
@@ -1006,7 +1046,7 @@ function criarCadeia({
       for (const c of alvos) {
         const turma = turmasDe(c)[0] || '';
         const elenco = c.linhaDeBase ? (porId.get(String(c.linhaDeBase)) || null) : null;
-        const r = await porTurma({ turma, curadoria: c, elenco, quando: agora, motivo, ajusteDeVolume });
+        const r = await porTurma({ turma, curadoria: c, elenco, quando: agora, motivo, ajusteDeVolume, declaracoes });
         /* OS AVISOS SOBEM AO TOPO (20/11/2026). A tela do gesto lê `cadeia` inteira, e um aviso
          * enterrado em `alvos[0].avisos` não se vê — foi exactamente o que aconteceu com a faixa
          * que faltava: `ok: true`, quatro etapas «feita», e o CI a recusar dois minutos depois. */

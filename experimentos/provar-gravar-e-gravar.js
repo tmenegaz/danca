@@ -117,7 +117,12 @@ async function principal() {
   const ocorrencias = (marcacao.match(/>Gravar</g) || []).length;
   provar('o rótulo aparece exactamente oito vezes na marcação', ocorrencias === 8, ocorrencias);
   const noScript = (scriptDaPagina.match(/>Gravar</g) || []).length;
-  provar('…e uma no script, a do modal da duração', noScript === 1, noScript);
+  /* DUAS NO SCRIPT, E SÃO AS DUAS JANELAS (20/11/2026): a da duração e a do exercício novo. A conta
+   * passou de uma para duas no dia em que a segunda nasceu — e mantém-se uma CONTA, e não uma
+   * tolerância: se aparecer a terceira sem passar por aqui, a asserção avisa. */
+  provar('…e duas no script, as duas janelas (a duração e o exercício novo)', noScript === 2, noScript);
+  provar('…e são elas, e não outra coisa',
+    /id=\\"dur-gravar\\"/.test(scriptDaPagina) && /id=\\"obj-gravar\\"/.test(scriptDaPagina), null);
 
   /* A VARREDURA QUE FALTAVA (20/11/2026) — e a falta dela custou um defeito meu.
    *

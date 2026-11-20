@@ -183,6 +183,8 @@ const transferencia = require('../nucleo/transferencia.js');
 const nucleoCadeia = require('../nucleo/cadeia.js');
 /* A faixa de volume e o reescalonamento da distribuição (20/11/2026). */
 const volume = require('../nucleo/volume.js');
+/* A declaração do objetivo — a que exercício serve o exercício novo na Turma (20/11/2026). */
+const objetivosDoRepertorio = require('../nucleo/objetivos-do-repertorio.js');
 const desligamento = require('../nucleo/desligamento.js');
 // OS TRÊS ESTADOS DA TURMA (03/11/2026) — livre, curada, vinculada. O professor já tinha três
 // (livre → curado → vinculado) e a turma tinha dois: uma turma que já compunha uma curadoria
@@ -2643,6 +2645,38 @@ function curadoriaVinculadaA(pares, c) {
   const professor = String((c && c.professor) || '').trim();
   const turmas = turmasDaCuradoria(c);
   return pares.some((p) => p.professor === professor && turmas.indexOf(p.turma) !== -1);
+}
+
+/**
+ * AS DECLARAÇÕES DE OBJETIVO QUE A TURMA PASSA A GUARDAR (20/11/2026).
+ *
+ * A Turma guarda `{exercício: [objetivo, …]}` ao lado do `repertorio`. Três regras, e cada uma tem
+ * um motivo:
+ *
+ * 1. **O QUE CHEGA SOMA; o que já estava FICA.** O corpo traz só as declarações que a janela fez
+ *    neste gesto — uma, quase sempre. Substituir o mapa inteiro apagaria as anteriores, que ninguém
+ *    pediu para apagar (P-03/P-04: a proveniência acrescenta).
+ * 2. **SÓ FICA O QUE AINDA É CONTEÚDO.** Um exercício que saiu do repertório leva consigo a
+ *    declaração: guardar o objetivo de um exercício que a Turma já não ensina é uma linha sem
+ *    sujeito — a mesma regra da linha órfã.
+ * 3. **O QUE A JANELA NÃO RESPONDEU NÃO SE INVENTA.** Um exercício novo sem declaração fica sem
+ *    ela e entra no repertório como sempre entrou; a declaração nasce na derivação seguinte, ou no
+ *    plano. O sistema não escolhe pedagogia para fechar uma lista.
+ */
+function declaracoesDaTurma(anterior, corpo, repertorioFinal) {
+  const dadas = objetivosDoRepertorio.declaracoesLidas(corpo && corpo.objetivosDoRepertorio);
+  const juntas = new Map();
+  const mapaAnterior = objetivosDoRepertorio.declaracoesEmMapa(
+    objetivosDoRepertorio.declaracoesLidas(anterior && anterior.objetivosDoRepertorio));
+  for (const [termo, marcos] of Object.entries(mapaAnterior)) juntas.set(termo, marcos.slice());
+  for (const d of dadas) juntas.set(d.termo, d.objetivos.slice());
+  const daTurma = objetivosDoRepertorio.termosLimpios(repertorioFinal);
+  const saida = {};
+  for (const [termo, marcos] of juntas.entries()) {
+    if (daTurma.length && daTurma.indexOf(termo) === -1) continue;
+    saida[termo] = marcos;
+  }
+  return saida;
 }
 
 /**
@@ -13457,6 +13491,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    var fonte = el.querySelector("select.opcoes");' +
     '    var valor = fonte ? fonte.value : "";' +
     '    if (!valor) { alert("Escolha um item antes de adicionar."); return; }' +
+    /* O CONTEÚDO DA TURMA PASSA PELA JANELA (20/11/2026) — e só ele. É o único sítio da página onde
+     * acrescentar um exercício pode ter consequência no plano de ensino; nos outros escolhedores
+     * (as alunas, os blocos) a ficha entra como sempre entrou. Ver `pedirOObjetivo`: quem decide se
+     * há pergunta é o servidor, e a Turma sem plano não a tem. */
+    '    if (el.id === "esc-conteudos" && turmaVinculadaEmDerivacao()) {' +
+    '      pedirOObjetivo(el, valor, fonte);' +
+    '      return;' +
+    '    }' +
     '    if (adicionarFicha(el, valor)) fonte.value = "";' +
     '    return;' +
     '  }' +
@@ -14118,6 +14160,143 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  });' +
     '  var primeiro = document.getElementById("dur-gravar");' +
     '  if (primeiro) primeiro.focus();' +
+    '}' +
+    /* =====================================================================================
+     * A JANELA DO EXERCÍCIO NOVO — a que objectivo ele serve (20/11/2026).
+     *
+     * ONDE ELA ABRE, e é o que a distingue da janela do Estilo: **ao acrescentar a ficha no
+     * conteúdo da Turma**. «Quando eu vou derivar a turma é que vai nascer esse modal. […] eu
+     * escolho o conteúdo do estilo no formulário […] e aí eu quando mando adicionar o Batman GT é
+     * que o modal tem que aparecer.» Mexer no Estilo não abre nada — um exercício no Estilo nasce
+     * LIVRE, e não pertence a aula nenhuma.
+     *
+     * E SÓ QUANDO A TURMA JÁ TEM PLANO. Sem plano não existem objectivos a que ligar o exercício: a
+     * Turma está «em suspensão», e o plano, quando nascer, puxa o envelope dela. Disparar aí «é só
+     * custo». Quem sabe se a Turma tem plano é o `VINCULADAS`, que já veio com a página.
+     *
+     * PORQUE O EXERCÍCIO NÃO É ACRESCENTADO ANTES DA RESPOSTA. Incluir sem dizer o objectivo é
+     * incluir um exercício que nunca entra em aula — ele fica no menu e ninguém o escolhe. Por isso
+     * a ficha só nasce depois do «Gravar»: o modal não pergunta sobre um facto consumado.
+     *
+     * E é também por isso que aqui o «×», o fundo e o `Escape` fazem o mesmo que o «Cancelar»: nada
+     * foi escrito, e não há meio-gesto para abandonar. A diferença que a janela da duração tem entre
+     * fechar e cancelar nasce de ela interromper um pedido já feito — este não interrompe nada.
+     * ===================================================================================== */
+    'var OBJETIVOS_DECLARADOS = {};' +
+    'function turmaVinculadaEmDerivacao(){' +
+    '  var alvo = (document.getElementById("cuderivar") || {}).value || "";' +
+    '  var modo = (document.getElementById("cumodo") || {}).value || "";' +
+    '  if (!alvo || modo === "editar") return "";' +
+    '  return (typeof VINCULADAS !== "undefined" && VINCULADAS && VINCULADAS[alvo]) ? alvo : "";' +
+    '}' +
+    'function perguntarOObjetivo(impacto, valor, aoGravar){' +
+    '  var antigo = document.getElementById("modal-objetivo");' +
+    '  if (antigo && antigo.parentNode) antigo.parentNode.removeChild(antigo);' +
+    '  var marcos = (impacto && impacto.marcos) || [];' +
+    /* A LISTA DOS OBJECTIVOS, SEM PRÉ-SELEÇÃO. A escolha é a declaração pedagógica, e um
+     * pré-marcado seria o sistema a decidir pedagogia com um clique a menos. */
+    '  var escolhas = "";' +
+    '  for (var k = 0; k < marcos.length; k++) {' +
+    '    escolhas += "<label class=\\"escolha\\"><input type=\\"checkbox\\" name=\\"obj-marco\\""' +
+    '      + " value=\\"" + marcos[k].n + "\\"><span>" + marcos[k].n + " — " + textoDoPlano(marcos[k].texto) + "</span></label>";' +
+    '  }' +
+    '  var recurso = impacto && impacto.blocos && impacto.blocos.length' +
+    '    ? "<p class=\\"etapa-campo largo\\"><span class=\\"fatos\\"><span>Onde estes objetivos são trabalhados: " + textoDoPlano(impacto.blocos.join(" · ")) + "</span></span></p>"' +
+    '    : "";' +
+    '  var ja = impacto && impacto.linhasDoItem10' +
+    '    ? "<p class=\\"etapa-campo largo\\"><span class=\\"fatos\\"><span>O item 10 já tem " + impacto.linhasDoItem10 + " linha(s) com este exercício.</span></span></p>"' +
+    '    : "";' +
+    '  var caixa = document.createElement("div");' +
+    '  caixa.className = "modal";' +
+    '  caixa.id = "modal-objetivo";' +
+    '  caixa.innerHTML =' +
+    '    "<div class=\\"modal-fundo\\" data-fechar-objetivo></div>"' +
+    '    + "<div class=\\"modal-caixa\\" role=\\"dialog\\" aria-modal=\\"true\\" aria-labelledby=\\"obj-titulo\\">"' +
+    '    + "  <div class=\\"modal-cab\\"><h2 id=\\"obj-titulo\\">Este exercício é novo nesta Turma</h2>"' +
+    '    + "  <button class=\\"modal-x\\" id=\\"obj-x\\" type=\\"button\\" aria-label=\\"Fechar\\">&times;</button></div>"' +
+    '    + "  <form class=\\"form\\" id=\\"form-objetivo\\" novalidate>"' +
+    '    + "    <div class=\\"etapa-campos\\">"' +
+    '    + "      <p class=\\"etapa-campo largo\\">A que objetivo «" + textoDoPlano(valor) + "» serve? O parâmetro de medição é o que diz, em cada objetivo, o que você vai observar.</p>"' +
+    '    + "      <fieldset class=\\"escolhas etapa-campo largo\\"><legend class=\\"campo-rotulo\\">Objetivos desta aula</legend>"' +
+    '    + escolhas' +
+    '    + "      </fieldset>" + recurso + ja' +
+    '    + "      <p class=\\"etapa-campo largo\\" id=\\"obj-resumo\\"><span class=\\"fatos\\"><span>Sem objetivo marcado, o exercício não entra em aula nenhuma.</span></span></p>"' +
+    '    + "    </div>"' +
+    '    + "    <div class=\\"modal-acoes\\">"' +
+    '    + "      <button class=\\"acao secundario\\" id=\\"obj-cancelar\\" type=\\"button\\">Cancelar</button>"' +
+    '    + "      <button class=\\"acao\\" id=\\"obj-gravar\\" type=\\"submit\\">Gravar</button>"' +
+    '    + "    </div>"' +
+    '    + "  </form>"' +
+    '    + "</div>";' +
+    '  (document.body || document.documentElement).appendChild(caixa);' +
+    '  function fechar(){ caixa.hidden = true; document.removeEventListener("keydown", aoEsc); }' +
+    '  function aoEsc(ev){ if (ev.key === "Escape") fechar(); }' +
+    '  document.addEventListener("keydown", aoEsc);' +
+    '  document.getElementById("obj-x").addEventListener("click", fechar);' +
+    '  document.getElementById("obj-cancelar").addEventListener("click", fechar);' +
+    '  var fundo = caixa.querySelector("[data-fechar-objetivo]");' +
+    '  if (fundo) fundo.addEventListener("click", fechar);' +
+    /* O RESUMO ANDA COM AS CAIXAS: a pessoa lê o que vai sair antes de gravar, e não depois. */
+    '  function resumir(){' +
+    '    var marcados = [];' +
+    '    var cs = caixa.querySelectorAll("input[name=\\"obj-marco\\"]:checked");' +
+    '    for (var j = 0; j < cs.length; j++) marcados.push(Number(cs[j].value));' +
+    '    var alvo = caixa.querySelector("#obj-resumo");' +
+    '    if (!alvo) return;' +
+    '    alvo.textContent = marcados.length' +
+    '      ? "O parâmetro de medição passa a observar «" + valor + "» no(s) objetivo(s) " + marcados.join(", ") + "."' +
+    '      : "Sem objetivo marcado, o exercício não entra em aula nenhuma.";' +
+    '  }' +
+    '  var todas = caixa.querySelectorAll("input[name=\\"obj-marco\\"]");' +
+    '  for (var t = 0; t < todas.length; t++) todas[t].addEventListener("change", resumir);' +
+    '  document.getElementById("form-objetivo").addEventListener("submit", function(ev){' +
+    '    ev.preventDefault();' +
+    '    var marcados = [];' +
+    '    var cs = caixa.querySelectorAll("input[name=\\"obj-marco\\"]:checked");' +
+    '    for (var j = 0; j < cs.length; j++) marcados.push(Number(cs[j].value));' +
+    '    fechar();' +
+    '    if (marcados.length) aoGravar(marcados);' +
+    '    else recado("aviso", "Sem objetivo marcado o exercício não é incluído — incluir sem dizer a que objetivo serve é não o incluir.");' +
+    '  });' +
+    '  var primeiro = document.getElementById("obj-gravar");' +
+    '  if (primeiro) primeiro.focus();' +
+    '}' +
+    /* O PEDIDO QUE ENCHE A JANELA — e o que fazer quando a Turma ainda não tem plano. A resposta
+     * `precisaDecisao` é a mesma forma da duração: se não houver nada a perguntar, a ficha entra
+     * como sempre entrou. */
+    'function pedirOObjetivo(el, valor, fonte){' +
+    '  var alvo = turmaVinculadaEmDerivacao();' +
+    '  if (!alvo) { if (adicionarFicha(el, valor)) { if (fonte) fonte.value = ""; } return; }' +
+    '  recado("", "a ver o que este exercício muda\\u2026");' +
+    '  fetch("/api/bastidores/impacto-da-inclusao", {' +
+    '    method: "POST", headers: {"Content-Type": "application/json"},' +
+    '    body: JSON.stringify({token: TOKEN, curadoria: alvo, termo: valor})' +
+    '  }).then(function(r){ return r.json(); }).then(function(d){' +
+    '    if (!d || !d.ok) {' +
+    /* A FALHA NÃO BLOQUEIA O GESTO: a ficha entra e a declaração fica para a próxima derivação. Ao
+     * contrário da duração — onde gravar sem decidir gravaria números errados —, aqui gravar sem
+     * declarar não estraga nada: o exercício entra no repertório e não entra em aula, que é
+     * exactamente o estado de hoje. Dizer o motivo é o que permite repetir. */
+    '      if (adicionarFicha(el, valor) && fonte) fonte.value = "";' +
+    '      recado("aviso", "Não consegui ver o impacto deste exercício: " + ((d && d.erro) || "erro") + "."' +
+    '        + " A ficha entrou, e a declaração do objetivo fica para a próxima derivação.");' +
+    '      return;' +
+    '    }' +
+    '    if (d.precisaDecisao !== "objetivo") {' +
+    '      if (adicionarFicha(el, valor) && fonte) fonte.value = "";' +
+    '      recado("", "");' +
+    '      return;' +
+    '    }' +
+    '    recado("", "");' +
+    '    perguntarOObjetivo(d.impacto, valor, function(marcados){' +
+    '      OBJETIVOS_DECLARADOS[valor] = marcados;' +
+    '      if (adicionarFicha(el, valor) && fonte) fonte.value = "";' +
+    '    });' +
+    '  }).catch(function(err){' +
+    '    if (adicionarFicha(el, valor) && fonte) fonte.value = "";' +
+    '    recado("aviso", "Não consegui ver o impacto deste exercício: " + err.message' +
+    '      + ". A ficha entrou, e a declaração do objetivo fica para a próxima derivação.");' +
+    '  });' +
     '}' +
     'document.getElementById("t-enviar").addEventListener("click", function(){' +
     '  irParaPassoTurma("vincular");' +
@@ -19461,7 +19640,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // OS CONTEÚDOS VÃO NO CORPO (03/11/2026) — são eles a associação, e não um segundo mapa.
     // Vai SEMPRE, mesmo vazio: o servidor distingue «não trouxe» de «trouxe nenhum», e limpar a
     // lista é uma declaração (tirar o último conteúdo), não uma omissão.
-    '    repertorio: fichasDe("esc-conteudos")' +
+    '    repertorio: fichasDe("esc-conteudos"),' +
+    /* A DECLARAÇÃO VAI NO MESMO CORPO (20/11/2026). É o mapa `{exercício: [objetivo, …]}` que a
+     * janela encheu, e vai SEMPRE — mesmo vazio, como o `repertorio`: o servidor distingue «não
+     * trouxe» de «trouxe nenhum». */
+    '    objetivosDoRepertorio: OBJETIVOS_DECLARADOS' +
     '  };' +
     // CRIAR, EDITAR ou DERIVAR — a mesma bifurcação da turma (16/10/2026). Criar e editar vão
     // para a mesma rota (o id é o par professor+modalidade); o que os separa é a regra no
@@ -26611,6 +26794,13 @@ function parDaSalaNoCorpo(corpo, registo) {
       repertorio: Array.isArray(corpo.repertorio)
         ? corpo.repertorio.map((x) => String(x).trim()).filter(Boolean)
         : ((atual && atual.repertorio) || []),
+      /* A DECLARAÇÃO DO OBJETIVO (20/11/2026). Numa Turma que nasce não há plano — logo não há
+       * janela —, mas o campo existe para o registo ser o mesmo em todos os elos: um dia a
+       * declaração pode chegar por aqui, e um elo sem o campo obrigaria a um `if` em cada leitura. */
+      objetivosDoRepertorio: declaracoesDaTurma(atual, corpo,
+        Array.isArray(corpo.repertorio)
+          ? corpo.repertorio.map((x) => String(x).trim()).filter(Boolean)
+          : ((atual && atual.repertorio) || [])),
       alunas: alunasPedidas,
     };
     /* PROCURA-SE O OBJECTO, NÃO O ID (10/11/2026). Aqui esteve `findIndex((c) => c.id ===
@@ -26664,6 +26854,83 @@ function parDaSalaNoCorpo(corpo, registo) {
       }
     }
     return json(201, { ok: true, curadoria: nova, criada: !atual });
+  }
+
+  /* POST /api/bastidores/impacto-da-inclusao — O QUE MUDA AO PÔR UM EXERCÍCIO NA TURMA (20/11/2026).
+   *
+   * PORQUE É UMA ROTA, e não uma conta no cliente. A pergunta «a que objectivo serve» precisa dos
+   * MARCOS do plano daquela Turma, e o cliente não os tem: a página carrega as Turmas e os
+   * vínculos, não os documentos. Pedi-los ao servidor custa UMA leitura — e só quando a pessoa
+   * acrescenta uma ficha a uma Turma que já tem plano.
+   *
+   * A RESPOSTA DIZ SE HÁ PERGUNTA, e não a presume. `precisaDecisao: 'objetivo'` só sai quando a
+   * Turma tem plano (senão não há objectivos a que ligar o exercício, e disparar seria só custo) e
+   * quando o exercício ainda não está na aula (senão a declaração já foi feita, ou o professor já
+   * o pôs lá à mão). Sem pergunta, a ficha entra como sempre entrou — e a resposta leva o motivo,
+   * para a tela o poder dizer em vez de o esconder.
+   */
+  if (path === '/api/bastidores/impacto-da-inclusao' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!(await autorizacaoDirecaoOk(env, corpo))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const termo = String(corpo.termo || '').trim();
+    if (!termo) return json(400, { ok: false, erro: 'diga de que exercício se trata' });
+    const id = String(corpo.curadoria || corpo.id || '').trim();
+    const lista = await curadorias(kv, escola);
+    const turma = id ? curadoriasVigentes(lista).find((c) => c && c.id === id) : null;
+    if (!turma) return json(404, { ok: false, erro: 'turma não encontrada: ' + (id || '—') });
+
+    /* A TURMA SEM PLANO NÃO TEM OBJECTIVOS, e a resposta é a mesma que a geração dá: nada a fazer
+     * agora, e o plano, quando nascer, leva o conteúdo. É o «interregno» dela. */
+    const pares = await paresComPlano(env, escola);
+    if (!curadoriaVinculadaA(pares, turma)) {
+      return json(200, {
+        ok: true, precisaDecisao: null, motivo: 'sem-plano',
+        aviso: 'esta Turma ainda não tem plano de ensino — não há objetivo a que ligar o exercício. '
+          + 'Ele entra no repertório, e o plano, quando nascer, leva-o consigo.',
+      });
+    }
+    let plano = null;
+    if (cadeia && typeof cadeia.planoDaTurma === 'function') {
+      try { plano = await cadeia.planoDaTurma(turmasDaCuradoria(turma)[0] || '', turma.professor); } catch (erro) { plano = null; }
+    }
+    if (!plano) {
+      /* VINCULADA MAS SEM PLANO LEGÍVEL — o índice e o acervo discordam, e a resposta não inventa:
+       * diz o que sabe e deixa a ficha entrar. */
+      return json(200, {
+        ok: true, precisaDecisao: null, motivo: 'plano-ilegivel',
+        aviso: 'esta Turma tem plano de ensino, mas não consegui lê-lo agora — a declaração do '
+          + 'objetivo fica para a próxima derivação.',
+      });
+    }
+    const impacto = objetivosDoRepertorio.impactoDaInclusao({
+      plano, termo, objetivos: [], repertorio: turma.repertorio,
+    });
+    if (!impacto) return json(400, { ok: false, erro: 'não consegui compor o impacto' });
+    if (impacto.estado === 'ja-na-aula') {
+      return json(200, {
+        ok: true, precisaDecisao: null, motivo: 'ja-na-aula', impacto,
+        aviso: 'este exercício já está na aula desta Turma — a declaração já foi feita.',
+      });
+    }
+    if (impacto.estado === 'fora-do-repertorio') {
+      return json(200, {
+        ok: true, precisaDecisao: null, motivo: 'fora-do-repertorio', impacto,
+        aviso: 'este exercício não está no conteúdo desta Turma.',
+      });
+    }
+    /* A JANELA TEM OBJECTIVOS A OFERECER? Um plano com o campo dos marcos em branco não tem onde
+     * ancorar a declaração — perguntar seria mostrar uma lista vazia. */
+    if (!Array.isArray(impacto.marcos) || !impacto.marcos.length) {
+      return json(200, {
+        ok: true, precisaDecisao: null, motivo: 'sem-objectivos', impacto,
+        aviso: 'o plano desta Turma ainda não declara objetivos específicos — não há a que ligar '
+          + 'o exercício. Ele entra no repertório, e a declaração nasce no plano.',
+      });
+    }
+    return json(200, { ok: true, precisaDecisao: 'objetivo', impacto });
   }
 
   // POST /api/bastidores/curadoria-derivar — o «EDITAR» da curadoria VINCULADA (16/10/2026).
@@ -26995,6 +27262,12 @@ function parDaSalaNoCorpo(corpo, registo) {
       repertorio: Array.isArray(corpo.repertorio)
         ? corpo.repertorio.map((x) => String(x).trim()).filter(Boolean)
         : (anterior.repertorio || []),
+      /* A DECLARAÇÃO DO OBJETIVO VAI COM O ELO (20/11/2026) — ver `declaracoesDaTurma`: soma o que
+       * a janela respondeu, mantém o que já estava, e esquece o exercício que saiu do repertório. */
+      objetivosDoRepertorio: declaracoesDaTurma(anterior, corpo,
+        Array.isArray(corpo.repertorio)
+          ? corpo.repertorio.map((x) => String(x).trim()).filter(Boolean)
+          : (anterior.repertorio || [])),
       alunas: alunasFinais,
       vigenteDe: vigencia,
       substitui: anterior.id,
@@ -27039,6 +27312,10 @@ function parDaSalaNoCorpo(corpo, registo) {
      * quem ensina ou em que modalidade a sala funciona — e o plano de ensino da turma tem de
      * nascer de novo, com o professor e a modalidade que passam a valer. O PO vem depois, e o
      * pacote fecha. */
+    /* O QUE A JANELA RESPONDEU NESTE GESTO — e só isso. O elo já guarda o mapa inteiro
+     * (`objetivosDoRepertorio`); o que a cadeia aplica são as declarações novas, porque as antigas
+     * ou já estão no plano ou já foram aplicadas uma vez. */
+    const novasDeclaracoes = objetivosDoRepertorio.declaracoesLidas(corpo.objetivosDoRepertorio);
     const cadeiaDaDirecao = await rodarCadeia(cadeia, contexto, {
       gatilho: 'troca-de-direcao',
       turmas: turmaFinal ? [turmaFinal] : [],
@@ -27049,6 +27326,11 @@ function parDaSalaNoCorpo(corpo, registo) {
       motivo: 'a direção da turma «' + (turmaFinal || anterior.id) + '» passou a '
         + professorDerivado + ' · ' + modalidadeDerivada
         + (mudouDeSala ? ' (e a sala, de «' + salaDaAnterior + '» para «' + turmaFinal + '»)' : ''),
+      /* A DECLARAÇÃO DO OBJETIVO VAI COM O PEDIDO (20/11/2026). Só as desta derivação — as que a
+       * janela respondeu agora. A cadeia aplica-as ao elo novo do plano, e a regra de não aplicar
+       * duas vezes é do núcleo: um exercício que a aula já usa não volta a ser declarado, e é isso
+       * que deixa o professor desmarcar no plano sem que a Turma lhe reponha a marca. */
+      declaracoes: novasDeclaracoes,
     });
     return json(201, { ok: true, curadoria: nova, substitui: anterior.id, vigenteDe: vigencia,
       mudouDeSala: mudouDeSala ? { de: salaDaAnterior, para: turmaFinal } : null,

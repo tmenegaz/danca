@@ -56146,3 +56146,70 @@ impõe.
 **Com o quê.** `CUSTO-DOS-FLUXOS.md` §7.9 — a segunda correcção, o diagrama da cadeia refeito a partir
 da Turma, a tabela de construção com o gancho do cliente (`esc-conteudos` · `adicionarFicha`), e as
 duas decisões de desenho fechadas.
+
+## 20/11/2026 — A janela do exercício novo: o objetivo a que ele serve (construída)
+
+**O que ficou construído, e o que se recusou construir.** A declaração do objetivo deixa de ser um
+estudo e passa a ser código, com a forma que ela fixou ao testar: a janela é **da Turma**, abre **ao
+acrescentar a ficha no conteúdo** (e não ao gravar, e nunca no Estilo), e **só quando a Turma tem
+plano de ensino**. Sem plano não há objetivo a que ligar o exercício — a Turma fica em suspensão, e o
+plano, quando nascer, leva o conteúdo consigo.
+
+**E há uma coisa em que o estudo estava errada, corrigida ao construir.** O plano dizia «a rota recusa
+com `409` e o mesmo pedido é reenviado com a decisão» — a forma da janela da duração. **Não é essa, e
+a diferença é de momento:** a janela da duração interrompe uma gravação já pedida (o `409` chega
+depois de o servidor recusar); esta pergunta **antes**, porque a ficha ainda não nasceu. A
+declaração viaja depois no corpo do «Gravar» que já ia acontecer. É mais barato do que o previsto:
+não há pedido para refazer.
+
+**O que foi preciso, e o sítio de cada peça:**
+
+| peça | onde |
+|:--|:--|
+| o núcleo — estado, impacto e aplicação | `motor/nucleo/objetivos-do-repertorio.js` (novo) |
+| a rota que enche a janela | `POST /api/bastidores/impacto-da-inclusao` |
+| o campo na Turma | `objetivosDoRepertorio`, ao lado do `repertorio` — escrito nas rotas de criação e de derivação por `declaracoesDaTurma` |
+| a janela | `perguntarOObjetivo`, em `motor/servidor/bastidores.js` |
+| o gancho | o clique em «Adicionar» do `esc-conteudos` — o `adicionarFicha` fica intocado |
+| a aplicação no plano | `derivarPlano`, na cadeia: recebe `declaracoes` e escreve o termo em `aula-1-parametro` **e** no `repertorio` do elo novo |
+
+**AS DUAS COISAS QUE SÓ SE VÊEM A MEDIR, e que fixaram a implementação:**
+
+1. **O termo tem de entrar em DOIS sítios.** `parametroEmLinhas` filtra o parâmetro contra o
+   `repertorio` do **próprio plano**. Escrever só em `aula-1-parametro` produzia um termo escrito e
+   apagado na leitura: o documento saía como se a declaração nunca tivesse existido. A asserção que o
+   apanha está no `provar-o-exercicio-novo`, e chama a função que compõe o documento em vez de
+   comparar o campo consigo mesmo.
+2. **A declaração aplica uma vez e só uma.** Se a derivação reaplicasse em cada elo, o professor que
+   desmarcasse o exercício no plano vê-lo-ia voltar em cada derivação, sem saber porquê. A regra é do
+   núcleo (`estadoDaDeclaracao` → `ja-na-aula`), e é ela que faz o plano ser a autoridade depois do
+   primeiro elo.
+
+**O que a janela pergunta, e o que não pergunta.** Pergunta uma só coisa: *«A que objetivo «X» serve?»*,
+com os objetivos do plano e **sem pré-seleção** — um pré-marcado seria o sistema a decidir pedagogia
+com um clique a menos. **Não pergunta em que bloco ele entra**: o bloco é do item 10, e o item 10 é
+escrito linha a linha pelo professor.
+
+**Uma quebra declarada na tabela dos botões.** Na janela da duração, o `×`, o fundo e o `Escape`
+fecham e devolvem o pedido, enquanto o `Cancelar` desiste do gesto inteiro. Aqui os quatro fazem a
+mesma coisa: fechar sem escrever nada. Não é uma exceção à regra — é a mesma regra lida ao contrário.
+A diferença nasce na duração porque ela interrompe um pedido feito e tem um formulário de trás para
+limpar; esta não interrompe nada e o que havia para abandonar ainda não foi escrito. Um `Cancelar` que
+fizesse outra coisa seria a diferença a inventar um efeito que não existe.
+
+**As provas, e o A/B dos três lados.**
+- `experimentos/provar-o-exercicio-novo.js` — **34 asserções** (novo), sobre o núcleo.
+- `provar-cadeia-automatica.js` secção **B3** — 9 asserções novas, até ao elo novo do plano; total 93.
+- `provar-salas-e-elencos.js` secção **N** — 21 asserções novas, sobre a página; total 214.
+- **A/B medido:** sem o gancho do cliente, **5** asserções falham; com a aplicação da cadeia
+  desligada, **3**. As duas alterações são as que as provas medem, e não há prova que passe por
+  acidente.
+
+**O que ficou por pagar, e fica dito.** A generalização das janelas — que o próprio estudo dizia não se
+dever adiar — foi adiada: são duas, cada uma com a sua pergunta. Quem escrever a terceira paga as três.
+
+**Com o quê.** `motor/nucleo/objetivos-do-repertorio.js`; `motor/servidor/bastidores.js` (a rota, a
+janela, o gancho, `declaracoesDaTurma` e a passagem das declarações à cadeia);
+`motor/servidor/cadeia.js` (`declaracoes` em `executar` → `porTurma` → `derivarPlano`);
+`IDENTIDADE-VISUAL.md` (o segundo caso da janela por cima, e as três linhas novas na tabela do «há
+modal?»); `CUSTO-DOS-FLUXOS.md` §7.9 c e d; `motor/nucleo/README.md`.
