@@ -7,6 +7,7 @@ title: "Plano para a Aula 01 — reconhecer o apoio e alinhar o eixo vertical"
 subtitle: "Turma: Rosa"
 objetivo-especifico: "reconhecer o apoio e alinhar o eixo vertical"
 duracao: "90 minutos"
+volume-total: "135 tempos"
 referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 ---
 
@@ -19,7 +20,7 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 | **Objetivo específico** | reconhecer o apoio e alinhar o eixo vertical |
 | **Parâmetro de medição** | **1** reconhecer o apoio e alinhar o eixo vertical — observa: Battement tendu · Plié · Relevé · **2** transferir o peso entre os pés sem perder o alinhamento — observa: Plié · Relevé · **3** sustentar a transferência com musicalidade e controle do movimento — observa: Battement tendu · Relevé |
 | **Duração** | 90 minutos (Pré-requisito 4) |
-| **Volume ativo** | [Preencher: volume em tempos — Regra 9, etapa 1] |
+| **Volume ativo** | 135 tempos (faixa 120–150 da duração de 90 min — Regra 9, etapa 1) |
 
 ## 2. Condições preliminares de preparação (o espaço e o material)
 
@@ -29,11 +30,11 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 
 | Bloco | Tempos | Fatia |
 |:--|--:|--:|
-| Solo | [Preencher] | 30% |
-| Barra | [Preencher] | 30% |
-| Centro | [Preencher] | 30% |
-| Musicalidade | [Preencher] | 10% |
-| **Total** | **[Preencher]** | **100%** |
+| Solo | 40,5 | 30% |
+| Barra | 40,5 | 30% |
+| Centro | 40,5 | 30% |
+| Musicalidade | 13,5 | 10% |
+| **Total** | **135** | **100%** |
 
 ## 4. Bloco de musicalidade
 
@@ -129,7 +130,7 @@ s.addEventListener("change",pintar);pintar();})();</script>
 |:--|:--|
 | Objetivo específico declarado | ok |
 | Duração declarada (Pré-requisito 4) | ok — 90 minutos |
-| Volume dentro da faixa (Regra 9) | [Preencher] |
+| Volume dentro da faixa (Regra 9) | ok — 135 tempos em 120–150 |
 
 ## 8. Próximo passo
 
