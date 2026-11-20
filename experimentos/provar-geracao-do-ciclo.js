@@ -398,7 +398,10 @@ function oValidadorDoCicloZero() {
   fs.mkdirSync(path.join(pacote, 'assets'), { recursive: true });
   fs.writeFileSync(path.join(pacote, 'index.html'), '<!DOCTYPE html><html><body></body></html>\n');
   fs.writeFileSync(path.join(pacote, 'assets', 'style.css'), 'body{}\n');
-  fs.writeFileSync(path.join(pacote, 'ciclo-01-prova.pdf'), '%PDF-1.4\n');
+  /* SEM PDF, E É ASSIM QUE SE MEDE A MUDANÇA DE 20/11/2026. Antes esta bancada escrevia um
+   * `%PDF-1.4` falso só para o validador não reprovar — era a prova de que o PDF estava na lista
+   * dos obrigatórios. Agora a ausência dele é o caso normal, e o que se exige é que o validador
+   * NÃO reprove por isso (e que o diga, em aviso). */
   const conf = path.join(dir, 'ciclo-01-prova.conf');
 
   /* O QUE O VALIDADOR COBROU, lido da própria saída dele — não de um regex sobre o texto todo.
@@ -423,6 +426,14 @@ function oValidadorDoCicloZero() {
     'o index.html continua a ser exigido');
   assert.equal(/manifesto do ciclo não encontrado/.test(zero), false,
     'o manifesto FOI encontrado — o que ele declara é que não há documentos');
+
+  /* O PDF SAIU DA LISTA (20/11/2026), e a asserção é dupla de propósito: ele não pode voltar a ser
+   * EXIGIDO (erro), e a ausência não pode passar EM SILÊNCIO (aviso). Só a primeira metade
+   * deixaria o aviso cair sem ninguém notar; só a segunda não impediria a exigência de voltar. */
+  assert.equal(/arquivo ausente ou vazio: ciclo-01-prova\.pdf/.test(zero), false,
+    'o PDF não pode voltar à lista de arquivos obrigatórios');
+  assert.equal(/aviso PDF: ciclo-01-prova\.pdf ausente/.test(zero), true,
+    'e a ausência dele tem de ser DITA, não engolida');
 
   /* O CONTROLADO NEGATIVO, e a razão de ele existir: uma correcção que simplesmente DESLIGASSE a
    * exigência do DOCS também passaria na metade de cima. Com nomes declarados, o validador tem de

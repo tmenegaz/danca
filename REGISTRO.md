@@ -55679,3 +55679,66 @@ bancadas `experimentos/provar-salas-e-elencos.js`, `provar-anamnese-da-aluna-cer
 `professor` que ficou gravado nos elencos anteriores continua nos ficheiros: não se migra, não se
 apaga, e nada o lê.
 
+
+## 20/11/2026 — O PDF sai do fluxo: quem imprime é o navegador
+
+**A pergunta dela.** «O PDF, a gente não pode colocar ele mediante demanda, sabe por quê? Eu acho
+que ele vai ser gerado tão pouco e quando o professor clicar ali no PDF, aí sim dispara o processo,
+a gente não precisa ter ele disponível já. […] Eu acho que é um bom caminho.» E sobre os outros
+documentos: «o da anamnese, o do plano de ensino e o do plano de observação […] se for isso, não tem
+custo. Confirma para mim.»
+
+**A confirmação, com uma correcção.** **A anamnese, o plano de ensino e o PO não têm PDF nenhum.**
+São folhas **HTML** que o Worker monta a cada pedido (`paginaDaFichaEmBranco`, `paginaDoPlano`,
+`paginaDoPO`), com `@media print` desde 16/10/2026, e o `conteudo/*.json` de que nascem é **o mesmo
+ficheiro em todas as escolas** (md5 `9be80fe1…` da anamnese na `breu`, na `breu-rosa` e na porta).
+Custo zero, e já é «por demanda». Em todo o sistema existiam **dois** PDFs, ambos do ciclo.
+
+**O que se mediu, e desmente a premissa do pedido.** O PDF não era o custo: os dois cabiam nos
+**5–6 s** do passo «Gerar e validar o pacote», que também escreve as nove páginas HTML. O que
+custava era **instalar o TeX para os compilar**, em toda geração, mesmo quando ninguém os ia abrir.
+
+| run de 20/11/2026 | `preparar-tex` | job |
+|:--|--:|--:|
+| 44770733345 | 61 s | 97 s |
+| 44769892060 | 67 s | 107 s |
+| 44767545583 | 68 s | 107 s |
+| `criar-escola` (o mesmo passo com `com-tex: false`) | **10–11 s** | 30 s |
+
+**A decisão, tomada com o número à frente: o PDF deixa de existir como ficheiro.** O job cai a
+**~45–50 s** — abaixo dos 60, que é a fronteira do Actions — e passa a facturar **1 minuto em vez de
+2**. No dia: 22 execuções de `gerar-ciclo`, ~44 min → **~22 min**. Isto é a alavanca do §7.2 do
+`CUSTO-DOS-FLUXOS.md`, e a versão mais barata dela: sem imagem de container, sem `pull` a somar.
+
+**O que mudou, e onde.**
+- `gerar-ciclo.yml` chama `preparar-tex` com **`com-tex: 'false'`** — o pandoc fica (é dele que sai
+  todo o HTML), o TeX sai;
+- `tools/gerar-ciclo.sh` perdeu o bloco dos PDFs **e a consolidação que só o PDF lia** (~150 linhas
+  de Python: juntar os documentos, prefixar ids, reescrever links cruzados, conferir âncoras). A
+  conferência de âncoras **não se perdeu**: o `check-pacote.js` faz a mesma regra sobre o HTML
+  (verificação 3), e a do PDF era a segunda cópia sobre uma cópia prefixada;
+- saiu o `SOURCE_DATE_EPOCH` (existia para o `/CreationDate` ser reprodutível — sem PDF, não há o
+  que fixar), com o `TZ=UTC` a ficar; saiu o `PDF_ENGINE`; saiu o botão «PDF do ciclo» da barra e as
+  ligações «PDF da aula» do rodapé; a regra `.topnav .pdf` do `ciclo.css` foi com ele;
+- `tools/check-pacote.js`: o PDF **saiu dos arquivos obrigatórios** e a ausência passou a **aviso**
+  («a entrega impressa é a própria página»). As quatro verificações do PDF ficam, para um pacote
+  anterior que ainda o traga;
+- os dois PDFs do pacote da `breu-rosa` foram **apagados** (ficam no histórico do git). Um PDF que
+  ninguém volta a gerar é um documento congelado a afirmar que é o ciclo de hoje.
+
+**A/B, medido.** Em `provar-geracao-do-ciclo` (a bancada do ciclo-zero), o PDF falso que lá estava
+só para o validador não reprovar **saiu**, e entraram duas asserções — «não pode voltar a ser
+exigido» e «a ausência tem de ser dita». Com o `check-pacote.js` de ontem: **1 de 24 falha**; com o
+de hoje: **24 de 24**. `check-pacote` do pacote real: **0 erros, 1 aviso** (o do PDF).
+`provar-barra-e-caminho` **50/50**, `provar-teste` **45**, `check-identidade` sem erros,
+`check-indices` **16/16**.
+
+**Com o quê.** `.github/workflows/gerar-ciclo.yml` · `tools/gerar-ciclo.sh` · `tools/check-pacote.js`
+· `tools/templates/ciclo.css` · `raiz/assets/style.css` · os dois pacotes de `demi-plie` regerados ·
+`experimentos/provar-geracao-do-ciclo.js` · `README-ciclos.md` · `CUSTO-DOS-FLUXOS.md` (§7.2 e §7.8).
+
+**O que ainda não está feito.** O `tools/templates/ciclo-cabecalho.tex` e o modo `--latex` do
+`lib-tokens.js` ficaram **sem consumidor**. Não se apagaram: `tools/templates/` está em
+`CONGELAMENTO.md`, e tirar um ficheiro de lá pede motivo declarado e **commit próprio** — o que se
+fez foi tirar-lhe o uso. E o PDF por demanda não foi desenhado como botão: a decisão foi que ele não
+existe, e a impressão é a do navegador.

@@ -585,7 +585,9 @@ body {
   padding: 8px; box-shadow: var(--sombra-menu);
 }
 .topnav .submenu a { padding: 8px 8px; }
-.topnav .pdf { margin-left: auto; border: 2px solid var(--ornamento-forte); }
+/* O BOTÃO «PDF do ciclo» SAIU DA BARRA (20/11/2026), e com ele esta regra. Ela era a única
+   coisa que empurrava a barra para a direita (`margin-left: auto`) — o último item do menu; sem
+   ele, os links ficam à esquerda, que é onde o resto do menu já estava. */
 
 /* O botão do TEMA fica fora do `.nav-links` (o painel colapsa no celular): a
    aparência continua alcançável com o menu fechado. Ele não é um link — é um
@@ -3021,7 +3023,6 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
     position: static; min-width: 0; box-shadow: none; border: none;
     border-left: 2px solid var(--ornamento-forte); border-radius: 0; padding: var(--esp-1) 0 var(--esp-1) var(--esp-3);
   }
-  .topnav.aberto .pdf { margin-left: 0; }
   /* O CAMINHO NO TELEMÓVEL FICA SÓ COM O ÚLTIMO DEGRAU (26/10/2026).
    *
    * Os três degraus dão «Ciclos · Referências · Referências Bibliográficas», e na barra do

@@ -19,8 +19,8 @@ lançamento essa referência **desloca**, e passa a ser a **linha de corte**: o 
 dois cenários estão em `ARQUITETURA-AULA.md` §2.
 
 Este documento descreve como o material de um ciclo é **gerado e entregue** neste
-repositório: os arquivos-fonte, os dois formatos obrigatórios (PDF único e pacote
-HTML), as regras de navegação e como validar tudo antes de entregar ao professor.
+repositório: os arquivos-fonte, o pacote HTML (e a impressão a partir dele), as regras de
+navegação e como validar tudo antes de entregar ao professor.
 
 > **Estado atual.** Cada escola tem o seu ciclo, gerado e validado: o **Diaghilev**
 > (Formação em Balé Clássico, **5 aulas** de 60 min em dois encontros semanais —
@@ -35,12 +35,17 @@ HTML), as regras de navegação e como validar tudo antes de entregar ao profess
 |:--|:--|:--|
 | **Markdown-fonte** | `professores/<professor>/ciclos/ciclo-XX-*.md` | o que o professor edita no VS Code |
 | **Manifesto do ciclo** | `professores/<professor>/ciclos/ciclo-XX.conf` | nome, objetivo geral, **duração da aula**, período, faixa de volume e ordem dos documentos |
-| **PDF único consolidado** | `professores/<professor>/ciclos/ciclo-XX/ciclo-XX.pdf` | capa, índice navegável, bookmarks, rodapé numerado (**52 páginas** no Diaghilev) |
-| **PDF individual da aula** | `professores/<professor>/ciclos/ciclo-XX/aula-NN.pdf` | leitura da aula em prosa, com a mesma informação da página HTML |
 | **Pacote HTML** | `professores/<professor>/ciclos/ciclo-XX/*.html` | **21 páginas** interligadas no Diaghilev, com barra de navegação fixa |
 | **Folha de estilo única** | `professores/<professor>/ciclos/ciclo-XX/assets/style.css` | gerada de `tools/templates/ciclo.css` |
 | **Mapas do rizoma** | `professores/<professor>/ciclos/ciclo-XX/assets/rizoma-*.svg` | copiados do projeto para o Apanhado Histórico |
 | **README do pacote** | `professores/<professor>/ciclos/ciclo-XX/README.md` | gerado uma única vez; o professor pode editar depois |
+
+**E o PDF? Não há — desde 20/11/2026.** A entrega impressa é a própria página: `Ctrl+P`
+(ou `Cmd+P`) → *Guardar como PDF*. As páginas já saem no papel como o PDF saía (a folha
+tem `@media print`, o cabeçalho não fica fixo, a paleta é sempre a clara). O PDF
+consolidado e o PDF por aula existiram até essa data; compilá-los exigia instalar o TeX em
+**toda** geração — 61 a 68 s de um trabalho de 5 —, para um ficheiro que quase nunca se
+abria. A conta está na §7.8 do [CUSTO-DOS-FLUXOS.md](CUSTO-DOS-FLUXOS.md).
 
 ## Pré-requisito 4 e Regra 9 verificados em código
 
@@ -76,7 +81,7 @@ inteiros, quem está errado é a conta — não o tempo musical.
 ## Comando único
 
 ```bash
-tools/gerar-ciclo.sh fokini 01 diaghilev          # gera HTML + PDF da variante "diaghilev" e valida
+tools/gerar-ciclo.sh fokini 01 diaghilev          # gera o pacote da variante "diaghilev" e valida
 tools/gerar-ciclo.sh <professor> 01 <escola>      # sempre com o professor explícito: os scripts
                                                   # ainda trazem `tiago` como default
 node tools/check-pacote.js professores/fokini/ciclos/ciclo-01-diaghilev  # valida avulso, se quiser
@@ -96,9 +101,11 @@ O script, em ordem:
    `<!-- CALENDARIO -->` das fontes;
 5. **normaliza os ids** de todos os títulos (`tools/normalizar-ids.py`);
 6. converte cada documento em HTML com o template `tools/templates/ciclo.html`;
-7. monta o **PDF individual de cada aula** e o **PDF consolidado** com pandoc + cabeçalho LaTeX próprio;
-8. copia a folha de estilo e os mapas; escreve o `README.md` do pacote (se não existir);
-9. roda a validação final e falha se algo estiver quebrado.
+7. copia a folha de estilo e os mapas; escreve o `README.md` do pacote (se não existir);
+8. roda a validação final e falha se algo estiver quebrado.
+
+(O passo que montava o PDF individual e o consolidado saiu a 20/11/2026 — ver a §7.8 do
+[CUSTO-DOS-FLUXOS.md](CUSTO-DOS-FLUXOS.md) e o parágrafo «E o PDF? Não há», acima.)
 
 ## Uma entrega por escola (Pré-requisito 5 / Regra 18)
 
@@ -118,7 +125,7 @@ O conteúdo de uma escola nunca é o de outra: o que a variante declara em
 sobre os arquivos sem sufixo (`tools/lib-fontes.sh`).
 
 Saídas: `professores/fokini/ciclos/ciclo-01-diaghilev/` (21 páginas HTML), com
-`assets/`, `README.md` e o PDF do ciclo.
+`assets/` e `README.md`. **Sem PDF** — imprime-se a página (ver «E o PDF? Não há»).
 
 
 ## Habilitar e desabilitar uma escola (`ESCOLA_HABILITADA`)
@@ -171,7 +178,11 @@ já pega um `"nao"` sem motivo ou sem data — não é preciso rodar o validador
 > que o **painel** saiba o estado e o motivo, com a data.
 
 
-## Ambiente: por que o engine é `pdflatex` (e não `xelatex`)
+## Ambiente: por que o engine era `pdflatex` (e não `xelatex`)
+
+> **Medição de então, guardada por uma razão prática:** se o PDF voltar, é este o caminho — e o
+> `PDF_ENGINE` deixou de existir no script quando o PDF saiu. O resto da secção descreve o que se
+> verificou em 2026 e continua verdade sobre a máquina.
 
 O comando sugerido na Regra 16 (`--pdf-engine=xelatex`) **não funciona nesta
 máquina**, e isso foi verificado, não suposto:
@@ -182,17 +193,15 @@ máquina**, e isso foi verificado, não suposto:
 | `lualatex` | **quebrado** — falta `lualatex-math.sty` e o `luaotfload` erra ao carregar as fontes OpenType do Latin Modern | também falha |
 | `pdflatex` | **funciona** | é o engine usado; acentuação portuguesa sai correta com `babel-portuguese` |
 
-Por isso o script usa `pdflatex` e **não** usa `fontspec` (o que impede trocar de
-fonte por `-V mainfont=`). Para usar `xelatex`:
+Por isso o script usava `pdflatex` e **não** usava `fontspec` (o que impedia trocar de
+fonte por `-V mainfont=`). Para usar `xelatex`, era preciso instalar
+`texlive-xetex texlive-latex-extra` e definir `PDF_ENGINE` — a variável já não existe
+no script, porque o passo do PDF saiu.
 
-```bash
-sudo apt install texlive-xetex texlive-latex-extra      # xelatex + pacotes
-PDF_ENGINE=xelatex tools/gerar-ciclo.sh 01              # troca sem editar o script
-```
-
-Outra diferença em relação ao comando sugerido: o conteúdo **não** vem de um único
+Outra diferença em relação ao comando sugerido: o PDF **não** vinha de um único
 Markdown escrito à mão, mas da junção dos documentos do ciclo (cada um precedido de
-`\clearpage`, para que cada documento comece em página nova).
+`\clearpage`, para que cada documento começasse em página nova). Era a junção que se
+perdeu com ele: cada documento é hoje uma página, e o «consolidado» é o menu.
 
 ## Regras de navegação implementadas
 
@@ -200,14 +209,18 @@ Markdown escrito à mão, mas da junção dos documentos do ciclo (cada um prece
 
 | Regra 16 | Como está implementado |
 |:--|:--|
-| Barra de navegação fixa em todas as páginas | `<nav class="topnav">` gerado página a página, com a **página atual marcada** (`class="ativo"`), menu "Aulas" e atalho para o PDF |
+| Barra de navegação fixa em todas as páginas | `<nav class="topnav">` gerado página a página, com a **página atual marcada** (`class="ativo"`) e menu "Aulas" |
 | Índice interno da página | `<nav class="toc-local">` — índice da própria página (pandoc `--toc --toc-depth=3`); em tela **≥ 1200px** vai para uma **coluna à direita, presa abaixo da navbar** (`position: sticky`), que acompanha a rolagem; em tela estreita fica no topo, como antes |
 | Links cruzados entre arquivos | escritos na fonte como `[notação](notacao.html#exemplo-didatico-um-tendu)`; o validador confere arquivo **e** âncora |
 | Citação → referência completa | links como `[Referências](referencias.html#pedagogia-do-bale)`, apontando ao grupo certo da bibliografia |
 | Botão "voltar ao topo" | `<a class="topo">` fixo no canto inferior direito |
-| Rodapé com identificação | ciclo, período e professor + links para índice, plano, apoio, referências e PDF |
+| Rodapé com identificação | ciclo, período e professor + links para plano, apoio e referências |
 
-### No PDF
+### No PDF — histórico desde 20/11/2026
+
+> **Estas duas secções descrevem o pipeline que já não corre.** Ficam porque o cabeçalho LaTeX
+> (`tools/templates/ciclo-cabecalho.tex`) está em `CONGELAMENTO.md` e não foi apagado: reativar o
+> PDF passaria exactamente por aqui. A tabela seguinte é a de então, não a de hoje.
 
 | Regra 16 | Como está implementado | Como foi verificado |
 |:--|:--|:--|
@@ -246,13 +259,16 @@ aparece em toda aula e, sem o prefixo, o link da Aula 02 levaria à seção da A
    rodapé, `lang="pt-BR"` e folha de estilo — e **exatamente um** link marcado como
    página atual;
 3. todo link interno resolve: arquivo existe e âncora existe no arquivo alvo;
-4. no PDF: bookmarks, links internos, número mínimo de páginas, rodapé numerado e
-   com identificação do ciclo **em todas as páginas**, título "Índice", todos os
-   documentos das páginas HTML presentes no texto e **nenhum texto passando da
-   margem** (medida pelas coordenadas reais do PDF, com `pdftotext -bbox` — foi
-   essa checagem que encontrou um cabeçalho de tabela 25 pt fora da margem).
+4. **se houver PDF** (os pacotes anteriores a 20/11/2026 têm): bookmarks, links
+   internos, número mínimo de páginas, rodapé numerado e com identificação do ciclo
+   **em todas as páginas**, título "Índice", todos os documentos das páginas HTML
+   presentes no texto e **nenhum texto passando da margem** (medida pelas
+   coordenadas reais do PDF, com `pdftotext -bbox` — foi essa checagem que
+   encontrou um cabeçalho de tabela 25 pt fora da margem). Sem PDF, a ausência é
+   **aviso**, não erro: a entrega impressa é a própria página.
 
-Saída esperada hoje (Ciclo 01):
+Saída esperada (Ciclo 01, **antes** de 20/11/2026 — um pacote com PDF; hoje as quatro
+últimas linhas não aparecem e o lugar delas é um `aviso PDF: … ausente`):
 
 ```
   ok    cifrada: acompanhamento-ana.html (21198 B, 4 marca(s) de cifra)

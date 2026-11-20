@@ -7,12 +7,17 @@
 #     pre-requisitos.html, musicalidade.html, apanhado-historico.html,
 #     referencias.html, guia-do-professor.html, assets/style.css,
 #     assets/rizoma-*.svg,
-#     ciclo-XX.pdf              PDF único consolidado (índice + bookmarks)
 #     README.md                 como navegar e usar o material
+#
+#   O PDF DO CICLO NÃO É GERADO AQUI (20/11/2026). Os dois PDFs que o pacote trazia
+#   (`ciclo-XX.pdf` consolidado e `aula-NN.pdf`) saíram: quem imprime é o NAVEGADOR, a partir da
+#   própria página, que sempre teve `@media print` e diz o mesmo. O motivo é medido e não é o PDF —
+#   ele cabia nos 5 a 6 segundos do passo «Gerar e validar o pacote». O que custava 61 a 68 s era
+#   instalar o TeX para o compilar, em toda a geração, mesmo quando ninguém o ia abrir. Ver a
+#   entrada de 20/11/2026 no `REGISTRO.md`.
 #
 #   uso:  tools/gerar-ciclo.sh [<professor>] [XX] [escola]   (padrão histórico: tiago 01 — pendente desde 02/10/2026)
 #         tools/gerar-ciclo.sh fokini 01 diaghilev   → pacote do Diaghilev
-#         PDF_ENGINE=lualatex tools/gerar-ciclo.sh fokini 01 diaghilev   (troca o engine)
 #
 # Fontes (Markdown, editáveis no VS Code):
 #   professores/<p>/ciclos/ciclo-XX.conf          manifesto do ciclo (padrões do projeto)
@@ -32,8 +37,8 @@
 #   edição), o gerador o trata por CAMINHO ESPECIAL: lê de
 #   biblioteca/guia-do-professor.md, normaliza e copia para dentro do pacote como
 #   `guia-do-professor.html`. A lista `DOCS` de cada ciclo declara
-#   `guia-do-professor` (como último item), o que define a ordem no menu, no índice
-#   e no PDF. Assim o guia é escrito uma vez e aparece em todos os pacotes.
+#   `guia-do-professor` (como último item), o que define a ordem no menu e no
+#   índice do pacote. Assim o guia é escrito uma vez e aparece em todos os pacotes.
 #
 # Regras que o script garante:
 #   · Pré-requisito 5: sem escola, frequência, dias e duração por dia, não gera;
@@ -42,10 +47,7 @@
 #   · Regra 9: volume conferido contra a faixa da duração de cada dia do ciclo;
 #   · barra de navegação fixa em todas as páginas, com a página atual marcada;
 #   · índice interno no topo de cada página;
-#   · botão "voltar ao topo" e rodapé com identificação do ciclo;
-#   · PDF consolidado com capa, índice navegável, links cruzados internos,
-#     bookmarks e rodapé numerado (cada documento começa em página nova);
-#   · links entre arquivos são reescritos para âncoras internas no PDF.
+#   · botão "voltar ao topo" e rodapé com identificação do ciclo.
 # ============================================================================
 
 set -euo pipefail
@@ -69,7 +71,6 @@ CICLOS="$RAIZ/professores/$PROFESSOR_SLUG/ciclos"
 CONF_BASE="$CICLOS/ciclo-$CICLO.conf"
 CONF_VARIANTE="$CICLOS/ciclo-$CICLO${ESCOLA_SLUG:+-$ESCOLA_SLUG}.conf"
 TPL="$RAIZ/tools/templates"
-PDF_ENGINE="${PDF_ENGINE:-pdflatex}"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
@@ -267,7 +268,7 @@ mkdir -p "$PACOTE/assets"
 # Os JSONs do FORMULÁRIO (Fase 2.1). O formulário lê tudo o que precisa AO LADO
 # DELE, e o deploy publica SÓ a pasta do pacote — o que não estiver aqui não
 # existe para quem abre o site. São três arquivos, e os três são DERIVADOS, como
-# o HTML e o PDF: não são fonte, não entram na âncora.
+# o HTML: não são fonte, não entram na âncora.
 #
 #   po-$CICLO.json         o PO extraído     (tools/validar-po-ciclo.js --json)
 #   plano-$CICLO.json      o plano extraído  (tools/validar-plano-ciclo.js --json)
@@ -365,61 +366,24 @@ for folha_nn in $(familias_por_aula captura-aula); do
   [ -f "$(fonte_md "captura-aula-$folha_nn")" ] || continue
   CAP_FOLHAS="$CAP_FOLHAS $folha_nn"
 done
-# A DATA DO PDF NÃO SE LÊ DO RELÓGIO NEM DO COMMIT — LÊ-SE DO CICLO (15/11/2026).
+# A DATA DA GERAÇÃO — O QUE SOBRA DEPOIS DE O PDF SAIR (20/11/2026).
 #
-# O QUE ESTAVA AQUI, E PORQUE É QUE NÃO SERVIA. O epoch vinha de
+# Aqui viviam 55 linhas a explicar porque é que o `SOURCE_DATE_EPOCH` era a DATA DE INÍCIO DO
+# CICLO e não o relógio nem o commit. A razão era uma só, e era do PDF: o pdfTeX escreve
+# `\pdfcreationdate` no arquivo, e sem um epoch fixo cada geração gravava a hora atual — o PDF
+# versionado aparecia modificado sem nenhuma mudança de conteúdo, e a árvore sujava-se sozinha
+# a cada commit.
 #
-#     git log -1 --format=%ct -- "professores/<professor>/ciclos"
+# SEM PDF, NÃO HÁ `/CreationDate` PARA FIXAR. Nenhuma outra saída deste script carimba o instante:
+# o `ciclos.json` leva as datas do CALENDÁRIO (`inicio`, `fim`, `data`, `prazo`), todas derivadas
+# das fontes, e o `gerado_em` saiu dele por ser juízo de um instante. O `SOURCE_DATE_EPOCH` ficou
+# sem leitor e saiu com o PDF.
 #
-# e o comentário ao lado dizia «a data do último commit que tocou as FONTES do ciclo». A frase
-# estava certa e o caminho estava errado: `professores/<professor>/ciclos` é a PASTA, e dentro
-# dela estão as saídas que este script escreve — `ciclos.json`, os PDFs, os `.fipp`. O epoch
-# dependia, portanto, do commit que versionava as próprias saídas: gravar o `ciclos.json` movia o
-# epoch, o epoch mudava o `ciclos.json` e o `/CreationDate` dos PDFs, e a árvore sujava-se outra
-# vez. Não é lento — é um ciclo sem ponto fixo. Medido no `main` (15/11/2026): depois de CADA
-# commit que tocasse um pacote, os mesmos 12 ficheiros voltavam a aparecer modificados com o mesmo
-# texto e uma data nova, e o commit seguinte levava dentro essa data, que movia o epoch outra vez.
-#
-# O QUE PASSA A VALER. O epoch é a DATA DE INÍCIO DO CICLO, que o calendário já derivou das fontes
-# (manifesto + calendário) e que entra no `ciclos.json` e no PDF como conteúdo. Três propriedades,
-# e as três são a razão da escolha:
-#
-#   · é FUNÇÃO DAS FONTES — muda quando o calendário muda, e só então: um commit que não toque nas
-#     fontes não move a data, logo não move um byte de saída;
-#   · não depende de `git` — a geração de um pacote num clone raso, ou a partir de um arquivo, dá
-#     o mesmo resultado que no repositório inteiro (o `git log` também falhava em silêncio: sem
-#     histórico devolvia vazio e o fallback era `date +%s`, o relógio outra vez);
-#   · e o que ele carimba não é uma mentira visível: o PDF não imprime data de geração nenhuma —
-#     conferido com `pdftotext` nos quatro ciclos; todas as datas que ele mostra vêm do plano e do
-#     calendário. O `SOURCE_DATE_EPOCH` existe aqui para o `/CreationDate` ser reprodutível, e para
-#     nada mais.
-#
-# E o que sai do ficheiro, em vez de ser tornado determinístico: o `gerado_em` e o `estado` do
-# `aulas[]`. Os dois eram juízos do instante da geração, e é por isso que não podem estar num
-# ficheiro versionado — ver o bloco do índice, abaixo.
-#
-# O FUSO ENTRA AQUI, E SÓ AQUI, PORQUE O CARIMBO AINDA DEPENDIA DA MÁQUINA (15/11/2026). A data
-# passou a vir das fontes e o ficheiro deixou de se sujar sozinho — mas o VALOR dela não era o
-# mesmo em duas máquinas. Medido: a mesma fonte, gerada aqui e na Action, dava PDFs com dois bytes
-# diferentes (`/CreationDate`), e o repositório ficou com as duas versões gravadas — cinco pacotes
-# com `D:20270201030000Z` e um, o que a Action regerou, com `D:20270201000000Z`. O sintoma é o que
-# ela descreveu («não tem sentido ficar carimbando toda hora»), uma camada abaixo: não era o
-# relógio, era o fuso de quem gera.
-#
-# São duas metades, e as duas precisam do pino:
-#   · o epoch — `date -d "2027-02-01"` sem fuso lê a data na hora LOCAL da máquina, e a mesma
-#     string vira dois instantes diferentes;
-#   · a formatação — o pdfTeX escreve `\pdfcreationdate` na hora LOCAL e acrescenta `Z`. Com fuso
-#     local -03, o campo diz `Z` carregando 03:00 de deslocamento: além de instável, é falso.
-#
-# `TZ=UTC` resolve as duas e é a convenção do `SOURCE_DATE_EPOCH` (a data reprodutível é expressa
-# em UTC); com ele o `Z` passa a querer dizer o que diz. Não muda nada do que o PDF IMPRIME — o
-# carimbo é metadado, e as datas do documento vêm do plano e do calendário.
+# O `TZ` FICA, e não é zelo: ele é o que faz duas máquinas com fusos diferentes lerem `10:30` como
+# o mesmo instante. É barato, não muda nada do que os documentos imprimem, e o dia em que alguém
+# voltar a carimbar uma hora neste script já o encontra posto.
 TZ=UTC
 export TZ
-SOURCE_DATE_EPOCH="$(date -d "$(printf '%s' "$DATA_PRIMEIRA_AULA" | awk -F/ '{printf "%s-%s-%s", $3, $2, $1}')" +%s 2>/dev/null || true)"
-[ -n "$SOURCE_DATE_EPOCH" ] || SOURCE_DATE_EPOCH="$(date +%s)"
-export SOURCE_DATE_EPOCH
 CICLO="$CICLO" ESCOLA="$ESCOLA" INICIO="$DATA_PRIMEIRA_AULA" FIM="$DATA_ULTIMA_AULA" \
 TOTAL_AULAS="$TOTAL_AULAS" DURACAO_MIN="$DUR_CURTA" \
 PROFESSOR_SLUG="$PROFESSOR_SLUG" \
@@ -724,7 +688,7 @@ cp "$TPL/lancamento.html" "$PACOTE/lancamento.html"
 cp "$RAIZ/tools/lib-vistas.js" "$RAIZ/tools/lib-cifra.js" "$TPL/nav.js" "$PACOTE/assets/"
 
 # ---------------------------------------------------------------------------
-# 0) Normalização dos ids: TODA fonte passa por aqui antes de virar HTML e PDF,
+# 0) Normalização dos ids: TODA fonte passa por aqui antes de virar HTML,
 #    para que os dois formatos tenham exatamente as mesmas âncoras (ASCII).
 # ---------------------------------------------------------------------------
 # ---------------------------------------------------------------------------
@@ -750,8 +714,8 @@ done
 ACOMP_DOCS="${ACOMP_DOCS# }"
 
 # As páginas de FERRAMENTA: têm HTML no pacote mas NÃO são documento — não entram em DOCS, não vão
-# ao PDF e não têm fonte `.md` (o rótulo do menu é declarado no gerador, como o do caderno). Hoje é
-# uma só: o formulário de lançamento (Fase 2.3).
+# ao pacote e não têm fonte `.md` (o rótulo do menu é declarado no gerador, como o do caderno). Hoje
+# é uma só: o formulário de lançamento (Fase 2.3).
 FERRAMENTAS="lancamento"
 
 # O LINK dos formulários da porta — a porta de elicitação, promovida ao Worker de produção. É um
@@ -846,7 +810,7 @@ if [ -f "$AULA_FONTE" ] && [ -f "$NOTACAO_FONTE" ]; then
   node "$RAIZ/tools/gerar-aula-prosa.js" --notacao "$AULA_FONTE" "$NOTACAO_FONTE" "$AULA_NOTACAO_SRC" || exit 1
 fi
 
-# Âncoras estáveis: são as mesmas no HTML (#id da página) e no PDF (#id da seção),
+# Âncoras estáveis: são as mesmas no HTML (#id da página) e no menu do pacote,
 # e é isso que permite ligar de um arquivo a outro sem quebrar em nenhum formato.
 declare -A ANCORA=(
   [index]="indice-geral"
@@ -904,7 +868,7 @@ rotulo() {
 # Rótulo de item do MENU. Igual ao `rotulo()`, com uma marca de DÍVIDA: a Musicalidade e o Guia de
 # observação são gerados por demanda (o formulário de lançamento) e saem do menu quando a verificação
 # da cadeia de custódia existir — até lá ficam marcados. SÓ NO MENU: o `title:` da página e o
-# sumário do PDF continuam limpos, porque o que está marcado é a NAVEGAÇÃO, não o documento. Por isso
+# sumário do documento continuam limpos, porque o que está marcado é a NAVEGAÇÃO, não o documento.
 # a marca não entra no `rotulo()`: ele serve o menu, o rodapé e o README, e o rodapé não é o menu.
 rotulo_no_menu() {
   case "$1" in
@@ -927,31 +891,26 @@ rodape_docs() {   # $1 = documento atual (o rodapé é o DELE, não a lista do c
   # O RODAPÉ É CONTEXTUAL (28/10/2026). Antes, todas as páginas levavam os sete links do
   # ciclo — inclusive o da própria página, e atalhos de tarefas que nada têm a ver com o
   # documento aberto. Na aula, o professor via «Plano» (rótulo que não diz de que plano se
-  # trata) e não via a captura daquela aula nem o PDF dela; no plano, via «Notação» e
+  # trata) e não via a captura daquela aula; no plano, via «Notação» e
   # «Glossário», que ele abre a partir da aula. Agora cada documento declara a sua lista
   # curta, e o plano leva o nome do ciclo para não se confundir com o plano de ensino.
-  local atual="${1:-}" doc r saida='' itens=() pdf=''
+  local atual="${1:-}" doc r saida='' itens=()
   case "$atual" in
     plano)
       # A página do plano é a porta do conteúdo: o que se procura a partir dela é a fonte
-      # (referências) e a entrega inteira (o PDF do ciclo).
+      # (referências).
       itens=(referencias) ;;
     aula-*)
-      # A ordem é a do trabalho na aula: o que ela segue (plano), a leitura em notação, a
-      # folha para levar para a sala e a entrega impressa daquela aula.
-      itens=(plano notacao "captura-$atual")
-      # O PDF DA AULA VAI EXISTIR, E NÃO JÁ EXISTE (01/11/2026). Aqui testava-se o ARQUIVO
-      # (`[ -f "$PACOTE/$atual.pdf" ]`), e o PDF só se escreve muito mais abaixo — logo o teste
-      # media a geração ANTERIOR. Consequência medida: o pacote saído da Action (clone limpo,
-      # nada por trás) linkava «PDF do ciclo», e a mesma geração corrida duas vezes na bancada
-      # linkava «PDF da aula»; a geração seguinte voltava a inverter. A pergunta certa é «a fonte
-      # desta aula existe?», que é a mesma que o laço de PDFs faz antes de o escrever.
-      [ -f "$(src_do_doc "$atual")" ] && pdf="<a href=\"$atual.pdf\">PDF da aula</a>" ;;
+      # A ordem é a do trabalho na aula: o que ela segue (plano), a leitura em notação e a
+      # folha para levar para a sala.
+      #
+      # O «PDF DA AULA» SAIU DAQUI (20/11/2026). Ele apontava para `aula-01.pdf`, que deixou de
+      # ser gerado — e um link para um ficheiro que já não nasce é um 404 com aparência de
+      # entrega. Quem imprime é o navegador, a partir desta mesma página.
+      itens=(plano notacao "captura-$atual") ;;
     captura-aula-*)
-      # A folha de captura é a da aula: volta para a leitura em prosa e para o PDF dela.
-      itens=(plano "aula-${atual#captura-aula-}")
-      [ -f "$(src_do_doc "aula-${atual#captura-aula-}")" ] \
-        && pdf="<a href=\"aula-${atual#captura-aula-}.pdf\">PDF da aula</a>" ;;
+      # A folha de captura é a da aula: volta para a leitura em prosa.
+      itens=(plano "aula-${atual#captura-aula-}") ;;
     notacao)
       itens=(plano glossario-benesh) ;;
     glossario-benesh)
@@ -980,8 +939,9 @@ rodape_docs() {   # $1 = documento atual (o rodapé é o DELE, não a lista do c
     r="$(rotulo "$doc")"
     saida="${saida:+$saida &middot; }<a href=\"$doc.html\">$r</a>"
   done
-  [ -n "$pdf" ] || pdf="<a href=\"$ID.pdf\">PDF do ciclo</a>"
-  printf '%s &middot; %s' "$saida" "$pdf"
+  # SEM O `&middot;` DO PDF: o rodapé passa a acabar no último documento. Antes ele imprimia
+  # «… &middot; <PDF>», e o PDF era sempre o último item; sem ele, o separador ficaria pendurado.
+  printf '%s' "$saida"
 }
 
 # ---------------------------------------------------------------------------
@@ -1158,7 +1118,10 @@ gerar_nav() {
       echo '    </div>'
       echo '  </details>'
     fi
-    echo "  <a class=\"pdf\" href=\"$(link_href "$ID.pdf")\">PDF do ciclo</a>"
+    # O BOTÃO «PDF do ciclo» SAIU DA BARRA (20/11/2026) — o ficheiro deixou de ser gerado.
+    # Quem quiser o PDF imprime a página (`Ctrl+P`), e o README do pacote diz isso mesmo. Um
+    # botão que aponta para um ficheiro que já não nasce seria um 404 com aparência de entrega,
+    # e o pior sítio para o ter é o canto direito de todas as páginas.
     node "$TPL/nav-html.js" --fechamento
   } > "$destino"
 }
@@ -1219,8 +1182,7 @@ for doc in $TODOS; do
     # front-matter: desde 2026-09-20 o `title:` dela diz "Guia de observação — Aula NN",
     # quando a chave passou a se chamar o que o documento É (antes era `relatorio-aula-NN`,
     # e o rótulo tinha de ser corrigido aqui, porque a chave mentia). Este caso mantém o
-    # rótulo para a aba e o cabeçalho — e é ele que o `check-pacote` compara com o título
-    # da seção do PDF.
+    # rótulo para a aba e o cabeçalho, e é ele que o `check-pacote` compara com o `<h1>`.
     guia-de-observacao-*)
       METADADOS=(--metadata "title=Guia de observação — Aula ${doc#guia-de-observacao-}") ;;
   esac
@@ -1346,200 +1308,21 @@ if [ -n "$ACOMP_DOCS" ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# 2) PDF único consolidado: capa + índice navegável + seções em página nova
+# 2) (vazio desde 20/11/2026) — o PDF consolidado saiu, e levou consigo o que só ele lia
 # ---------------------------------------------------------------------------
-# Os ACOMPANHAMENTOS NÃO entram no PDF. Ele é publicado no site e ficaria em
-# claro: a política de segurança dos dados sensíveis protege por camadas, e esta
-# é uma delas (ver CONGELAMENTO.md). Eles existem no site, cifrados.
-python3 - "$TMP/src" "$CICLO" "$TMP/consolidado.md" "$DOCS" "$ESCOLA" \
-  "$AULA_PROSA_SRC" "$AULA_NOTACAO_SRC" > "$TMP/mapa-ancoras.txt" <<'PY'
-import re, sys, pathlib
-ciclos, ciclo, destino, docs, escola = \
-    sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4].split(), sys.argv[5]
-aula_prosa, aula_notacao = sys.argv[6:8]
-ancoras = {
-    'index': 'indice-geral', 'plano': 'plano-do-ciclo', 'notacao': 'notacao-em-benesh',
-    'pre-requisitos': 'condicoes-pre-existentes', 'musicalidade': 'musicalidade',
-    'apanhado-historico': 'apanhado-historico', 'referencias': 'referencias-bibliograficas',
-    'guia-do-professor': 'guia-do-professor', 'metodo': 'metodo',
-}
-# Documento sem front-matter não tem `title:`, e a seção do PDF sairia com a chave
-# interna. Aqui o nome legível de quem não traz `title:` na própria fonte.
-titulos = {'metodo': 'Método'}
-# O preview do relatório aparece no site como "Guia de observação — Aula NN"
-# (decisão de 19/09/2026): o PDF usa o MESMO nome — o check-pacote compara os
-# títulos das páginas HTML com o texto do PDF, e acusa quando divergem.
-# O título de cada seção do PDF tem de ser o MESMO que a página HTML mostra: o
-# check-pacote compara os dois e reprova quando divergem. Dois documentos não
-# trazem `title:` na fonte, e o nome deles é declarado no gerador (não na fonte,
-# que entra no hash) — a dupla declaração está de propósito, e a divergência
-# entre as duas é pega pela validação.
-def titulo_legivel(doc, meta):
-    if doc.startswith('guia-de-observacao-'):
-        return 'Guia de observação — Aula %s' % doc[len('guia-de-observacao-'):]
-    if doc.startswith('caderno-'):
-        return 'Caderno — Ciclo %s · %s' % (ciclo, escola)
-    return meta.get('title') or titulos.get(doc) or doc
-def ancora(d):
-    return ancoras.get(d, 'ciclo-%s-%s' % (ciclo, d))
-
-# Cada documento tem suas seções (Exercícios, Musicalidade…) e, no PDF único,
-# esses nomes se repetem entre aulas. Para não colidir, todo id interno recebe o
-# prefixo do documento (aula-01--exercicios). Links internos acompanham.
-def prefixar_ids(corpo, prefixo):
-    return re.sub(r'\{#([a-z0-9][a-z0-9-]*)\}',
-                  lambda m: '{#' + prefixo + '--' + m.group(1) + '}', corpo)
-
-partes = []
-for doc in docs:
-    arq = pathlib.Path(ciclos) / ('ciclo-%s-%s.md' % (ciclo, doc))
-    if doc == 'aula-01' and aula_prosa:
-        arq = pathlib.Path(aula_prosa)
-    elif doc == 'notacao' and aula_notacao:
-        arq = pathlib.Path(aula_notacao)
-    if not arq.exists():
-        continue
-    bruto = arq.read_text(encoding='utf-8')
-    meta, corpo = {}, bruto
-    m = re.match(r'^---\n(.*?)\n---\n', bruto, re.S)
-    if m:
-        for linha in m.group(1).splitlines():
-            if ':' in linha:
-                k, v = linha.split(':', 1)
-                meta[k.strip().lower()] = v.strip().strip('"')
-        corpo = bruto[m.end():]
-    titulo = titulo_legivel(doc, meta)
-
-    # 1) links LOCAIS primeiro (enquanto os cruzados ainda têm a forma arquivo.html):
-    #    cada um recebe o prefixo deste documento.
-    corpo = re.sub(r'\]\(#([a-z0-9][a-z0-9-]*)\)',
-                   lambda mm, doc=doc: '](#' + doc + '--' + mm.group(1) + ')', corpo)
-
-    # 2) links para OUTROS documentos → âncora do PDF (o prefixo é o do alvo)
-    for d in docs + ['index']:
-        if d == 'index':
-            continue
-        corpo = re.sub(r'\]\(%s\.html#([a-z0-9][a-z0-9-]*)\)' % re.escape(d),
-                       lambda mm, d=d: '](#' + d + '--' + mm.group(1) + ')', corpo)
-        corpo = corpo.replace('](%s.html)' % d, '](#' + ancora(d) + ')')
-    corpo = corpo.replace('](ciclo-%s.pdf)' % ciclo, '](#' + ancoras['index'] + ')')
-
-    # 3) ids dos títulos internos ganham o mesmo prefixo do documento
-    corpo = prefixar_ids(corpo, doc)
-
-    partes.append('\n\\clearpage\n\n# %s {#%s}\n\n%s' % (titulo, ancora(doc), corpo.strip()))
-    print('%s\t%s\t%s' % (doc, ancora(doc), titulo))
-
-texto = '\n'.join(partes) + '\n'
-pathlib.Path(destino).write_text(texto, encoding='utf-8')
-
-# 3) Verificação das referências cruzadas internas do PDF: todo link [](#x)
-#    precisa de um título {#x}. Sem isso, o link fica "morto" no leitor.
-ids = set(re.findall(r'\{#([a-z0-9][a-z0-9-]*)\}', texto))
-links = set(re.findall(r'\]\(#([a-z0-9][a-z0-9-]*)\)', texto))
-faltando = sorted(links - ids)
-print('REFERENCIAS\t%d links\t%d ancoras\tfaltando: %s' % (len(links), len(ids), ', '.join(faltando) or 'nenhuma'), file=sys.stderr)
-if faltando:
-    sys.exit(3)
-PY
-
-# Cabeçalho LaTeX: rodapé numerado em todas as páginas + índice em página nova.
-# As cores da identidade são INJETADAS da fonte de verdade (tools/lib-tokens.js lê
-# o ciclo.css): o LaTeX não sabe ler CSS, e repetir os valores aqui criaria a
-# segunda lista que o IDENTIDADE-VISUAL.md proíbe.
-sed -e "s|@NOME@|$(printf '%s' "$NOME" | sed -e 's/[&%#_]/\\&/g')|g" \
-    -e "s|@CICLO@|$CICLO|g" \
-    -e "s|@PERIODO@|$PERIODO|g" \
-    "$TPL/ciclo-cabecalho.tex" > "$TMP/cabecalho.tex"
-if grep -q '@CORES@' "$TMP/cabecalho.tex"; then
-  node "$RAIZ/tools/lib-tokens.js" --latex > "$TMP/cores.tex"
-  python3 - "$TMP/cabecalho.tex" "$TMP/cores.tex" <<'PY'
-import sys
-# A substituição é feita em Python, e não com `sed`: o bloco tem `\`, `{`, `}` e
-# `\n`, que o `sed` interpretaria — e o `@CORES@` fica numa linha só, então o
-# texto multilinha precisa entrar por arquivo, não por argumento de comando.
+# AQUI VIVIA A CONSOLIDAÇÃO. Um bloco de ~150 linhas de Python que juntava os documentos numa
+# única fonte, prefixava os ids de cada um para não colidirem entre secções, reescrevia os links
+# cruzados para âncoras internas e conferia que todo `](#x)` tinha um `{#x}`. Tudo isso existia
+# por UMA razão: o PDF é um documento só e os documentos são vários.
 #
-# Substitui APENAS a linha que é só o marcador. O cabeçalho CITA `@CORES@` em dois
-# comentários, para documentar a injeção; um `replace` global injetaria o bloco
-# inteiro dentro deles e quebraria o preâmbulo (o LaTeX compila, mas com o
-# primeiro `\definecolor` dentro do comentário e as três cópias do bloco).
-alvo, cores = sys.argv[1], sys.argv[2]
-with open(alvo, encoding='utf-8') as f:
-    linhas = f.read().split('\n')
-with open(cores, encoding='utf-8') as f:
-    bloco = f.read().rstrip('\n')
-marcadores = [i for i, l in enumerate(linhas) if l.strip() == '@CORES@']
-if len(marcadores) != 1:
-    sys.exit(f'@CORES@: esperava exatamente 1 linha de injeção, achei {len(marcadores)}')
-linhas[marcadores[0]:marcadores[0] + 1] = bloco.split('\n')
-with open(alvo, 'w', encoding='utf-8') as f:
-    f.write('\n'.join(linhas))
-PY
-fi
+# O QUE NÃO SE PERDE COM ELE. A conferência de âncoras que o bloco fazia não tinha equivalente no
+# HTML — e continua a ter: o `check-pacote.js` valida cada `href="#x"` contra os `id=` do próprio
+# ficheiro e cada `doc.html#x` contra os `id=` do ficheiro alvo (verificação 3). A do PDF era uma
+# SEGUNDA verificação da mesma regra, sobre uma cópia prefixada — e é a cópia que saiu.
+#
+# E O QUE SE GANHA. Uma geração que não escreve o que ninguém lê: o `consolidado.md`, o
+# `mapa-ancoras.txt` (que nenhum outro sítio abria) e o `consolidado-final.md`.
 
-
-# Capa + aviso + documentos (o corpo do PDF vem do arquivo consolidado)
-{
-  echo '---'
-  echo "title: \"$NOME\""
-  echo "subtitle: \"$ESCOLA — $FREQUENCIA, $DURACAO_POR_DIA\""
-  echo "author: \"$PROFESSOR\""
-  echo "date: \"$PERIODO\""
-  echo 'lang: pt-BR'
-  echo '---'
-  echo
-  echo "**Escola:** $ESCOLA — ${RESPONSAVEL:-não informado} · **Frequência:** $FREQUENCIA · "
-  echo "**Duração por dia:** $DURACAO_POR_DIA · **Volume semanal:** $VOLUME_SEMANAL tempos."
-  echo
-  echo 'Cada documento começa em página nova. O índice é navegável, o rodapé'
-  echo 'identifica o ciclo e os links entre documentos levam à seção interna.'
-  echo
-  cat "$TMP/consolidado.md"
-} > "$TMP/consolidado-final.md"
-
-# PDF reprodutível. Sem isto, cada geração grava a hora atual em /CreationDate e o PDF
-# versionado aparece como modificado mesmo sem nenhuma mudança de conteúdo. O
-# `SOURCE_DATE_EPOCH` já foi calculado acima — é a DATA DE INÍCIO DO CICLO, derivada do calendário
-# (ver o bloco lá em cima, e o motivo de não ser o relógio nem o commit); aqui só se pede ao
-# pdfTeX que o use. O PDF não imprime data de geração nenhuma: o que ele carimba é metadado, e o
-# metadado tem de ser função das fontes como o resto do ficheiro. (Os pacotes são versionados
-# para o deploy automático.)
-export FORCE_SOURCE_DATE=1
-
-for doc in $DOCS; do
-  case "$doc" in
-    aula-*)
-      src="$TMP/src/ciclo-$CICLO-$doc.md"
-      if [ "$doc" = "aula-01" ] && [ -n "$AULA_PROSA_SRC" ]; then
-        src="$AULA_PROSA_SRC"
-      fi
-      [ -f "$src" ] || continue
-      pandoc "$src" \
-        -o "$PACOTE/$doc.pdf" \
-        --toc --toc-depth=3 \
-        --from=markdown+raw_tex+header_attributes \
-        --pdf-engine="$PDF_ENGINE" \
-        -V geometry:margin=2cm \
-        -V colorlinks=true \
-        -V lang=pt-BR \
-        -V toc-title="Índice" \
-        --include-in-header="$TMP/cabecalho.tex"
-      echo "pdf:  $doc.pdf · engine $PDF_ENGINE · $(pdfinfo "$PACOTE/$doc.pdf" | awk '/^Pages/{print $2}') páginas"
-      ;;
-  esac
-done
-
-pandoc "$TMP/consolidado-final.md" \
-  -o "$PACOTE/$ID.pdf" \
-  --toc --toc-depth=3 \
-  --from=markdown+raw_tex+header_attributes \
-  --pdf-engine="$PDF_ENGINE" \
-  -V geometry:margin=2cm \
-  -V colorlinks=true \
-  -V lang=pt-BR \
-  -V toc-title="Índice" \
-  --include-in-header="$TMP/cabecalho.tex"
-echo "pdf:  $ID.pdf · engine $PDF_ENGINE · $(pdfinfo "$PACOTE/$ID.pdf" | awk '/^Pages/{print $2}') páginas"
 
 # ---------------------------------------------------------------------------
 # 3) README do pacote (não sobrescreve um README escrito pelo professor)
@@ -1569,11 +1352,16 @@ compartilhado por todos os professores do projeto.
 
 - \`index.html\` — índice geral do ciclo (comece por aqui)
 - $DOCS_README
-- \`$ID.pdf\` — **PDF único consolidado**: capa, índice navegável, bookmarks
-  (barra lateral do leitor) e rodapé numerado com a identificação do ciclo
 
 Todas as páginas têm a mesma barra de navegação fixa no topo, um índice interno,
 botão "voltar ao topo" e rodapé com o link de volta ao índice.
+
+**Não há PDF neste pacote, e é de propósito** (20/11/2026). Para ter um, abra a
+página que quer e imprima — \`Ctrl+P\` (ou \`Cmd+P\`) → *Guardar como PDF*. As
+páginas já saem no papel como saíam no PDF: a folha de estilo tem \`@media print\`,
+o cabeçalho não fica fixo, e a paleta é sempre a clara. O PDF saiu porque compilá-lo
+obrigava a instalar o TeX em **toda** geração — 61 a 68 s de um trabalho de 5 — para
+um ficheiro que quase nunca se abria.
 
 ## Calendário desta variante
 
@@ -1585,7 +1373,7 @@ duração por dia desta escola.
 ## Como usar em aula
 
 1. Abra \`index.html\` no navegador e navegue até a aula do dia.
-2. Para projetar ou imprimir sem depender do navegador, use \`$ID.pdf\`.
+2. Para imprimir ou guardar em PDF: \`Ctrl+P\` / \`Cmd+P\` na própria página.
 3. Para editar: altere os Markdown em \`professores/$PROFESSOR_SLUG/ciclos/\` e rode
 
    \`\`\`bash

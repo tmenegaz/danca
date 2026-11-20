@@ -13,8 +13,11 @@
  *   3) todo link interno resolve (arquivo existe; âncora existe no arquivo alvo);
  *   4) o registro em Benesh e o glossário do ciclo são consistentes entre si
  *      (glossário exaustivo: todo símbolo do corpo tem verbete — tools/check-glossario.js);
- *   5) o PDF consolidado tem índice, links internos, bookmarks e rodapé numerado
- *      em todas as páginas;
+ *   5) o PDF consolidado — QUANDO ELE EXISTE — tem índice, links internos,
+ *      bookmarks e rodapé numerado em todas as páginas. Ele deixou de ser gerado a
+ *      20/11/2026 (ver `REGISTRO.md`): o pacote já não o traz, e isso é aviso, não
+ *      erro. A verificação fica porque um pacote anterior ainda o pode ter, e um
+ *      PDF corrompido num pacote antigo continua a ser um defeito que se mede.
  *   6) todo ciclo que tem aula tem harmonização de linguagem (P-17 + P-21): o
  *      artefato é obrigatório, e a ausência é erro — não aviso;
  *   7) quando o manifesto declara ACOMPANHAMENTO_CRIPTOGRAFADO="sim", as páginas
@@ -93,7 +96,14 @@ if (docsDoCiclo) {
   avisos.push('manifesto do ciclo não encontrado ao lado do pacote — exigindo só o mínimo');
   obrigatorios.push('index.html');
 }
-obrigatorios.push('assets/style.css', `${nomePacote}.pdf`);
+/* O PDF SAIU DA LISTA A 20/11/2026, e a lista é a que se chama «obrigatórios».
+ *
+ * Ele obrigava a que houvesse um PDF — e era isso que prendia o TeX ao fluxo padrão: sem
+ * `pdflatex` instalado o pacote nascia incompleto e este validador reprovava-o, em toda geração,
+ * mesmo quando ninguém ia abrir o ficheiro. Hoje a entrega impressa é a própria página (a folha de
+ * estilo tem `@media print`), e o PDF é opcional: `pdfinfo`/`pdftotext` continuam a servi-lo se
+ * ele estiver lá — ver a verificação 5. */
+obrigatorios.push('assets/style.css');
 
 if (!fs.existsSync(pacote)) {
   console.error(`erro: pacote não encontrado: ${pacote}`);
@@ -392,9 +402,18 @@ function textoDoPdf(caminho) {
   return partes.join('\n');
 }
 
+/* SEM PDF NÃO É DEFEITO, E DIZ-SE PORQUÊ (20/11/2026).
+ *
+ * O aviso existe para a diferença entre «não foi gerado» e «foi esquecido» não desaparecer: dito
+ * em cada geração, ninguém conclui que a verificação do PDF se perdeu por descuido. Ela não se
+ * perdeu — deixou de haver PDF para verificar. */
+if (!fs.existsSync(pdf)) {
+  avisos.push(`PDF: ${path.basename(pdf)} ausente — a entrega impressa é a própria página `
+    + '(Ctrl+P); o PDF deixou de ser gerado a 20/11/2026');
+}
+
 if (fs.existsSync(pdf)) {
   const conteudo = textoDoPdf(pdf);
-
   if (/\/Outlines/.test(conteudo)) ok.push('PDF: bookmarks (barra lateral do leitor) presentes');
   else erros.push('PDF: sem bookmarks (/Outlines ausente)');
 
@@ -466,9 +485,10 @@ if (fs.existsSync(pdf)) {
     avisos.push('PDF: pdfinfo/pdftotext indisponíveis — checagens de paginação/rodapé puladas'
       + ` (${String(e.message).split('\n')[0].slice(0, 90)})`);
   }
-} else {
-  erros.push(`PDF ausente: ${path.relative(process.cwd(), pdf)}`);
 }
+/* O `else` que aqui estava exigia o PDF, e é a SEGUNDA das duas exigências que o prendiam ao fluxo
+ * (a primeira era a lista `obrigatorios`). Sem ele — e com o aviso já emitido acima —, a ausência
+ * do PDF passa a ser o caso normal e não um defeito. */
 
 // ------------------------------------------- 2b) o JSON de dados: a cópia × a fonte
 // O pacote publica a CÓPIA CIFRADA (o formulário a decifra no navegador). A cifra NÃO é

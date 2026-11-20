@@ -295,6 +295,12 @@ de container com o conjunto já instalado), o job cai a ~40 s e factura **1 min*
 - **O que verificar:** que o `pull` da imagem não acrescenta tempo de job; e que a verificação por
   `kpsewhich` (que hoje guarda a lista no `action.yml`) continua a existir, agora dentro da imagem.
 
+> **Resolvida a 20/11/2026, e por um caminho mais barato do que este.** Não foi preciso imagem
+> nenhuma: o **PDF saiu do fluxo**, e com ele o TeX. O `preparar-tex` continua a instalar pandoc
+> (é dele que sai todo o HTML) mas já não instala TeX. Medido: o passo caiu de **61–68 s** para
+> **10–11 s** — o mesmo valor do `criar-escola`, que já corria com `com-tex: false` —, e o job de
+> **97–107 s** para ~45–50 s, facturando **1 minuto**. Ver a §7.8.
+
 ### 7.3 A conclusão do elenco escreve dois commits — **−1 min por conclusão**
 
 O «Concluir elenco» escreve **o ficheiro** e **o índice da escola** em dois commits, e cada um
@@ -410,7 +416,74 @@ atribuir à fusão uma poupança que veio de outra correcção.
 | «a gente diminuiu a quantidade de commits»? | nos **commits**, não (8, como antes); nas **execuções** por gesto, sim — **15–19 → 8–10** |
 | «o uso do TeX»? | o passo caiu **~55 %**; o job, **~26 %** na média |
 | «houve redução de custo significativa»? | **sim, ~60 %** no gesto, pela fusão dos workflows; **~35 %** se as canceladas forem facturadas |
-| «dá para chegar a 1 minuto?» | **não com o TeX dentro do job** — ele sozinho já passa dos 60 s |
+| «dá para chegar a 1 minuto?» | **não com o TeX dentro do job** — ele sozinho já passa dos 60 s. **Chegou-se a 20/11/2026, tirando o TeX: ver a §7.8** |
+
+## 7.8 O PDF saiu do fluxo — e o minuto do §7.7 chegou (20/11/2026)
+
+**A pergunta dela.** «O PDF, a gente não pode colocar ele mediante demanda? […] eu acho que ele vai
+ser gerado tão pouco e quando o professor clicar ali no PDF, aí sim dispara o processo.»
+
+**A resposta é sim, e a medição mostra que o ganho é maior do que o PDF.** A decisão foi tomada na
+mesma conversa: **o PDF deixa de existir como ficheiro; quem imprime é o navegador**.
+
+### a) O PDF não era o custo — era a máquina que o compila
+
+| passo | run 44770733345 | 44769892060 | 44767545583 |
+|:--|--:|--:|--:|
+| `preparar-node` | 8 s | 13 s | 7 s |
+| **`preparar-tex`** | **61 s** | **67 s** | **68 s** |
+| **Gerar e validar o pacote** (9 HTML **+ os 2 PDFs**) | **5 s** | **6 s** | **5 s** |
+| Commitar · Publicar | 8 · 7 s | 6 s | 7 · 6 s |
+| **job** | **97 s** | **107 s** | **107 s** |
+
+Os dois PDFs (o consolidado e o da aula) cabiam nos 5–6 s do passo que também escreve as nove
+páginas. **O que custava 61–68 s era instalar o TeX para os compilar** — em toda geração, mesmo
+quando ninguém os ia abrir.
+
+### b) O mesmo passo, sem TeX, na mesma infra
+
+O `criar-escola` já chamava a **mesma ação** com `com-tex: false` (a chave existe desde o primeiro
+dia, `action.yml:36`) — e serve de controlo, porque é o mesmo runner, a mesma cache e o mesmo
+`apt`:
+
+| | `preparar-tex` | job inteiro |
+|:--|--:|--:|
+| `gerar-ciclo` (com TeX) | **61–68 s** | 97–107 s |
+| `criar-escola` (sem TeX) | **10–11 s** | **30 s** |
+
+### c) O que se ganha
+
+O job de geração passa de **97–107 s** para **~45–50 s** — abaixo dos 60 s, que é a fronteira onde o
+Actions deixa de cobrar 2 minutos e passa a cobrar **1**.
+
+| | antes | depois |
+|:--|--:|--:|
+| duração do job | 97–107 s | ~45–50 s |
+| **minutos facturados por geração** | **2** | **1** |
+| execuções de `gerar-ciclo` em 20/11/2026 | 22 (17 com sucesso) | — |
+| minutos de geração nesse dia | ~44 | **~22** |
+
+**Isto é a alavanca do §7.2, e é a versão mais barata dela.** O §7.2 propunha uma imagem de
+container com o TeX já instalado; não é preciso nada disso — basta não precisar de TeX. Não há
+imagem para manter, nem `pull` a somar tempo de job.
+
+### d) O que se perde, e está declarado
+
+- **As quatro verificações do PDF** (bookmarks, links internos, páginas, rodapé em todas as
+  páginas) deixam de correr em cada geração. O `check-pacote.js` mantém-nas para um pacote que
+  ainda traga o PDF, e emite **aviso** quando ele falta — para a diferença entre «não foi gerado» e
+  «foi esquecido» não desaparecer.
+- **O índice navegável e os bookmarks.** O navegador imprime a página; não constrói um documento
+  com barra lateral. Quem quer o ciclo inteiro num ficheiro percorre o menu.
+- **A tipografia do LaTeX.** As páginas no papel são as mesmas que se vêem na tela.
+- **O que NÃO se perde:** a âncora de proveniência. O `.fipp` hasheia as **fontes** (`.conf`,
+  `.md`), e o PDF nunca esteve na cadeia.
+
+### e) O que isto não decide
+
+O `tools/templates/ciclo-cabecalho.tex` e o modo `--latex` do `lib-tokens.js` ficaram **sem
+consumidor**. Não se apagaram: `tools/templates/` está em `CONGELAMENTO.md`, e mexer num congelado
+pede motivo declarado e commit próprio — o que se fez aqui foi tirar-lhe o uso, não o ficheiro.
 
 ---
 
