@@ -973,34 +973,24 @@ async function fetch(request, env) {
   //     vivem FORA da porta — a lista de alunas e a senha do professor que a
   //     anamnese consulta. Sem Produção real, este andaime as entrega.
   //     E VESTE A ESCOLA como qualquer outra página: os Bastidores também levam a barra.
-  /* A CADEIA SÓ SE MONTA ONDE É USADA (09/11/2026): os quatro gestos que mudam o corpo ou a
-   * direção de uma turma, e a leitura do log. Em qualquer outro pedido dos Bastidores ela é
-   * `null`, e o custo é zero. */
+  /* A CADEIA SÓ SE MONTA ONDE É USADA (09/11/2026): nos gestos que a percorrem, nas rotas que a
+   * disparam, e na leitura do log. Em qualquer outro pedido dos Bastidores ela é `null`, e o custo
+   * é zero.
+   *
+   * A LISTA MUDOU DE CASA (20/11/2026), e a mudança é o conserto de dois defeitos gémeos. Ela vivia
+   * AQUI — longe das rotas que a usam —, e por duas vezes uma rota nova ficou fora: a
+   * `turma-professor` (19/11) e a `impacto-da-inclusao` (20/11). As duas chamavam uma cadeia que a
+   * ponte nunca montava, e a segunda respondeu ao vivo «não consegui ler o plano de ensino» sobre
+   * uma Turma que o tinha — uma frase que mandava procurar o problema no acervo.
+   *
+   * Nenhuma bancada via isto: as provas INJETAM a cadeia, e a montagem é a única coisa que só
+   * existe no Worker. Por isso a lista passou a ser uma constante do ficheiro onde as rotas estão
+   * (`ROTAS_QUE_PRECISAM_DA_CADEIA`, em `bastidores.js`), e há uma prova que a compara com o uso no
+   * código. Uma lista em dois sítios é uma lista que diverge. */
   let cadeia = null;
   let fetchDoPedido = null;
   if (path.startsWith('/api/bastidores')) {
-    const gestos = [
-      '/api/bastidores/elenco-mover',
-      '/api/bastidores/linha-de-base',
-      '/api/bastidores/curadoria',
-      '/api/bastidores/curadoria-derivar',
-      // A MUDANÇA DE SALA (09/11/2026) — as duas rotas que mudam o RITMO de uma Sala. A cadeia
-      // relê o ritmo no plano, deriva o PO e fecha o pacote; sem o gatilho, o documento impresso
-      // continuava a declarar o horário antigo (ver `motor/servidor/cadeia.js`).
-      '/api/bastidores/turma-editar',
-      '/api/bastidores/turma-derivar',
-      /* A TROCA DE QUEM DÁ A SALA (T2, 19/11/2026). Faltava aqui, e sem esta linha o gatilho que
-       * a rota passou a disparar não servia de nada em produção: a rota chamava uma cadeia que a
-       * ponte nunca montava para ela, e a resposta era «a cadeia automática não está montada
-       * neste Worker». É a armadilha de a mesma lista existir em dois sítios — a bancada mede a
-       * rota com uma cadeia injetada e não veria isto. A prova compara agora as duas listas. */
-      '/api/bastidores/turma-professor',
-      // O FECHO DO PACOTE NUMA INVOCAÇÃO PRÓPRIA (10/11/2026) — é ele que dá à geração os 50
-      // subpedidos inteiros, quando o gesto que a pediu já gastou a maior parte do teto. Sem a
-      // montagem aqui, a rota responderia «a cadeia não está montada» e o professor voltava à
-      // via crucis que este caminho existe para acabar.
-      '/api/bastidores/cadeia-pacote',
-    ];
+    const gestos = bastidores.ROTAS_QUE_PRECISAM_DA_CADEIA;
     const pede = (request.method === 'GET' && path === '/api/bastidores/cadeia')
       || (request.method === 'POST' && gestos.indexOf(path) !== -1);
     if (pede) {

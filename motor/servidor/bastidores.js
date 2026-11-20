@@ -27005,6 +27005,20 @@ function parDaSalaNoCorpo(corpo, registo) {
           + 'derivação.',
       });
     }
+    /* A CADEIA NÃO ESTÁ MONTADA — e isto diz-se pelo nome (20/11/2026).
+     *
+     * O QUE ACONTECEU AO VIVO. A rota não estava na lista que a ponte usa para montar a cadeia, e a
+     * resposta saiu como «não consegui ler o plano de ensino» — uma frase que manda procurar o
+     * problema no acervo, quando o problema era a montagem. Ela leu, gravou, e o exercício entrou
+     * sem objetivo. Um diagnóstico que aponta para o sítio errado custa mais do que nenhum. */
+    if (!cadeia || typeof cadeia.planoDaTurma !== 'function') {
+      return json(200, {
+        ok: true, precisaDecisao: null, motivo: 'sem-cadeia',
+        aviso: 'a cadeia automática não está montada neste pedido — não consigo ler o plano de '
+          + 'ensino da Turma para perguntar a que objetivo o exercício serve. A ficha entra, e a '
+          + 'declaração fica para a próxima derivação.',
+      });
+    }
     const nomeDaSala = String(turmasDaCuradoria(turma)[0] || '').trim();
     const salaVigente = nomeDaSala
       ? turmaVigentePorNome(await turmas(kv, escola), nomeDaSala) : null;
@@ -27660,6 +27674,47 @@ async function fetchComRede(request, env, extras) {
   }
 }
 
+/**
+ * AS ROTAS QUE PRECISAM DA CADEIA AUTOMÁTICA — e a lista é ESTA, uma só (20/11/2026).
+ *
+ * PORQUE ELA SAIU DE `producao.js` E VIROU CONSTANTE. A ponte monta a cadeia só para as rotas
+ * desta lista, e a lista vivia em `producao.js` — noutro ficheiro, longe das rotas que a usam. Duas
+ * vezes o mesmo defeito: a `turma-professor` chamava uma cadeia que a ponte nunca montava, e a
+ * `impacto-da-inclusao` respondia «não consegui ler o plano de ensino» sobre uma Turma que o tinha.
+ * As bancadas não viam isto porque INJETAM a cadeia (`montar({ cadeia })`); só o Worker a montava a
+ * partir desta lista, e só ao vivo.
+ *
+ * O que fica: uma rota nova que use `cadeia`/`rodarCadeia` entra AQUI, ao lado das que já usam, e a
+ * ponte lê daqui. Quem acrescentar uma e esquecer esta lista vê o defeito na bancada — porque a
+ * prova compara a lista com o uso no código (`provar-as-rotas-da-cadeia.js`).
+ */
+const ROTAS_QUE_PRECISAM_DA_CADEIA = [
+  '/api/bastidores/elenco-mover',
+  '/api/bastidores/linha-de-base',
+  /* A DERIVAÇÃO da Turma — é ela que percorre a cadeia. O `POST /curadoria` NÃO está aqui, e a
+   * ausência é uma correcção: criar ou editar uma Turma grava o registo e devolve 201, sem
+   * travessia nenhuma. A lista antiga trazia-o «por precaução», e uma rota que monta a cadeia sem a
+   * usar paga a leitura de cada chamada — e esconde que já ninguém a percorre ali. */
+  '/api/bastidores/curadoria-derivar',
+  /* A MUDANÇA DE SALA (09/11/2026) — as duas rotas que mudam o RITMO de uma Sala. A cadeia relê o
+   * ritmo no plano, deriva o PO e fecha o pacote; sem o gatilho, o documento impresso continuava a
+   * declarar o horário antigo (ver `motor/servidor/cadeia.js`). */
+  '/api/bastidores/turma-editar',
+  '/api/bastidores/turma-derivar',
+  /* A TROCA DE QUEM DÁ A SALA (T2, 19/11/2026). */
+  '/api/bastidores/turma-professor',
+  /* O FECHO DO PACOTE NUMA INVOCAÇÃO PRÓPRIA (10/11/2026) — é ele que dá à geração os 50
+   * subpedidos inteiros, quando o gesto que a pediu já gastou a maior parte do teto. */
+  '/api/bastidores/cadeia-pacote',
+  /* A JANELA DO EXERCÍCIO NOVO (20/11/2026) — ela LÊ o plano da Turma para saber que objetivos
+   * oferecer. Sem a cadeia montada a rota não sabe ler, e responde que não conseguiu: foi o que
+   * aconteceu ao vivo, e a frase parecia um problema do acervo quando era a lista. */
+  '/api/bastidores/impacto-da-inclusao',
+  /* «ATUALIZAR O CICLO» (20/11/2026) — o botão que força a derivação para levar ao papel o que
+   * ficou na Turma. Ele É a travessia inteira. */
+  '/api/bastidores/atualizar-o-ciclo',
+];
+
 module.exports = {
   /* A PEÇA DO HISTÓRICO, EXPORTADA E NÃO EXIBIDA (18/11/2026).
    *
@@ -27670,6 +27725,8 @@ module.exports = {
    * está quebrada e ainda não se sabe. */
   historicoDoAjuste,
   diferencaDeRitmo,
+  /* A LISTA DAS ROTAS QUE PRECISAM DA CADEIA — ver a nota dela, acima. A ponte lê daqui. */
+  ROTAS_QUE_PRECISAM_DA_CADEIA,
   /* O ESTILO REGERA OS DOCUMENTOS — exportado para a bancada (T5, 19/11/2026).
    *
    * O que se quer medir são duas decisões que não se vêem pelo resultado de uma rota: **que Turmas

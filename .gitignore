@@ -1707,3 +1707,9 @@ experimentos/modelo-formulario/*
 # citada no REGISTRO e no rodapé `Auditoria:` do commit, e um arquivo citado que não existe no
 # clone é uma afirmação que ninguém pode conferir.
 !experimentos/provar-o-exercicio-novo.js
+# A LISTA DAS ROTAS QUE MONTAM A CADEIA (20/11/2026). Duas rotas ficaram fora dela e falharam ao
+# vivo, as duas com o mesmo sintoma; nenhuma bancada via, porque as provas INJETAM a cadeia. Esta
+# prova não injeta nada — compara a lista com o uso no código. É citada no REGISTRO e no rodapé
+# `Auditoria:` do commit, e um arquivo citado que não existe no clone é uma afirmação que ninguém
+# pode conferir.
+!experimentos/provar-as-rotas-da-cadeia.js
