@@ -7,7 +7,7 @@ title: "Plano para a Aula 01 — reconhecer o apoio e alinhar o eixo vertical"
 subtitle: "Turma: Rosa"
 objetivo-especifico: "reconhecer o apoio e alinhar o eixo vertical"
 duracao: "90 minutos"
-volume-total: "135 tempos"
+volume-total-90: "135 tempos"
 referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 ---
 
