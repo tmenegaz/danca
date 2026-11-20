@@ -588,6 +588,122 @@ async function principal() {
       && soModalidade.dados.trocou.professor === false),
     soModalidade.dados && soModalidade.dados.trocou);
 
+  /* ══════════════════════════════════════════════════════════════════════════════════════════
+   * T7 — O RITMO DA SALA MANDA, E NÃO ESPERA PELA DATA (20/11/2026)
+   *
+   * O QUE ACONTECEU, com os números dela. A Sala `Rosa` foi derivada mudando o horário (14:30), a
+   * duração (45 → 60 min) e o fim do período (05/02 → 08/01). A Sala derivou e persistiu; o plano
+   * e o PO, não. O log da cadeia diz, com todas as letras:
+   *
+   *   mudanca-de-sala · plano-de-ensino feita (plano-20261119-2144) · pacote falta
+   *
+   * — e o documento gerado saiu a dizer «45 minutos» sobre uma Sala de 60.
+   *
+   * A causa: o plano é de `2026-11-19T21:44`, a vigência da Sala é a DATA `2026-11-19`, e a
+   * comparação de strings dá o carimbo por mais novo (o prefixo bate, a string maior ganha). A
+   * mudança foi às 23:34 do mesmo dia — duas horas depois do plano, e a data não sabe disso.
+   *
+   * O que se mede aqui é a guarda NOVA: o ritmo declarado pelo documento contra o que a Sala
+   * declara hoje. E mede-se também o que ela NÃO pode fazer — acusar quando os dois coincidem.
+   * ══════════════════════════════════════════════════════════════════════════════════════════ */
+  console.log('');
+  {
+    /* O CASO DELA, com os dois lados como estavam de verdade. */
+    const planoDe45 = {
+      id: 'plano-20261119-2144', gerado_em: '2026-11-19T21:44',
+      contexto: { escola: ESCOLA, professor: 'pe-torto', turma: 'Rosa', ciclo: '01',
+        modalidade: 'Balé clássico' },
+      respostas: {
+        'contexto-frequencia': { vezes: 3, por: 'semanal', dias: ['seg', 'qua', 'sex'] },
+        'contexto-duracao': [{ numero: 45, unidade: 'minuto' }],
+        'contexto-calendario': { inicio: '2026-12-14', fim: '2027-02-05' },
+        'contexto-total-aulas': 24,
+        'objetivo-geral': 'o mesmo texto de sempre',
+      },
+    };
+    const ritmoNovo = {
+      'contexto-frequencia': { vezes: 3, por: 'semanal', dias: ['seg', 'qua', 'sex'] },
+      'contexto-duracao': [{ numero: 1, unidade: 'hora' }],
+      'contexto-calendario': { inicio: '2026-12-14', fim: '2027-01-08' },
+      'contexto-total-aulas': 12,
+    };
+    const base = {
+      quando: '2026-11-19', ciclo: '01', turma: 'Rosa',
+      sala: { nome: 'Rosa', professor: 'pe-torto', modalidade: 'Balé clássico',
+        dias: ['seg', 'qua', 'sex'], horarios: { seg: '14:30', qua: '14:30', sex: '14:30' },
+        frequencia: 3, duracaoMin: 60, periodoInicio: '2026-12-14', periodoFim: '2027-01-08' },
+      curadoria: TURMA, elenco: ELENCO,
+      po: { id: 'po-20261119-2144', gerado_em: '2026-11-19T21:44',
+        contexto: { escola: ESCOLA, professor: 'pe-torto', turma: 'Rosa', ciclo: '01',
+          modalidade: 'Balé clássico' },
+        respostas: {} },
+    };
+
+    const comRitmo = nucleoCadeia.indice(Object.assign({}, base, {
+      plano: planoDe45, ritmo: ritmoNovo,
+    }));
+    const etapaDoRitmo = etapa(comRitmo, 'plano-de-ensino');
+    provar('T7 · o plano declara 45 min e a Sala declara 60: a etapa fica PENDENTE (deriva)',
+      etapaDoRitmo.estado === 'pendente', etapaDoRitmo.estado);
+    provar('T7 · …e a frase diz o ritmo de hoje em português, para o professor reconhecê-lo',
+      /60 minutos/.test(String(etapaDoRitmo.falta || ''))
+        && /3× por semana/.test(String(etapaDoRitmo.falta || ''))
+        && /2027-01-08/.test(String(etapaDoRitmo.falta || '')),
+      String(etapaDoRitmo.falta || '').slice(0, 180));
+
+    /* A MESMA DATA, O MESMO DIA — e é isso que a data sozinha não conseguia distinguir: o plano
+     * de 21:44 é anterior à mudança das 23:34, e `'2026-11-19T21:44' >= '2026-11-19'` dizia que
+     * não. Aqui o `quando` é o mesmo, e o que muda é o ritmo: a guarda apanha-o. */
+    provar('T7 · a data não decide: com o MESMO `quando`, é o ritmo que faz a etapa derivar',
+      nucleoCadeia.indice(Object.assign({}, base, { plano: planoDe45 }))
+        .etapas.find((p) => p.chave === 'plano-de-ensino').estado === 'feita',
+      'sem ritmo no estado, a data antiga dava a etapa por feita');
+
+    /* E O CONTRÁRIO, para não ser um «deriva sempre»: o mesmo ritmo dos dois lados não acusa. */
+    const planoDe60 = Object.assign({}, planoDe45, { respostas: Object.assign({},
+      planoDe45.respostas, ritmoNovo) });
+    provar('T7 · CONTROLE NEGATIVO: com o mesmo ritmo de parte a parte, a guarda não dispara',
+      nucleoCadeia.indice(Object.assign({}, base, { plano: planoDe60, ritmo: ritmoNovo }))
+        .etapas.find((p) => p.chave === 'plano-de-ensino').estado === 'feita');
+
+    /* A DURAÇÃO É COMPARADA EM MINUTOS: 1 hora e 60 minutos são o mesmo ritmo, e uma comparação
+     * de texto acusaria uma mudança que não houve. */
+    const planoEmMinutos = Object.assign({}, planoDe45, {
+      respostas: Object.assign({}, planoDe45.respostas, ritmoNovo,
+        { 'contexto-duracao': [{ numero: 60, unidade: 'minuto' }] }),
+    });
+    provar('T7 · 1 hora e 60 minutos são o MESMO ritmo — a comparação é em minutos, não em texto',
+      nucleoCadeia.indice(Object.assign({}, base, { plano: planoEmMinutos, ritmo: ritmoNovo }))
+        .etapas.find((p) => p.chave === 'plano-de-ensino').estado === 'feita');
+
+    /* OS DIAS FORA DE ORDEM também são o mesmo ritmo: o professor não muda de horário por a lista
+     * ter sido gravada noutra ordem. */
+    const foraDeOrdem = Object.assign({}, planoDe45, {
+      respostas: Object.assign({}, planoDe45.respostas, ritmoNovo,
+        { 'contexto-frequencia': { vezes: 3, por: 'semanal', dias: ['sex', 'seg', 'qua'] } }),
+    });
+    provar('T7 · os dias fora de ordem são o mesmo ritmo — compara-se o conjunto, não a lista',
+      nucleoCadeia.indice(Object.assign({}, base, { plano: foraDeOrdem, ritmo: ritmoNovo }))
+        .etapas.find((p) => p.chave === 'plano-de-ensino').estado === 'feita');
+
+    /* O VAZIO NÃO CONTA, pela convenção de sempre: um elo de antes de um campo existir não declara
+     * esse campo. Sem isto, a correcção punha todo o acervo antigo a derivar no dia em que entrasse. */
+    const semRitmoGravado = Object.assign({}, planoDe45, { respostas: {} });
+    provar('T7 · um elo que não declara ritmo nenhum não é acusado — o vazio não é erro',
+      nucleoCadeia.indice(Object.assign({}, base, { plano: semRitmoGravado, ritmo: ritmoNovo }))
+        .etapas.find((p) => p.chave === 'plano-de-ensino').estado === 'feita');
+
+    /* E O PO SEGUE A MESMA SORTE: ele observa um plano que declara o ritmo antigo, e a etapa
+     * desce para pendente — o PO novo nasce do plano novo. */
+    const poDe45 = Object.assign({}, base.po, { respostas: planoDe45.respostas });
+    const comPo = nucleoCadeia.indice(Object.assign({}, base, {
+      plano: planoDe45, po: poDe45, ritmo: ritmoNovo,
+    }));
+    provar('T7 · …e o PO desce com ele: o plano mudou, a observação do plano muda',
+      etapa(comPo, 'plano-de-observacao').estado === 'pendente',
+      etapa(comPo, 'plano-de-observacao').estado);
+  }
+
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + provas + ' asserções: mudar o par de uma Sala percorre a cadeia pelos dois '
       + 'caminhos que existem (a rota do par e a derivação), e o gatilho diz o que mudou — ritmo ou '

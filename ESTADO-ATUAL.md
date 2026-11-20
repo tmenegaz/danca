@@ -4769,6 +4769,17 @@ Não se muda sem ela decidir.
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **20/11/2026** — **A Sala derivou e os planos não, e a culpa era da data.** Derivação da Sala
+  `Rosa` com ritmo novo (45 → 60 min, fim 05/02 → 08/01): a Sala persistiu, o plano e o PO ficaram
+  nos elos antigos, e os documentos saíram a dizer «45 minutos». Causa: `novo(gerado_em || id)`
+  compara strings, e `'2026-11-19T21:44' >= '2026-11-19'` dava o plano por mais novo que uma
+  mudança feita duas horas depois. Duas guardas novas no núcleo: **o ritmo declarado** (as quatro
+  chaves que a derivação relê, comparadas em minutos e com os dias como conjunto) e **o PO segue o
+  plano** (se o plano vai derivar, o PO observa um plano que deixa de valer). `provar-os-fluxos-da-
+  derivacao` 65 → 73, A/B **3 de 73** sem a correcção. **Custo do gesto quebrado: 1 execução,
+  2 min, ≈1 m 44 s do clique aos documentos.** Lacuna declarada: a hora não está no plano, e uma
+  mudança só de hora não dispara a guarda.
+
 - **20/11/2026** — **Os dois defeitos que faziam o sítio parecer quebrado.** O `404` do ciclo e da
   aula era o **endereço** com a escola duas vezes (`/breu/rosa/plano`); sem o prefixo tudo responde
   200. Passou a haver um `302` para o caminho sem duplicação, e só onde o ASSETS responde 404. O

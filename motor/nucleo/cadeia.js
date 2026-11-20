@@ -95,6 +95,73 @@ function fraseDosVinculos(curadoriaAlunas, elencoAlunas, turma, elenco) {
  * automática dos quatro passos faz sentido. Sem eles, o que se pode fazer faz-se, e o resto é
  * dito.
  */
+/**
+ * O RITMO, PARA SE PODER COMPARAR (20/11/2026) — os auxiliares de `ritmoMudou`.
+ *
+ * `canonico` põe uma resposta numa forma que se compara por igualdade: as chaves por ordem, e os
+ * dias da semana por ordem também. Sem a ordenação, `['qua','seg','sex']` e `['seg','qua','sex']`
+ * seriam ritmos diferentes — e o professor veria um elo novo sem nada ter mudado.
+ *
+ * A DURAÇÃO É COMPARADA EM MINUTOS, e não pela forma como foi escrita: a Sala de 60 minutos é
+ * gravada `[{numero:1, unidade:'hora'}]`, e um elo antigo pode dizê-la `[{numero:60,
+ * unidade:'minuto'}]`. São o mesmo ritmo, e uma comparação de texto acusaria uma mudança que não
+ * houve.
+ */
+function canonico(valor) {
+  if (Array.isArray(valor)) return '[' + valor.map(canonico).join(',') + ']';
+  if (valor && typeof valor === 'object') {
+    return '{' + Object.keys(valor).sort().map((k) => k + ':' + canonico(valor[k])).join(',') + '}';
+  }
+  return JSON.stringify(valor === undefined ? null : valor);
+}
+
+/** A duração em minutos, ou `null` quando o valor não é uma duração legível. */
+function minutosDaDuracao(valor) {
+  const lista = Array.isArray(valor) ? valor : (valor ? [valor] : []);
+  if (!lista.length) return null;
+  let total = 0;
+  for (const parte of lista) {
+    const n = Number(parte && parte.numero);
+    if (!Number.isFinite(n)) return null;
+    const unidade = String((parte && parte.unidade) || 'minuto').toLowerCase();
+    total += unidade.indexOf('ho') === 0 ? n * 60 : n;
+  }
+  return total;
+}
+
+/** A mesma resposta de ritmo dos dois lados, numa forma comparável. */
+function normalizarRitmo(chave, valor) {
+  if (chave === 'contexto-duracao') {
+    const minutos = minutosDaDuracao(valor);
+    return minutos === null ? canonico(valor) : 'minutos:' + minutos;
+  }
+  if (chave === 'contexto-frequencia' && valor && typeof valor === 'object'
+    && Array.isArray(valor.dias)) {
+    return canonico(Object.assign({}, valor, { dias: valor.dias.slice().sort() }));
+  }
+  if (chave === 'contexto-total-aulas') return 'aulas:' + Number(valor);
+  return canonico(valor);
+}
+
+/** O ritmo de hoje em português, para a frase que a tela mostra. */
+function descreverRitmo(ritmo) {
+  const r = ritmo || {};
+  const partes = [];
+  const freq = r['contexto-frequencia'];
+  if (freq && typeof freq === 'object') {
+    const dias = Array.isArray(freq.dias) ? freq.dias.filter(Boolean) : [];
+    partes.push(Number(freq.vezes || dias.length || 0) + '× por semana'
+      + (dias.length ? ' (' + dias.join(', ') + ')' : ''));
+  }
+  const minutos = minutosDaDuracao(r['contexto-duracao']);
+  if (minutos !== null) partes.push(minutos + ' minutos');
+  const cal = r['contexto-calendario'];
+  if (cal && typeof cal === 'object' && (cal.inicio || cal.fim)) {
+    partes.push('de ' + (cal.inicio || '—') + ' a ' + (cal.fim || '—'));
+  }
+  return partes.length ? partes.join(', ') : 'um ritmo diferente';
+}
+
 function indice(estado) {
   const e = estado || {};
   const quando = String(e.quando || '');
@@ -201,6 +268,59 @@ function indice(estado) {
    * modalidade, e não declarar não é estar errado. */
   const modalidadeMudou = (doc) => Boolean(direcao(doc).modalidade && direcaoDeHoje.modalidade
     && direcao(doc).modalidade !== direcaoDeHoje.modalidade);
+
+  /* O RITMO DECLARADO TAMBÉM MANDA — E ELE NÃO ESPERA PELA DATA (20/11/2026).
+   *
+   * O QUE ACONTECEU, medido. Ela derivou a Sala `Rosa` mudando o horário (14:30), a duração (45 →
+   * 60 min) e o fim do período (05/02 → 08/01). A Sala derivou e persistiu; o plano e o PO, não:
+   * a cadeia deu as duas etapas por `feita` sobre os elos ANTIGOS e só disparou a geração. O log
+   * é a prova — `mudanca-de-sala · plano-de-ensino feita · pacote falta` —, e o documento gerado
+   * saiu a dizer **45 minutos** sobre uma Sala de 60.
+   *
+   * A CAUSA NÃO ERA O RITMO, ERA A DATA. A escada perguntava `novo(gerado_em || id)`: o plano é
+   * de `2026-11-19T21:44`, a vigência da Sala é a DATA `2026-11-19`, e a comparação de strings dá
+   * o carimbo por mais novo — o prefixo bate, a string maior ganha. A mudança foi às 23:34 do
+   * mesmo dia: o plano era duas horas mais velho, e a data não sabe disso.
+   *
+   * A LIÇÃO JÁ ESTAVA ESCRITA NESTE FICHEIRO, dez linhas acima, para a direção: «A data é um
+   * indício; a identidade é a prova.» O ritmo é a identidade do plano no que toca ao cadastro. Um
+   * plano que declara 45 minutos sobre uma Sala que declara 60 está provadamente desactualizado,
+   * e não é preciso comparar horas nenhumas.
+   *
+   * O QUE SE COMPARA são as QUATRO chaves que a derivação relê — as mesmas, do mesmo sítio
+   * (`respostasDoRitmo`, que o servidor passa em `e.ritmo`). Comparar outras, ou compará-las por
+   * outra via, faria a guarda e a derivação discordarem no dia em que uma delas mudasse: o elo
+   * sairia com um valor e a guarda continuaria a dizer que estava em dia.
+   *
+   * O VAZIO NÃO CONTA, pela convenção de sempre: um elo de antes de um campo existir não declara
+   * esse campo, e não declarar não é estar errado. E sem `e.ritmo` (uma bancada, um adaptador que
+   * não lê turmas) a guarda cala-se — quem não sabe o ritmo de hoje não acusa ninguém. */
+  const ritmoMudou = (doc) => {
+    const deHoje = e.ritmo && typeof e.ritmo === 'object' ? e.ritmo : null;
+    if (!deHoje) return false;
+    const respostas = (doc && doc.respostas) || {};
+    for (const chave of ['contexto-frequencia', 'contexto-duracao', 'contexto-calendario',
+      'contexto-total-aulas']) {
+      const agora = deHoje[chave];
+      if (agora === undefined || agora === null) continue;
+      const cru = respostas[chave];
+      const antes = cru && typeof cru === 'object' && !Array.isArray(cru) && 'valor' in cru
+        ? cru.valor : cru;
+      if (antes === undefined || antes === null) continue; // o elo não declara: não é erro
+      if (normalizarRitmo(chave, antes) !== normalizarRitmo(chave, agora)) return true;
+    }
+    return false;
+  };
+  /** O plano de ensino vai mudar nesta passagem? Lê a etapa que já foi calculada acima. */
+  const planoVaiMudar = () => {
+    const passo = passos.find((p) => p.chave === 'plano-de-ensino');
+    return Boolean(passo && passo.estado === 'pendente');
+  };
+  /** A frase do ritmo — uma só, para o plano e para o PO, porque o facto é o mesmo. */
+  const fraseDoRitmo = (doc) => 'O documento «' + String((doc && doc.id) || '—') + '» declara '
+    + 'outro ritmo de aula, e a Sala declara hoje ' + descreverRitmo(e.ritmo) + '. A cadeia deriva '
+    + 'um elo novo com o mesmo conteúdo e o cadastro corrigido — o passado fica no elo anterior.';
+
   /** A frase da modalidade — a mesma para o plano e o PO, porque o facto é o mesmo. */
   const fraseDaModalidade = (doc) => 'O documento «' + String((doc && doc.id) || '—') + '» foi '
     + 'escrito sob a modalidade «' + direcao(doc).modalidade + '», e a Sala declara hoje «'
@@ -282,6 +402,14 @@ function indice(estado) {
         + 'a sala «' + direcao(e.plano).turma + '» passou a «' + direcaoDeHoje.turma
         + '». A cadeia deriva um elo novo, com o mesmo conteúdo e a direção corrigida.',
     });
+  } else if (ritmoMudou(e.plano)) {
+    /* ANTES DA DATA, porque é prova e não indício (20/11/2026). O plano declara um ritmo que a
+     * Sala já não tem — e derivar é exactamente reler o cadastro: o mesmo conteúdo, as quatro
+     * linhas corrigidas. É o mesmo `pendente` de `salaMudou`, e pela mesma razão. */
+    passos.push({
+      chave: 'plano-de-ensino', estado: 'pendente', id: e.plano.id || null,
+      falta: fraseDoRitmo(e.plano),
+    });
   } else if (novo(e.plano.gerado_em || e.plano.id)) {
     passos.push({ chave: 'plano-de-ensino', estado: 'feita', id: e.plano.id || null });
   } else {
@@ -327,6 +455,33 @@ function indice(estado) {
       chave: 'plano-de-observacao', estado: 'pendente', id: e.po.id || null,
       falta: 'O plano de observação «' + (e.po.id || '—') + '» declara outra sala — a cadeia '
         + 'deriva um elo novo, que observa o plano de ensino vigente na sala de hoje.',
+    });
+  } else if (planoVaiMudar()) {
+    /* O PO SEGUE O PLANO, E NÃO A SUA PRÓPRIA DATA (20/11/2026).
+     *
+     * O QUE ACONTECEU, medido. A Sala `Rosa` foi derivada com ritmo novo (60 min, fim 08/01); o
+     * plano tinha 45 min e a cadeia deu-o por «feito» — corrigido acima, pela guarda do ritmo.
+     * Mas mesmo com o plano a derivar, o PO ficava `feita`, e o `porTurma` tinha um plano novo e
+     * um PO a observar o antigo: as duas cadeias paralelas que o `concluirPO` existe para
+     * impedir.
+     *
+     * E NÃO SE RESOLVE PELO RITMO. O PO real não declara `contexto-frequencia`,
+     * `contexto-duracao` nem `contexto-calendario` — medido no `po-20261119-2144` da `breu`: as
+     * chaves `contexto-*` dele são ZERO. Uma guarda de ritmo no PO responderia sempre «não mudou»
+     * e a prova passaria com dados que a produção nunca tem — que é a pior prova possível.
+     *
+     * A REGRA CERTA É ESTRUTURAL: o PO observa o plano. Se o plano vai mudar, o PO vai observar
+     * um plano que já não é o vigente — e isso não é uma inferência sobre o conteúdo dele, é uma
+     * consequência da ordem das etapas. Quem sabe que o plano vai mudar é a etapa anterior, que
+     * já está calculada em `passos`.
+     *
+     * E SÓ QUANDO O PLANO VAI DERIVAR (`pendente`). Um plano `bloqueado` — autoria ou modalidade
+     * — já parou a cadeia na etapa dele, e o PO não tem por onde seguir. */
+    passos.push({
+      chave: 'plano-de-observacao', estado: 'pendente', id: e.po.id || null,
+      falta: 'O plano de observação «' + (e.po.id || '—') + '» observa o plano de ensino que vai '
+        + 'ser substituído — a cadeia deriva um elo novo, que observa o plano vigente depois da '
+        + 'mudança.',
     });
   } else if (novo(e.po.gerado_em || e.po.id)) {
     passos.push({ chave: 'plano-de-observacao', estado: 'feita', id: e.po.id || null });

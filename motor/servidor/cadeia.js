@@ -631,6 +631,28 @@ function criarCadeia({
 
     const antes = nucleoCadeia.indice({
       elenco, curadoria, turma, sala,
+      /* O RITMO DE HOJE VAI COM O ESTADO (20/11/2026) — ver `ritmoMudou` no núcleo.
+       *
+       * O QUE ACONTECEU, medido. Ela derivou a Sala `Rosa` mudando o horário (14:30), a duração
+       * (45 → 60 min) e o fim do período (05/02 → 08/01). A Sala derivou e persistiu; o plano e o
+       * PO, não. A cadeia deu as duas etapas por `feita` sobre os elos ANTIGOS
+       * (`plano-20261119-2144`, `po-20261119-2144`) e só disparou a geração — os documentos
+       * saíram a dizer **45 minutos** sobre uma Sala de 60. O log da cadeia é a prova:
+       * `mudanca-de-sala · plano-de-ensino feita · pacote falta`.
+       *
+       * A causa era `novo(gerado_em || id)`: o plano é de `2026-11-19T21:44`, a vigência da Sala
+       * é a DATA `2026-11-19`, e a comparação de strings dá o carimbo por mais novo (o prefixo
+       * bate, a string maior ganha). A mudança foi às 23:34 do mesmo dia — o plano era duas horas
+       * mais velho, e a data não sabe disso.
+       *
+       * O RITMO É A PROVA, e é a mesma doutrina que este ficheiro já escreveu para a direção: «a
+       * data é um indício; a identidade é a prova». Um plano que declara 45 minutos sobre uma Sala
+       * que declara 60 está provadamente desactualizado — não é preciso comparar horas.
+       *
+       * `respostasDoRitmo` é a MESMA função que a derivação usa para reler o cadastro
+       * (`derivarPlano` → `ritmoDaSala`). Uma segunda forma de ler o ritmo divergiria da
+       * primeira, e a divergência apareceria como um elo derivado com o valor errado. */
+      ritmo: respostasDoRitmo(sala),
       plano, po,
       planoDeOutro: plano ? null : (achado.deOutro || null),
       quando,

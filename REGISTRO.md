@@ -54893,3 +54893,65 @@ pending. Então a página nem carrega, o formulário não abre.» E, no console:
 nenhuma das seis alavancas do `CUSTO-DOS-FLUXOS.md` foi aplicada. A correcção não faz o «Guardar»
 gastar menos: faz o passo que não cabia acontecer **noutra invocação**, que é o desenho que já
 existia para os gestos das Turmas.
+
+## 20/11/2026 — «Derivei a sala e não gerou tudo» — a data dava o plano por novo, e o plano era duas horas mais velho
+
+**O gesto, medido do princípio ao fim.** Ela derivou a Sala `Rosa` mudando o horário (14:30), a
+duração (**45 → 60 min**) e o fim do período (**05/02 → 08/01**). O clique foi às 02:34 UTC.
+
+| | |
+|:--|:--|
+| Sala derivada | `rosa-2026-11-19-3`, `substitui: …-2` — **persistiu**, com 14:30, 60 min, fim 08/01 |
+| Plano de ensino | **NÃO derivou** — ficou `plano-20261119-2144` |
+| Plano de observação | **NÃO derivou** — ficou `po-20261119-2144` |
+| Documentos | gerados, a dizer **«45 minutos»** sobre uma Sala de 60 |
+| Execuções do GitHub | **1** (`Gerar o ciclo`, 1 m 34 s → **2 min facturados**) |
+| Do clique aos documentos | **≈ 1 m 44 s** |
+
+**O log da cadeia é a prova, e não uma inferência:**
+
+```
+02:34:33  mudanca-de-sala  ok: True
+   plano-de-ensino      feita   id: plano-20261119-2144   ← o elo VELHO
+   plano-de-observacao  feita   id: po-20261119-2144      ← o elo VELHO
+   pacote               falta   "os documentos ainda são os de antes da mudança"
+```
+
+**A causa não era o ritmo — era a data.** A escada perguntava `novo(gerado_em || id)`, que compara
+strings: o plano é de `2026-11-19T21:44`, a vigência da Sala é a DATA `2026-11-19`, e o carimbo
+ganha sempre (o prefixo bate, a string maior é maior). A mudança foi às 23:34 do mesmo dia — o
+plano era **duas horas mais velho**, e a data não sabe disso. A lição já estava escrita dez linhas
+acima, no mesmo ficheiro, para a direção: «a data é um indício; a identidade é a prova».
+
+**O que se corrigiu, e são duas guardas.**
+
+1. **`ritmoMudou`** (`motor/nucleo/cadeia.js`): o plano declara um ritmo que a Sala já não tem →
+   etapa `pendente`, e a cadeia deriva. Compara as **quatro** chaves que a derivação relê
+   (`contexto-frequencia`, `-duracao`, `-calendario`, `-total-aulas`), e do lado de hoje usa a
+   **mesma** `respostasDoRitmo` que a derivação usa — uma segunda leitura do cadastro divergiria
+   da primeira. A duração compara-se **em minutos** (1 hora = 60 minutos) e os dias **como
+   conjunto** (`['sex','seg','qua']` = `['seg','qua','sex']`): sem isso, a guarda acusaria
+   mudanças que não houve.
+2. **`planoVaiMudar`** (`motor/nucleo/cadeia.js`): o PO segue o plano, e não a sua própria data.
+   Se a etapa do plano vai derivar, o PO observa um plano que deixa de ser o vigente → `pendente`.
+   **E não se resolve pelo ritmo:** o `po-20261119-2144` da `breu` **não declara nenhuma chave
+   `contexto-*`** — medido. Uma guarda de ritmo no PO responderia sempre «não mudou», e a prova
+   passaria com dados que a produção nunca tem.
+
+**A/B por remoção da correcção:** `provar-os-fluxos-da-derivacao` **65 → 73** asserções; sem as
+duas guardas falham **3 de 73**, com elas **73 de 73**. As bancadas vizinhas continuam verdes
+(`provar-cadeia-automatica` 62, `provar-salas-e-elencos` 132, `provar-gravar-e-gravar` 49,
+`provar-gestos-do-shard` 33).
+
+**A lacuna que fica declarada, e é medida.** A guarda compara o ritmo que o **plano** declara, e o
+plano não declara a **hora** — o `contexto-frequencia` tem os dias, não os horários. Quem guarda a
+hora é o `.conf` (`DIAS="1@16:30,…"`), e ele só é recomposto quando o plano é escrito. Consequência
+medida: **uma mudança que mexa SÓ na hora não dispara a guarda** — o plano fica em dia, o `.conf`
+fica com a hora velha, e os documentos saem com ela. No caso de hoje isto não se aplica (a duração
+mudou, o plano vai derivar, e `escreverPlano` recompõe o `.conf` da Sala), mas o caso existe e
+fica escrito em vez de suposto.
+
+**O que este número NÃO é.** Os **2 minutos** são o custo de uma travessia **quebrada**: ela saltou
+o plano e o PO, e por isso pagou uma geração só. A travessia correcta escreve dois elos (dois
+commits) e gera — a medição do caminho certo fica para o gesto seguinte, e é ela que vale para o
+`CUSTO-DOS-FLUXOS.md`.
