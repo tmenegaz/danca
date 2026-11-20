@@ -1,7 +1,7 @@
 {
   "contexto": {
     "frequenciaSemanal": "3x semanal — seg e qua e sex",
-    "duracaoPorAula": "1 hora 45 minutos",
+    "duracaoPorAula": "2 horas",
     "calendario": "2026-12-14 → 2027-01-15",
     "numeroTotalDeAulas": "15",
     "professorResponsavel": "demi-plie",
@@ -54,17 +54,17 @@
     },
     {
       "bloco": "Barra",
-      "proporcaoAlvo": "10",
+      "proporcaoAlvo": "45",
       "justificativa": "Apoio e alinhamento."
     },
     {
       "bloco": "Centro",
-      "proporcaoAlvo": "15",
+      "proporcaoAlvo": "45",
       "justificativa": "Transferência e sequência."
     },
     {
       "bloco": "Musicalidade",
-      "proporcaoAlvo": "60",
+      "proporcaoAlvo": "10",
       "justificativa": "Pulso e frase."
     }
   ],
