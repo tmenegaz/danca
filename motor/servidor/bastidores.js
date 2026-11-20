@@ -27109,8 +27109,14 @@ function parDaSalaNoCorpo(corpo, registo) {
             + 'Ele entra no repertório, e o plano, quando nascer, leva-o consigo.',
       });
     }
+    /* `oTermoEntra: true` — O GESTO É O DE ACRESCENTAR A FICHA (20/11/2026).
+     *
+     * O termo que chega aqui é o que ela acabou de escolher no menu do conteúdo; ele ainda NÃO está
+     * no `repertorio` gravado da Turma, e é isso que o gesto vai fazer. Sem esta marca, a rota
+     * respondia `fora-do-repertorio` — «este exercício não está no conteúdo desta Turma» —, e a
+     * janela não abria. Medido ao vivo na `breu` a 20/11/2026. */
     const impacto = objetivosDoRepertorio.impactoDaInclusao({
-      plano, termo, objetivos: [], repertorio: turma.repertorio,
+      plano, termo, objetivos: [], repertorio: turma.repertorio, oTermoEntra: true,
     });
     if (!impacto) return json(400, { ok: false, erro: 'não consegui compor o impacto' });
     if (impacto.estado === 'ja-na-aula') {

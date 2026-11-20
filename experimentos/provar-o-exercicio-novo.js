@@ -101,6 +101,33 @@ const TURMA_COM_O_NOVO = ['Battement tendu', 'Plié', 'Battement jeté'];
   igual('um exercício que a Turma não acordou não se declara',
     obj.estadoDaDeclaracao({ plano: umPlano(), termo: 'Grand jeté', repertorio: TURMA_COM_O_NOVO }),
     { estado: 'fora-do-repertorio' });
+
+  /* O CASO DO GESTO — e é este que a janela ao vivo exercita (20/11/2026).
+   *
+   * AS OUTRAS ASSERÇÕES DESTA SECÇÃO USAM `TURMA_COM_O_NOVO`, que JÁ INCLUI o termo. O gesto real
+   * não: ela escolhe o exercício no menu e manda adicionar — ele ainda não está no `repertorio`
+   * gravado. Com a regra antiga, a rota respondia `fora-do-repertorio` («este exercício não está no
+   * conteúdo desta Turma»), e a janela não abria. Medido na `breu` a 20/11/2026. */
+  igual('o termo que está a ser ACRESCENTADO é «nova» — ele ainda não está no repertório',
+    obj.estadoDaDeclaracao({
+      plano: umPlano(), termo: 'Battement jeté', repertorio: ['Battement tendu', 'Plié'],
+      oTermoEntra: true,
+    }),
+    { estado: 'nova' });
+  /* E O CONTROLE NEGATIVO — sem a marca, o mesmo pedido é «fora do repertório». É a guarda que
+   * impede `aplicarDeclaracoes` de escrever no plano o que a Turma não acordou. */
+  igual('…e sem a marca, o mesmo pedido é «fora-do-repertorio»',
+    obj.estadoDaDeclaracao({
+      plano: umPlano(), termo: 'Battement jeté', repertorio: ['Battement tendu', 'Plié'],
+    }),
+    { estado: 'fora-do-repertorio' });
+  /* E A AULA MANDA SEMPRE: um exercício que o plano já usa não se pergunta outra vez, mesmo que
+   * esteja a entrar na Turma de novo. */
+  igual('…e o que a aula já usa continua a não se perguntar, mesmo com a marca',
+    obj.estadoDaDeclaracao({
+      plano: umPlano(), termo: 'Plié', repertorio: ['Battement tendu'], oTermoEntra: true,
+    }),
+    { estado: 'ja-na-aula' });
   igual('um exercício novo, acordado e fora da aula, é o caso em que se pergunta',
     obj.estadoDaDeclaracao({ plano: umPlano(), termo: 'Battement jeté', repertorio: TURMA_COM_O_NOVO }),
     { estado: 'nova' });
@@ -199,6 +226,15 @@ const TURMA_COM_O_NOVO = ['Battement tendu', 'Plié', 'Battement jeté'];
   const impacto = obj.impactoDaInclusao({
     plano: umPlano(), termo: 'Battement jeté', objetivos: [2], repertorio: TURMA_COM_O_NOVO,
   });
+  /* E O MESMO PEDIDO NO ESTADO DO GESTO — o termo a entrar, com a lista gravada ainda sem ele. É
+   * o que a rota recebe ao vivo, e tem de dar `nova` e a lista completa de objetivos. */
+  const doGesto = obj.impactoDaInclusao({
+    plano: umPlano(), termo: 'Battement jeté', objetivos: [], repertorio: ['Battement tendu', 'Plié'],
+    oTermoEntra: true,
+  });
+  igual('no estado do gesto (o termo a entrar), também é «nova»', doGesto.estado, 'nova');
+  igual('…e os objetivos vêm todos, para a janela os oferecer',
+    doGesto.marcos.map((m) => m.n), [1, 2]);
   igual('o estado é «nova» — é o caso em que se pergunta', impacto.estado, 'nova');
   igual('…e o termo vai no impacto', impacto.termo, 'Battement jeté');
   igual('…e a linha do objetivo declarado mostra o antes e o depois',

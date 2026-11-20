@@ -115,7 +115,7 @@ function declaracoesEmMapa(declaracoes) {
  *                    regra ser idempotente e respeitar quem, depois, desmarcar no plano;
  *   · `nova`       — o exercício é novo nesta aula: é aqui que a pergunta se faz.
  */
-function estadoDaDeclaracao({ plano, termo, repertorio }) {
+function estadoDaDeclaracao({ plano, termo, repertorio, oTermoEntra }) {
   const nome = String(termo || '').trim();
   if (!nome) return { estado: 'sem-termo' };
   if (!plano) return { estado: 'sem-plano' };
@@ -133,10 +133,22 @@ function estadoDaDeclaracao({ plano, termo, repertorio }) {
     return { estado: 'ja-na-aula' };
   }
   const acordado = termosLimpios(repertorio);
-  if (acordado.length && acordado.indexOf(nome) === -1) {
-    /* O exercício pedido não é conteúdo acordado da Turma. Não é erro de quem chamou — é o caso de
-     * a lista da Turma ter mudado na mesma derivação, e a ordem das duas coisas não importar. O que
-     * NÃO se faz é declarar o que a Turma não acordou. */
+  /* «O TERMO É O QUE ESTÁ A ENTRAR» — E ISSO MUDOU A JANELA AO VIVO (20/11/2026).
+   *
+   * O DEFEITO, medido na `breu`: ela escolheu o «Batman GT» e mandou adicionar; a rota respondeu
+   * `fora-do-repertorio` — «este exercício não está no conteúdo desta Turma» —, a janela não abriu,
+   * e o exercício entrou sem objetivo. E a resposta estava certa pelo código e errada pelo gesto:
+   * claro que não está no repertório GRAVADO — é precisamente o que se está a acrescentar.
+   *
+   * A distinção que faltava é entre «o termo está a entrar agora» (o gesto de acrescentar a ficha)
+   * e «estou a perguntar por um termo que já é conteúdo» (a derivação, que corre depois de a Turma
+   * gravar). No primeiro caso a lista não manda — o candidato é ele; no segundo, manda, e é ela que
+   * impede declarar o que a Turma não acordou.
+   *
+   * O `fora-do-repertorio` continua a existir, e é a guarda de `aplicarDeclaracoes`: um termo
+   * declarado que a Turma NÃO acordou não entra no plano. O que ele deixou de ser é a resposta ao
+   * gesto de incluir. */
+  if (!oTermoEntra && acordado.length && acordado.indexOf(nome) === -1) {
     return { estado: 'fora-do-repertorio' };
   }
   return { estado: 'nova' };
@@ -154,7 +166,7 @@ function estadoDaDeclaracao({ plano, termo, repertorio }) {
  * aqui seria inventar trabalho que ninguém declarou. (Remover é outra coisa e já é automática: as
  * linhas que citam o exercício caem por `linhasDoRepertorio`, e a soma desce sozinha.)
  */
-function impactoDaInclusao({ plano, termo, objetivos, repertorio }) {
+function impactoDaInclusao({ plano, termo, objetivos, repertorio, oTermoEntra }) {
   const nome = String(termo || '').trim();
   if (!nome) return null;
   const respostas = (plano && plano.respostas) || {};
@@ -207,7 +219,7 @@ function impactoDaInclusao({ plano, termo, objetivos, repertorio }) {
     return ia - ib;
   });
 
-  const estado = estadoDaDeclaracao({ plano, termo: nome, repertorio });
+  const estado = estadoDaDeclaracao({ plano, termo: nome, repertorio, oTermoEntra });
 
   return {
     termo: nome,
