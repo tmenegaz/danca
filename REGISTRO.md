@@ -55119,3 +55119,46 @@ a mostra a ninguém: o gesto da Sala respondeu `ok: true`, as quatro etapas diss
 fracasso só se leu no log do GitHub Actions. É a família de erro que este projeto persegue, na
 direcção oposta à habitual: **o trabalho falhado e a tela a dizer que sim.** Fica registado como
 pendência de desenho, e não se corrige aqui — a ordem é dela.
+
+## 20/11/2026 — «Mudei na sala» (110 min) — a primeira duração fora da tabela, e o aviso que faltava
+
+**O gesto.** A Sala `Rosa` derivou para **110 minutos**, 14/12/2026 → **15/01/2027**. A cadeia correu
+sozinha, e correu bem até ao fim do que é calculável:
+
+| etapa | resultado |
+|:--|:--|
+| Sala | `rosa-2026-11-20-2`, `substitui: …` |
+| Plano de ensino | derivou — `plano-20261120-0031`, 1 h 50, fim 15/01, **15 aulas** |
+| Plano de observação | derivou — `po-20261120-0031` |
+| Manifesto | recomposto — `DURACOES="110"`, `TOTAL_AULAS="15"` |
+| Aula | reescrita — `duracao: "110 minutos"` |
+| Geração | **falhou** — «sem faixa de volume para 110 min» |
+
+**110 é a primeira duração que não está na tabela da Regra 9** (60, 75, 90, 120). O valor foi
+interpolado entre 90 (120–150) e 120 (150–200) e **escolhido pela proprietária: 145–185**, com a
+lacuna declarada no próprio `.conf` — porque a alternativa seria o sistema inventar uma dose de
+trabalho, que é dado pedagógico e não lhe pertence.
+
+**E o defeito que este gesto expôs, que é maior que a faixa.** O `comporConf` **já declarava** a
+pendência, com as letras certas: «a escola não declara VOLUME_MIN_110 nem VOLUME_MAX_110 — o gerador
+recusa a aula de 110 min». Ela ficava no relatório do `escreverPlano` e morria ali. A cadeia
+respondia `ok: true`, as quatro etapas diziam «feita», o professor lia «está em dia» — e o
+`gerar-ciclo` morria dois minutos depois, com o site a mostrar o pacote de antes.
+
+**Um gesto que fecha em falso custa mais que um gesto que recusa**: o primeiro faz esperar por um
+documento que não vem. Corrigido: a pendência sobe — `derivarPlano` → `porTurma` → `executar` — e
+entra no `recado`, que é a frase que a tela pinta, mais uma lista `avisos` para quem a quiser
+destacar.
+
+**Medido depois, no ar:** `ciclos.json` → fim **2027-01-15**, **15 aulas**, **110 min**, Aula 01 às
+**10:30 → 12:20**; a fonte da aula com `volume-total-110: "165 tempos"` (o ponto médio de 145–185) e
+a tabela de distribuição a fechar em **165**. As cinco páginas respondem 200.
+
+**A/B:** `provar-cadeia-automatica` falha **3 de 66** sem a propagação do aviso e **66 de 66** com
+ela. A secção nova mede as duas metades — que o aviso sobe com a chave que falta, e que sem
+pendência nenhum aviso é inventado.
+
+**A nota de método, para não se perder:** a pendência existia e estava certa **desde o primeiro dia**.
+O que faltava não era detectá-la — era **levá-la a quem decide**. Três correcções desta noite foram
+dessa família: o valor certo com a chave errada, a calibração certa no sítio errado, e agora o aviso
+certo que não chegava a ninguém.
