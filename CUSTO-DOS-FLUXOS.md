@@ -516,10 +516,26 @@ página da raiz. Sem ele não há HTML nenhum. Trocá-lo por um renderizador pr�
 `motor/nucleo/ficha-html.js` já tem um, mínimo, para as fichas) seria reescrever a geração — índice,
 template, `{#id}`, tabelas, `raw_tex` — com o `check-pacote` a medir 240 links internos por pacote.
 
-**E, mesmo que se reescrevesse, não pouparia dinheiro.** A factura arredonda ao minuto: 49 s e 25 s
-custam o mesmo. O ganho de tirar o pandoc seria **margem** (folga contra a fronteira dos 60 s), não
-minutos. Onde há minutos a ganhar é no **número de execuções por gesto** — a §7.1 —, não na duração
-de cada uma.
+**E, mesmo que se reescrevesse, não pouparia minuto nenhum.** A factura arredonda ao minuto: 49 s e
+25 s custam o mesmo. Onde há minutos a ganhar é no **número de execuções por gesto** — a §7.1 —, não
+na duração de cada uma.
+
+**O que a medição da ação nova mostrou, e não era o que eu esperava.**
+
+| run | `preparar-pandoc` | job |
+|:--|--:|--:|
+| 44781355240 — cache frio | 26 s | **59 s** |
+| 44781717178 — cache a servir | 33 s | **75 s** |
+
+Tirar o poppler **não poupou nada**: o custo não são os pacotes, é a cerimónia do `apt` (copiar os
+`.deb`, o `Reading database` do dpkg, os gatilhos). Um pacote ou quatro, 25 a 33 s. E entre as duas
+execuções o job variou **16 s** sem nada diferente no repositório — `preparar-node` de 9 para 16 s,
+`Publicar` de 6 para 9 s. **Com este ruído, «1 minuto» é probabilidade, não garantia.**
+
+O número que aponta o remédio: o binário do pandoc no Debian pesa **199 MB** (Haskell sem `strip`),
+e é o que o `apt` passa 25 s a instalar. Um pandoc autocontido (o `tar.gz` estático, ~30 MB
+comprimidos) vindo do cache custaria segundos — sem `apt`, sem dpkg, sem dependências. Fica como a
+próxima decisão de infra, e é dela.
 
 ---
 

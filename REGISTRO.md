@@ -55811,6 +55811,27 @@ medidas com `git stash` antes de tocar em nada; `check-pacote` do pacote real **
 `check-github-headers` **5/5**; `check-sem-destruicao` ok; `check-identidade` sem erros; os dois
 workflows e a ação passam pelo `yaml.safe_load`.
 
-**O que fica por medir.** O passo de preparo com o poppler e o TeX fora: com o cache dos `.deb` a
-servir espera-se menos do que os 10 s de antes; mede-se na primeira geração que correr com esta
-ação. E a §7.1 continua a ser a única alavanca que muda minutos: **8 a 10 execuções por gesto**.
+**E a medição corrige o que eu escrevi antes de medir.** Duas gerações com a ação nova:
+
+| run | `preparar-pandoc` | job |
+|:--|--:|--:|
+| 44781355240 — cache frio (a chave muda com o caminho da ação) | 26 s | **59 s** |
+| 44781717178 — cache a servir («instalado do cache») | 33 s | **75 s** |
+
+**Tirar o poppler não poupou nada, e é fácil de ver porquê na própria linha de cache: o custo não
+são os pacotes, é a cerimónia do `apt` — copiar os `.deb` para `/var/cache`, o `Reading database`
+do dpkg (que varre o sistema instalado inteiro), e os gatilhos.** Com um pacote ou com quatro, são
+25 a 33 s.
+
+**E a variação entre as duas execuções foi de 16 s** — `preparar-node` de 9 para 16 s,
+`Publicar` de 6 para 9 s, sem nada diferente no repositório. Isso é ruído do runner, e é a
+informação mais importante desta medição: **com ruído desta ordem, «1 minuto» não é uma garantia,
+é uma probabilidade.**
+
+**O que ficaria por fazer, e o número que o justifica.** O binário do pandoc no Debian são
+**199 MB** (Haskell sem `strip`), e é ele que o `apt` passa 25 s a instalar. Um pandoc
+**autocontido** (o `tar.gz` estático que o projecto publica, ~30 MB comprimidos) instalado a partir
+do cache custaria uns segundos em vez de 25 — sem `apt`, sem dpkg, sem dependências. Não se fez
+nesta entrada: é uma dependência nova (uma versão do binário fixada por hash, vinda de outro
+sítio), e é decisão dela. A §7.1 continua a ser a única alavanca que muda **minutos**: 8 a 10
+execuções por gesto.
