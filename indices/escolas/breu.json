@@ -101,8 +101,8 @@
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md"
         ],
-        "hash": "72a63b1429525cda38e16fb757f3aab782d5063cd24eca39d237f81a928bd6ac",
-        "hash_conteudo": "d3bb5d875c92edf370b3fd8cb021a80aeb2650cd8f2c118fb454499f94b737be",
+        "hash": "facd7f34aa63478f7632134a0e7f7bb56bb90a8c034447c54093983ae58e094d",
+        "hash_conteudo": "d5643bdc1e4bb9275ad3f13e21ed884d834581aaf77b2f031822cff0e618df69",
         "id": "ciclo-01-breu-rosa-aula-01",
         "lida": true,
         "parent_hash": ""
@@ -133,8 +133,8 @@
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
           "professores/demi-plie/ciclos/ciclo-01.conf"
         ],
-        "hash": "c774b69c563625ac9bd73892a8fbd576714928b9bd51d1534f25216ba9d3153e",
-        "hash_conteudo": "f669e4461ae8c1080a27ceb72803f8d88416886a928605adb6cbdaceb08426e3",
+        "hash": "ddc7020031aaf7d297210a4624aecad5e6b6093146c7d93814d4f75d75f96ebe",
+        "hash_conteudo": "744fa66b398fb0599baa836d3416830a555199b06ca5163eec7cecbf73ed7a8a",
         "id": "ciclo-01-breu-rosa",
         "lida": true,
         "parent_hash": ""
@@ -149,8 +149,8 @@
               "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
               "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md"
             ],
-            "hash": "72a63b1429525cda38e16fb757f3aab782d5063cd24eca39d237f81a928bd6ac",
-            "hash_conteudo": "d3bb5d875c92edf370b3fd8cb021a80aeb2650cd8f2c118fb454499f94b737be",
+            "hash": "facd7f34aa63478f7632134a0e7f7bb56bb90a8c034447c54093983ae58e094d",
+            "hash_conteudo": "d5643bdc1e4bb9275ad3f13e21ed884d834581aaf77b2f031822cff0e618df69",
             "id": "ciclo-01-breu-rosa-aula-01",
             "lida": true,
             "parent_hash": ""
@@ -633,9 +633,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "a5c2aeb"
+    "commit": "93e7f5d"
   },
-  "gerado_em": "2026-11-20T15:35",
+  "gerado_em": "2026-11-20T15:44",
   "nao_indexado": [
     {
       "familia": "conteudo",
