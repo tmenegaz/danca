@@ -56100,3 +56100,49 @@ e 34–45 s é margem, não garantia.
 **Com o quê.** `CUSTO-DOS-FLUXOS.md` §7.10 (a contagem, execução a execução, e as três alavancas com
 o ganho de cada uma); a §7.3 passa a ter a confirmação medida; a §7.1 e o quadro da §7.7 ganham a
 reserva; a §7.9 corrige o destino da declaração e passa a dizer **curadoria** onde dizia **plano**.
+
+## 20/11/2026 — O modal é da TURMA, e não do Estilo: ela testou, e o código confirma
+
+**O que eu tinha errado, e são duas coisas.** A primeira correcção (entrada anterior) acertou no
+mecanismo — é na **inclusão** — e errou no **lugar**: pôs o modal na derivação do Estilo. Ela testou
+o fluxo e desfez o engano com a razão que eu não tinha visto:
+
+> «Quando eu acrescento um exercício com verbete novo no estilo, ele nasce como livre. Ele não é uma
+> derivação do estilo. […] Em que momento então é formado o elemento do exercício que vai para o
+> caderno? É na turma, a antiga curadoria. Então quando eu vou derivar a turma é que vai nascer esse
+> modal. […] eu escolho o conteúdo do estilo no formulário, nesse caso o novo que eu criei foi o
+> Batman GT, e aí eu quando mando adicionar o Batman GT é que o modal tem que aparecer.»
+
+**E deu o gatilho, que é o que torna o custo defensável:** o modal só abre **se a Turma já tiver plano
+de ensino**. Sem plano, a Turma está «num interregno […] em suspensão» e nada corre, «porque aí é só
+custo». O plano, quando nascer, puxa o envelope da Turma e leva o conteúdo com ele.
+
+**Investigado no código, e ela está certa nos cinco pontos.** O que ela descreveu como regra **já é o
+que corre**, e corre em três sítios:
+
+| o que ela disse | onde está, e o que faz |
+|:--|:--|
+| «mexer no estilo não dispara processo» | `gerarOsCiclosDoTermo` → `turmasQueUsamOTermo`: um exercício que nenhuma Turma usa devolve `[]`, e a resposta diz «associe-o a uma Turma e a geração parte desse ato» |
+| «só dispara se o conteúdo já estiver vinculado à Turma» | é a mesma função: o mapa de conteúdos compõe as duas camadas (`mapaDeConteudos`: o mapa antigo **e** o `repertorio` da curadoria) |
+| «e só se essa Turma tiver plano» | `gerarOsCiclosDasTurmas` salta as Turmas sem plano em `paresComPlano` e devolve `motivo: 'sem-plano'` — «a geração parte do «Guardar» do plano» |
+| «sem plano não faz sentido disparar, é só custo» | é literalmente esse o comportamento: nenhum alvo, nenhum disparo |
+| «o modal é na Turma, ao adicionar o exercício» | é o único sítio onde os três factos se sabem ao mesmo tempo — e a **edição** da Turma recusa-se quando ela é vinculada (`409`: «já tem plano de ensino — ela não se edita: derive uma versão nova»), pelo que o gesto que muda conteúdo numa Turma com plano é **sempre** a derivação |
+
+**E retiro uma hipótese que eu tinha levantado na resposta anterior.** Disse que havia um buraco —
+que editar a Turma não disparava a cadeia, e que o plano não se regenerava. **Não há buraco:** a
+edição é recusada precisamente quando há plano, e a derivação — que é a única que dispara
+`rodarCadeia` — é o caminho obrigatório nesse caso. A regra que ela descreveu é a regra que o código
+impõe.
+
+**O que falta construir, então, é menos do que eu tinha escrito — e é mais preciso:**
+
+1. a **janela**, ao acrescentar a ficha no conteúdo da Turma, e não ao gravar;
+2. o **campo** na Turma que guarda a resposta (`{termo, objetivos}`), ao lado do `repertorio`;
+3. o **cálculo do impacto** (que objectivo ganha o termo, que linhas do item 10 passam a citá-lo,
+   quanto muda a soma por bloco);
+4. e a **derivação do plano** a aplicar a declaração em `aula-1-parametro` — que é a cadeia a fazer o
+   seu trabalho com uma entrada nova, e não um atalho.
+
+**Com o quê.** `CUSTO-DOS-FLUXOS.md` §7.9 — a segunda correcção, o diagrama da cadeia refeito a partir
+da Turma, a tabela de construção com o gancho do cliente (`esc-conteudos` · `adicionarFicha`), e as
+duas decisões de desenho fechadas.

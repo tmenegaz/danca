@@ -685,17 +685,42 @@ documento segue a régua do repertório acordado sozinho.
 > impacto. […] o modal não precisaria existir para remover, porque aí ele se desvincula dos
 > objetivos.»**
 
+> **SEGUNDA CORRECÇÃO, no mesmo dia, e é a que fixa o LUGAR — ela testou e disse.** O modal **não é
+> do Estilo e não pode ser**: «quando eu acrescento um exercício com verbete novo no estilo, ele
+> nasce como livre. Ele não é uma derivação do estilo. […] Em que momento então é formado o elemento
+> do exercício que vai para o caderno? É na turma, a antiga curadoria. Então quando eu vou derivar a
+> turma é que vai nascer esse modal. […] eu escolho o conteúdo do estilo no formulário, nesse caso o
+> novo que eu criei foi o Batman GT, e aí eu quando mando adicionar o Batman GT é que o modal tem
+> que aparecer.»
+>
+> **E o gatilho tem uma condição, que é o que torna o custo defensável:** o modal só abre **se a
+> Turma já tiver plano de ensino**. Sem plano, a Turma está «num interregno […] em suspensão», e não
+> há processo a disparar — «porque aí é só custo». O plano, quando nascer, puxa o envelope da Turma e
+> leva o conteúdo com ele.
+>
+> **Investigado no código a 20/11/2026, e ela está certa nos cinco pontos.** A regra que descreveu já
+> é a que corre, e corre em três sítios: `turmasQueUsamOTermo` devolve vazio para um exercício que
+> nenhuma Turma usa (e a resposta diz «associe-o a uma Turma e a geração parte desse ato»);
+> `gerarOsCiclosDasTurmas` salta as Turmas sem plano em `paresComPlano` e devolve
+> `motivo: 'sem-plano'` com a frase «ainda não têm plano de ensino — […] a geração parte do
+> «Guardar» do plano»; e a rota de **edição** da Turma recusa (`409`) quando ela é vinculada —
+> «já tem plano de ensino — ela não se edita: derive uma versão nova». **Ou seja: o gesto que muda o
+> conteúdo de uma Turma com plano é sempre a derivação, e a derivação é a única que dispara a
+> cadeia.** Não há buraco nenhum aqui, e a hipótese de o haver fica retirada.
+
 ### b.1) A cadeia, do exercício ao item 10
 
-Isto é o que a correcção fixa, e é o que o modal tem de perguntar:
-
 ```
-incluir um exercício no Estilo
-        ↓  (é o que falta hoje: a declaração)
-a que OBJECTIVO ele serve?          → a declaração nasce aqui, e viaja no passo seguinte
+incluir um exercício no Estilo        ← LIVRE: nenhum processo dispara, e está certo
         ↓
-a CURADORIA guarda o par           → o termo de objetivos da Turma · {termo, objetivos}
-        ↓   (a cadeia anda: é o plano a herdar, não a derivação a escrever no plano)
+a TURMA escolhe o conteúdo            ← é aqui que o modal abre (e só aqui)
+        ↓   condição: a Turma já tem plano de ensino; sem plano, fica em suspensão e nada corre
+a que OBJECTIVO ele serve?           → a resposta viaja na derivação, que é o gesto que já ia correr
+        ↓
+a derivação grava o elo novo          → curadoria/repertorio + a declaração do objectivo
+        ↓
+a cadeia deriva o PLANO               → o plano é anterior à mudança: `pendente` → elo novo
+        ↓
 o objectivo observa este exercício  → aula-1-parametro · marcados[] · «1 reconhecer… — observa: …»
         ↓
 ele passa a poder ser escolhido     → item 10 · aula-1-sequencia (Bloco · Objetivo · Conteúdo)
@@ -719,10 +744,10 @@ cliente abre a janela, e o mesmo pedido é reenviado com a decisão.
 |:--|:--|:--|
 | `objectivosDoPlano(plano)` — os marcos daquela turma, em texto | `motor/nucleo/derivar-plano-ciclo.js` (`marcosEmTexto` já existe) | **pronta** |
 | `impactoDaInclusao({ plano, exercicio, objectivos })` — o que muda no parâmetro e no item 10 | `motor/nucleo/`, ao lado de `impactoDaDuracao` | **a construir** — ~80 linhas: acrescenta o termo a `marcados` dos objectivos escolhidos, conta as linhas do item 10 que passam a poder citá-lo, e soma os tempos por bloco |
-| a rota devolve `409` com o impacto | `POST /api/bastidores/curadoria-derivar` (e a criação) | **a acrescentar** — o caminho do `409` já existe nesta página, para a duração |
-| a gravação da declaração | **a curadoria** — o termo de objetivos da Turma, de onde o plano se alimenta | **a construir** — ver a decisão de desenho nº 1, abaixo; escrever no envelope do plano seria o desvio que ela recusou |
+| a rota devolve `409` com o impacto | `POST /api/bastidores/curadoria-derivar` | **a acrescentar** — o caminho do `409` já existe nesta página, para a duração. **A criação (`/curadoria`) fica de fora:** uma Turma sem plano não tem objectivos a que ligar o exercício, e é o interregno dela |
+| a gravação da declaração | **a curadoria** — o par `{termo, objetivos}` ao lado do `repertorio` | **a construir** — ver a decisão de desenho nº 1; escrever no envelope do plano seria o desvio que ela recusou |
 | a janela | `bastidores.js`, a de `perguntarDaDuracao` | **a generalizar** — hoje ela sabe uma pergunta; passar a receber `{título, corpo, pergunta, campos}` é o trabalho maior (~150 linhas, e as provas de uma e de outra) |
-| a redistribuição dos minutos | `volume.js` (`aplicarMinutos` já existe) | **pronta** — só passa a ser chamada por outra janela |
+| o gancho do cliente | `esc-conteudos` · `adicionarFicha` (ao acrescentar a ficha, e não ao gravar) | **a acrescentar** — é onde ela disse que o modal tem de abrir: «quando mando adicionar o Batman GT» |
 
 **A pergunta que a janela faz** é uma só, e é de escolha múltipla: *«A que objectivo(s) este exercício
 serve?»* — com os marcos da turma, e sem pré-selecção. A partir dela o sistema sabe o que mostrar: a
@@ -732,19 +757,21 @@ linha do parâmetro que ganha o termo, e os blocos cujo total muda.
 professor, linha a linha — o sistema não escolhe pedagogia.
 
 **Duas decisões de desenho, e a primeira está decidida:**
-1. **Onde a declaração é escrita — na CURADORIA, e não no plano.** A frase dela, na correcção de
+1. **Onde a declaração é escrita — na TURMA, e não no plano.** A frase dela, na correcção de
    20/11/2026, fecha as duas hipóteses que aqui estavam abertas: «*quando eu incluir um outro
    exercício lá no estilo […] ele tem que ir para o mesmo lugar, para o termo de objetivos na
    curadoria. […] Na medida em que eu acrescento um objetivo, ele aumenta; na medida em que eu tiro um
    exercício, ele diminui.* […] *A gente não vai fazer nunca nenhum desvio para colocar direto, porque
    a gente estaria quebrando o nosso próprio sistema.*» Escrever `aula-1-parametro` a partir da
-   derivação do Estilo seria exactamente esse desvio: um atalho que salta a curadoria e chega ao
-   documento que a aula segue. **Fica recusado.** O caminho é o de sempre — Estilo → curadoria
-   (o termo de objetivos) → plano → o resto da cadeia —, e a declaração viaja no primeiro passo.
-   **O que continua em aberto é a *forma* do campo na curadoria**, e é desenho, não princípio.
-2. **O que acontece quando não há plano.** Sem plano de ensino não há objectivos a que ligar o
-   exercício. Aí a janela não tem pergunta: o exercício entra no repertório e o aviso diz que a
-   declaração do objectivo nasce no primeiro plano daquela turma.
+   derivação do Estilo seria exactamente esse desvio. **Fica recusado.** E a segunda correcção
+   acrescenta o *lugar*: o modal é **da Turma**, porque é lá que os três factos se sabem ao mesmo
+   tempo — a Turma tem plano, o exercício é novo nela, e é dela que o plano deriva.
+   **O que continua em aberto é a *forma* do campo na Turma**, e é desenho, não princípio.
+2. **O que acontece quando não há plano — nada, e está decidido.** Sem plano de ensino não há
+   objectivos a que ligar o exercício, e por isso **não há janela e não há processo**: a Turma está em
+   suspensão, e o plano, quando nascer, puxa o envelope dela e leva o conteúdo. Isto já é o que o
+   código faz (`gerarOsCiclosDasTurmas` → `motivo: 'sem-plano'`), e é a razão de o custo ser
+   defensável: «é só custo» deixou de ser o preço da regra.
 
 **Custo de construção:** pequeno no núcleo, médio na janela. **Custo de manutenção:** duas janelas a
 manter em paralelo, se não se generalizar — e é por isso que a generalização é a parte que não se deve
@@ -752,14 +779,14 @@ adiar.
 
 ### d) O que se economiza, e o que se **paga**
 
-O gesto de hoje, quando se inclui um exercício, são **dois**: incluí-lo na derivação do Estilo, e
-depois ir ao plano de ensino escrever o objectivo a que ele serve — sem o que o exercício entra no
+O gesto de hoje, quando se inclui um exercício, são **dois**: associá-lo à Turma, e depois ir ao
+plano de ensino marcar a coluna do objectivo a que ele serve — sem o que o exercício entra no
 repertório e não entra em aula nenhuma. Com o modal é **um**, e é o mesmo pedido que já leva a
 decisão. Cada gesto poupado é uma geração: **1 a 2 minutos**.
 
-**E há um limite que não é medido em minutos:** a janela abre **só na derivação**, e não na edição —
-foi ela quem o disse, e a razão é a mesma da duração: a edição é o presente; a derivação é o elo novo,
-e é ele que pode ser interrogado antes de nascer.
+**E a janela abre num sítio só:** ao **acrescentar a ficha** no conteúdo da Turma, e não ao gravar —
+é a diferença entre perguntar enquanto se decide e perguntar depois de já estar decidido. Na edição
+não há janela porque não há edição: a Turma com plano recusa-se a editar (`409`).
 
 ### e) O que dá para automatizar
 
@@ -775,9 +802,10 @@ e é ele que pode ser interrogado antes de nascer.
 | redistribuir em **percentual** | **sim** | 30 % de 90 são 27, de 165 são 49,5: a conta resolve-se, e não há modal |
 
 **A conclusão do estudo, em uma linha:** o modal existe para a **inclusão** — porque incluir sem dizer
-a que objectivo o exercício serve é incluir um exercício que nunca entra em aula — e não para a
-remoção, que se desvincula sozinha. E o que hoje custa minutos sem mudar um byte é outra coisa, e é
-do Dicionário.
+a que objectivo o exercício serve é incluir um exercício que nunca entra em aula —, e vive **na Turma**
+e não no Estilo, porque só ali se sabe ao mesmo tempo que a Turma tem plano, que o exercício é novo
+nela, e que é dela que o plano deriva. A remoção continua sem janela: desvincula-se sozinha. E o que
+hoje custa minutos sem mudar um byte é outra coisa, e é do Dicionário.
 
 ---
 
