@@ -268,11 +268,19 @@ if [ -n "$NOTACAO_DECLARADA" ]; then
     const arquivo = path.join(raiz, "biblioteca", "modalidades", alfabeto.modalidade, "notacao.json");
     let sha = "(arquivo nao encontrado)";
     try { sha = crypto.createHash("sha256").update(fs.readFileSync(arquivo)).digest("hex"); } catch (e) {}
+    /* O VOCABULÁRIO TAMBÉM (20/11/2026). O alfabeto diz que um sinal existe; o vocabulário diz o
+     * NOME do exercício, a tradição e a classificação — e as três são do documento impresso. Uma
+     * alteração de nome não muda o `notacao.json`, portanto o selo antigo não a via, e o botão
+     * «Atualizar o ciclo» não a podia acusar. Duas fontes, dois shas. */
+    const arqVoc = path.join(raiz, "biblioteca", "modalidades", alfabeto.modalidade, "vocabulario.json");
+    let shaVoc = "(arquivo nao encontrado)";
+    try { shaVoc = crypto.createHash("sha256").update(fs.readFileSync(arqVoc)).digest("hex"); } catch (e) {}
     console.log("notacao: " + declarada);
     console.log("notacao_modalidade: " + alfabeto.modalidade);
     console.log("notacao_alfabeto: " + alfabeto.id);
     console.log("notacao_versao: " + alfabeto.versao);
     console.log("notacao_sha: " + sha);
+    console.log("notacao_vocabulario_sha: " + shaVoc);
   ' "$RAIZ" "$NOTACAO_DECLARADA" 2>/dev/null || true)"
 fi
 # A consulta que o `--check` faz, e o `--check` a repete: uma função, para o selo gravado e o
@@ -374,17 +382,38 @@ if [ "$MODO" = "--check" ]; then
   #
   # É ERRO, e não aviso, de propósito. Reancorar para incorporar o selo novo NÃO muda o hash — o
   # alfabeto continua fora da fórmula —, portanto o custo de resolver isto é um comando.
+  #
+  # MAS O COMANDO CERTO NÃO É REANCORAR (20/11/2026). Ele é REGERAR O CICLO. Reancorar renova o
+  # selo sem tocar nos documentos: o `.fipp` passa a afirmar um alfabeto que o documento não usou,
+  # e a mentira fica registada na própria âncora. Foi por isso que o botão «Atualizar o ciclo»
+  # nunca acendeu pelo dicionário: alguém (o `derivados.yml`) reancorava e apagava o sinal.
+  #
+  # O código de saída separa os dois casos: `2` quando a ÚNICA divergência é o dicionário, para o
+  # `derivados.yml` não reancorar e deixar o sinal de pé; `1` para tudo o resto, que é reancorável.
+  SO_DICIONARIO=0
   if [ -n "$SELO_ALFABETO" ]; then
     SHA_AGORA="$(printf '%s\n' "$SELO_ALFABETO" | sed -n 's/^notacao_sha:[[:space:]]*//p' | head -1)"
+    VOC_AGORA="$(printf '%s\n' "$SELO_ALFABETO" | sed -n 's/^notacao_vocabulario_sha:[[:space:]]*//p' | head -1)"
     if grep -q '^notacao_sha:' "$ARQUIVO_FIPP"; then
       SHA_ARMAZENADO="$(sed -n 's/^notacao_sha:[[:space:]]*//p' "$ARQUIVO_FIPP" | head -1)"
-      if [ "$SHA_ARMAZENADO" != "$SHA_AGORA" ]; then
-        echo "erro: o alfabeto da notação mudou desde a última ancoragem — o documento publicado" >&2
+      VOC_ARMAZENADO="$(sed -n 's/^notacao_vocabulario_sha:[[:space:]]*//p' "$ARQUIVO_FIPP" | head -1)"
+      DICIONARIO_DIVERGIU=0
+      if [ -n "$SHA_AGORA" ] && [ "$SHA_ARMAZENADO" != "$SHA_AGORA" ]; then DICIONARIO_DIVERGIU=1; fi
+      # O vocabulário só se compara quando a âncora O DECLARA: uma âncora anterior a este selo não
+      # tem a linha, e «não declarado» não é «mudou» — acusar aqui faria todos os ciclos antigos
+      # reprovarem até serem regerados, que é a família de aviso que se aprende a ignorar.
+      if [ -n "$VOC_AGORA" ] && [ -n "$VOC_ARMAZENADO" ] && [ "$VOC_ARMAZENADO" != "$VOC_AGORA" ]; then
+        DICIONARIO_DIVERGIU=1
+      fi
+      if [ "$DICIONARIO_DIVERGIU" = 1 ]; then
+        echo "erro: o dicionário da modalidade mudou desde a última ancoragem — o documento publicado" >&2
         echo "      de $ID muda de sentido, e o hash das fontes do professor não o vê." >&2
-        echo "  no .fipp:  $SHA_ARMAZENADO" >&2
-        echo "  agora:     $SHA_AGORA" >&2
-        echo "  regere a âncora com: tools/hash-ciclo.sh $PROFESSOR_DIR $CICLO $VARIANTE" >&2
-        echo "  (o hash NÃO muda: o alfabeto está fora da fórmula — só o selo é renovado)" >&2
+        echo "  no .fipp:  ${SHA_ARMAZENADO:-(sem selo)}${VOC_ARMAZENADO:+ / $VOC_ARMAZENADO}" >&2
+        echo "  agora:     ${SHA_AGORA:-(sem alfabeto)}${VOC_AGORA:+ / $VOC_AGORA}" >&2
+        echo "  NÃO reancore: regenere o ciclo, para os documentos lerem o dicionário novo" >&2
+        echo "    tools/gerar-ciclo.sh $PROFESSOR_DIR $CICLO $VARIANTE" >&2
+        echo "  (reancorar só renovava o selo e apagava este aviso, deixando o documento velho)" >&2
+        if [ "$FALHOU" -eq 0 ]; then SO_DICIONARIO=1; fi
         FALHOU=1
       fi
     else
@@ -447,7 +476,7 @@ if [ "$MODO" = "--check" ]; then
     esac
   done
 
-  [ "$FALHOU" -eq 0 ] || exit 1
+  [ "$FALHOU" -eq 0 ] || { [ "$SO_DICIONARIO" = 1 ] && exit 2; exit 1; }
   echo "ok: ciclo $CICLO-$VARIANTE íntegro; cadeia intacta"
   echo "    hash: $HASH_FIPP"
   exit 0

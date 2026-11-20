@@ -56705,3 +56705,69 @@ tivesse regerado o derivado na derivação do PO.
 **Com o quê.** `ciclo-01-breu-rosa-dados.json` (`po` → `1818`; elenco, apelidos e `aulas` intactos);
 o pacote regerado (`gerar-ciclo.sh demi-plie 01 breu-rosa`, agora **0 erros**, com o `check-pacote` a
 dizer «a fonte e o JSON de dados vêm do mesmo envelope»); a âncora `.fipp` recalculada.
+
+## 20/11/2026 — O dicionário no botão, e o commit que faltava
+
+### 1. «Eu modifiquei o verbete plié, e não aparece no botão atualizar ciclo, isso não pode»
+
+**O que estava errado, e era meu.** O botão comparava três coisas — a régua, o conteúdo e a
+habilidade — e eu tinha **deixado o dicionário de fora de propósito**, com a justificação escrita no
+próprio módulo: «o corpo de um verbete não viaja no plano de ensino, portanto não há contra o que
+comparar». A justificação era verdadeira e a conclusão era errada: **a fotografia existia**, no
+`.fipp`, desde 28/10/2026 (`notacao_versao`, `notacao_sha`) — faltava o outro lado da conta, e
+faltava o selo do vocabulário.
+
+**As duas metades.** `impressaoDoDicionario` (em `verbete.js`) mede o dicionário de **agora** no
+repositório — o sha256 do `notacao.json` **e** do `vocabulario.json`. O segundo não é zelo: o nome,
+a tradição e a classificação de um exercício vivem lá, e ela foi explícita — «poderia ter alterado
+tradição, classificação ou a definição do exercício […] inclusive o nome». `dicionarioDoCiclo` (em
+`bastidores.js`) lê a fotografia da âncora do ciclo. O núcleo compara os dois.
+
+**E a razão de o sinal nunca ter chegado ao botão.** O `--check` do `hash-ciclo.sh` já acusava «o
+alfabeto mudou» — mas o `derivados.yml` respondia a **qualquer** divergência com um `reancorar`. E
+reancorar **renova o selo sem tocar nos documentos**: o `.fipp` passava a afirmar um alfabeto que o
+documento não usou, e o sinal desaparecia. É a mentira que o próprio script diz que combate («para o
+alfabeto não mudar em silêncio»). Agora o `--check` sai com **`2`** quando a única divergência é o
+dicionário, e o workflow **não reancora** — deixa o sinal de pé, diz que o ciclo precisa de ser
+**regerado**, e é o botão da Turma que leva o professor a agir.
+
+**A quarta frase.** «O dicionário foi modificado», depois da habilidade — a ordem em que as pessoas
+deste sistema falam do ciclo. E o `!` passa a poder dizer duas coisas ao mesmo tempo: era isso que
+ela estranhava («a única coisa que ele me informa é que a habilidade do professor foi modificada»).
+
+**O que não acende, e é de propósito.** Uma âncora anterior ao selo do vocabulário declara só o
+alfabeto; um Worker que não conseguiu medir não declara nada. Nenhum dos dois é «mudou» — a mesma
+doutrina do vazio que governa os outros três itens.
+
+### 2. «Me explica isso, eu não estou entendendo, o que que aconteceu? Você deixou passar.»
+
+**Sim, deixei passar** — e o que se passou é este, com o rasto no `main`:
+
+| hora | commit | o quê |
+|:--|:--|:--|
+| 18:18:02 | `41a7e326` | o elo do plano |
+| 18:18:09 | `6c5947b5` | **duas linhas do `-po.md`** (`1802` → `1818`) |
+| — | *(nada)* | **o commit das fontes do ciclo não existe** |
+
+Os ciclos vizinhos (18:03 e 18:54) têm os três commits. Este teve dois. O `-dados.json` continuou a
+dizer `po-20261120-1802` e o `-po.md` passou a dizer `1818` — o «pacote mistura dois Planos de
+Observação» que a checagem 7.1 recusa. **Não é PDF**, como ela pensou: é o teto de **50 subpedidos**
+do Cloudflare por invocação do Worker, onde cada leitura e cada escrita no GitHub conta um.
+
+**A causa estrutural.** O «Guardar» gravava em dois commits: `escreverPO` punha o `-po.md`, e só
+depois o `escreverCiclo` punha as fontes. Havia uma **previsão** de orçamento para os tornar
+atômicos «na prática» — e uma previsão é uma estimativa. Quando ela erra, ou quando o pedido gastou
+mais do que o previsto a montante, o primeiro commit já entrou e o segundo não. O próprio código
+documentava o mesmo defeito desde 08/11.
+
+**A correcção.** O `-po.md` passou a ser **mais um ficheiro do lote** do `escreverCiclo`, que compõe
+uma árvore e um commit só. Ou entram os dois, ou não entra nenhum. Deixou de existir o estado «o PO
+entrou e as fontes não».
+
+**Com o quê.** `motor/nucleo/o-que-mudou.js` (a quarta comparação); `motor/servidor/verbete.js`
+(`impressaoDoDicionario`); `motor/servidor/bastidores.js` (`dicionarioDoCiclo`, a rota
+`…/curadorias-estado` a medir o dicionário uma vez por modalidade); `tools/hash-ciclo.sh`
+(`notacao_vocabulario_sha` no selo, e o `exit 2`); `.github/workflows/derivados.yml` (não reancorar
+quando a única divergência é o dicionário); `motor/servidor/escrever-ciclo.js` (`poMarkdown` no
+lote); `motor/servidor/concluir-po.js` (um commit, uma linha de base, um markdown);
+`provar-o-commit-do-po.js` (novo, 14 asserções) e `provar-o-que-mudou.js` (secção D, 7 novas).

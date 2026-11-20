@@ -27,7 +27,9 @@
  * criou, `passos.*` para a cadeia automática).
  */
 
-const { rotulosDoChecklist, derivadosDoChecklist, obrigatoriosDoPO } = require('../nucleo/derivar-po.js');
+const {
+  rotulosDoChecklist, derivadosDoChecklist, obrigatoriosDoPO, derivarPO,
+} = require('../nucleo/derivar-po.js');
 
 /**
  * A FÁBRRICA. Recebe tudo o que o bloco usava do fecho da rota, para o corpo ficar igual ao que
@@ -80,30 +82,65 @@ function criarConcluirPO({
     const orcamento = (escreverCiclo && typeof escreverCiclo.orcamento === 'function')
       ? escreverCiclo.orcamento() : null;
     const naoCabe = Boolean(orcamento && previsao && !orcamento.coube(previsao + CUSTO_DO_PO));
+    /* O MARKDOWN DO PO, calculado uma vez (20/11/2026): quando há `escreverCiclo`, ele viaja no
+     * lote atómico das fontes; quando não há, o `escreverPO` grava-o sozinho, como sempre. */
+    let poMarkdown = null;
+    let fonteNoLote = false;
+    /* A LINHA DE BASE, pedida UMA vez (20/11/2026): ela entra no markdown do PO e na chamada ao
+     * `escreverCiclo`, e duas leituras do mesmo acto no mesmo pedido seriam duas chances de
+     * divergir — a mesma razão que o comentário antigo já dava para a fonte. */
+    const linhaDeBaseDaVez = porta && typeof porta.turmaDoEnvelope === 'function'
+      ? await linhaDeBaseDaTurma(porta.turmaDoEnvelope(saida.plano) || contexto.turma)
+      : null;
     if (naoCabe) {
       saida.fonte = { ok: false, motivo: 'orcamento', erro: orcamento.motivo(previsao + CUSTO_DO_PO) };
       saida.ciclo = { ok: false, motivo: 'orcamento', erro: orcamento.motivo(previsao + CUSTO_DO_PO) };
     } else if (escreverPO) {
-      try {
-        // OS RÓTULOS vêm do CONTEÚDO (o mesmo `conteudoPO` que a rota serve ao formulário):
-        // o nome de cada folha do checklist é dado, não código — e é o nome que o professor
-        // leu ao marcar. Sem esta passagem, o documento já assinou «Fronteiras claras» onde
-        // o formulário diz «Fronteiras do escopo claras».
-        saida.fonte = await escreverPO(envelope, 'feat(po): o PO elicitado vira a fonte do ciclo',
-          saida.plano, {
-            rotulos: rotulosDoChecklist(conteudoPO),
-            derivados: derivadosDoChecklist(conteudoPO),
-            // O `state:` da fonte sai das perguntas OBRIGATÓRIAS do conteúdo — as mesmas que a
-            // barra do formulário conta. O checklist é opcional e não decide o estado.
-            obrigatorios: obrigatoriosDoPO(conteudoPO),
-            // A fonte gravada no repositório tem de trazer o MESMO recorte que a prévia:
-            // duas leituras do mesmo acto no mesmo pedido seriam duas chances de divergir.
-            linhaDeBase: await linhaDeBaseDaTurma(
-              porta.turmaDoEnvelope(saida.plano) || contexto.turma),
-          });
-      } catch (erro) {
-        saida.fonte = { ok: false, erro: erro.message };
+      /* O `-po.md` E AS FONTES DO CICLO NO MESMO COMMIT (20/11/2026).
+       *
+       * Aqui havia `saida.fonte = await escreverPO(envelope, …)` e, só depois, o
+       * `escreverCiclo` — dois commits, o mesmo pedido. A previsão de orçamento acima tentava
+       * torná-los atómicos «na prática», e não tornava: uma estimativa errada, ou um pedido que
+       * gastou mais do que o previsto a montante, matava a invocação entre os dois. O repositório
+       * ficava com o `-po.md` de um PO e o `-dados.json` de outro — o estado que o
+       * `check-pacote` recusa e que a `breu-rosa` publicou a 20/11 (commit `6c5947b5`).
+       *
+       * Passa a ser UM commit: o markdown do PO é calculado aqui e viaja como mais um ficheiro do
+       * lote do `escreverCiclo`, que compõe uma árvore e um commit só. Ou entram os dois, ou não
+       * entra nenhum. O `escreverPO` fica como recurso para o caso em que não há `escreverCiclo`
+       * (um Worker sem token de ciclo) — aí continua a haver só a fonte, e é o melhor que há. */
+      const opcoesDoPO = () => ({
+        rotulos: rotulosDoChecklist(conteudoPO),
+        derivados: derivadosDoChecklist(conteudoPO),
+        // O `state:` da fonte sai das perguntas OBRIGATÓRIAS do conteúdo — as mesmas que a barra
+        // do formulário conta. O checklist é opcional e não decide o estado.
+        obrigatorios: obrigatoriosDoPO(conteudoPO),
+      });
+      /* A LINHA DE BASE FAZ PARTE DO DOCUMENTO, e ela custa uma leitura (`linhaDeBaseDaTurma`) —
+       * por isso é pedida UMA vez e usada nos dois lados: no markdown do PO e na chamada ao
+       * `escreverCiclo`. Sem ela aqui, o `-po.md` do lote atómico sairia mais pobre do que o que o
+       * `escreverPO` produzia, e a correcção da atomicidade teria mudado o conteúdo do documento
+       * — que é a pior forma de consertar um defeito. */
+      const markdownDoPO = () => {
+        try {
+          const r = derivarPO(envelope, saida.plano,
+            Object.assign({}, opcoesDoPO(), { linhaDeBase: linhaDeBaseDaVez }));
+          return r && r.markdown ? r.markdown : null;
+        } catch (erro) {
+          return null;
+        }
+      };
+      poMarkdown = escreverCiclo ? markdownDoPO() : null;
+      if (!poMarkdown) {
+        try {
+          saida.fonte = await escreverPO(envelope, 'feat(po): o PO elicitado vira a fonte do ciclo',
+            saida.plano,
+            Object.assign({}, opcoesDoPO(), { linhaDeBase: linhaDeBaseDaVez }));
+        } catch (erro) {
+          saida.fonte = { ok: false, erro: erro.message };
+        }
       }
+      fonteNoLote = Boolean(poMarkdown);
     }
 
     if (escreverCiclo) {
@@ -112,13 +149,41 @@ function criarConcluirPO({
          * imprime o que a turma mostra em cada aspecto, e essa é a leitura do passo 3. Uma
          * leitura só, dois documentos — senão o guia e o plano podiam arrumar o mesmo dado
          * de duas maneiras. */
-        saida.ciclo = await escreverCiclo({
+        const relatorioDoCiclo = await escreverCiclo({
           plano: saida.plano, po: envelope, contexto,
-          linhaDeBase: await linhaDeBaseDaTurma(porta.turmaDoEnvelope(saida.plano) || contexto.turma),
+          linhaDeBase: linhaDeBaseDaVez,
           anamneses: await anamnesesDaTurma(),
+          /* O `-po.md` VAI AQUI, e não antes (20/11/2026): é o que faz a fonte e os derivados
+           * entrarem no MESMO commit. Sem markdown (o derivador falhou, ou o conteúdo não o
+           * permite) é `null`, o escritor segue sem ele — e o `escreverPO` acima já o gravou. */
+          poMarkdown,
         });
+        saida.ciclo = relatorioDoCiclo;
+        /* A FONTE PASSA A SER RELATADA PELO CICLO quando ela viajou no lote dele: quem a gravou
+         * foi o commit atómico, e um segundo relatório a dizer «gravada» por outro caminho seria
+         * a tela a afirmar duas escritas onde houve uma. */
+        if (fonteNoLote) {
+          const noLote = (Array.isArray(relatorioDoCiclo && relatorioDoCiclo.escritas)
+            ? relatorioDoCiclo.escritas : []).find((e) => e && /-po\.md$/.test(e.caminho || ''));
+          const pulada = (Array.isArray(relatorioDoCiclo && relatorioDoCiclo.puladas)
+            ? relatorioDoCiclo.puladas : []).some((c) => /-po\.md$/.test(String(c)));
+          saida.fonte = {
+            ok: relatorioDoCiclo && relatorioDoCiclo.ok !== false,
+            noMesmoCommit: true,
+            caminho: (noLote && noLote.caminho) || null,
+            atualizado: Boolean(noLote),
+            igual: Boolean(pulada),
+          };
+        }
       } catch (erro) {
         saida.ciclo = { ok: false, erro: erro.message };
+        /* A FONTE NÃO ENTROU, e diz-se (20/11/2026). Ela viajava no commit atómico do ciclo: se o
+         * commit falhou, o `-po.md` também não está no repositório. Um `saida.fonte` ausente
+         * deixaria a tela a mostrar um sucesso que não houve — a mesma família de silêncio que a
+         * atomicidade vem fechar. */
+        if (fonteNoLote) {
+          saida.fonte = { ok: false, noMesmoCommit: true, erro: erro.message };
+        }
       }
     }
 

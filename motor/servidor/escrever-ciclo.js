@@ -539,7 +539,7 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
   const custoPrevisto = 1 + 1 + fontesPrevistas + 1 + 1 + 1 + 1 + 5;
   const custoDasFontes = (n) => 1 + 1 + n + 1 + 1 + 1 + 1 + 5;
 
-  const escrever = async ({ plano, po, contexto, linhaDeBase, anamneses }) => {
+  const escrever = async ({ plano, po, contexto, linhaDeBase, anamneses, poMarkdown }) => {
     const ctx = contexto || {};
     const escolaNome = ctx.escolaNome || ctx.escola;
     const relatorio = { conf: null, escritas: [], puladas: [], elos: [], docs: null, schema: null };
@@ -560,11 +560,14 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
      * aqui é a do pior caso (sete fontes); a exata volta a ser feita quando o plano já disse
      * quantas são. */
     const orcamentoDeFora = orcamentoDe(fetchImpl);
-    if (orcamentoDeFora && !orcamentoDeFora.coube(custoPrevisto)) {
+    /* Uma fonte a mais quando o `-po.md` viaja neste lote (20/11/2026): a conta é do pior caso, e
+     * incluir o ficheiro que passou a ser escrito aqui é o que a mantém honesta. */
+    const custoDaChamada = poMarkdown ? custoPrevisto + 1 : custoPrevisto;
+    if (orcamentoDeFora && !orcamentoDeFora.coube(custoDaChamada)) {
       return Object.assign(relatorio, {
         ok: false,
         motivo: 'orcamento',
-        erro: orcamentoDeFora.motivo(custoPrevisto),
+        erro: orcamentoDeFora.motivo(custoDaChamada),
         orcamento: { usados: orcamentoDeFora.usados, limite: orcamentoDeFora.limite },
       });
     }
@@ -666,6 +669,27 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
       fontes.push({ sufixo: '-notacao.md', md: derivarNotacao({ plano, contexto: ctx }) });
       fontes.push({ sufixo: '-glossario-' + slugDe(notacao) + '.md', md: derivarGlossario({ plano, contexto: ctx }) });
     }
+    /* O `-po.md` ENTRA NO MESMO COMMIT DAS FONTES (20/11/2026) — e é a correcção de raiz da
+     * incoerência que a `breu-rosa` publicou a 20/11.
+     *
+     * O QUE ACONTECEU, medido. O «Guardar» do PO gravava em dois passos: o `escreverPO` punha o
+     * `-po.md` (um commit) e só depois o `escreverCiclo` punha as fontes (outro commit). Quando a
+     * invocação morria entre os dois — e o teto de 50 subpedidos do Cloudflare é o motivo
+     * documentado em `subpedidos.js` —, o `-po.md` ficava a apontar um PO e o `-dados.json` a
+     * descrever o anterior. O `check-pacote` reprova o pacote («mistura dois Planos de
+     * Observação»), a geração não publica, e o commit `6c5947b5` (20/11, 18:18) é o rasto: duas
+     * linhas do `-po.md` e nenhum derivado.
+     *
+     * A PREVISÃO DE ORÇAMENTO NÃO BASTAVA, porque ela é feita em `concluir-po.js` antes do
+     * `-po.md` ser gravado e é uma estimativa; a atomicidade não pode depender de uma estimativa
+     * estar certa. Aqui, o `-po.md` é SÓ MAIS UM FICHEIRO DO LOTE: o `escreverCiclo` já compõe
+     * uma árvore e um commit só, portanto ou entram todos, ou não entra nenhum. Deixa de existir
+     * o estado «o PO entrou e as fontes não».
+     *
+     * A comparação byte a byte continua a valer: um `-po.md` igual ao que está não gera commit.
+     * A fonte substituída fica em `historico/`, como as outras — a proveniência acrescenta, e
+     * este ficheiro passou a tê-la. */
+    if (poMarkdown) fontes.unshift({ sufixo: '-po.md', md: poMarkdown });
 
     /* O ORÇAMENTO, ANTES DO PRIMEIRO SUBPEDIDO DE ESCRITA (08/11/2026).
      *

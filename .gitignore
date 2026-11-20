@@ -1726,3 +1726,10 @@ experimentos/modelo-formulario/*
 # rodapé `Auditoria:` do commit, e um arquivo citado que não existe no clone é uma afirmação
 # que ninguém pode conferir.
 !experimentos/provar-o-parametro-do-plano.js
+# O `-po.md` E AS FONTES NO MESMO COMMIT (20/11/2026). A bancada reproduz o estado que a `breu-rosa`
+# publicou a 20/11 — o `-po.md` de um PO e o `-dados.json` de outro — com um GitHub de mentira que
+# imita git data, e mede as quatro coisas que o fecham: o lote único, a idempotência, o commit
+# falhado (que não pode deixar metade) e o orçamento curto. É citada no REGISTRO e no rodapé
+# `Auditoria:` do commit, e um arquivo citado que não existe no clone é uma afirmação que ninguém
+# pode conferir.
+!experimentos/provar-o-commit-do-po.js

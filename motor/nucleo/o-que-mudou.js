@@ -31,7 +31,7 @@
 /* A ORDEM DOS ITENS É A DA LEITURA do cartão: primeiro o que a direção decidiu (a régua), depois o
  * que a Turma ensina (o conteúdo), e por fim o que o professor declara saber (a habilidade). Não é
  * alfabética de propósito — é a ordem em que as pessoas deste sistema falam do ciclo. */
-const ORDEM = ['regua', 'estilo', 'habilidade'];
+const ORDEM = ['regua', 'estilo', 'habilidade', 'dicionario'];
 
 /* AS FRASES SÃO AS DELA, no plural do sistema: «a régua foi modificada», «a habilidade do professor
  * foi modificada». O rótulo é a frase inteira, porque é ela que vai no `title` do botão — e um
@@ -40,6 +40,7 @@ const ROTULOS = {
   regua: 'A régua foi modificada',
   estilo: 'O conteúdo do Estilo foi modificado',
   habilidade: 'A habilidade do professor foi modificada',
+  dicionario: 'O dicionário foi modificado',
 };
 
 /** Uma lista de valores, sem vazios nem repetidos, na ordem em que veio. */
@@ -57,6 +58,15 @@ function lista(valor) {
  *  a mesma tradição escrita por duas mãos; o documento e o perfil não têm de concordar na tecla. */
 function chaveDeTexto(valor) {
   return String(valor === null || valor === undefined ? '' : valor).trim().toLowerCase();
+}
+
+/** Um retrato do dicionário — `{notacaoSha, vocabularioSha, versao?}` — ou `null` quando o lado
+ *  não o declara. Um `null` cala a comparação: «não sei» não é «mudou», e é a mesma doutrina do
+ *  `leu` da janela do exercício. */
+function noPapelOuHoje(valor) {
+  if (!valor || typeof valor !== 'object' || Array.isArray(valor)) return null;
+  if (!valor.notacaoSha && !valor.vocabularioSha) return null;
+  return valor;
 }
 
 /**
@@ -114,6 +124,34 @@ function oQueMudou({ hoje, documento } = {}) {
     if (agora.length !== papel.length || agora.some((t) => papel.indexOf(t) === -1)) {
       difere.habilidade = true;
     }
+  }
+
+  /* O DICIONÁRIO — o que o documento cita, e não o que o plano copia (20/11/2026).
+   *
+   * «Eu modifiquei o verbete plié, e não aparece no botão atualizar ciclo, isso não pode.» O
+   * dicionário é o quarto item, e a razão de não ter estado aqui na primeira versão era de dado: o
+   * corpo de um verbete não viaja no plano de ensino — o plano carrega o NOME do exercício. Sem
+   * fotografia não havia contra o que comparar.
+   *
+   * A FOTOGRAFIA EXISTE, e é a âncora: o `.fipp` regista `notacao_sha` desde 28/10/2026, e diz com
+   * que alfabeto o documento foi escrito. Do outro lado está a impressão de agora
+   * (`impressaoDoDicionario`, em `verbete.js`), medida sobre o alfabeto E o vocabulário — porque um
+   * nome novo ou uma tradição nova vivem no segundo, e comparar só o primeiro deixaria passar
+   * metade dos casos.
+   *
+   * O QUE CONTA COMO MUDANÇA É O SHA, e não a versão. Uma gravação que não alterou um byte sobe a
+   * versão e não muda o documento; acender o botão por causa dela seria gastar um ciclo para
+   * reescrever o mesmo. A versão vai no retorno porque a tela a pode mostrar — não porque decida.
+   */
+  const dicionarioDeHoje = noPapelOuHoje(deHoje.dicionario);
+  const dicionarioNoPapel = noPapelOuHoje(noPapel.dicionario);
+  if (dicionarioDeHoje && dicionarioNoPapel) {
+    const a = [dicionarioDeHoje.notacaoSha, dicionarioDeHoje.vocabularioSha].map((v) => String(v || ''));
+    const b = [dicionarioNoPapel.notacaoSha, dicionarioNoPapel.vocabularioSha].map((v) => String(v || ''));
+    /* Um lado sem o vocabulário (`null`) não é «diferente» do outro com ele: o vazio nunca acusa,
+     * aqui como em todo o resto deste módulo. Só conta o par que os DOIS lados declaram. */
+    const comparaveis = a.map((v, i) => (v && b[i] ? [v, b[i]] : null)).filter(Boolean);
+    if (comparaveis.some(([x, y]) => x !== y)) difere.dicionario = true;
   }
 
   const mudou = ORDEM.filter((chave) => difere[chave])

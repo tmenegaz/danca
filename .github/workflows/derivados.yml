@@ -107,6 +107,7 @@ jobs:
           fi
 
           tocados=0
+          porRegenerar=0
 
           for manifesto in "${manifestos[@]}"; do
             # professores/<professor>/ciclos/ciclo-<NN>-<escola>.conf
@@ -119,8 +120,21 @@ jobs:
 
             alvo="$professor $ciclo $escola"
 
-            if tools/hash-ciclo.sh "$professor" "$ciclo" "$escola" --check > /dev/null 2>&1; then
+            # TRÊS RESPOSTAS, E NÃO DUAS (20/11/2026). `2` é «a única divergência é o
+            # DICIONÁRIO» — o verbete ou o vocabulário mudaram depois de o ciclo ser escrito. Nesse
+            # caso NÃO se reancora: renovar o selo deixaria o `.fipp` a afirmar um dicionário que
+            # os documentos não usaram, e apagaria o único sinal de que o ciclo precisa de ser
+            # REGERADO — foi assim que o botão «Atualizar o ciclo» nunca acendeu pelo dicionário.
+            # O sinal fica de pé, e é o botão da Turma que leva o professor a agir.
+            codigo=0
+            tools/hash-ciclo.sh "$professor" "$ciclo" "$escola" --check > /dev/null 2>&1 || codigo=$?
+            if [ "$codigo" -eq 0 ]; then
               echo "ok: $alvo — âncora íntegra"
+              continue
+            fi
+            if [ "$codigo" -eq 2 ]; then
+              echo "adiado: $alvo — o dicionário mudou; o ciclo precisa de ser REGERADO, e não reancorado"
+              porRegenerar=$((porRegenerar + 1))
               continue
             fi
 
@@ -143,6 +157,10 @@ jobs:
           done
 
           echo "ciclos reancorados: $tocados"
+          if [ "$porRegenerar" -gt 0 ]; then
+            echo "ciclos à espera de REGENERAÇÃO (dicionário novo, documentos velhos): $porRegenerar"
+            echo "  → o botão «Atualizar o ciclo», na Turma, é o gesto que os põe em dia."
+          fi
           echo "tocados=$tocados" >> "$GITHUB_OUTPUT"
 
       # ------------------------------ 2. O ÍNDICE ------------------------------

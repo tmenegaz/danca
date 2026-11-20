@@ -2377,15 +2377,69 @@ async function estadoDoCicloDaTurma(env, escola, c, deps) {
        * diferentes. */
       repertorio: objetivosDoRepertorio.termosLimpios(c && c.repertorio),
       metodologia: tradicaoDeHoje,
+      /* O DICIONÁRIO DE AGORA, medido pela rota (uma leitura por modalidade, não por Turma) — e
+       * `null` quando o Worker não o conseguiu medir, que é «não sei» e cala a comparação. */
+      dicionario: d.dicionario || null,
     },
     documento: {
       rubrica: valorDe('rubrica'),
       repertorio: valorDe('repertorio'),
       metodologia: valorDe('contexto-metodologia'),
+      /* A FOTOGRAFIA — o dicionário com que ESTE ciclo foi escrito, lido da âncora dele. */
+      dicionario: await dicionarioDoCiclo(env, {
+        professor,
+        ciclo: String((plano.contexto && plano.contexto.ciclo) || '').trim(),
+        variante: varianteDoContexto({
+          escola, turma: String((plano.contexto && plano.contexto.turma) || nomeDaSala).trim(),
+        }),
+      }),
     },
   });
   return { mudou: veredito.mudou, podeAtualizar: !veredito.igual, leu: true, motivo: null,
     plano: String(plano.id || '') };
+}
+
+/**
+ * A FOTOGRAFIA DO DICIONÁRIO QUE O CICLO IMPRIMIU — lida da âncora de proveniência (20/11/2026).
+ *
+ * «Eu modifiquei o verbete plié, e não aparece no botão atualizar ciclo, isso não pode.»
+ *
+ * O QUE SE LÊ, E PORQUE É AQUI. O `.fipp` do ciclo é o único documento que responde «com que
+ * alfabeto este ciclo foi escrito?» — ele regista `notacao_versao` e `notacao_sha` desde
+ * 28/10/2026, e o `tools/hash-ciclo.sh` acrescentou `notacao_vocabulario_sha` na mesma altura em
+ * que este leitor nasceu (o nome e a tradição de um exercício vivem no vocabulário, não no
+ * alfabeto). É uma leitura por Turma com plano, e é o preço de saber: sem ela o botão só sabe
+ * comparar o que o plano copia, e o plano não copia o dicionário.
+ *
+ * `null` QUANDO NÃO HÁ ÂNCORA, e não um retrato vazio: um ciclo anterior ao selo, ou uma escola
+ * cuja âncora ainda não subiu, não declara nada — e «não declarado» não é «mudou». É a mesma
+ * doutrina que o `oQueMudou` já segue nos outros três itens.
+ */
+async function dicionarioDoCiclo(env, { professor, ciclo, variante }) {
+  const prof = String(professor || '').trim();
+  const num = String(ciclo || '').trim().padStart(2, '0');
+  const v = String(variante || '').trim();
+  const token = env && env.GITHUB_TOKEN;
+  if (!prof || !num || !v || !token) return null;
+  const caminho = 'professores/' + prof + '/ciclos/ciclo-' + num + '-' + v + '.fipp';
+  try {
+    const { lerArquivoRemoto } = require('./escrever-ciclo.js');
+    const lido = await lerArquivoRemoto({
+      token, dono: 'tmenegaz', repo: 'danca', ref: 'main', caminho,
+      fetchImpl: (u, o) => globalThis.fetch(u, o),
+    });
+    if (!lido || !lido.existe) return null;
+    const valor = (chave) => {
+      const m = new RegExp('^' + chave + ':[ \\t]*(\\S+)[ \\t]*$', 'm').exec(lido.texto || '');
+      return m ? m[1] : null;
+    };
+    const notacaoSha = valor('notacao_sha');
+    const vocabularioSha = valor('notacao_vocabulario_sha');
+    if (!notacaoSha && !vocabularioSha) return null;
+    return { versao: valor('notacao_versao'), notacaoSha, vocabularioSha };
+  } catch (erro) {
+    return null;
+  }
 }
 
 /**
@@ -24876,6 +24930,30 @@ function parDaSalaNoCorpo(corpo, registo) {
       perfisLidos.set(alvo, corpo);
       return corpo;
     };
+    /* O DICIONÁRIO DE HOJE, UMA VEZ POR MODALIDADE (20/11/2026) — é o outro lado da conta do
+     * botão «Atualizar o ciclo»: a fotografia vem da âncora de cada ciclo (uma leitura por Turma),
+     * e o valor de agora é o mesmo para todas as Turmas da mesma modalidade. Medir por Turma seria
+     * pagar N vezes o mesmo ficheiro. `null` é «não consegui medir», e cala a comparação. */
+    const modalidadesLidas = new Map();
+    const dicionarioDe = async (modalidade) => {
+      const alvo = String(modalidade || '').trim();
+      if (!alvo) return null;
+      if (modalidadesLidas.has(alvo)) return modalidadesLidas.get(alvo);
+      let retrato = null;
+      try {
+        const { impressaoDoDicionario } = require('./verbete.js');
+        const { idDaModalidade } = require('../nucleo/perfil-do-professor.js');
+        const r = await impressaoDoDicionario({
+          f: (u, o) => globalThis.fetch(u, o), token: env && env.GITHUB_TOKEN,
+          dono: 'tmenegaz', repo: 'danca', ref: 'main',
+          modalidade: idDaModalidade(alvo) || alvo,
+        });
+        retrato = r && r.ok ? { versao: r.versao, notacaoSha: r.notacaoSha,
+          vocabularioSha: r.vocabularioSha } : null;
+      } catch (erro) { retrato = null; }
+      modalidadesLidas.set(alvo, retrato);
+      return retrato;
+    };
     const estados = {};
     for (const c of (Array.isArray(lista) ? lista : [])) {
       if (!c || !c.id) continue;
@@ -24891,9 +24969,13 @@ function parDaSalaNoCorpo(corpo, registo) {
       if (vinculada) {
         const sala = turmaVigentePorNome(salasTodas, (turmasDaCuradoria(c)[0] || '').trim());
         const professor = String((sala && sala.professor) || c.professor || '').trim();
+        /* A MODALIDADE DA TURMA — da Sala quando ela a declara, da curadoria como recurso: é a
+         * mesma ordem que o resto do cartão usa, e é ela que diz QUAL dicionário comparar. */
+        const modalidade = String((sala && sala.modalidade) || c.modalidade || '').trim();
         estado = await estadoDoCicloDaTurma(env, escola, c, {
           turmas: salasTodas, rubricas: rubricasTodas, rubricasDosProfs,
           perfil: await perfilDe(professor),
+          dicionario: await dicionarioDe(modalidade),
         });
       }
       estados[String(c.id)] = {
@@ -28151,6 +28233,7 @@ module.exports = {
   rubricaDaTurma,
   rubricasDosProfessores,
   estadoDoCicloDaTurma,
+  dicionarioDoCiclo,
   /* O BOTÃO E O SELO DA TURMA (20/11/2026). Exportados porque a prova os mede como FUNÇÃO — é a
    * única forma de fixar os três estados (sem comparação, igual, mudou) sem depender de uma página
    * inteira em jsdom para cada um. */

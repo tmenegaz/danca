@@ -18,6 +18,9 @@
  *      o que esta Turma declara hoje…» — NÃO pode voltar: foi ela que o mandou tirar.
  *   C. O CANCELAR DAS HABILITAÇÕES — o botão existe, está na tabela dos cancelares, e o gesto
  *      devolve o que está declarado antes de fechar.
+ *   D. O DICIONÁRIO — o quarto item, e a razão de ele ter ficado de fora na primeira versão (não
+ *      havia fotografia). Mede-se o verbete, o vocabulário, as duas frases no «title», e os dois
+ *      silêncios: um `.fipp` sem o selo novo e um lado que não mediu.
  *
  * O QUE NÃO SE MEDE AQUI: a travessia inteira (o `derivarPlano` a reler a régua e a tradição) tem
  * secção própria em `provar-cadeia-automatica.js` (L), porque precisa do acervo e das fontes. Aqui
@@ -109,15 +112,9 @@ function conferir(titulo, condicao, detalhe) {
     conferir('com os três diferentes, a lista vem na ordem régua → estilo → habilidade',
       osTres.mudou.map((m) => m.chave).join(',') === 'regua,estilo,habilidade',
       osTres.mudou.map((m) => m.chave));
-    conferir('…e cada um traz a frase inteira, que é a que vai no `title`',
+    conferir('os três primeiros itens, cada um com a frase inteira que vai no `title`',
       osTres.mudou.every((m) => /^[AO] /.test(m.rotulo) && m.rotulo.length > 12),
       osTres.mudou.map((m) => m.rotulo));
-
-    /* O DICIONÁRIO NÃO ESTÁ AQUI, e a ausência é uma decisão declarada: o corpo de um verbete não
-     * viaja no plano, portanto não há contra o que comparar. Quem o leva ao papel é a geração. */
-    conferir('o núcleo NÃO inventa um item para o dicionário (não há contra o que comparar)',
-      oQueMudouNucleo.ORDEM.join(',') === 'regua,estilo,habilidade'
-        && !('dicionario' in oQueMudouNucleo.ROTULOS), oQueMudouNucleo.ORDEM);
   }
 
   // ==========================================================================
@@ -226,9 +223,80 @@ function conferir(titulo, condicao, detalhe) {
       /habCancelar\.addEventListener\("click", cancelarAsHabilitacoes\)/.test(html), null);
   }
 
+  // ==========================================================================
+  console.log('\nD. O DICIONÁRIO — o quarto item, e o que ele acrescenta');
+
+  {
+    /* O CASO DELA, ao vivo: alterou a categoria do verbo «Plié» e o botão só dizia «a habilidade
+     * do professor foi modificada». O dicionário não estava na comparação porque não havia contra
+     * o que comparar — o plano carrega o NOME do exercício, não o verbete. A fotografia passou a
+     * existir: o `.fipp` regista o selo do alfabeto e do vocabulário (o sha do conteúdo, medido), e
+     * a rota mede o dicionário de agora. */
+    const base = { rubrica: ['Ótimo'], repertorio: ['Plié'], metodologia: 'RAD' };
+    const selo = { notacaoSha: 'a'.repeat(64), vocabularioSha: 'b'.repeat(64) };
+
+    const verbeteMudou = oQueMudouNucleo.oQueMudou({
+      hoje: Object.assign({}, base, { dicionario: Object.assign({}, selo, { notacaoSha: 'c'.repeat(64) }) }),
+      documento: Object.assign({}, base, { dicionario: selo }),
+    });
+    conferir('o verbete alterado acende o «!» como «O dicionário foi modificado»',
+      verbeteMudou.igual === false
+        && verbeteMudou.mudou.length === 1
+        && verbeteMudou.mudou[0].chave === 'dicionario'
+        && verbeteMudou.mudou[0].rotulo === 'O dicionário foi modificado', verbeteMudou);
+
+    /* O NOME E A TRADIÇÃO vivem no vocabulário, não no alfabeto. Comparar só o alfabeto deixaria
+     * passar metade dos casos que ela nomeou («inclusive o nome do exercício»). */
+    const vocabularioMudou = oQueMudouNucleo.oQueMudou({
+      hoje: Object.assign({}, base, { dicionario: Object.assign({}, selo, { vocabularioSha: 'd'.repeat(64) }) }),
+      documento: Object.assign({}, base, { dicionario: selo }),
+    });
+    conferir('…e a alteração do VOCABULÁRIO (nome, tradição, classificação) também',
+      vocabularioMudou.igual === false && vocabularioMudou.mudou[0].chave === 'dicionario',
+      vocabularioMudou);
+
+    /* O BOTÃO DIZ TUDO O QUE MUDOU — ela viu só a habilidade e estranhou: «o dicionário não
+     * aparece de jeito nenhum aqui». */
+    const dois = oQueMudouNucleo.oQueMudou({
+      hoje: Object.assign({}, base, { metodologia: 'Vaganova', dicionario: Object.assign({}, selo, { notacaoSha: 'c'.repeat(64) }) }),
+      documento: Object.assign({}, base, { dicionario: selo }),
+    });
+    conferir('duas mudanças dão DUAS frases no «title», na ordem do cartão',
+      oQueMudouNucleo.fraseDoQueMudou(dois.mudou)
+        === 'A habilidade do professor foi modificada · O dicionário foi modificado',
+      oQueMudouNucleo.fraseDoQueMudou(dois.mudou));
+
+    /* O VAZIO NÃO ACUSA — a doutrina de sempre. Um ciclo anterior ao selo do vocabulário declara
+     * só o alfabeto; um Worker que não conseguiu medir não declara nada. Nenhum dos dois é «mudou». */
+    conferir('um `.fipp` sem selo do vocabulário NÃO acusa (não declarado ≠ diferente)',
+      oQueMudouNucleo.oQueMudou({
+        hoje: Object.assign({}, base, { dicionario: Object.assign({}, selo, { vocabularioSha: 'd'.repeat(64) }) }),
+        documento: Object.assign({}, base, { dicionario: { notacaoSha: selo.notacaoSha } }),
+      }).igual === true, null);
+    conferir('e um lado que não mediu (null) cala a comparação',
+      oQueMudouNucleo.oQueMudou({
+        hoje: Object.assign({}, base, { dicionario: selo }),
+        documento: Object.assign({}, base, { dicionario: null }),
+      }).igual === true, null);
+
+    /* A FOTOGRAFIA É LIDA DA ÂNCORA, e é a âncora que diz com que dicionário o documento foi
+     * escrito. O leitor é do servidor e devolve `null` — não um retrato vazio — quando não há
+     * âncora: um ciclo de antes do selo não pode acender o botão para sempre. */
+    const semAncora = await bastidores.dicionarioDoCiclo({}, { professor: '', ciclo: '01', variante: 'x' });
+    conferir('sem professor (ou sem token) o leitor da âncora devolve `null`',
+      semAncora === null, semAncora);
+
+    /* A LISTA DOS ITENS, e ela é a do cartão: a régua, o conteúdo, a habilidade e o dicionário. */
+    conferir('o dicionário é o quarto item, e vem depois da habilidade',
+      JSON.stringify(oQueMudouNucleo.ORDEM)
+        === JSON.stringify(['regua', 'estilo', 'habilidade', 'dicionario']),
+      oQueMudouNucleo.ORDEM);
+  }
+
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + provas + ' asserções: o botão «Atualizar o ciclo» nasce apagado, só acende '
-      + 'quando a comparação prova que a régua, o conteúdo ou a habilidade do professor mudaram, '
+      + 'quando a comparação prova que a régua, o conteúdo, a habilidade do professor ou o '
+      + 'dicionário (o verbete e o vocabulário) mudaram, '
       + 'diz no «!» o que mudou, e não gasta um ciclo quando os documentos já dizem o mesmo. '
       + 'E o «Cancelar» das habilitações devolve o que está declarado e fecha o formulário.'
     : 'FALHARAM ' + falhas + ' de ' + provas + ' asserções.'));

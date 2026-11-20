@@ -439,6 +439,69 @@ async function lerModalidade({ f, token, dono, repo, ref, modalidade }) {
 }
 
 /**
+ * A IMPRESSÃO DO DICIONÁRIO — com que dicionário um ciclo foi escrito, e com que dicionário ele
+ * seria escrito hoje (20/11/2026).
+ *
+ * PORQUE EXISTE. «Eu modifiquei também a habilidade do professor […] e o atualizar ciclo está com
+ * uma exclamação. Isso está certo. Mas o dicionário não aparece de jeito nenhum aqui. […] Eu
+ * modifiquei o verbete plié, e não aparece no botão atualizar ciclo, isso não pode.»
+ *
+ * O botão já sabia comparar três coisas — a régua, o conteúdo e a habilidade — e as três vivem no
+ * plano ou no perfil, que ele lê. O dicionário não vive em nenhum dos dois: vive em
+ * `biblioteca/modalidades/<modalidade>/`, e o plano **não o copia** (copia só o NOME do exercício).
+ * Sem uma fotografia do dicionário não havia contra o que comparar, e é por isso que ele ficou de
+ * fora na primeira versão.
+ *
+ * A FOTOGRAFIA EXISTE, e é a âncora de proveniência: o `.fipp` regista `notacao_versao` e
+ * `notacao_sha` desde 28/10/2026, exactamente para responder «com que alfabeto este documento foi
+ * escrito?». Esta função mede o OUTRO lado da conta — o dicionário de agora — pelas duas fontes que
+ * o compõem: o alfabeto (a notação: categoria, sinais, definição) e o vocabulário (o nome, a
+ * tradição, a classificação).
+ *
+ * AS DUAS, E NÃO SÓ O ALFABETO. Uma alteração de nome ou de tradição vive no `vocabulario.json`, e
+ * comparar só o `notacao.json` deixaria passar metade dos casos que ela nomeou («poderia ter
+ * alterado tradição, classificação ou a definição do exercício […] inclusive o nome»).
+ *
+ * O SHA É O DO CONTEÚDO (sha256), e não o `sha` do blob do Git: é a mesma conta que o
+ * `tools/hash-ciclo.sh` faz com o ficheiro no disco, e é o que permite comparar os dois lados. A
+ * versão vem junto porque é ela que a tela mostra, e porque um dicionário que só sobe a versão sem
+ * mudar um byte (uma gravação que não alterou nada) não deve acender o botão — quem decide é o sha.
+ */
+async function impressaoDoDicionario({ f, token, dono, repo, ref, modalidade }) {
+  const raiz = 'https://api.github.com/repos/' + dono + '/' + repo + '/contents/';
+  const mod = String(modalidade || '').trim();
+  if (!mod) return { ok: false, erro: 'sem modalidade — não há dicionário a medir' };
+  const h = cabecalhos(token);
+  const comRef = (caminho) => raiz + caminho + (ref ? '?ref=' + encodeURIComponent(ref) : '');
+  const sha256 = async (texto) => {
+    const digesto = await globalThis.crypto.subtle.digest('SHA-256', new TextEncoder().encode(texto));
+    let hex = '';
+    for (const b of new Uint8Array(digesto)) hex += b.toString(16).padStart(2, '0');
+    return hex;
+  };
+  try {
+    const [alfabeto, vocabulario] = await Promise.all([
+      lerDoRepo({ f, url: comRef(caminhoDoAlfabeto(mod)), h }),
+      lerDoRepo({ f, url: comRef(caminhoDoVocabulario(mod)), h }),
+    ]);
+    if (!alfabeto.existe) return { ok: false, status: 404, erro: 'o alfabeto de «' + mod + '» não existe' };
+    let versao = null;
+    try { versao = JSON.parse(alfabeto.texto).versao ?? null; } catch { versao = null; }
+    return {
+      ok: true,
+      modalidade: mod,
+      versao,
+      notacaoSha: await sha256(alfabeto.texto),
+      /* O vocabulário pode não existir numa modalidade sem palavras declaradas: `null` é «não há»,
+       * e não «mudou» — quem compara trata os dois lados como ausentes. */
+      vocabularioSha: vocabulario.existe ? await sha256(vocabulario.texto) : null,
+    };
+  } catch (erro) {
+    return { ok: false, status: erro.status || 502, erro: erro.message };
+  }
+}
+
+/**
  * A PROGRESSÃO — a ORDEM dos níveis e a relação nível↔termo (02/11/2026).
  *
  * Ela já existia no repositório desde o início (`progressao.json`), mas nenhuma rota a lia: o
@@ -1009,6 +1072,7 @@ module.exports = {
   caminhoDoAlfabeto,
   caminhoDoVocabulario,
   lerModalidade,
+  impressaoDoDicionario,
   lerProgressao,
   listarVerbetes,
   validarVerbete,
