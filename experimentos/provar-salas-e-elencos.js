@@ -1453,7 +1453,8 @@ const RITMO = {
           const b = d.getElementById('dur-cancelar');
           if (b) await carregar(b);
         };
-        return { d, w, erros, corpos, preencheu, modal, decidir, cancelar, fechar: () => w.close() };
+        return { d, w, erros, corpos, preencheu, modal, decidir, cancelar, esperar,
+          fechar: () => w.close() };
       };
 
       // ── o caso dos MINUTOS: as duas perguntas ────────────────────────────────
@@ -1625,6 +1626,31 @@ const RITMO = {
       conferir('…e não fica pedido nenhum pendente para o próximo gesto reaproveitar',
         estadoCanc.pendente === null, estadoCanc.pendente);
       cCanc.fechar();
+
+      /* ── o ESCAPE fecha como o «×», e não como o «Cancelar» ───────────────── */
+      /* O CONTRATO DA JANELA MODAL (20/11/2026): o `Escape` é o gesto que se espera de uma janela
+       * que prende o foco, e no teclado não há fundo onde tocar. Ele faz o mesmo que o «×» e o
+       * fundo — fecha e devolve o pedido, com o formulário da sala como estava —, e **não** o que
+       * faz o «Cancelar», que desiste do gesto inteiro. As duas metades medem-se juntas, porque
+       * uma asserção que só visse «fechou» passaria com o gesto errado. */
+      const cEsc = await correrOCenario(impactoMinutos);
+      const mEsc = cEsc.modal();
+      conferir('o modal da duração abre para o teste do `Escape`', Boolean(mEsc), null);
+      const pedidosAntesDoEsc = cEsc.corpos.length;
+      cEsc.d.dispatchEvent(new cEsc.w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      await cEsc.esperar(60);
+      conferir('…e o `Escape` FECHA o modal', Boolean(cEsc.modal() && cEsc.modal().hidden),
+        cEsc.modal() && cEsc.modal().hidden);
+      conferir('…e não reenvia o pedido — fechar não é decidir',
+        cEsc.corpos.length === pedidosAntesDoEsc, cEsc.corpos.length);
+      conferir('…e não fica pedido pendente', cEsc.w.eval('PERGUNTA_DA_DURACAO') === null, null);
+      /* O OUVINTE SAI DO DOCUMENTO. Sem isto, cada modal fechado deixava um `keydown` no `document`
+       * — e a segunda abertura fechava a caixa nova à primeira tecla. A asserção conta os ouvintes
+       * pelo efeito: abre outro modal e um `Escape` só pode fechá-lo UMA vez. */
+      cEsc.w.eval('document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))');
+      conferir('…e o ouvinte do `Escape` não fica colado ao documento depois de fechar',
+        cEsc.w.eval('PERGUNTA_DA_DURACAO') === null, null);
+      cEsc.fechar();
 
       /* ── O QUE O SERVIDOR FAZ COM OS NÚMEROS DO FORMULÁRIO ─────────────────── */
       /* O cliente passou a mandar números, e o servidor tem de os ler sem confiar: os blocos são os

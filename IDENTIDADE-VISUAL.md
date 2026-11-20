@@ -531,7 +531,7 @@ desenho.
 | **O resultado de uma ação** | `.res` | «ok», «erro», «gravando…» | barra acima da lista |
 | **Um alerta no meio do conteúdo** | `.aviso` | o que o leitor **não pode deixar passar** — o que impede o avanço | `<p class="aviso">` |
 | **Uma explicação que se procura** | `.ajuda` + `.explica` | o que o leitor procura **quando quer** — o que é o campo, o que preencher, a nota do conteúdo | `<button class="ajuda" aria-expanded>` + painel `hidden`; no telefone o painel sobe como folha |
-| **Uma janela por cima** | `.modal` | confirmar uma exclusão | `modal-fundo` + `modal-caixa` |
+| **Uma janela por cima** | `.modal` (+ `.modal-fundo`, `.modal-caixa`, `.modal-cab`, `.modal-x`, `.modal-acoes`, e `.modal-largo` para o que não cabe em 440px) | decidir algo cuja consequência não se vê — a duração em minutos, uma exclusão. **É o último recurso**: abre só quando há decisão, e não para explicar, listar ou confirmar o que o sistema resolve sozinho | `modal-fundo` + `modal-caixa`; os botões são `.acao` dentro de `.modal-acoes`, **secundário primeiro** |
 | **A barra do sistema** | `.topnav` | — | gerada por `nav-html.js`; **não** se escreve à mão |
 | **O índice da página** | `.toc-local` (+ `.toc-dobra`) | — | gerado; no celular recolhe |
 | **O menu de trabalho (a coluna)** | `.coluna` + `.folha-do-menu` (+ `.coluna-grupo`, `.coluna-titulo`, `.coluna-itens`, `.coluna-seta`, `.coluna-direto`, `.folha-puxador`) | o menu da escola: quatro destinos, e cada um leva a uma lista | gerado por `nav.js`; **não** se escreve à mão. Compacto: os grupos abrem no ponteiro; no celular é folha inferior. O menu dos Bastidores (`.lateral`) usa **as mesmas classes** — os dois são a mesma peça, e é por isso que se comportam e se vestem igual |
@@ -687,7 +687,8 @@ numa página: quem carrega a folha já as recebe desenhadas.
 | `.campo-rotulo` | `ciclo.css` | base, `em-linha` |
 | `.selo` | `ciclo.css` | base + um estado por significado (`ok`, `vigente`, `livre`…) |
 | `.caixa` / `.caixa.nota` / `.caixa.falta` | `ciclo.css` | — |
-| `.aviso` / `.res` / `.modal` | `ciclo.css` | `.res.ok`, `.res.erro` |
+| `.modal` (`.modal-fundo`, `.modal-caixa`, `.modal-cab`, `.modal-x`, `.modal-acoes`) | `ciclo.css` | `hidden` (fechado — é o mecanismo nativo, e a proibição 4 vale aqui), aberto, `.modal-largo` (880px, para o formulário com `.etapas`). O `×`, o fundo e o `Escape` fecham a janela; o `.acao.secundario` da fileira desiste do gesto inteiro. O foco entra no principal, e o ouvinte do `Escape` sai do documento ao fechar |
+| `.aviso` / `.res` | `ciclo.css` | `.res.ok`, `.res.erro` |
 | `.avisos` / `.aviso-do-gesto` | `ciclo.css` | `:empty` (a pilha vazia não ocupa lugar), `data-tipo="ok"/"erro"/"atencao"` (os três pares semânticos), a entrada animada e o `prefers-reduced-motion` que a desliga, e a folha do telemóvel (a pilha atravessa o ecrã, em baixo) |
 | `.acoes-da-aluna` | `ciclo.css` | base, e a quebra da fileira no telemóvel (`flex-wrap`) |
 | `.acoes-da-linha` | `ciclo.css` | base (coluna, `gap` de `--esp-2`, `min-width` de 8rem, botões esticados). Não tem estados próprios: os dos botões são os do `.acao` (`:hover`, `:focus-visible`, `:disabled`) |
@@ -995,6 +996,71 @@ rótulo) e **fazer outra coisa** (o nome dela).
 do botão conforme o modo reabre a divergência na secção seguinte — e é por isso que a prova
 `provar-gravar-e-gravar` mede a **ausência** das frases antigas no script servido, e não a presença
 de «Gravar».
+
+### A janela por cima — quando se justifica, e o que os botões dela fazem *(20/11/2026)*
+
+> «o modal só se justifica quando no plano de ensino o tipo for em minutos. Se for em percentual não
+> precisa do modal, porque resolve automaticamente.»
+
+**Um modal é o último recurso, e esta secção existe para o dizer antes de alguém abrir o segundo.**
+Ele custa prender o foco, fechar no `Esc`, travar a rolagem de trás e devolver o foco ao sítio de
+onde veio — nada disso se vê numa captura, e por isso é o que se parte em silêncio. O `.explica`, o
+`.bloco-lista` e o `.trio-painel` existem exactamente para não precisar dele.
+
+**A regra, e o caso que a fixou.** Abre-se uma janela quando **a pessoa está a decidir algo cuja
+consequência ela não pode ver** — e só então. O caso canónico é a duração da aula:
+
+| o que a mudança faz | há modal? | porquê |
+|:--|:--|:--|
+| os blocos estão em **percentual** | **não** | a conta resolve-se sozinha: 30 % de 90 tempos são 27, de 165 são 49,5. Não há decisão nenhuma a tomar |
+| os blocos estão em **minutos** | **sim** | a soma tem de fechar com a duração, e os números foram escritos para a outra. Alguém tem de dizer quais são |
+| a duração mudou mas o volume é o mesmo | **não** | nada a decidir; e um modal com uma pergunta que não existe é um clique a mais |
+
+**A pergunta não começa por «Gravar».** A regra da casa — «não tem nada de gravar de um jeito,
+gravar de outro jeito, é só gravar» — é uma varredura de **texto**, e uma legenda «Gravar a
+distribuição com estes minutos?» reprovava-a com razão: no ecrã, ao lado de um botão «Gravar», a
+palavra aparece duas vezes a dizer coisas diferentes. A pergunta fala do que muda («Ficar com estes
+minutos?»), não do gesto.
+
+**O que é automático não se mostra.** O total que se recalcula sozinho, o volume que decorre da
+faixa — nada disso entra na janela: «o que é automático ele não quer nem saber. Ele só quer saber o
+que tiver impacto». O **total**, quando aparece, aparece como **resultado** (`<strong>`), nunca como
+campo: uma soma editável seria uma segunda verdade sobre a mesma conta.
+
+#### Os botões, e a diferença que os justifica
+
+| peça | o que faz | o que **não** faz |
+|:--|:--|:--|
+| `×` (`.modal-x`) | fecha a janela e devolve o pedido — quem clicou pode voltar a tentar | não desfaz nada no formulário de trás |
+| o fundo (`.modal-fundo`) | o mesmo que o `×` | idem |
+| `Escape` | o mesmo que o `×`, para quem está no teclado | idem |
+| **`Cancelar`** (`.acao secundario`) | **desiste do gesto inteiro**: fecha, limpa o formulário e recolhe-o | não deixa resíduo para um segundo «Gravar» |
+| **`Gravar`** (`.acao`) | manda a decisão e segue | não é o único caminho de saída |
+
+**A ordem é o secundário primeiro, o principal depois** — a mesma do modal do convite
+(`motor/servidor/painel-html.js`). Nunca o contrário: um «Cancelar» à direita do «Gravar» é o que o
+dedo encontra quando procura o gesto que conclui. A fileira é `.modal-acoes` (o `flex-end` e o
+`gap` são dela), e os dois botões são `.acao` — a peça de sempre, não uma variante de modal.
+
+**Porque é que o «Cancelar» do modal existe, tendo o `×`.** Porque sem ele o professor tem de clicar
+duas vezes para desistir: «para o professor não ter que clicar duas vezes lá no canto superior
+direito o x para sair e depois ele tem que clicar em cancelar». E porque **o `×` e o `Cancelar`
+fazem coisas diferentes**: o `×` fecha a janela; o `Cancelar` desiste do gesto — e é o mesmo gesto
+que o «Cancelar» do formulário de trás faz, chamado pela mesma função, para não haver duas limpezas
+a divergir.
+
+**O foco entra no principal** (`#dur-gravar`), e o `Escape` sai do documento quando a janela fecha.
+Sem essa limpeza, cada modal fechado deixava um `keydown` colado ao `document`, e a segunda abertura
+fechava-se com a primeira tecla.
+
+**O que um modal NÃO é.** Não é sítio para um formulário longo (é o `.modal-largo` com `.etapas`,
+que existe para o cadastro da escola), nem para uma lista de presença (é o `.eixo`, um acordeão), nem
+para uma explicação (é o `.explica`). Uma janela que abre para mostrar três linhas é o `.aviso`.
+
+**Prova.** `experimentos/provar-salas-e-elencos.js`, secção L — **193 asserções**: o modal só abre
+em minutos; os botões são dois, o secundário primeiro, o «Cancelar» com `type="button"`; o `Escape`
+fecha sem reenviar o pedido e sem deixar ouvinte; o «Cancelar» recolhe o formulário, apaga a memória
+e limpa o modo de edição. Sem o `keydown`, **3 de 193** reprovam.
 
 ### As acções de uma lista — a barra da secção, e a coluna do painel da raiz *(19/11/2026)*
 

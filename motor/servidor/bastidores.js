@@ -14052,7 +14052,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    }' +
     '    sincronizarTotal(caixa, alvo);' +
     '  }' +
-    '  function fechar(){ caixa.hidden = true; PERGUNTA_DA_DURACAO = null; }' +
+    /* FECHAR É TRÊS COISAS, E SÃO AS TRÊS PEDAÇOS DA MESMA (20/11/2026).
+     *
+     *   · `hidden` — a janela sai da vista;
+     *   · `PERGUNTA_DA_DURACAO = null` — a continuação do pedido deixa de existir, e um segundo
+     *     «Gravar» por baixo não repete a decisão antiga com o corpo novo;
+     *   · o `keydown` do `Escape` SAI DO DOCUMENTO. Sem esta terceira, cada modal fechado deixava
+     *     um ouvinte no `document`: dez decisões eram dez ouvintes a fechar uma caixa que já não
+     *     existe — e o último fecharia a caixa do próximo modal antes de ele abrir.
+     *
+     * O `Escape` ENTRA PORQUE É O GESTO QUE SE ESPERA DE UMA JANELA MODAL (o modal do convite já o
+     * tem desde 19/11, em `painel-html.js`), e porque no teclado não há fundo onde tocar. Ele faz
+     * o mesmo que o «×» e o fundo — fecha e devolve o pedido —, e **não** o que faz o «Cancelar»,
+     * que desiste do gesto inteiro. */
+    '  function fechar(){ caixa.hidden = true; PERGUNTA_DA_DURACAO = null; document.removeEventListener("keydown", aoEsc); }' +
+    '  function aoEsc(ev){ if (ev.key === "Escape") fechar(); }' +
+    '  document.addEventListener("keydown", aoEsc);' +
     /* CANCELAR DESISTE DO GESTO INTEIRO. `cancelarEdicao` é a função que o «Cancelar» do formulário
      * da sala já usa (`button.cancelar-edicao`): apaga a memória do preenchimento, recolhe o
      * formulário, limpa o modo de edição e recarrega a página — que é o que o deixa «limpo». Não se
@@ -14064,6 +14079,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  function cancelarTudo(){' +
     '    caixa.hidden = true;' +
     '    PERGUNTA_DA_DURACAO = null;' +
+    '    document.removeEventListener("keydown", aoEsc);' +
     /* O `typeof` não é zelo: a função nasce mais abaixo no mesmo script, e esta página é a única
      * que abre o modal. Uma bancada que monte só esta parte da marcação não a teria — e o clique
      * morreria em «cancelarEdicao is not defined», deixando o modal fechado e o formulário aberto,
@@ -14094,7 +14110,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      if (escritos.length) decisao.distribuicao = escritos;' +
     '    }' +
     '    var seguir = PERGUNTA_DA_DURACAO;' +
-    '    caixa.hidden = true;' +
+    /* O FECHO DEPOIS DE DECIDIR É O MESMO DE SEMPRE — e por isso chama `fechar()` em vez de
+     * esconder a caixa: é o único sítio que sabe tirar o ouvinte do `Escape`. A ordem importa
+     * (`seguir` é lido antes, porque `fechar` apaga a memória da pergunta). */
+    '    fechar();' +
     '    if (seguir) seguir(decisao);' +
     '  });' +
     '  var primeiro = document.getElementById("dur-gravar");' +

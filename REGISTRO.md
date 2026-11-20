@@ -55915,3 +55915,88 @@ quatro execuções.
 > mesmo commit — é o fluxo dela ao vivo, e passou com a ação nova. Fica a ressalva porque uma prova
 > pedida por quem construiu a bancada e uma prova pedida por quem usa a página não têm o mesmo peso;
 > esta segunda é a que interessa.
+
+## 20/11/2026 — A janela por cima ganha contrato na identidade, e o `Escape` que faltava
+
+**O pedido, e a expectativa.** «Nas salas, a gente fez a solução do modal. Eu espero que você tenha
+documentado isso na identidade visual e também o uso dos botões e tudo mais. Espero que isso esteja
+documentado.» **Não estava.** O `.modal` existia no catálogo como uma linha («Uma janela por cima —
+confirmar uma exclusão»), e nada dizia *quando* uma janela se justifica, *que ordem* os botões levam,
+nem *porque* o `×` e o `Cancelar` fazem coisas diferentes. O código da duração tinha os três
+comentários; a folha, não.
+
+**O que se documentou** (`IDENTIDADE-VISUAL.md`, secção nova «A janela por cima»):
+
+- **a regra de quando abrir** — só quando a pessoa decide algo cuja consequência ela não pode ver. O
+  caso canónico é a duração em minutos; em percentual **não há modal**, porque a conta resolve-se
+  sozinha. É a frase dela, e é a régua;
+- **a tabela dos botões** — `×`, fundo e `Escape` fecham a janela e devolvem o pedido; o `Cancelar`
+  desiste do gesto inteiro (fecha, limpa, recolhe); o `Gravar` manda a decisão;
+- **a ordem** — o secundário primeiro, o principal depois, a mesma do modal do convite. Um
+  «Cancelar» à direita do «Gravar» é o que o dedo encontra quando procura o gesto que conclui;
+- **o que um modal não é** — não é sítio para formulário longo (é o `.modal-largo` com `.etapas`),
+  nem para lista de presença (é o `.eixo`), nem para explicação (é o `.explica`);
+- **duas linhas do inventário** (Quadro 1 e Quadro 2) passaram a nomear as peças todas —
+  `.modal-fundo`, `.modal-caixa`, `.modal-cab`, `.modal-x`, `.modal-acoes`, `.modal-largo` — e os
+  estados que cada uma tem de ter.
+
+**E a documentação encontrou um defeito.** O contrato diz que o `Escape` fecha a janela — o modal do
+convite já o fazia desde 19/11, em `painel-html.js` —, e o modal da duração **não o tinha**: quem
+está no teclado não tem fundo onde tocar. Acrescentado, com o ouvinte a sair do `document` ao fechar
+(sem isso, cada modal fechado deixava um `keydown` colado, e a segunda abertura fechava-se com a
+primeira tecla).
+
+**A/B, medido.** `provar-salas-e-elencos` secção L: **188 → 193 asserções**. Sem o `keydown`,
+**3 de 193** reprovam (o `Escape` não fecha, e as duas que dele dependem); com ele, **193/193**.
+
+**Com o quê.** `IDENTIDADE-VISUAL.md` (a secção nova e as duas linhas de inventário) ·
+`motor/servidor/bastidores.js` (`fechar`, `aoEsc`, e o `cancelarTudo` a limpar o ouvinte) ·
+`experimentos/provar-salas-e-elencos.js`.
+
+**O que continua por documentar, e não é desta entrada.** O `.modal-x` e o `Escape` **devolvem o
+pedido** — mas nenhuma prova mede o regresso do foco ao elemento que abriu a janela. Está no
+contrato e não está medido; fica dito.
+
+## 20/11/2026 — O estudo do modal do Estilo, e a resposta sobre o Dicionário
+
+**A pergunta dela, e a suspeita.** «se eu editar, alterar um verbete do dicionário que já está em
+algum exercício […] o impacto disso é só na próxima geração […] Pelo menos eu entendi que era assim.
+Se não for, eu acho que é bom que seja, porque assim a gente está economizando.»
+
+**Não é assim, e a suspeita dela é a regra melhor.** Hoje, gravar um termo do Dicionário
+(`POST`/`PUT /api/bastidores/termo`) ou um verbete dispara **imediatamente** uma geração por par
+(professor, ciclo, turma) — `comAGeracaoDoTermo` → `gerarOsCiclosDasTurmas`. Foi a decisão dela de
+19/11 («regerar», entre as três que estavam à mesa), e o código di-lo com essas palavras.
+
+**E mediu-se o que essa geração muda quando se troca a categoria de «passo» para «conceito»: nada.**
+Nos nove HTML do pacote da `breu-rosa`, `categoria` tem **0** ocorrências, `complexidade` **0**,
+`tradicao` **0**. O que os documentos chamam «categoria» é a do **alfabeto da notação** (`perna`,
+`pé`, `peso`, `braço`, `cabeça`), que vem do `notacao.json`. Um termo do vocabulário só chega ao
+documento **pelo verbete** — os trechos, a música, os sinais.
+
+**Sobre o Estilo, e é o resultado que muda o desenho.** Medido no plano real (`breu`, `Rosa`,
+repertório `Battement tendu · Plié · Relevé`):
+
+| o que se tira | linhas | tempos por bloco (Solo · Barra · Centro) |
+|:--|--:|:--|
+| — | 14 | 36 · 32 · 28 |
+| `Plié` | 10 | 32 · 24 · 24 |
+| `Relevé` | 8 | 20 · 16 · 12 |
+
+**Remover tem impacto real e automático. Incluir não tem impacto nenhum** — e não é uma lacuna: **o
+bloco não é uma propriedade do exercício**. O mesmo `Plié` aparece em Solo, Barra e Centro, e quem
+escolhe onde é o professor, linha a linha, no plano. O sistema não pode «dizer se o exercício atende
+solo, barra, centro e musicalidade» sem inventar pedagogia.
+
+**Logo: o modal justifica-se na remoção, e só nela.** Para a inclusão, o que há para dizer é uma
+frase (o exercício está disponível, o plano ainda não o usa) — e uma frase é `.nota`, não é janela.
+
+**Com o quê.** `CUSTO-DOS-FLUXOS.md` §7.9 — o estudo inteiro: o que cada rota dispara, os números
+dos três campos, a tabela do repertório, o que custa construir (a janela a generalizar é a parte
+maior), o que se economiza (um gesto em vez de dois = 1 a 2 min por remoção) e o que dá para
+automatizar (a redistribuição em percentual, não a em minutos).
+
+**O que ainda não está feito.** Nada mudou no Dicionário: a regra continua a ser «regerar sempre», e
+a troca para «regerar só quando o que mudou é o que o documento lê» é uma alteração de
+comportamento — precisa da palavra dela. E o modal do Estilo não foi construído: este capítulo é o
+estudo que ela pediu antes.

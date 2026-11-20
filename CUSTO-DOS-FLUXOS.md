@@ -588,6 +588,110 @@ validar» foi de 1 a 2 s nas quatro execuções.
 
 ---
 
+## 7.9 O modal do Estilo — a medição antes do desenho (20/11/2026)
+
+**A pergunta dela.** «o estilo precisa de um modal […] quando eu incluo ou removo algum exercício,
+isso tem impacto direto no plano de ensino. E eu vou precisar de um modal para poder dizer se aquele
+exercício que eu incluí, ele vai atender todos os elementos daquela aula, por exemplo, solo, barra,
+centro, musicalidade.» E, antes disso: «A gente vai fazer esse estudo de viabilidade de custo.»
+
+**Este capítulo é o estudo, e o primeiro resultado é que a pergunta tem duas metades com respostas
+opostas.**
+
+### a) O Dicionário: o que ele dispara hoje
+
+| rota | dispara geração? |
+|:--|:--|
+| `POST`/`PUT /api/bastidores/termo` (o termo do Dicionário) | **sim** — `comAGeracaoDoTermo` |
+| `POST`/`PUT /api/bastidores/verbete` (a música e os trechos) | **sim** — o mesmo caminho |
+| `DELETE /api/bastidores/verbete` e `/termo` | **sim** — para tirar a citação dos documentos |
+
+E o número: `gerarOsCiclosDasTurmas` dispara **uma geração por par (professor, ciclo, turma)**. Na
+`breu` há **1** par hoje (`demi-plie/01/Rosa`), logo **1 minuto** por termo corrigido. Numa escola com
+cinco turmas e um termo comum, **5**.
+
+**E o que muda no documento, quando ela troca a categoria de «passo» para «conceito»: nada.** Medido
+nos nove HTML do pacote da `breu-rosa`:
+
+| campo do termo | ocorrências nos documentos gerados |
+|:--|--:|
+| `categoria` («passo», «conceito», «giro»…) | **0** |
+| `complexidade` | **0** |
+| `tradicao` | **0** |
+
+O que os documentos chamam «categoria» é outra coisa: as categorias do **alfabeto** da notação
+(`perna`, `pé`, `peso`, `braço`, `cabeça`), que vêm do `notacao.json` e não do vocabulário. Um termo
+do vocabulário só chega ao documento **pelo verbete** — os trechos, a música, os sinais.
+
+**Conclusão:** hoje, corrigir a categoria de um termo paga uma geração para não mudar um byte. A
+regra certa não é «nunca regerar» nem «regerar sempre»: é **regerar quando o que mudou é o que o
+documento lê**.
+
+### b) O Estilo: o que a inclusão e a remoção fazem de facto
+
+Medido no plano real da `breu` (`Rosa`, repertório `Battement tendu · Plié · Relevé`, 14 linhas na
+sequência):
+
+| o que se tira do repertório | linhas que ficam | tempos por bloco (Solo · Barra · Centro) |
+|:--|--:|:--|
+| — (hoje) | **14** | 36 · 32 · 28 |
+| `Plié` | **10** | 32 · 24 · 24 |
+| `Relevé` | **8** | 20 · 16 · 12 |
+| `Battement tendu` | **10** | 20 · 24 · 20 |
+
+**Remover tem impacto real, e é automático:** as linhas que citam o exercício caem por
+`linhasDoRepertorio`, e os totais por bloco descem com elas. É exactamente o que ela descreveu.
+
+**Incluir não tem impacto nenhum, e isso é estrutural.** O exercício passa a estar *disponível* — não
+entra sozinho na sequência, porque **o bloco não é uma propriedade do exercício**: o mesmo `Plié`
+aparece em Solo, Barra e Centro, e quem escolhe onde é o professor, linha a linha, no plano. Não há
+nada para o sistema calcular, e inventar uma proposta seria o sistema a decidir pedagogia.
+
+**Consequência para o modal:** justifica-se **na remoção** — e só nela. «Vai atender todos os
+elementos da aula?» não é uma pergunta que o sistema saiba responder sobre um exercício que acabou de
+entrar; é uma pergunta sobre o que o professor ainda vai escrever.
+
+### c) O que o modal da remoção mostraria — e o que custa construí-lo
+
+O que já existe para a duração serve, e é a mesma forma: o `409` com `impacto`, o cliente a abrir a
+janela, e o mesmo pedido reenviado com a decisão.
+
+| peça | onde | estado |
+|:--|:--|:--|
+| `impactoDoRepertorio({ plano, de, para })` | `motor/nucleo/`, ao lado de `impactoDaDuracao` | **a construir** — ~80 linhas: filtra as linhas pelo repertório novo e soma por bloco |
+| a rota devolve `409` com o impacto | `POST /api/bastidores/curadoria-derivar` | **a acrescentar** — o caminho do `409` já existe nesta página, para a duração |
+| a janela | `bastidores.js`, a de `perguntarDaDuracao` | **a generalizar** — hoje ela sabe uma pergunta; passar a receber `{título, corpo, pergunta}` é o trabalho maior (~150 linhas, e as provas de uma e de outra) |
+| a decisão de redistribuir | `volume.js` (`aplicarMinutos` já existe) | **pronta** — só passa a ser chamada por outra janela |
+
+**Custo de construção:** pequeno. **Custo de manutenção:** duas janelas a manter em paralelo, se não
+se generalizar — e é por isso que a generalização é a parte que não se deve adiar.
+
+### d) O que se economiza, e o que se **paga**
+
+O gesto de hoje, quando se tira um exercício, são **dois**: tirar do repertório (que corre a cadeia e
+derruba as linhas do plano) e depois voltar ao plano para reescrever a distribuição. Com o modal é
+**um**. Cada gesto poupado é uma geração — 1 a 2 minutos.
+
+**E há um limite que não é medido em minutos:** a janela abre **só na derivação**, e não na edição —
+foi ela quem o disse, e a razão é a mesma da duração: a edição é o presente; a derivação é o elo novo,
+e é ele que pode ser interrogado antes de nascer.
+
+### e) O que dá para automatizar
+
+| passo | automatizável? | porquê |
+|:--|:--|:--|
+| derrubar as linhas do exercício removido | **já é** | `linhasDoRepertorio`, na derivação |
+| somar os tempos por bloco | **já é** | é aritmética, e o modal mostra |
+| redistribuir os **minutos** por bloco | **não** | a soma tem de fechar com a duração, e quem decide é ela — a mesma regra da duração |
+| redistribuir em **percentual** | **sim** | 30 % de 90 são 27, de 165 são 49,5: a conta resolve-se, e não há modal |
+| propor o bloco de um exercício novo | **não** | o bloco não é do exercício; é decisão pedagógica do professor |
+
+**A conclusão do estudo, em uma linha:** o modal existe para a **remoção** (há impacto, há conta a
+fechar) e não para a inclusão (não há impacto nenhum); e o que hoje custa minutos não é este modal —
+é o Dicionário a regerar quando muda um campo que documento nenhum lê.
+
+---
+
 ## 8. As três coisas que fariam esta conta mudar
 
 1. **A geração deixar de correr a cada lançamento.** É a §7.1, e é a única que muda a **unidade
