@@ -56624,3 +56624,21 @@ nada», que é uma declaração e não um cancelamento) e `cancelarOFormularioDe
 (a releitura da régua e da tradição em `derivarPlano`, e os dois avisos); `motor/servidor/producao.js`
 (os dois leitores na ponte); `provar-o-que-mudou.js` (novo, 34 asserções), `provar-cadeia-automatica.js`
 (secção L, 8 asserções novas) e `provar-salas-e-elencos.js` (o botão a abrir depois da validação, 3).
+
+## 20/11/2026 — Medido ao vivo, e a conta que quase explodiu
+
+**A validação funciona no ar.** `GET /api/bastidores/curadorias-estado` na `breu` devolveu, para a
+Turma vigente, `title="A régua foi modificada"` e o `<span class="selo alerta">!</span>` no botão — a
+régua do plano (`Em desenvovimento`, com o erro de escrita) difere da que a Sala declara hoje.
+
+**E a primeira medição mostrou o custo escondido: dezasseis elos.** A lista das curadorias da `breu`
+tem **dezesseis** registos da mesma Turma — a história de todas as derivações do dia —, todos
+«vinculados» ao mesmo par (professor, turma). Sem filtro, a rota lia o plano e o perfil **dezasseis
+vezes** para responder sobre **uma** Turma. As substituídas nem têm cartão na página
+(`listaCuradorias = cursVigentes`), portanto o trabalho era pago e deitado fora.
+
+`if (c.substituidaPor) continue;` — e a rota passou de dezesseis leituras de plano e dezesseis de
+perfil para uma de cada. É a diferença entre uma validação que se pode correr a cada foco e uma que
+gasta a cota do dia — e teria sido invisível se eu tivesse dito «está feito» sem medir no ar.
+
+**Com o quê.** `motor/servidor/bastidores.js` (a rota `…/curadorias-estado`), `REGISTRO.md`.

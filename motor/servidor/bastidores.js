@@ -24880,6 +24880,13 @@ function parDaSalaNoCorpo(corpo, registo) {
     for (const c of (Array.isArray(lista) ? lista : [])) {
       if (!c || !c.id) continue;
       const vinculada = curadoriaVinculadaA(pares, c);
+      /* SÓ AS VIGENTES SÃO VALIDADAS (20/11/2026) — e este filtro é o que impede a conta de
+       * explodir. Medido ao vivo na `breu`: a lista tem DEZASSEIS elos da mesma Turma (a história
+       * de todas as derivações do dia), todos «vinculados» ao mesmo par, e sem este `continue` cada
+       * chamada desta rota lia o plano e o perfil dezasseis vezes para responder sobre UMA Turma.
+       * As substituídas não têm cartão na página (`listaCuradorias = cursVigentes`), portanto não
+       * há botão a pintar: o trabalho seria pago e deitado fora. */
+      if (c.substituidaPor) continue;
       let estado = null;
       if (vinculada) {
         const sala = turmaVigentePorNome(salasTodas, (turmasDaCuradoria(c)[0] || '').trim());
