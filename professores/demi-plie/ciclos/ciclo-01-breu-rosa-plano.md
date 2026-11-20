@@ -57,12 +57,12 @@ Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turm
 
 | Bloco | Proporção alvo | Justificativa |
 |:--|:--|:--|
-| **Solo** | **30** | **Aquecimento e consciência corporal.** |
-| **Barra** | **30** | **Apoio e alinhamento.** |
-| **Centro** | **30** | **Transferência e sequência.** |
-| **Musicalidade** | **10** | **Pulso e frase.** |
+| **Solo** | **20** | **Aquecimento e consciência corporal.** |
+| **Barra** | **10** | **Apoio e alinhamento.** |
+| **Centro** | **15** | **Transferência e sequência.** |
+| **Musicalidade** | **60** | **Pulso e frase.** |
 
-> **Unidade: percentual.** A proporção alvo é a fatia da aula — a soma fecha em 100%.
+> **Unidade: minutos.** A proporção alvo é o tempo de aula na unidade declarada — a soma fecha com a duração da aula.
 
 > **A estrutura da aula — e o padrão do ciclo.** Estes são os blocos que a AULA tem e a
 > fatia de cada um. O plano declara o padrão de onde cada aula parte; a aula que tiver
