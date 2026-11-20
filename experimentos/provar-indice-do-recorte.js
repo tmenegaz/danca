@@ -296,11 +296,19 @@ console.log('\n7. AS ROTAS — a lista que já existe, e a rota própria');
     assert.ok(Array.isArray(r.corpo.aspectos) && r.corpo.aspectos.length === 45);
   });
 
-  await okAsync('`?professor=` recorta o ESCOPO, e não agrupa por pessoa', async () => {
+  await okAsync('`?professor=` não recorta, não agrupa e não vaza — o elenco deixou de ter professor', async () => {
+    /* O CAMPO «PROFESSOR RESPONSÁVEL» DO ELENCO SAIU A 20/11/2026 — e com ele o filtro, que casava
+     * `l.professor`. Um filtro sobre um campo que ninguém escreve não falha: devolve o índice
+     * VAZIO, com `ok: true`, e isso lê-se como «a escola não tem recorte». A asserção de hoje é o
+     * contrário da de ontem: pedir por professor não muda nada. As linhas da fixture ainda o
+     * declaram (são registos antigos), e mesmo assim nada é recortado — é a prova de que a leitura
+     * deixou de depender dele. */
     const kv = kvFalso({ [chave]: JSON.stringify(LINHAS) });
     const r = await chamar(envFalso(kv), '/api/bastidores/indice/recorte?professor=rabo-gramde');
-    assert.strictEqual(r.corpo.escopo.professor, 'rabo-gramde');
-    assert.strictEqual(r.corpo.panorama.com_recorte, 1, 'só a linha dele');
+    assert.strictEqual(r.corpo.panorama.com_recorte, 2,
+      'o parâmetro é ignorado: o índice é o da escola inteira');
+    assert.strictEqual(r.corpo.escopo.professor, undefined,
+      'e a resposta não finge um escopo que não aplicou');
     // §4.11 / verificação 13: nenhuma chave do índice conta, soma ou ordena por professor.
     const texto = JSON.stringify(r.corpo);
     for (const proibido of ['por_professor', 'ranking', 'desempenho']) {

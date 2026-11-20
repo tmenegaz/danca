@@ -1156,11 +1156,14 @@ async function chamar(env, caminho, opcoes) {
     assert.strictEqual(win.LB_PASSO, 1);
 
     // (1) SEM NOME E SEM PROFESSOR, O PASSO 2 ESTÁ FECHADO.
-    assert.ok(win.faltasDoPassoLb(2).length > 0, 'falta o nome e o professor');
+    /* O «PROFESSOR» SAIU DO PASSO 1 (20/11/2026) — o que falta é o NOME. O `id` do professor
+     * continua a ser procurado mais abaixo com guarda (`if (sel && …)`), para a mesma bancada
+     * poder correr contra uma página antiga sem estourar; numa página de hoje ele não existe. */
+    assert.ok(win.faltasDoPassoLb(2).length > 0, 'falta o nome');
     win.mostrarPassoLb(2);
     assert.strictEqual(win.LB_PASSO, 1, 'a página NÃO avança para o 2 com o passo 1 incompleto');
 
-    // (2) COM NOME E PROFESSOR, AVANÇA.
+    // (2) COM O NOME, AVANÇA.
     win.document.getElementById('lb-nome').value = 'Recorte de prova';
     const sel = win.document.getElementById('lb-professor');
     if (sel && sel.options.length) sel.value = sel.options[sel.options.length - 1].value;

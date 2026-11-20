@@ -367,6 +367,28 @@ async function principal() {
     provar('…e a data é a do registo, e não a do pedido',
       m.anamnese && m.anamnese.desde === '2026-11-18', m.anamnese);
 
+    /* O RÓTULO DA OPÇÃO (20/11/2026): «Aluno A · 18/11/2026 às 19:30 · demi-plier». A data já
+     * estava; o AUTOR entrou hoje, e é o que ela pediu — «quando a gente escolhe a anamnese do
+     * aluno, tem que estar acompanhado ali na opção […] a data em que foi feita e o nome do
+     * professor que fez a anamnese dele». A asserção não fixa o DIA (as duas anamneses disputam o
+     * «vigente»), fixa a FORMA: o apelido, uma data, e quem fez. */
+    const legadoC = criarCloudflare(env);
+    const armC = acervo.combinar(acervo.criarAcervoDeEnvelopes({
+      token: 't', escola: ESCOLA, senhaCripto: 'senha-de-prova',
+      fetchImpl: github.fetchFalso, legado: legadoC,
+    }), legadoC);
+    const daLista = await comGitHubFalso(github.fetchFalso,
+      () => porta.anamneses(armC, null, null));
+    /* `anamneses()` devolve a LISTA (a rota é que a embrulha em `{opcoes}`). */
+    const opcoes = Array.isArray(daLista) ? daLista : [];
+    const rotulos = opcoes.map((o) => o.rotulo).join(' | ');
+    provar('a opção da anamnese leva o apelido, a data e QUEM FEZ',
+      opcoes.length === 1 && /^Aluno A · \d{2}\/\d{2}\/\d{4} às \d{2}:\d{2} · \S+$/.test(opcoes[0].rotulo),
+      rotulos);
+    provar('…e quem fez viaja também em campo próprio',
+      opcoes.length === 1 && String(opcoes[0].professorNome || '') === 'demi-plier',
+      opcoes[0] && opcoes[0].professorNome);
+
     /* O CONTROLO NEGATIVO do id: o MESMO acervo, com o envelope novo sem `alunaId` — que é o
      * estado de ontem —, deixa a lista vazia. É a asserção que prova que a correcção é a causa. */
     const kvSemId = criarKV(Object.fromEntries(kv.dados));

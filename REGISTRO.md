@@ -55618,7 +55618,64 @@ cadastro da Turma. O único consumo fora do cartão é `detalhe` no `/api/linhas
 **Com o quê.** `motor/servidor/bastidores.js` (o motor das abas, `elencoEmProcesso`, a frase nova, a
 repintura) e `experimentos/provar-salas-e-elencos.js` (secção M).
 
-**O que ainda não está feito.** O campo «Professor responsável» continua onde está — a remoção mexe
-na regra do passo 1, no formato do acto e em sete bancadas, e é decisão dela. E a aba 2 continua a
+**O que ainda não está feito.** A aba 2 continua a
 não se abrir enquanto houver composição **mesmo quando quem abriu só quer consultar**: é o preço da
 regra, e o «Cancelar» é o caminho de saída.
+
+> **Nota de correção (20/11/2026, mais tarde no mesmo dia).** A frase acima — «o campo continua onde
+> está […] e é decisão dela» — foi respondida pela própria no mesmo dia: o campo **saiu**. Ver a
+> entrada seguinte.
+
+## 20/11/2026 — O «Professor responsável» sai da Audição, e a anamnese leva quem a fez
+
+**A pergunta dela, e a resposta.** «Me parece que não faz sentido existir esse campo aqui. Me parece
+que ele não tem desdobramentos no processo, ele é um campo inútil. […] não necessariamente ele é o
+professor que vai dar aula, porque o professor que vai dar aula a gente está trazendo da sala.» A
+auditoria da entrada anterior já dizia o mesmo — nenhuma derivação o lia —, e ela decidiu com o
+argumento que faltava: **quem faz a anamnese não é necessariamente quem dirige a sala**, e a
+autoridade pedagógica do acto é a da SALA.
+
+**A remoção, e não a ocultação.** `#lb-professor` sai do passo 1; `normalizar`
+(`motor/nucleo/linha-de-base.js`) deixa de ler e de escrever `professor`; o `resumoDe` do acervo
+deixa de o resumir; `faltasDoPassoLb` deixa de o exigir; o cartão do elenco perde a linha; o
+`gravarLinha` perde a chave; o `editarLinha` deixa de o preencher; e o `detalhe` do
+`/api/linhas-de-base` deixa de o anexar. **O registo antigo que ainda o tenha continua a ler-se** —
+o índice novo é que já não o escreve, e um acto gravado com autor não é reescrito por isto.
+
+**E o filtro que vivia dele saiu com ele.** O `/api/bastidores/indice/recorte` recortava por
+`?professor=`, casando `l.professor`. Sobre um campo que ninguém passa a escrever, esse filtro não
+falhava: devolvia um índice **vazio** com `ok: true`, indistinguível de «a escola não tem recorte».
+Um parâmetro que ninguém escreve não se continua a ler — o `?turma=` fica, porque a turma de destino
+é um facto do elenco. A prova (`provar-indice-do-recorte`) passou a medir o contrário do que media:
+pedir por professor **não muda nada**, e a resposta já não finge um escopo que não aplicou.
+
+**E o dado que ela quer de verdade, esse fica: quem fez a anamnese viaja com a anamnese.** «O aluno,
+ele tem que carregar consigo a data da anamnese e quem fez a anamnese dele […] o nome do professor
+que fez a anamnese dele.» O rótulo da opção de anamnese passa a ser `Aluno A · 18/11/2026 às 19:30 ·
+demi-plier`, e o autor viaja também em `professorNome`, para quem quiser compor a frase de outra
+maneira.
+
+**A lacuna, declarada e não maquilhada.** O `contexto` do envelope é um contrato fechado
+(`additionalProperties: false` no `elicitacao-schema.json`): o nome do professor **não pode entrar
+lá** sem subir a versão do envelope. O que o envelope declara é o **slug** (`demi-plier`, `bom-bom`),
+e é isso que o rótulo mostra nas anamneses já gravadas. Resolver o slug para o nome exigiria ler o
+registo de professores no núcleo, que não o tem — a porta tem, o núcleo não. Fica a lacuna: o rótulo
+diz **quem**, na chave da escola; dizê-lo na língua da escola custa uma leitura a mais, e é uma
+decisão que se toma com o número à frente.
+
+**A/B, medido.** Em `provar-anamnese-da-aluna-certa` (secção C): com o autor no rótulo, **20 de
+20**; com o `nomeDeQuemFez` forçado a vazio, **18 de 20** — as duas asserções novas reprovam com o
+rótulo `Aluno A · 18/11/2026 às 19:30`, que é exactamente o que havia antes. `provar-salas-e-elencos`
+**188 de 188** (a asserção do campo invertida: agora prova que `lb-professor` **não** existe), e
+`provar-gravar-e-gravar` **53**. Sem mudança: `provar-linha-de-base` **9 falhas de 102** e
+`provar-abas-da-audicao` **4 de 125**, as mesmas da linha de base, medidas com `git stash`.
+
+**Com o quê.** `motor/nucleo/linha-de-base.js`, `motor/servidor/linhas-de-base-repo.js`,
+`motor/servidor/bastidores.js`, `motor/servidor/rotas.js`, `motor/nucleo/porta.js` (o rótulo) e as
+bancadas `experimentos/provar-salas-e-elencos.js`, `provar-anamnese-da-aluna-certa.js`,
+`provar-linha-de-base.js` e `provar-abas-da-audicao.js`.
+
+**O que ainda não está feito.** O nome do professor no rótulo, como acima — hoje sai o slug. E o
+`professor` que ficou gravado nos elencos anteriores continua nos ficheiros: não se migra, não se
+apaga, e nada o lê.
+

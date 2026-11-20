@@ -9963,8 +9963,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<div class="passo-painel" data-passo="1">' +
     '<label class="campo-rotulo" for="lb-nome">Nome do elenco</label>' +
     '<input id="lb-nome" name="nome" autocomplete="off" placeholder="ex.: Nível 1 — mobilidade e pés">' +
-    '<label class="campo-rotulo" for="lb-professor">Professor responsável</label>' +
-    '<select id="lb-professor">' + opcoesDeHabilitacao.join('') + '</select>' +
+    /* O «PROFESSOR RESPONSÁVEL» SAIU DO PASSO 1 (20/11/2026). O porquê está no núcleo
+     * (`motor/nucleo/linha-de-base.js`), junto do sítio que gravava o campo: em resumo, ele não
+     * tinha desdobramento nenhum, e lia-se como o professor da aula — que é o da SALA, e vem do
+     * cadastro dela. O passo 1 passou a ter UM campo: o nome. */
     '</div>' +
     '<div class="passo-painel" data-passo="2" hidden>' +
     '<label class="campo-rotulo">Alunas deste recorte</label>' +
@@ -19798,9 +19800,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function nomeDoFormulario() {' +
     '  return String((document.getElementById("lb-nome") || {}).value || "").trim();' +
     '}' +
-    'function professorDoFormulario() {' +
-    '  return String((document.getElementById("lb-professor") || {}).value || "").trim();' +
-    '}' +
     'function alunasMarcadas() { return marcados("lb-aluna"); }' +
     // O QUE **ESTE** PASSO EXIGE. A primeira versão respondia «o que falta nos passos anteriores», e
     // o passo 1 nunca tinha falta nenhuma — de modo que `podeIrParaLb(2)` era verdadeiro sempre, e o
@@ -19827,7 +19826,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var faltas = [];' +
     '  if (n === 1) {' +
     '    if (!nomeDoFormulario()) faltas.push("o nome");' +
-    '    if (!professorDoFormulario()) faltas.push("o professor");' +
     '  } else if (n === 2) {' +
     /* «UMA COISA DE CADA VEZ» (07/11/2026). Eram dois `if` seguidos, e sem anamnese a mensagem
      * saía «falta a anamnese de pelo menos uma aluna, pelo menos uma aluna» — pedir uma aluna a
@@ -19884,7 +19882,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // serve a quem está no fim e quer saber para onde vai.
     'function pintarTiraLb() {' +
     '  var nome = nomeDoFormulario();' +
-    '  var prof = professorDoFormulario();' +
     '  var quantas = alunasMarcadas().length;' +
     '  var campos = marcados("lb-campo").length;' +
     '  var valores = {' +
@@ -20067,14 +20064,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    pintarTravasLb();' +
     '    return;' +
     '  }' +
-    /* SEM NOME OU SEM PROFESSOR NÃO SE GRAVA — e a falta diz-se (07/11/2026). Antes o clique não
-     * fazia nada e o botão podia continuar aceso; agora o motivo é escrito onde o professor está
-     * a olhar. */
-    '  if (!nomeDoFormulario() || !professorDoFormulario()) {' +
-    '    corpoRes("aviso", "Para gravar o elenco, falta: " +' +
-    '      (nomeDoFormulario() ? "" : "o nome") +' +
-    '      (!nomeDoFormulario() && !professorDoFormulario() ? " e " : "") +' +
-    '      (professorDoFormulario() ? "" : "o professor") + ".");' +
+    /* SEM NOME NÃO SE GRAVA — e a falta diz-se (07/11/2026). Antes o clique não fazia nada e o
+     * botão podia continuar aceso; agora o motivo é escrito onde o professor está a olhar.
+     *
+     * O «E O PROFESSOR» SAIU (20/11/2026): o campo não existe, e a frase «falta o nome e o
+     * professor» mandaria preencher um campo que já não está lá. */
+    '  if (!nomeDoFormulario()) {' +
+    '    corpoRes("aviso", "Para gravar o elenco, falta o nome.");' +
     '    pintarTravasLb();' +
     '    return;' +
     '  }' +
@@ -20655,7 +20651,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '          "\\" title=\\"Excluir este elenco\\">Excluir</button>") +' +
     '      "</span></div>" +' +
     '      "<div class=\\"fatos\\">" + fatos + "</div>" +' +
-    '      "<div class=\\"trio-dono\\">" + escHtml(l.professor || "sem professor declarado") + "</div>" +' +
+    /* A LINHA DO PROFESSOR SAIU DO CARTÃO (20/11/2026) — o campo deixou de existir, e um
+     * «sem professor declarado» em todos os cartões novos seria uma frase sobre um dado que já não
+     * se pede. O `trio-dono` continua a existir na peça: quem tiver outra coisa para dizer ali usa-o. */
     '      "<div class=\\"trio trio-duo\\">" +' +
     '        caixa("Alunas", String(m), "ver as alunas deste elenco") +' +
     '        caixa("Recorte", String(n), "ver os aspectos observados") +' +
@@ -20919,26 +20917,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  abrirOFormularioDe("sec-corpo");' +
     '  var modo = document.getElementById("lb-modo");' +
     '  var nome = document.getElementById("lb-nome");' +
-    '  var prof = document.getElementById("lb-professor");' +
     '  if (modo) modo.value = alvo.id;' +
     '  if (nome) nome.value = alvo.nome || "";' +
-    /* O PROFESSOR GRAVADO TEM DE SER UMA OPÇÃO VÁLIDA (05/11/2026), e este era um defeito medido:
-     * atribuir `prof.value = alvo.professor` a um `<select>` que já não tem esse valor não deixa o
-     * campo vazio — deixa-o no valor ANTERIOR. A linha era do professor A, a lista mostrada era a
-     * de hoje, e o formulário passava a dizer outro professor; ou, quando nada casava, ficava sem
-     * professor e a trava mandava o professor para o passo 1 sem explicação. A opção é acrescentada
-     * quando falta: o professor de uma linha de base antiga continua a ser um facto dela. */
-    '  if (prof && alvo.professor) {' +
-    '    var existe = Array.prototype.some.call(prof.options || [], function(o){' +
-    '      return o.value === alvo.professor; });' +
-    '    if (!existe) {' +
-    '      var op = document.createElement("option");' +
-    '      op.value = alvo.professor;' +
-    '      op.textContent = alvo.professor;' +
-    '      prof.appendChild(op);' +
-    '    }' +
-    '    prof.value = alvo.professor;' +
-    '  }' +
+    /* O `lb-professor` NÃO SE PREENCHE (20/11/2026) — o campo saiu do formulário. Um elenco antigo
+     * que ainda declare `professor` abre-se na mesma: o campo é ignorado, e a gravação seguinte não
+     * o leva consigo. Também não é preciso o cuidado de «a opção tem de existir», que aqui estava
+     * desde 05/11/2026, porque já não há `<select>` nenhum a preencher. */
     // AS ALUNAS VOLTAM MARCADAS, e as que estão fora da primeira fornada também: sem isto, o
     // «Gravar» seguinte apagava o recorte que estava lá.
     '  var escolhidas = (alvo.alunas || []).map(String);' +
@@ -21014,7 +20998,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var modo = document.getElementById("lb-modo");' +
     '  var corpo = {' +
     '    nome: nomeDoFormulario(),' +
-    '    professor: professorDoFormulario(),' +
     '    alunas: alunasMarcadas(),' +
     '    campos: marcados("lb-campo"),' +
     /* O RASCUNHO DECLARA-SE ENQUANTO FALTA O RECORTE (05/11/2026). O recorte é o passo 4, mas a
@@ -24467,18 +24450,26 @@ function parDaSalaNoCorpo(corpo, registo) {
    */
   if (path === '/api/bastidores/indice/recorte') {
     const lista = await linhasDeBase(kv, escola, repoLinhas);
-    const professor = String(url.searchParams.get('professor') || '').trim();
+    /* O `?professor=` SAIU DAQUI (20/11/2026), com o campo que ele filtrava.
+     *
+     * O filtro casava `l.professor`, e o elenco deixou de o ter — o «Professor responsável» saiu do
+     * passo 1 porque não tinha desdobramento nenhum (ver `motor/nucleo/linha-de-base.js`). Mantido,
+     * ele não daria erro: daria o PIOR resultado possível — um índice vazio para todo o elenco
+     * gravado de hoje em diante, com `ok: true`, indistinguível de «a escola não tem recorte».
+     * Um parâmetro que ninguém escreve não se pode continuar a ler.
+     *
+     * O `?turma=` fica: a turma de destino é um facto do elenco (passo 5), e é o que a leitura do
+     * recorte quer recortar. */
     const turma = String(url.searchParams.get('turma') || '').trim();
     const recortadas = lista.filter((l) => {
       if (!l) return false;
-      if (professor && String(l.professor || '') !== professor) return false;
       if (turma && String(l.turma || '') !== turma) return false;
       return true;
     });
     return json(200, {
       ok: true,
       escola,
-      escopo: { professor: professor || null, turma: turma || null },
+      escopo: { turma: turma || null },
       ...indiceDoRecorte(recortadas),
     });
   }

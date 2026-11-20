@@ -245,8 +245,10 @@ function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
    * para o dia em que o índice ainda não exista.
    *
    * O QUE O RESUMO GUARDA, e é o mínimo que evita ler o ficheiro: `id`, `carimbo`, `arquivo`,
-   * `nome`, `professor`, `turma`, as datas, `aspectos` (vocabulário da anamnese — não é dado de
-   * pessoa) e `alunas` como CONTAGEM. O conteúdo que falta — os `campos` com nome e grupo, e os
+   * `nome`, `turma`, as datas, `aspectos` (vocabulário da anamnese — não é dado de
+   * pessoa) e `alunas` como CONTAGEM. O `professor` saiu do resumo a 20/11/2026, com o campo do
+   * formulário: ele não tinha desdobramento nenhum, e o registo antigo que ainda o tenha continua
+   * a ler-se (o índice novo simplesmente não o escreve). O conteúdo que falta — os `campos` com nome e grupo, e os
    * apelidos que o elenco da turma precisa — lê-se do ficheiro da versão vigente, uma vez por
    * linha, e não uma vez por versão.
    *
@@ -262,7 +264,6 @@ function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
       carimbo: String(linha.carimbo || carimboDaChave(chave)),
       arquivo: caminhoDaChave(slug, chave),
       nome: linha.nome ? String(linha.nome) : null,
-      professor: linha.professor ? String(linha.professor) : null,
       turma: linha.turma ? String(linha.turma) : null,
       atualizada_em: linha.atualizada_em || null,
       enviada_em: linha.enviada_em || null,

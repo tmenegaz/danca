@@ -565,8 +565,9 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
         opcoes: linhas.map((l) => ({
           valor: l.id,
           rotulo: l.nome,
-          detalhe: (l.campos || []).length + ((l.campos || []).length === 1 ? ' aspecto' : ' aspectos')
-            + (l.professor ? ' · ' + l.professor : ''),
+          /* O `professor` DO ELENCO SAIU DESTE RÓTULO (20/11/2026) — o campo não existe, e a
+           * porta nunca desenhou este `detalhe` de qualquer forma. Ver o núcleo da linha de base. */
+          detalhe: (l.campos || []).length + ((l.campos || []).length === 1 ? ' aspecto' : ' aspectos'),
         })),
       };
     } catch (erro) { return falhaDaLista(erro); }

@@ -395,8 +395,16 @@ const RITMO = {
   conferir('o campo do formulário continua «Nome do elenco»',
     /for="lb-nome">Nome do elenco</.test(html), null);
   conferir('…e o campo da Turma continua «Elenco»', /for="cuelenco">Elenco</.test(html), null);
-  conferir('…e o professor responsável continua com o seu rótulo',
-    /for="lb-professor">Professor responsável</.test(html), null);
+  /* O «PROFESSOR RESPONSÁVEL» SAIU DO PASSO 1 (20/11/2026) — a asserção foi INVERTIDA, e não
+   * apagada: o que se continua a medir é que o campo não volta. «Não tem desdobramento nenhum: se
+   * está puxando o professor que está no elenco, está puxando o professor do lugar errado. A
+   * relação que tem que existir com o professor é o professor da sala.»
+   *
+   * E o passo 1 continua a ter o seu: o nome. */
+  conferir('…e o «Professor responsável» saiu do passo 1 — o professor do elenco não é o da sala',
+    !/lb-professor/.test(html), (html.match(/lb-professor/g) || []).length);
+  conferir('…e o passo 1 continua a exigir o nome, que é o que identifica o acto',
+    /for="lb-nome">Nome do elenco</.test(html), null);
   /* «O NOME DA LISTAGEM DEVE SER ELENCOS E NÃO AUDIÇÕES» (07/11/2026) — a correção dela, na
    * mesma sessão em que o rótulo da secção virou Audição. A AUDIÇÃO É O ATO; a lista é dos ELENCOS
    * que saíram dele. A distinção do §2 vale também aqui, e é por isso que ela voltou atrás na
@@ -583,14 +591,13 @@ const RITMO = {
     await new Promise((r) => win.setTimeout(r, 60));
     conferir('…e nenhum caminho o abre: o painel 2 continua escondido',
       Boolean(painel2) && painel2.hidden === true, painel2 && painel2.hidden);
+    /* O NOME BASTA (20/11/2026). O campo do professor saiu do passo 1, e com ele a segunda
+     * condição desta passagem — que era o que a asserção media a seguir («com nome e professor»).
+     * O que se continua a medir é a regra: uma regra só para a tira e para o «Seguir». */
     doc.getElementById('lb-nome').value = 'Elenco de prova';
     doc.getElementById('lb-nome').dispatchEvent(new win.Event('input', { bubbles: true }));
-    const sel = doc.getElementById('lb-professor');
-    const opcao = [...sel.options].find((o) => o.value);
-    if (opcao) sel.value = opcao.value;
-    sel.dispatchEvent(new win.Event('change', { bubbles: true }));
     await new Promise((r) => win.setTimeout(r, 60));
-    conferir('com nome e professor, a tira acende E o «Seguir» também (uma regra só)',
+    conferir('com o nome, a tira acende E o «Seguir» também (uma regra só)',
       Boolean(passo2) && passo2.disabled === false && Boolean(seguir) && seguir.disabled === false,
       { passo2: passo2 && passo2.disabled, seguir: seguir && seguir.disabled });
     win.close();

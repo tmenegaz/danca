@@ -2432,10 +2432,34 @@ async function anamneses(armazenamento, recorte, elenco) {
     const carimbo = resumo.id || nome.replace(/\.json$/, '');
     const quando = carimboEmPortugues(carimbo);
     const por = ligacoes.get(aluna) || [];
+    /* QUEM FEZ A ANAMNESE (20/11/2026). O nome de exibição é o que o envelope declarar; quando
+     * ele só declara o slug — e é o caso de TODAS as anamneses já gravadas — é o slug que sai.
+     * Não se inventa um nome, e não se resolve o slug aqui: o registo de professores não está no
+     * núcleo, e o `contexto` do envelope é um contrato fechado (`additionalProperties: false` no
+     * `elicitacao-schema.json`), onde `professorNome` não cabe sem subir a versão do envelope. */
+    const nomeDeQuemFez = String((resumo && (resumo.professorNome || resumo.professor)) || '').trim();
     opcoes.push({
       valor: aluna,
-      rotulo: aluna + (quando ? ' · ' + quando : ''),
+      /* O RÓTULO LEVA A DATA E QUEM FEZ A ANAMNESE (20/11/2026).
+       *
+       * «O aluno, ele tem que carregar consigo a data da anamnese e quem fez a anamnese dele. […]
+       * quando a gente escolhe a anamnese do aluno, tem que estar acompanhado ali na opção, já para
+       * quem for pedir para imprimir essa anamnese do aluno. […] Essa anamnese do aluno, ela vai
+       * estar acompanhada da data em que foi feita e do nome do professor que fez a anamnese dele.»
+       *
+       * A DATA já estava. QUEM FEZ é o professor da anamnese — o que respondeu, e não o que
+       * dirige a sala: são perguntas diferentes, e é por isso que este dado vive na anamnese e
+       * não no elenco (o campo «professor responsável» do elenco saiu a 20/11/2026 precisamente
+       * por não ter desdobramento nenhum). Quando o envelope não declara autor nenhum, o rótulo
+       * não inventa nada: fica só a aluna e a data.
+       *
+       * É no RÓTULO, e não num campo novo, porque é o rótulo que a escolha desenha — e a mesma
+       * frase serve a lista e a referência do documento, sem uma segunda composição. */
+      rotulo: aluna + (quando ? ' · ' + quando : '') + (nomeDeQuemFez ? ' · ' + nomeDeQuemFez : ''),
       carimbo,
+      /* O AUTOR DA ANAMNESE VAI TAMBÉM EM CAMPO PRÓPRIO — quem quiser compor a frase de outra
+       * maneira não a tem de partir do rótulo. */
+      professorNome: nomeDeQuemFez,
       /* O ID DA PESSOA (18/11/2026) — é ele que distingue duas «Aluna A», e é ele que a gravação
        * usa para não substituir o retrato de outra pessoa. `null` nos envelopes antigos. */
       alunaId: String((resumo && resumo.alunaId) || '').trim() || null,

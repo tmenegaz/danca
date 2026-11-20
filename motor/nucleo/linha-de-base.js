@@ -393,7 +393,27 @@ function normalizar(entrada, disponiveis, quando) {
 
   if (erros.length) return { ok: false, erros, linha: null };
 
-  const professor = String(corpo.professor == null ? '' : corpo.professor).trim();
+  /* O «PROFESSOR RESPONSÁVEL» DO ELENCO SAIU (20/11/2026).
+   *
+   * «Quando entra um aluno na escola, para poder fazer a audição, precisa que algum professor faça
+   * a anamnese dele. […] E pode ser qualquer professor, não necessariamente o que supostamente
+   * conduziria a audição. Então ali a gente teria n professores e não pode ser assim. […] se está
+   * puxando o professor que está no elenco, está puxando o professor do lugar errado. Porque a
+   * relação que tem que existir com o professor é o professor da sala.»
+   *
+   * O CAMPO NÃO TINHA DESDOBRAMENTO NENHUM — medido, não suposto: `linhaDeBaseDoActo`
+   * (`derivar-po.js`) leva só `{nome, em, turma, alunas, recorte}`, o `elencoDoCiclo` usa
+   * `alunas`, e a autoria da cadeia vem da SALA. Ele era o registo de quem escolheu os corpos, e o
+   * rótulo «responsável» fazia-o ler-se como o professor da aula — que é outro, e vem do cadastro
+   * da Sala.
+   *
+   * ELE NÃO É LIDO NEM ESCRITO AQUI. Um registo antigo que ainda o tenha continua a abrir: o campo
+   * é simplesmente ignorado, e o elo seguinte nasce sem ele (P-03 — o passado não se reescreve).
+   *
+   * QUEM FEZ A ANAMNESE É OUTRA COISA, e essa informação não se perde: ela vive no envelope da
+   * anamnese (`contexto-professor`), que é onde a pergunta faz sentido — a anamnese é de uma
+   * pessoa, feita por um professor, num dia.
+   */
   /* AS ALUNAS, E NÃO A TURMA (05/11/2026) — a correcção de desenho que a pesquisadora fez.
    *
    * «Quando eu vou olhar o corpo da linha de base, eu tenho que saber de quais ALUNAS eu estou
@@ -415,7 +435,6 @@ function normalizar(entrada, disponiveis, quando) {
   const linha = {
     id,
     nome,
-    professor: professor || null,
     alunas: semRepetir,
     campos,
     atualizada_em: String(quando == null ? '' : quando) || null,

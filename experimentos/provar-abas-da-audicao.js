@@ -1040,8 +1040,12 @@ async function principal() {
   provar('a frase do resultado fica à vista (não se apaga o que aconteceu)',
     /concluído/.test(resLB.textContent) && resLB.className === 'res ok',
     'res=' + resLB.textContent.slice(0, 60));
-  provar('o professor NÃO é limpo — é quem está a trabalhar',
-    doc.getElementById('lb-professor').value !== '', doc.getElementById('lb-professor').value);
+  /* O «PROFESSOR RESPONSÁVEL» SAIU DO PASSO 1 (20/11/2026). O que a asserção media — «concluir não
+   * apaga o contexto de quem está a trabalhar» — mantém-se, e agora mede-se no que resta do passo 1:
+   * o nome do elenco é limpo (é o elenco que acabou), e o resto da página fica. Um `getElementById`
+   * de um campo que já não existe devolveria `null` e a prova estouraria. */
+  provar('concluir limpa o nome e não deixa resíduo do acto',
+    doc.getElementById('lb-nome').value === '', doc.getElementById('lb-nome').value);
 
   console.log('\nH. O respiro entre os cartões do elenco (navegador)');
   await medirRespiro();
