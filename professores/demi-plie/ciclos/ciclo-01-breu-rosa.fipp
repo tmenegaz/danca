@@ -10,9 +10,9 @@ type: Ciclo
 professor: demi-plie
 ciclo: 01
 variante: breu-rosa
-hash_conteudo: 63ae9188ce7de57326575366b816876f3bb5972949482e1add90763a5d056f2e
+hash_conteudo: 6051612c87703e01f9e2e1aa391072fee6e9cae618c0c1a7745120187f58de24
 parentHash: 
-hash: 2ae76353156d3d61bc2735361d6f7c6b732eafe334d6ee8c952359cb402b5de6
+hash: cac4c3236f189463c1f8078c7a5b0d7df32e6b487c8395e78214e1bc5d1c1926
 algoritmo: SHA-256
 po: professores/demi-plie/ciclos/ciclo-01-breu-rosa-po.md
 po_state: Input_PO_Validado
@@ -20,8 +20,8 @@ ancorado_em: 2026-11-20
 notacao: Código de dança
 notacao_modalidade: bale-classico
 notacao_alfabeto: ballet-classico
-notacao_versao: 60
-notacao_sha: 5086481e8984f8f4faa8fb6c19213e2f748dcb5bae6cae4aec583e3df169849d
+notacao_versao: 61
+notacao_sha: 23737cd722be1bc688e2f85c2f3f579a01e6729fb9fa9602d53b93adb0f36ab0
 cobertura:
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md
