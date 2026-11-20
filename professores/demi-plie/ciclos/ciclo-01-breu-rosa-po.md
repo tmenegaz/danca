@@ -7,14 +7,14 @@ responsavel: demi-plie
 professor: demi-plie
 title: "Plano de Observação do Ciclo 01 — breu"
 state: Input_PO_Validado
-envelope: po-20261120-1251
+envelope: po-20261120-1310
 ---
 
 **Fenómeno.** A rotação externa visível na 1ª posição e no en dehors: o joelho acompanha o pé sem forçar, e o quadril não sobe quando a perna roda.
 
 ## Plano de ensino
 
-plano-20261120-1251
+plano-20261120-1310
 
 ## Horizonte
 
@@ -30,7 +30,7 @@ O que exatamente se observa, aula a aula, para saber se o en dehors está a sair
 
 ## Campo empírico
 
-Escola / espaço: breu · Turma observada: Rosa · Frequência semanal: 3x semanal — seg e qua e sex · Duração por aula: 1 hora 45 minutos
+Escola / espaço: breu · Turma observada: Rosa · Frequência semanal: 3x semanal — seg e qua e sex · Duração por aula: 2 horas
 
 ## Contexto
 
