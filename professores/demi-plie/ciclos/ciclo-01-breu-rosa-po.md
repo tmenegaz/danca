@@ -7,14 +7,14 @@ responsavel: demi-plie
 professor: demi-plie
 title: "Plano de Observação do Ciclo 01 — breu"
 state: Input_PO_Validado
-envelope: po-20261120-1310
+envelope: po-20261120-1326
 ---
 
 **Fenómeno.** A rotação externa visível na 1ª posição e no en dehors: o joelho acompanha o pé sem forçar, e o quadril não sobe quando a perna roda.
 
 ## Plano de ensino
 
-plano-20261120-1310
+plano-20261120-1326
 
 ## Horizonte
 
@@ -50,6 +50,7 @@ Calendário: 2026-12-14 → 2027-01-15 · Volume de trabalho: 3–6 séries · C
 | Corpo | **as cinco posições: uma visão geral** | 1ª posição — pés; 1ª posição — braços |
 | Corpo | **Estrutura Óssea e Alinhamento Global (Membros Inferiores)** | Mobilidade de quadril (en dehors de origem) |
 | Corpo | **Morfologia e Funcionalidade dos Pés e Tornozelos** | Mobilidade de flexão/extensão do tornozelo |
+| Corpo | **Aptidões Coordenadas e Cognitivo-Musicais** | Musicalidade e pulsação rítmica |
 | Corpo | **Força Ativa, Potência e Controle Dinâmico** | Força excêntrica / recuo na flexão de tronco |
 | Corpo | **Restrições** | sem restrições declaradas |
 | Técnica | **Solo** | reconhecer o apoio e alinhar o eixo vertical; sustentar a transferência com musicalidade e controle do movimento |
@@ -76,6 +77,7 @@ Metodologia de referência: RAD · Notação de dança: Código de dança
 | **as cinco posições: uma visão geral** | 1ª posição — pés; 1ª posição — braços |
 | **Estrutura Óssea e Alinhamento Global (Membros Inferiores)** | Mobilidade de quadril (en dehors de origem) |
 | **Morfologia e Funcionalidade dos Pés e Tornozelos** | Mobilidade de flexão/extensão do tornozelo |
+| **Aptidões Coordenadas e Cognitivo-Musicais** | Musicalidade e pulsação rítmica |
 | **Força Ativa, Potência e Controle Dinâmico** | Força excêntrica / recuo na flexão de tronco |
 
 ## Restrições físicas declaradas
@@ -87,6 +89,7 @@ Metodologia de referência: RAD · Notação de dança: Código de dança
 - as cinco posições: uma visão geral: 1ª posição — pés; 1ª posição — braços
 - Estrutura Óssea e Alinhamento Global (Membros Inferiores): Mobilidade de quadril (en dehors de origem)
 - Morfologia e Funcionalidade dos Pés e Tornozelos: Mobilidade de flexão/extensão do tornozelo
+- Aptidões Coordenadas e Cognitivo-Musicais: Musicalidade e pulsação rítmica
 - Força Ativa, Potência e Controle Dinâmico: Força excêntrica / recuo na flexão de tronco
 
 ## Critérios de exclusão
