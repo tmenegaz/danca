@@ -55059,3 +55059,63 @@ falha e reportou **«7 falha(s)»** num gesto em que nada falhou: eram sete exec
 `concurrency`, que é o sistema a fazer o que se lhe pediu. Corrigido — cancelada e falhada são
 coisas diferentes, e confundi-las faz o relatório dizer que o sistema está quebrado quando ele
 está a funcionar.
+
+## 20/11/2026 — «O período está errado» — a mudança de duração partiu três leitores, e o mesmo erro nos três
+
+**O que ela viu, e era verdade.** O plano publicado dizia **14/12/2026 a 05/02/2027**, 45 minutos,
+16:30, 24 aulas. A Sala `Rosa` dizia **14/12/2026 a 08/01/2027**, 90 minutos, 10:30, 12 aulas. O
+publicado era o pacote de **três planos antes**, e a razão de não ser substituído é o que segue.
+
+**E não havia um defeito. Havia o mesmo defeito em três sítios.** A duração passou a ser uma
+dimensão do cadastro — a Sala foi de 45 para 60, de 60 para 70, de 70 para 90 — e três leitores
+continuaram a assumir que só havia uma duração:
+
+| # | sítio | o que fazia | o que aparecia |
+|:--|:--|:--|:--|
+| 1 | `minutosDaDuracao` | somava as parcelas de `[{1,hora},{10,minuto}]` como duas durações **alternativas** | `DURACOES="10,60"` → «um dia de 10 min» |
+| 2 | `calibracaoDoConf` | lia `VOLUME_MIN`/`VOLUME_MAX` — a faixa de **60** — em vez de `VOLUME_MIN_<dur>` | volume 0 → `[Preencher]` |
+| 3 | `derivarAula01` | escrevia a chave `volume-total:` em vez de `volume-total-<dur>:` | o volume **certo** (135) com a chave errada |
+
+O terceiro é o pior dos três, e por uma razão de método: os dois primeiros deixavam a fonte com
+uma **lacuna** — visível a olho, e o `gerar-ciclo.sh` recusava-a nomeando o que faltava. O terceiro
+produzia **o número correcto com a chave errada**, e um valor certo esconde o defeito: só se vê
+porque o gerador procura outro nome.
+
+**A correcção, e a escada é sempre a do gerador.** Acima de 60 minutos, a chave explícita da
+duração; até 60, ela ou a genérica — a forma que as escolas de antes desta data declaram. As três
+correcções citam `tools/gerar-ciclo.sh`, que já tinha resolvido isto para a faixa em 18/10/2026
+(quando uma aula de 75 minutos era medida com a régua da de 120) e para o volume depois. **O
+gerador estava certo desde então; o Worker ficou para trás.** Duas leituras do mesmo manifesto, uma
+certa e uma errada, é a assinatura deste dia.
+
+**A faixa de 90 minutos, decidida pela proprietária.** A escola `breu` declarava a faixa para 60
+(80–100) e para 120 (150–200), e não para 90 — sem ela o `comporConf` não escreve faixa nenhuma e a
+geração pára. Os números não foram inventados: são a **linha de 90 min da tabela da Regra 9
+(etapa 1)** que o repositório declara em `experimentos/simulacao-marau/ciclo-01-marau-plano.md`, e
+as duas linhas que a `breu` já tinha coincidem exactamente com essa tabela. A proprietária escolheu
+**120–150** em 20/11/2026.
+
+**E o volume da aula não é declarado à mão**: é o ponto médio da faixa (`derivar-ciclo.js:598`).
+80–100 dava 90 tempos — o que a aula declarava até 02:50; 120–150 dá **135**.
+
+**O resultado, medido no ar:**
+
+| | antes | agora |
+|:--|:--|:--|
+| `ciclos.json` — fim | 2027-02-05 | **2027-01-08** |
+| `ciclos.json` — aulas | 24 | **12** |
+| `ciclos.json` — duração | 45 min | **90 min** |
+| Aula 01 | 16:30 → 17:15 | **10:30 → 12:00** |
+| `/rosa/`, `/rosa/plano`, `/rosa/aula-01` | 200 com `05/02/2027` | 200 com **`08/01/2027`** |
+
+**A/B por remoção, nos três:** `provar-manifesto-do-plano` falha **6** asserções sem a correcção do
+`calibracaoDoConf` e 2 com ela (as pré-existentes); `provar-cabecalho-do-documento` falha **3** sem a
+correcção da chave do volume e 1 com ela (a pré-existente); e a `minutosDaDuracao` foi coberta com
+1 hora + 10 minutos → `70`, no mesmo par de ficheiros.
+
+**O que fica por fazer, e é o desenho que falta.** Nada disto avisou a professora. A pendência da
+faixa existe (`comporConf.pendencias`) e aparece **na tela da porta** — mas a cadeia automática não
+a mostra a ninguém: o gesto da Sala respondeu `ok: true`, as quatro etapas disseram «feita», e o
+fracasso só se leu no log do GitHub Actions. É a família de erro que este projeto persegue, na
+direcção oposta à habitual: **o trabalho falhado e a tela a dizer que sim.** Fica registado como
+pendência de desenho, e não se corrige aqui — a ordem é dela.
