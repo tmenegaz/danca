@@ -31,6 +31,13 @@ facto**. E essa verificação encontrou uma divergência de **factor 3** na linh
 escrito e comentado em `motor/servidor/rotas.js` desde 06/11/2026 («o `depois` pede a geração —
 porque o pacote publicado só muda quando ela corre»). O §L9f mediu **um dos dois fluxos do gesto**.
 
+> **A ressalva, e ela é obrigatória.** O que se prova por execução é que a **rota pede** a geração.
+> O que **não** se observou foi um lançamento real a produzi-la: nos 100 runs mais recentes há quatro
+> `Gerar o ciclo`, e nenhum coincide com um lançamento. Não se distingue «não houve lançamento» de
+> «o disparo não aconteceu» — **é uma lacuna declarada**, e resolve-se com um lançamento observado ao
+> vivo, não com uma inferência. O número 3 é o da rota; o número 1 é o do §L9f; enquanto a lacuna
+> existir, a diferença é uma pergunta em aberto e não um facto.
+
 **Medido agora, por execução** (`provar-o-custo-da-aula`, §A): um lançamento que corre pede a geração
 **uma vez**, com o contexto do acto (escola, professor, ciclo, variante). E os dois contra-factuais
 provam que é ali que o disparo nasce: **sem disparador** nenhum disparo é contado, e **sem a porta do
@@ -97,54 +104,78 @@ de 2**, e corta metade dos 2 minutos que cada aula carrega.
 
 ---
 
-## 4. O que dispara o quê — medido nos commits e nos `paths`
+## 4. O que dispara o quê — e as duas inferências que os runs corrigiram
 
-Cuidado que custou uma medição errada: o `head_sha` de um run engana (é o topo do branch, e vários
-runs do mesmo minuto partilham-no). O que decide é **o commit tocar um path observado**:
+**Duas versões deste quadro estiveram erradas, e as duas por inferir dos `paths` sem verificar o
+caminho real dos ficheiros.** Ficam registadas porque o erro é instrutivo:
+
+| o que eu supus | o que é |
+|:--|:--|
+| «o acervo vive em `envelope/`, que não está nos `paths` — logo gravar uma anamnese custa 0» | o acervo da escola vive em **`escola/<escola>/envelopes/`**, e `escola/**` **está** nos paths do `derivados`. **Custa 1 min** |
+| «gravar o plano escreve em `professores/**/ciclos/ciclo-*/**` — logo dispara `publicar`» | o ficheiro é `…/ciclos/ciclo-01-breu-rosa-plano.md`, um **ficheiro** e não uma pasta. **Não dispara `publicar`** |
+
+**O que os runs de 20/11, 00:44 — um gesto real dela (gravou o plano e o PO) — mostram:**
+
+| commit | ficheiros | workflow |
+|:--|:--|:--|
+| `feat(acervo)` | `escola/breu/envelopes/plano-…json` | `Fechar os derivados` |
+| `feat(acervo)` | `escola/breu/envelopes/.indice.json` | `Fechar os derivados` |
+| `feat(plano)` | `professores/demi-plie/ciclos/ciclo-01-breu-rosa-plano.md` | `Fechar os derivados` |
+| `feat(acervo)` ×2 + `feat(po)` | idem, para o PO | `Fechar os derivados` |
+
+**Seis commits, seis execuções de `Fechar os derivados` — e cinco canceladas.** O `concurrency` do
+workflow mata a anterior quando chega a seguinte, e é isso que segura a factura: **seis commits
+custaram 1 minuto, não seis.** É a alavanca mais eficaz que o sistema já tem, e não foi preciso
+inventá-la — está lá desde 16/11/2026.
+
+**E nenhum `Publicar o sistema` nem `Gerar o ciclo` nesse gesto.** Gravar o plano e o PO, na porta,
+**não** publica nem gera: o que fecha o ciclo é a geração, e ela é pedida por outros caminhos.
+
+### O quadro, agora medido
 
 | o commit toca | `derivados` | `publicar` | `Gerar o ciclo` |
 |:--|:--:|:--:|:--:|
-| `envelope/**` (o acervo: anamnese, plano, PO) | **não** | **não** | só por dispatch |
-| `escola/**` (linhas de base, índices da escola) | **sim** | não | — |
-| `professores/**` (as fontes do ciclo, os lançamentos) | **sim** | **sim**¹ | só por dispatch |
-| `biblioteca/modalidades/**` (notação, vocabulário) | não | **sim** | só por dispatch |
+| `escola/**` (acervo, linhas de base, índices) | **sim** | não | — |
+| `professores/**/ciclos/*.md` (a fonte do plano e do PO) | **sim** | **não** | não |
+| `professores/**/ciclos/ciclo-*/**` (o pacote gerado) | **sim** | **sim** | — |
+| `professores/**/ciclos/*.conf` | **sim** | **sim** | — |
+| `biblioteca/modalidades/**` (notação, vocabulário) | não | **sim** | — |
 | `indices/esquema/**`, os geradores | **sim** | não | — |
 | `motor/**`, `workers/**`, `raiz/**` (desenvolvimento) | não | **sim** | — |
 
-¹ quando o caminho casa `professores/**/ciclos/ciclo-*/**` ou `*.conf`.
-
-**A distinção que vale metade da conta:** **escrever no acervo (`envelope/**`) não custa CI nenhum.**
-Uma anamnese grava o envelope e o índice, e nenhum dos dois está nos `paths`. O que custa é o
-**segundo efeito** — a fonte do ciclo e o **dispatch**.
+E o **dispatch** (`Gerar o ciclo`) vem de três sítios: o lançamento de uma aula, o estilo e o
+dicionário (T5/T6), e a cadeia quando chega à etapa do pacote.
 
 ---
 
 ## 5. A matriz do recálculo — cada gesto, em minutos
 
-Caso base: **uma Turma com plano**. A coluna «origem» diz de onde vem cada número — e é a parte que
-não se pode saltar.
+Caso base: **uma Turma com plano**. A coluna «origem» distingue o que foi **observado nos runs** do
+que foi **provado em bancada** — e é a parte que não se pode saltar.
 
-| gesto (o que ela clica) | o que escreve | der | pub | gerar | **min** | origem |
-|:--|:--|--:|--:|--:|--:|:--|
-| **Criar/editar a anamnese** | `envelope/*.json` + índice | 0 | 0 | 0 | **0** | paths |
-| **Criar Sala, professor, aluna** | KV | 0 | 0 | 0 | **0** | código |
-| **Mudar o professor de uma Sala (T2)** | KV | 0 | 0 | 0² | **0** | código |
-| **Trocar a modalidade (T3)** | KV | 0 | 0 | 0 | **0** | código |
-| **Migrar os conteúdos (T4)** | KV | 0 | 0 | 0 | **0** | código |
-| **Lançar uma aula** | `professores/**` + dispatch | 1 | 0 | 1 | **3** | **§1, provado** |
-| **Gravar o Plano de Ensino** | 2 envelopes + `-plano.md` + dispatch | 1 | 1 | 1 | **4** | paths + código |
-| **Gravar o PO** | 2 envelopes + `-po.md` + dispatch | 1 | 1 | 1 | **4** | paths + código |
-| **Concluir o elenco** (1 Turma) | 2 commits em `escola/**` + dispatch | 2 | 0 | 1 | **4** | log de runs |
-| **Transferir uma aluna** (2 lados) | 4 commits em `escola/**` + 2 dispatch | 4 | 0 | 2 | **8** | log de runs |
-| **Editar um verbete em uso (T5)** | `notacao.json` + dispatch | 0 | 1 | 1 | **3** | código (T5) |
-| **Editar um termo em uso (T6)** | `vocabulario.json` + dispatch | 0 | 1 | 1 | **3** | código (T6) |
-| **Editar um termo livre (T6)** | `vocabulario.json` | 0 | 1 | 0 | **1** | código (T6) |
+| gesto (o que ela clica) | commits | der | pub | gerar | **min** | origem |
+|:--|--:|--:|--:|--:|--:|:--|
+| **Criar/editar a anamnese** | 2 (`escola/**`) | 1 | 0 | 0 | **1** | runs |
+| **Gravar o Plano de Ensino** | 4 (`escola/**` ×2 + `*.md` ×2) | 1 | 0 | 0 | **1** | **runs de 00:44** |
+| **Gravar o PO** | 4, idem | 1 | 0 | 0 | **1** | **runs de 00:44** |
+| **Editar um termo livre (T6)** | 1 (`biblioteca/**`) | 0 | 1 | 0 | **1** | runs |
+| **Editar um verbete em uso (T5)** | 1 + dispatch | 0 | 1 | 1 | **3** | **runs de 00:31** |
+| **Editar um termo em uso (T6)** | 1 + dispatch | 0 | 1 | 1 | **3** | código (T6) |
+| **Lançar uma aula** | 1 (`professores/**`) + dispatch | 1 | 0 | 1 | **3** | bancada (**lacuna**: não observado) |
+| **Concluir o elenco** | 2 (`escola/**`) + dispatch | 1–2 | 0 | 1 | **3–4** | runs de 20:51 |
+| **Transferir uma aluna** (2 lados) | 4 + 2 dispatch | 1–2 | 0 | 2 | **5–6** | por analogia |
+| **Criar Sala, professor, aluna** | 0 (KV) | 0 | 0 | 0 | **0** | código |
+| **T2 · T3 · T4** | 0 (KV) | 0 | 0 | 0¹ | **0** | código |
 | **Criar uma escola** | — | — | — | criar-escola | **1** | §L9f |
 
-² **o caso comum do T2 custa zero**, e é um resultado, não um bug: a cadeia **pára em `bloqueada`**
-porque a autoria não se reescreve — e uma etapa bloqueada não chega à geração. O **T3** bloqueia
-sempre. Os três fluxos que ela mandou desenhar (T2, T3, T4) são, em CI, **os mais baratos de todos**:
-o que eles fazem é **parar** e dizer.
+¹ o caso comum do T2 **custa zero**, e é um resultado: a cadeia pára em `bloqueada` (a autoria não se
+reescreve), e uma etapa bloqueada não chega à geração. O **T3** bloqueia sempre. Os três fluxos que
+ela mandou desenhar são, em CI, **os mais baratos de todos** — o que eles fazem é **parar** e dizer.
+
+**O cancelamento é a peça que faltava na conta.** Um gesto que escreve quatro commits no mesmo minuto
+**não** custa quatro vezes: custa **um**, porque o `concurrency` do `derivados` mata as anteriores. Era
+a isto que o §L9f chamava «a consolidação tirou o arredondamento que se pagava por trabalho que não
+existia» — e vale também dentro de um gesto.
 
 **O multiplicador que ela tem de ver:** o `Gerar o ciclo` corre **uma vez por (professor, ciclo,
 Turma)**. Uma Turma com dois ciclos, ou um elenco que serve três Turmas, **multiplica** os 2 min.
@@ -153,78 +184,80 @@ Turma)**. Uma Turma com dois ciclos, ou um elenco que serve três Turmas, **mult
 
 ## 6. Os três cenários — minutos por mês, e o que custam
 
-Hipóteses declaradas: **22 dias úteis**, cada gesto com o valor da §5. Os totais estão decompostos por
-workflow para se ver de onde vem o dinheiro.
+Hipóteses: **22 dias úteis**, cada gesto com o valor da §5.
 
 ### A — Escola pequena, uso corrente (1 professora, 1 ciclo)
 
-| por mês | qtd | der | pub | gerar | min |
-|:--|--:|--:|--:|--:|--:|
-| aulas lançadas (3/semana) | 12 | 12 | 0 | 24 | 36 |
-| plano + PO (1 ciclo) | 2 | 2 | 2 | 4 | 8 |
-| verbetes editados | 8 | 0 | 8 | 16 | 24 |
-| conclusão do elenco | 1 | 2 | 0 | 2 | 4 |
-| **total** | | **16** | **10** | **46** | **72** |
+| por mês | qtd | min |
+|:--|--:|--:|
+| aulas lançadas (3/semana) | 12 | 36 |
+| plano + PO | 2 | 2 |
+| verbetes editados | 8 | 24 |
+| conclusão do elenco | 1 | 4 |
+| **total** | | **66** |
 
-**72 min/mês = US$ 0,43** — 3,6 % da cota Free. O CI desta escola é ruído.
+**66 min/mês = US$ 0,40** — **3,3 % da cota Free**. O CI desta escola é ruído.
 
 ### B — Escola em produção (5 professoras, 2 ciclos, uso corrente)
 
-| por dia útil | qtd | der | pub | gerar | min |
-|:--|--:|--:|--:|--:|--:|
-| aulas lançadas | 10 | 10 | 0 | 20 | 30 |
-| planos e PO | 4 | 4 | 4 | 8 | 16 |
-| verbetes e termos | 5 | 0 | 5 | 10 | 15 |
-| elenco | 1 | 2 | 0 | 2 | 4 |
-| trocas de sala/modalidade | 2 | 0 | 0 | 0 | **0** |
-| **total/dia** | | **16** | **9** | **40** | **65** |
+| por dia útil | qtd | min |
+|:--|--:|--:|
+| aulas lançadas | 10 | 30 |
+| planos e PO | 4 | 4 |
+| verbetes e termos | 5 | 15 |
+| elenco | 1 | 4 |
+| trocas de sala/modalidade | 2 | **0** |
+| **total/dia** | | **53** |
 
-**65 × 22 = 1 430 min/mês = US$ 8,58** — **71,5 % da cota Free**, 48 % da Pro. **Uma única escola
-grande consome mais de dois terços do que o plano gratuito inclui.**
+**53 × 22 = 1 166 min/mês = US$ 7,00** — **58 % da cota Free**, 39 % da Pro. Uma escola grande
+consome mais de metade do que o plano gratuito inclui.
 
 ### C — Stress: o que ela pediu para imaginar
 
-**Três escolas, 40 gestos por dia** (25 aulas, 4 planos/PO, 10 verbetes, 1 elenco), todos os dias:
+**Três escolas, 113 gestos-minuto por dia** (25 aulas, 4 planos/PO, 10 verbetes, 1 elenco), todos os
+dias:
 
 | | |
 |:--|--:|
-| min/dia por escola | **125** |
-| min/mês por escola (× 30) | 3 750 |
-| **três escolas** | **11 250 min** |
-| custo | **US$ 67,50** |
-| excedente, no Pro | **US$ 49,50/mês** |
+| min/dia por escola | **113** |
+| min/mês por escola (× 30) | 3 390 |
+| **três escolas** | **10 170 min** |
+| custo | **US$ 61,02** |
+| excedente, no Pro | **US$ 43,02/mês** |
 
-**O número que importa não é o total: uma única escola em stress (3 750 min/mês) já estoura a cota
+**O número que importa não é o total: uma única escola em stress (3 390 min/mês) já estoura a cota
 Free (2 000) e a Pro (3 000).** O stress não é um cenário de 40 escolas — é de **uma**.
 
 ### D — O que muda com os fluxos revistos (T1–T7)
 
-A pergunta dela foi esta. A resposta:
-
 | passo | min de CI | porquê |
 |:--|--:|:--|
 | **T1** — a Sala a mandar na direção | **0** | é leitura; não escreve no repositório |
-| **T2** — mudar o professor de uma Sala | **0** no caso comum | **bloqueia** (autoria); uma etapa bloqueada não chega à geração |
+| **T2** — mudar o professor de uma Sala | **0** no caso comum | **bloqueia** (autoria) |
 | **T3** — a troca de modalidade | **0** | bloqueia por construção |
 | **T4** — os conteúdos migrados | **0** | é KV — e **fecha** um caminho que escrevia sem guarda |
-| **T5** — o estilo a regerar | **3** por verbete **em uso** | era 0 *porque nada acontecia*; o custo novo é o preço de o documento deixar de mentir |
-| **T6** — o dicionário | **1 livre · 3 em uso** | a condição que ela fixou é também a condição do custo |
-| **T7** — o calendário (por fazer) | **0** hoje | mas mexe no `gerar-ciclo`, e é o único passo que pode **mudar os 2 min** |
+| **T5** — o estilo a regerar | **3** por verbete **em uso** | era 0 *porque nada acontecia* |
+| **T6** — o dicionário | **1 livre · 3 em uso** | a condição que ela fixou é também a do custo |
+| **T7** — o calendário (por fazer) | **0** hoje | mas mexe no `gerar-ciclo`, e pode **mudar os 2 min** |
 
-**Conclusão do recálculo:** os fluxos novos **não** empurram a factura. O que a empurra é a
-**geração** — agora com **um disparo por aula**, e não só por plano.
+**Conclusão do recálculo:** os fluxos novos **não** empurram a factura — o T5, que é o mais caro
+deles, custa o mesmo que uma aula. O que a empurra é a **geração**, e a alavanca que já existe
+(o cancelamento) já lhe põe um travão.
 
 ---
 
 ## 7. Onde o custo está — e as seis alavancas
 
-Ranking do cenário B, por workflow:
+Ranking do cenário B (53 min/dia), por workflow:
 
-| workflow | min/mês | % |
-|:--|--:|--:|
-| **Gerar o ciclo** | **880** | **61,5 %** |
-| Fechar os derivados | 352 | 24,6 % |
-| Publicar o sistema | 198 | 13,8 % |
+| workflow | min/dia | min/mês | % |
+|:--|--:|--:|--:|
+| **Gerar o ciclo** | **32** | **704** | **60 %** |
+| Fechar os derivados | 16 | 352 | 30 % |
+| Publicar o sistema | 5 | 110 | 9 % |
+
+**A geração é 60 % da factura e o `derivados` 30 %** — e é por isso que as alavancas atacam as duas.
+O `publicar`, que parecia caro, é o mais barato dos três.
 
 As alavancas, por ganho, **com o que verificar antes de mexer**:
 
@@ -235,7 +268,7 @@ fim. Um **agrupamento** (gerar uma vez, N segundos depois do último lançamento
 pouparia **9 de cada 10** dessas gerações.
 
 - **Ganho, no cenário B:** 10 aulas/dia → 2 gerações em vez de 10 = **−16 min/dia = −352 min/mês**
-  (−25 % do total).
+  (−30 % do total — sensivelmente o mesmo que a alavanca do TeX, e sem tocar em infra).
 - **O que verificar:** que o pacote continua a refletir o último lançamento (é o que a geração faz); e
   que um agrupamento não perde o que não couber na janela.
 - **Porque é a primeira:** não mexe em infra nem em imagem — mexe numa decisão de **quando** gerar.
@@ -245,8 +278,8 @@ pouparia **9 de cada 10** dessas gerações.
 O job está a **111 s**; a fronteira dos 2 min é a 120 s. Tirando o `preparar-tex` do caminho (imagem
 de container com o conjunto já instalado), o job cai a ~40 s e factura **1 min**.
 
-- **Ganho:** a geração passa a valer 1 min; no cenário B, 1 430 → **990 min/mês** (US$ 8,58 →
-  US$ 5,94); no C, US$ 67,50 → **~US$ 46**.
+- **Ganho:** a geração passa a valer 1 min; no cenário B, 1 166 → **814 min/mês** (US$ 7,00 →
+  US$ 4,88); no C, da ordem de **−30 %** (US$ 61 → ~US$ 43).
 - **O que verificar:** que o `pull` da imagem não acrescenta tempo de job; e que a verificação por
   `kpsewhich` (que hoje guarda a lista no `action.yml`) continua a existir, agora dentro da imagem.
 
@@ -255,7 +288,8 @@ de container com o conjunto já instalado), o job cai a ~40 s e factura **1 min*
 O «Concluir elenco» escreve **o ficheiro** e **o índice da escola** em dois commits, e cada um
 dispara o `derivados`. Um commit com os dois arquivos faz o mesmo por 1 minuto.
 
-- **Ganho:** 1 min por conclusão (−22 min/mês no B).
+- **Ganho:** 1 min por conclusão (−22 min/mês no B). E quando os dois commits caem no mesmo minuto, o
+  `concurrency` já os funde — é o que se viu às 00:44, com cinco execuções canceladas.
 - **O que verificar:** que os dois arquivos entram na mesma árvore de commit (§5.3).
 
 ### 7.4 Tirar `biblioteca/modalidades/**` do `publicar` — **−1 min por edição de estilo/dicionário**
@@ -300,7 +334,8 @@ Duas gravações seguidas do mesmo plano disparam duas gerações; a primeira é
   hipotéticas; o §L9f já validou o **modelo** contra a fatura (3,5 % de erro), e o que aqui se
   acrescenta é a **contagem de execuções por gesto**, que era a parte que faltava.
 - **Não é a factura das requisições** — essa está na §7.1 do `ARQUITETURA-GERAL.md`. As duas somam-se:
-  uma anamnese custa **0 minutos de CI** e ~6 `PUT`; uma aula custa **3 minutos** e ~10.
+  **uma anamnese custa 1 minuto de CI** (dois commits em `escola/**`, fundidos pelo `concurrency`) e
+  ~6 `PUT`; **uma aula custa 3 minutos** (por confirmar ao vivo) e ~10.
 - **Não inclui KV nem invocações do Worker**: outra factura, e a regra de ouro continua a ser a de
   sempre — **medir na bancada, ir ao ar uma vez por escola.**
 - **Não decide nada.** As seis alavancas têm ganho calculado e uma verificação obrigatória cada; a

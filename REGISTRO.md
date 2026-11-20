@@ -54813,5 +54813,25 @@ o TeX do caminho crítico (até −18 %); um commit em vez de dois no elenco; `b
 fora do `publicar` (**só depois de medir** se algum Worker lê aquilo em runtime); uma geração por lote
 em vez de uma por Turma; e `concurrency` por variante. **Nenhuma foi aplicada: a ordem é dela.**
 
+**Duas inferências minhas estavam erradas, e os runs dela corrigiram-nas no mesmo dia.** Eu tinha
+escrito que «o acervo vive em `envelope/`, que não está nos paths — logo gravar uma anamnese custa 0».
+O acervo da escola vive em **`escola/<escola>/envelopes/`**, e `escola/**` **está** nos paths: custa
+1 min. E tinha escrito que gravar o plano dispara `publicar` (1 min) porque casa
+`professores/**/ciclos/ciclo-*/**` — mas o ficheiro é um **ficheiro**
+(`…-plano.md`), não uma pasta: **não dispara nada além do derivados**. O que corrigiu as duas foi o uso
+real das 00:44 — ela gravou o plano e o PO, e os seis commits produziram **seis execuções de
+`derivados`, cinco canceladas**: **1 minuto, não seis**, porque o `concurrency` do workflow funde o que
+cai no mesmo minuto. `publicar` e `gerar`: nenhum.
+
+**A lição de método, escrita para não se repetir:** inferir dos `paths` do workflow sem verificar o
+**caminho real** do ficheiro errou duas vezes no mesmo dia. O que acertou foi ler os runs de um gesto
+verdadeiro.
+
+**A lacuna que fica declarada, e é a mais importante do documento:** a bancada prova que o `POST
+/api/receber` **pede** a geração; a produção **não mostra** nenhum lançamento a produzi-la nos 100 runs
+observados. Não se distingue «não houve lançamento» de «o disparo não aconteceu». Enquanto a lacuna
+existir, **«a aula custa 3» é o número da rota e «1» é o do §L9f** — e a diferença é uma pergunta em
+aberto, com um factor de 3 na capacidade comercial. Resolve-se com um lançamento observado ao vivo.
+
 **O que este documento não é**, e está escrito lá: não é ensaio de carga, não é a factura das
 requisições (as duas somam-se), e não inclui KV nem invocações do Worker.

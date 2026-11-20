@@ -3058,7 +3058,7 @@ cada «Guardar», e é o número que decide se a decisão se sustenta.
 > de *escrever*. Há uma segunda factura, que esta secção não cobria: os **minutos de CI/CD** de cada
 > workflow, que passam a ser cobrados quando o repositório for privado. A conta completa, com os
 > minutos medidos por execução e por gesto, está no [`CUSTO-DOS-FLUXOS.md`](CUSTO-DOS-FLUXOS.md).
-> O resumo que basta para não confundir as duas: **uma anamnese custa 0 minutos de CI e ~6 `PUT`**;
+> O resumo que basta para não confundir as duas: **uma anamnese custa 1 minuto de CI e ~6 `PUT`**;
 > **gerar um ciclo custa 2 minutos de CI e nenhum `PUT`**; e **uma aula lançada custa 3 minutos de CI**
 > (o commit que fecha os derivados mais a geração que o lançamento pede). A auditoria que fixou a
 > unidade comercial — o §L9f do `PLANEJAMENTO-LASTRO.md` — contava **1** minuto para a aula; a

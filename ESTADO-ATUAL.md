@@ -4779,12 +4779,15 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   erro) e acrescenta o que faltava: os fluxos novos e a **contagem de execuções por gesto**. E
   corrige-a num ponto, de factor 3: **uma aula custa 3 minutos, e não 1** — o lançamento pede a
   geração (`provar-o-custo-da-aula`, 12 asserções), o que baixa a capacidade de **1 478 para 492
-  aulas/mês** e faz a franquia do Avançado (800) deixar de caber sozinha. Constantes medidas: `Gerar o
-  ciclo` 2 min, `derivados` 1, `publicar` 1, `criar-escola` 1 — e **78 dos 117 s do job de gerar são
-  o `preparar-tex`**, para 5 s de geração real. Por gesto: anamnese 0, T2/T3/T4 0 (bloqueiam), aula
-  3, plano/PO 4, elenco 4, verbete em uso 3. Cenários: 72 min/mês (escola pequena) · 1 430 (escola a
-  sério, 71,5% do Free) · 11 250 (stress de três escolas). Seis alavancas com ganho calculado;
-  **nenhuma aplicada** — a ordem é dela.
+  aulas/mês** e faz a franquia do Avançado (800) deixar de caber sozinha. **E uma lacuna declarada:** a
+  bancada prova que a rota pede a geração, mas a produção não mostra nenhum lançamento a produzi-la —
+  a diferença é uma pergunta em aberto, não um facto. Constantes medidas: `Gerar o ciclo` 2 min,
+  `derivados` 1, `publicar` 1, `criar-escola` 1 — e **78 dos 117 s do job de gerar são o
+  `preparar-tex`**, para 5 s de geração real. Por gesto, medido nos runs dela de 00:44: anamnese 1,
+  plano 1, PO 1, verbete em uso 3, T2/T3/T4 0 (bloqueiam) — **seis commits custaram 1 minuto**, porque
+  o `concurrency` do `derivados` funde o que cai no mesmo minuto. Cenários: 66 min/mês (escola
+  pequena) · 1 166 (escola a sério, 58% do Free) · 10 170 (stress de três escolas). Seis alavancas com
+  ganho calculado; **nenhuma aplicada** — a ordem é dela.
 
 - **19/11/2026** — **O recado da geração.** As três telas que gravam passaram a mostrar o que a
   geração fez: partiu (e leva minutos), falhou (e os documentos continuam com a notação antiga), não
