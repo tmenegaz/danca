@@ -13963,8 +13963,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     /* «GRAVAR» É GRAVAR (19/11/2026, e ela repetiu-o a 20/11/2026). «Lembra que a gente combinou
      * que não tem nada de gravar de um jeito, gravar de outro jeito, é só gravar? Não tem gravar
      * assim, não tem isso.» A regra já estava escrita em `provar-gravar-e-gravar.js` — que mede
-     * oito botões, e não viu o nono porque novo. Ver a asserção nova que passou a varrer todos. */
-    '    + "    <div class=\\"modal-acoes\\"><button class=\\"acao\\" id=\\"dur-gravar\\" type=\\"submit\\">Gravar</button></div>"' +
+     * oito botões, e não viu o nono porque novo. Ver a asserção nova que passou a varrer todos.
+     *
+     * E O «CANCELAR» ENTRA AO LADO DELE (20/11/2026). «Para o professor não ter que clicar duas
+     * vezes lá no canto superior direito o x para sair e depois ele tem que clicar em cancelar.
+     * […] quando ele cancela ele cancela todo o processo e colapsa o formulário e deixa ele limpo
+     * e encerra o modal.»
+     *
+     * A ORDEM É A DO MODAL DO CONVITE (`motor/servidor/painel-html.js`): o secundário primeiro, o
+     * principal depois. Nunca o contrário — um «Cancelar» à direita do «Gravar» é o que o dedo
+     * encontra quando procura o gesto que conclui.
+     *
+     * OS DOIS BOTÕES NÃO FAZEM A MESMA COISA, e é essa diferença que dá sentido a existirem:
+     *   · o «×» e o fundo FECHAM o modal e devolvem o pedido — o formulário da sala fica como
+     *     estava, e quem clicou pode voltar a gravar;
+     *   · o «Cancelar» DESISTE do gesto inteiro — fecha o modal, limpa o formulário e recolhe-o,
+     *     que é exactamente o que o «Cancelar» do formulário da sala faz. */
+    '    + "    <div class=\\"modal-acoes\\">"' +
+    '    + "      <button class=\\"acao secundario\\" id=\\"dur-cancelar\\" type=\\"button\\">Cancelar</button>"' +
+    '    + "      <button class=\\"acao\\" id=\\"dur-gravar\\" type=\\"submit\\">Gravar</button>"' +
+    '    + "    </div>"' +
     '    + "  </form>"' +
     '    + "</div>";' +
     '  (document.body || document.documentElement).appendChild(caixa);' +
@@ -13979,11 +13997,30 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    sincronizarTotal(caixa, alvo);' +
     '  }' +
     '  function fechar(){ caixa.hidden = true; PERGUNTA_DA_DURACAO = null; }' +
+    /* CANCELAR DESISTE DO GESTO INTEIRO. `cancelarEdicao` é a função que o «Cancelar» do formulário
+     * da sala já usa (`button.cancelar-edicao`): apaga a memória do preenchimento, recolhe o
+     * formulário, limpa o modo de edição e recarrega a página — que é o que o deixa «limpo». Não se
+     * escreve aqui uma segunda limpeza: duas limpezas do mesmo formulário divergem, e a que ficasse
+     * para trás seria a que ninguém notaria até alguém cancelar e ver os campos cheios outra vez.
+     *
+     * E NADA FOI GRAVADO ATÉ ESTE PONTO. O modal só existe no caminho do `409`, e o `409` é
+     * devolvido antes de qualquer escrita — cancelar não desfaz elo nenhum, porque não há elo. */
+    '  function cancelarTudo(){' +
+    '    caixa.hidden = true;' +
+    '    PERGUNTA_DA_DURACAO = null;' +
+    /* O `typeof` não é zelo: a função nasce mais abaixo no mesmo script, e esta página é a única
+     * que abre o modal. Uma bancada que monte só esta parte da marcação não a teria — e o clique
+     * morreria em «cancelarEdicao is not defined», deixando o modal fechado e o formulário aberto,
+     * que é pior do que não fechar. */
+    '    if (typeof cancelarEdicao === "function") cancelarEdicao();' +
+    '  }' +
     '  function valorDe(nome){' +
     '    var e = document.querySelector("input[name=\\"" + nome + "\\"]:checked");' +
     '    return e ? e.value : "";' +
     '  }' +
     '  document.getElementById("dur-x").addEventListener("click", fechar);' +
+    '  var botaoCancelar = document.getElementById("dur-cancelar");' +
+    '  if (botaoCancelar) botaoCancelar.addEventListener("click", cancelarTudo);' +
     '  var fundo = caixa.querySelector("[data-fechar-duracao]");' +
     '  if (fundo) fundo.addEventListener("click", fechar);' +
     '  document.getElementById("form-duracao").addEventListener("submit", function(ev){' +

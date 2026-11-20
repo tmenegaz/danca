@@ -55509,3 +55509,39 @@ a soma ao vivo, e as quatro recusas do servidor). E as vizinhas continuam verdes
 **O que ainda não está feito.** O valor que o professor escreve não é conferido contra a **música** —
 se os 9 minutos de Solo cabem na faixa que ele usa, é do professor, e o sistema não mede. E a soma a
 menos é permitida de propósito: o plano pode declarar menos do que a aula tem, e o aviso diz quanto.
+
+## 20/11/2026 — «O professor cancela se quiser» — o «Cancelar» do modal faz o gesto inteiro
+
+**O pedido.** «No modal, precisa colocar o botão cancelar. […] Ele limpa, ele fecha o modal, também
+limpa o formulário e colapsa o formulário. […] Para o professor não ter que clicar duas vezes lá no
+canto superior direito o x para sair e depois ele tem que clicar em cancelar.»
+
+E a diferença entre as três saídas passou a ser explícita no código:
+
+| o gesto | o que faz |
+|:--|:--|
+| o «×» e o fundo | fecham o modal e devolvem o pedido — o formulário da sala fica como estava |
+| **o «Cancelar»** | desiste do gesto inteiro: fecha o modal, **chama `cancelarEdicao()`** — a mesma função do «Cancelar» do formulário —, que apaga a memória do preenchimento, recolhe o formulário, limpa o modo de edição e recarrega |
+
+**Não se escreveu uma segunda limpeza.** Duas limpezas do mesmo formulário divergem na primeira
+correcção, e a que ficasse para trás seria a que ninguém notaria até alguém cancelar e ver os campos
+cheios outra vez. A função é a que o `button.cancelar-edicao` da sala já chama.
+
+**A ordem dos botões é a do modal do convite** (`painel-html.js`): o secundário primeiro. E o
+«Cancelar» é `type="button"` — um `submit` cancelaria e gravaria no mesmo clique.
+
+**A/B, medido.** Sem o botão, `provar-salas-e-elencos` falha **8**; com o botão mas sem o efeito (só
+fechar o modal), falha **3** — a memória, o recolhimento e o modo. A prova do recolhimento passou a
+**abrir** o formulário antes do gesto: a primeira versão passava no controle negativo porque ele já
+estava recolhido, e uma asserção que passa por o estado já ser o esperado não mede nada.
+
+`provar-salas-e-elencos` **168 → 179**; `provar-gravar-e-gravar` **53** (a varredura de «Gravar
+<java>» continua limpa — a legenda do modal já não começa por «Gravar»); `check-identidade` sem
+erros.
+
+**Com o quê.** `motor/servidor/bastidores.js` (a barra do modal, o handler do cancelar) e
+`experimentos/provar-salas-e-elencos.js`.
+
+**O que ainda não está feito.** O «×» continua a deixar o formulário da sala aberto e preenchido, de
+propósito — fechar a pergunta e desistir do gesto não são a mesma coisa. Se a experiência mostrar que
+o «×» confunde, a decisão muda-se num sítio só.

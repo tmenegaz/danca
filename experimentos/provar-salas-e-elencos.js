@@ -1438,7 +1438,15 @@ const RITMO = {
           const b = d.getElementById('dur-gravar');
           if (b) await carregar(b);
         };
-        return { d, w, erros, corpos, preencheu, modal, decidir, fechar: () => w.close() };
+        /* O CANCELAR DO MODAL (20/11/2026) — «o professor cancela se quiser e aí quando ele
+         * cancela ele cancela todo o processo e colapsa o formulário e deixa ele limpo e encerra
+         * o modal». É o MESMO gesto do «Cancelar» do formulário da sala, e por isso se mede pelo
+         * que esse gesto deixa: o recolhimento, os campos de modo vazios, e a memória apagada. */
+        const cancelar = async () => {
+          const b = d.getElementById('dur-cancelar');
+          if (b) await carregar(b);
+        };
+        return { d, w, erros, corpos, preencheu, modal, decidir, cancelar, fechar: () => w.close() };
       };
 
       // ── o caso dos MINUTOS: as duas perguntas ────────────────────────────────
@@ -1512,13 +1520,30 @@ const RITMO = {
       conferir('…a pergunta usa a peça `escolhas` da folha',
         (mMin ? mMin.querySelectorAll('fieldset.escolhas').length : 0) === 1,
         mMin ? mMin.querySelectorAll('fieldset.escolhas').length : 0);
-      const botaoMin = mMin ? mMin.querySelector('.modal-acoes > .acao') : null;
-      conferir('…e o botão vive na barra do modal (`.modal-acoes`)', !!botaoMin, null);
+      const botoesMin = mMin ? [...mMin.querySelectorAll('.modal-acoes > .acao')] : [];
+      const botaoMin = mMin ? mMin.querySelector('#dur-gravar') : null;
+      conferir('…e o botão vive na barra do modal (`.modal-acoes`)', botoesMin.length > 0, botoesMin.length);
       /* «GRAVAR» É GRAVAR — «não tem nada de gravar de um jeito, gravar de outro jeito, é só
        * gravar. Não tem gravar assim, não tem isso.» A regra é da casa desde 19/11/2026, está em
        * `provar-gravar-e-gravar.js`, e o modal novo não a podia contrariar. */
       conferir('…e o botão diz «Gravar», e só isso',
         botaoMin && botaoMin.textContent.trim() === 'Gravar', botaoMin && botaoMin.textContent.trim());
+      /* O «CANCELAR» AO LADO DO «GRAVAR» (20/11/2026). «Para o professor não ter que clicar duas
+       * vezes lá no canto superior direito o x para sair e depois ele tem que clicar em
+       * cancelar. […] quando ele cancela ele cancela todo o processo e colapsa o formulário e
+       * deixa ele limpo e encerra o modal.»
+       *
+       * A ORDEM QUE SE MEDE É A DO MODAL DO CONVITE — o secundário primeiro. E o «Cancelar» é
+       * `type="button"`: um `submit` cancelaria e gravaria no mesmo clique. */
+      const botaoCancelar = mMin ? mMin.querySelector('#dur-cancelar') : null;
+      conferir('…e há um «Cancelar» ao lado do «Gravar»',
+        botoesMin.length === 2 && botaoCancelar
+          && botaoCancelar.textContent.trim() === 'Cancelar', botoesMin.map((b) => b.textContent.trim()));
+      conferir('…o secundário vem primeiro, como no modal do convite',
+        botoesMin.length === 2 && botoesMin[0].id === 'dur-cancelar', botoesMin.map((b) => b.id));
+      conferir('…e o «Cancelar» não é submeter — um submit cancelaria e gravaria no mesmo clique',
+        botaoCancelar && botaoCancelar.getAttribute('type') === 'button',
+        botaoCancelar && botaoCancelar.getAttribute('type'));
       /* NENHUM `NaN` NO MODAL. A primeira versão tinha um: um `+` a mais na concatenação da
        * marcação fazia `+"…"` — soma unária — e o painel mostrava `NaN` entre o formulário e os
        * botões. Nenhuma expressão regular ao fonte o via, porque o defeito nasce do que o JS emite,
@@ -1544,6 +1569,55 @@ const RITMO = {
       conferir('…e o modal fecha depois de decidir',
         !!(cMin.modal() && cMin.modal().hidden), cMin.modal() && cMin.modal().hidden);
       cMin.fechar();
+
+      /* ── o CANCELAR do modal: desiste do gesto inteiro ─────────────────────── */
+      /* «O professor cancela se quiser e aí quando ele cancela ele cancela todo o processo e
+       * colapsa o formulário e deixa ele limpo e encerra o modal também obviamente.» */
+      const cCanc = await correrOCenario(impactoMinutos);
+      const mCanc = cCanc.modal();
+      conferir('o «Cancelar» existe no modal, ao lado do «Gravar»',
+        Boolean(mCanc && mCanc.querySelector('#dur-cancelar')), null);
+      /* ANTES DE CLICAR, o que o cancelar tem de desfazer: a memória do preenchimento, o modo de
+       * edição escrito nos ocultos e o formulário aberto. Escrevem-se aqui à mão porque o cenário
+       * abre a página já com eles — e medir só o resultado, sem o antes, mediria uma página que
+       * nunca esteve aberta. */
+      cCanc.w.eval(`(function(){
+        var m = document.getElementById('tmodo'); if (m) m.value = 'derivar';
+        var d = document.getElementById('tderivar'); if (d) d.value = 'sala-k';
+        try { sessionStorage.setItem('producao:form', '{"tnome":"Rosa"}'); } catch (e) {}
+        return true;
+      })()`);
+      /* O FORMULÁRIO TEM DE ESTAR ABERTO ANTES DO GESTO — senão o recolher não se mede. É a mesma
+       * precaução da Audição («o formulário está ABERTO antes do gesto — senão o recolher não se
+       * mede»), e a primeira versão desta asserção passou no controle negativo por não a ter. */
+      cCanc.w.eval("abrirOFormularioDe('sec-turmas')");
+      conferir('…e o formulário da sala está ABERTO antes de cancelar — senão o recolher não se mede',
+        (cCanc.d.querySelector('#turmas-paineis') || {}).hidden === false,
+        (cCanc.d.querySelector('#turmas-paineis') || {}).hidden);
+      await cCanc.cancelar();
+      const estadoCanc = {
+        modalOculto: Boolean(cCanc.modal() && cCanc.modal().hidden),
+        pedidos: cCanc.corpos.length,
+        modo: (cCanc.d.getElementById('tmodo') || {}).value,
+        derivar: (cCanc.d.getElementById('tderivar') || {}).value,
+        memoria: (() => { try { return cCanc.w.sessionStorage.getItem('producao:form'); } catch (e) { return 'sem-storage'; } })(),
+        recolhido: (() => { try { return cCanc.w.sessionStorage.getItem('producao:form-recolhido'); } catch (e) { return null; } })(),
+        mioloOculto: Boolean((cCanc.d.querySelector('#turmas-paineis') || {}).hidden),
+        secaoRecolhida: (cCanc.d.getElementById('sec-turmas') || {}).getAttribute
+          ? cCanc.d.getElementById('sec-turmas').getAttribute('data-recolhido') : null,
+        pendente: cCanc.w.eval('PERGUNTA_DA_DURACAO'),
+      };
+      conferir('…e cancelar FECHA o modal', estadoCanc.modalOculto, estadoCanc);
+      conferir('…e NÃO grava nada — o pedido não é reenviado', estadoCanc.pedidos === 1, estadoCanc.pedidos);
+      conferir('…e a memória do preenchimento é apagada', estadoCanc.memoria === null, estadoCanc.memoria);
+      conferir('…e o formulário da sala fica RECOLHIDO (o mesmo gesto do «Cancelar» de lá)',
+        estadoCanc.mioloOculto && estadoCanc.secaoRecolhida === 'sim'
+          && estadoCanc.recolhido === 'sim', estadoCanc);
+      conferir('…e o modo de edição sai dos campos ocultos — a tela não fica a dizer «a editar»',
+        estadoCanc.modo === '' && estadoCanc.derivar === '', estadoCanc);
+      conferir('…e não fica pedido nenhum pendente para o próximo gesto reaproveitar',
+        estadoCanc.pendente === null, estadoCanc.pendente);
+      cCanc.fechar();
 
       /* ── O QUE O SERVIDOR FAZ COM OS NÚMEROS DO FORMULÁRIO ─────────────────── */
       /* O cliente passou a mandar números, e o servidor tem de os ler sem confiar: os blocos são os
