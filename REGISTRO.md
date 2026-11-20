@@ -56353,3 +56353,39 @@ sala.
 `motor/servidor/cadeia.js` (`forcar` em `executar`/`porTurma`); `motor/servidor/bastidores.js` (a rota
 `atualizar-o-ciclo`, o botão em `acoesDaCuradoria`, a nota no cartão e o handler do cliente);
 `IDENTIDADE-VISUAL.md`; `CUSTO-DOS-FLUXOS.md` §7.9f; as duas provas.
+
+## 20/11/2026 — A janela abria o plano à cadeia, e a cadeia não estava montada
+
+**O segundo defeito da mesma janela, medido ao vivo.** Ela incluiu o «Batman GT», leu «não era
+possível ler agora o plano de ensino», gravou — e o exercício entrou sem objetivo. Duas coisas
+erradas, e a segunda explica a primeira.
+
+**1. A cadeia não era montada nessa rota.** A ponte (`producao.js`) constrói a cadeia automática só
+para as rotas de uma lista; em qualquer outra ela é `null`. A `impacto-da-inclusao` — e a
+`atualizar-o-ciclo`, entregue horas antes — não estavam nessa lista. É a **segunda vez** que isto
+acontece: a `turma-professor` caiu na mesma armadilha a 19/11. O conserto é estrutural: a lista saiu
+de `producao.js` e passou a ser uma constante de `bastidores.js`, ao lado das rotas que a usam
+(`ROTAS_QUE_PRECISAM_DA_CADEIA`), e a ponte lê daqui.
+
+**2. Uma LEITURA não pode depender da montagem de uma ESCRITA.** A cadeia monta escritores,
+disparador e contador — tudo o que gera, nada do que lê. Ainda assim, a janela pedia-lhe o plano.
+Agora `planoDaTurmaNaSala` lê o acervo directo, com a mesma composição que a estante usa, e na ordem
+de autoridade deste repositório (o professor da **Sala** primeiro, o da cópia depois). A janela saiu
+da lista que monta a cadeia — e a ausência passou a ser uma asserção.
+
+**3. A frase mandava procurar no sítio errado.** «Não consegui ler o plano» parecia problema do
+acervo; era da montagem. A resposta passou a distinguir três coisas: `sem-plano` (não há), e
+`plano-ilegivel` quando **há** e não se leu — e a frase diz qual é.
+
+**As provas.** `experimentos/provar-as-rotas-da-cadeia.js` (novo, 14 asserções) — não injeta nada:
+compara a lista com o uso no código, verifica que a ponte lê a lista em vez de ter uma segunda cópia,
+que a janela não pede o plano à cadeia, e mede o leitor contra um acervo de memória com dois planos
+na mesma sala (o da Sala ganha). **A/B:** retirada a rota da lista, 2 asserções falham.
+
+**O que NÃO se conseguiu medir, e fica dito.** O teste ao vivo da rota exige a senha da **direção**;
+a `2805` que ela indicou é a senha do **professor** (`validar-senha` aceita-a; `validar-producao`
+recusa-a). Sem ela, o que se mede é o código e as provas; o gesto no ecrã é dela.
+
+**Com o quê.** `motor/servidor/producao.js` (a ponte lê `bastidores.ROTAS_QUE_PRECISAM_DA_CADEIA`);
+`motor/servidor/bastidores.js` (a constante, `planoDaTurmaNaSala`, e a rota simplificada);
+`experimentos/provar-as-rotas-da-cadeia.js`; `.gitignore` (a excepção que a torna versionável).

@@ -769,6 +769,16 @@ avisar que a linha caiu, e o aviso é uma frase, não uma pergunta.
 serve?»* — com os marcos da turma, e sem pré-selecção. A partir dela o sistema sabe o que mostrar: a
 linha do parâmetro que ganha o termo, e os blocos cujo total muda.
 
+> **E UMA SEGUNDA CORRECÇÃO, no mesmo dia e no mesmo sítio.** Publicada a primeira, ela testou ao
+> vivo e leu «não era possível ler agora o plano de ensino». A causa era outra, e pior: a ponte monta
+> a cadeia automática **só para as rotas de uma lista**, e a janela não estava nela — a cadeia era
+> `null`, e não havia quem lesse o plano. **Uma leitura não pode depender da montagem de uma
+> escrita**: `planoDaTurmaNaSala` passou a ler o acervo directo, e a janela saiu da lista. A lista em
+> si mudou de casa — é uma constante de `bastidores.js` (`ROTAS_QUE_PRECISAM_DA_CADEIA`), e a ponte
+> lê daqui —, porque em dois sítios ela divergiu duas vezes (`turma-professor` em 19/11,
+> `impacto-da-inclusao` em 20/11). A prova `provar-as-rotas-da-cadeia.js` compara a lista com o uso
+> no código e **não injeta a cadeia**: é a única que pode ver esta classe de defeito.
+
 > **A CORRECÇÃO DE 20/11/2026, e o defeito foi meu.** Publicada a janela, ela testou ao vivo: removeu um
 > exercício, derivou, e **ao incluir de novo não apareceu janela nenhuma** — o exercício entrou sem
 > objectivo. O `provar-salas-e-elencos` passava porque montava o formulário à mão (`cuderivar` e

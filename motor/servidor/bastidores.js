@@ -2211,6 +2211,50 @@ async function resumosDosPlanos(env, escola) {
 }
 
 /**
+ * O PLANO DE ENSINO VIGENTE DE UMA TURMA — LIDO, e não derivado (20/11/2026).
+ *
+ * PORQUE ESTA LEITURA EXISTE, e ela é a correcção de um defeito que custou uma noite. A janela do
+ * exercício novo pedia o plano à CADEIA (`cadeia.planoDaTurma`), e a cadeia só é montada quando a
+ * ponte a constrói — escritores do repositório, disparador, contador de subpedidos. Uma LEITURA
+ * passou assim a depender da montagem de uma ESCRITA: a rota ficou fora da lista que monta, a
+ * cadeia era `null`, e a resposta ao vivo foi «não consegui ler o plano de ensino» sobre uma Turma
+ * que o tinha.
+ *
+ * A REGRA QUE FICA: quem só lê, lê. O acervo já está aqui — é o mesmo que o `resumosDosPlanos`
+ * usa, e o mesmo que a estante lê —, e não precisa de um escritor para responder. A montagem pesada
+ * fica para quem vai derivar e gerar.
+ *
+ * A ORDEM DOS PROFESSORES É A DESTE REPOSITÓRIO: primeiro quem a SALA declara (é a autoridade desde
+ * 19/11/2026), depois o que a cópia da Turma guarda. O elo que trocou de mãos não conta como «o
+ * plano de quem dirige hoje» — a marca `anterior` é a mesma de `porta.planos`.
+ */
+async function planoDaTurmaNaSala(env, escola, turma, professores) {
+  const vazio = { plano: null, houve: false, leu: true };
+  const alvo = String(turma || '').trim();
+  if (!alvo) return vazio;
+  const legado = criarCloudflare(env);
+  const armazenamento = acervo.combinar(acervo.doAmbiente(env, { legado, escola }), legado);
+  let lista = null;
+  try { lista = await porta.planos(armazenamento); } catch (e) { return { plano: null, houve: false, leu: false }; }
+  const vigentes = (Array.isArray(lista) ? lista : [])
+    .filter((p) => p && String(p.turma || '').trim() === alvo && !p.anterior);
+  const houve = vigentes.length > 0;
+  const ordem = (Array.isArray(professores) ? professores : [])
+    .map((p) => String(p || '').trim()).filter(Boolean);
+  if (!houve) return { plano: null, houve, leu: true };
+  /* O MAIS RECENTE, e não o primeiro da lista: `porta.planos` já ordena do carimbo maior para o
+   * menor, e é o topo que vale. */
+  const doProfessor = ordem.length
+    ? vigentes.find((p) => ordem.indexOf(String(p.professor || '').trim()) !== -1)
+    : vigentes[0];
+  if (!doProfessor) return { plano: null, houve, leu: true };
+  try {
+    const plano = await porta.lerEnvelope(armazenamento, String(doProfessor.carimbo)) || null;
+    return { plano, houve, leu: true };
+  } catch (e) { return { plano: null, houve, leu: false }; }
+}
+
+/**
  * AS ALUNAS QUE JÁ TÊM ANAMNESE (26/10/2026) — o conjunto que apaga a marca «nova».
  *
  * O que a marca dizia e o que passou a dizer. Ela nasceu para avisar «esta aluna ainda não tem
@@ -26994,31 +27038,6 @@ function parDaSalaNoCorpo(corpo, registo) {
      * da Sala, depois pelo da cópia, porque é essa a ordem de autoridade deste repositório. Se o
      * plano não vier de nenhum dos dois, então é que não há: e o motivo viaja com um `aviso`, para
      * a tela o poder dizer em vez de o guardar. */
-    const pares = await paresComPlano(env, escola);
-    if (pares === null) {
-      /* O ÍNDICE DOS PLANOS NÃO SE LEU. Não é «não há plano» — é «não sei», e dizer a primeira
-       * coisa em vez da segunda foi o que fez esta janela calar. A ficha entra, e a tela diz. */
-      return json(200, {
-        ok: true, precisaDecisao: null, motivo: 'indice-ilegivel',
-        aviso: 'não consegui ler a lista de planos de ensino agora — não sei se há objetivos a que '
-          + 'ligar este exercício. A ficha entra, e a declaração do objetivo fica para a próxima '
-          + 'derivação.',
-      });
-    }
-    /* A CADEIA NÃO ESTÁ MONTADA — e isto diz-se pelo nome (20/11/2026).
-     *
-     * O QUE ACONTECEU AO VIVO. A rota não estava na lista que a ponte usa para montar a cadeia, e a
-     * resposta saiu como «não consegui ler o plano de ensino» — uma frase que manda procurar o
-     * problema no acervo, quando o problema era a montagem. Ela leu, gravou, e o exercício entrou
-     * sem objetivo. Um diagnóstico que aponta para o sítio errado custa mais do que nenhum. */
-    if (!cadeia || typeof cadeia.planoDaTurma !== 'function') {
-      return json(200, {
-        ok: true, precisaDecisao: null, motivo: 'sem-cadeia',
-        aviso: 'a cadeia automática não está montada neste pedido — não consigo ler o plano de '
-          + 'ensino da Turma para perguntar a que objetivo o exercício serve. A ficha entra, e a '
-          + 'declaração fica para a próxima derivação.',
-      });
-    }
     const nomeDaSala = String(turmasDaCuradoria(turma)[0] || '').trim();
     const salaVigente = nomeDaSala
       ? turmaVigentePorNome(await turmas(kv, escola), nomeDaSala) : null;
@@ -27029,25 +27048,31 @@ function parDaSalaNoCorpo(corpo, registo) {
       String(turma.professor || '').trim()]) {
       if (p && professoresDoPlano.indexOf(p) === -1) professoresDoPlano.push(p);
     }
-    let plano = null;
-    if (cadeia && typeof cadeia.planoDaTurma === 'function') {
-      for (const p of professoresDoPlano) {
-        try { plano = await cadeia.planoDaTurma(nomeDaSala, p); } catch (erro) { plano = null; }
-        if (plano) break;
-      }
-    }
+    /* A LEITURA É DIRECTA (20/11/2026) — e não passa pela cadeia.
+     *
+     * O DEFEITO QUE ISTO FECHA, medido ao vivo. A rota pedia o plano à CADEIA, e a cadeia só é
+     * montada quando a ponte a constrói (escritores, disparador, contador). A rota ficou fora dessa
+     * lista, a cadeia era `null`, e a resposta foi «não consegui ler o plano de ensino» sobre uma
+     * Turma que o tinha. Uma LEITURA não pode depender da montagem de uma ESCRITA: quem só lê, lê —
+     * e o acervo que o `resumosDosPlanos` já usa é o mesmo. */
+    const achadoDoPlano = await planoDaTurmaNaSala(env, escola, nomeDaSala, professoresDoPlano);
+    const plano = achadoDoPlano.plano;
     if (!plano) {
-      /* SEM PLANO — e há duas coisas diferentes aqui, que antes eram ditas como uma só.
+      /* SEM PLANO — e o sistema diz QUAL das três coisas é.
        *
-       * Se a lista de planos não tem par nenhum para esta Turma, ela ainda não tem plano de
-       * ensino: é o interregno, a ficha entra, e o plano, quando nascer, leva o conteúdo.
+       * Se a lista de planos não tem nenhum para esta Turma, ela ainda não tem plano de ensino: é
+       * o interregno, a ficha entra, e o plano, quando nascer, leva o conteúdo.
        *
-       * Se tem par e mesmo assim o plano não veio, o índice e o acervo discordam — e o sistema
-       * não inventa: diz que não conseguiu ler, que é uma coisa diferente de «não há». */
-      const temPar = Array.isArray(pares) && pares.some((p) => p && p.turma === nomeDaSala);
+       * Se há plano e mesmo assim não veio, ou a leitura falhou ou os professores que a Turma
+       * declara não casam com o autor do elo. Nos dois casos a resposta não inventa. */
+      /* O LEITOR DIZ O QUE SABE, e são três coisas diferentes — «não há», «há e não li», «li e
+       * não achei para estes professores». A frase segue a que for; dizer a primeira quando é a
+       * segunda foi o defeito que fez esta janela calar ao vivo. */
+      const temPar = achadoDoPlano.houve;
+      const ilegivel = !achadoDoPlano.leu || (temPar && !plano);
       return json(200, {
-        ok: true, precisaDecisao: null, motivo: temPar ? 'plano-ilegivel' : 'sem-plano',
-        aviso: temPar
+        ok: true, precisaDecisao: null, motivo: ilegivel ? 'plano-ilegivel' : 'sem-plano',
+        aviso: ilegivel
           ? 'esta Turma tem plano de ensino, mas não consegui lê-lo agora — a declaração do '
             + 'objetivo fica para a próxima derivação.'
           : 'esta Turma ainda não tem plano de ensino — não há objetivo a que ligar o exercício. '
@@ -27706,10 +27731,6 @@ const ROTAS_QUE_PRECISAM_DA_CADEIA = [
   /* O FECHO DO PACOTE NUMA INVOCAÇÃO PRÓPRIA (10/11/2026) — é ele que dá à geração os 50
    * subpedidos inteiros, quando o gesto que a pediu já gastou a maior parte do teto. */
   '/api/bastidores/cadeia-pacote',
-  /* A JANELA DO EXERCÍCIO NOVO (20/11/2026) — ela LÊ o plano da Turma para saber que objetivos
-   * oferecer. Sem a cadeia montada a rota não sabe ler, e responde que não conseguiu: foi o que
-   * aconteceu ao vivo, e a frase parecia um problema do acervo quando era a lista. */
-  '/api/bastidores/impacto-da-inclusao',
   /* «ATUALIZAR O CICLO» (20/11/2026) — o botão que força a derivação para levar ao papel o que
    * ficou na Turma. Ele É a travessia inteira. */
   '/api/bastidores/atualizar-o-ciclo',
@@ -27727,6 +27748,10 @@ module.exports = {
   diferencaDeRitmo,
   /* A LISTA DAS ROTAS QUE PRECISAM DA CADEIA — ver a nota dela, acima. A ponte lê daqui. */
   ROTAS_QUE_PRECISAM_DA_CADEIA,
+  /* O LEITOR DO PLANO DA TURMA, exportado para a bancada (20/11/2026). O defeito que ele corrige
+   * não se via por uma rota: era a LEITURA a depender da montagem de uma escrita. A prova mede o
+   * leitor contra um acervo de memória — a mesma composição que o Worker usa. */
+  planoDaTurmaNaSala,
   /* O ESTILO REGERA OS DOCUMENTOS — exportado para a bancada (T5, 19/11/2026).
    *
    * O que se quer medir são duas decisões que não se vêem pelo resultado de uma rota: **que Turmas
