@@ -100,7 +100,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código de dança (ballet clássico)",
-  "versao": 60,
+  "versao": 61,
   "aplicaseA": [
     "codigo-de-danca"
   ],
@@ -1141,6 +1141,48 @@
           ]
         },
         "escola": "batata"
+      },
+      "8|2/4@breu": {
+        "cobre": 8,
+        "posicao": null,
+        "metodo": "compartilhada",
+        "celulas": {
+          "a-la-seconde": [
+            {
+              "contagem": "1–2",
+              "categoria": "Peso",
+              "sinais": [
+                "5ª",
+                "→",
+                "-",
+                "●",
+                "×",
+                "5ª"
+              ],
+              "descricao": "Lançamento rápido da perna estendida a uma altura baixa (geralmente a 45 graus do chão), escovando o chão\nLê-se: Peso, quinta posição, conduz a, ao lado, fecha, atrás, quinta posição.",
+              "ordem": 1,
+              "repeticoes": 2,
+              "orientacao": "croise"
+            },
+            {
+              "contagem": "1–2",
+              "categoria": "Peso",
+              "sinais": [
+                "5ª",
+                "→",
+                "-",
+                "●",
+                "+",
+                "5ª"
+              ],
+              "descricao": "Lançamento rápido da perna estendida a uma altura baixa (geralmente a 45 graus do chão), escovando o chão\nLê-se: Peso, quinta posição, conduz a, ao lado, fecha, à frente, quinta posição.",
+              "ordem": 2,
+              "repeticoes": 2,
+              "orientacao": "croise"
+            }
+          ]
+        },
+        "escola": "breu"
       }
     },
     "Battement fondu": {
