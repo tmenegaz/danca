@@ -115,7 +115,6 @@ Estender o ciclo em duas aulas se o último marco não for alcançado.
 - Battement tendu
 - Plié
 - Relevé
-- Battement jeté
 
 ## Registro de proveniência
 
