@@ -100,7 +100,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código de dança (ballet clássico)",
-  "versao": 59,
+  "versao": 60,
   "aplicaseA": [
     "codigo-de-danca"
   ],
@@ -1222,12 +1222,13 @@
               "contagem": "1–2",
               "categoria": "Perna",
               "sinais": [
-                "ED",
-                "→",
+                "5ª",
                 "↑",
-                "+"
+                "→",
+                "+",
+                "ED"
               ],
-              "descricao": "Elevação para meia-ponta ou ponta, conforme o contexto.\nLê-se: Perna, varredura para fora, conduz a, sobe, à frente.",
+              "descricao": "Elevação para meia-ponta ou ponta, conforme o contexto.\nLê-se: Perna, quinta posição, sobe, conduz a, à frente, varredura para fora.",
               "ordem": 1,
               "repeticoes": 2
             },
@@ -1246,7 +1247,46 @@
             }
           ]
         },
-        "escola": "breu"
+        "escola": "breu",
+        "versoes": [
+          {
+            "ate": "2026-11-20",
+            "cobre": 8,
+            "posicao": null,
+            "metodo": "compartilhada",
+            "celulas": {
+              "devant": [
+                {
+                  "contagem": "1–2",
+                  "categoria": "Perna",
+                  "sinais": [
+                    "ED",
+                    "→",
+                    "↑",
+                    "+"
+                  ],
+                  "descricao": "Elevação para meia-ponta ou ponta, conforme o contexto.\nLê-se: Perna, varredura para fora, conduz a, sobe, à frente.",
+                  "ordem": 1,
+                  "repeticoes": 2
+                },
+                {
+                  "contagem": "1–2",
+                  "categoria": "Perna",
+                  "sinais": [
+                    "ED",
+                    "→",
+                    "↓",
+                    "5ª"
+                  ],
+                  "descricao": "Elevação para meia-ponta ou ponta, conforme o contexto.\nLê-se: Perna, varredura para fora, conduz a, cede, quinta posição.",
+                  "ordem": 2,
+                  "repeticoes": 2
+                }
+              ]
+            },
+            "motivo": "ajuste do verbete"
+          }
+        ]
       }
     }
   }
