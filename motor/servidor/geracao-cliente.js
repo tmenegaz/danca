@@ -364,6 +364,50 @@ const SCRIPT = String.raw`(function () {
     }
 
     /*
+     * O ÚLTIMO PASSO PEDE A SUA PRÓPRIA INVOCAÇÃO (20/11/2026).
+     *
+     * O QUE FOI MEDIDO. «Tentei gerar o plano de observação, deu status pending.» O registo da
+     * geração dizia, com todas as letras: falhou-no-disparo, escritas: 0, e o erro do
+     * runtime — «Too many subrequests by single Worker invocation». O «Guardar» do PO gasta o
+     * teto de 50 subpedidos a conferir a cadeia e a gravar o elo; o que sobra não chega para
+     * escrever as fontes do ciclo e disparar. Do lado de fora, o sintoma é o pior de todos: a
+     * tela gira, e o pacote publicado continua a ser o de ontem — o ciclo e a aula servem o
+     * conteúdo velho, e quem os abre conclui que o sítio quebrou.
+     *
+     * O CAMINHO JÁ EXISTIA. Em 10/11/2026 o mesmo teto foi resolvido para os gestos das Turmas
+     * com uma segunda invocação — POST /api/bastidores/cadeia-pacote, que corre só o passo 4 e
+     * por isso tem os 50 subpedidos inteiros. A porta era o único chamador que ainda tentava
+     * fazer tudo dentro do próprio pedido.
+     *
+     * QUEM DECIDE É O SERVIDOR. Esta função não julga se cabe ou não: ela pede o fecho quando a
+     * resposta o declarou (fecharPacote). Sem esse campo, nada acontece — e o comportamento
+     * antigo fica exactamente como estava.
+     */
+    function fecharEmOutraInvocacao(pedido) {
+      try {
+        montar();
+        if (painel) painel.hidden = false;
+        visto = true;
+        inicio = inicio || Date.now();
+        if (titulo) titulo.textContent = 'Fechando o pacote…';
+        if (sub) sub.textContent = 'Ciclo ' + CICLO;
+        if (passo) passo.textContent = 'A gravação passou; a geração pede uma segunda passagem.';
+        if (docs) docs.textContent = '';
+        if (giro) giro.hidden = false;
+        comRelogio(true);
+        desenharTempo();
+        fetchOriginal('/api/bastidores/cadeia-pacote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(pedido),
+          cache: 'no-store',
+        }).then(function () {
+          setTimeout(perguntar, 1500);
+        }, function () { agendar(ESPERA_CURTA); });
+      } catch (e) { /* o aviso nunca derruba a página */ }
+    }
+
+    /*
      * O «GUARDAR» PASSA A TER UM SINAL DE VIDA. O giro que a porta escreve
      * («gravando…») já existia; o que faltava era ele ser reconhecível como
      * ESPERA — e não o texto de alguém que travou. O «aria-busy» também diz isso a
@@ -382,6 +426,19 @@ const SCRIPT = String.raw`(function () {
         var fecho = elicitar ? document.getElementById('fecho') : null;
         if (fecho) fecho.setAttribute('aria-busy', 'true');
         var promessa = fetchOriginal.apply(this, arguments);
+        /* A SEGUNDA PASSAGEM, DECLARADA PELO SERVIDOR — ver fecharEmOutraInvocacao. O corpo é
+         * lido num clone: a porta continua a ler a resposta original, inteira e intocada. */
+        if (elicitar) {
+          promessa = promessa.then(function (r) {
+            try {
+              var copia = r.clone ? r.clone() : r;
+              Promise.resolve(copia.json()).then(function (dados) {
+                if (dados && dados.fecharPacote) fecharEmOutraInvocacao(dados.fecharPacote);
+              }, function () {});
+            } catch (e) { /* uma resposta que não é JSON não muda nada */ }
+            return r;
+          });
+        }
         if (!fecho) return promessa;
         var limpar = function () { fecho.removeAttribute('aria-busy'); };
         return promessa.then(function (r) { limpar(); return r; },

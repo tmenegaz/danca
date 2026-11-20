@@ -76,6 +76,35 @@ const shard = (slug) => ({ ESCOLA_SLUG: slug, PACOTE_PARTILHADO: 'sim' });
   provar('CONTROLE NEGATIVO: `/assets10/x` não é confundido com `/assets/x`',
     producao.ehAssetPartilhado('/assets10/x') === false);
 
+  /* ── 3.1 O ENDEREÇO COM A ESCOLA COLADA (20/11/2026) ─────────────────────────────────────── */
+  /* O que a pesquisadora viu: «tentei abrir o ciclo e deu erro 404 not found», com
+   * `https://breu.padd.com.br/breu/rosa/plano` no console. Tudo o que ela reportou responde 200
+   * sem o prefixo — o 404 vinha de a árvore ser `/breu` + `/breu/rosa/plano`. Aqui mede-se a
+   * decisão do caminho; o `fetch` só a invoca depois de o ASSETS dizer 404. */
+  const colados = [
+    ['/breu/rosa/plano', '/rosa/plano'],
+    ['/breu/rosa/aula-01', '/rosa/aula-01'],
+    ['/breu/aulas/', '/aulas/'],
+    ['/calango/piano/assets/lib-vistas.js', '/piano/assets/lib-vistas.js'],
+  ];
+  for (const [pedido, esperado] of colados) {
+    const escola = pedido.split('/')[1];
+    provar('`' + pedido + '` → `' + esperado + '`',
+      producao.caminhoSemAEscola(pedido, escola) === esperado,
+      producao.caminhoSemAEscola(pedido, escola));
+  }
+  provar('CONTROLE NEGATIVO: o endereço certo fica quieto',
+    producao.caminhoSemAEscola('/rosa/plano', 'breu') === null,
+    producao.caminhoSemAEscola('/rosa/plano', 'breu'));
+  provar('CONTROLE NEGATIVO: a escola de outro Worker não se toca',
+    producao.caminhoSemAEscola('/calango/rosa/plano', 'breu') === null,
+    producao.caminhoSemAEscola('/calango/rosa/plano', 'breu'));
+  provar('CONTROLE NEGATIVO: `/<escola>` sozinho não é um endereço do pacote',
+    producao.caminhoSemAEscola('/breu', 'breu') === null,
+    producao.caminhoSemAEscola('/breu', 'breu'));
+  provar('sem escola resolvida, nada se redirecciona',
+    producao.caminhoSemAEscola('/breu/rosa/plano', '') === null);
+
   /* ── 4. O PREFIXO DA PORTA ────────────────────────────────────────────────────────────────── */
   provar('a porta lê `plano-observacao/` na raiz, fora do shard',
     producao.prefixoDosAssetsDaPorta(escolaUnica('calango')) === 'plano-observacao/',
@@ -83,6 +112,41 @@ const shard = (slug) => ({ ESCOLA_SLUG: slug, PACOTE_PARTILHADO: 'sim' });
   provar('e `calango/plano-observacao/` dentro dele',
     producao.prefixoDosAssetsDaPorta(shard('calango')) === 'calango/plano-observacao/',
     producao.prefixoDosAssetsDaPorta(shard('calango')));
+
+  /* ── 4.1 A CADEIA AUTOMÁTICA LÊ ONDE A PORTA LÊ (20/11/2026) ─────────────────────────────── */
+  /* O defeito medido no ar: em toda a escola de um shard, `montarCadeia` respondia `null` e a
+   * cadeia dizia «não está montada neste Worker». A causa era o prefixo — `plano-observacao/`
+   * em vez de `<escola>/plano-observacao/`. Aqui o ASSETS é um mapa que só responde debaixo do
+   * prefixo da árvore, como o de produção: se a leitura for feita no sítio errado, isto é null. */
+  {
+    const conteudo = JSON.stringify({ grupos: [] });
+    const assetsDaArvore = (mapa) => ({
+      async fetch(pedido) {
+        /* `carregarEstatico` passa um URL, e não um Request: as duas formas contam. */
+        const bruto = pedido && pedido.url ? pedido.url : String(pedido && pedido.href ? pedido.href : pedido);
+        const chave = new URL(bruto, 'https://assets.local').pathname.replace(/^\/+/, '');
+        const corpo = mapa[chave];
+        if (corpo === undefined) return new Response('', { status: 404 });
+        return new Response(corpo, { status: 200, headers: { 'Content-Type': 'application/json' } });
+      },
+    });
+    const mapaDaPorta = {
+      'calango/plano-observacao/conteudo/anamnese.json': conteudo,
+      'calango/plano-observacao/envelope/elicitacao-schema.json': conteudo,
+      'calango/plano-observacao/po/conteudo/po.json': conteudo,
+      'calango/plano-observacao/plano/conteudo/plano.json': conteudo,
+    };
+    const comArvore = Object.assign(shard('calango'), { ASSETS: assetsDaArvore(mapaDaPorta) });
+    const cadeia = await producao.montarCadeia(comArvore, 'calango');
+    provar('no shard, a cadeia monta-se lendo `<escola>/plano-observacao/…`', cadeia !== null,
+      cadeia === null ? 'null — o prefixo da porta não foi usado' : 'montada');
+
+    const semArvore = Object.assign(escolaUnica('calango'),
+      { ASSETS: assetsDaArvore(mapaDaPorta) });
+    const cadeiaFora = await producao.montarCadeia(semArvore, 'calango');
+    provar('CONTROLE NEGATIVO: fora do shard o mesmo mapa NÃO serve — o prefixo é outro',
+      cadeiaFora === null);
+  }
 
   /* ── 5. A CACHE É POR ESCOLA ──────────────────────────────────────────────────────────────── */
   /* O defeito que isto impede: um isolate a servir N escolas com uma cache de valor único

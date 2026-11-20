@@ -1531,6 +1531,43 @@ async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola, doPlano })
         }
       }
 
+      /* O FECHO DO PACOTE QUE NÃO CABE NESTA INVOCAÇÃO — declarado à tela (20/11/2026).
+       *
+       * O QUE FOI MEDIDO NO AR. Ela gravou o plano de observação e a tela ficou «pending»; o
+       * ciclo e a aula continuavam a servir o pacote de ontem. O registo da geração dizia tudo:
+       * `fase: falhou-no-disparo`, `escritas: 0`, e o erro do runtime —
+       * «Too many subrequests by single Worker invocation». Ou seja: o «Guardar» do PO gasta o
+       * teto de 50 subpedidos a conferir a cadeia e a gravar o elo, e o que sobra não chega para
+       * escrever as fontes do ciclo e disparar. A gravação do documento está certa; o que não
+       * acontece é o último passo.
+       *
+       * O CAMINHO JÁ EXISTE. Em 10/11/2026 o mesmo teto foi resolvido para os gestos das Turmas
+       * com uma segunda invocação — `POST /api/bastidores/cadeia-pacote`, que corre só o passo 4
+       * e que por isso tem os 50 subpedidos inteiros. A porta era o único chamador que ainda
+       * tentava fazer tudo dentro do próprio pedido.
+       *
+       * QUEM DECIDE É O SERVIDOR: esta rota não pede a segunda passagem — diz que ela é
+       * necessária. A tela (`geracao-cliente.js`) limita-se a pedir o que aqui se declarou, e o
+       * `fecharPacotes` relê o plano e o PO vigentes. Um segundo pedido só existe quando o
+       * primeiro não conseguiu; quando o disparo parte à primeira, nada disto aparece.
+       */
+      const disparoDoFecho = resultado.disparo
+        || (resultado.cadeia && resultado.cadeia.disparo) || null;
+      /* A TURMA VEM DE ONDE ELA EXISTE. O PO não repete `contexto-turma` nas respostas — quem a
+       * declara é o CONTEXTO do elo, e é ele que o `concluirPO` já usa para disparar. Ler só as
+       * respostas daria `null` num PO verdadeiro, e o fecho nunca seria declarado: a correcção
+       * existiria no código e não no ar. */
+      const contextoDoElo = resultado.documento && resultado.documento.contexto
+        ? resultado.documento.contexto : (contexto || {});
+      const turmaDoElo = (resultado.documento && porta.turmaDoEnvelope(resultado.documento))
+        || String(contextoDoElo.turma || '').trim() || null;
+      if (turmaDoElo && disparoDoFecho && disparoDoFecho.ok === false) {
+        resultado.fecharPacote = {
+          turmas: [String(turmaDoElo)],
+          motivo: disparoDoFecho.erro || disparoDoFecho.motivo || null,
+        };
+      }
+
       return resultado;
     } catch (erro) {
       return recusar(erro.message, 500);

@@ -54835,3 +54835,61 @@ aberto, com um factor de 3 na capacidade comercial. Resolve-se com um lançament
 
 **O que este documento não é**, e está escrito lá: não é ensaio de carga, não é a factura das
 requisições (as duas somam-se), e não inclui KV nem invocações do Worker.
+
+## 20/11/2026 — «Tentei abrir o ciclo e deu erro 404» — dois defeitos medidos, e um deles era a cadeia inteira
+
+**O que ela reportou.** «Eu tentei abrir o ciclo e deu erro 404 not found. Abri a aula, deu erro 404.
+Tentei gerar o plano de ensino, gerei, deu certo. Tentei gerar o plano de observação, deu status
+pending. Então a página nem carrega, o formulário não abre.» E, no console:
+`GET https://breu.padd.com.br/breu/rosa/plano → 404`.
+
+**O que a medição mostrou, e não era o que parecia.**
+
+1. **O 404 era o endereço, e não o pacote.** Com o prefixo da escola tudo o que ela reportou responde
+   **200**: `/rosa/` 200, `/rosa/plano` 200, `/rosa/aula-01` 200, `/rosa/lancamento` 200,
+   `/rosa/referencias` 200. O endereço que ela usou tem a escola **duas vezes** — `/breu/rosa/plano`
+   —, e no shard o caminho pedido vira `/breu` + `/breu/rosa/plano`. O 404 do ASSETS tem
+   `content-length: 0`: uma página em branco, que se lê como «o sistema caiu».
+
+2. **O «pending» tinha nome, e estava escrito no registo da geração.** `GET
+   /plano-observacao/api/geracao?professor=demi-plie&ciclo=01&turma=Rosa` devolveu
+   `fase: "falhou-no-disparo"`, `escritas: 0`, e o erro do runtime: **«Too many subrequests by single
+   Worker invocation»**. O «Guardar» do PO gasta o teto dos 50 subpedidos a conferir a cadeia e a
+   gravar o elo; o que sobrava não chegava para escrever as fontes do ciclo e disparar. O documento
+   ficou gravado, o pacote publicado ficou o de ontem. **Nenhum `Gerar o ciclo` foi disparado** desde
+   as 00:31 — confirmado na API do GitHub, e as fontes do ciclo tinham 0 escritas.
+
+3. **E o elo que ninguém tinha visto: no shard, a cadeia automática nunca se montava.**
+   `montarCadeia` procurava `plano-observacao/conteudo/anamnese.json`, e no shard o ficheiro vive em
+   `breu/plano-observacao/…`. As quatro leituras davam 404, a função desistia em silêncio (`return
+   null`) e **toda** a escola servida por um shard respondia «a cadeia automática não está montada
+   neste Worker» a qualquer gesto que a pedisse — a troca de sala, a troca de professor, a saída de
+   elenco, o fecho do pacote. Medido com um `POST /api/bastidores/cadeia-pacote` na `breu`, que
+   devolveu exatamente essa frase. A porta sabia o prefixo (`prefixoDosAssetsDaPorta`); o que não
+   havia era quem fechasse.
+
+**O que se corrigiu.**
+
+- `motor/servidor/producao.js` — `montarCadeia` passa a ler pelo **prefixo da porta**. Uma linha, e
+  é a diferença entre a cadeia existir e não existir num shard.
+- `motor/servidor/producao.js` — `caminhoSemAEscola` + os `302` no ramo do ASSETS: quando o caminho
+  começa pelo nome **desta** escola e o ASSETS responde 404, tira-se o prefixo e redirecciona-se uma
+  vez, com a query preservada. A guarda é o 404: o que já responde nunca é tocado.
+- `motor/servidor/rotas.js` — a rota `/api/elicitar` passa a **declarar** `fecharPacote` quando o
+  disparo não aconteceu. Não é ela que pede a segunda passagem; ela diz que ela é necessária.
+- `motor/servidor/geracao-cliente.js` — o cartão da porta pede esse fecho por
+  `POST /api/bastidores/cadeia-pacote`, em invocação própria — o caminho que existe desde 10/11/2026
+  e de que a porta era o único chamador que ainda não sabia. Sem o campo na resposta, nada muda.
+
+**O que se mediu nas bancadas, com o A/B feito por remoção da correcção.**
+
+- `provar-arvore-do-shard`: **20 → 30 asserções**. Sem o prefixo corrigido, 29 de 30 com a asserção
+  da cadeia vermelha («null — o prefixo da porta não foi usado»); com ele, 30 de 30.
+- `provar-geracao`: **34 → 40 verificações**, e as duas do fecho novas. Sem a correcção falham **4 de
+  36** (as duas novas incluídas, cada uma na sua secção, para o A/B não se esconder num aborto); com
+  ela, **2 de 40** — e as duas são as de antes (`o registro e o estado`, `a ponte injeta o cartão`).
+
+**O que não se tocou.** Nenhum contador de subpedidos foi levantado, nenhuma geração foi agrupada,
+nenhuma das seis alavancas do `CUSTO-DOS-FLUXOS.md` foi aplicada. A correcção não faz o «Guardar»
+gastar menos: faz o passo que não cabia acontecer **noutra invocação**, que é o desenho que já
+existia para os gestos das Turmas.

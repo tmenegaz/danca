@@ -357,6 +357,29 @@ function caminhoNaArvore(env, path) {
   return prefixo + (path === '/' ? '/' : path);
 }
 
+/**
+ * O ENDEREÇO COM A ESCOLA COLADA — `/breu/rosa/plano` → `/rosa/plano` (20/11/2026).
+ *
+ * Devolve o caminho corrigido, ou `null` quando não há nada a corrigir. Três guardas, e cada
+ * uma fecha um caso que não pode ser tocado:
+ *
+ *   · só o PRIMEIRO segmento é candidato, e tem de ser o nome DESTA escola — `/rosa/plano` fica
+ *     quieto, e `/outra-escola/...` também (não é nosso, e adivinhar seria pior que o 404);
+ *   · o caminho tem de ter mais de um segmento — `/<escola>` sozinho não é um endereço do pacote;
+ *   · e o chamador só a invoca depois de o ASSETS dizer 404, porque a pergunta que ela responde
+ *     é «o que faço com um endereço que não existe», e não «o que faço com este endereço».
+ *
+ * A barra final é preservada: `/breu/aulas/` → `/aulas/`, e não `/aulas` — são dois pedidos
+ * diferentes para o ASSETS, e trocá-los mudaria o que a pessoa recebe.
+ */
+function caminhoSemAEscola(path, escola) {
+  const nome = String(escola || '').trim();
+  if (!nome) return null;
+  const fatias = String(path || '').split('/').filter(Boolean);
+  if (fatias.length < 2 || fatias[0] !== nome) return null;
+  return '/' + fatias.slice(1).join('/') + (String(path).endsWith('/') ? '/' : '');
+}
+
 /* SEM VALOR INICIAL, DE PROPÓSITO: `undefined` é «ainda não lido» e `null` é «não há ficheiro».
  * Começar em `null` (como esteve na primeira redação) fazia a primeira leitura devolver «não há
  * ficheiro» sem ler nada — a conferência ficava desligada em silêncio, e o `/api/saude` dizia
@@ -458,7 +481,19 @@ async function aparenciaDoEnv(env) {
  * em vez de a rota falhar por causa de uma automação acessória.
  */
 async function montarCadeia(env, escola, fetchImpl) {
-  const prefixo = 'plano-observacao/';
+  /* O PREFIXO É O DA PORTA, E NÃO A PASTA NUA (20/11/2026).
+   *
+   * Estava escrito `'plano-observacao/'`, e no shard o ficheiro vive em
+   * `breu/plano-observacao/…`. As quatro leituras davam 404, a função desistia em silêncio
+   * (`return null`), e a consequência era total: em TODA a escola servida por um shard, a
+   * cadeia automática respondia «não está montada neste Worker» — a troca de sala, a troca de
+   * professor, a saída de elenco, o fecho do pacote. A porta, essa, sempre soube o prefixo
+   * (`prefixoDosAssetsDaPorta`) e por isso gravava; o que não havia era quem fechasse.
+   *
+   * Medido em 20/11/2026 com um pedido a `/api/bastidores/cadeia-pacote` na `breu`: «a cadeia
+   * automática não está montada neste Worker (sem token ou sem os conteúdos da porta)». O token
+   * estava lá — o que faltava era o caminho. */
+  const prefixo = prefixoDosAssetsDaPorta(env);
   let conteudoTexto, esquemaTexto, poTexto, planoTexto;
   try {
     [conteudoTexto, esquemaTexto, poTexto, planoTexto] = await Promise.all([
@@ -1271,6 +1306,30 @@ async function fetch(request, env) {
      * O texto e o `200` são os do placeholder original, de propósito: é a mesma página, no mesmo
      * ponto do processo, e duas redacções para o mesmo instante divergiriam. */
     const respostaDoAsset = await env.ASSETS.fetch(pedidoAoAsset);
+    /* O ENDEREÇO COM A ESCOLA COLADA — um 302 onde hoje há um 404 vazio (20/11/2026).
+     *
+     * O QUE ACONTECEU. Ela abriu o ciclo e a aula, e recebeu «404 not found»; o console dizia
+     * `https://breu.padd.com.br/breu/rosa/plano`. O endereço certo é `/rosa/plano` — tudo o que
+     * ela reportou como quebrado responde 200 ali, medido. O prefixo a mais é uma cicatriz do
+     * regime antigo, em que tudo era servido em `danca.padd.com.br/<escola>/<variante>/…`, e um
+     * marcador guardado desde então nunca mais abre.
+     *
+     * O QUE NÃO SE FAZ: explicar. O ASSETS devolve um 404 com `content-length: 0` — uma página
+     * em branco, que se lê como «o sistema caiu». Quem tem o link errado não tem como saber que
+     * o link é que está errado.
+     *
+     * O QUE SE FAZ: tirar o prefixo e repetir o pedido, uma vez. A guarda é o 404 — um caminho
+     * que exista nunca é redireccionado, e é isso que impede esta correcção de mexer no que já
+     * responde. A decisão do caminho vive em `caminhoSemAEscola`, e a prova mede essa função. */
+    if (respostaDoAsset.status === 404) {
+      const semPrefixo = caminhoSemAEscola(path, escolaResolvida);
+      if (semPrefixo) {
+        return new Response(null, {
+          status: 302,
+          headers: { Location: semPrefixo + url.search, 'Cache-Control': 'no-store, max-age=0' },
+        });
+      }
+    }
     if (respostaDoAsset.status === 404 && escolaResolvida && (path === '/' || path === '/index.html')) {
       /* A ESPERA DIZ-SE, E RESOLVE-SE SOZINHA (16/11/2026). «Enquanto não carrega, não tem nenhuma
        * mensagem dizendo que é para aguardar, a tela fica preta.» A página já existia; o que lhe
@@ -1306,6 +1365,9 @@ module.exports = {
    * `ehAssetPartilhado` directamente — são elas que decidem se `/aulas/` vira `/calango/aulas/`
    * e se `/assets/style.css` fica quieto, e uma prova que as reconstruísse mediria a prova. */
   prefixoDaArvore, caminhoNaArvore, ehAssetPartilhado, prefixoDosAssetsDaPorta,
+  /* O ENDEREÇO COM A ESCOLA COLADA (20/11/2026) — exportado para a prova medir a decisão do
+   * caminho, e não o `fetch` inteiro: é ela que decide se há 302 ou 404. */
+  caminhoSemAEscola,
   /* A MONTAGEM DA CADEIA, exportada para a prova (09/11/2026). A prova mede a MESMA função que
    * a ponte usa — reconstruí-la na bancada mediria a bancada, não a ligação. */
   montarCadeia,

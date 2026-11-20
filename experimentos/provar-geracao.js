@@ -805,11 +805,109 @@ async function oRedirecionamento() {
 }
 
 // ===========================================================================
+// O FECHO QUE NÃO CABE NUMA INVOCAÇÃO — e a segunda que ele pede (20/11/2026)
+//
+// O QUE FOI MEDIDO NO AR. «Tentei gerar o plano de observação, deu status pending.» O registro
+// da geração dizia `falhou-no-disparo` com `escritas: 0` e «Too many subrequests by single
+// Worker invocation»: o «Guardar» do PO gastou o teto dos 50 subpedidos antes de chegar ao
+// último passo. O documento ficou gravado e o pacote publicado ficou o de ontem.
+//
+// O QUE ESTA SECÇÃO MEDE — as duas metades, e a negativa:
+//   · a rota DECLARA que falta a segunda passagem (`fecharPacote`), com a turma do elo;
+//   · quando o disparo parte à primeira, NÃO declara nada (é o A/B: sem esta metade, a
+//     correcção poderia estar a pedir sempre um segundo pedido);
+//   · o cartão da porta PEDE o fecho por `/api/bastidores/cadeia-pacote` quando o vê, e não
+//     pede nada quando não o vê.
+//
+// O caminho do fecho já existia desde 10/11/2026 (`/api/bastidores/cadeia-pacote`); o que
+// faltava era a porta conhecê-lo. A prova não reconstrói o fecho — ela mede a LIGAÇÃO.
+// ===========================================================================
+
+async function oFechoDeclarado() {
+  // --- o servidor declara o fecho quando as fontes não ficaram prontas
+  const rotas = await bancada({
+    ciclo: { conf: { ok: false, pendencia: 'a hora de início da turma' }, escritas: [{ ok: true }] },
+    disparar: async () => { throw new Error('não devia ser chamado'); },
+    geracao: null,
+  });
+  const falhou = await pedir(rotas, 'POST', '/api/elicitar', BASE_PO);
+  assert.equal(falhou.status, 200);
+  assert.ok(falhou.dados.fecharPacote, 'a resposta tinha de declarar o fecho em duas invocações');
+  assert.deepEqual(falhou.dados.fecharPacote.turmas, [CONTEXTO.turma]);
+  ok('fontes que não ficaram prontas: a resposta declara o fecho, com a turma do elo');
+
+  // --- A/B: com as fontes prontas o fecho NÃO é declarado (o disparo partiu à primeira)
+  const partiu = await pedir(await bancada({
+    ciclo: CICLO_BOM,
+    disparar: async () => ({ ok: true, status: 204 }),
+    geracao: null,
+  }), 'POST', '/api/elicitar', BASE_PO);
+  assert.equal(partiu.status, 200);
+  assert.equal(partiu.dados.disparo.ok, true);
+  assert.equal(partiu.dados.fecharPacote, undefined,
+    'um segundo pedido só existe quando o primeiro não conseguiu');
+  ok('A/B: com o disparo feito, nada de segunda passagem — a correcção não pede sempre');
+}
+
+async function oCartaoPedeOFecho() {
+  // --- o cartão pede o fecho quando o servidor o declara
+  const dom = new JSDOM(HTML_DA_PORTA, {
+    url: 'https://escola.example/plano-observacao/?professor=sapo-bailarino&ciclo=01&fonte=po',
+    runScripts: 'outside-only',
+    pretendToBeVisual: true,
+  });
+  const win = dom.window;
+  const pedidos = [];
+  const respostaDoElicitar = { ok: true, gravado: true, fecharPacote: { turmas: ['Rosa'] } };
+  win.fetch = async (url, opcoes) => {
+    pedidos.push({ url: String(url), metodo: (opcoes && opcoes.method) || 'GET',
+      corpo: (opcoes && opcoes.body) || null });
+    return { ok: true, status: 200, json: async () => respostaDoElicitar,
+      clone() { return this; } };
+  };
+  win.eval(SCRIPT_DO_CARTAO);
+  await espera(30);
+  // A porta é quem faz o POST; aqui faz-se o mesmo pedido que ela faria.
+  await win.fetch('api/elicitar', { method: 'POST', body: '{}' });
+  await espera(30);
+  const fecho = pedidos.find((p) => p.url.indexOf('cadeia-pacote') !== -1);
+  assert.ok(fecho, 'o cartão não pediu o fecho: ' + JSON.stringify(pedidos.map((p) => p.url)));
+  assert.equal(fecho.metodo, 'POST');
+  assert.deepEqual(JSON.parse(fecho.corpo), { turmas: ['Rosa'] },
+    'o fecho vai com o corpo que o servidor declarou, sem o reinterpretar');
+  ok('o cartão pede o fecho em invocação própria, com o corpo que o servidor declarou');
+  dom.window.close();
+
+  // --- e NÃO pede nada quando a resposta não o declara
+  const dom2 = new JSDOM(HTML_DA_PORTA, {
+    url: 'https://escola.example/plano-observacao/?professor=sapo-bailarino&ciclo=01&fonte=po',
+    runScripts: 'outside-only',
+    pretendToBeVisual: true,
+  });
+  const win2 = dom2.window;
+  const pedidos2 = [];
+  win2.fetch = async (url) => {
+    pedidos2.push(String(url));
+    return { ok: true, status: 200, json: async () => ({ ok: true, gravado: true }),
+      clone() { return this; } };
+  };
+  win2.eval(SCRIPT_DO_CARTAO);
+  await espera(30);
+  await win2.fetch('api/elicitar', { method: 'POST', body: '{}' });
+  await espera(30);
+  assert.equal(pedidos2.filter((u) => u.indexOf('cadeia-pacote') !== -1).length, 0);
+  ok('sem o campo na resposta, o cartão não inventa um segundo pedido');
+  dom2.window.close();
+}
+
+// ===========================================================================
 
 (async () => {
   prova('o gatilho é condicionado', oGatilho);
   await provaAsync('o registro e o estado', oEstado);
   await provaAsync('a rota do «Guardar»', aRota);
+  await provaAsync('o fecho que a rota declara', oFechoDeclarado);
+  await provaAsync('o cartão pede o fecho', oCartaoPedeOFecho);
   await provaAsync('o cartão na porta', oCartao);
   await provaAsync('o salto para a página da escola', oRedirecionamento);
   await provaAsync('a ponte injeta o cartão', aInjecao);

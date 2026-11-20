@@ -4769,6 +4769,19 @@ Não se muda sem ela decidir.
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **20/11/2026** — **Os dois defeitos que faziam o sítio parecer quebrado.** O `404` do ciclo e da
+  aula era o **endereço** com a escola duas vezes (`/breu/rosa/plano`); sem o prefixo tudo responde
+  200. Passou a haver um `302` para o caminho sem duplicação, e só onde o ASSETS responde 404. O
+  «status pending» do PO era `falhou-no-disparo` com **«Too many subrequests by single Worker
+  invocation»** e `escritas: 0` — o «Guardar» gastava os 50 subpedidos antes do último passo. A rota
+  passou a **declarar** `fecharPacote` e o cartão da porta pede-o em invocação própria
+  (`/api/bastidores/cadeia-pacote`). **E o elo maior:** num shard, `montarCadeia` lia
+  `plano-observacao/…` em vez de `<escola>/plano-observacao/…`, desistia em silêncio e **a cadeia
+  automática respondia «não está montada neste Worker» a todos os gestos** — troca de sala, troca de
+  professor, saída de elenco, fecho do pacote. Corrigido, com o A/B medido:
+  `provar-arvore-do-shard` 20 → 30 (sem o prefixo, 29 de 30) e `provar-geracao` 34 → 40 (sem o
+  fecho, 4 de 36).
+
 - **19/11/2026** — **Correção: as datas das aulas existem.** A §3.4 desta fotografia afirmava que não
   havia data por aula, e o `ciclos.json` publicado mostra 24 aulas datadas, calculadas do ritmo da
   Sala. O T7 passa a ser «**congelar** a data das aulas que já aconteceram», não «criar a data». Nenhum
