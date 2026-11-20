@@ -54939,7 +54939,28 @@ acima, no mesmo ficheiro, para a direção: «a data é um indício; a identidad
    passaria com dados que a produção nunca tem.
 
 **A/B por remoção da correcção:** `provar-os-fluxos-da-derivacao` **65 → 73** asserções; sem as
-duas guardas falham **3 de 73**, com elas **73 de 73**. As bancadas vizinhas continuam verdes
+duas guardas falham **3 de 73**, com elas **73 de 73**.
+
+**E a guarda foi medida sobre os DADOS REAIS, não sobre fixtures.** A prova acima usa um plano
+construído à mão; esta usa o `plano-20261119-2144.json` e o `po-20261119-2144.json` que estão no
+repositório, com a Sala `rosa-2026-11-19-3` lida ao vivo — o envelope verdadeiro tem as respostas
+embrulhadas em `{valor, origem, respondente, nota}`, e uma comparação que não desembrulhasse teria
+passado na prova e falhado no ar:
+
+| | `plano-de-ensino` | `plano-de-observacao` |
+|:--|:--|:--|
+| **sem** a correcção | `feita` | `feita` |
+| **com** a correcção | `pendente` | `pendente` |
+
+É exactamente o estado que a produção tinha às 02:34, e é exactamente o que passa a não acontecer.
+
+**E os dois caminhos de leitura da Sala foram conferidos, porque a correcção poderia derivar e
+escrever o valor errado.** `acharTurma` — que serve `ritmoDaSala` (a derivação) **e**
+`comporManifestoDaTurma` (o `.conf`) — filtra `!t.substituidaPor`. Lê portanto a Sala vigente
+(`…-3`, 60 min, fim 08/01), e não a substituída: o plano novo sairá com **60 minutos**, e o
+manifesto com `DIAS="1@14:30,3@14:30,5@14:30"` e `DURACOES="60"` em vez dos `16:30` que lá estão.
+A linhagem também está de pé: a rota `/api/bastidores/turmas` devolve **uma** Sala porque filtra as
+substituídas, e a `rosa-2026-11-19-2` continua guardada com o seu `substituidaPor`. As bancadas vizinhas continuam verdes
 (`provar-cadeia-automatica` 62, `provar-salas-e-elencos` 132, `provar-gravar-e-gravar` 49,
 `provar-gestos-do-shard` 33).
 
