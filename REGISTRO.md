@@ -55275,3 +55275,71 @@ asserções sobre o núcleo.
 **O custo, medido e não estimado:** a pergunta lê o plano vigente (duas leituras: a lista e o
 envelope), e só quando a duração efectivamente mudou — que é o caso raro. Não há escrita nenhuma no
 caminho da recusa: zero commits, zero execuções de CI.
+
+**O modal, corrigido pela leitura dela (20/11/2026) — cinco defeitos, e um deles meu de método.**
+
+Ela abriu a tela, mudou a duração de 120 para 100 minutos, e devolveu cinco coisas. Todas certas.
+
+**1. O que é automático não se mostra.** «A duração da aula é um automático. O que é automático você
+não precisa nem dizer, tá? Não precisa nem aparecer aqui, vamos enxugar a tela, porque já é da
+intenção do professor fazer essa troca, então o que é automático ele não quer nem saber. Ele só quer
+saber o que tiver impacto.» Saíram duas linhas: a da duração (que repetia o número que a pessoa
+acabou de escrever no formulário) e a dos blocos em percentagem («não mudam» — dizer que não há nada
+a dizer ocupa o olho e não informa nada). **E com um impacto só a tabela desaparece**: uma tabela de
+uma linha é uma moldura para uma frase. O caso dela passou a ler-se assim, e só assim:
+
+> De 120 para 100 minutos. Isto muda o que já está planeado.
+> Dose por exercício: 3 a 6 séries — precisa de ajuste no plano de ensino.
+
+**2. «precisa de si» não diz nada; «precisa de ajuste» diz, e «onde» diz o resto.** «Coloca precisa
+de ajuste e diz aonde, né? Precisa de ajuste lá no plano de ensino. Eu acho que é lá, se não for é no
+de observação, mas aí você coloca o plano certo.» Ela acertou: `contexto-volume` («Volume de
+trabalho») está em `porta/plano/conteudo/plano.json` — o **plano de ensino**. O plano de observação
+deriva dele e não o declara.
+
+**3. A pergunta é um registo, e um registo tem de ficar registado.** Ela perguntou o que as duas
+opções fazem — «é só para dizer se a pessoa está ciente, é isso?» É. E por isso a decisão passa a
+entrar no `motivoDoElo`, que é o campo que o histórico do cartão mostra: «a dose por exercício foi
+assinalada para revisão no plano de ensino» ou «foi mantida, por decisão de quem ajustou». Antes, a
+resposta «manter» não deixava rasto nenhum — um clique sem consequência não é um registo, é um
+clique. E o aviso do gesto deixou de mandar revê-la quando a resposta foi mantê-la: o sistema
+registra a decisão, e a decisão foi essa.
+
+**4. O modal só existe na derivação.** «Se for editar ou criação e aí mudar, editar, enfim, não tem
+problema nenhum, não aparece nada porque ainda não teve desdobramentos.» A chamada saiu de
+`turma-editar`, e ela está certa por um facto do modelo: **essa rota é a da Sala LIVRE**, e uma Sala
+livre não tem plano nem PO — não há documento nenhum para reavaliar. O factor que torna a ausência
+segura está escrito no sítio, para quem um dia mexer na regra.
+
+**5. «Gravar é gravar», e eu violei uma regra que já estava documentada.** «Lembra que a gente
+combinou que não tem nada de gravar de um jeito, gravar de outro jeito, é só gravar? Não tem gravar
+assim, não tem isso.» O botão dizia «Gravar assim». A regra existe desde 19/11/2026, com estas
+palavras dela, no cabeçalho de `provar-gravar-e-gravar.js`. **E a prova não apanhava**, porque
+media uma lista de oito ids conhecidos — o meu era o nono. A lição: **uma prova que enumera os seus
+casos não vê o caso novo.** A varredura passou a ser da regra: nenhum «Gravar» seguido de outra
+palavra, em sítio nenhum da marcação nem do script. A/B: repor «Gravar assim» falha **4 de 53**.
+
+**E um sexto, que ela viu antes de mim como um `NaN` solto no fim do modal.** Era um `+` a mais numa
+concatenação: `+ perguntas +` seguido de `+ "…"` produz `+ (+"…")` — soma unária sobre uma string — e
+o painel mostrava «NaN» entre o formulário e os botões. Nenhuma expressão regular ao fonte o via,
+porque o defeito nasce do que o JS **emite**, e não do que está escrito. É a segunda vez no mesmo dia
+que o jsdom apanha o que o `grep` não apanha.
+
+**A FALHA DE MÉTODO, e é a que importa mais.** Ao escrever a asserção que mede o ponto 2, escrevi
+`conferir('…', JSON.stringify(celulas), …)` sem o `===` — **uma string como condição**. `conferir`
+fazia `if (ok)`, e uma string não vazia é verdadeira: a asserção passava **sempre**. O A/B que devia
+provar que ela recusa deu «ok», e eu quase escrevi no REGISTRO que estava provado. Medi a bancada
+inteira com um contador: das 162 asserções, **2** tinham o defeito — as duas que eu acabara de
+escrever. `conferir` passou a aceitar só `true`, e uma condição que não seja booleana é FALHA com
+frase própria: o erro está na prova, e não no produto.
+
+**A/B, todos medidos:** repor a linha «automático» e a dos blocos → **4 falhas**; repor o `+` a mais
+→ **6** (os dois «NaN»); repor «precisa de si» sem o sítio → **3** (depois de a asserção passar a
+medir as células da linha, e não a presença da palavra — a versão anterior passava por outra razão,
+porque a opção «Vou revê-la no plano de ensino» já tinha a frase); repor «Gravar assim» → **4** em
+`provar-gravar-e-gravar` e **2** em `provar-salas-e-elencos`.
+
+**Bancadas:** `provar-salas-e-elencos` **162** (era 153; secção L com oito asserções novas, incluindo
+uma que mede contra o servidor que a edição **não** abre a pergunta), `provar-gravar-e-gravar` **53**
+(era 49), `provar-cadeia-automatica` **78** (era 76; a resposta «manter» também está medida, e os
+minutos são reescalonados na mesma, porque a dose é outra pergunta).

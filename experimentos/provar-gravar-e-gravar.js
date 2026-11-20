@@ -108,8 +108,31 @@ async function principal() {
 
   /* O SÍTIO É UM SÓ. Oito botões, oito rótulos — se aparecer um nono «Gravar» na marcação, é um
    * botão novo que ninguém declarou aqui: a prova avisa em vez de o deixar passar. */
-  const ocorrencias = (html.match(/>Gravar</g) || []).length;
+  /* A CONTA É DA MARCAÇÃO, E NÃO DA PÁGINA INTEIRA (20/11/2026). O painel serve um script que
+   * CONSTRÓI marcação — o modal da duração nasce dele, e o botão dele também diz «Gravar». Contar a
+   * página inteira passaria a dar nove por uma razão correcta, e a asserção acusaria o contrário do
+   * que quer dizer. Duas contas, cada uma no seu sítio: oito na marcação, e a do modal no script. */
+  const scriptDaPagina = oScript(html);
+  const marcacao = html.split(scriptDaPagina).join('');
+  const ocorrencias = (marcacao.match(/>Gravar</g) || []).length;
   provar('o rótulo aparece exactamente oito vezes na marcação', ocorrencias === 8, ocorrencias);
+  const noScript = (scriptDaPagina.match(/>Gravar</g) || []).length;
+  provar('…e uma no script, a do modal da duração', noScript === 1, noScript);
+
+  /* A VARREDURA QUE FALTAVA (20/11/2026) — e a falta dela custou um defeito meu.
+   *
+   * A 20/11/2026 eu acrescentei um modal novo ao painel da sala, e o botão dele dizia «Gravar
+   * assim». Este ficheiro existe exactamente para isso — «não tem nada de gravar de um jeito,
+   * gravar de outro jeito, é só gravar» —, e passou ao lado: a lista acima é de OITO ids
+   * conhecidos, e o nono era novo. Uma prova que enumera não vê o que ainda não está na lista.
+   *
+   * A asserção abaixo não enumera nada: varre a marcação E o script servido à procura de QUALQUER
+   * «Gravar» seguido de outra palavra. É a regra, e não os seus oito casos. */
+  const comCauda = (html.match(/>\s*Gravar[^<]*</gi) || [])
+    .filter((r) => !/^>\s*Gravar\s*<$/i.test(r));
+  provar('nenhum «Gravar» tem cauda — nem na marcação nem no script', comCauda.length === 0, comCauda);
+  const caudasNoScript = (scriptDaPagina.match(/>\s*Gravar\s+[^<]*</gi) || []);
+  provar('…e a mesma varredura no script emitido', caudasNoScript.length === 0, caudasNoScript);
 
   /* =========================================================================================== */
   console.log('\nB. O script servido não reescreve o rótulo de nenhum deles');
@@ -122,7 +145,7 @@ async function principal() {
   const MORTAS = ['Criar dicionário', 'Gravar alterações', 'Gravar verbete', 'Cadastrar aluna',
     'Gravar a correção', 'Gravar a anamnese nova', 'Gravar ajuste', 'Gravar turma', 'Gravar elenco',
     'Criar elenco', 'Atribuir turma', 'Gravar cadastrar professor', 'Gravar as habilitações',
-    'Gravar sala'];
+    'Gravar sala', 'Gravar assim'];
   for (const frase of MORTAS) {
     provar('«' + frase + '» não é escrito pelo script',
       script.indexOf(frase) === -1, script.indexOf(frase));

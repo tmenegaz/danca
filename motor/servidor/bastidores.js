@@ -13779,10 +13779,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (n === null || n === undefined || isNaN(n)) return "—";' +
     '  return Math.round(n * 10) / 10 === Math.round(n) ? String(Math.round(n)) : String(Math.round(n * 10) / 10);' +
     '}' +
-    'function linhaDoFato(rotulo, hoje, depois, nota){' +
-    '  return "<tr><td>" + rotulo + (nota ? " <span class=\\"fatos\\"><span>" + nota + "</span></span>" : "") + "</td>"' +
-    '    + "<td>" + hoje + "</td><td>" + depois + "</td></tr>";' +
+    /* A NOTA FICA NA COLUNA DO «DEPOIS», e não na do rótulo: é ali que está a acção. Na coluna do
+     * rótulo, «no plano de ensino» lia-se como se fosse o nome da linha. */
+    'function linhaDoFato(o){' +
+    '  return "<tr><td>" + o.rotulo + "</td><td>" + o.hoje + "</td><td>" + o.depois' +
+    '    + (o.nota ? " <span class=\\"fatos\\"><span>" + o.nota + "</span></span>" : "") + "</td></tr>";' +
     '}' +
+    /*
+     * SÓ O QUE TEM IMPACTO (20/11/2026). Ela viu o modal e disse: «A duração da aula é um
+     * automático. O que é automático você não precisa nem dizer, tá? Não precisa nem aparecer aqui,
+     * vamos enxugar a tela, porque já é da intenção do professor fazer essa troca, então o que é
+     * automático ele não quer nem saber. Ele só quer saber o que tiver impacto.»
+     *
+     * É uma regra, e não um enfeite: a linha «Duração da aula — automático — 120 min — 100 min»
+     * repetia o que a pessoa acabou de escrever no formulário. E a linha dos blocos em percentagem
+     * («não mudam») dizia que não havia nada a dizer — pior que o silêncio, porque ocupa o olho.
+     *
+     * A TABELA SOME QUANDO TEM UMA LINHA SÓ. Uma tabela de uma linha é uma moldura para uma frase;
+     * com um impacto, o impacto escreve-se como se escreve. Com dois ou mais — o caso dos minutos,
+     * que traz os blocos e o total —, a tabela é a forma certa, porque há o que comparar.
+     */
     'function perguntarDaDuracao(d, repetir){' +
     '  var i = d && d.impacto;' +
     '  if (!i) { recado("erro", (d && d.erro) || "erro"); return; }' +
@@ -13791,20 +13807,34 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (antigo && antigo.parentNode) antigo.parentNode.removeChild(antigo);' +
     '  var precisaProporcao = !!(i.proporcao && i.proporcao.precisaAjuste);' +
     '  var precisaDose = !!(i.dose && i.dose.paraRever);' +
-    '  var corpo = linhaDoFato("Duração da aula", i.mudou.de + " min", i.mudou.para + " min", "automático");' +
+    '  var impactos = [];' +
     '  if (precisaProporcao) {' +
     '    var ls = i.proporcao.linhas || [];' +
     '    for (var k = 0; k < ls.length; k++) {' +
-    '      corpo += linhaDoFato(ls[k].bloco, numeroCurto(ls[k].de) + " min", numeroCurto(ls[k].para) + " min", "");' +
+    '      impactos.push({rotulo: ls[k].bloco, hoje: numeroCurto(ls[k].de) + " min",' +
+    '        depois: numeroCurto(ls[k].para) + " min", nota: ""});' +
     '    }' +
-    '    corpo += linhaDoFato("Total", numeroCurto(i.proporcao.totalDe) + " min",' +
-    '      numeroCurto(i.proporcao.totalPara) + " min", "tem de fechar com a duração");' +
-    '  } else if (i.proporcao) {' +
-    '    corpo += linhaDoFato("Blocos", "em percentagem", "não mudam", "30% de outra coisa continua a ser 30%");' +
+    '    impactos.push({rotulo: "Total", hoje: numeroCurto(i.proporcao.totalDe) + " min",' +
+    '      depois: numeroCurto(i.proporcao.totalPara) + " min", nota: "tem de fechar com a duração"});' +
     '  }' +
     '  if (precisaDose) {' +
-    '    corpo += linhaDoFato("Dose por exercício", i.dose.texto, "precisa de si", "não há conta que a resolva");' +
+    '    impactos.push({rotulo: "Dose por exercício", hoje: i.dose.texto,' +
+    '      depois: "precisa de ajuste", nota: "no plano de ensino"});' +
     '  }' +
+    '  var corpo = "";' +
+    '  if (impactos.length > 1) {' +
+    '    corpo = "<div class=\\"etapa-campo largo\\"><table><thead><tr><th>O quê</th><th>Hoje</th>"' +
+    '      + "<th>Com " + i.mudou.para + " min</th></tr></thead><tbody>";' +
+    '    for (var q = 0; q < impactos.length; q++) corpo += linhaDoFato(impactos[q]);' +
+    '    corpo += "</tbody></table></div>";' +
+    '  } else if (impactos.length === 1) {' +
+    '    corpo = "<p class=\\"etapa-campo largo\\">" + impactos[0].rotulo + ": " + impactos[0].hoje' +
+    '      + " — " + impactos[0].depois + (impactos[0].nota ? " " + impactos[0].nota : "") + ".</p>";' +
+    '  }' +
+    /* A DOSE É A ÚNICA QUE PEDE UMA PESSOA, e a pergunta diz ONDE se ajusta — a dúvida dela, com
+     * estas palavras: «É só para dizer se a pessoa está ciente, é isso?» É: o sistema registra, e a
+     * resposta segue no aviso do gesto. Não abre aba nenhuma, porque abrir uma tela é exactamente o
+     * que ela não quer («sem ele precisar sair navegando indo para tudo quanto é lugar»). */
     '  var perguntas = "";' +
     '  if (precisaProporcao) {' +
     '    perguntas += "<fieldset class=\\"escolhas etapa-campo largo\\"><legend class=\\"campo-rotulo\\">Recalcular os minutos pela proporção que está declarada?</legend>"' +
@@ -13812,8 +13842,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      + "<label class=\\"escolha\\"><input type=\\"radio\\" name=\\"dur-proporcao\\" value=\\"nao\\"><span>Não, deixar como está</span></label></fieldset>";' +
     '  }' +
     '  if (precisaDose) {' +
-    '    perguntas += "<fieldset class=\\"escolhas etapa-campo largo\\"><legend class=\\"campo-rotulo\\">A dose por exercício (" + i.dose.texto + ") foi escrita para a duração anterior. O que fazer?</legend>"' +
-    '      + "<label class=\\"escolha\\"><input type=\\"radio\\" name=\\"dur-dose\\" value=\\"rever\\" checked><span>Vou revê-la no plano</span></label>"' +
+    /* O LEGEND NÃO REPETE O QUE A LINHA ACIMA JÁ DIZ. Quando a dose é o ÚNICO impacto, a frase do
+     * corpo traz o valor — «Dose por exercício: 3 a 6 séries» —, e repeti-lo no legend seria dizer
+     * duas vezes a mesma coisa em duas linhas seguidas. Com mais impactos (a tabela dos minutos), o
+     * legend nomeia-o, porque aí está no meio de outros. */
+    '    var rotuloDose = precisaProporcao' +
+    '      ? "A dose por exercício (" + i.dose.texto + ") foi escrita para outra duração. O que fazer?"' +
+    '      : "A dose foi escrita para outra duração. O que fazer?";' +
+    '    perguntas += "<fieldset class=\\"escolhas etapa-campo largo\\"><legend class=\\"campo-rotulo\\">" + rotuloDose + "</legend>"' +
+    '      + "<label class=\\"escolha\\"><input type=\\"radio\\" name=\\"dur-dose\\" value=\\"rever\\" checked><span>Vou revê-la no plano de ensino</span></label>"' +
     '      + "<label class=\\"escolha\\"><input type=\\"radio\\" name=\\"dur-dose\\" value=\\"manter\\"><span>Manter como está</span></label></fieldset>";' +
     '  }' +
     '  var caixa = document.createElement("div");' +
@@ -13826,12 +13863,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    + "  <button class=\\"modal-x\\" id=\\"dur-x\\" type=\\"button\\" aria-label=\\"Fechar\\">&times;</button></div>"' +
     '    + "  <form class=\\"form\\" id=\\"form-duracao\\" novalidate>"' +
     '    + "    <div class=\\"etapa-campos\\">"' +
-    '    + "      <p class=\\"etapa-campo largo\\">De " + i.mudou.de + " para " + i.mudou.para + " minutos. Isto é o que muda nos documentos que já existem.</p>"' +
-    '    + "      <div class=\\"etapa-campo largo\\"><table><thead><tr><th>O quê</th><th>Hoje</th><th>Com " + i.mudou.para + " min</th></tr></thead><tbody>"' +
-    '    + corpo + "</tbody></table></div>"' +
-    '    + perguntas +' +
+    '    + "      <p class=\\"etapa-campo largo\\">De " + i.mudou.de + " para " + i.mudou.para + " minutos. Isto muda o que já está planeado.</p>"' +
+    '    + corpo' +
+    '    + perguntas' +
     '    + "    </div>"' +
-    '    + "    <div class=\\"modal-acoes\\"><button class=\\"acao\\" id=\\"dur-gravar\\" type=\\"submit\\">Gravar assim</button></div>"' +
+    /* «GRAVAR» É GRAVAR (19/11/2026, e ela repetiu-o a 20/11/2026). «Lembra que a gente combinou
+     * que não tem nada de gravar de um jeito, gravar de outro jeito, é só gravar? Não tem gravar
+     * assim, não tem isso.» A regra já estava escrita em `provar-gravar-e-gravar.js` — que mede
+     * oito botões, e não viu o nono porque novo. Ver a asserção nova que passou a varrer todos. */
+    '    + "    <div class=\\"modal-acoes\\"><button class=\\"acao\\" id=\\"dur-gravar\\" type=\\"submit\\">Gravar</button></div>"' +
     '    + "  </form>"' +
     '    + "</div>";' +
     '  (document.body || document.documentElement).appendChild(caixa);' +
@@ -22971,27 +23011,22 @@ async function fetch(request, env, extras) {
       ajustado[k] = declarado[k];
     }
     const indice = lista.findIndex((t) => t && t.id === idAntigo);
-    /* A MESMA PERGUNTA DA DERIVAÇÃO, E ANTES DA ESCRITA (20/11/2026) — ver `perguntaDaDuracao`.
+    /* A PERGUNTA DA DURAÇÃO NÃO EXISTE AQUI, E É DE PROPÓSITO (20/11/2026).
      *
-     * A edição no lugar só acontece em Sala LIVRE (sem Turma a declará-la), e uma Sala livre não
-     * tem plano — portanto aqui a pergunta quase nunca tem o que perguntar. Ela fica escrita porque
-     * «quase nunca» não é «nunca»: um registo antigo pode ter Turma sem o estado o saber, e uma
-     * escrita que muda a duração sem avisar é a mesma família de erro que a derivação. */
-    const perguntaDaEdicao = await perguntaDaDuracao({
-      cadeia, anterior: alvo, corpo, paraMin: (ajustado.duracaoMin !== undefined
-        ? ajustado.duracaoMin : alvo.duracaoMin),
-    });
-    if (perguntaDaEdicao && !perguntaDaEdicao.ajusteDeVolume) {
-      const i = perguntaDaEdicao.impacto;
-      return json(409, {
-        ok: false,
-        precisaDecisao: 'duracao',
-        impacto: i,
-        erro: 'a duração passou de ' + i.mudou.de + ' para ' + i.mudou.para + ' min, e há '
-          + 'documentos que dependem dela. Confirme o que muda antes de gravar — nada foi gravado.',
-      });
-    }
-    const ajusteDeVolumeDaEdicao = perguntaDaEdicao ? perguntaDaEdicao.ajusteDeVolume : null;
+     * «Essa tela só vai aparecer quando for derivação. Se for editar ou criação e aí mudar, editar,
+     * enfim, não tem problema nenhum, não aparece nada porque ainda não teve desdobramentos essa
+     * elaboração de tempo, então esse modal nem existe para esses outros casos, só existe na
+     * derivação.»
+     *
+     * E ela está certa, por um facto do modelo e não por preferência: **esta rota é a da Sala
+     * LIVRE.** Uma Sala que uma Turma declara não se edita no lugar — deriva-se (`turma-derivar`),
+     * e é essa rota que tem desdobramentos. Uma Sala livre não tem plano nem PO, portanto não há
+     * documento nenhum para reavaliar: perguntar seria perguntar sobre nada.
+     *
+     * O FACTOR QUE TORNA ISTO SEGURO, para quem um dia mexer na regra: a edição no lugar só é
+     * alcançável quando nenhuma Turma ocupa a Sala. Se essa regra mudar, esta ausência passa a ser
+     * um buraco — e é aqui que se lê porquê.
+     */
     /* O QUE MUDOU, ANTES DE MUDAR (T2, 19/11/2026). O gatilho da travessia dizia sempre
      * «mudança de sala» — o rótulo do RITMO —, mesmo quando o que mudou foi quem a dá. O log da
      * cadeia lê-se por esse rótulo, e um rótulo que mente sobre o gesto é a mesma família de erro
@@ -23024,7 +23059,6 @@ async function fetch(request, env, extras) {
          * direção ela pára e diz que a autoria não se reescreve. */
         gatilho: parMudouNaEdicao ? 'troca-de-direcao' : 'mudanca-de-sala',
         turmas: [lista[indice].nome],
-        ajusteDeVolume: ajusteDeVolumeDaEdicao,
         motivo: parMudouNaEdicao
           ? 'o par (modalidade, professor) da sala «' + lista[indice].nome + '» mudou na edição'
           : 'o ritmo da sala «' + lista[indice].nome + '» foi ajustado',
@@ -23209,10 +23243,25 @@ async function fetch(request, env, extras) {
         turmas: [nova.nome],
         quando: vigencia,
         ajusteDeVolume,
-        motivo: parMudouNaDerivacao
+        /* A DECISÃO FICA NO MOTIVO DO ELO (20/11/2026).
+         *
+         * O modal pergunta «o que fazer?» com duas respostas, e ela perguntou o que isso É: «é só
+         * para dizer se a pessoa está ciente, é isso?» É — o sistema registra. Mas uma resposta que
+         * não deixa rasto não é um registo: é um clique. A decisão entra no `motivoDoElo`, que é o
+         * campo que o histórico do cartão mostra; assim «porque é que a dose não foi revista»
+         * responde-se meses depois, e a resposta é de quem ajustou, não do sistema.
+         *
+         * NO PLANO, E NÃO NO PO: `contexto-volume` («Volume de trabalho») vive em
+         * `porta/plano/conteudo/plano.json`; o PO deriva do plano e não o declara. */
+        motivo: (parMudouNaDerivacao
           ? 'o par (modalidade, professor) da sala «' + nova.nome + '» passou a valer a partir de '
             + vigencia
-          : 'o ritmo da sala «' + nova.nome + '» passou a valer a partir de ' + vigencia,
+          : 'o ritmo da sala «' + nova.nome + '» passou a valer a partir de ' + vigencia)
+          + (ajusteDeVolume
+            ? (ajusteDeVolume.reverDose
+              ? ' · a dose por exercício foi assinalada para revisão no plano de ensino'
+              : ' · a dose por exercício foi mantida, por decisão de quem ajustou')
+            : ''),
       })
       : { executada: false, motivo: 'nenhuma Turma ocupa esta sala — não há plano nem PO a reavaliar' };
     return json(201, { ok: true, turma: nova.nome, nome: nova.nome, id: nova.id, modo: 'derivar',

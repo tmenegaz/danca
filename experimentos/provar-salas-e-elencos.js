@@ -66,10 +66,29 @@ const SENHA = 'senha-da-direcao';
 
 let n = 0;
 let falhas = 0;
+/*
+ * UMA PROVA SÓ ACEITA `true` (20/11/2026).
+ *
+ * O DEFEITO QUE ISTO FECHA, e ele é o pior género de defeito: eu escrevi
+ *
+ *     conferir('…a linha da dose diz o valor, o ajuste e ONDE se faz', JSON.stringify(celulas), …)
+ *
+ * — sem o `===`, portanto uma STRING como condição. Uma string não vazia é verdadeira, e a asserção
+ * passava **sempre**. O A/B que devia provar que ela recusa o defeito deu «ok», e eu quase escrevi
+ * no REGISTRO que estava provado. Uma prova que passa por outra razão não é uma prova: é uma
+ * autorização.
+ *
+ * `if (ok)` aceitava qualquer valor com verdade. Agora só `true` passa, e uma condição que não seja
+ * booleana é FALHA com a frase própria — porque o erro está na prova, e não no produto.
+ */
 function conferir(rotulo, ok, detalhe) {
   n += 1;
-  if (ok) { console.log('  ok    ' + rotulo); return; }
+  if (ok === true) { console.log('  ok    ' + rotulo); return; }
   falhas += 1;
+  if (ok !== false) {
+    console.log('  FALHA ' + rotulo + '  → a condição não é um booleano: ' + JSON.stringify(ok));
+    return;
+  }
   console.log('  FALHA ' + rotulo + (detalhe === undefined ? '' : '  → ' + JSON.stringify(detalhe)));
 }
 
@@ -1436,15 +1455,36 @@ const RITMO = {
       const tMin = mMin ? mMin.textContent : '';
       conferir('…e diz a duração de origem e a de destino',
         /De 90 para 120 minutos/.test(tMin), tMin.slice(0, 140));
-      /* AS TRÊS NATUREZAS, uma a uma: o que muda sozinho, o que muda com conta, e o que precisa de
-       * uma pessoa. */
-      conferir('…marca a duração como automática', /automático/.test(tMin), null);
+      /* O QUE É AUTOMÁTICO NÃO APARECE (20/11/2026) — «o que é automático ele não quer nem saber.
+       * Ele só quer saber o que tiver impacto». A linha da duração e a dos blocos em percentagem
+       * saíram; a dos blocos em MINUTOS fica, porque aí há conta a fazer. */
+      conferir('…e NÃO diz «automático» — o que é automático não se mostra',
+        !/autom[aá]tico/i.test(tMin), (tMin.match(/autom[aá]tico/i) || [])[0]);
       conferir('…mostra os minutos de cada bloco, antes e depois',
         /Solo/.test(tMin) && /27 min/.test(tMin) && /36 min/.test(tMin), null);
       conferir('…e o total, com a regra à vista («tem de fechar com a duração»)',
         /tem de fechar com a duração/.test(tMin), null);
       conferir('…e a dose pede decisão sem propor número',
-        /3 a 6 séries/.test(tMin) && /precisa de si/.test(tMin), null);
+        /3 a 6 séries/.test(tMin) && /precisa de ajuste/.test(tMin), null);
+      /* «precisa de ajuste E DIZ AONDE» — «coloca precisa de ajuste e diz aonde, né? Precisa de
+       * ajuste lá no plano de ensino». O sítio é o plano de ensino: `contexto-volume` («Volume de
+       * trabalho») está em `porta/plano/conteudo/plano.json`. */
+      /* A ASSERÇÃO MEDE AS CÉLULAS DA LINHA, e não a presença da palavra no texto do modal.
+       *
+       * A primeira versão procurava «no plano de ensino» em qualquer sítio — e a opção «Vou revê-la
+       * no plano de ensino» já tem essa frase, portanto a prova passava mesmo com o impacto a dizer
+       * só «precisa de si». Uma prova que passa por outra razão é o pior dos defeitos: ela autoriza
+       * o que devia recusar. A segunda procurava dois pontos, e o caso dos minutos é TABELA — o
+       * `textContent` junta as células sem separador. Ler as células é o que mede a linha. */
+      const linhaDaDose = (mMin ? [...mMin.querySelectorAll('tbody tr')] : [])
+        .find((tr) => /Dose por exercício/.test(tr.textContent));
+      const celulasDaDose = linhaDaDose
+        ? [...linhaDaDose.children].map((td) => td.textContent.replace(/\s+/g, ' ').trim())
+        : null;
+      conferir('…e a linha da dose diz o valor, o ajuste e ONDE se faz',
+        JSON.stringify(celulasDaDose)
+          === JSON.stringify(['Dose por exercício', '3 a 6 séries', 'precisa de ajuste no plano de ensino']),
+        celulasDaDose);
       conferir('…e NENHUM número novo para a dose é proposto',
         !/(7 a 12|6 a 12|4 a 8|12 séries)/.test(tMin), null);
       /* AS PERGUNTAS SÃO A PEÇA DA FOLHA (`escolhas`/`escolha`), e os botões estão na barra do
@@ -1452,8 +1492,20 @@ const RITMO = {
       conferir('…as duas perguntas usam a peça `escolhas` da folha',
         (mMin ? mMin.querySelectorAll('fieldset.escolhas').length : 0) === 2,
         mMin ? mMin.querySelectorAll('fieldset.escolhas').length : 0);
-      conferir('…e o botão vive na barra do modal (`.modal-acoes`)',
-        !!(mMin && mMin.querySelector('.modal-acoes > .acao')), null);
+      const botaoMin = mMin ? mMin.querySelector('.modal-acoes > .acao') : null;
+      conferir('…e o botão vive na barra do modal (`.modal-acoes`)', !!botaoMin, null);
+      /* «GRAVAR» É GRAVAR — «não tem nada de gravar de um jeito, gravar de outro jeito, é só
+       * gravar. Não tem gravar assim, não tem isso.» A regra é da casa desde 19/11/2026, está em
+       * `provar-gravar-e-gravar.js`, e o modal novo não a podia contrariar. */
+      conferir('…e o botão diz «Gravar», e só isso',
+        botaoMin && botaoMin.textContent.trim() === 'Gravar', botaoMin && botaoMin.textContent.trim());
+      /* NENHUM `NaN` NO MODAL. A primeira versão tinha um: um `+` a mais na concatenação da
+       * marcação fazia `+"…"` — soma unária — e o painel mostrava `NaN` entre o formulário e os
+       * botões. Nenhuma expressão regular ao fonte o via, porque o defeito nasce do que o JS emite,
+       * e não do que está escrito. */
+      conferir('…e não há «NaN» nem «undefined» no que o modal mostra',
+        mMin && !/NaN|undefined/.test(tMin),
+        mMin ? (tMin.match(/NaN|undefined/g) || []) : null);
       /* A DECISÃO: o padrão protege o professor — recalcular (a alternativa é metade da aula por
        * declarar) e rever a dose (foi escrita para outra duração). */
       await cMin.decidir();
@@ -1480,8 +1532,46 @@ const RITMO = {
       conferir('…e a pergunta dos blocos NÃO aparece',
         (mPct ? mPct.querySelectorAll('fieldset.escolhas').length : -1) === 1,
         mPct ? mPct.querySelectorAll('fieldset.escolhas').length : -1);
-      conferir('…e a linha diz que as fatias não mudam', /não mudam/.test(tPct), tPct.slice(0, 180));
+      /* A TELA ENXUGA ATÉ AO QUE TEM IMPACTO. Em percentagem as fatias não mudam, portanto a linha
+       * delas não existe — «a gente tinha alinhado isso que não era para aparecer». Sobra a dose, e
+       * com um impacto só a TABELA DESAPARECE: uma tabela de uma linha é uma moldura para uma
+       * frase. */
+      conferir('…e a linha dos blocos NÃO aparece (as fatias não mudam, e isso não se mostra)',
+        !/não mudam/.test(tPct), (tPct.match(/.{0,20}não mudam/gi) || [])[0]);
+      conferir('…e com um impacto só, a tabela desaparece',
+        (mPct ? mPct.querySelectorAll('table').length : -1) === 0,
+        mPct ? mPct.querySelectorAll('table').length : -1);
+      conferir('…e o impacto único lê-se como uma frase',
+        /Dose por exercício: 3 a 6 séries — precisa de ajuste no plano de ensino\./.test(tPct),
+        (tPct.match(/Dose por exercício[^.]*\./) || [])[0]);
+      conferir('…e não há «NaN» nem «undefined»',
+        mPct && !/NaN|undefined/.test(tPct), mPct ? (tPct.match(/NaN|undefined/g) || []) : null);
+      conferir('…e o botão diz «Gravar», e só isso',
+        (mPct && mPct.querySelector('.modal-acoes > .acao')
+          ? mPct.querySelector('.modal-acoes > .acao').textContent.trim() : null) === 'Gravar',
+        mPct && mPct.querySelector('.modal-acoes > .acao').textContent.trim());
       await cPct.decidir();
+      /* A PERGUNTA NÃO EXISTE NA EDIÇÃO (20/11/2026). «Essa tela só vai aparecer quando for
+       * derivação. Se for editar ou criação […] esse modal nem existe para esses outros casos.»
+       *
+       * MEDE-SE CONTRA O SERVIDOR, e não contra o código: uma Sala LIVRE muda de duração e a
+       * resposta é 200, não o 409 da pergunta. É o mesmo pedido que no `turma-derivar` produz o
+       * modal — a diferença é a rota, e é ela que a regra nomeia. */
+      const eL = ambiente();
+      const livre = await postar(eL, '/api/bastidores/turma',
+        Object.assign({ nome: 'Sala Livre da Prova' }, RITMO));
+      conferir('a Sala livre é criada', livre.status === 201 || livre.status === 200,
+        { status: livre.status, corpo: livre.corpo && livre.corpo.erro });
+      const editada = await postar(eL, '/api/bastidores/turma-editar', {
+        id: (livre.corpo && (livre.corpo.id || livre.corpo.turma)) || 'sala-livre-da-prova',
+        nome: 'Sala Livre da Prova',
+        duracaoMin: 45,
+        dias: RITMO.dias, horarios: RITMO.horarios,
+        periodoInicio: RITMO.periodoInicio, periodoFim: RITMO.periodoFim,
+      });
+      conferir('…e mudar-lhe a duração NÃO abre a pergunta — a edição não tem desdobramentos',
+        editada.status === 200, { status: editada.status, precisaDecisao: editada.corpo && editada.corpo.precisaDecisao });
+
       conferir('…e um clique basta',
         JSON.stringify((cPct.corpos[1] || {}).decisaoDaDuracao)
           === JSON.stringify({ proporcao: 'nao', dose: 'rever' }),

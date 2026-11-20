@@ -492,9 +492,15 @@ function criarCadeia({
     const avisos = (fonte && Array.isArray(fonte.pendencias) ? fonte.pendencias : [])
       .map((p) => 'a geração vai recusar esta aula: ' + p);
     if (volumeEscalado) avisos.push(volumeEscalado);
+    /* O AVISO DIZ O SÍTIO E RESPEITA A RESPOSTA (20/11/2026). «Precisa de ajuste e diz aonde, né?
+     * Precisa de ajuste lá no plano de ensino.» E, quando quem ajustou disse «manter», o aviso não
+     * pode continuar a mandar revê-la: o sistema registra a decisão, e a decisão foi essa. */
     if (ajusteDeVolume && ajusteDeVolume.reverDose) {
       avisos.push('a dose por exercício foi escrita para a duração anterior e não mudou sozinha: '
-        + 'revê-la no plano, porque não há conta que a resolva');
+        + 'revê-la no plano de ensino, porque não há conta que a resolva');
+    } else if (ajusteDeVolume) {
+      avisos.push('a dose por exercício foi mantida como estava, por decisão de quem ajustou — '
+        + 'ela continua a dizer a duração anterior, e o plano de ensino é onde se revê');
     }
     return { ok: true, id: envelope && envelope.id, de: anterior.id, fonte, avisos };
   }

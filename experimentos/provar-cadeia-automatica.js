@@ -373,8 +373,38 @@ async function ids(arm, familia) {
     /* AS DUAS FRASES QUE O GESTO PASSA A DIZER — o que foi feito e o que fica por decidir. */
     const avisos = (r2.avisos || []).join(' | ');
     provar('…e o gesto diz que reescalonou', /reescalonada de 60 para 120 minutos/.test(avisos), avisos);
-    provar('…e diz que a dose NÃO mudou sozinha, e tem de ser revista',
-      /dose por exercício foi escrita para a duração anterior/.test(avisos), avisos);
+    provar('…e diz que a dose NÃO mudou sozinha, e manda revê-la no plano de ensino',
+      /dose por exercício foi escrita para a duração anterior/.test(avisos)
+        && /revê-la no plano de ensino/.test(avisos), avisos);
+    /* A OUTRA RESPOSTA DO MODAL, e é a metade que faltava medir: quando quem ajustou diz «manter»,
+     * o aviso não pode continuar a MANDAR revê-la — o sistema registra a decisão, e a decisão foi
+     * essa. O que ele faz é lembrar onde ela se revê se um dia ele quiser. */
+    const { cadeia: c3, arm: arm3 } = montar();
+    const manter = planoFixture('plano-20261103-2200', { geradoEm: '2026-11-03T22:00' });
+    manter.respostas['distribuicao-de-volume'] = r({ unidade: 'minutos', linhas: [
+      { Bloco: 'Barra', 'Proporção alvo': '30 min', Justificativa: 'Apoio.' },
+      { Bloco: 'Centro', 'Proporção alvo': '30 min', Justificativa: 'Deslocamento.' },
+    ] });
+    await porta.gravarEnvelope(arm3, manter, relatorioDe('plano-20261103-2200'));
+    await porta.gravarEnvelope(arm3, poFixture('po-20261103-2221',
+      { planoId: 'plano-20261103-2200', geradoEm: '2026-11-03T22:21' }), relatorioDe('po-20261103-2221'));
+    const r4 = await c3.executar({
+      gatilho: 'troca-de-aluna', elencos: ['elenco-a'], quando: QUANDO, motivo: 'dose mantida',
+      ajusteDeVolume: { proporcao: true, reverDose: false, deMin: 60, paraMin: 120 },
+    });
+    const avisos4 = (r4.avisos || []).join(' | ');
+    provar('…e quando a resposta é «manter», o aviso regista em vez de mandar',
+      /mantida como estava, por decisão de quem ajustou/.test(avisos4)
+        && !/não mudou sozinha: revê-la/.test(avisos4), avisos4);
+    /* E MESMO COM «MANTER», O REESCALONAMENTO DOS MINUTOS ACONTECE: são duas decisões separadas, e
+     * a de manter é sobre a DOSE. A distribuição em minutos não tem escolha — sem ela a soma deixa
+     * de fechar com a duração, e a Aula 01 imprimiria os tempos a metade. */
+    const novos4 = (await ids(arm3, 'plano')).filter((x) => x !== 'plano-20261103-2200');
+    const novo4 = novos4.length ? await porta.lerEnvelope(arm3, novos4[0]) : null;
+    const v4 = novo4 && novo4.respostas['distribuicao-de-volume'];
+    const l4 = (v4 && (v4.valor || v4).linhas) || [];
+    provar('…e os minutos são reescalonados na mesma (a dose é outra pergunta)',
+      l4.map((l) => String(l['Proporção alvo'])).join(' '), '60 min 60 min');
     /* O CONTROLE NEGATIVO: sem ajuste, nada disto acontece. Um reescalonamento que corresse
      * sempre seria uma reescrita silenciosa de planos que ninguém pediu para mudar. */
     const { cadeia: c2, arm: arm2 } = montar();
