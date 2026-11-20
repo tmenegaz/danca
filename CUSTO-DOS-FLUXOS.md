@@ -769,6 +769,14 @@ avisar que a linha caiu, e o aviso é uma frase, não uma pergunta.
 serve?»* — com os marcos da turma, e sem pré-selecção. A partir dela o sistema sabe o que mostrar: a
 linha do parâmetro que ganha o termo, e os blocos cujo total muda.
 
+> **E uma TERCEIRA, e é a que explica as duas anteriores.** Medida ao vivo, com a senha da direção:
+> a rota respondia `motivo: 'fora-do-repertorio'` — *«este exercício não está no conteúdo desta
+> Turma»* — para o exercício que ela estava a acrescentar. Certo pelo código, absurdo pelo gesto: é
+> precisamente ele que está a entrar. A distinção que faltava é entre **o termo a entrar** (o gesto,
+> onde a lista gravada não manda) e **um termo que já é conteúdo** (a derivação, onde manda e é a
+> guarda). `oTermoEntra` separa os dois. E as provas não viam porque todas as asserções usavam uma
+> Turma que **já incluía** o termo — testavam uma situação que o gesto não produz.
+
 > **E UMA SEGUNDA CORRECÇÃO, no mesmo dia e no mesmo sítio.** Publicada a primeira, ela testou ao
 > vivo e leu «não era possível ler agora o plano de ensino». A causa era outra, e pior: a ponte monta
 > a cadeia automática **só para as rotas de uma lista**, e a janela não estava nela — a cadeia era

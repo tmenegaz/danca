@@ -56389,3 +56389,42 @@ recusa-a). Sem ela, o que se mede é o código e as provas; o gesto no ecrã é 
 **Com o quê.** `motor/servidor/producao.js` (a ponte lê `bastidores.ROTAS_QUE_PRECISAM_DA_CADEIA`);
 `motor/servidor/bastidores.js` (a constante, `planoDaTurmaNaSala`, e a rota simplificada);
 `experimentos/provar-as-rotas-da-cadeia.js`; `.gitignore` (a excepção que a torna versionável).
+
+## 20/11/2026 — O terceiro defeito da mesma janela, e é o que explica os dois primeiros
+
+**Medido ao vivo, na `breu`, com a senha da direção.** A rota respondia:
+
+```
+POST /api/bastidores/impacto-da-inclusao  {termo: "Batman GT"}
+→ {ok: true, precisaDecisao: null, motivo: "fora-do-repertorio",
+   aviso: "este exercício não está no conteúdo desta Turma."}
+```
+
+**E a resposta estava certa pelo código e errada pelo gesto.** Claro que o «Batman GT» não está no
+`repertorio` GRAVADO da Turma — é precisamente o que se está a acrescentar. O estado
+`fora-do-repertorio` impedia a pergunta, a janela não abria, e o exercício entrava sem objetivo.
+
+**A distinção que faltava é entre dois momentos**, e são momentos diferentes com regras diferentes:
+
+| momento | a lista da Turma manda? |
+|:--|:--|
+| o termo está a **entrar agora** (o gesto de acrescentar a ficha) | **não** — o candidato é ele |
+| pergunto por um termo que **já é conteúdo** (a derivação, que corre depois de a Turma gravar) | **sim** — é ela que impede declarar o que a Turma não acordou |
+
+`oTermoEntra` é essa marca. A rota que enche a janela passa-a; `aplicarDeclaracoes` continua sem
+ela, e o `fora-do-repertorio` continua a ser a guarda que impede escrever no plano o que a Turma não
+acordou.
+
+**Porque é que as provas não viam, e é a terceira vez que este documento escreve a mesma frase:**
+todas as asserções do estado usavam `TURMA_COM_O_NOVO`, que **já inclui** o termo. A prova testava
+uma situação que o gesto não produz. As duas asserções novas são o caso real — o termo a entrar, com
+a lista gravada ainda sem ele — e o seu controle negativo.
+
+**Medido ao vivo, depois:** a mesma chamada devolve `precisaDecisao: 'objetivo'`, `estado: 'nova'`,
+e os **três objetivos** da Turma (`1 — reconhecer o apoio e alinhar o eixo vertical`, `2 — transferir
+o peso entre os pés…`, `3 — sustentar a transferência com musicalidade…`), com a soma por bloco
+calculada (`Solo 36 → 36`, sem mudança — não há linha do item 10 com o exercício).
+
+**Com o quê.** `motor/nucleo/objetivos-do-repertorio.js` (`oTermoEntra` em `estadoDaDeclaracao` e em
+`impactoDaInclusao`); `motor/servidor/bastidores.js` (a rota passa `oTermoEntra: true`);
+`provar-o-exercicio-novo.js` (5 asserções novas, 55 no total).
