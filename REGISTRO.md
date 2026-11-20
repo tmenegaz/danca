@@ -55401,3 +55401,50 @@ volta).
 **O que ainda não está feito.** A dose continua a ser perguntada e guardada — o que saiu foi o
 **modal** e o aviso. E o `contexto-volume` continua a declarar `minutos ativos` sem que nada confira
 que a minutagem escrita cabe na música; é do professor, e o sistema não a mede.
+
+## 20/11/2026 — A caixinha da Produção: a marca e o menu a 10px do canto
+
+**O pedido, ao vivo.** «A logomarca ela está colada no topo. […] o column group […] você vai colocar
+dentro dele um padding left de 10 pixels também. Assim ele fica proporcional e dentro da caixinha,
+porque ele está parecendo que é maior do que a caixa.»
+
+**O defeito não era de gosto, era de medida — e foi medido antes de mexer.** Na `lateral` da
+Produção, a 1280px, a `.lateral-lista` — a folha que no computador fica como uma caixinha de canto
+20px dentro da coluna escura — começa em `y=16`, e a marca começava em `y=16`: o desenho de 44px
+encostava ao canto arredondado. O primeiro título de grupo começava em `x=12`, o mesmo `x` da
+caixa, e o fundo que ele ganha no ponteiro ia de borda a borda.
+
+**O que ficou, medido depois:**
+
+| | antes | depois |
+|:--|:--|:--|
+| topo da marca | `16` — o topo da caixinha | `26` — 10px abaixo |
+| esquerda do título | `12` — a borda da caixinha | `22` — a vertical da marca |
+
+**Não se converteu nada, e o Sistema Lastro ficou de fora de propósito.** A identidade da Produção
+passa a `padding: 10px 10px 8px`; o grupo, a `padding-left: 10px`. A coluna do sistema é plana no
+corte dos 1141 (`border-radius: 0`, sem sombra): não há canto de que o menu se afaste, e o mesmo
+10px ali só encolheria o menu em 10px.
+
+**Motivo declarado — os congelados.** `tools/templates/` é congelado, e a alteração é de
+apresentação. **Não muda**: a fórmula de hash (`tools/hash-ciclo.sh`), a cobertura das fontes,
+nenhum validador, nenhuma das 17 regras de `REGRAS.md` e nenhuma das 22 pétreas de `PROTOCOLO.md`.
+A folha continua a ser uma só, e as cópias dela (`raiz/assets/style.css` e os pacotes de ciclo)
+foram refeitas a partir da fonte.
+
+**Onde entrou.** `tools/templates/ciclo.css` — as duas regras, com o porquê no sítio, no bloco dos
+Bastidores; `experimentos/provar-identidade-ao-lado.js` — quatro asserções (duas no fonte, duas na
+geometria, a 1400px e a 800px).
+
+**Com o quê.** `tools/templates/ciclo.css`, `experimentos/provar-identidade-ao-lado.js`,
+`raiz/assets/style.css` e os dois pacotes de ciclo (`demi-plie/ciclo-01-breu` e
+`demi-plie/ciclo-01-breu-rosa`, `assets/style.css`) — as cópias da folha, refeitas a partir da
+fonte — e este `REGISTRO.md`.
+
+**A/B, medido.** Sem as duas regras, `provar-identidade-ao-lado` falha **6 de 33** — as quatro da
+caixinha e as duas do CSS, com `{marca:16, caixa:16}` e `{titulo:12, marca:22}`; com elas,
+**33 de 33**.
+
+**O que ainda não está feito.** A folha do telemóvel não recebeu o ar: ali a identidade está
+escondida e o menu continua a encostar às bordas da folha. Se o mesmo respiro fizer falta no
+telefone, é a mesma linha, sem o `@media`.

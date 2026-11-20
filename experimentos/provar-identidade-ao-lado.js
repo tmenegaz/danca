@@ -17,6 +17,10 @@
  *      afirmações sobre pixels, e um `flex` mal posto passa num teste de texto e falha no ecrã. É
  *      a lição da `provar-anamnese-antes-da-aluna`: o que o `grep` não vê é o que dói.
  *   3. O TELEMÓVEL — a marca sai (a barra mostra a sua) e o nome continua, com o ar da folha.
+ *   4. A CAIXINHA DOS BASTIDORES (20/11/2026) — a `.lateral-lista` tem canto de 20px, e a marca
+ *      encostava-lhe ao topo. O pedido: «a logomarca ela está colada no topo […] o column group
+ *      […] um padding left de 10 pixels também». A geometria é a prova: a marca 10px abaixo do
+ *      canto, e o primeiro grupo na mesma vertical que ela.
  *
  * SEM NAVEGADOR, A GEOMETRIA É DECLARADA COMO NÃO MEDIDA — nunca como aprovada. Uma prova que
  * passa por ausência de ferramenta é a pior das provas.
@@ -104,12 +108,17 @@ const MEDIDOR = [
   "  var marca = linha && linha.querySelector('.marca');",
   "  var nome = linha && linha.querySelector('.coluna-marca');",
   "  var coluna = document.querySelector('.coluna, .lateral-lista');",
+  "  var caixa = document.querySelector('.lateral-lista');",
+  "  var grupo = document.querySelector('.lateral .coluna-grupo');",
+  "  var titulo = document.querySelector('.lateral .coluna-titulo');",
   "  var pre = document.createElement('pre'); pre.id = 'medida';",
   '  pre.textContent = JSON.stringify({ largura: window.innerWidth,',
   "    linhaDisplay: linha ? getComputedStyle(linha).display : null,",
   "    marcaDisplay: marca ? getComputedStyle(marca).display : null,",
   "    nomeDisplay: nome ? getComputedStyle(nome).display : null,",
-  '    linha: r(linha), marca: r(marca), nome: r(nome), coluna: r(coluna) });',
+  "    linhaPadTop: linha ? getComputedStyle(linha).paddingTop : null,",
+  '    linha: r(linha), marca: r(marca), nome: r(nome), coluna: r(coluna),',
+  '    caixa: r(caixa), grupo: r(grupo), titulo: r(titulo) });',
   '  document.body.appendChild(pre);',
   '});',
   '</script>',
@@ -171,6 +180,17 @@ function medir(arquivo, largura) {
     /padding:\s*0/.test(nomeCss) && /margin:\s*0/.test(nomeCss), nomeCss.slice(0, 160));
   provar('…e não empurra a linha para fora (`min-width: 0`)', /min-width:\s*0/.test(nomeCss), null);
 
+  /* A CAIXINHA DOS BASTIDORES (20/11/2026). Aqui fica o declarado; a geometria abaixo mede-o.
+   * A `.lateral-lista > .coluna-identidade` aparece DUAS vezes na folha (a que a esconde no
+   * telemóvel e a que a desenha na coluna), e a primeira não serve para medir nada. */
+  const regrasDaLinhaLateral = [...css.matchAll(/\.lateral-lista > \.coluna-identidade\s*\{([^}]*)\}/g)]
+    .map((m) => m[1]);
+  provar('a identificação dos Bastidores respira do canto da caixinha (10px em cima)',
+    regrasDaLinhaLateral.some((r) => /padding:\s*10px\s+10px/.test(r)), regrasDaLinhaLateral);
+  const regrasDoGrupo = [...css.matchAll(/\.lateral \.coluna-grupo\s*\{([^}]*)\}/g)].map((m) => m[1]);
+  provar('…e o menu começa a 10px, na vertical da marca',
+    regrasDoGrupo.some((r) => /padding-left:\s*10px/.test(r)), regrasDoGrupo);
+
   /* ---------------------------------------------------------- 3. A GEOMETRIA */
   console.log('\n3. a geometria, num navegador de verdade');
   if (!CHROME) {
@@ -208,6 +228,15 @@ function medir(arquivo, largura) {
       provar(rot + ': o nome CABE na coluna, sem ser cortado',
         d.nome.x + d.nome.w <= d.coluna.x + d.coluna.w,
         { fim: d.nome.x + d.nome.w, coluna: d.coluna.x + d.coluna.w });
+      /* A CAIXINHA (20/11/2026) — só nos Bastidores: é a única das duas colunas que é uma folha
+       * com canto e sombra (`.folha-do-menu`), e é do canto dela que a marca se tinha de afastar. */
+      if (d.caixa) {
+        provar(rot + ': a marca não encosta ao canto da caixinha (10px de ar em cima)',
+          d.marca.y - d.caixa.y >= 8, { marca: d.marca.y, caixa: d.caixa.y });
+        provar(rot + ': o primeiro grupo do menu começa na vertical da marca',
+          Boolean(d.titulo) && Math.abs(d.titulo.x - d.marca.x) <= 1,
+          { titulo: d.titulo && d.titulo.x, marca: d.marca.x });
+      }
     }
 
     /* O TELEMÓVEL — a folha. A marca da coluna sai (a barra mostra a sua) e o nome continua, com

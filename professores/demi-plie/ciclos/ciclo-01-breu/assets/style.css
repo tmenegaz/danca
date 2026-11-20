@@ -857,9 +857,24 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
      a mesma coisa é o tipo de ruído que a folha evita. */
   .lateral-lista > .coluna-identidade {
     display: flex;
-    padding: 0 10px var(--esp-2);
+    padding: 10px 10px var(--esp-2);
     margin: 0;
   }
+  /* A CAIXINHA DA PRODUÇÃO TEM CANTO, E O MENU NÃO O RESPEITAVA (20/11/2026).
+   *
+   * «a logomarca ela está colada no topo […] o column group […] você vai colocar dentro dele um
+   * padding left de 10 pixels também. Assim ele fica proporcional e dentro da caixinha, porque
+   * ele está parecendo que é maior do que a caixa.»
+   *
+   * A `.lateral-lista` dos Bastidores é uma folha (`.folha-do-menu`): fundo próprio, sombra e
+   * canto de 20px. A identidade já estava a 10px da esquerda; os grupos começavam no zero, e o
+   * título — que ganha fundo no ponteiro — encostava ao canto, lendo-se como uma caixa maior do
+   * que a que o contém. O mesmo 10px nos dois põe a marca e o menu na mesma vertical.
+   *
+   * NÃO VALE PARA O SISTEMA LASTRO, e é a mesma peça a recusar o mesmo número: ali a coluna é
+   * plana (`border-radius: 0` no corte dos 1141), sem canto de que o menu precise de se afastar
+   * — e afastá-lo seria encolher o menu em 10px sem nada a alinhar. */
+  .lateral .coluna-grupo { padding-left: 10px; }
   .lateral-lista > .coluna-identidade > .marca {
     display: block;
     color: var(--sobre-marca);
