@@ -30,10 +30,10 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 
 | Bloco | Tempos | Fatia |
 |:--|--:|--:|
-| Solo | 47,4 | 30% |
-| Barra | 47,4 | 30% |
-| Centro | 47,4 | 30% |
-| Musicalidade | 15,8 | 10% |
+| Solo | 30,1 | 20 min |
+| Barra | 15,05 | 10 min |
+| Centro | 22,57 | 15 min |
+| Musicalidade | 90,29 | 60 min |
 | **Total** | **158** | **100%** |
 
 ## 4. Bloco de musicalidade
@@ -103,8 +103,8 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 ## 6. Proveniência consolidada
 
-- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261120-1245?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
-- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261120-1245?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.
+- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261120-1251?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
+- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261120-1251?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.
 
 **Anamnese de cada aluna**
 
