@@ -56842,3 +56842,43 @@ sítio onde a mão não encontra o que aprendeu nos outros.
 `motor/servidor/bastidores.js` (`botaoDeAtualizar`, `libertarCiclosSemResposta`, a ordem de
 `hab-enviar`/`hab-cancelar`); `tools/templates/ciclo.css` (`.selo.contador`); `IDENTIDADE-VISUAL.md`;
 `provar-o-que-mudou.js` (43) e `provar-salas-e-elencos.js` (240, a asserção do contador).
+
+### 4. O ajuste do dicionário fica **represado na Turma** — e não gasta um ciclo
+
+**A correcção de rumo, e o motivo é dela.** A 19/11 (T5) gravar um verbete passou a disparar a
+geração das Turmas que o usam. A 20/11 ela inverteu, e disse porquê:
+
+> «Mas essa decisão que eu tomei […] tem um motivo, que era a **contenção de custos**. Não é para
+> gerar ciclo, aumentar o custo no workflow para algo que não tem impacto no ciclo, não tem impacto
+> no que já está acontecendo. Só vai ter impacto no próximo […]. Então ela fica presa, fica
+> **represada** na turma. […] qualquer um que dispare através da turma, não só por meio do botão, mas
+> qualquer outra ação que seja disparada por meio da turma vai atualizar. […] Mas se […] o professor
+> decidir que é melhor então ele atualizar naquele momento, ele vai lá em turma e atualiza ali por
+> meio do botão. **É para isso que o botão existe.**»
+
+**O que o atalho fazia, e é o que a medição mostrou.** Os seis gestos do dicionário (gravar, editar e
+apagar verbete; editar duas vezes e apagar termo) chamavam `comAGeracaoDoTermo` →
+`gerarOsCiclosDoTermo` → `gerar-ciclo.yml` **directamente**. Isso gerava o pacote a partir do plano
+que já estava gravado — **sem derivar nada** — e o workflow reancorava o selo do dicionário. Efeito
+medido: o documento saía com o dicionário novo e a metodologia velha (`RAD` no papel, `Francesa` no
+perfil), e o contador do botão **apagava-se sozinho** porque o selo passava a estar «em dia». O
+atalho gastava CI *e* escondia o sinal que faria consertar o resto.
+
+**O que passa a acontecer.** Nada é gerado. O ajuste está gravado no dicionário, e o `.fipp` de cada
+ciclo que usa o exercício passa a divergir — é isso que acende o contador do «Atualizar o ciclo».
+O professor decide quando: o botão, ou qualquer outro gesto da Turma que já vá gerar, leva o que está
+represado consigo (a geração lê o dicionário no momento em que corre, e a derivação relê a régua e a
+tradição).
+
+**O que se diz na tela.** O aviso do canto passou a ter três frases: *«ajuste registado em «Rosa».
+Passa ao ciclo na próxima geração; para ser agora, use «Atualizar o ciclo» no cartão da Turma.»* — e,
+quando nenhuma Turma usa o exercício, *«nenhum documento precisa de ser refeito»*. Um aviso que só
+dissesse «registado» deixaria a pessoa à espera de documentos que não vêm.
+
+**O que continua a gerar, e não é o mesmo caso.** `gerarOsCiclosDasTurmas` continua a existir e a ser
+usada pelo **elenco** — que muda o `-dados.json` (os apelidos, o corpo da aula) e portanto muda o
+documento **agora**, não «no próximo». E ela é chamada ao lado da cadeia, não em vez dela.
+
+**Com o quê.** `motor/servidor/bastidores.js` (`termoFicaRepresado`; `comAGeracaoDoTermo` deixa de
+gerar; `avisarDaGeracao` com o ramo do represado); `provar-o-represado.js` (novo, 16 asserções),
+`provar-avisos.js` (a frase do erro) e `provar-o-estilo-regera.js` (o resumo, que ficou a mentir).

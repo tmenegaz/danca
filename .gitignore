@@ -1733,3 +1733,11 @@ experimentos/modelo-formulario/*
 # `Auditoria:` do commit, e um arquivo citado que não existe no clone é uma afirmação que ninguém
 # pode conferir.
 !experimentos/provar-o-commit-do-po.js
+# O AJUSTE DO DICIONÁRIO FICA REPRESADO NA TURMA (20/11/2026). A decisão de contenção de custos —
+# «não é para gerar ciclo, aumentar o custo no workflow para algo que não tem impacto no ciclo» —
+# inverteu a de 19/11: gravar um verbete ou um termo deixa de disparar a geração, e o contador do
+# «Atualizar o ciclo» passa a ser quem mostra o que está à espera. Esta prova mede os seis gestos,
+# o registo que devolvem, o caso sem Turma e a frase do canto. É citada no REGISTRO e no rodapé
+# `Auditoria:` do commit, e um arquivo citado que não existe no clone é uma afirmação que ninguém
+# pode conferir.
+!experimentos/provar-o-represado.js

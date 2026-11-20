@@ -290,10 +290,10 @@ async function principal() {
 
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + provas + ' asserções: a pergunta «que Turmas usam este exercício» responde '
-      + 'pela composição e em nomes; editar o verbete regera uma vez por Turma com plano, e nenhuma '
-      + 'quando não há alvo — e diz-se; um disparo que falha não desfaz a gravação; as quatro '
-      + 'rotas do dicionário chamam a mesma travessia, que é condicional ao uso; a resposta diz o '
-      + 'MOTIVO do que não partiu; e as três telas que gravam mostram-na no canto.'
+      + 'pela composição e em nomes; a travessia que regera uma vez por Turma com plano (e nenhuma '
+      + 'quando não há alvo) continua a existir e a funcionar — é ela que o ELENCO usa. Desde '
+      + '20/11/2026 o gesto de gravar um verbete ou um termo já NÃO a chama: o ajuste fica '
+      + 'represado na Turma, e é a provar-o-represado.js que mede esse caminho.'
     : 'FALHOU — ' + falhas + ' de ' + provas + ' asserção(ões).'));
   process.exit(falhas === 0 ? 0 : 1);
 }

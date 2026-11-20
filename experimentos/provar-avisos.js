@@ -330,8 +330,11 @@ function servir(html) {
   provar('…e uma resposta sem `geracao` (um Worker de ontem) não parte nada',
     gerados.ausente.quantos === 0, gerados.ausente);
 
-  provar('quando a travessia ESTOURA, o erro aparece — e não se esconde atrás do «gravado»',
-    gerados.estourou.quantos === 1 && /não partiu/.test(gerados.estourou.texto)
+  /* 20/11/2026 — O AJUSTE FICA REPRESADO, e o que pode falhar passou a ser a LEITURA das Turmas (e
+   * não um disparo). A frase mudou com o gesto: o que se promete ao canto é que o erro APARECE e
+   * não se esconde atrás do «gravado». */
+  provar('quando nem as Turmas se conseguem ler, o erro aparece — e não se esconde atrás do «gravado»',
+    gerados.estourou.quantos === 1 && /ficou gravado/.test(gerados.estourou.texto)
       && /GITHUB_TOKEN/.test(gerados.estourou.texto), gerados.estourou);
 
   /* ---- A.2 A GEOMETRIA NO TELEMÓVEL ---- */

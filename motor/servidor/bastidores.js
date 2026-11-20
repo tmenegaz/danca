@@ -1674,13 +1674,65 @@ async function turmasQueUsamOTermo(env, escola, termo) {
 }
 
 /**
+ * O ESTILO MUDA — E O AJUSTE FICA REPRESADO NA TURMA (20/11/2026).
+ *
+ * A DECISÃO ANTERIOR ERA REGERAR (T5, 19/11/2026): gravar um verbete disparava o `gerar-ciclo.yml`
+ * para cada Turma que o usa. A decisão de 20/11 substitui-a, e o motivo é o custo — dito por ela,
+ * com todas as letras:
+ *
+ *   «Mas essa decisão que eu tomei […] tem um motivo, que era a contenção de custos. Não é para
+ *   gerar ciclo, aumentar o custo no workflow para algo que não tem impacto no ciclo, não tem
+ *   impacto no que já está acontecendo. Só vai ter impacto no próximo […]. Então ela fica presa,
+ *   fica represada na turma.»
+ *
+ * O QUE ACONTECIA, e é o que justifica a inversão. O disparo directo gerava o pacote a partir do
+ * plano **que já estava gravado** — sem derivar nada. Quando o plano estava desalinhado noutro
+ * item (a tradição dizia `RAD`, o perfil dizia `Francesa`), o documento saía com o dicionário novo
+ * e a metodologia velha: os dois a discordar, e o contador do botão a apagar-se sozinho porque o
+ * workflow reancorava o selo. Ou seja: o atalho **gastava** e **escondia** o sinal que faria o
+ * professor consertar o resto.
+ *
+ * O QUE PASSA A ACONTECER. Nada é gerado. O ajuste está gravado no dicionário, e o `.fipp` de cada
+ * ciclo que usa o exercício passa a divergir (`hash-ciclo.sh` sai com 2) — é isso que acende o
+ * contador do «Atualizar o ciclo» na Turma. O professor decide quando: o botão, ou **qualquer
+ * outro gesto da Turma** que dispare a cadeia, leva o que está represado consigo — porque a
+ * geração lê o dicionário no momento em que corre, e a derivação relê a régua e a tradição.
+ *
+ * Um caminho só, e é o que ela escreveu a 20/11: «qualquer um que dispare através da turma, não só
+ * por meio do botão, mas qualquer outra ação que seja disparada por meio da turma vai atualizar».
+ */
+async function termoFicaRepresado(env, escola, termo) {
+  let nomes = [];
+  try {
+    nomes = await turmasQueUsamOTermo(env, escola, termo);
+  } catch (erro) {
+    return { represado: [], turmas: [], erro: (erro && erro.message) || String(erro) };
+  }
+  if (!nomes.length) {
+    return {
+      represado: [], turmas: [], motivo: 'sem-turma',
+      aviso: 'nenhuma Turma usa este exercício — o ajuste fica no dicionário, e nenhum documento '
+        + 'precisa de ser refeito.',
+    };
+  }
+  return {
+    represado: nomes,
+    turmas: nomes,
+    aviso: 'o ajuste ficou registado na Turma ' + (nomes.length === 1
+      ? '«' + nomes[0] + '»'
+      : nomes.map((n) => '«' + n + '»').join(', '))
+      + ' e passa ao ciclo na próxima vez que ele for gerado — o contador do «Atualizar o ciclo» '
+      + 'mostra o que está à espera, e é o botão que o leva agora.',
+  };
+}
+
+/**
  * O ESTILO MUDA, E O DOCUMENTO VAI ATRÁS — automaticamente (T5, 19/11/2026).
  *
- * A DECISÃO DELA, entre as três que estavam à mesa, foi a mais directa: **regerar**. E é a que tem
- * um custo, que fica dito: uma geração são vários subpedidos (o teto é 50 por invocação), e um
- * professor a corrigir dez verbetes seguidos dispara dez gerações. O que se faz para não mentir:
- * a resposta diz **quantas** Turmas foram tocadas e **o que** foi disparado — se o gasto é dela,
- * ela tem de o ver.
+ * **SUBSTITUÍDA a 20/11/2026 por `termoFicaRepresado`** — ver a nota dela lá em cima; o motivo é a
+ * contenção de custos. Esta função fica porque continua a ser a forma de gerar sob pedido
+ * explícito (e é ela que o elenco usa através de `gerarOsCiclosDasTurmas`), mas **nenhum gesto a
+ * chama hoje**: o gesto de gravar um verbete ou um termo regista, e não gera.
  *
  * PORQUE NÃO SE DERIVA NADA. Aqui não é a mesma travessia dos outros passos: o plano não muda — o
  * professor não escreveu outra coisa. O que muda é a LEITURA que os documentos fazem do exercício
@@ -1712,23 +1764,30 @@ async function gerarOsCiclosDoTermo(env, escola, termo) {
 }
 
 /**
- * A GERAÇÃO COLADA À RESPOSTA — e uma falha dela não derruba a gravação (T5/T6, 19/11/2026).
+ * A GERAÇÃO COLADA À RESPOSTA — **e ela já não gera** (20/11/2026).
  *
- * A gravação já aconteceu quando isto corre: o verbete, ou o termo do dicionário, está gravado. O
- * que se acrescenta é o que a travessia devolveu — as Turmas tocadas e cada disparo —, e se ela
- * falhar a resposta leva o erro em vez de um 500 que faria parecer que o ato não aconteceu.
+ * O nome ficou, porque o que esta função faz é o mesmo de sempre: acrescentar à resposta o que o
+ * gesto deixou pendente. O que mudou é o que ela acrescenta. Antes disparava a geração das Turmas
+ * que usam o exercício; agora **regista** que o ajuste está à espera — «ela fica presa, fica
+ * represada na turma».
  *
- * É uma função, e não oito linhas repetidas em cinco rotas, pela razão de sempre: o dia em que a
- * geração mudar, muda-se aqui.
+ * PORQUE O NOME NÃO MUDOU, e pode parecer descuido: renomeá-lo obrigaria a mexer nos cinco sítios
+ * que a chamam *e* na prova que a mede, sem mudar nada do que se vê. O comentário diz o que ela é;
+ * o nome é o que era. O dia em que houver um segundo comportamento será o dia de o renomear.
+ *
+ * É uma função, e não oito linhas repetidas em cinco rotas, pela razão de sempre: o dia em que
+ * isto mudar, muda-se aqui — e mudou hoje, num sítio só.
  */
 async function comAGeracaoDoTermo(env, escola, nome, resposta) {
   if (!resposta || resposta.ok !== true) return resposta;
   const termo = String(nome || '').trim();
   if (!termo) return resposta;
   try {
-    resposta.geracao = await gerarOsCiclosDoTermo(env, escola, termo);
+    resposta.geracao = await termoFicaRepresado(env, escola, termo);
   } catch (erro) {
-    resposta.geracao = { disparos: [], erro: erro && erro.message ? erro.message : String(erro) };
+    resposta.geracao = {
+      represado: [], turmas: [], erro: erro && erro.message ? erro.message : String(erro),
+    };
   }
   return resposta;
 }
@@ -11954,7 +12013,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    return "«" + lista.slice(0, -1).join("», «") + "» e «" + lista[lista.length - 1] + "»";' +
     '  };' +
     '  if (g.erro) {' +
-    '    avisar("atencao", "a geração dos documentos não partiu: " + g.erro);' +
+    '    avisar("atencao", "o ajuste ficou gravado, mas não consegui ver que Turmas o usam: " + g.erro);' +
+    '    return;' +
+    '  }' +
+    /* O AJUSTE FICA REPRESADO (20/11/2026) — a decisão de contenção de custos. A frase diz as três
+     * coisas que importam: ficou registado, não foi gerado nada, e onde é que se gera agora. Um
+     * aviso que só dissesse «registado» deixaria a pessoa à espera de documentos que não vêm. */
+    '  if (Array.isArray(g.represado) && g.represado.length) {' +
+    '    avisar("ok", "ajuste registado em " + (g.represado.length === 1' +
+    '      ? "«" + g.represado[0] + "»" : nomes(g.represado)) +' +
+    '      ". Passa ao ciclo na próxima geração; para ser agora, use «Atualizar o ciclo» no cartão da Turma.");' +
+    '    return;' +
+    '  }' +
+    /* SEM TURMA QUE O USE: o ajuste está no dicionário e mais nada. */
+    '  if (g.motivo === "sem-turma") {' +
+    '    avisar("ok", g.aviso || "nenhuma Turma usa este exercício — nenhum documento precisa de ser refeito.");' +
     '    return;' +
     '  }' +
     '  var turmas = Array.isArray(g.turmas) ? g.turmas.filter(Boolean) : [];' +
@@ -26547,11 +26620,9 @@ function parDaSalaNoCorpo(corpo, registo) {
         escola: termoMesmo.escola || '',
       },
       ...(r.jaExistia ? { jaExistia: true } : {}),
-      /* O DICIONÁRIO MUDA, E O DOCUMENTO SÓ VAI ATRÁS SE ALGUÉM O USAR (T6, 19/11/2026). Ela foi
-       * explícita: «se eu fizer mudanças no dicionário, não dispara o fluxo […] excepto se a
-       * mudança que eu fizer no dicionário for de um exercício […] que já esteja vinculado à
-       * turma». A condição não se escreve aqui: `gerarOsCiclosDoTermo` pergunta quem usa e, se
-       * ninguém usar, devolve o aviso sem disparar nada. Uma regra, um sítio. */
+      /* O AJUSTE FICA REPRESADO NA TURMA (20/11/2026) — «ela fica presa, fica represada na turma».
+       * A condição não se escreve aqui: `termoFicaRepresado` pergunta quem usa o exercício e
+       * devolve as Turmas à espera (ou o motivo de não haver nenhuma). Uma regra, um sítio. */
       ...(comGeracao && comGeracao.geracao ? { geracao: comGeracao.geracao } : {}),
     });
   }
@@ -28286,6 +28357,7 @@ module.exports = {
    * uma fixture de escrita inteira — e mediria a escrita, não a travessia. */
   turmasQueUsamOTermo,
   gerarOsCiclosDoTermo,
+  termoFicaRepresado,
   /* O ESTADO DA ANAMNESE DE UM VÍNCULO, exportado (18/11/2026). É ele que responde «a anamnese
    * desta modalidade já foi feita?», e a resposta depende de duas coisas que só se medem juntas:
    * a forma do registo (o envelope inteiro traz `contexto`; o resumo do índice traz os mesmos
