@@ -16,12 +16,12 @@ hash: 0edd3725c3a77f1747bb9dba5332a3d76dbd2dac8d97ad191074331f526a843c
 algoritmo: SHA-256
 po: professores/demi-plie/ciclos/ciclo-01-breu-rosa-po.md
 po_state: Input_PO_Validado
-ancorado_em: 2026-11-19
+ancorado_em: 2026-11-20
 notacao: Código de dança
 notacao_modalidade: bale-classico
 notacao_alfabeto: ballet-classico
-notacao_versao: 58
-notacao_sha: 8eeebefccaebf333b6a8cb0e3b2fc9d7bc8ff99e8c5fcb3e2664e12a8efad363
+notacao_versao: 60
+notacao_sha: 5086481e8984f8f4faa8fb6c19213e2f748dcb5bae6cae4aec583e3df169849d
 cobertura:
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md

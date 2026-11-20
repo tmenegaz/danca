@@ -1,7 +1,7 @@
 {
   "ancora": {
     "algoritmo": "SHA-256",
-    "ancorado_em": "2026-11-19",
+    "ancorado_em": "2026-11-20",
     "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa.fipp",
     "cobertura": [
       "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
@@ -115,9 +115,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "3539cbd"
+    "commit": "f5d560f"
   },
-  "gerado_em": "2026-11-19T20:55",
+  "gerado_em": "2026-11-20T00:33",
   "id": "ciclo:demi-plie/01/breu",
   "professor": "demi-plie",
   "versao": 7
