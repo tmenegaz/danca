@@ -18,7 +18,7 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 | Item | Definição |
 |:--|:--|
 | **Objetivo específico** | reconhecer o apoio e alinhar o eixo vertical |
-| **Parâmetro de medição** | **1** reconhecer o apoio e alinhar o eixo vertical — observa: Battement tendu · Plié · Relevé · Battement jeté · **2** transferir o peso entre os pés sem perder o alinhamento — observa: Plié · Relevé · Battement jeté · **3** sustentar a transferência com musicalidade e controle do movimento — observa: Battement tendu · Relevé · Battement jeté |
+| **Parâmetro de medição** | **1** reconhecer o apoio e alinhar o eixo vertical — observa: Battement tendu · Plié · Relevé · **2** transferir o peso entre os pés sem perder o alinhamento — observa: Plié · Relevé · **3** sustentar a transferência com musicalidade e controle do movimento — observa: Battement tendu · Relevé |
 | **Duração** | 120 minutos (Pré-requisito 4) |
 | **Volume ativo** | 175 tempos (faixa 150–200 da duração de 120 min — Regra 9, etapa 1) |
 
@@ -108,8 +108,8 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 ## 6. Proveniência consolidada
 
-- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261120-1846?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
-- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261120-1846?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.
+- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261120-1854?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
+- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261120-1854?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.
 
 **Anamnese de cada aluna**
 

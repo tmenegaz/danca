@@ -22,7 +22,7 @@ exercícios deste ciclo podem ser lidos de volta sem depender da memória de que
 | Item | Valor |
 |:--|:--|
 | Código | `ballet-classico` — Código de dança (ballet clássico) |
-| Versão | 61 |
+| Versão | 62 |
 | Categorias | 5 |
 | Sinais | 32 |
 | Verbetes (exercícios) | 5 |
@@ -50,7 +50,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 | Compasso | Contagem | Notação | Descrição |
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
-| 1 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
+| 1 | 1–2 | `[Perna: ED 1ª ○ - ●]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha. |
 | 3 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
 
 ### 2. Solo — Plié
@@ -80,7 +80,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 | Compasso | Contagem | Notação | Descrição |
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
-| 1 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
+| 1 | 1–2 | `[Perna: ED 1ª ○ - ●]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha. |
 | 3 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
 
 ### 5. Solo — Relevé
@@ -102,7 +102,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 | Compasso | Contagem | Notação | Descrição |
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
-| 1 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
+| 1 | 1–2 | `[Perna: ED 1ª ○ - ●]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha. |
 | 3 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
 
 ### 7. Barra — Plié
@@ -170,7 +170,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 | Compasso | Contagem | Notação | Descrição |
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
-| 1 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
+| 1 | 1–2 | `[Perna: ED 1ª ○ - ●]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha. |
 | 3 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
 
 ### 14. Centro — Relevé
