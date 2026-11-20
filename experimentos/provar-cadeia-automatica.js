@@ -1134,10 +1134,17 @@ async function ids(arm, familia) {
     /* O plano não carrega o «Batman GT» — é o estado em que ela ficou. */
     await semear(c.arm, { planoGerado: '2026-11-20T14:11', poGerado: '2026-11-20T14:11' });
 
+    /* SEM `declaracoes` NO PEDIDO (20/11/2026) — e é o caso REAL do botão «Atualizar o ciclo».
+     *
+     * A primeira versão desta prova passava a declaração no corpo, e por isso passava: o caminho
+     * que ela usa (o «Gravar» da Turma) leva as declarações no pedido. O botão não leva corpo
+     * nenhum, e a declaração que está registada na Turma nunca era lida — medido ao vivo na `breu`
+     * com o `plano-20261120-1750`, que saiu podado e sem o exercício declarado. Uma prova que
+     * injeta o que o gesto real não tem é a mesma família de prova que esta sessão já pagou quatro
+     * vezes. */
     const r = await c.cadeia.executar({
-      gatilho: 'troca-de-direcao', turmas: [TURMA], quando: '2026-11-20',
-      motivo: 'a direção da turma passou a coqui · Balé clássico',
-      declaracoes: [{ termo: 'Batman GT', objetivos: [2] }],
+      gatilho: 'atualizacao-pedida', turmas: [TURMA], quando: '2026-11-20',
+      motivo: 'o professor pediu para levar a Turma ao ciclo agora',
     });
 
     provar('a travessia derivou um elo novo de plano (o do mesmo dia já não passa)',

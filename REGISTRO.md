@@ -56523,3 +56523,35 @@ ASCII e não há bytes para interpretar mal.
 os dois `assets/style.css` dos pacotes da `breu` (regenerados);
 `provar-salas-e-elencos.js` (237 asserções: a ausência das duas frases, a largura, o Cancelar a
 limpar e a colapsar, o aviso no canto, e o aviso da régua a atravessar a recarga).
+
+## 20/11/2026 — O botão «Atualizar o ciclo» derivava o plano e deixava a declaração de fora
+
+**Medido ao vivo, na `breu`, depois de a guarda do conteúdo entrar.** A Turma vigente
+(`demi-plie-bale-classico-rosa-2026-11-20-7`) declara `objetivosDoRepertorio: {"Battement jeté": [3]}`.
+O botão correu e o plano derivou (`plano-20261120-1750`) — a poda funcionou, «Port de bras» e «Rond de
+jambe» saíram — e o `aula-1-parametro` do elo novo saiu **sem o «Battement jeté»**:
+
+```
+POST /api/bastidores/atualizar-o-ciclo  {turma: "Rosa"}
+→ avisos: ["saiu do plano o que já não está no conteúdo da Turma: Port de bras · Rond de jambe"]
+→ plano-20261120-1750: repertorio = [Battement tendu, Plié, Relevé]
+                       marco 3 → [Battement tendu, Relevé]   ← sem o Battement jeté
+```
+
+**A causa é de fonte, e é a segunda metade do mesmo defeito.** A declaração só chegava por
+`declaracoes`, o parâmetro que o gesto `curadoria-derivar` passa lendo o **corpo do pedido**. O botão
+não passa corpo nenhum — e o que está **registado na Turma** nunca era lido. As duas metades têm a
+mesma forma: uma regra escrita para o gesto, quando quem manda é o **estado**.
+
+**A regra que fica é a que este ficheiro já escreveu para a poda:** *«quem decide é a lista da Turma de
+hoje, e não o gesto que a mudou»*. Vale igualmente para a declaração: `derivarPlano` passa a ler
+`curadoria.objetivosDoRepertorio` e a **unir** ao que o corpo traz, com o corpo a ganhar (num gesto que
+acabou de receber a resposta da janela, o que ele traz é mais recente).
+
+**A prova mudou de caminho, e é o ponto.** A secção K passava a declaração no corpo — e por isso
+passava. Agora ela chama a travessia **sem `declaracoes`**, com o gatilho `atualizacao-pedida`, que é o
+caminho do botão. Uma prova que injeta o que o gesto real não tem é a mesma família de prova que esta
+sessão já pagou cinco vezes.
+
+**Com o quê.** `motor/servidor/cadeia.js` (`declaracoesDaVez`, a união das duas fontes);
+`provar-cadeia-automatica.js` (a secção K passa a correr o caminho do botão; 124 asserções).

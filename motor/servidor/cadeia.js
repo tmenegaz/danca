@@ -496,10 +496,39 @@ function criarCadeia({
      * a aula já usa não volta a ser declarado, e é isso que deixa o professor desmarcar no plano
      * sem que a Turma lhe reponha a marca em cada derivação. */
     let declaracaoAplicada = null;
-    if (declaracoes) {
+    /* A DECLARAÇÃO VEM DA TURMA, e não do pedido (20/11/2026) — o defeito era um botão que não
+     * levava o que a Turma já declarava.
+     *
+     * O QUE ACONTECEU, medido ao vivo na `breu` e é a segunda metade do defeito que ela viu. A
+     * Turma vigente (`…-2026-11-20-7`) declara `objetivosDoRepertorio: {"Battement jeté": [3]}`. O
+     * botão «Atualizar o ciclo» derivou o plano (`plano-20261120-1750`), o `repertorio` saiu
+     * PODADO como devia — e o `aula-1-parametro` ficou **sem** o «Battement jeté». A razão: a
+     * declaração só chegava por `declaracoes`, o parâmetro que o gesto `curadoria-derivar` passa
+     * lendo o CORPO do pedido — e o botão não passa corpo nenhum. O que está registado na Turma
+     * nunca era lido.
+     *
+     * A REGRA QUE FICA É A DA CASA, escrita noutro sítio deste ficheiro sobre a poda: «quem decide é
+     * a lista da Turma de hoje, e não o gesto que a mudou». Vale igualmente para a declaração — e
+     * a união é aditiva, com o CORPO a ganhar: num gesto que acabou de receber a resposta da
+     * janela, o que ele traz é mais recente do que o que já estava gravado.
+     *
+     * AS DUAS FONTES SÃO O MESMO REGISTO na maioria das vezes (a rota grava a curadoria antes de
+     * chamar a cadeia), e é isso que torna a união barata: quando o corpo não traz nada, a lista
+     * que sobra é a da Turma. */
+    const declaracoesDaVez = (() => {
+      const daTurma = objetivosDoRepertorio.declaracoesLidas(
+        curadoria && curadoria.objetivosDoRepertorio);
+      const doPedido = objetivosDoRepertorio.declaracoesLidas(declaracoes);
+      if (!daTurma.length) return doPedido;
+      if (!doPedido.length) return daTurma;
+      const porTermo = new Map(daTurma.map((d) => [d.termo, d]));
+      for (const d of doPedido) porTermo.set(d.termo, d);
+      return [...porTermo.values()];
+    })();
+    if (declaracoesDaVez.length) {
       const r = objetivosDoRepertorio.aplicarDeclaracoes({
         respostas,
-        declaracoes,
+        declaracoes: declaracoesDaVez,
         /* A lista ACORDADA da Turma — a que acabou de gravar, com o exercício novo dentro. Sem ela
          * o núcleo recusaria a declaração: declarar o que a Turma não acordou seria escrever
          * pedagogia que ninguém decidiu. */
