@@ -123,6 +123,35 @@ for (const [nome, produzir] of DERIVADOS) {
 provar(`os ${DERIVADOS.length} derivados foram conferidos, nenhum ficou de fora`,
   textos.size === DERIVADOS.length, { conferidos: textos.size });
 
+/* ── A.1 A CHAVE DO VOLUME LEVA A DURAÇÃO ACIMA DOS 60 MINUTOS (20/11/2026) ────────────────
+ *
+ * O gerador procura, para cada duração do `.conf`, `volume-total:` até 60 minutos e
+ * `volume-total-<dur>:` acima disso. O derivador escrevia sempre `volume-total:`. Com 45 e com
+ * 60 coincidia e o defeito não aparecia; com 90, a fonte saía com o volume CERTO (135 tempos) e
+ * o `gerar-ciclo.sh` recusava, procurando outra chave:
+ *
+ *   erro: aula-01 não declara 'volume-total-90:' para o dia de 90 min (Regra 9).
+ *
+ * É o terceiro sítio do mesmo erro no mesmo dia — a duração passou a ser uma dimensão e três
+ * leitores continuaram a assumir uma duração só. */
+const volumeDa = (duracaoMinutos, volumeMin, volumeMax) => {
+  const md = derivar.derivarAula01({ plano: PLANO, po: PO, contexto: CONTEXTO,
+    calibracao: { duracaoMinutos, volumeMin, volumeMax } });
+  const m = /^volume-total(-\d+)?: "?([0-9]+)/m.exec(String(md || ''));
+  return m ? { chave: 'volume-total' + (m[1] || ''), tempos: Number(m[2]) } : null;
+};
+const em60 = volumeDa(60, 80, 100);
+provar('60 min: a chave é a genérica `volume-total` e o valor é o ponto médio (90)',
+  em60 && em60.chave === 'volume-total' && em60.tempos === 90, em60);
+const em45 = volumeDa(45, 80, 100);
+provar('45 min: também a genérica', em45 && em45.chave === 'volume-total', em45);
+const em90 = volumeDa(90, 120, 150);
+provar('90 min: a chave leva a duração (`volume-total-90`) e o valor é 135',
+  em90 && em90.chave === 'volume-total-90' && em90.tempos === 135, em90);
+const em120 = volumeDa(120, 150, 200);
+provar('120 min: `volume-total-120` e 175', em120 && em120.chave === 'volume-total-120'
+  && em120.tempos === 175, em120);
+
 // ------------------------------------------- B. as fontes publicadas do ciclo
 //
 // A fonte escrita à mão (ou corrigida à mão) não passa por este módulo: `escrever-ciclo.js`

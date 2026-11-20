@@ -686,7 +686,30 @@ function derivarAula01({ plano, po, contexto, calibracao, linhaDeBase, anamneses
   if (turmaDaAula) saida.push('subtitle: "Turma: ' + turmaDaAula + '"');
   saida.push('objetivo-especifico: "' + (objetivoDaAula1(plano) || '[Preencher]') + '"');
   saida.push('duracao: "' + duracaoMin + ' minutos"');
-  if (volumeTotal) saida.push('volume-total: "' + volumeTotal + ' tempos"');
+  /* A CHAVE DO VOLUME LEVA A DURAÇÃO ACIMA DOS 60 MINUTOS (20/11/2026).
+   *
+   * O TERCEIRO elo da mesma família, no mesmo dia. O gerador procura, para cada duração que o
+   * `.conf` declara,
+   *
+   *   dur <= 60  →  volume-total:
+   *   dur  > 60  →  volume-total-<dur>:
+   *
+   * — e esta linha escrevia sempre `volume-total:`. Com 45 e 60 minutos coincidia, e o defeito
+   * não aparecia. Com 90, o derivador escrevia `volume-total: "135 tempos"` (o volume certo!) e
+   * o `gerar-ciclo.sh` recusava, procurando `volume-total-90:`:
+   *
+   *   erro: aula-01 não declara 'volume-total-90:' para o dia de 90 min (Regra 9).
+   *
+   * Os três elos de hoje são o mesmo erro em três sítios: a duração entrou como dimensão e três
+   * leitores continuaram a assumir uma duração só. Este é o que ESCREVE, e é o que fecha o
+   * ciclo: sem ele, nem a faixa nem a calibração corrigidas faziam o documento sair.
+   *
+   * Acima dos 60, a chave é a da duração. Até 60, fica a genérica — é a forma que o gerador
+   * aceita e que os documentos já publicados usam. */
+  if (volumeTotal) {
+    const campoDoVolume = duracaoMin > 60 ? 'volume-total-' + duracaoMin : 'volume-total';
+    saida.push(campoDoVolume + ': "' + volumeTotal + ' tempos"');
+  }
   if (referencias) saida.push('referencias: "' + referencias + '"');
   saida.push('---');
   saida.push('');
