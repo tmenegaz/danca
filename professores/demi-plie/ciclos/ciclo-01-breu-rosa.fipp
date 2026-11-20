@@ -20,8 +20,8 @@ ancorado_em: 2026-11-20
 notacao: Código de dança
 notacao_modalidade: bale-classico
 notacao_alfabeto: ballet-classico
-notacao_versao: 61
-notacao_sha: 23737cd722be1bc688e2f85c2f3f579a01e6729fb9fa9602d53b93adb0f36ab0
+notacao_versao: 62
+notacao_sha: 23963b5039c8d03027744786681dee9766604a07dc96c68e02f59f1b3fd42d68
 cobertura:
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md
