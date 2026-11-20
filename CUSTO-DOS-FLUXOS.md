@@ -759,7 +759,7 @@ avisar que a linha caiu, e o aviso é uma frase, não uma pergunta.
 | peça | onde | estado |
 |:--|:--|:--|
 | `objectivosDoPlano(plano)` — os marcos daquela turma, em texto | `motor/nucleo/derivar-plano-ciclo.js` (`marcosEmTexto` já existe) | **pronta** |
-| `impactoDaInclusao({ plano, termo, objetivos, repertorio })` — o que muda no parâmetro e no item 10 | `motor/nucleo/objetivos-do-repertorio.js` | **pronta (20/11/2026)** — devolve a linha que ganha o termo (antes/depois), os blocos daquele objetivo, os marcos todos **sem pré-selecção** e as linhas do item 10 que já citam o exercício (`0` para um exercício novo, e dizê-lo evita a leitura de que o sistema fará a linha) |
+| `impactoDaInclusao({ plano, termo, objetivos, repertorio })` — o que muda no parâmetro e no item 10 | `motor/nucleo/objetivos-do-repertorio.js` | **pronta (20/11/2026)** — devolve a linha que ganha o termo (antes/depois), os blocos daquele objetivo, os marcos todos **sem pré-selecção**, as linhas do item 10 que já citam o exercício (`0` para um exercício novo, e dizê-lo evita a leitura de que o sistema fará a linha), e **quanto muda a soma dos tempos por bloco** (`soma`, por `efeitoNaSoma`) |
 | a rota que enche a janela | `POST /api/bastidores/impacto-da-inclusao` | **pronta (20/11/2026)** — responde `precisaDecisao: 'objetivo'` só quando há o que perguntar; `sem-plano` (`motivo: 'sem-plano'`), `ja-na-aula`, `fora-do-repertorio` e `sem-objectivos` devolvem a ficha a entrar como sempre entrou, cada um com o seu motivo |
 | a gravação da declaração | **a Turma** — `objetivosDoRepertorio`, ao lado do `repertorio` | **pronta (20/11/2026)** — `declaracoesDaTurma` soma o que a janela respondeu, mantém o que já estava (P-03/P-04) e esquece o exercício que saiu do repertório |
 | a janela | `bastidores.js` — `perguntarOObjetivo` | **pronta (20/11/2026)**, e **não** generalizada: são duas janelas, cada uma com a sua pergunta. A generalização que aqui se anunciava ficou por fazer, e é a dívida a pagar se aparecer a terceira |
@@ -771,6 +771,14 @@ linha do parâmetro que ganha o termo, e os blocos cujo total muda.
 
 **O que a janela NÃO pergunta:** em que bloco ele entra. O bloco é do item 10, e o item 10 é do
 professor, linha a linha — o sistema não escolhe pedagogia.
+
+**E ela diz quanto muda a soma por bloco — com uma conta que não é óbvia.** Os tempos vêm das linhas
+do item 10, e uma linha cujo exercício não está na lista acordada do plano é **filtrada** da leitura
+(`linhasDoRepertorio`). Quando o exercício entra no repertório do plano, as linhas que já existiam
+com o seu nome **voltam**, e é aí que os totais sobem. Para um exercício sem linha nenhuma a
+diferença é **zero**, e a janela diz zero e porquê — «os tempos vêm das linhas do item 10, e quem as
+escreve é você». As duas frases existem para o número não ser promessa: o sistema não inventa uma
+linha que não vai imprimir, e não esconde a que vai passar a imprimir.
 
 **Duas decisões de desenho, e a primeira está decidida:**
 1. **Onde a declaração é escrita — na TURMA, e não no plano.** A frase dela, na correcção de

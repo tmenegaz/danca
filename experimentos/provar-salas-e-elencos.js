@@ -1768,8 +1768,21 @@ const RITMO = {
             antes: ['Plié'], depois: ['Plié', 'Battement jeté'], blocos: ['Barra'] },
         ],
         blocos: ['Barra'], linhasDoItem10: 0,
+        /* A SOMA POR BLOCO — para um exercício sem linha nenhuma, a diferença é ZERO, e a janela
+         * tem de o dizer: quem escreve a linha do item 10 é o professor. */
+        soma: { blocos: [{ bloco: 'Barra', antes: 8, depois: 8, delta: 0 }], mudam: [],
+          muda: false, totalAntes: 8, totalDepois: 8 },
         marcos: [{ n: 1, texto: 'reconhecer o vocabulário' },
           { n: 2, texto: 'sustentar o equilíbrio' }],
+      };
+      /* O OUTRO CASO: a linha do item 10 JÁ existe e está filtrada — o exercício não está na lista
+       * acordada do plano. Quando entra, a linha volta e a soma muda. É o número que a janela tem
+       * de mostrar, e não um zero tranquilizador. */
+      const impactoComSoma = JSON.parse(JSON.stringify(impactoObjetivo));
+      impactoComSoma.soma = {
+        blocos: [{ bloco: 'Barra', antes: 8, depois: 16, delta: 8 }],
+        mudam: [{ bloco: 'Barra', antes: 8, depois: 16, delta: 8 }],
+        muda: true, totalAntes: 8, totalDepois: 16,
       };
 
       const TERMOS_N = [
@@ -1793,7 +1806,7 @@ const RITMO = {
 
       /* `vinculada` diz se a rota é chamada a perguntar; o cenário de Turma sem plano passa
        * `false` e mede que a ficha entra sem janela nenhuma. */
-      const correrON = async (vinculada) => {
+      const correrON = async (vinculada, impactoUsado) => {
         const erros = [];
         const pedidos = [];
         const vc = new VCL();
@@ -1814,7 +1827,7 @@ const RITMO = {
               if (url.indexOf('/api/bastidores/impacto-da-inclusao') !== -1) {
                 pedidos.push({ rota: 'impacto', corpo });
                 const resposta = vinculada
-                  ? { ok: true, precisaDecisao: 'objetivo', impacto: impactoObjetivo }
+                  ? { ok: true, precisaDecisao: 'objetivo', impacto: impactoUsado || impactoObjetivo }
                   : { ok: true, precisaDecisao: null, motivo: 'sem-plano',
                     aviso: 'esta Turma ainda não tem plano de ensino.' };
                 return Promise.resolve({ ok: true, status: 200,
@@ -1941,6 +1954,22 @@ const RITMO = {
       /* «pode ser que o estilo esteja com derivação em uma turma, mas essa turma ainda não foi
        * elaborado o seu plano de ensino, então não faz sentido disparar o processo, porque aí é só
        * custo». A ficha entra — o exercício é da Turma —, e a declaração nasce no plano. */
+      /* A SOMA POR BLOCO — «quanto muda», a terceira coisa que ela pediu. Duas frases, e o caso
+       * que importa é o segundo: quando a linha do item 10 já existe e está filtrada, a janela tem
+       * de mostrar o número, e não um zero tranquilizador. */
+      conferir('…e a janela diz que a soma por bloco NÃO muda, quando não há linha nenhuma',
+        /soma dos tempos por bloco não muda/.test(String(mObj.textContent || '')),
+        String(mObj.textContent || '').replace(/\s+/g, ' ').slice(0, 300));
+
+      const cSoma = await correrON(true, impactoComSoma);
+      await cSoma.escolherEJuntar('Battement jeté');
+      const mSoma = cSoma.modal();
+      conferir('…e quando há linha filtrada, a janela mostra o número por bloco',
+        /Barra 8/.test(String((mSoma || {}).textContent || ''))
+          && /16/.test(String((mSoma || {}).textContent || '')),
+        String((mSoma || {}).textContent || '').replace(/\s+/g, ' ').slice(0, 300));
+      cSoma.fechar();
+
       const cSem = await correrON(false);
       await cSem.escolherEJuntar('Battement jeté');
       conferir('na Turma sem plano a janela NÃO abre',

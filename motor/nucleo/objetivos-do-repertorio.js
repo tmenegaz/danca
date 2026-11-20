@@ -28,6 +28,10 @@
  */
 
 const planoDoCiclo = require('./derivar-plano-ciclo.js');
+/* A RÉGUA DA SEQUÊNCIA — `linhasDoRepertorio` e a coluna do conteúdo vivem num sítio só, e é o
+ * mesmo que o documento usa. Duas cópias da comparação divergiriam, como já divergiram em
+ * 03/11/2026 (a sequência blindada, o parâmetro não). */
+const sequenciaDoPlano = require('./sequencia.js');
 
 /** O valor de uma resposta, em qualquer das duas formas que o envelope usa (`{valor}` ou crua). */
 function valorDaResposta(respostas, chave) {
@@ -213,6 +217,14 @@ function impactoDaInclusao({ plano, termo, objetivos, repertorio }) {
     /* Quantas linhas do item 10 já citam o exercício. Para um exercício novo é ZERO — e dizê-lo é
      * o que evita a leitura errada de que o sistema fará a linha: quem a escreve é o professor. */
     linhasDoItem10: contarNoItem10(respostas, nome),
+    /* E QUANTO MUDA A SOMA POR BLOCO (20/11/2026) — a terceira coisa que a janela diz. A conta é a
+     * do documento: as linhas que hoje são filtradas por o exercício não estar na lista acordada
+     * VOLTAM quando ele entra, e são essas que mudam os totais. Para um exercício sem linha
+     * nenhuma, a diferença é zero, e é isso que se mostra — o bloco é escrito linha a linha pelo
+     * professor, e o sistema não promete um número que não vai imprimir. */
+    soma: efeitoNaSoma({
+      respostas, termo: nome, repertorio: valorDaResposta(respostas, 'repertorio'),
+    }),
     /* Os objectivos que o plano tem, para a janela os oferecer todos. Nenhum pré-seleccionado: a
      * escolha é a declaração pedagógica, e o sistema não escolhe pedagogia. */
     marcos: marcos.map((texto, i) => ({ n: i + 1, texto })),
@@ -228,6 +240,80 @@ function contarNoItem10(respostas, termo) {
     if (conteudo === termo) quantas += 1;
   }
   return quantas;
+}
+
+/**
+ * A SOMA DOS TEMPOS POR BLOCO — «quanto muda a soma por bloco», a terceira coisa que a janela diz.
+ *
+ * A CONTA É A DO DOCUMENTO, e não uma segunda: as linhas válidas são `linhasDoRepertorio` — o mesmo
+ * filtro que a `aula-01.md` aplica —, e os tempos de cada bloco somam-se como o §7.9b os mediu. Uma
+ * soma feita por outra via diria na janela um número que o documento não imprime.
+ *
+ * PORQUE ESTA CONTA NÃO É OBVIA, e é o que a torna necessária. Incluir um exercício **não** muda a
+ * soma por bloco por si só: os tempos vêm das linhas do item 10, e essas linhas são escritas pelo
+ * professor. O que muda é outra coisa, e é o mecanismo da casa: um exercício fora da lista acordada
+ * tem as suas linhas FILTRADAS da leitura. Quando ele entra no repertório do plano, as linhas que já
+ * existiam com o seu nome **voltam** — e é aí que a soma muda, com número.
+ *
+ * Ou seja: a janela mostra a diferença entre o plano que o documento imprime hoje e o que ele vai
+ * imprimir depois da declaração. Para um exercício que ainda não tem linha nenhuma, a diferença é
+ * zero — e dizer zero é o ponto: quem escreve a linha do item 10 é o professor, e o sistema não
+ * finge que fará por ele.
+ */
+function somaPorBloco(respostas, repertorio) {
+  const linhas = sequenciaDoPlano.linhasDoRepertorio(
+    valorDaResposta(respostas, 'aula-1-sequencia'), termosLimpios(repertorio));
+  const soma = new Map();
+  for (const linha of linhas) {
+    const bloco = String((linha && (linha.Bloco || linha.bloco)) || '').trim();
+    if (!bloco) continue;
+    const cru = linha.Tempos !== undefined ? linha.Tempos : linha.Tempo;
+    const tempos = Number(String(cru == null ? '' : cru).replace(',', '.'));
+    if (!Number.isFinite(tempos)) continue;
+    soma.set(bloco, (soma.get(bloco) || 0) + tempos);
+  }
+  return soma;
+}
+
+/**
+ * O EFEITO DA DECLARAÇÃO NA SOMA POR BLOCO — antes, depois, e a diferença, por bloco.
+ *
+ * `repertorio` é a lista ACORDADA do PLANO (não a da Turma): é contra ela que `parametroEmLinhas`
+ * e a sequência se filtram. A inclusão põe o termo nessa lista (o `aplicarDeclaracoes` fá-lo), e é
+ * por isso que o «depois» é a mesma soma com o termo lá dentro.
+ */
+function efeitoNaSoma({ respostas, termo, repertorio }) {
+  const nome = String(termo || '').trim();
+  const acordado = termosLimpios(repertorio);
+  if (!nome) return null;
+  const antes = somaPorBloco(respostas, acordado);
+  const comOTermo = acordado.indexOf(nome) === -1 ? acordado.concat([nome]) : acordado.slice();
+  const depois = somaPorBloco(respostas, comOTermo);
+
+  const nomes = [];
+  for (const b of antes.keys()) if (nomes.indexOf(b) === -1) nomes.push(b);
+  for (const b of depois.keys()) if (nomes.indexOf(b) === -1) nomes.push(b);
+  const canonica = planoDoCiclo.BLOCOS_DA_AULA;
+  nomes.sort((a, b) => {
+    const ia = canonica.indexOf(a) === -1 ? canonica.length : canonica.indexOf(a);
+    const ib = canonica.indexOf(b) === -1 ? canonica.length : canonica.indexOf(b);
+    return ia - ib;
+  });
+
+  const blocos = nomes.map((b) => {
+    const de = antes.get(b) || 0;
+    const para = depois.get(b) || 0;
+    return { bloco: b, antes: de, depois: para, delta: Math.round((para - de) * 10) / 10 };
+  });
+  const mudam = blocos.filter((b) => b.delta !== 0);
+  return {
+    blocos,
+    /* Só os que mudam — é o que precisa de ser dito. */
+    mudam,
+    muda: mudam.length > 0,
+    totalAntes: Math.round(blocos.reduce((s, b) => s + b.antes, 0) * 10) / 10,
+    totalDepois: Math.round(blocos.reduce((s, b) => s + b.depois, 0) * 10) / 10,
+  };
 }
 
 /**
@@ -371,4 +457,6 @@ module.exports = {
   impactoDaInclusao,
   aplicarDeclaracoes,
   podarForaDoRepertorio,
+  somaPorBloco,
+  efeitoNaSoma,
 };

@@ -1088,6 +1088,12 @@ medição passa a observar «X» no(s) objetivo(s) 2»); sem nada marcado, diz a
 exercício não entra em aula nenhuma»). Um botão que não faz nada sem explicar porquê é pior do que
 um botão desactivado.
 
+**E o que a resposta implica é dito em números, não em adjectivos.** Além dos objetivos, a janela
+mostra em que blocos aqueles objetivos se trabalham, quantas linhas do item 10 já citam o exercício,
+e **quanto muda a soma dos tempos por bloco** — com as duas frases possíveis: os blocos que mudam e
+o antes → depois, ou «a soma não muda: os tempos vêm das linhas do item 10, e quem as escreve é
+você». A segunda frase não é uma desculpa — é a informação de que o sistema não fará a linha por ela.
+
 **Prova.** `experimentos/provar-salas-e-elencos.js`, secção L — **193 asserções**: o modal só abre
 em minutos; os botões são dois, o secundário primeiro, o «Cancelar» com `type="button"`; o `Escape`
 fecha sem reenviar o pedido e sem deixar ouvinte; o «Cancelar» recolhe o formulário, apaga a memória

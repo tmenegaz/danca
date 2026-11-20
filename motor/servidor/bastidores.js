@@ -14206,6 +14206,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var ja = impacto && impacto.linhasDoItem10' +
     '    ? "<p class=\\"etapa-campo largo\\"><span class=\\"fatos\\"><span>O item 10 já tem " + impacto.linhasDoItem10 + " linha(s) com este exercício.</span></span></p>"' +
     '    : "";' +
+    /* A SOMA POR BLOCO — «quanto muda», a terceira coisa que ela pediu que a janela dissesse.
+     *
+     * DUAS FRASES, E NENHUMA DELAS É UM NÚMERO INVENTADO. Se alguma linha do item 10 já cita o
+     * exercício e está hoje filtrada (ele não está na lista acordada do plano), essas linhas voltam
+     * quando ele entra — e a frase diz quanto, bloco a bloco. Se não há linha nenhuma, a soma não
+     * muda, e a frase diz PORQUÊ: quem escreve a linha do item 10 é o professor, e o sistema não
+     * promete um número que não vai imprimir. */
+    '  var soma = "";' +
+    '  if (impacto && impacto.soma) {' +
+    '    if (impacto.soma.muda) {' +
+    '      var partes = [];' +
+    '      var ms = impacto.soma.mudam;' +
+    '      for (var s2 = 0; s2 < ms.length; s2++) {' +
+    '        partes.push(textoDoPlano(ms[s2].bloco) + " " + ms[s2].antes + " \\u2192 " + ms[s2].depois);' +
+    '      }' +
+    '      soma = "<p class=\\"etapa-campo largo\\"><span class=\\"fatos\\"><span>A soma dos tempos por bloco muda: " + partes.join(" · ") + ".</span></span></p>";' +
+    '    } else {' +
+    '      soma = "<p class=\\"etapa-campo largo\\"><span class=\\"fatos\\"><span>A soma dos tempos por bloco não muda: os tempos vêm das linhas do item 10, e quem as escreve é você.</span></span></p>";' +
+    '    }' +
+    '  }' +
     '  var caixa = document.createElement("div");' +
     '  caixa.className = "modal";' +
     '  caixa.id = "modal-objetivo";' +
@@ -14219,7 +14239,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    + "      <p class=\\"etapa-campo largo\\">A que objetivo «" + textoDoPlano(valor) + "» serve? O parâmetro de medição é o que diz, em cada objetivo, o que você vai observar.</p>"' +
     '    + "      <fieldset class=\\"escolhas etapa-campo largo\\"><legend class=\\"campo-rotulo\\">Objetivos desta aula</legend>"' +
     '    + escolhas' +
-    '    + "      </fieldset>" + recurso + ja' +
+    '    + "      </fieldset>" + recurso + ja + soma' +
     '    + "      <p class=\\"etapa-campo largo\\" id=\\"obj-resumo\\"><span class=\\"fatos\\"><span>Sem objetivo marcado, o exercício não entra em aula nenhuma.</span></span></p>"' +
     '    + "    </div>"' +
     '    + "    <div class=\\"modal-acoes\\">"' +

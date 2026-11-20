@@ -56248,3 +56248,35 @@ falham (a lista, a matriz, o aviso e o documento).
 **Com o quê.** `motor/nucleo/objetivos-do-repertorio.js` (`podarForaDoRepertorio`);
 `motor/servidor/cadeia.js` (`derivarPlano`, e `repertorioPodado` na resposta); `CUSTO-DOS-FLUXOS.md`
 §7.9b; `motor/nucleo/README.md`; as duas provas.
+
+## 20/11/2026 — A janela do exercício novo diz quanto a soma por bloco muda
+
+**O que faltava do desenho.** A proposta pedia três coisas à janela: **que objetivo ganha o termo**,
+**que linhas do item 10 passam a citá-lo**, e **quanto muda a soma por bloco**. As duas primeiras
+estavam construídas; a terceira não — a janela dizia quantas linhas já citavam o exercício (zero, num
+exercício novo) e não dizia nada sobre os tempos.
+
+**A conta não é óbvia, e é isso que a torna necessária.** Incluir um exercício não muda a soma por si
+só: os tempos vêm das linhas do item 10, e essas linhas são escritas pelo professor. O que muda é o
+mecanismo da casa — a linha cujo exercício não está na lista acordada do plano é **filtrada** da
+leitura (`linhasDoRepertorio`). Quando o exercício entra no repertório do plano, as linhas que já
+existiam com o seu nome **voltam**, e os totais sobem com número.
+
+**Duas frases, e nenhuma inventa.** Com linha filtrada: «A soma dos tempos por bloco muda: Barra 8 →
+16 · Centro 0 → 16». Sem linha nenhuma: «A soma dos tempos por bloco não muda: os tempos vêm das
+linhas do item 10, e quem as escreve é você». A segunda não é uma desculpa — é a informação de que o
+sistema não fará a linha por ela, a mesma honestidade de `linhasDoItem10: 0`.
+
+**A conta é a do documento, e não uma segunda.** `somaPorBloco` lê a sequência por
+`linhasDoRepertorio` — o mesmo filtro que a `aula-01.md` aplica — e soma os `Tempos` por `Bloco`. Uma
+soma feita por outra via diria na janela um número que o documento não imprime. A ordem dos blocos é
+a da folha (`BLOCOS_DA_AULA`), e não a do ficheiro.
+
+**As provas.** `provar-o-exercicio-novo.js` secção **7** — 7 asserções novas (50 no total): a linha
+fora do repertório não conta, o efeito diz que muda, o antes/depois por bloco, o total, o caso sem
+linha nenhuma, e a ordem da folha. `provar-salas-e-elencos.js` secção **N** — 2 asserções novas (216
+no total), sobre a página: a frase do «não muda» e o número do «muda».
+
+**Com o quê.** `motor/nucleo/objetivos-do-repertorio.js` (`somaPorBloco`, `efeitoNaSoma`, e `soma` no
+impacto); `motor/servidor/bastidores.js` (`perguntarOObjetivo`, a frase da soma);
+`CUSTO-DOS-FLUXOS.md` §7.9c; `IDENTIDADE-VISUAL.md`; `motor/nucleo/README.md`.

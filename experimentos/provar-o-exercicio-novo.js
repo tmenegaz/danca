@@ -277,11 +277,62 @@ const TURMA_COM_O_NOVO = ['Battement tendu', 'Plié', 'Battement jeté'];
       r.respostas, antes.respostas);
   }
 
+  // ── 7. A SOMA POR BLOCO — «quanto muda» ───────────────────────────────────
+  console.log('\n7. A soma por bloco: o que é filtrado hoje volta, e é isso que muda o número');
+
+  {
+    /* O MECANISMO, e é o que torna a conta não óbvia: os tempos vêm das linhas do item 10, e uma
+     * linha cujo exercício não está na lista acordada do plano é FILTRADA da leitura. Quando o
+     * exercício entra no repertório do plano, a linha volta — e a soma sobe. */
+    const plano = umPlano();
+    plano.respostas['aula-1-sequencia'] = resp([
+      { Bloco: 'Barra', 'Objetivo específico': '1', 'Conteúdo do nível': 'Battement tendu', Tempos: '8' },
+      { Bloco: 'Barra', 'Objetivo específico': '1', 'Conteúdo do nível': 'Battement jeté', Tempos: '8' },
+      { Bloco: 'Centro', 'Objetivo específico': '2', 'Conteúdo do nível': 'Battement jeté', Tempos: '16' },
+    ]);
+    const antes = obj.somaPorBloco(plano.respostas, ['Battement tendu']);
+    igual('a soma lê o que o documento imprime hoje — a linha fora do repertório não conta',
+      Array.from(antes.entries()), [['Barra', 8]]);
+
+    const efeito = obj.efeitoNaSoma({
+      respostas: plano.respostas, termo: 'Battement jeté', repertorio: ['Battement tendu'],
+    });
+    certo('…e o efeito diz que a soma MUDA', efeito.muda === true, efeito);
+    igual('…bloco a bloco, com o antes e o depois',
+      efeito.mudam.map((b) => ({ bloco: b.bloco, antes: b.antes, depois: b.depois })),
+      [{ bloco: 'Barra', antes: 8, depois: 16 }, { bloco: 'Centro', antes: 0, depois: 16 }]);
+    igual('…e o total, que é a soma dos blocos', [efeito.totalAntes, efeito.totalDepois], [8, 32]);
+
+    /* O CASO SEM LINHA NENHUMA — um exercício verdadeiramente novo. A soma não muda, e dizer zero
+     * é o ponto: quem escreve a linha do item 10 é o professor, e o sistema não finge que fará. */
+    const semLinha = obj.efeitoNaSoma({
+      respostas: umPlano().respostas, termo: 'Battement jeté', repertorio: ['Battement tendu', 'Plié'],
+    });
+    certo('sem linha nenhuma, a soma NÃO muda', semLinha.muda === false, semLinha);
+    igual('…e nenhum bloco é declarado como alterado', semLinha.mudam, []);
+
+    /* A ORDEM É A DA FOLHA, e não a do ficheiro: uma janela que listasse os blocos por ordem de
+     * aparição mostraria a mesma aula em ordens diferentes conforme as linhas. */
+    const ordem = obj.efeitoNaSoma({
+      respostas: {
+        'aula-1-sequencia': resp([
+          { Bloco: 'Centro', 'Conteúdo do nível': 'X', Tempos: '4' },
+          { Bloco: 'Barra', 'Conteúdo do nível': 'X', Tempos: '4' },
+          { Bloco: 'Solo', 'Conteúdo do nível': 'X', Tempos: '4' },
+        ]),
+      },
+      termo: 'X', repertorio: [],
+    });
+    igual('…e os blocos saem na ordem da folha', ordem.blocos.map((b) => b.bloco),
+      ['Solo', 'Barra', 'Centro']);
+  }
+
   console.log('\n' + (falhas === 0 ? 'TUDO CERTO' : 'FALHOU') + ' — ' + n + ' asserções: a'
     + ' declaração do objetivo entra no parâmetro E no repertório do plano, uma vez só; o que a'
     + ' Turma já não ensina sai dos dois, e a Turma sem lista declarada não apaga nada; não se'
     + ' aplica o que a Turma não acordou nem o que o plano não sabe medir; e o impacto diz, antes'
     + ' de perguntar, a linha que ganha o termo, os objetivos todos sem pré-seleção, e as linhas'
-    + ' do item 10 que já citam o exercício.');
+    + ' do item 10 que já citam o exercício. E a soma por bloco: o que o filtro esconde hoje'
+    + ' volta quando o exercício entra na lista acordada, e é isso que a janela mostra.');
   process.exit(falhas === 0 ? 0 : 1);
 })();
