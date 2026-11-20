@@ -54762,3 +54762,66 @@ pessoa lê no canto, e não o que a resposta traz; **controlo negativo: 10 de 37
 a chamarem o aviso, lido no fonte); **controlo negativo: 3 de 19** antes desta correcção. Vizinhas:
 `provar-os-fluxos-da-derivacao` 65, `provar-gravar-e-gravar` 49, `provar-dicionario` 123,
 `check-identidade` ok.
+
+### 19/11/2026 — O recálculo do custo: as duas facturas, e o job que gasta 67 % a instalar TeX
+
+> «Agora que nós desenhamos todos esses fluxos, isso impacta diretamente no nosso custo. […] Quando
+> virar o mês, eu vou voltar para o GitHub privado. E aí vai voltar a contar os minutos de cada vez
+> que a gente tem um processo no CI/CD.»
+
+**O que faltava.** A §7.1 do `ARQUITETURA-GERAL.md` conta uma factura só — as **requisições** (PUT/GET
+ao GitHub), que é o custo de *escrever*. Há uma segunda, que nunca foi calculada: os **minutos de
+CI/CD**, que o repositório público não cobra e que o privado passa a cobrar. O novo
+[`CUSTO-DOS-FLUXOS.md`](CUSTO-DOS-FLUXOS.md) é essa conta.
+
+**O método, e o que ele não é.** Mediram-se, contra a API, a duração de cada job nos últimos 100
+runs, **os passos de cada job**, e **que commits disparam que workflow** (cruzando os `paths:` com os
+ficheiros de cada commit). **Não** se mediu o consumo real: a conta está num repositório público, a
+API de billing responde `{"billable":{}}`, e o `/timing` de cada workflow vem vazio. O que se mede é o
+**tempo**; o preço é a multiplicação — `$0,006/min` no runner Linux, com **$12 de compute incluído no
+Free** (2 000 min) e **$18 no Pro/Team** (3 000 min).
+
+**As constantes, medidas:** um job por execução, e facturação arredondada ao minuto. `Gerar o ciclo`
+**2 min** (job de 74–135 s, mediana 111 s); `Fechar os derivados` **1 min**; `Publicar o sistema`
+**1 min**; `Criar a escola` **1 min**.
+
+**O achado que vale mais do que todas as alavancas juntas.** Dos 117 s do job de gerar, **78 s são o
+`preparar-tex`** (pandoc, TeX, pdfinfo, dos `.deb` em cache), 14–21 s o `preparar-node`, e **5 s** a
+geração do pacote. **O trabalho pelo qual se paga são 5 segundos; os outros 112 são preparar a máquina
+que o faz**, e ela é descartada no fim. E o número que manda não é a média: é o **arredondamento** —
+61 s custam o mesmo que 120 s. O job está a **111 s, a nove segundos da fronteira**: baixar a 60 s
+factura **1 minuto em vez de 2**, e corta **metade dos 73 %** que a geração pesa na factura.
+
+**A matriz por gesto**, medida nas escritas de cada um e publicada no documento. Os três resultados
+que mudam a conversa:
+
+| o gesto | min de CI |
+|:--|--:|
+| criar/editar a anamnese | **0** |
+| criar Sala, professor, aluna | **0** |
+| **T2** (mudar o professor), **T3** (modalidade), **T4** (conteúdos) | **0** |
+| lançar uma aula | 2 |
+| gravar plano ou PO | 4 |
+| concluir o elenco (1 Turma) | 4 |
+| editar um verbete em uso (T5) | 3 |
+| editar um termo (T6) | 1 livre · 3 em uso |
+
+**Os três fluxos que ela mandou desenhar (T2, T3, T4) são os mais baratos de todos — zero.** O que
+eles fazem é **parar** e dizer; uma etapa `bloqueada` não chega à geração. O que custa é o T5, e o
+custo dele é o preço de o documento deixar de mentir.
+
+**Os três cenários.** Escola pequena, uso corrente: **60 min/mês** ($0,36) — ruído. Escola em produção
+com 5 professoras: **1 210 min/mês** ($7,26), que é **60 % da cota Free** — uma escola grande sozinha
+come mais de metade do que o plano inclui. Stress, três escolas com 40 gestos/dia: **10 800 min/mês**
+($64,80, ou **$46,80 de excedente** no Pro). **E o número que importa não é o total: uma única escola
+em stress (3 600 min/mês) já estoura o Free e passa o Pro.**
+
+**As cinco alavancas, com o ganho calculado e uma verificação obrigatória cada.** (1) tirar o TeX do
+caminho crítico — até **−36 %** no total (B: 1 210 → ~770 min; C: $64,80 → ~$41); (2) um commit em vez
+de dois no elenco — −1 min por conclusão; (3) tirar `biblioteca/modalidades/**` do `publicar`, **só
+depois de medir** se algum Worker lê aquilo em runtime; (4) uma geração por lote em vez de uma por
+Turma; (5) `concurrency` por variante. Nenhuma foi aplicada: **a ordem é dela**, e a única que exige
+uma medição antes é a terceira.
+
+**O que este documento não é**, e está escrito lá: não é ensaio de carga, não é a factura das
+requisições (as duas somam-se), e não inclui KV nem invocações do Worker.

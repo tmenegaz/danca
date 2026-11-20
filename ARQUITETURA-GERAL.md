@@ -3054,6 +3054,13 @@ cada «Guardar», e é o número que decide se a decisão se sustenta.
 | Pontuação por operação | 900 pontos/min | A `PUT` do Contents pesa mais que a leitura |
 | Ligações simultâneas | 100 | Irrelevante a esta escala |
 
+> **AS DUAS FACTURAS (19/11/2026).** O que esta secção conta são **requisições** ao GitHub — o custo
+> de *escrever*. Há uma segunda factura, que esta secção não cobria: os **minutos de CI/CD** de cada
+> workflow, que passam a ser cobrados quando o repositório for privado. A conta completa, com os
+> minutos medidos por execução e por gesto, está no [`CUSTO-DOS-FLUXOS.md`](CUSTO-DOS-FLUXOS.md).
+> O resumo que basta para não confundir as duas: **uma anamnese custa 0 minutos de CI e ~6 `PUT`**;
+> **gerar um ciclo custa 2 minutos de CI e nenhum `PUT`**.
+
 **O que isso quer dizer, em escolas.** A 7 pontos por edição, 500 `PUT`/h dão para ~**70 edições
 por hora** — mais do que um professor faz num mês, e muito mais do que a segunda-feira de uma
 secretaria. O gargalo não é a média: é a **rajada**. O `80/min` de criação de conteúdo é o que

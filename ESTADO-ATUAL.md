@@ -1713,6 +1713,7 @@ Verificado nesta fotografia, com os comandos da §9.
 `PLANO-AULA-E-OBSERVACAO.md` · `PLANO-TABELA-DE-ATIVIDADES.md` · `PLANO-NAVEGACAO.md` ·
 `PLANO-INDICES.md` · `PLANO-CICLO-DA-TURMA.md` · `PLANO-PERGUNTAS-DA-PROVENIENCIA.md` ·
 `PLANO-FLUXOS-DE-DERIVACAO.md` (os nove passos dos fluxos, um a um) ·
+`CUSTO-DOS-FLUXOS.md` (os minutos de CI medidos, por gesto) ·
 `DIAGNOSTICO-IDENTIDADE.md` · `IMPLEMENTACAO-IDENTIDADE.md` · `ARQUITETURA-*.md` · `IDEIA-*.md`
 
 ### Código
@@ -4772,6 +4773,16 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   havia data por aula, e o `ciclos.json` publicado mostra 24 aulas datadas, calculadas do ritmo da
   Sala. O T7 passa a ser «**congelar** a data das aulas que já aconteceram», não «criar a data». Nenhum
   código mudou; a nota está na §3.4 do `ARQUITETURA-GERAL.md`, no T7 do plano e no `REGISTRO.md`.
+
+- **19/11/2026** — **O recálculo do custo dos fluxos.** Criado o `CUSTO-DOS-FLUXOS.md`: a segunda
+  factura, que nunca tinha sido calculada — os **minutos de CI/CD**, que o repositório público não
+  cobra e o privado passa a cobrar ($12 de compute no Free, $18 no Pro; $0,006/min no Linux). Medidos
+  por job: `Gerar o ciclo` **2 min**, `derivados` 1, `publicar` 1, `criar-escola` 1, e **um job por
+  execução**. O achado: **78 dos 117 s do job de gerar são o `preparar-tex`**, e a geração são 5 s —
+  o job está a nove segundos da fronteira dos 2 minutos. Por gesto: anamnese **0 min**, T2/T3/T4
+  **0 min** (bloqueiam), lançar aula 2, plano/PO 4, elenco 4, verbete em uso 3. Cenários: 60 min/mês
+  (escola pequena) · 1 210 (escola a sério, 60 % do Free) · 10 800 (stress de três escolas, $64,80).
+  Cinco alavancas com ganho calculado; **nenhuma aplicada** — a ordem é dela.
 
 - **19/11/2026** — **O recado da geração.** As três telas que gravam passaram a mostrar o que a
   geração fez: partiu (e leva minutos), falhou (e os documentos continuam com a notação antiga), não
