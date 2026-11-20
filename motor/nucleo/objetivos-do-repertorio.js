@@ -302,6 +302,66 @@ function aplicarDeclaracoes({ respostas, declaracoes, repertorio }) {
   return { respostas: saida, aplicadas, ignoradas };
 }
 
+/**
+ * O EXERCÍCIO QUE SAI DA TURMA SAI DO PLANO — a outra metade da mesma regra.
+ *
+ * A INCLUSÃO TEM JANELA, A REMOÇÃO NÃO, e é decisão dela (20/11/2026): «quando eu removo, não tem
+ * impacto […] o modal não precisaria existir para remover, porque aí ele se desvincula dos
+ * objetivos.» Desvincular-se é trabalho da derivação — e, sem esta função, não acontecia: o elo
+ * novo copiava o `repertorio` e a matriz do parâmetro do elo anterior, e o exercício removido
+ * continuava a ser impresso no documento. «Em nenhum lugar da aula pode existir algo que não
+ * esteja definido na curadoria» é de 03/11/2026, e vale nos dois sentidos.
+ *
+ * A REGRA É DE IDENTIDADE, e não de gesto: o plano diz o que a Turma ensina hoje, e é a lista dela
+ * que decide. Por isso a poda corre em TODA a derivação — a troca de elenco, a mudança de sala, a
+ * derivação da Turma —, e não só no gesto que mexeu no repertório.
+ *
+ * O QUE NÃO SE TOCA: o elo anterior (a proveniência acrescenta), a sequência escrita pelo
+ * professor (o documento filtra-a pelo repertório, e a linha cai na leitura, não na escrita), e a
+ * Turma que não declara repertório nenhum — sem lista acordada não há com que comparar, e uma poda
+ * contra uma lista vazia apagaria o plano inteiro.
+ */
+function podarForaDoRepertorio({ respostas, repertorio }) {
+  const saida = respostas || {};
+  const acordado = termosLimpios(repertorio);
+  if (!acordado.length) return { respostas: saida, removidos: [] };
+
+  const removidos = [];
+  const anotar = (t) => { if (removidos.indexOf(t) === -1) removidos.push(t); };
+  const dentro = (t) => acordado.indexOf(t) !== -1;
+
+  const doPlano = termosLimpios(valorDaResposta(saida, 'repertorio'));
+  const ficam = [];
+  for (const t of doPlano) {
+    if (dentro(t)) ficam.push(t);
+    else anotar(t);
+  }
+  if (removidos.length) comValor(saida, 'repertorio', ficam);
+
+  /* A MATRIZ DO PARÂMETRO, linha a linha. As linhas que não são objecto (a prosa antiga) ficam
+   * como estão: converter o que está lá seria reescrever o passado. E a linha do objectivo que
+   * fica sem exercício nenhum NÃO se apaga — o objectivo continua a existir; o que ele observa é
+   * que mudou. */
+  const bruto = valorDaResposta(saida, 'aula-1-parametro');
+  if (Array.isArray(bruto)) {
+    let mudou = false;
+    const matriz = bruto.map((l) => {
+      if (!l || typeof l !== 'object' || Array.isArray(l)) return l;
+      const marcados = termosLimpios(l.marcados);
+      const aqui = [];
+      for (const t of marcados) {
+        if (dentro(t)) aqui.push(t);
+        else anotar(t);
+      }
+      if (aqui.length === marcados.length) return l;
+      mudou = true;
+      return Object.assign({}, l, { marcados: aqui });
+    });
+    if (mudou) comValor(saida, 'aula-1-parametro', matriz);
+  }
+  return { respostas: saida, removidos };
+}
+
 module.exports = {
   valorDaResposta,
   termosLimpios,
@@ -310,4 +370,5 @@ module.exports = {
   estadoDaDeclaracao,
   impactoDaInclusao,
   aplicarDeclaracoes,
+  podarForaDoRepertorio,
 };

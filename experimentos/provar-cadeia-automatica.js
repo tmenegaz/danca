@@ -564,6 +564,88 @@ async function ids(arm, familia) {
       marcos3.marcados, ['Battement tendu']);
   }
 
+  /* ==========================================================================
+   * B4. O EXERCÍCIO QUE SAI DA TURMA SAI DO PLANO — a outra metade (20/11/2026)
+   *
+   * A INCLUSÃO TEM JANELA, A REMOÇÃO NÃO — «quando eu removo, não tem impacto […] ele se desvincula
+   * dos objetivos». Desvincular é trabalho da derivação, e não era feito: o elo novo copiava o
+   * `repertorio` e a matriz do parâmetro do elo anterior, e o exercício que a Turma já não ensinava
+   * continuava a ser impresso no plano. O documento filtra o parâmetro pelo repertório do PRÓPRIO
+   * plano, pelo que o termo ficava — a regra de 03/11/2026 («em nenhum lugar da aula pode existir
+   * algo que não esteja definido na curadoria») era verdadeira só num sentido.
+   */
+  console.log('\nB4. O EXERCÍCIO QUE SAI DA TURMA SAI DO PLANO — e o elo anterior não se toca');
+
+  {
+    /* O plano de partida ensina DOIS exercícios; a Turma passa a ensinar um. */
+    const planoComDois = planoFixture('plano-20261103-2200');
+    planoComDois.respostas['aula-1-parametro'] = r([
+      { marco: 1, marcados: ['Battement tendu', 'Plié'] },
+    ]);
+    planoComDois.respostas.repertorio = r(['Battement tendu', 'Plié']);
+    const soTendu = curadoria({ repertorio: ['Battement tendu'] });
+    const { cadeia, arm } = montar({ curadorias: [soTendu] });
+    await porta.gravarEnvelope(arm, planoComDois, relatorioDe('plano-20261103-2200'));
+    await porta.gravarEnvelope(arm, poFixture('po-20261103-2221', { planoId: 'plano-20261103-2200' }),
+      relatorioDe('po-20261103-2221'));
+
+    const r1 = await cadeia.executar({
+      gatilho: 'troca-de-direcao', turmas: [TURMA], quando: QUANDO,
+      motivo: 'o «Plié» saiu do conteúdo desta Turma',
+    });
+    provar('a travessia corre', r1.ok === true, r1.erro);
+    const novos = (await ids(arm, 'plano')).filter((x) => x !== 'plano-20261103-2200');
+    const novo = novos.length ? await porta.lerEnvelope(arm, novos[0]) : null;
+    const listaDe = (cru) => (cru && cru.valor !== undefined ? cru.valor : cru);
+    const repDoNovo = listaDe(novo && novo.respostas.repertorio);
+    provar('…e o exercício removido sai da lista acordada do plano',
+      JSON.stringify(repDoNovo) === JSON.stringify(['Battement tendu']), repDoNovo);
+    const matrizNova = listaDe(novo && novo.respostas['aula-1-parametro']);
+    const linhaUm = (Array.isArray(matrizNova) ? matrizNova : [])
+      .find((l) => Number(l.marco) === 1) || {};
+    provar('…e sai da matriz do parâmetro',
+      JSON.stringify(linhaUm.marcados) === JSON.stringify(['Battement tendu']), linhaUm.marcados);
+    provar('…e a decisão sobe à tela, em vez de desaparecer em silêncio',
+      (r1.avisos || []).some((a) => /já não está no conteúdo da Turma/.test(a) && /Plié/.test(a)),
+      r1.avisos);
+
+    /* A PROVENIÊNCIA ACRESCENTA: o elo anterior continua a dizer o que dizia. */
+    const velho = await porta.lerEnvelope(arm, 'plano-20261103-2200');
+    const repVelho = listaDe(velho.respostas.repertorio);
+    provar('…e o elo ANTERIOR continua a declarar os dois exercícios',
+      JSON.stringify(repVelho) === JSON.stringify(['Battement tendu', 'Plié']), repVelho);
+
+    /* E O DOCUMENTO SEGUE — é ele que o professor imprime, e é ele que a prova mede. */
+    const nucleoPlano = require(path.join(RAIZ, 'motor/nucleo/derivar-plano-ciclo.js'));
+    const doc = nucleoPlano.derivarPlano(novo, ler('plano/conteudo/plano.json'));
+    provar('…e o documento derivado já não imprime o exercício removido',
+      !/Plié/.test(String(doc.markdown)), String(doc.markdown).split('\n')
+        .filter((l) => /Plié/.test(l)));
+  }
+
+  {
+    /* CONTROLE NEGATIVO — a poda é contra a LISTA, e não contra o gesto: uma Turma de antes do
+     * campo `repertorio` existir não declara lista nenhuma, e comparar contra vazio apagaria o
+     * plano inteiro. */
+    const planoComDois = planoFixture('plano-20261103-2200');
+    planoComDois.respostas['aula-1-parametro'] = r([
+      { marco: 1, marcados: ['Battement tendu', 'Plié'] },
+    ]);
+    planoComDois.respostas.repertorio = r(['Battement tendu', 'Plié']);
+    /* A Turma de antes do campo `repertorio`: o registo não declara lista nenhuma. */
+    const { cadeia, arm } = montar({ curadorias: [curadoria()] });
+    await porta.gravarEnvelope(arm, planoComDois, relatorioDe('plano-20261103-2200'));
+    await porta.gravarEnvelope(arm, poFixture('po-20261103-2221', { planoId: 'plano-20261103-2200' }),
+      relatorioDe('po-20261103-2221'));
+    await cadeia.executar({ gatilho: 'troca-de-direcao', turmas: [TURMA], quando: QUANDO });
+    const novos = (await ids(arm, 'plano')).filter((x) => x !== 'plano-20261103-2200');
+    const novo = novos.length ? await porta.lerEnvelope(arm, novos[0]) : null;
+    const cru = novo && novo.respostas.repertorio;
+    const rep = cru && cru.valor !== undefined ? cru.valor : cru;
+    provar('CONTROLE NEGATIVO: sem repertório declarado na Turma, o plano não é podado',
+      JSON.stringify(rep) === JSON.stringify(['Battement tendu', 'Plié']), rep);
+  }
+
   // ==========================================================================
   console.log('\nC. O REGISTO INCOMPLETO — avança até onde pode, e diz o que falta');
 

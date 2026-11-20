@@ -56213,3 +56213,38 @@ janela, o gancho, `declaracoesDaTurma` e a passagem das declarações à cadeia)
 `motor/servidor/cadeia.js` (`declaracoes` em `executar` → `porTurma` → `derivarPlano`);
 `IDENTIDADE-VISUAL.md` (o segundo caso da janela por cima, e as três linhas novas na tabela do «há
 modal?»); `CUSTO-DOS-FLUXOS.md` §7.9 c e d; `motor/nucleo/README.md`.
+
+## 20/11/2026 — O exercício que sai da Turma sai do plano (a outra metade, construída)
+
+**O que estava escrito e o que o código fazia.** A §7.9b do `CUSTO-DOS-FLUXOS` dizia «remover tem
+impacto, e é automático», e a frase era verdadeira **só para o filtro**: `linhasDoRepertorio` e
+`termosDoRepertorio` comparam o documento com o `repertorio` do **próprio plano** — e a derivação
+copiava esse `repertorio` do elo anterior. Tirar o exercício da Turma não mudava o plano: o elo novo
+nascia igual, e o `-plano.md` continuava a imprimir o exercício removido. Medido ao construir a poda:
+sem ela, `repertorio` e `aula-1-parametro` do elo novo mantinham `['Battement tendu', 'Plié']` e o
+documento listava «Plié»; com ela, os dois perdem o termo.
+
+**A regra que ficou, e é a dela.** A inclusão tem janela; a remoção não — «quando eu removo, não tem
+impacto […] ele se desvincula dos objetivos». Desvincular é trabalho da **derivação**, e agora é
+feito por `podarForaDoRepertorio` (`motor/nucleo/objetivos-do-repertorio.js`), chamada em
+`derivarPlano` antes da gravação. **A poda é de identidade, e não de gesto:** corre em toda a
+derivação — troca de elenco, mudança de sala, derivação da Turma —, porque quem decide é a lista da
+Turma de hoje. Uma poda amarrada ao gatilho deixaria o plano a divergir na primeira vez que a lista
+mudasse por outro caminho.
+
+**O que a poda NÃO faz, e é o que a torna segura.** Não toca no elo anterior (a proveniência
+acrescenta); não apaga a linha do objetivo que ficou sem exercício (o objetivo continua a existir; o
+que ele observa é que mudou); não toca na sequência escrita pelo professor (o documento filtra-a na
+leitura); e **não poda nada quando a Turma não declara `repertorio`** — uma Turma de antes do campo
+existir não se julga, e comparar contra o vazio apagaria o plano inteiro. O gesto diz o que saiu:
+`avisos: «saiu do plano o que já não está no conteúdo da Turma: Plié»` — um exercício que desaparece
+do documento sem uma frase é o sistema a apagar trabalho em silêncio.
+
+**As provas.** `provar-o-exercicio-novo.js` secção **6** — 9 asserções novas (43 no total), incluindo
+o controle negativo da Turma sem lista. `provar-cadeia-automatica.js` secção **B4** — 7 asserções
+novas (100 no total), até ao documento derivado. **A/B medido:** com a poda desligada, **4** asserções
+falham (a lista, a matriz, o aviso e o documento).
+
+**Com o quê.** `motor/nucleo/objetivos-do-repertorio.js` (`podarForaDoRepertorio`);
+`motor/servidor/cadeia.js` (`derivarPlano`, e `repertorioPodado` na resposta); `CUSTO-DOS-FLUXOS.md`
+§7.9b; `motor/nucleo/README.md`; as duas provas.

@@ -507,6 +507,29 @@ function criarCadeia({
       });
       if (r.aplicadas.length) declaracaoAplicada = r.aplicadas;
     }
+    /* O EXERCÍCIO QUE SAIU DA TURMA SAI DO PLANO (20/11/2026) — a outra metade da declaração.
+     *
+     * A inclusão tem janela; a remoção não tem, e é decisão dela: «quando eu removo, não tem
+     * impacto […] ele se desvincula dos objetivos.» Aqui é o desvincular a acontecer. Sem isto, o
+     * elo novo copiava o `repertorio` e a matriz do parâmetro do elo anterior, e o exercício que a
+     * Turma já não ensina continuava a ser impresso no plano — o oposto da regra de 03/11/2026,
+     * «em nenhum lugar da aula pode existir algo que não esteja definido na curadoria».
+     *
+     * A REGRA É DE IDENTIDADE, E NÃO DE GESTO: corre em toda a derivação — a troca de elenco, a
+     * mudança de sala, a derivação da Turma. Quem decide é a lista da Turma de hoje, e não o gesto
+     * que a mudou: uma poda amarrada ao gatilho deixaria o plano a divergir na primeira vez que a
+     * lista mudasse por outro caminho. */
+    let repertorioPodado = null;
+    if (curadoria) {
+      const poda = objetivosDoRepertorio.podarForaDoRepertorio({
+        respostas,
+        /* O VAZIO NÃO PODA. Uma Turma sem `repertorio` declarado é uma Turma de antes do campo
+         * existir, e comparar contra uma lista vazia apagaria o plano inteiro — a mesma defesa de
+         * `declaracoesDaTurma`, e a mesma convenção de sempre: o que não se declara não se julga. */
+        repertorio: repertorioDaCuradoria(curadoria),
+      });
+      if (poda.removidos.length) repertorioPodado = poda.removidos;
+    }
     /* A IDENTIDADE VAI COM O ELO (10/11/2026) — nas RESPOSTAS, que é o que o documento imprime.
      * O NOME É O DO AUTOR (12/11/2026): o do documento anterior, que é — pela guarda acima — o
      * mesmo que dirige a Turma hoje. A fonte do nome é a autoria, e não a curadoria, porque a
@@ -552,12 +575,19 @@ function criarCadeia({
     const avisos = (fonte && Array.isArray(fonte.pendencias) ? fonte.pendencias : [])
       .map((p) => 'a geração vai recusar esta aula: ' + p);
     if (volumeEscalado) avisos.push(volumeEscalado);
+    /* A PODA DIZ-SE. Um exercício que desaparece do documento sem uma frase é o sistema a apagar
+     * trabalho em silêncio; a frase é o que permite a ela discordar e repor o exercício na Turma. */
+    if (repertorioPodado) {
+      avisos.push('saiu do plano o que já não está no conteúdo da Turma: '
+        + repertorioPodado.join(' · '));
+    }
     /* A DOSE SAIU DOS AVISOS (20/11/2026), e a razão é dela: numa aula de dança a música divide-se
      * em oito, portanto três séries são 3×8 tempos musicais — a série mede-se contra a MÚSICA, não
      * contra o relógio da aula. «Não tem relação com o tempo de trabalho. Ele vai dosar isso com o
      * que tem.» Mudar a duração não põe a dose em causa, e um aviso que a mandasse rever seria um
      * aviso falso. Ver `motor/nucleo/volume.js`. */
-    return { ok: true, id: envelope && envelope.id, de: anterior.id, fonte, avisos, declaracaoAplicada };
+    return { ok: true, id: envelope && envelope.id, de: anterior.id, fonte, avisos, declaracaoAplicada,
+      repertorioPodado };
   }
 
   /**

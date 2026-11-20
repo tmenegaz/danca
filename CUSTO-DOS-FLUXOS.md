@@ -668,6 +668,18 @@ sequência):
 objectivo perde o termo por `termosDoRepertorio`. Nada a decidir — o exercício desvincula-se, e o
 documento segue a régua do repertório acordado sozinho.
 
+> **E O «AUTOMÁTICO» NÃO ERA, até 20/11/2026 — o filtro era verdadeiro e o dado não chegava lá.**
+> `linhasDoRepertorio` filtra o parâmetro contra o `repertorio` do **próprio plano**, e a derivação
+> copiava esse `repertorio` do elo anterior: tirar o exercício da Turma não mudava o plano, o elo
+> novo nascia igual, e o documento continuava a imprimir o exercício removido. Medido ao construir a
+> poda (`podarForaDoRepertorio`, em `motor/nucleo/objetivos-do-repertorio.js`, chamada em
+> `derivarPlano`): sem ela, o elo novo mantinha `['Battement tendu', 'Plié']` no `repertorio` e em
+> `aula-1-parametro`, e o `-plano.md` ainda listava «Plié». Com ela, os dois perdem o termo, o elo
+> ANTERIOR continua a declará-lo (a proveniência acrescenta), e o gesto diz o que saiu —
+> `avisos: «saiu do plano o que já não está no conteúdo da Turma: Plié»`. **A poda é de identidade e
+> não de gesto:** corre em toda a derivação, e uma Turma sem `repertorio` declarado não poda nada
+> (comparar contra o vazio apagaria o plano inteiro).
+
 > **CORRECÇÃO DE 20/11/2026, no mesmo dia, e ela é dela.** A primeira versão deste capítulo dizia que
 > **incluir** não tinha impacto nenhum, e concluía que o modal só se justificava na remoção. Estava
 > errado, e o erro foi de leitura: olhei para a sequência (`aula-1-sequencia`) e não para a matriz do

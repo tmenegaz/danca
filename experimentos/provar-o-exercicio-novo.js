@@ -226,8 +226,60 @@ const TURMA_COM_O_NOVO = ['Battement tendu', 'Plié', 'Battement jeté'];
   igual('…e um exercício que a aula já usa não pede decisão nenhuma', jaLa.estado, 'ja-na-aula');
   igual('…e o impacto diz quantas linhas do item 10 já o citam', jaLa.linhasDoItem10, 1);
 
+  // ── 6. A OUTRA METADE — O EXERCÍCIO QUE SAI DA TURMA SAI DO PLANO ─────────
+  console.log('\n6. O que a Turma já não ensina sai do plano — e a Turma vazia não apaga nada');
+
+  /* A INCLUSÃO TEM JANELA, A REMOÇÃO NÃO. «Quando eu removo, não tem impacto […] ele se desvincula
+   * dos objetivos.» Desvincular é trabalho da derivação: sem esta poda, o elo novo copiava a lista
+   * e a matriz do elo anterior, e o exercício removido continuava impresso no documento. */
+  {
+    const antes = umPlano();
+    const r = obj.podarForaDoRepertorio({
+      respostas: JSON.parse(JSON.stringify(antes.respostas)),
+      repertorio: ['Battement tendu'],
+    });
+    const rep = r.respostas.repertorio.valor;
+    igual('o termo sai da lista acordada do plano', rep, ['Battement tendu']);
+    igual('…e sai da matriz do parâmetro, em TODAS as linhas que o citavam',
+      r.respostas['aula-1-parametro'].valor,
+      [{ marco: 1, marcados: ['Battement tendu'] }, { marco: 2, marcados: [] }]);
+    certo('…e a linha do objetivo que ficou sem exercício NÃO é apagada — o objetivo existe',
+      r.respostas['aula-1-parametro'].valor.length === 2);
+    certo('…e a poda diz o que tirou, para a frase poder ser dita',
+      r.removidos.length === 1 && r.removidos[0] === 'Plié', r.removidos);
+  }
+
+  {
+    /* O CONTROLE NEGATIVO — e é o que separa uma poda de uma limpeza cega. Uma Turma de antes do
+     * campo `repertorio` existir não declara lista nenhuma: comparar contra vazio apagaria o plano
+     * inteiro, e o professor perderia o trabalho sem uma frase que o explicasse. */
+    const antes = umPlano();
+    const r = obj.podarForaDoRepertorio({
+      respostas: JSON.parse(JSON.stringify(antes.respostas)), repertorio: [],
+    });
+    igual('sem lista acordada na Turma, o plano fica exactamente como estava',
+      r.respostas.repertorio.valor, ['Battement tendu', 'Plié']);
+    igual('…e a matriz do parâmetro também', r.respostas['aula-1-parametro'].valor,
+      antes.respostas['aula-1-parametro'].valor);
+    igual('…e nada é declarado como removido', r.removidos, []);
+  }
+
+  {
+    /* A TURMA QUE AINDA ENSINA TUDO NÃO MUDA NADA — a poda é contra a lista, e não contra o
+     * gesto: sem diferença, o elo novo tem de sair igual ao anterior. */
+    const antes = umPlano();
+    const r = obj.podarForaDoRepertorio({
+      respostas: JSON.parse(JSON.stringify(antes.respostas)),
+      repertorio: ['Battement tendu', 'Plié'],
+    });
+    igual('com tudo ainda na Turma, nenhum termo sai', r.removidos, []);
+    igual('…e o plano sai igual ao que entrou',
+      r.respostas, antes.respostas);
+  }
+
   console.log('\n' + (falhas === 0 ? 'TUDO CERTO' : 'FALHOU') + ' — ' + n + ' asserções: a'
-    + ' declaração do objetivo entra no parâmetro E no repertório do plano, uma vez só; não se'
+    + ' declaração do objetivo entra no parâmetro E no repertório do plano, uma vez só; o que a'
+    + ' Turma já não ensina sai dos dois, e a Turma sem lista declarada não apaga nada; não se'
     + ' aplica o que a Turma não acordou nem o que o plano não sabe medir; e o impacto diz, antes'
     + ' de perguntar, a linha que ganha o termo, os objetivos todos sem pré-seleção, e as linhas'
     + ' do item 10 que já citam o exercício.');
