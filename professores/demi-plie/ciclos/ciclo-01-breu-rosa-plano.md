@@ -16,7 +16,7 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 | Item | Valor |
 |:------------------------|:--------------------------------------------------------|
 | **Frequência semanal** | 3x semanal — seg e qua e sex |
-| **Duração por aula** | 1 hora 30 minutos |
+| **Duração por aula** | 1 hora 40 minutos |
 | **Calendário** | 2026-12-14 → 2027-01-15 |
 | **Número total de aulas** | 15 |
 
@@ -57,10 +57,10 @@ Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turm
 
 | Bloco | Proporção alvo | Justificativa |
 |:--|:--|:--|
-| **Solo** | **9** | **Aquecimento e consciência corporal.** |
-| **Barra** | **9** | **Apoio e alinhamento.** |
-| **Centro** | **54** | **Transferência e sequência.** |
-| **Musicalidade** | **18** | **Pulso e frase.** |
+| **Solo** | **8** | **Aquecimento e consciência corporal.** |
+| **Barra** | **8** | **Apoio e alinhamento.** |
+| **Centro** | **58** | **Transferência e sequência.** |
+| **Musicalidade** | **26** | **Pulso e frase.** |
 
 > **Unidade: minutos.** A proporção alvo é o tempo de aula na unidade declarada — a soma fecha com a duração da aula.
 
