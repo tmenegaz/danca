@@ -329,6 +329,91 @@ Duas gravações seguidas do mesmo plano disparam duas gerações; a primeira é
 
 ---
 
+## 7.7 O que mudou desde o recálculo — medido a 20/11/2026, sobre execuções reais
+
+> **Porque esta secção existe.** «Para verificar o custo do processo […] a gente já vai ter também a
+> medição daquele commits, que a gente diminuiu a quantidade de commits e também o uso do tex […]
+> para verificar se tivemos uma redução de custo significativo. Alguma tivemos, né? Mas para a gente
+> poder saber o quanto tivemos.»
+
+Duas mudanças entraram desde o recálculo de 19/11, e as duas foram medidas na API — não estimadas:
+**os workflows fundiram-se** (16/11: `Regerar os índices` + `Reancorar a cadeia` → `Fechar os
+derivados`; `Publicar as escolas` + `Publicar a raiz` → `Publicar o sistema`) e **o TeX passou a ser
+mínimo e em cache** (22/10).
+
+### a) Execuções por gesto — a metade que mais pesa
+
+Um gesto de geração («Guardar» do plano e do PO, e a geração que ele dispara), agrupado por janelas
+de 2 minutos:
+
+| | antes da fusão (15/11) | hoje (20/11) |
+|:--|--:|--:|
+| `Regerar os índices` | 8–12 (6–8 canceladas) | — |
+| `Reancorar a cadeia` | 4 (2 canceladas) | — |
+| `Publicar as escolas` + `Publicar a raiz` | 2–4 | — |
+| **`Fechar os derivados`** | — | **7–8 (6–7 canceladas)** |
+| **`Publicar o sistema`** | — | **1** |
+| `Gerar o ciclo` | 1 | 1 |
+| **execuções no gesto** | **15–19** | **8–10** |
+
+**Jobs bem-sucedidos por gesto** (é o que se factura): **7, 9 e 9** antes → **3 e 2** hoje.
+
+| gesto medido | jobs pagos | min |
+|:--|--:|--:|
+| 15/11 15:44 | 7 (regerar 2 · reancorar 2 · publicar 2 · gerar 1) | **8** |
+| 15/11 16:48 | 9 (regerar 4 · reancorar 2 · publicar 2 · gerar 1) | **10** |
+| 15/11 22:21 | 9 (idem + a raiz) | **10** |
+| 20/11 15:28 | 3 (derivados 1 · publicar 1 · gerar 1) | **4** |
+| 20/11 15:33 | 2 (derivados 1 · gerar 1) | **3** |
+
+**De 8–10 para 3–4 minutos por gesto — cerca de 60 % menos**, e é a fusão dos workflows que o fez:
+o mesmo trabalho passou de três ou quatro execuções para uma.
+
+**A ressalva das canceladas continua de pé.** Se as 6–8 execuções canceladas forem facturadas
+(arredondadas ao minuto), o gesto de hoje custa **10–11 min** e o de 15/11 custava **16–18** — a
+redução cai para ~35 %, mas não desaparece. Qual das duas leituras é a verdadeira **não se mede
+enquanto o repositório for público** (`billable_ms: 0` em todas as execuções) — é a mesma lacuna que
+a correcção de 20/11 já declarou.
+
+### b) O TeX — a metade, e não o terço que se esperava
+
+O passo que instala pandoc e TeX, medido em execuções reais de `Gerar o ciclo`:
+
+| quando | passo | job | facturado |
+|:--|--:|--:|--:|
+| **antes do ajuste** (20/10, `Instalar pandoc, TeX e pdfinfo`) | **130 s · 170 s** | 177 s · 211 s | **3 · 4 min** |
+| no dia do ajuste (22/10) | 84 s · 110 s | 141 s · 145 s | 3 min |
+| 15/11 | 68 s | 100 s | 2 min |
+| **hoje** (6 execuções) | **56 · 61 · 62 · 64 · 78 · 81** — mediana **63 s** | 89–128 s | **2 · 2 · 2 · 3 · 3 · 2** |
+
+**O passo caiu ~55 %** (130–170 s → mediana 63 s). **A factura do job caiu menos:** 3,2 → 2,3 min em
+média (−26 %), porque **duas das seis execuções de hoje passaram dos 120 s** e voltaram a custar 3
+minutos. A média esconde a fronteira, e a fronteira é o que se paga.
+
+**E o número que interessa para a §8:** para o `Gerar o ciclo` custar **1 minuto**, o job tem de
+fechar em **60 s**. O TeX sozinho leva **56–81 s**. **Enquanto o TeX correr dentro do job, o minuto é
+inalcançável** — não é uma questão de afinar: é a soma. O caminho para 1 minuto passa por **tirar o
+PDF do job** (compilá-lo noutro sítio, ou só quando o conteúdo mudar), e não por acelerar o
+`apt-get`.
+
+### c) Commits por gesto — a redução já era de 22/10, e não mudou hoje
+
+O `gravarArquivosNumCommit` (22/10) levou o «Guardar» de **11 commits para 8** («onze commits em
+vinte e dois segundos» → 8 arquivos, 1 commit). Medido hoje, num gesto de 12:33: **8 commits de
+fonte** — e é o mesmo número de 15/11. **Hoje não houve redução de commits**, e dizê-lo seria
+atribuir à fusão uma poupança que veio de outra correcção.
+
+### d) O que isto responde
+
+| pergunta | resposta medida |
+|:--|:--|
+| «a gente diminuiu a quantidade de commits»? | nos **commits**, não (8, como antes); nas **execuções** por gesto, sim — **15–19 → 8–10** |
+| «o uso do TeX»? | o passo caiu **~55 %**; o job, **~26 %** na média |
+| «houve redução de custo significativa»? | **sim, ~60 %** no gesto, pela fusão dos workflows; **~35 %** se as canceladas forem facturadas |
+| «dá para chegar a 1 minuto?» | **não com o TeX dentro do job** — ele sozinho já passa dos 60 s |
+
+---
+
 ## 8. As três coisas que fariam esta conta mudar
 
 1. **A geração deixar de correr a cada lançamento.** É a §7.1, e é a única que muda a **unidade

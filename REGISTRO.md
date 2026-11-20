@@ -55545,3 +55545,36 @@ erros.
 **O que ainda não está feito.** O «×» continua a deixar o formulário da sala aberto e preenchido, de
 propósito — fechar a pergunta e desistir do gesto não são a mesma coisa. Se a experiência mostrar que
 o «×» confunde, a decisão muda-se num sítio só.
+
+## 20/11/2026 — «Houve redução de custo?» — sim, mas é a fusão que a fez, e não os commits
+
+**O pedido.** «Para verificar o custo do processo […] a medição daquele commits, que a gente diminuiu
+a quantidade de commits e também o uso do tex […] para verificar se tivemos uma redução de custo
+significativo. Alguma tivemos, né? Mas para a gente poder saber o quanto tivemos.»
+
+**Medido na API, sobre execuções reais** — não estimado, e com os ids dos runs na §7.7 do
+`CUSTO-DOS-FLUXOS.md`. Três respostas, e a primeira desmente parcialmente a premissa:
+
+| o que se perguntou | o que se mediu |
+|:--|:--|
+| «diminuímos os commits»? | **não**: 8 commits de fonte por gesto hoje, os mesmos de 15/11. A redução de 11 → 8 foi de **22/10** (`gravarArquivosNumCommit`), não de agora |
+| «e o TeX»? | **sim**: o passo caiu de **130–170 s** para **mediana 63 s** (−55 %) |
+| «houve redução significativa»? | **sim**, mas vem da **fusão dos workflows** (16/11): **15–19 execuções por gesto → 8–10**, e **jobs pagos 7–9 → 2–3**. Em minutos: **8–10 → 3–4** por gesto (≈ −60 %) |
+| «quanto»? | −60 % no gesto; **−35 %** se as execuções canceladas forem facturadas; **−26 %** no job da geração, na média |
+
+**E o número que fecha a pergunta do 1 minuto.** O `Gerar o ciclo` factura 2 ou 3 minutos conforme
+fecha abaixo ou acima dos 120 s; **duas das seis execuções de hoje passaram** (128 s e 127 s), e
+custaram 3. Para custar **1**, o job tem de fechar em 60 s e o TeX sozinho leva 56–81 s: **enquanto o
+PDF compilar dentro do job, o minuto é inalcançável** — não é afinação, é soma.
+
+**A lacuna continua declarada, e é a mesma.** O repositório é público e o `billable_ms` vem 0; se as
+6–8 execuções canceladas por gesto forem facturadas, a poupança cai de 60 % para ~35 % — e qual das
+duas leituras é a verdadeira só se sabe depois de o repositório voltar a privado. Não se escolhe uma
+delas e se apresenta como medida.
+
+**Com o quê.** `CUSTO-DOS-FLUXOS.md` (§7.7 — a tabela, os ids e as quatro perguntas) e este
+`REGISTRO.md`. Nenhum código mudou: é uma medição.
+
+**O que ainda não está feito.** O teste decisivo da alavanca das canceladas (um gesto igual, depois de
+o repositório voltar a privado, lido na página de facturação). E a §7.1 — tirar o PDF do job — não foi
+desenhada: é a única que muda a unidade comercial, e é decisão da proprietária.
