@@ -23476,7 +23476,7 @@ async function fetch(request, env, extras) {
    *
    * O QUE O CICLO É, na definição dela: «o pacote completo e integrado gerado a partir da
    * conclusão do plano de observação» — o menu, os planos, a área do professor, as aulas, os
-   * formulários, as fichas, o PDF, as referências e as listagens. Sai tudo o que está em
+   * formulários, as fichas, as referências e as listagens. Sai tudo o que está em
    * `ciclo-NN-<variante>` e os POs do ciclo.
    *
    * O QUE **NÃO** SAI: a anamnese (é do sujeito, e não do ciclo) e o plano de ensino (é a

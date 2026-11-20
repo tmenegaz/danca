@@ -3,8 +3,8 @@
 /**
  * disparar.js — o gatilho da geração: o Worker pede ao GitHub Actions que gere.
  *
- * A geração (pandoc/pdflatex → HTML + PDF + menu) NÃO roda num Worker: workerd é
- * JavaScript/Wasm, e o `tools/gerar-ciclo.sh` precisa de Node, Python e TeX. Por
+ * A geração (pandoc → HTML + menu) NÃO roda num Worker: workerd é
+ * JavaScript/Wasm, e o `tools/gerar-ciclo.sh` precisa de Node, Python e pandoc. Por
  * isso o Worker não gera — ele DISPARA. O alvo é o workflow
  * `.github/workflows/gerar-ciclo.yml` (um `workflow_dispatch` com os inputs
  * `professor`/`ciclo`/`escola`), chamado pela API REST do GitHub.

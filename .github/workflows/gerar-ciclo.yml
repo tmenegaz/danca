@@ -11,11 +11,12 @@ name: Gerar o ciclo
 run-name: Gerar o ciclo · ${{ inputs.professor }}/${{ inputs.ciclo }}/${{ inputs.variante || inputs.escola }}
 
 # A GERAÇÃO não roda no Worker (workerd é JavaScript/Wasm, e o gerador precisa de
-# Node + Python + pandoc + TeX). Por isso o Worker não gera: ele DISPARA. Este é o
+# Node + Python + pandoc). Por isso o Worker não gera: ele DISPARA. Este é o
 # alvo do disparo — um `workflow_dispatch` com o professor, o ciclo e a escola que o
 # PO concluído declarou no contexto do ato.
 #
-# O que ele faz: gera o pacote (HTML + PDF + menu, por `tools/gerar-ciclo.sh`),
+# O que ele faz: gera o pacote (HTML + menu, por `tools/gerar-ciclo.sh` — sem PDF
+# desde 20/11/2026, e é isso que dispensa o TeX aqui: ver o passo `preparar-tex`),
 # reancora a cadeia (`tools/hash-ciclo.sh`, porque o PO elicitado vira fonte),
 # commita o que mudou e PUBLICA o pacote no Cloudflare (`wrangler deploy`).
 #

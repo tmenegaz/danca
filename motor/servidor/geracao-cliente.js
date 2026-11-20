@@ -5,7 +5,7 @@
  *
  * O problema (19/10/2026, medido pela pesquisadora): concluído o Plano de
  * Observação, o Worker grava as fontes, commita, e DISPARA o `gerar-ciclo.yml`.
- * A geração leva minutos — pandoc, TeX, PDF, reancoragem, commit e deploy — e a
+ * A geração leva minutos — pandoc, reancoragem, commit e deploy — e a
  * tela ficava muda. Nada dizia se tinha começado, se estava a correr, se falhou.
  * Recarregar não mudava nada, porque nada era guardado no cliente; quem estava à
  * frente do ecrã só descobria o desfecho indo ao GitHub Actions. «Isso deixa a
