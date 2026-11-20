@@ -2,7 +2,7 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "ddc7020031aaf7d297210a4624aecad5e6b6093146c7d93814d4f75d75f96ebe",
+        "hash": "db08463197473e49ddf6d7ff21c486ea86988ef4e3016358f3078393e9996e92",
         "id": "ciclo-01-breu-rosa",
         "lida": true,
         "parent_hash": ""
@@ -68,10 +68,10 @@
         "aulas": 1,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
-        "planos": 12,
-        "pos": 12,
+        "planos": 13,
+        "pos": 13,
         "recortes": 1,
-        "registros": 28
+        "registros": 30
       },
       "criada_em": "2026-11-17T00:41:45.598067+00:00",
       "expurgada": false,
@@ -102,6 +102,7 @@
         "plano:plano-20261120-1215",
         "plano:plano-20261120-1228",
         "plano:plano-20261120-1233",
+        "plano:plano-20261120-1245",
         "po:po-20261119-1233",
         "po:po-20261119-2144",
         "po:po-20261119-2350",
@@ -113,7 +114,8 @@
         "po:po-20261120-1145",
         "po:po-20261120-1215",
         "po:po-20261120-1229",
-        "po:po-20261120-1234"
+        "po:po-20261120-1234",
+        "po:po-20261120-1245"
       ],
       "slug": "breu"
     },
@@ -183,7 +185,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 28,
+        "contagem": 30,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -366,12 +368,12 @@
         "valor": "anamnese"
       },
       {
-        "contagem": 12,
+        "contagem": 13,
         "rotulo": "Plano de ensino",
         "valor": "plano"
       },
       {
-        "contagem": 12,
+        "contagem": 13,
         "rotulo": "Plano de observação",
         "valor": "po"
       }
@@ -379,9 +381,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "93e7f5d"
+    "commit": "4bc8228"
   },
-  "gerado_em": "2026-11-20T15:44",
+  "gerado_em": "2026-11-20T15:46",
   "nao_indexado": [
     {
       "familia": "conteudo",
