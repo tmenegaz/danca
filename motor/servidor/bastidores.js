@@ -13620,7 +13620,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * E ELA NÃO PODE DISPARAR EM CICLO. O pedido de fecho devolve `porOrcamento` falso (o fecho
      * não gasta cadeia), e há uma guarda por elemento: dois `pintarCadeia` no mesmo sítio — a
      * gravação e o `carregarLinhas` — pintam, mas só um pergunta. */
-    'function pintarCadeia(c, res, jaTentei, manterVeu) {' +
+    'function pintarCadeia(c, res, jaTentei, manterVeu, aoTerminar) {' +
     '  if (!c || c.executada === false || !res) return;' +
     /* O QUE ESTA FUNÇÃO PINTOU SAI ANTES DO QUE ELA VAI PINTAR — e só isso. O `res` é a mesma
      * caixa onde o acto escreveu a frase dele («Fulana passou de A para B»), e essa fica: sem a
@@ -13658,10 +13658,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '  if (!c.porOrcamento || jaTentei || res.getAttribute("data-a-fechar") === "sim") {' +
     '    if (manterVeu) liberar();' +
+    '    if (typeof aoTerminar === "function") aoTerminar();' +
     '    return;' +
     '  }' +
     '  var turmas = (c.alvos || []).map(function(a){ return a.turma; }).filter(Boolean);' +
-    '  if (!turmas.length) { if (manterVeu) liberar(); return; }' +
+    '  if (!turmas.length) {' +
+    '    if (manterVeu) liberar();' +
+    '    if (typeof aoTerminar === "function") aoTerminar();' +
+    '    return;' +
+    '  }' +
     '  res.setAttribute("data-a-fechar", "sim");' +
     /* UMA TURMA POR PEDIDO (10/11/2026). O teto de subpedidos é POR INVOCAÇÃO, e uma geração
      * custa 18: duas turmas cabem nos 50, três não. Pedir todas de uma vez deixaria a terceira
@@ -13688,6 +13693,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     /* A FILA ACABOU — e o véu sai com ela. É este o único sítio que o levanta quando a geração
      * corre em continuação: o `enviar` deixou-o de pé de propósito. */
     '      if (manterVeu) liberar();' +
+    /* A FILA ACABOU, E QUEM PEDIU O GESTO QUER SABER (20/11/2026). É aqui que o botão «Atualizar o
+     * ciclo» relê o contador: sem isto a página ficava com o estado do momento em que o clique
+     * partiu, e o professor via o «1» aceso sobre um ciclo que já estava em dia. */
+    '      if (typeof aoTerminar === "function") aoTerminar();' +
     '      return;' +
     '    }' +
     '    var turma = pendentes.shift();' +
@@ -13702,6 +13711,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '            ((d && d.erro) || "sem resposta");' +
     '          res.removeAttribute("data-a-fechar");' +
     '          if (manterVeu) liberar();' +
+    '          if (typeof aoTerminar === "function") aoTerminar();' +
     '          return;' +
     '        }' +
     '        pintarCadeia(d.cadeia, res, true);' +
@@ -13712,6 +13722,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        res.removeAttribute("data-a-fechar");' +
     '        espera.textContent = "a geração de \u00ab" + turma + "\u00bb não partiu: " + e.message;' +
     '        if (manterVeu) liberar();' +
+    '        if (typeof aoTerminar === "function") aoTerminar();' +
     '      });' +
     '  }' +
     '  passo();' +
@@ -15966,6 +15977,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * `turmasDeUma` é a mesma leitura que o resto da página usa para ir do registo à sala. Sem
      * sala não há ciclo: uma Turma sem sala não tem plano de ensino, e o botão só existe nas que
      * têm — a guarda fica para um pedido forjado, e diz o que falta em vez de falhar em silêncio. */
+    /* A SEGUNDA METADE, E É ISTO QUE O BOTÃO NÃO FAZIA (20/11/2026).
+     *
+     * A SOLUÇÃO JÁ EXISTIA, documentada desde 10/11/2026: `pintarCadeia` desenha o estado da
+     * travessia e, quando a etapa do PACOTE ficou por fazer por orçamento (`porOrcamento`), pede-a
+     * num pedido NOVO — com os 50 subpedidos inteiros — a `/api/bastidores/cadeia-pacote`, uma
+     * Turma por pedido. É o «dividir em duas partes» que ela recorda.
+     *
+     * O QUE FALTAVA ERA O BOTÃO CHAMÁ-LA. O clique em «Atualizar o ciclo» passava `aoOk` nulo e
+     * `recarregar` verdadeiro: a resposta da cadeia era deitada fora, a página recarregava, e a
+     * segunda metade nunca partia. Resultado medido ao vivo: a travessia estourava o teto, o plano
+     * e o PO ficavam derivados, as fontes por escrever, o contador continuava aceso — e o professor
+     * clicava outra vez, e a travessia recomeçava do zero para estourar no mesmo sítio.
+     *
+     * O GESTO PASSA A SER O MESMO DOS OUTROS: pinta a cadeia com o véu de pé, a continuação corre
+     * sozinha, e no fim o contador é relido (`pintarVinculos`) em vez de a página recarregar. É o
+     * que faz o botão *alinhar*: sem a segunda metade não há documento novo, e sem o contador
+     * relido a pessoa não sabe que já não há nada a fazer. */
     'function atualizarOCiclo(id){' +
     '  var alvo = null;' +
     '  for (var i = 0; i < CURADORIAS.length; i++) {' +
@@ -15978,7 +16006,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    return;' +
     '  }' +
     '  enviar("/api/bastidores/atualizar-o-ciclo", { turma: daTurma[0] },' +
-    '    "a levar ao ciclo o que esta Turma declara hoje\u2026", true, null);' +
+    '    "a levar ao ciclo o que esta Turma declara hoje\u2026", false, function(d){' +
+    '      var res = alvoDoRecado();' +
+    '      if (res && d && d.cadeia) {' +
+    '        pintarCadeia(d.cadeia, res, false, true, function(){ pintarVinculos(); });' +
+    '      } else if (d && d.motivo) {' +
+    /* SEM CADEIA MONTADA OU SEM RESPOSTA: diz-se, em vez de deixar o véu a rodar sobre nada. */
+    '        avisar("atencao", String(d.motivo));' +
+    '        liberar();' +
+    '      } else {' +
+    '        liberar();' +
+    '      }' +
+    /* DEVOLVER A PROMESSA É DIZER «EU CONTINUO O TRABALHO» — a guarda do `enviar`: com ela, a
+     * recarga não acontece por baixo da continuação, e nada se perde a meio do voo. */
+    '      return Promise.resolve();' +
+    '    });' +
     '}' +
     'function ajustarCuradoria(id, modo) {' +
     '  var c = null;' +

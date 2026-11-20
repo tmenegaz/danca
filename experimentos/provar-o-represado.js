@@ -22,6 +22,10 @@
  *   D. A FRASE DO CANTO diz as três coisas: ficou registado, não foi gerado nada, e o botão é a
  *      porta para o fazer agora. Um aviso que só dissesse «registado» deixaria a pessoa à espera de
  *      documentos que não vêm.
+ *   E. O BOTÃO USA A SEGUNDA METADE. A solução do teto de subpedidos existe desde 10/11 — a
+ *      continuação em pedido próprio —, e o botão não a chamava: `aoOk` nulo, recarga imediata, a
+ *      resposta da cadeia deitada fora. É por isso que ele «não atualizava» e o contador ficava
+ *      aceso.
  */
 
 const path = require('path');
@@ -149,11 +153,46 @@ const CURADORIA_ROSA = [{
       /nenhuma Turma usa este exercício/.test(html), null);
   }
 
+  // ==========================================================================
+  console.log('\nE. O BOTÃO USA A SEGUNDA METADE QUE JÁ EXISTIA — e é isso que o faz alinhar');
+
+  {
+    /* A SOLUÇÃO ESTAVA DOCUMENTADA DESDE 10/11/2026 e o botão não a chamava: `aoOk` nulo e
+     * `recarregar` verdadeiro deitavam fora a resposta da cadeia, e a continuação automática
+     * (`pintarCadeia` → `/cadeia-pacote`, uma Turma por pedido) nunca partia. Medido ao vivo a
+     * 20/11: a travessia estourava o teto, as fontes ficavam por escrever, o contador continuava
+     * aceso, e clicar outra vez recomeçava do zero para estourar no mesmo sítio. */
+    const inicio = FONTE.indexOf("'function atualizarOCiclo(id){'");
+    const fim = FONTE.indexOf("'function ajustarCuradoria(", inicio);
+    const corpo = inicio === -1 ? '' : FONTE.slice(inicio, fim);
+    conferir('o clique passa um `aoOk` — e não deita fora a resposta da cadeia',
+      /enviar\("\/api\/bastidores\/atualizar-o-ciclo"[^;]*function\(d\)\{/.test(corpo),
+      corpo.slice(0, 400));
+    conferir('…e pinta a cadeia, que é quem dispara a segunda metade',
+      /pintarCadeia\(d\.cadeia/.test(corpo), corpo.slice(0, 500));
+    conferir('…e pede o véu de pé (a continuação corre com ele, e é ela que o levanta)',
+      /pintarCadeia\(d\.cadeia, res, false, true/.test(corpo), null);
+    conferir('…e relê o contador no fim, em vez de recarregar a página',
+      /pintarVinculos\(\)/.test(corpo) && !/location\.reload|recarregar = true/.test(corpo), null);
+    conferir('…e devolve a promessa — «eu continuo o trabalho», a guarda do `enviar`',
+      /return Promise\.resolve\(\);/.test(corpo), null);
+
+    /* E A CONTINUAÇÃO CHEGA AO FIM SEMPRE: `pintarCadeia` ganhou o quinto parâmetro e chama-o nos
+     * cinco desfechos — (1) não há continuação a fazer, (2) não há turmas na fila, (3) a fila
+     * acabou, (4) o `cadeia-pacote` respondeu sem cadeia, (5) o `fetch` rebentou. Um aviso que só
+     * chegasse num deles deixaria a página a rodar sobre um contador velho nos outros. */
+    const n = (FONTE.match(/typeof aoTerminar === "function"\) aoTerminar\(\)/g) || []).length;
+    conferir('`pintarCadeia` avisa o fim da fila nos cinco desfechos', n === 5, { desfechos: n });
+  }
+
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + provas + ' asserções: gravar um verbete ou um termo não dispara geração '
       + 'nenhuma (o motivo é o custo), o ajuste fica registado com as Turmas que o usam, o contador '
       + 'do «Atualizar o ciclo» é quem mostra o que está à espera, e a frase do canto diz as três '
-      + 'coisas — ficou registado, não foi gerado, e o botão é a porta para o fazer agora.'
+      + 'coisas — ficou registado, não foi gerado, e o botão é a porta para o fazer agora. E o '
+      + 'botão passou a USAR a segunda metade que já existia: pinta a cadeia, deixa a continuação '
+      + 'correr num pedido próprio (é assim que o teto de subpedidos não o impede) e relê o '
+      + 'contador no fim — em vez de recarregar a página e perder a resposta.'
     : 'FALHARAM ' + falhas + ' de ' + provas + ' asserções.'));
   process.exit(falhas === 0 ? 0 : 1);
 })().catch((erro) => {

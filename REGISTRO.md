@@ -56882,3 +56882,38 @@ documento **agora**, não «no próximo». E ela é chamada ao lado da cadeia, n
 **Com o quê.** `motor/servidor/bastidores.js` (`termoFicaRepresado`; `comAGeracaoDoTermo` deixa de
 gerar; `avisarDaGeracao` com o ramo do represado); `provar-o-represado.js` (novo, 16 asserções),
 `provar-avisos.js` (a frase do erro) e `provar-o-estilo-regera.js` (o resumo, que ficou a mentir).
+
+### 5. O botão não chamava a solução que já existia — e é isso que o fazia «não atualizar»
+
+**A pergunta dela, e é a pergunta certa.** «A gente já tinha resolvido isso dividindo em duas partes
+[…] Porque pela derivação não estoura o teto, e pelo botão de atualizar estoura? […] procure a
+documentação que a gente já tinha solucionado.»
+
+**Estava resolvido, e a solução é de 10/11/2026.** `pintarCadeia` desenha o estado da travessia e,
+quando a etapa do PACOTE ficou por fazer por orçamento (`porOrcamento`), pede-a **num pedido novo**
+— com os 50 subpedidos inteiros — a `/api/bastidores/cadeia-pacote`, **uma Turma por pedido**. É
+exactamente o «dividir em duas partes»: o pedido do gesto gasta o orçamento a derivar o plano e o PO,
+e a geração corre na invocação seguinte.
+
+**O que faltava era o botão chamá-la.** O clique em «Atualizar o ciclo» fazia:
+
+```
+enviar(".../atualizar-o-ciclo", { turma }, "…", /* recarregar */ true, /* aoOk */ null);
+```
+
+`aoOk` nulo e `recarregar` verdadeiro. Consequências, as três ao mesmo tempo: a resposta da cadeia
+era **deitada fora**, a página **recarregava** por cima do véu, e a segunda metade **nunca partia**.
+Medido ao vivo a 20/11 com um `POST` directo à rota: a travessia estourou o teto, o plano e o PO
+ficaram derivados, as fontes por escrever, o contador aceso — e clicar outra vez recomeçava do zero
+para estourar no mesmo sítio. **Não era o botão a gastar mais do que a derivação: era o botão a não
+pedir a segunda metade.**
+
+**A correcção.** O gesto passou a ser o dos outros: `recarregar: false`, um `aoOk` que pinta a
+cadeia com o véu de pé (`pintarCadeia(d.cadeia, res, false, true, aoTerminar)`) e devolve uma
+promessa — «eu continuo o trabalho», a guarda que o `enviar` já usa desde 19/11. E `pintarCadeia`
+ganhou o quinto parâmetro: **avisar o fim da fila**, nos cinco desfechos (sem continuação a fazer,
+sem turmas, fila acabada, `cadeia-pacote` sem resposta, `fetch` rebentado). É nesse aviso que o botão
+**relê o contador** (`pintarVinculos`) — em vez de recarregar a página e perder o resultado.
+
+**Com o quê.** `motor/servidor/bastidores.js` (`atualizarOCiclo`, `pintarCadeia` com `aoTerminar`);
+`provar-o-represado.js` (secção E, 6 asserções novas).
