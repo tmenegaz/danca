@@ -11,7 +11,8 @@
     "plano-20261120-0001.json",
     "po-20261119-1233.json",
     "po-20261119-2144.json",
-    "po-20261119-2350.json"
+    "po-20261119-2350.json",
+    "po-20261120-0001.json"
   ],
   "resumos": {
     "anamnese-20261116-2201.json": {
@@ -175,6 +176,21 @@
       ],
       "plano": [
         "plano-20261119-2350"
+      ]
+    },
+    "po-20261120-0001.json": {
+      "id": "po-20261120-0001",
+      "fonte": "po",
+      "escola": "breu",
+      "professor": "demi-plie",
+      "ciclo": "01",
+      "ajuste_de": "po-20261119-2350",
+      "gerado_em": "2026-11-20T00:01",
+      "sujeitos": [
+        "Aluna A"
+      ],
+      "plano": [
+        "plano-20261120-0001"
       ]
     }
   }
