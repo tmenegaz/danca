@@ -28,7 +28,7 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 | **Turma observada** | Rosa |
 | **Volume de trabalho** | 3–6 séries |
 | **Condição de registro** | Na sala: professor, alunas da turma · observa: o próprio professor. |
-| **Metodologia de referência** | Francesa |
+| **Metodologia de referência** | Vaganova |
 | **Notação de dança** | Código de dança |
 
 ## Objetivo geral
@@ -84,7 +84,6 @@ Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turm
 - Razoável
 - Em desenvovimento
 - Não se aplica
-- Erros
 
 > **A régua da turma — e só ela.** Os níveis, como a escola os escreve, na ordem da escala
 > — o primeiro é o mais baixo. É com ela que o LANÇAMENTO da aula mede cada critério: o
