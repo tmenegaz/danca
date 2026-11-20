@@ -22,7 +22,7 @@ exercícios deste ciclo podem ser lidos de volta sem depender da memória de que
 | Item | Valor |
 |:--|:--|
 | Código | `ballet-classico` — Código de dança (ballet clássico) |
-| Versão | 62 |
+| Versão | 63 |
 | Categorias | 5 |
 | Sinais | 32 |
 | Verbetes (exercícios) | 5 |
@@ -59,7 +59,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 | Compasso | Contagem | Notação | Descrição |
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
-| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe. |
+| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑ ED]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe, varredura para fora. |
 
 ### 3. Solo — Relevé
 
@@ -111,7 +111,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 | Compasso | Contagem | Notação | Descrição |
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
-| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe. |
+| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑ ED]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe, varredura para fora. |
 
 ### 8. Barra — Relevé
 
@@ -130,7 +130,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 | Compasso | Contagem | Notação | Descrição |
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
-| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe. |
+| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑ ED]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe, varredura para fora. |
 
 ### 10. Barra — Relevé
 
@@ -149,7 +149,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 | Compasso | Contagem | Notação | Descrição |
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
-| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe. |
+| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑ ED]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe, varredura para fora. |
 
 ### 12. Centro — Relevé
 

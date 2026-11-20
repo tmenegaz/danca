@@ -13,7 +13,7 @@ title: "Glossário do código Código de dança do ciclo"
 > **Nota.** O glossário e o registro são um par: um símbolo só existe no registro
 > se tiver verbete aqui, e todo verbete aqui aponta para onde aparece.
 
-O alfabeto deste código é `ballet-classico` versão 62 — 5 categorias, 32 sinais e 5 verbetes de exercício. Um exercício novo entra no registro
+O alfabeto deste código é `ballet-classico` versão 63 — 5 categorias, 32 sinais e 5 verbetes de exercício. Um exercício novo entra no registro
 depois de o seu verbete existir; um sinal novo, depois de ganhar linha neste glossário.
 
 ## Índice de símbolos
