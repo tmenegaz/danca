@@ -232,6 +232,28 @@
       ],
       "alunas": 1,
       "anterior": "tami--20261119-2052.json"
+    },
+    "tami--20261120-1711.json": {
+      "id": "tami",
+      "carimbo": "20261120-1711",
+      "arquivo": "escola/breu/linhas-de-base/tami--20261120-1711.json",
+      "nome": "Tami",
+      "turma": null,
+      "atualizada_em": "2026-11-20T17:11:17.970Z",
+      "enviada_em": "2026-11-20T17:11:18.382Z",
+      "aspectos": [
+        "cinco-posicoes-1a-pes",
+        "cinco-posicoes-1a-bracos",
+        "passe",
+        "mobilidade-de-quadril-en-dehors-de-origem",
+        "mobilidade-de-flexao-extensao-do-tornozelo",
+        "musicalidade-e-pulsacao-ritmica",
+        "forca-excentrica-recuo-na-flexao-de-tronco",
+        "estabilidade-vestibular-e-deslocamento",
+        "espiral-rotacao-de-tronco"
+      ],
+      "alunas": 2,
+      "anterior": "tami--20261120-1626.json"
     }
   }
 }
