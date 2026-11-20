@@ -153,6 +153,46 @@ function planoCom(unidade, valores, dose) {
   igual('duração igual também não', volume.escalarDistribuicao(
     resp({ unidade: 'minutos', linhas: [{ Bloco: 'Solo', 'Proporção alvo': '30 min' }] }), 60, 60), null);
 
+  /* OS MINUTOS QUE O PROFESSOR ESCREVEU (20/11/2026). A regra de três é o valor INICIAL do
+   * formulário; quando ele corrige, o que se grava é o que ele escreveu. Aqui não há conta
+   * nenhuma: os números entram, os mesmos números saem — no sítio certo, com o sufixo do plano. */
+  const escrito = volume.aplicarMinutos(
+    resp({ unidade: 'minutos', linhas: [
+      { Bloco: 'Solo', 'Proporção alvo': '18 min' },
+      { Bloco: 'Barra', 'Proporção alvo': '18 min' },
+      { Bloco: 'Centro', 'Proporção alvo': '18 min', Justificativa: 'Deslocamento.' },
+      { Bloco: 'Musicalidade', 'Proporção alvo': '6 min' },
+    ] }),
+    [{ bloco: 'Solo', valor: 9 }, { bloco: 'Barra', valor: 9 },
+      { bloco: 'Centro', valor: 54 }, { bloco: 'Musicalidade', valor: 18 }]);
+  igual('9/9/54/18 escritos são 9/9/54/18 gravados',
+    escrito.valor.linhas.map((l) => l['Proporção alvo']), ['9 min', '9 min', '54 min', '18 min']);
+  igual('…e o que não é da medida não se toca (a justificativa do bloco fica)',
+    escrito.valor.linhas[2].Justificativa, 'Deslocamento.');
+  /* O SUFIXO É O DO PLANO. Os envelopes reais trazem `"12"`, sem unidade; um plano escrito à mão
+   * pode trazer `"12 min"`. Impor uma das duas formas mudaria o plano por causa do formulário. */
+  igual('…e o sufixo do plano é respeitado, não imposto',
+    volume.aplicarMinutos(resp({ unidade: 'minutos', linhas: [{ Bloco: 'Solo', 'Proporção alvo': '18' }] }),
+      [{ bloco: 'Solo', valor: 9 }]).valor.linhas[0]['Proporção alvo'], '9');
+  igual('…e o bloco é achado sem trocar maiúsculas (o nome vem do plano)',
+    volume.aplicarMinutos(resp({ unidade: 'minutos', linhas: [{ Bloco: 'Solo', 'Proporção alvo': '18' }] }),
+      [{ bloco: ' solo ', valor: 9 }]).valor.linhas[0]['Proporção alvo'], '9');
+  /* AS NEGATIVAS, e cada uma é uma forma de estragar um plano em silêncio. */
+  igual('em percentagem não se aplica minutos', volume.aplicarMinutos(
+    resp({ unidade: 'percentual', linhas: [{ Bloco: 'Solo', 'Proporção alvo': '30%' }] }),
+    [{ bloco: 'Solo', valor: 9 }]), null);
+  igual('valor que não é número não passa', volume.aplicarMinutos(
+    resp({ unidade: 'minutos', linhas: [{ Bloco: 'Solo', 'Proporção alvo': '18' }] }),
+    [{ bloco: 'Solo', valor: 'nove' }]), null);
+  igual('minuto negativo não passa', volume.aplicarMinutos(
+    resp({ unidade: 'minutos', linhas: [{ Bloco: 'Solo', 'Proporção alvo': '18' }] }),
+    [{ bloco: 'Solo', valor: -3 }]), null);
+  /* Bloco que o plano não tem: `null`, e não uma linha inventada. O servidor é que recusa com o
+   * nome do bloco; aqui a regra é só «não sei onde pôr isto». */
+  igual('bloco desconhecido não inventa linha', volume.aplicarMinutos(
+    resp({ unidade: 'minutos', linhas: [{ Bloco: 'Solo', 'Proporção alvo': '18' }] }),
+    [{ bloco: 'Contra-corpo', valor: 9 }]), null);
+
   // ── 4. O QUE A PROPORÇÃO NÃO SABE ─────────────────────────────────────────
   console.log('\n4. A proporção não sabe tudo — e passa a dizer que não sabe');
 

@@ -1799,6 +1799,51 @@ async function paresComPlano(env, escola, jaLido) {
  * significar mais tempo por exercício, ou mais exercícios, ou mais carga — três respostas
  * pedagógicas, e o sistema não escolhe nenhuma.
  */
+/**
+ * OS MINUTOS QUE VIERAM DO MODAL — validados contra os blocos que o plano tem (20/11/2026).
+ *
+ * O CLIENTE PASSOU A MANDAR NÚMEROS, e isso muda a regra que aqui estava: «o cliente não manda
+ * números (o reescalonamento é do servidor)». A regra era boa enquanto o professor só tinha dois
+ * botões; deixou de servir quando o pedido foi outro — «o professor preenche, ou ele acata, já vem
+ * preenchido, ou ele muda […] e já está pronto. […] senão vai gastar duas vezes».
+ *
+ * O QUE NÃO MUDOU: o total. Ele é a soma, e nunca é enviado — «o total é uma soma que tem de ser
+ * automática». E nada é aceite às cegas: a lista tem de ter exactamente os blocos que o plano
+ * declara, cada valor tem de ser um número finito e não negativo. Se não tiver, a resposta é uma
+ * recusa com o nome do bloco — e não o silêncio, que apagaria um número que alguém escreveu.
+ */
+function minutosDaDecisao(decisao, impacto) {
+  const pedido = decisao && decisao.distribuicao;
+  if (pedido === undefined || pedido === null) return { minutos: null };
+  const linhas = (impacto.proporcao && impacto.proporcao.linhas) || [];
+  if (!Array.isArray(pedido) || !linhas.length || pedido.length !== linhas.length) {
+    return { erro: 'os minutos dos blocos não batem com a tabela do plano — recarregue a página e '
+      + 'tente de novo; nada foi gravado.' };
+  }
+  const chave = (s) => String(s == null ? '' : s).trim().toLowerCase();
+  const porBloco = new Map();
+  for (const p of pedido) {
+    if (!p || typeof p !== 'object' || Array.isArray(p)) {
+      return { erro: 'os minutos dos blocos vieram em mau formato — nada foi gravado.' };
+    }
+    const valor = p.minutos === undefined ? p.valor : p.minutos;
+    const numero = Number(valor);
+    if (!Number.isFinite(numero) || numero < 0) {
+      return { erro: 'o bloco «' + (p.bloco || '—') + '» está com um valor que não é um número de '
+        + 'minutos — corrija-o no formulário. Nada foi gravado.' };
+    }
+    porBloco.set(chave(p.bloco), numero);
+  }
+  const minutos = [];
+  for (const l of linhas) {
+    if (!porBloco.has(chave(l.bloco))) {
+      return { erro: 'faltam os minutos do bloco «' + l.bloco + '» — nada foi gravado.' };
+    }
+    minutos.push({ bloco: l.bloco, valor: porBloco.get(chave(l.bloco)) });
+  }
+  return { minutos };
+}
+
 async function perguntaDaDuracao({ cadeia, anterior, corpo, paraMin }) {
   const de = Number(anterior && anterior.duracaoMin) || 0;
   const para = Number(paraMin) || 0;
@@ -1823,14 +1868,24 @@ async function perguntaDaDuracao({ cadeia, anterior, corpo, paraMin }) {
    * 3×8 tempos musicais: a série mede-se contra a MÚSICA, não contra o relógio. «Não tem relação
    * com o tempo de trabalho. Ele vai dosar isso com o que tem.» Ver `motor/nucleo/volume.js`. */
   if (!(impacto.proporcao && impacto.proporcao.precisaAjuste)) return null;
-  /* A DECISÃO VEM NO CORPO. A forma é pequena de propósito: o cliente não manda números (o
-   * reescalonamento é do servidor), manda só as duas respostas. Menos coisas a divergir. */
+  /* A DECISÃO VEM NO CORPO. O cliente manda as duas respostas — e, quando as há, os minutos que o
+   * professor escreveu no formulário. Nenhuma conta é feita aqui: o que chega é o que ele decidiu,
+   * e o servidor só confere que os blocos são os do plano. */
   const decisao = corpo && corpo.decisaoDaDuracao;
   if (decisao && typeof decisao === 'object') {
+    const proporcao = String(decisao.proporcao || '').trim() === 'sim';
+    const lidos = proporcao ? minutosDaDecisao(decisao, impacto) : { minutos: null };
+    if (lidos.erro) return { impacto, ajusteDeVolume: null, recusa: lidos.erro };
     return {
       impacto,
       ajusteDeVolume: {
-        proporcao: String(decisao.proporcao || '').trim() === 'sim',
+        proporcao,
+        /* Os minutos escritos ganham da regra de três. Sem eles — um cliente antigo, ou a decisão
+         * «não» —, `cadeia` reescalona pela proporção declarada, como antes. */
+        minutos: lidos.minutos,
+        total: lidos.minutos
+          ? Math.round(lidos.minutos.reduce((s, m) => s + m.valor, 0) * 10) / 10
+          : null,
         deMin: de,
         paraMin: para,
       },
@@ -7893,6 +7948,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.passo:disabled:hover{background:transparent;color:var(--texto-suave);}' +
     'button:disabled.acao{cursor:not-allowed;}' +
     '.par-botoes button{margin:0;}' +
+    /* OS MINUTOS DOS BLOCOS, NO MODAL DA DURAÇÃO (20/11/2026). O campo é o da folha —
+     * `input[type=number]`, com o padding e o filete de sempre. O que é desta página é só a
+     * LARGURA: dentro de uma célula de tabela o `width:100%` da folha esticava o campo pela coluna
+     * inteira do modal largo, e quatro campos de 300px para quatro números de dois dígitos leem-se
+     * como quatro caixas de texto. O seletor é o `id` do modal e não uma classe nova: não há peça
+     * a declarar, há um lugar a medir. */
+    '#modal-duracao input[data-bloco]{width:6rem;}' +
     // O `hidden` DO ATRIBUTO NÃO BASTA NUMA COLUNA DE FORMULÁRIO. `#prof-senha` embrulha dois
     // elementos que a folha desenha (`label.campo-rotulo` é `display:block`, e o `input` tem
     // regra própria) — e uma regra de autor vence o `display:none` que o atributo traz. Sem
@@ -13790,11 +13852,34 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (n === null || n === undefined || isNaN(n)) return "—";' +
     '  return Math.round(n * 10) / 10 === Math.round(n) ? String(Math.round(n)) : String(Math.round(n * 10) / 10);' +
     '}' +
-    /* A NOTA FICA NA COLUNA DO «DEPOIS», e não na do rótulo: é ali que está a acção. Na coluna do
-     * rótulo, «no plano de ensino» lia-se como se fosse o nome da linha. */
-    'function linhaDoFato(o){' +
-    '  return "<tr><td>" + o.rotulo + "</td><td>" + o.hoje + "</td><td>" + o.depois' +
-    '    + (o.nota ? " <span class=\\"fatos\\"><span>" + o.nota + "</span></span>" : "") + "</td></tr>";' +
+    /* O NOME DO BLOCO VEM DO PLANO, e o plano é texto que alguém escreveu: `&` e `<` não podem
+     * partir a marcação do modal. */
+    'function textoDoPlano(t){' +
+    '  return String(t == null ? "" : t).replace(/&/g, "&amp;").replace(/</g, "&lt;")' +
+    '    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");' +
+    '}' +
+    /* A SOMA DOS CAMPOS, AO VIVO — e o total NUNCA é um campo (20/11/2026). «O total é uma soma que
+     * tem de ser automática, tá bom? Na medida que ele altera aqui o solo/centro e musicalidade.»
+     * Um total editável seria uma segunda verdade sobre a mesma conta. */
+    'function somarOsBlocos(caixa){' +
+    '  var campos = caixa.querySelectorAll("input[data-bloco]");' +
+    '  var soma = 0;' +
+    '  for (var k = 0; k < campos.length; k++) {' +
+    '    var v = parseFloat(String(campos[k].value).replace(",", "."));' +
+    '    if (isFinite(v) && v > 0) soma += v;' +
+    '  }' +
+    '  return Math.round(soma * 10) / 10;' +
+    '}' +
+    'function sincronizarTotal(caixa, alvo){' +
+    '  var soma = somarOsBlocos(caixa);' +
+    '  var total = caixa.querySelector("#dur-total");' +
+    '  if (total) total.textContent = numeroCurto(soma) + " min";' +
+    '  var aviso = caixa.querySelector("#dur-fecha");' +
+    '  if (aviso) {' +
+    '    var diferenca = Math.abs(soma - alvo) >= 0.05;' +
+    '    aviso.hidden = !diferenca;' +
+    '    aviso.textContent = diferenca ? "soma " + numeroCurto(soma) + " min, e a aula tem " + alvo : "";' +
+    '  }' +
     '}' +
     /*
      * SÓ O QUE TEM IMPACTO (20/11/2026). Ela viu o modal e disse: «A duração da aula é um
@@ -13817,33 +13902,47 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var antigo = document.getElementById("modal-duracao");' +
     '  if (antigo && antigo.parentNode) antigo.parentNode.removeChild(antigo);' +
     '  var precisaProporcao = !!(i.proporcao && i.proporcao.precisaAjuste);' +
-    '  var impactos = [];' +
+    /* OS MINUTOS SÃO UM FORMULÁRIO, E NÃO UMA COLUNA DE RESULTADOS (20/11/2026).
+     *
+     * «Essa terceira coluna aqui, 90 minutos, a gente vai transformar em um formulário. Vêm os
+     * valores já sugeridos […] Aí o professor preenche, ou ele acata, já vem preenchido, ou ele
+     * muda, ele faz os ajustes que ele quiser. Aí ele confirma ali com o sim, recalcular, e manda
+     * gravar e já está pronto, já é do jeito que ele quer.»
+     *
+     * E O CUSTO QUE ISSO EVITA, que é a razão de ser da mudança: com uma coluna só de leitura, quem
+     * queria outro número dizia «sim» e tinha de voltar ao plano de ensino para corrigir — dois
+     * gestos para uma decisão. «Senão vai gastar duas vezes.»
+     *
+     * O TOTAL NÃO É CAMPO: é a soma, e atualiza-se enquanto ele escreve. Uma soma editável seria
+     * uma segunda verdade sobre a mesma conta. */
+    '  var corpo = "";' +
     '  if (precisaProporcao) {' +
     '    var ls = i.proporcao.linhas || [];' +
-    '    for (var k = 0; k < ls.length; k++) {' +
-    '      impactos.push({rotulo: ls[k].bloco, hoje: numeroCurto(ls[k].de) + " min",' +
-    '        depois: numeroCurto(ls[k].para) + " min", nota: ""});' +
-    '    }' +
-    '    impactos.push({rotulo: "Total", hoje: numeroCurto(i.proporcao.totalDe) + " min",' +
-    '      depois: numeroCurto(i.proporcao.totalPara) + " min", nota: "tem de fechar com a duração"});' +
-    '  }' +
-    '  var corpo = "";' +
-    '  if (impactos.length > 1) {' +
-    '    corpo = "<div class=\\"etapa-campo largo\\"><table><thead><tr><th>O quê</th><th>Hoje</th>"' +
+    '    corpo = "<div class=\\"etapa-campo largo\\"><table><thead><tr><th>Bloco</th><th>Hoje</th>"' +
     '      + "<th>Com " + i.mudou.para + " min</th></tr></thead><tbody>";' +
-    '    for (var q = 0; q < impactos.length; q++) corpo += linhaDoFato(impactos[q]);' +
+    '    for (var k = 0; k < ls.length; k++) {' +
+    '      var nome = textoDoPlano(ls[k].bloco);' +
+    '      corpo += "<tr><td>" + nome + "</td><td>" + numeroCurto(ls[k].de) + " min</td>"' +
+    '        + "<td><input type=\\"number\\" min=\\"0\\" step=\\"any\\" inputmode=\\"decimal\\""' +
+    '        + " data-bloco=\\"" + nome + "\\" aria-label=\\"Minutos do bloco " + nome + "\\""' +
+    '        + " value=\\"" + numeroCurto(ls[k].para) + "\\"></td></tr>";' +
+    '    }' +
+    '    corpo += "<tr><td><strong>Total</strong></td><td>" + numeroCurto(i.proporcao.totalDe)' +
+    '      + " min</td><td><strong id=\\"dur-total\\">" + numeroCurto(i.proporcao.totalPara) + " min</strong>"' +
+    '      + " <span class=\\"fatos\\"><span>tem de fechar com a duração</span>"' +
+    '      + "<span id=\\"dur-fecha\\" hidden></span></span></td></tr>";' +
     '    corpo += "</tbody></table></div>";' +
-    '  } else if (impactos.length === 1) {' +
-    '    corpo = "<p class=\\"etapa-campo largo\\">" + impactos[0].rotulo + ": " + impactos[0].hoje' +
-    '      + " — " + impactos[0].depois + (impactos[0].nota ? " " + impactos[0].nota : "") + ".</p>";' +
     '  }' +
-    /* A DOSE É A ÚNICA QUE PEDE UMA PESSOA, e a pergunta diz ONDE se ajusta — a dúvida dela, com
-     * estas palavras: «É só para dizer se a pessoa está ciente, é isso?» É: o sistema registra, e a
-     * resposta segue no aviso do gesto. Não abre aba nenhuma, porque abrir uma tela é exactamente o
-     * que ela não quer («sem ele precisar sair navegando indo para tudo quanto é lugar»). */
+    /* A PERGUNTA DIZ O QUE VAI ACONTECER, e deixou de prometer uma conta que já não é feita no
+     * servidor: quem decide os minutos é ele, no formulário acima.
+     *
+     * E NÃO COMEÇA POR «GRAVAR». A regra da casa — «não tem nada de gravar de um jeito, gravar de
+     * outro jeito, é só gravar» — é uma varredura de TEXTO, e uma legenda «Gravar a distribuição
+     * com estes minutos?» reprovava-a, com razão: no ecrã, ao lado de um botão «Gravar», a palavra
+     * aparece duas vezes a dizer coisas diferentes. A pergunta fala do que muda, não do gesto. */
     '  var perguntas = "";' +
     '  if (precisaProporcao) {' +
-    '    perguntas += "<fieldset class=\\"escolhas etapa-campo largo\\"><legend class=\\"campo-rotulo\\">Recalcular os minutos pela proporção que está declarada?</legend>"' +
+    '    perguntas += "<fieldset class=\\"escolhas etapa-campo largo\\"><legend class=\\"campo-rotulo\\">Ficar com estes minutos?</legend>"' +
     '      + "<label class=\\"escolha\\"><input type=\\"radio\\" name=\\"dur-proporcao\\" value=\\"sim\\" checked><span>Sim, recalcular</span></label>"' +
     '      + "<label class=\\"escolha\\"><input type=\\"radio\\" name=\\"dur-proporcao\\" value=\\"nao\\"><span>Não, deixar como está</span></label></fieldset>";' +
     '  }' +
@@ -13857,7 +13956,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    + "  <button class=\\"modal-x\\" id=\\"dur-x\\" type=\\"button\\" aria-label=\\"Fechar\\">&times;</button></div>"' +
     '    + "  <form class=\\"form\\" id=\\"form-duracao\\" novalidate>"' +
     '    + "    <div class=\\"etapa-campos\\">"' +
-    '    + "      <p class=\\"etapa-campo largo\\">De " + i.mudou.de + " para " + i.mudou.para + " minutos. Isto muda o que já está planeado.</p>"' +
+    '    + "      <p class=\\"etapa-campo largo\\">De " + i.mudou.de + " para " + i.mudou.para + " minutos. Isto muda o que já está planejado.</p>"' +
     '    + corpo' +
     '    + perguntas' +
     '    + "    </div>"' +
@@ -13869,6 +13968,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    + "  </form>"' +
     '    + "</div>";' +
     '  (document.body || document.documentElement).appendChild(caixa);' +
+    /* O TOTAL ANDA COM OS CAMPOS, e não com o «Gravar»: a pessoa tem de ver a soma enquanto
+     * escreve, e não depois de submeter. */
+    '  if (precisaProporcao) {' +
+    '    var alvo = Number(i.mudou.para) || 0;' +
+    '    var camposDeMinutos = caixa.querySelectorAll("input[data-bloco]");' +
+    '    for (var z = 0; z < camposDeMinutos.length; z++) {' +
+    '      camposDeMinutos[z].addEventListener("input", function(){ sincronizarTotal(caixa, alvo); });' +
+    '    }' +
+    '    sincronizarTotal(caixa, alvo);' +
+    '  }' +
     '  function fechar(){ caixa.hidden = true; PERGUNTA_DA_DURACAO = null; }' +
     '  function valorDe(nome){' +
     '    var e = document.querySelector("input[name=\\"" + nome + "\\"]:checked");' +
@@ -13880,6 +13989,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  document.getElementById("form-duracao").addEventListener("submit", function(ev){' +
     '    ev.preventDefault();' +
     '    var decisao = {proporcao: valorDe("dur-proporcao") || "nao"};' +
+    /* OS MINUTOS VÃO NO CORPO SÓ QUANDO ELE DISSE «SIM». Com «não», a distribuição fica como
+     * está, e mandar números seria pedir ao servidor que os ignorasse. */
+    '    if (decisao.proporcao === "sim") {' +
+    '      var escritos = [];' +
+    '      var blocos = caixa.querySelectorAll("input[data-bloco]");' +
+    '      for (var m = 0; m < blocos.length; m++) {' +
+    '        escritos.push({bloco: blocos[m].getAttribute("data-bloco"),' +
+    '          minutos: Number(String(blocos[m].value).replace(",", "."))});' +
+    '      }' +
+    '      if (escritos.length) decisao.distribuicao = escritos;' +
+    '    }' +
     '    var seguir = PERGUNTA_DA_DURACAO;' +
     '    caixa.hidden = true;' +
     '    if (seguir) seguir(decisao);' +
@@ -23177,6 +23297,11 @@ async function fetch(request, env, extras) {
      * respondida, nada é gravado — e o `409` leva o cálculo inteiro, para o modal o mostrar com os
      * números e não com uma frase de aviso. */
     const pergunta = await perguntaDaDuracao({ cadeia, anterior, corpo, paraMin: nova.duracaoMin });
+    /* OS NÚMEROS DO MODAL NÃO SÃO ACEITES ÀS CEGAS (20/11/2026). Se os blocos não são os do plano,
+     * ou um valor não é um número de minutos, nada é gravado e a resposta nomeia o que está mal —
+     * em vez de reescalonar por conta própria e deixar o professor a olhar para números que não
+     * escreveu. */
+    if (pergunta && pergunta.recusa) return json(400, { ok: false, erro: pergunta.recusa });
     if (pergunta && !pergunta.ajusteDeVolume) {
       const i = pergunta.impacto;
       return json(409, {
@@ -23243,15 +23368,22 @@ async function fetch(request, env, extras) {
          * mostra: uma decisão sem rasto não é um registo, é um clique.
          *
          * A DOSE NÃO ESTÁ AQUI, e é dela a razão: a série mede-se contra a música (×8), não contra
-         * o relógio da aula — nunca esteve em causa por a duração mudar. */
+         * o relógio da aula — nunca esteve em causa por a duração mudar.
+         *
+         * E O MOTIVO DIZ QUAL DAS DUAS COISAS ACONTECEU (20/11/2026): os minutos que o professor
+         * escreveu no formulário, ou a regra de três sobre a proporção declarada. São duas
+         * histórias diferentes, e quem lê o cartão meses depois tem de saber qual foi. */
         motivo: (parMudouNaDerivacao
           ? 'o par (modalidade, professor) da sala «' + nova.nome + '» passou a valer a partir de '
             + vigencia
           : 'o ritmo da sala «' + nova.nome + '» passou a valer a partir de ' + vigencia)
           + (ajusteDeVolume
-            ? (ajusteDeVolume.proporcao
-              ? ' · a distribuição por bloco foi reescalonada para a duração nova'
-              : ' · a distribuição por bloco foi mantida, por decisão de quem ajustou')
+            ? (!ajusteDeVolume.proporcao
+              ? ' · a distribuição por bloco foi mantida, por decisão de quem ajustou'
+              : (ajusteDeVolume.minutos && ajusteDeVolume.minutos.length
+                ? ' · a distribuição por bloco foi refeita com os minutos que quem ajustou '
+                  + 'escreveu: ' + ajusteDeVolume.minutos.map((m) => m.valor).join(' · ')
+                : ' · a distribuição por bloco foi reescalonada para a duração nova'))
             : ''),
       })
       : { executada: false, motivo: 'nenhuma Turma ocupa esta sala — não há plano nem PO a reavaliar' };
@@ -27000,6 +27132,11 @@ module.exports = {
   // (18/10/2026). O menu do celular é uma folha que abre e fecha, e isso não se mede no
   // texto do HTML: mede-se a posição do elemento — antes e depois do clique.
   paginaProducao,
+  /* A LEITURA DOS MINUTOS DO MODAL, exportada para a bancada (20/11/2026). O cliente passou a
+   * mandar números, e o que se quer medir são as RECUSAS: bloco que o plano não tem, valor que não
+   * é número, minutos negativos, contagem que não bate. Subir a rota `turma-derivar` para as medir
+   * exigiria uma Sala com plano e PO — e mediria a gravação, não a validação. */
+  minutosDaDecisao,
   /* O CARTÃO DE «A ESCOLA», exportado para a prova o medir num navegador (16/11/2026). O defeito
    * que ela apanhou — o painel da aba a ficar à DIREITA da tira, porque a caixa estava na grade de
    * duas colunas dos formulários — não se vê no texto do HTML: vê-se na posição do elemento.

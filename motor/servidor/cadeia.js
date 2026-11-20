@@ -436,15 +436,35 @@ function criarCadeia({
      * continua a ser 30%.
      *
      * O elo ANTERIOR não é tocado: ele continua a declarar os minutos da duração antiga, e é isso
-     * que faz a pergunta «como estava planeada a aula de 60 minutos» ter resposta. */
+     * que faz a pergunta «como estava planeada a aula de 60 minutos» ter resposta.
+     *
+     * E OS NÚMEROS QUE ELE ESCREVEU GANHAM DA CONTA (20/11/2026). O modal passou a ser um
+     * formulário: vem preenchido com a regra de três, e o professor acata ou corrige. Quando ele
+     * corrige, o que se grava é o que ele escreveu — a regra de três é só o valor inicial. Fazer a
+     * conta por cima dos números dele seria desfazer, no servidor, a decisão tomada no ecrã. */
     let volumeEscalado = null;
     if (ajusteDeVolume && ajusteDeVolume.proporcao) {
-      const escalado = volume.escalarDistribuicao(
-        respostas['distribuicao-de-volume'], ajusteDeVolume.deMin, ajusteDeVolume.paraMin);
+      const escritos = Array.isArray(ajusteDeVolume.minutos) ? ajusteDeVolume.minutos : null;
+      const escalado = escritos && escritos.length
+        ? volume.aplicarMinutos(respostas['distribuicao-de-volume'], escritos)
+        : volume.escalarDistribuicao(
+          respostas['distribuicao-de-volume'], ajusteDeVolume.deMin, ajusteDeVolume.paraMin);
       if (escalado) {
         respostas['distribuicao-de-volume'] = escalado;
-        volumeEscalado = 'a distribuição por bloco foi reescalonada de ' + ajusteDeVolume.deMin
-          + ' para ' + ajusteDeVolume.paraMin + ' minutos, pela proporção que estava declarada';
+        if (escritos && escritos.length) {
+          /* O AVISO DIZ SE OS NÚMEROS FECHAM. Se não fecharem, não se distribui a diferença — a
+           * lacuna é informação, e quem a fechou (ou não) foi quem escreveu. */
+          const total = Math.round(escritos.reduce((s, m) => s + Number(m.valor), 0) * 10) / 10;
+          const alvo = Number(ajusteDeVolume.paraMin) || 0;
+          volumeEscalado = 'a distribuição por bloco foi refeita com os minutos que o professor '
+            + 'escreveu (' + escritos.map((m) => m.valor).join(' · ') + ')'
+            + (Math.abs(total - alvo) < 0.05
+              ? ', e fecham os ' + alvo + ' minutos da aula'
+              : ', e somam ' + volume.numeroLegivel(total) + ' dos ' + alvo + ' minutos da aula');
+        } else {
+          volumeEscalado = 'a distribuição por bloco foi reescalonada de ' + ajusteDeVolume.deMin
+            + ' para ' + ajusteDeVolume.paraMin + ' minutos, pela proporção que estava declarada';
+        }
       }
     }
     /* A IDENTIDADE VAI COM O ELO (10/11/2026) — nas RESPOSTAS, que é o que o documento imprime.

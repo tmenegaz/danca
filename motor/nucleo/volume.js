@@ -369,6 +369,66 @@ function escalarDistribuicao(atual, deMin, paraMin) {
   return 'valor' in atual && !Array.isArray(atual.valor) ? Object.assign({}, atual, { valor: valorNovo }) : valorNovo;
 }
 
+/**
+ * OS MINUTOS QUE O PROFESSOR ESCREVEU — e não os que a regra de três deu (20/11/2026).
+ *
+ * PORQUE É QUE ESTA FUNÇÃO EXISTE, e a razão é de custo: o modal mostrava os minutos sugeridos e
+ * o professor só podia dizer «sim, recalcular» ou «não». Quem quisesse 9·9·54·18 e não 12·12·72·24
+ * dizia «sim» e tinha de voltar ao plano de ensino para corrigir — dois gestos para uma decisão.
+ * «Aí o professor preenche, ou ele acata, já vem preenchido, ou ele muda […] e já está pronto, já é
+ * do jeito que ele quer. Aí a gente economiza, porque senão vai gastar duas vezes.»
+ *
+ * A CONTA CONTINUA A SER DO PROFESSOR, e é por isso que aqui não há regra de três nenhuma: os
+ * valores chegam escritos, e o que esta função faz é pô-los no sítio certo da tabela — a mesma
+ * chave, o mesmo sufixo (« min», se o plano o tiver), a mesma forma de envelope. O total NÃO vem
+ * de fora: é a soma, e quem o calcula é quem mostra.
+ *
+ * `pedidos` é `[{ bloco, valor }]`. Devolve o valor novo de `distribuicao-de-volume`, ou `null`
+ * quando não há nada a aplicar (sem tabela, em percentual, bloco desconhecido). `null` é «não
+ * toques»; a validação da resposta do cliente é do servidor, que sabe quais blocos existem.
+ */
+function aplicarMinutos(atual, pedidos) {
+  if (!atual || typeof atual !== 'object' || !Array.isArray(pedidos) || !pedidos.length) return null;
+  const bruto = ('valor' in atual && !Array.isArray(atual.valor)) ? atual.valor : atual;
+  if (!bruto || typeof bruto !== 'object') return null;
+  if (String(bruto.unidade || '').trim().toLowerCase() !== 'minutos') return null;
+  const linhas = Array.isArray(bruto.linhas) ? bruto.linhas : null;
+  if (!linhas || !linhas.length) return null;
+
+  const porBloco = new Map();
+  for (const p of pedidos) {
+    if (!p || typeof p !== 'object' || Array.isArray(p)) return null;
+    const bloco = String(p.bloco == null ? '' : p.bloco).trim().toLowerCase();
+    const valor = p.valor === undefined ? p.minutos : p.valor;
+    const numero = Number(valor);
+    if (!bloco || !Number.isFinite(numero) || numero < 0) return null;
+    porBloco.set(bloco, numero);
+  }
+
+  let aplicados = 0;
+  const novas = linhas.map((linha) => {
+    const lido = linhaDoBloco(linha);
+    if (!lido) return linha;
+    const chave = lido.bloco.trim().toLowerCase();
+    if (!porBloco.has(chave)) return linha;
+    const copia = Object.assign({}, linha);
+    for (const k of Object.keys(copia)) {
+      if (!/(propor|fatia|percent|porcent|tempo|minuto|duracao)/i.test(String(k))) continue;
+      /* O SUFIXO É O DO PLANO: os envelopes reais trazem `"12"`, e um plano escrito à mão pode
+       * trazer `"12 min"`. Manter o que lá está evita que a mesma tabela passe a ter duas formas
+       * de dizer a mesma unidade. */
+      const sufixo = String(copia[k] == null ? '' : copia[k]).replace(/[\d.,-]/g, '');
+      copia[k] = numeroLegivel(porBloco.get(chave)) + sufixo;
+      aplicados += 1;
+    }
+    return copia;
+  });
+  if (!aplicados) return null;
+  const valorNovo = Object.assign({}, bruto, { linhas: novas });
+  return ('valor' in atual && !Array.isArray(atual.valor))
+    ? Object.assign({}, atual, { valor: valorNovo }) : valorNovo;
+}
+
 module.exports = {
   PROPORCAO_PADRAO,
   DURACAO_CURTA,
@@ -380,5 +440,7 @@ module.exports = {
   /* O IMPACTO DE MUDAR A DURAÇÃO — o que o gesto mostra antes de gravar. */
   impactoDaDuracao,
   escalarDistribuicao,
+  /* OS MINUTOS ESCRITOS PELO PROFESSOR ganham da regra de três. */
+  aplicarMinutos,
   numeroLegivel,
 };

@@ -55448,3 +55448,64 @@ caixinha e as duas do CSS, com `{marca:16, caixa:16}` e `{titulo:12, marca:22}`;
 **O que ainda não está feito.** A folha do telemóvel não recebeu o ar: ali a identidade está
 escondida e o menu continua a encostar às bordas da folha. Se o mesmo respiro fizer falta no
 telefone, é a mesma linha, sem o `@media`.
+
+## 20/11/2026 — «O total é uma soma» — o modal da duração vira formulário, e ele não volta duas vezes
+
+**O pedido, e o custo que o justificou.** «Essa terceira coluna aqui, 90 minutos, a gente vai
+transformar em um formulário. Vêm os valores já sugeridos, né? […] Aí o professor preenche, ou ele
+acata, já vem preenchido, ou ele muda, ele faz os ajustes que ele quiser. Aí ele confirma ali com o
+sim, recalcular, e manda gravar e já está pronto, já é do jeito que ele quer. Aí a gente economiza,
+porque senão vai gastar duas vezes.»
+
+O defeito de percurso era esse: o modal dizia os minutos da regra de três e não deixava discuti-los.
+Quem queria outro número dizia «sim» — e herdava 12·12·72·24 para ir corrigir à mão no plano de
+ensino. **Dois gestos para uma decisão.**
+
+**O que ficou.** A coluna «Com N min» deixou de ser resultado e passou a ser campo: um `input` por
+bloco, preenchido com o valor sugerido, e o **Total não é campo** — é a soma, atualizada enquanto se
+escreve. «O total é uma soma que tem de ser automática, tá bom? Na medida que ele altera aqui o
+solo/centro e musicalidade.» Um total editável seria uma segunda verdade sobre a mesma conta.
+
+E quando a soma deixa de fechar, o modal **diz** — «soma 101 min, e a aula tem 90» —, em vez de
+distribuir a diferença por conta própria. A lacuna continua a ser informação.
+
+**Medido na bancada local, a 1280px:** quatro campos de **96 × 43 px**, tabela sem transbordo
+(`scrollWidth` = `clientWidth` = 878), e o total a mudar de `90 min` para `101 min` ao levar o
+primeiro campo de 9 para 20.
+
+**O servidor deixou de recusar números — e passou a conferi-los.** A regra que aqui estava era «o
+cliente não manda números (o reescalonamento é do servidor)», e ela era boa enquanto havia dois
+botões. Agora o cliente manda, e o servidor confere o que chega contra a tabela do plano: os blocos
+têm de ser os mesmos, cada valor tem de ser um número finito e não negativo, e a contagem tem de
+bater. Quando não, **400 com o nome do bloco** — nunca um reescalonamento por conta própria, que
+deixaria o professor a olhar para números que não escreveu.
+
+E no elo novo do plano, **os minutos escritos ganham da regra de três**: a conta é só o valor
+inicial do formulário. O aviso diz qual das duas coisas aconteceu, e se os números fecham a aula
+(«fecham os 120 minutos») ou não («somam 45 dos 120»). O elo anterior continua intocado.
+
+**Uma palavra mudou de lado do Atlântico.** «De 120 para 90 minutos. Isto muda o que já está
+**planeado**» era português de Portugal; a interface é do Brasil. Passou a **planejado** — no modal
+e no «o contador está **planeado**» do monitor da receita. A varredura ficou feita: não sobra nenhum
+`planeado` em texto de tela. As outras diferenças (sítio, ficheiro, telemóvel) ficam para depois —
+«aos pouquinhos», como ela pediu.
+
+**A legenda não começa por «Gravar».** A primeira redação era «Gravar a distribuição com estes
+minutos?», e a varredura de `provar-gravar-e-gravar` reprovou-a — com razão: ao lado de um botão
+«Gravar», a palavra aparecia duas vezes a dizer coisas diferentes. A pergunta passou a falar do que
+muda: «Ficar com estes minutos?».
+
+**Bancadas, todas corridas depois da mudança:** `provar-a-pergunta-da-duracao` **32** (era 24; as
+oito do `aplicarMinutos`, incluindo as quatro negativas), `provar-cadeia-automatica` **84** (era 78;
+os minutos escritos, e a soma que não fecha), `provar-salas-e-elencos` **168** (era 162; os campos,
+a soma ao vivo, e as quatro recusas do servidor). E as vizinhas continuam verdes:
+`provar-gravar-e-gravar` **53**, `provar-teste` **45**, `check-identidade` sem erros.
+
+**Com o quê.** `motor/nucleo/volume.js` (`aplicarMinutos`), `motor/servidor/bastidores.js`
+(`minutosDaDecisao`, o modal, o 400, o motivo do elo, a largura do campo),
+`motor/servidor/cadeia.js` (os minutos escritos antes da conta),
+`motor/servidor/painel-html.js` (a palavra), e as três bancadas.
+
+**O que ainda não está feito.** O valor que o professor escreve não é conferido contra a **música** —
+se os 9 minutos de Solo cabem na faixa que ele usa, é do professor, e o sistema não mede. E a soma a
+menos é permitida de propósito: o plano pode declarar menos do que a aula tem, e o aviso diz quanto.

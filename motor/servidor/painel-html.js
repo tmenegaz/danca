@@ -2599,7 +2599,7 @@ function blocoDaReceita(r, cambio) {
             + (a.precoUsadoCentavos != null
               ? ' <span class="sub">(R$ ' + (a.precoUsadoCentavos / 100).toFixed(2).replace('.', ',')
                 + ' por aula usada)</span>' : '')
-          : '<span class="sub">ainda sem contagem de aulas — o contador está planeado</span>') + '</td></tr>' +
+          : '<span class="sub">ainda sem contagem de aulas — o contador está planejado</span>') + '</td></tr>' +
       '</tbody></table></div>'
     : '';
   return '<div class="caixa" id="monitor-receita">' +

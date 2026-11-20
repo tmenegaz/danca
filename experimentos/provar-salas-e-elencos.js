@@ -1461,8 +1461,43 @@ const RITMO = {
        * saíram; a dos blocos em MINUTOS fica, porque aí há conta a fazer. */
       conferir('…e NÃO diz «automático» — o que é automático não se mostra',
         !/autom[aá]tico/i.test(tMin), (tMin.match(/autom[aá]tico/i) || [])[0]);
-      conferir('…mostra os minutos de cada bloco, antes e depois',
-        /Solo/.test(tMin) && /27 min/.test(tMin) && /36 min/.test(tMin), null);
+      /* OS MINUTOS DO «DEPOIS» SÃO CAMPOS, E NÃO UMA COLUNA DE RESULTADOS (20/11/2026).
+       * «Essa terceira coluna aqui, 90 minutos, a gente vai transformar em um formulário. Vêm os
+       * valores já sugeridos […] ou ele acata, já vem preenchido, ou ele muda.»
+       *
+       * A asserção antiga procurava «36 min» no TEXTO; agora o número está no `value` de um campo,
+       * e é isso que se lê — um `textContent` que ainda o mostrasse seria a coluna velha. */
+      const camposMin = mMin ? [...mMin.querySelectorAll('input[data-bloco]')] : [];
+      conferir('…os minutos de cada bloco são CAMPOS, um por bloco',
+        camposMin.length === 4, camposMin.length);
+      conferir('…e vêm preenchidos com o valor sugerido — ele acata ou muda',
+        camposMin.map((c) => c.value).join(',') === '36,36,36,12',
+        camposMin.map((c) => c.value));
+      conferir('…e a coluna «Hoje» continua a dizer de onde se veio',
+        /27 min/.test(tMin) && /Solo/.test(tMin), null);
+      /* O TOTAL NÃO É CAMPO: é a soma. «O total é uma soma que tem de ser automática, tá bom? Na
+       * medida que ele altera aqui o solo/centro e musicalidade.» */
+      const totalDoModal = mMin ? mMin.querySelector('#dur-total') : null;
+      conferir('…e o Total é soma, não campo — não há entrada para ele',
+        !!totalDoModal && !mMin.querySelector('input[aria-label*="Total"], input[data-bloco="Total"]'),
+        totalDoModal && totalDoModal.textContent);
+      conferir('…e a soma mostrada fecha com a duração nova (36+36+36+12)',
+        totalDoModal && /120/.test(totalDoModal.textContent), totalDoModal && totalDoModal.textContent);
+      /* A SOMA ANDA COM OS CAMPOS, e é o que faz o formulário ser um formulário: escrever 10 no
+       * primeiro campo tem de mudar o total antes de submeter. */
+      const somaAoVivo = (() => {
+        if (!camposMin.length || !mMin) return null;
+        camposMin[0].value = '10';
+        camposMin[0].dispatchEvent(new cMin.w.Event('input', { bubbles: true }));
+        const t = mMin.querySelector('#dur-total');
+        const aviso = mMin.querySelector('#dur-fecha');
+        return { total: t && t.textContent, aviso: aviso ? { oculto: aviso.hidden, texto: aviso.textContent } : null };
+      })();
+      conferir('…e editar um campo move o total, sem gravar nada',
+        !!somaAoVivo && /94/.test(somaAoVivo.total), somaAoVivo && somaAoVivo.total);
+      conferir('…e o modal diz que a soma já não fecha com a aula',
+        !!somaAoVivo && somaAoVivo.aviso && somaAoVivo.aviso.oculto === false
+          && /90|120/.test(somaAoVivo.aviso.texto), somaAoVivo && somaAoVivo.aviso);
       conferir('…e o total, com a regra à vista («tem de fechar com a duração»)',
         /tem de fechar com a duração/.test(tMin), null);
       /* A DOSE NÃO ESTÁ AQUI (20/11/2026), e a razão é da dança: numa aula a música divide-se em
@@ -1491,14 +1526,18 @@ const RITMO = {
       conferir('…e não há «NaN» nem «undefined» no que o modal mostra',
         mMin && !/NaN|undefined/.test(tMin),
         mMin ? (tMin.match(/NaN|undefined/g) || []) : null);
-      /* A DECISÃO: o padrão protege o professor — recalcular (a alternativa é metade da aula por
-       * declarar) e rever a dose (foi escrita para outra duração). */
+      /* A DECISÃO, e o que vai com ela (20/11/2026). «Gravar» manda o «sim» e MAIS os minutos que
+       * estão nos campos — inclusive os que ele mudou. É o que evita o segundo gesto: «senão vai
+       * gastar duas vezes». Antes de decidir, o primeiro campo foi levado a 10 pela asserção da
+       * soma ao vivo, e é 10 que tem de chegar ao servidor. */
       await cMin.decidir();
       conferir('…e o MESMO pedido é reenviado, agora com a decisão',
         cMin.corpos.length === 2, cMin.corpos.length);
-      conferir('…com a decisão, e com o valor que protege',
+      conferir('…com a decisão, e com os minutos que estão nos campos',
         JSON.stringify((cMin.corpos[1] || {}).decisaoDaDuracao)
-          === JSON.stringify({ proporcao: 'sim' }),
+          === JSON.stringify({ proporcao: 'sim', distribuicao: [
+            { bloco: 'Solo', minutos: 10 }, { bloco: 'Barra', minutos: 36 },
+            { bloco: 'Centro', minutos: 36 }, { bloco: 'Musicalidade', minutos: 12 }] }),
         (cMin.corpos[1] || {}).decisaoDaDuracao);
       conferir('…e o que o professor tinha escrito não se perde no caminho',
         String((cMin.corpos[1] || {}).duracaoMin) === '120', (cMin.corpos[1] || {}).duracaoMin);
@@ -1506,6 +1545,33 @@ const RITMO = {
         !!(cMin.modal() && cMin.modal().hidden), cMin.modal() && cMin.modal().hidden);
       cMin.fechar();
 
+      /* ── O QUE O SERVIDOR FAZ COM OS NÚMEROS DO FORMULÁRIO ─────────────────── */
+      /* O cliente passou a mandar números, e o servidor tem de os ler sem confiar: os blocos são os
+       * do plano, os valores são números de minutos, e a lista tem o mesmo tamanho. Quando não, a
+       * resposta é uma recusa com o nome do bloco — nunca um reescalonamento por conta própria, que
+       * deixaria o professor a olhar para números que não escreveu. */
+      const regra = bastidores.minutosDaDecisao;
+      const impactoDe = (blocos) => ({ proporcao: { precisaAjuste: true, linhas: blocos.map((b) => ({ bloco: b })) } });
+      conferir('o servidor lê os minutos na ordem do plano, e não na que veio',
+        JSON.stringify(regra({ distribuicao: [{ bloco: 'Barra', minutos: 2 }, { bloco: 'Solo', minutos: 1 }] },
+          impactoDe(['Solo', 'Barra'])))
+          === JSON.stringify({ minutos: [{ bloco: 'Solo', valor: 1 }, { bloco: 'Barra', valor: 2 }] }),
+        regra({ distribuicao: [{ bloco: 'Barra', minutos: 2 }, { bloco: 'Solo', minutos: 1 }] },
+          impactoDe(['Solo', 'Barra'])));
+      conferir('…e não manda minutos nenhuns quando a lista não vem (cliente antigo, ou «não»)',
+        regra({ proporcao: 'sim' }, impactoDe(['Solo'])).minutos === null, null);
+      const recusas = [
+        ['bloco que o plano não tem', { distribuicao: [{ bloco: 'Contra-corpo', minutos: 5 }] }, ['Solo']],
+        ['valor que não é número', { distribuicao: [{ bloco: 'Solo', minutos: 'nove' }] }, ['Solo']],
+        ['minuto negativo', { distribuicao: [{ bloco: 'Solo', minutos: -1 }] }, ['Solo']],
+        ['contagem que não bate com a tabela',
+          { distribuicao: [{ bloco: 'Solo', minutos: 5 }] }, ['Solo', 'Barra']],
+      ];
+      for (const [oQue, decisao, blocos] of recusas) {
+        const lido = regra(decisao, impactoDe(blocos));
+        conferir('…e recusa com frase própria: ' + oQue,
+          Boolean(lido.erro) && lido.minutos === undefined, lido);
+      }
       /* ── o caso da PERCENTAGEM: o modal NÃO EXISTE ────────────────────────── */
       /* «É apenas aqui, quando é em minutos, que tem impacto, viu? Nos demais casos não tem impacto
        * nenhum trocar lá a duração da aula nas salas. […] E aí o modal faz sentido existir para essa

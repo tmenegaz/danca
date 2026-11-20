@@ -408,6 +408,69 @@ async function ids(arm, familia) {
     const l4 = (v4 && (v4.valor || v4).linhas) || [];
     provar('…e os minutos NÃO são reescalonados', l4.map((l) => String(l['Proporção alvo'])).join(' '),
       '30 min 30 min');
+
+    /* OS NÚMEROS QUE ELE ESCREVEU GANHAM DA CONTA (20/11/2026). O modal passou a ser um formulário:
+     * vem preenchido com a regra de três, e ele acata ou corrige. Quando corrige, o que se grava é
+     * o que ele escreveu — fazer a conta por cima seria desfazer, no servidor, a decisão do ecrã, e
+     * mandá-lo de volta ao plano de ensino para escrever outra vez o mesmo número. */
+    const { cadeia: c5, arm: arm5 } = montar();
+    const escrito = planoFixture('plano-20261103-2200', { geradoEm: '2026-11-03T22:00' });
+    escrito.respostas['distribuicao-de-volume'] = r({ unidade: 'minutos', linhas: [
+      { Bloco: 'Barra', 'Proporção alvo': '30 min', Justificativa: 'Apoio.' },
+      { Bloco: 'Centro', 'Proporção alvo': '18 min', Justificativa: 'Deslocamento.' },
+      { Bloco: 'Musicalidade', 'Proporção alvo': '6 min', Justificativa: 'Pulso.' },
+      { Bloco: 'Expressão', 'Proporção alvo': '6 min', Justificativa: 'Braços.' },
+    ] });
+    await porta.gravarEnvelope(arm5, escrito, relatorioDe('plano-20261103-2200'));
+    await porta.gravarEnvelope(arm5, poFixture('po-20261103-2221',
+      { planoId: 'plano-20261103-2200', geradoEm: '2026-11-03T22:21' }), relatorioDe('po-20261103-2221'));
+    const r5 = await c5.executar({
+      gatilho: 'troca-de-aluna', elencos: ['elenco-a'], quando: QUANDO,
+      motivo: 'a duração da sala passou de 60 para 120 minutos',
+      ajusteDeVolume: { proporcao: true, deMin: 60, paraMin: 120, total: 120,
+        minutos: [{ bloco: 'Barra', valor: 50 }, { bloco: 'Centro', valor: 40 },
+          { bloco: 'Musicalidade', valor: 20 }, { bloco: 'Expressão', valor: 10 }] },
+    });
+    const novos5 = (await ids(arm5, 'plano')).filter((x) => x !== 'plano-20261103-2200');
+    const novo5 = novos5.length ? await porta.lerEnvelope(arm5, novos5[0]) : null;
+    const v5 = novo5 && novo5.respostas['distribuicao-de-volume'];
+    const l5 = (v5 && (v5.valor || v5).linhas) || [];
+    provar('os minutos ESCRITOS são os que ficam no documento — a regra de três é só o valor inicial',
+      l5.map((l) => String(l['Proporção alvo'])).join(' '), '50 min 40 min 20 min 10 min');
+    provar('…e não são 60 e 36 e 12 e 12, que é o que a conta daria',
+      l5.map((l) => String(l['Proporção alvo'])).join(' ') !== '60 min 36 min 12 min 12 min', null);
+    provar('…e o sufixo do plano é respeitado (o «min» continua lá)',
+      l5.every((l) => / min$/.test(String(l['Proporção alvo']))), l5.map((l) => l['Proporção alvo']));
+    const avisos5 = (r5.avisos || []).join(' | ');
+    provar('…e o aviso diz que foram os minutos dele, e que fecham a aula',
+      /refeita com os minutos que o professor escreveu/.test(avisos5)
+        && /fecham os 120 minutos/.test(avisos5), avisos5);
+
+    /* E QUANDO NÃO FECHAM, diz-se — sem distribuir a diferença. A lacuna é informação: quem a
+     * abriu (ou a manteve aberta) foi quem escreveu, e o sistema não inventa o que falta. */
+    const { cadeia: c6, arm: arm6 } = montar();
+    const aberto = planoFixture('plano-20261103-2200', { geradoEm: '2026-11-03T22:00' });
+    aberto.respostas['distribuicao-de-volume'] = r({ unidade: 'minutos', linhas: [
+      { Bloco: 'Barra', 'Proporção alvo': '30 min', Justificativa: 'Apoio.' },
+      { Bloco: 'Centro', 'Proporção alvo': '30 min', Justificativa: 'Deslocamento.' },
+    ] });
+    await porta.gravarEnvelope(arm6, aberto, relatorioDe('plano-20261103-2200'));
+    await porta.gravarEnvelope(arm6, poFixture('po-20261103-2221',
+      { planoId: 'plano-20261103-2200', geradoEm: '2026-11-03T22:21' }), relatorioDe('po-20261103-2221'));
+    const r6 = await c6.executar({
+      gatilho: 'troca-de-aluna', elencos: ['elenco-a'], quando: QUANDO, motivo: 'minutos a menos',
+      ajusteDeVolume: { proporcao: true, deMin: 60, paraMin: 120, total: 45,
+        minutos: [{ bloco: 'Barra', valor: 25 }, { bloco: 'Centro', valor: 20 }] },
+    });
+    const novos6 = (await ids(arm6, 'plano')).filter((x) => x !== 'plano-20261103-2200');
+    const novo6 = novos6.length ? await porta.lerEnvelope(arm6, novos6[0]) : null;
+    const v6 = novo6 && novo6.respostas['distribuicao-de-volume'];
+    const l6 = (v6 && (v6.valor || v6).linhas) || [];
+    provar('…e a soma que não fecha é conservada, não distribuída',
+      l6.map((l) => String(l['Proporção alvo'])).join(' '), '25 min 20 min');
+    provar('…e o aviso diz quanto é que soma, e quanto é que a aula tem',
+      /somam 45 dos 120 minutos/.test((r6.avisos || []).join(' | ')), r6.avisos);
+
     /* O CONTROLE NEGATIVO: sem ajuste, nada disto acontece. Um reescalonamento que corresse
      * sempre seria uma reescrita silenciosa de planos que ninguém pediu para mudar. */
     const { cadeia: c2, arm: arm2 } = montar();
