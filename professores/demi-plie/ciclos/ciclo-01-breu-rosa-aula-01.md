@@ -6,7 +6,7 @@ aula: "01"
 title: "Plano para a Aula 01 — reconhecer o apoio e alinhar o eixo vertical"
 subtitle: "Turma: Rosa"
 objetivo-especifico: "reconhecer o apoio e alinhar o eixo vertical"
-duracao: "70 minutos"
+duracao: "90 minutos"
 referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 ---
 
@@ -18,7 +18,7 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 |:--|:--|
 | **Objetivo específico** | reconhecer o apoio e alinhar o eixo vertical |
 | **Parâmetro de medição** | **1** reconhecer o apoio e alinhar o eixo vertical — observa: Battement tendu · Plié · Relevé · **2** transferir o peso entre os pés sem perder o alinhamento — observa: Plié · Relevé · **3** sustentar a transferência com musicalidade e controle do movimento — observa: Battement tendu · Relevé |
-| **Duração** | 70 minutos (Pré-requisito 4) |
+| **Duração** | 90 minutos (Pré-requisito 4) |
 | **Volume ativo** | [Preencher: volume em tempos — Regra 9, etapa 1] |
 
 ## 2. Condições preliminares de preparação (o espaço e o material)
@@ -102,8 +102,8 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 ## 6. Proveniência consolidada
 
-- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261119-2350?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
-- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261119-2350?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.
+- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261120-0001?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
+- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261120-0001?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.
 
 **Anamnese de cada aluna**
 
@@ -128,7 +128,7 @@ s.addEventListener("change",pintar);pintar();})();</script>
 | Verificação | Resultado |
 |:--|:--|
 | Objetivo específico declarado | ok |
-| Duração declarada (Pré-requisito 4) | ok — 70 minutos |
+| Duração declarada (Pré-requisito 4) | ok — 90 minutos |
 | Volume dentro da faixa (Regra 9) | [Preencher] |
 
 ## 8. Próximo passo

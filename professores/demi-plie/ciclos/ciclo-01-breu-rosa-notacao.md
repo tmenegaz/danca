@@ -69,7 +69,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 | Compasso | Contagem | Notação | Descrição |
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
-| 1 | 1–2 | `[Perna: ED → ↑ +]` | Lê-se: Perna, varredura para fora, conduz a, sobe, à frente. |
+| 1 | 1–2 | `[Perna: 5ª ↑ → + ED]` | Lê-se: Perna, quinta posição, sobe, conduz a, à frente, varredura para fora. |
 | 3 | 1–2 | `[Perna: ED → ↓ 5ª]` | Lê-se: Perna, varredura para fora, conduz a, cede, quinta posição. |
 
 ### 4. Solo — Battement tendu
@@ -91,7 +91,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 | Compasso | Contagem | Notação | Descrição |
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
-| 1 | 1–2 | `[Perna: ED → ↑ +]` | Lê-se: Perna, varredura para fora, conduz a, sobe, à frente. |
+| 1 | 1–2 | `[Perna: 5ª ↑ → + ED]` | Lê-se: Perna, quinta posição, sobe, conduz a, à frente, varredura para fora. |
 | 3 | 1–2 | `[Perna: ED → ↓ 5ª]` | Lê-se: Perna, varredura para fora, conduz a, cede, quinta posição. |
 
 ### 6. Barra — Battement tendu
@@ -121,7 +121,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 | Compasso | Contagem | Notação | Descrição |
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
-| 1 | 1–2 | `[Perna: ED → ↑ +]` | Lê-se: Perna, varredura para fora, conduz a, sobe, à frente. |
+| 1 | 1–2 | `[Perna: 5ª ↑ → + ED]` | Lê-se: Perna, quinta posição, sobe, conduz a, à frente, varredura para fora. |
 | 3 | 1–2 | `[Perna: ED → ↓ 5ª]` | Lê-se: Perna, varredura para fora, conduz a, cede, quinta posição. |
 
 ### 9. Barra — Plié
@@ -140,7 +140,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 | Compasso | Contagem | Notação | Descrição |
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
-| 1 | 1–2 | `[Perna: ED → ↑ +]` | Lê-se: Perna, varredura para fora, conduz a, sobe, à frente. |
+| 1 | 1–2 | `[Perna: 5ª ↑ → + ED]` | Lê-se: Perna, quinta posição, sobe, conduz a, à frente, varredura para fora. |
 | 3 | 1–2 | `[Perna: ED → ↓ 5ª]` | Lê-se: Perna, varredura para fora, conduz a, cede, quinta posição. |
 
 ### 11. Centro — Plié
@@ -159,7 +159,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 | Compasso | Contagem | Notação | Descrição |
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
-| 1 | 1–2 | `[Perna: ED → ↑ +]` | Lê-se: Perna, varredura para fora, conduz a, sobe, à frente. |
+| 1 | 1–2 | `[Perna: 5ª ↑ → + ED]` | Lê-se: Perna, quinta posição, sobe, conduz a, à frente, varredura para fora. |
 | 3 | 1–2 | `[Perna: ED → ↓ 5ª]` | Lê-se: Perna, varredura para fora, conduz a, cede, quinta posição. |
 
 ### 13. Centro — Battement tendu
@@ -181,7 +181,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 | Compasso | Contagem | Notação | Descrição |
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
-| 1 | 1–2 | `[Perna: ED → ↑ +]` | Lê-se: Perna, varredura para fora, conduz a, sobe, à frente. |
+| 1 | 1–2 | `[Perna: 5ª ↑ → + ED]` | Lê-se: Perna, quinta posição, sobe, conduz a, à frente, varredura para fora. |
 | 3 | 1–2 | `[Perna: ED → ↓ 5ª]` | Lê-se: Perna, varredura para fora, conduz a, cede, quinta posição. |
 
 > **Sobre os símbolos:** os sinais deste código são digitáveis e legíveis numa folha
