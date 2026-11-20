@@ -56280,3 +56280,37 @@ no total), sobre a página: a frase do «não muda» e o número do «muda».
 **Com o quê.** `motor/nucleo/objetivos-do-repertorio.js` (`somaPorBloco`, `efeitoNaSoma`, e `soma` no
 impacto); `motor/servidor/bastidores.js` (`perguntarOObjetivo`, a frase da soma);
 `CUSTO-DOS-FLUXOS.md` §7.9c; `IDENTIDADE-VISUAL.md`; `motor/nucleo/README.md`.
+
+## 20/11/2026 — A janela do exercício novo não abria ao vivo: o filtro de cliente era a regra
+
+**O que aconteceu, e o defeito é meu.** A janela foi entregue, publicada e anunciada como pronta. Ao
+vivo, ela removeu um exercício, derivou, e ao incluir de novo **não apareceu janela nenhuma** — o
+exercício entrou sem objectivo, que é exactamente o estado que a janela existe para impedir. A prova
+passava porque montava o formulário à mão (`cuderivar` e `cumodo` escritos por `eval`) e nunca passou
+pela guarda do cliente: uma prova que contorna o caminho real mede o código, não o gesto.
+
+**As duas causas, e são a mesma.** Do lado do cliente, a guarda era `VINCULADAS[alvo]`; do lado do
+servidor, `curadoriaVinculadaA(pares, turma)`. As duas casam o professor **da cópia da Turma** com o
+do plano — e essa cópia deixou de ser a autoridade a 19/11/2026, quando a Sala passou a ser quem
+dirige («é a sala que é associada a um professor»). Um desencontro de um campo dava «sem plano»
+sobre uma Turma que tinha plano. E o cliente **descartava o motivo** da resposta, pelo que a ficha
+entrava sem pergunta e sem uma palavra.
+
+**Medido antes e depois, em bancada.** Antes: a rota respondia `motivo: 'sem-plano'` nos dois casos
+(cópia com o professor certo, e cópia vazia com a Sala a declarar). Depois: `precisaDecisao:
+'objetivo'` nos dois. Na página: a asserção nova — «o mapa diz `false`, o servidor diz que há» — falha
+em duas asserções com a guarda antiga, e passa com a nova.
+
+**A regra que fica, e é a mesma lição de sempre: um filtro de cliente não é uma regra.** O cliente
+pergunta sempre que há uma Turma em curso (`cuderivar` preenchido) e **quem decide é o servidor**,
+como na janela da duração, onde quem decide é o `409`. O plano é procurado **pelo professor da
+Sala** e só depois pelo da cópia. E quando não há nada a perguntar, **o motivo vai à tela** — sem
+isso, «não perguntei» e «falhei» são a mesma imagem.
+
+**As provas.** `provar-salas-e-elencos.js` secção **N** — 3 asserções novas (219 no total): o mapa
+do cliente diz «sem plano» e o cliente pergunta na mesma, a janela abre, e o pedido é feito. A rota
+foi medida com a `cadeia` injetada e um plano no acervo, nos dois casos de professor.
+
+**Com o quê.** `motor/servidor/bastidores.js` (`curadoriaEmCurso`, o gancho do `esc-conteudos`,
+`pedirOObjetivo` e a rota `impacto-da-inclusao`); `CUSTO-DOS-FLUXOS.md` §7.9c;
+`IDENTIDADE-VISUAL.md`.

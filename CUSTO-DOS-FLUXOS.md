@@ -760,7 +760,7 @@ avisar que a linha caiu, e o aviso é uma frase, não uma pergunta.
 |:--|:--|:--|
 | `objectivosDoPlano(plano)` — os marcos daquela turma, em texto | `motor/nucleo/derivar-plano-ciclo.js` (`marcosEmTexto` já existe) | **pronta** |
 | `impactoDaInclusao({ plano, termo, objetivos, repertorio })` — o que muda no parâmetro e no item 10 | `motor/nucleo/objetivos-do-repertorio.js` | **pronta (20/11/2026)** — devolve a linha que ganha o termo (antes/depois), os blocos daquele objetivo, os marcos todos **sem pré-selecção**, as linhas do item 10 que já citam o exercício (`0` para um exercício novo, e dizê-lo evita a leitura de que o sistema fará a linha), e **quanto muda a soma dos tempos por bloco** (`soma`, por `efeitoNaSoma`) |
-| a rota que enche a janela | `POST /api/bastidores/impacto-da-inclusao` | **pronta (20/11/2026)** — responde `precisaDecisao: 'objetivo'` só quando há o que perguntar; `sem-plano` (`motivo: 'sem-plano'`), `ja-na-aula`, `fora-do-repertorio` e `sem-objectivos` devolvem a ficha a entrar como sempre entrou, cada um com o seu motivo |
+| a rota que enche a janela | `POST /api/bastidores/impacto-da-inclusao` | **pronta (20/11/2026, corrigida no mesmo dia)** — responde `precisaDecisao: 'objetivo'` só quando há o que perguntar; `sem-plano` (`motivo: 'sem-plano'`), `indice-ilegivel`, `plano-ilegivel`, `ja-na-aula`, `fora-do-repertorio` e `sem-objectivos` devolvem a ficha a entrar como sempre entrou, cada um com o seu motivo — **e o motivo vai à tela**. O plano é procurado **pelo professor da SALA** (a autoridade desde 19/11/2026) e só depois pelo da cópia da Turma: o atalho `curadoriaVinculadaA`, que casava a cópia com o plano, dava «sem plano» sobre uma Turma que o tinha — e foi esse o defeito que fez a janela não abrir |
 | a gravação da declaração | **a Turma** — `objetivosDoRepertorio`, ao lado do `repertorio` | **pronta (20/11/2026)** — `declaracoesDaTurma` soma o que a janela respondeu, mantém o que já estava (P-03/P-04) e esquece o exercício que saiu do repertório |
 | a janela | `bastidores.js` — `perguntarOObjetivo` | **pronta (20/11/2026)**, e **não** generalizada: são duas janelas, cada uma com a sua pergunta. A generalização que aqui se anunciava ficou por fazer, e é a dívida a pagar se aparecer a terceira |
 | o gancho do cliente | `esc-conteudos` · o clique no «Adicionar» (e não no «Gravar») | **pronta (20/11/2026)** — é onde ela disse que a janela tem de abrir: «quando mando adicionar o Batman GT». O `adicionarFicha` fica intocado: quem pergunta é o gancho, e a ficha só nasce depois da resposta |
@@ -768,6 +768,22 @@ avisar que a linha caiu, e o aviso é uma frase, não uma pergunta.
 **A pergunta que a janela faz** é uma só, e é de escolha múltipla: *«A que objectivo(s) este exercício
 serve?»* — com os marcos da turma, e sem pré-selecção. A partir dela o sistema sabe o que mostrar: a
 linha do parâmetro que ganha o termo, e os blocos cujo total muda.
+
+> **A CORRECÇÃO DE 20/11/2026, e o defeito foi meu.** Publicada a janela, ela testou ao vivo: removeu um
+> exercício, derivou, e **ao incluir de novo não apareceu janela nenhuma** — o exercício entrou sem
+> objectivo. O `provar-salas-e-elencos` passava porque montava o formulário à mão (`cuderivar` e
+> `cumodo` escritos por `eval`), e assim nunca passou pela guarda do cliente. A guarda era
+> `VINCULADAS[alvo]`, e esse mapa casa o professor **da cópia da Turma** com o do plano — uma
+> autoridade que caiu a 19/11/2026, quando a Sala passou a ser quem dirige. Do lado do servidor, o
+> mesmo atalho (`curadoriaVinculadaA`) dizia `sem-plano` sobre uma Turma com plano — e o cliente
+> **descartava o motivo**, portanto a ficha entrava sem pergunta e sem uma palavra.
+>
+> **A regra que ficou: um filtro de cliente não é uma regra.** O cliente pergunta sempre que há uma
+> Turma em curso, e quem decide é o servidor; o plano é procurado pelo professor da Sala; e quando
+> não há nada a perguntar, **o motivo é dito**. Medido em bancada: a rota dava `sem-plano` nos dois
+> casos (cópia certa e cópia vazia) e passa a dar `precisaDecisao: 'objetivo'`; na página, o caso
+> «o mapa diz `false`, o servidor diz que há» — que antes falhava em duas asserções — passa a abrir
+> a janela.
 
 **O que a janela NÃO pergunta:** em que bloco ele entra. O bloco é do item 10, e o item 10 é do
 professor, linha a linha — o sistema não escolhe pedagogia.

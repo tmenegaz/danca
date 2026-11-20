@@ -13491,11 +13491,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    var fonte = el.querySelector("select.opcoes");' +
     '    var valor = fonte ? fonte.value : "";' +
     '    if (!valor) { alert("Escolha um item antes de adicionar."); return; }' +
-    /* O CONTEÚDO DA TURMA PASSA PELA JANELA (20/11/2026) — e só ele. É o único sítio da página onde
-     * acrescentar um exercício pode ter consequência no plano de ensino; nos outros escolhedores
-     * (as alunas, os blocos) a ficha entra como sempre entrou. Ver `pedirOObjetivo`: quem decide se
-     * há pergunta é o servidor, e a Turma sem plano não a tem. */
-    '    if (el.id === "esc-conteudos" && turmaVinculadaEmDerivacao()) {' +
+    /* O CONTEÚDO DA TURMA PASSA PELA PERGUNTA (20/11/2026) — e só ele. É o único sítio da página
+     * onde acrescentar um exercício pode ter consequência no plano de ensino; nos outros
+     * escolhedores (as alunas, os blocos) a ficha entra como sempre entrou.
+     *
+     * E A PERGUNTA VAI AO SERVIDOR SEMPRE, quando há uma Turma em curso. A guarda que aqui estava
+     * (`turmaVinculadaEmDerivacao`) lia o mapa `VINCULADAS` do cliente, que casa o professor da
+     * CÓPIA da Turma com o do plano — e essa cópia deixou de ser a autoridade a 19/11/2026 (quem
+     * dirige é a Sala). Medido a 20/11/2026: o mapa dizia «sem plano» sobre uma Turma com plano, a
+     * janela não abria, e nada era dito. Quem sabe se há o que perguntar é o servidor. */
+    '    if (el.id === "esc-conteudos" && curadoriaEmCurso()) {' +
     '      pedirOObjetivo(el, valor, fonte);' +
     '      return;' +
     '    }' +
@@ -14183,11 +14188,25 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * fechar e cancelar nasce de ela interromper um pedido já feito — este não interrompe nada.
      * ===================================================================================== */
     'var OBJETIVOS_DECLARADOS = {};' +
-    'function turmaVinculadaEmDerivacao(){' +
-    '  var alvo = (document.getElementById("cuderivar") || {}).value || "";' +
-    '  var modo = (document.getElementById("cumodo") || {}).value || "";' +
-    '  if (!alvo || modo === "editar") return "";' +
-    '  return (typeof VINCULADAS !== "undefined" && VINCULADAS && VINCULADAS[alvo]) ? alvo : "";' +
+    /* «HÁ UMA TURMA EM CURSO?» — e a pergunta deixou de ser «esta Turma tem plano?».
+     *
+     * O DEFEITO QUE ISTO FECHA, medido ao vivo a 20/11/2026. A guarda era
+     * `VINCULADAS[alvo]`, um mapa que o servidor calcula casando o professor DA CÓPIA da Turma
+     * com o professor do plano. Desde 19/11/2026 quem dirige é a SALA, e a cópia pode estar
+     * vazia ou desactualizada: o mapa dizia «sem plano» sobre uma Turma com plano, a janela não
+     * abria, e — pior — **nada era dito**. Ela incluiu um exercício, ficou sem a pergunta e sem
+     * saber porquê.
+     *
+     * A REGRA QUE FICA: o cliente pergunta sempre que há uma Turma escolhida, e QUEM RESPONDE É
+     * O SERVIDOR. É a mesma forma da janela da duração (quem decide é o `409`, não a tela), e a
+     * mesma lição que este repositório já pagou: um filtro de cliente não é uma regra. Se não
+     * houver nada a perguntar, o servidor responde `precisaDecisao: null` com o motivo — e a
+     * ficha entra como sempre entrou.
+     *
+     * E UMA TURMA NOVA não pergunta nada: sem elo gravado não há plano a que ligar o exercício, e
+     * o formulário é de criação. */
+    'function curadoriaEmCurso(){' +
+    '  return String((document.getElementById("cuderivar") || {}).value || "");' +
     '}' +
     'function perguntarOObjetivo(impacto, valor, aoGravar){' +
     '  var antigo = document.getElementById("modal-objetivo");' +
@@ -14281,11 +14300,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var primeiro = document.getElementById("obj-gravar");' +
     '  if (primeiro) primeiro.focus();' +
     '}' +
-    /* O PEDIDO QUE ENCHE A JANELA — e o que fazer quando a Turma ainda não tem plano. A resposta
-     * `precisaDecisao` é a mesma forma da duração: se não houver nada a perguntar, a ficha entra
-     * como sempre entrou. */
+    /* O PEDIDO QUE ENCHE A JANELA — e o que fazer quando não há o que perguntar.
+     *
+     * QUEM DECIDE É O SERVIDOR, e a resposta é a mesma forma da duração: `precisaDecisao` diz se
+     * há pergunta; sem ela, a ficha entra como sempre entrou. E O MOTIVO É DITO quando o servidor
+     * manda um (`d.aviso`) — antes era descartado, e o silêncio é o defeito que esta janela veio
+     * corrigir: uma Turma que o sistema acha «sem plano» tem de o dizer em voz alta, ou a pessoa
+     * fica a olhar para um exercício incluído sem saber porque não foi perguntada. */
     'function pedirOObjetivo(el, valor, fonte){' +
-    '  var alvo = turmaVinculadaEmDerivacao();' +
+    '  var alvo = curadoriaEmCurso();' +
     '  if (!alvo) { if (adicionarFicha(el, valor)) { if (fonte) fonte.value = ""; } return; }' +
     '  recado("", "a ver o que este exercício muda\\u2026");' +
     '  fetch("/api/bastidores/impacto-da-inclusao", {' +
@@ -14304,7 +14327,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    }' +
     '    if (d.precisaDecisao !== "objetivo") {' +
     '      if (adicionarFicha(el, valor) && fonte) fonte.value = "";' +
-    '      recado("", "");' +
+    /* O MOTIVO, EM VOZ ALTA. Sem esta linha, um «sem plano» do servidor — que pode ser um erro do
+     * servidor e não um facto da Turma — entrava em silêncio, e ela ficava com um exercício
+     * incluído sem saber por que não lhe perguntaram nada. É o mesmo princípio do `.aviso` que a
+     * folha já usa: o que o leitor não pode deixar passar, diz-se. */
+    '      if (d && d.aviso) recado("aviso", d.aviso); else recado("", "");' +
     '      return;' +
     '    }' +
     '    recado("", "");' +
@@ -26903,26 +26930,62 @@ function parDaSalaNoCorpo(corpo, registo) {
     if (!turma) return json(404, { ok: false, erro: 'turma não encontrada: ' + (id || '—') });
 
     /* A TURMA SEM PLANO NÃO TEM OBJECTIVOS, e a resposta é a mesma que a geração dá: nada a fazer
-     * agora, e o plano, quando nascer, leva o conteúdo. É o «interregno» dela. */
+     * agora, e o plano, quando nascer, leva o conteúdo. É o «interregno» dela.
+     *
+     * O QUE MUDOU A 20/11/2026, e é o defeito que fez a janela não abrir ao vivo. Aqui perguntava-se
+     * `curadoriaVinculadaA(pares, turma)`, que casa o professor DA CÓPIA da Turma com o professor
+     * do plano. A cópia deixou de ser a autoridade a 19/11/2026 — quem dirige a Turma é a SALA —, e
+     * um desencontro de um campo dava «sem plano» sobre uma Turma que TEM plano. Pior: o cliente
+     * descartava o motivo, e a ficha entrava sem a pergunta e sem uma palavra.
+     *
+     * A REGRA QUE FICA É NÃO USAR O ATALHO. O plano é procurado DE FACTO — primeiro pelo professor
+     * da Sala, depois pelo da cópia, porque é essa a ordem de autoridade deste repositório. Se o
+     * plano não vier de nenhum dos dois, então é que não há: e o motivo viaja com um `aviso`, para
+     * a tela o poder dizer em vez de o guardar. */
     const pares = await paresComPlano(env, escola);
-    if (!curadoriaVinculadaA(pares, turma)) {
+    if (pares === null) {
+      /* O ÍNDICE DOS PLANOS NÃO SE LEU. Não é «não há plano» — é «não sei», e dizer a primeira
+       * coisa em vez da segunda foi o que fez esta janela calar. A ficha entra, e a tela diz. */
       return json(200, {
-        ok: true, precisaDecisao: null, motivo: 'sem-plano',
-        aviso: 'esta Turma ainda não tem plano de ensino — não há objetivo a que ligar o exercício. '
-          + 'Ele entra no repertório, e o plano, quando nascer, leva-o consigo.',
+        ok: true, precisaDecisao: null, motivo: 'indice-ilegivel',
+        aviso: 'não consegui ler a lista de planos de ensino agora — não sei se há objetivos a que '
+          + 'ligar este exercício. A ficha entra, e a declaração do objetivo fica para a próxima '
+          + 'derivação.',
       });
+    }
+    const nomeDaSala = String(turmasDaCuradoria(turma)[0] || '').trim();
+    const salaVigente = nomeDaSala
+      ? turmaVigentePorNome(await turmas(kv, escola), nomeDaSala) : null;
+    /* O PROFESSOR DA SALA GANHA, E A CÓPIA VEM DEPOIS (19/11/2026). A ordem é a de `reguaDaSala` e
+     * a da própria derivação: quem dirige hoje é quem a Sala declara. */
+    const professoresDoPlano = [];
+    for (const p of [String((salaVigente && salaVigente.professor) || '').trim(),
+      String(turma.professor || '').trim()]) {
+      if (p && professoresDoPlano.indexOf(p) === -1) professoresDoPlano.push(p);
     }
     let plano = null;
     if (cadeia && typeof cadeia.planoDaTurma === 'function') {
-      try { plano = await cadeia.planoDaTurma(turmasDaCuradoria(turma)[0] || '', turma.professor); } catch (erro) { plano = null; }
+      for (const p of professoresDoPlano) {
+        try { plano = await cadeia.planoDaTurma(nomeDaSala, p); } catch (erro) { plano = null; }
+        if (plano) break;
+      }
     }
     if (!plano) {
-      /* VINCULADA MAS SEM PLANO LEGÍVEL — o índice e o acervo discordam, e a resposta não inventa:
-       * diz o que sabe e deixa a ficha entrar. */
+      /* SEM PLANO — e há duas coisas diferentes aqui, que antes eram ditas como uma só.
+       *
+       * Se a lista de planos não tem par nenhum para esta Turma, ela ainda não tem plano de
+       * ensino: é o interregno, a ficha entra, e o plano, quando nascer, leva o conteúdo.
+       *
+       * Se tem par e mesmo assim o plano não veio, o índice e o acervo discordam — e o sistema
+       * não inventa: diz que não conseguiu ler, que é uma coisa diferente de «não há». */
+      const temPar = Array.isArray(pares) && pares.some((p) => p && p.turma === nomeDaSala);
       return json(200, {
-        ok: true, precisaDecisao: null, motivo: 'plano-ilegivel',
-        aviso: 'esta Turma tem plano de ensino, mas não consegui lê-lo agora — a declaração do '
-          + 'objetivo fica para a próxima derivação.',
+        ok: true, precisaDecisao: null, motivo: temPar ? 'plano-ilegivel' : 'sem-plano',
+        aviso: temPar
+          ? 'esta Turma tem plano de ensino, mas não consegui lê-lo agora — a declaração do '
+            + 'objetivo fica para a próxima derivação.'
+          : 'esta Turma ainda não tem plano de ensino — não há objetivo a que ligar o exercício. '
+            + 'Ele entra no repertório, e o plano, quando nascer, leva-o consigo.',
       });
     }
     const impacto = objetivosDoRepertorio.impactoDaInclusao({

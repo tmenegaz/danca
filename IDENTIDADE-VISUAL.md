@@ -1088,6 +1088,12 @@ medição passa a observar «X» no(s) objetivo(s) 2»); sem nada marcado, diz a
 exercício não entra em aula nenhuma»). Um botão que não faz nada sem explicar porquê é pior do que
 um botão desactivado.
 
+**E quando não há pergunta, o motivo diz-se.** O servidor é quem decide se há algo a perguntar, e
+quando a resposta é «nada» ela traz a razão — «esta Turma ainda não tem plano de ensino», «não
+consegui ler a lista de planos agora». A janela não abre, a ficha entra, e a razão aparece no canto
+como qualquer `.aviso`. Um gesto que não pergunta e não diz porquê é indistinguível de um gesto que
+falhou — e foi assim que uma janela construída ficou três horas a parecer que não existia.
+
 **E o que a resposta implica é dito em números, não em adjectivos.** Além dos objetivos, a janela
 mostra em que blocos aqueles objetivos se trabalham, quantas linhas do item 10 já citam o exercício,
 e **quanto muda a soma dos tempos por bloco** — com as duas frases possíveis: os blocos que mudam e

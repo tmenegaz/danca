@@ -1791,28 +1791,36 @@ const RITMO = {
         { id: 'jete', termo: 'Battement jeté', categoria: 'passo' },
       ];
 
-      const htmlN = bastidores.paginaProducao.apply(null, [
+      /* A PÁGINA, COM OS PARES E SEM ELES (20/11/2026).
+       *
+       * Os `pares` são o que o servidor casa para dizer `VINCULADAS` — e era deles que a guarda
+       * do cliente dependia. `htmlSemPares` reproduz o desencontro medido ao vivo: o servidor sabe
+       * que há plano, e o mapa do cliente diz que não. É o caso em que a janela tem de abrir na
+       * mesma, porque quem decide é o servidor. */
+      const montarProducao = (pares) => bastidores.paginaProducao.apply(null, [
         'breu', {},
         [{ nome: 'Demi Plié', slug: 'demi-plie' }], [],
         'Demi', 'demi-plie',
         [SALA_N], TERMOS_N, { 'sala-n': ['plie', 'tendu'] },
         [CURADORIA_N],
         [{ id: 'padrao', nome: 'Padrão', professor: 'demi-plie', niveis: ['Ótimo'] }],
-        [{ professor: 'demi-plie', turma: 'Rosa', ciclo: '01' }],
+        pares,
         { professores: new Set(), turmas: new Set(), termos: new Set(), planos: 1 },
         null, 'sala-n',
         [], new Set(), { ok: true, contrato: null },
       ]);
+      const htmlN = montarProducao([{ professor: 'demi-plie', turma: 'Rosa', ciclo: '01' }]);
+      const htmlSemPares = montarProducao([]);
 
       /* `vinculada` diz se a rota é chamada a perguntar; o cenário de Turma sem plano passa
        * `false` e mede que a ficha entra sem janela nenhuma. */
-      const correrON = async (vinculada, impactoUsado) => {
+      const correrON = async (vinculada, impactoUsado, htmlUsado) => {
         const erros = [];
         const pedidos = [];
         const vc = new VCL();
         vc.on('jsdomError', (e) => erros.push(String((e && e.message) || e)));
         vc.on('error', () => {});
-        const dom = new JSDOML(htmlN.replace(/<script src="[^"]*"><\/script>/g, ''), {
+        const dom = new JSDOML((htmlUsado || htmlN).replace(/<script src="[^"]*"><\/script>/g, ''), {
           runScripts: 'dangerously', url: BASE + '/bastidores/producao#turmas',
           pretendToBeVisual: true, virtualConsole: vc,
           beforeParse(w) {
@@ -1882,6 +1890,24 @@ const RITMO = {
             .map((f) => f.getAttribute('data-valor')),
           fechar: () => w.close() };
       };
+
+      /* ── O DESENCONTRO MEDIDO AO VIVO: o cliente diz «sem plano», o servidor diz «há» ───────
+       *
+       * A página é montada SEM `pares`, portanto `VINCULADAS` diz `false` para a Turma — que é
+       * exactamente o estado em que a janela deixou de abrir a 20/11/2026. A guarda antiga
+       * (`turmaVinculadaEmDerivacao`) devolvia `""` e a ficha entrava sem pergunta e sem palavra.
+       * Agora o cliente pergunta na mesma, e é o servidor que responde. */
+      const cDesencontro = await correrON(true, null, htmlSemPares);
+      conferir('mesmo com o mapa do cliente a dizer «sem plano», o cliente PERGUNTA ao servidor',
+        JSON.stringify(cDesencontro.w.eval('VINCULADAS')) === '{"cu-n":false}',
+        cDesencontro.w.eval('VINCULADAS'));
+      await cDesencontro.escolherEJuntar('Battement jeté');
+      conferir('…e a janela abre, porque quem decide é o servidor',
+        Boolean(cDesencontro.modal() && !cDesencontro.modal().hidden),
+        cDesencontro.modal() && cDesencontro.modal().hidden);
+      conferir('…e o pedido do impacto foi feito', cDesencontro.pedidos.length === 1,
+        cDesencontro.pedidos.map((p) => p.rota));
+      cDesencontro.fechar();
 
       /* ── a Turma COM plano: a janela abre ao acrescentar ────────────────────── */
       const cVin = await correrON(true);
