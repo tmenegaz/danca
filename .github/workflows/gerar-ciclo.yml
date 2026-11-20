@@ -90,14 +90,16 @@ jobs:
       # pacote — uma chamada por documento, com o template `tools/templates/ciclo.html` — e não há
       # como tirá-lo sem escrever outro compilador de Markdown.
       #
-      # O TeX esteve aqui e saiu com o PDF. Medido antes e depois, três execuções de cada:
+      # E ELE JÁ NÃO VEM DO `apt`. O pandoc do Debian são 199 MB (Haskell sem `strip`), e instalá-lo
+      # custava 25 a 33 s por execução — não pelos pacotes, mas pela cerimónia do dpkg (`Reading
+      # database` do sistema inteiro). Agora vem de um binário estático de 28 MB, fixado por versão
+      # E por hash, que se descomprime em 0,7 s. A ação confere o hash em toda execução e faz um
+      # smoke test com o template do projecto antes de deixar o job seguir.
       #
-      #   com TeX     este passo 61 · 67 · 68 s  →  job 97 · 107 · 107 s
-      #   só pandoc   este passo 10 · 31 · 25 s  →  job 34 ·  60 ·  49 s
+      # A VERSÃO É A MESMA QUE O `apt` INSTALAVA (3.1.3): o pacote gerado pelo binário estático é
+      # byte a byte igual ao do `apt` — medido sobre a árvore inteira, não sobre uma amostra.
       #
-      # A ressalva que fica: 60 s é exactamente a fronteira onde o Actions cobra 2 minutos, e uma
-      # das três encostou nela. A variação de 10 a 31 s é do `apt` (o cache dos `.deb` a servir ou
-      # não), não do gerador. Ver a §7.8 do `CUSTO-DOS-FLUXOS.md`.
+      # O TeX esteve aqui e saiu com o PDF (ver a §7.8 do `CUSTO-DOS-FLUXOS.md`).
       - uses: ./.github/actions/preparar-pandoc
 
       # Sem o passo das senhas locais: a senha de criptografia vive no Worker (SENHA_CRIPTO), e a

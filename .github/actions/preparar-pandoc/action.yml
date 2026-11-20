@@ -1,85 +1,124 @@
 name: Preparar pandoc
 description: >-
-  Instala o pandoc — o compilador de Markdown para HTML de todo o pacote — reusando os `.deb`
-  de um cache.
+  Instala o pandoc de um binário ESTÁTICO, fixado por versão e por hash — sem `apt`, sem dpkg,
+  sem dependências.
 
-# POR QUE O PANDOC, E SÓ ELE (20/11/2026).
+# POR QUE ASSIM, E NÃO PELO `apt` (20/11/2026).
 #
-# TODO o HTML do sistema sai daqui. O `tools/gerar-ciclo.sh` chama-o uma vez por documento do
-# pacote (uma dezena delas), com o template `tools/templates/ciclo.html`; o
-# `tools/criar-escola.sh` chama-o para a apresentação da escola; e o `tools/gerar-raiz.sh` para
-# a página da raiz. Sem o pandoc não há site — é ele que transforma o Markdown que a
-# pesquisadora escreve em página que se lê e que se imprime.
+# O pandoc é o compilador de Markdown para HTML de todo o sistema: o `tools/gerar-ciclo.sh`
+# chama-o uma vez por documento do pacote, o `tools/criar-escola.sh` para a apresentação da escola
+# e o `tools/gerar-raiz.sh` para a página da raiz. Sem ele não há site. Ele FICA.
 #
-# O QUE SAIU DAQUI, e porquê. Até 20/11/2026 esta ação também instalava **TeX** (o conjunto
-# mínimo medido, 191 MB) e o **pdfinfo** do poppler — para compilar dois PDFs por ciclo. Os
-# PDFs deixaram de existir (a entrega impressa é a própria página, pelo `Ctrl+P` do navegador),
-# e com eles o TeX, o poppler e a conferência por `kpsewhich`. A decisão, os três runs medidos
-# e a ressalva da fronteira dos 60 s estão no `REGISTRO.md` de 20/11/2026.
+# O QUE NÃO FICAVA ERA O MÉTODO. Instalar pelo `apt` custava 25 a 33 s por execução, e a medição
+# mostrou que o custo não eram os pacotes — era a cerimónia: copiar os `.deb` do cache para
+# `/var/cache/apt/archives`, o `Reading database` do dpkg (que varre o sistema instalado inteiro)
+# e os gatilhos. Com um pacote ou com quatro, o mesmo quarto de minuto. Runs 44781355240 e
+# 44781717178: 26 s e 33 s no passo, e 59 s e 75 s no job, com 16 s de variação entre os dois sem
+# nada diferente no repositório.
 #
-# A HISTÓRIA QUE VALE GUARDAR. Em 22/10/2026 este passo levava **116 s de um job de 127 s**
-# (91 % do tempo), quase todo em `texlive-fonts-extra` — 1,7 GB instalados, com ZERO arquivos
-# abertos por ele. O conjunto foi reduzido por medição (`dpkg -S` de cada arquivo que o
-# `pdflatex` abria), de 1,9 GB para 191 MB. A lição não foi «encolher a lista»: foi que o
-# trabalho pelo qual se paga eram 5 segundos, e o resto era preparar a máquina. Hoje a máquina
-# prepara-se para instalar um programa só.
+# E o pacote em si é o problema: o binário do pandoc no Debian pesa **199 MB** (Haskell sem
+# `strip`). O que o próprio projecto publica é estático, com as bibliotecas ligadas dentro:
+# **28 MB comprimidos**, 131 MB extraídos. Descomprimir leva 0,7 s; conferir o hash, 0,1 s.
+# Trocou-se um quarto de minuto por menos de cinco segundos.
 #
-# O CACHE. `actions/cache` guarda só os `.deb` (é o que ele consegue restaurar sem sudo). Isso
-# corta o `apt-get update` e o download; a descompactação continua a acontecer, porque o banco
-# do dpkg não se cacheia de forma confiável. Medido: com o cache a servir, este passo são
-# **10 s**; quando o índice do runner avança e o cache não serve, **25–31 s**.
+# A VERSÃO É A MESMA QUE O `apt` INSTALAVA (3.1.3), e isso não é coincidência: é o que garante que
+# o HTML sai IGUAL. Medido antes de adoptar — cinco fontes reais (o plano, a aula, a notação, a
+# captura e o guia do professor) renderizadas pelas duas versões com o template `ciclo.html`:
+# **byte a byte idênticas**. É a única prova que importa: um pandoc mais novo poderia mudar o
+# `--toc`, o `{#id}` ou o tratamento de `raw_tex`, e o `check-pacote` compararia 240 âncoras de
+# um documento diferente do que a pesquisadora vê.
 #
-# A chave do cache é o hash DESTE arquivo: mexer na lista invalida o cache sozinho, sem
-# ninguém precisar lembrar de subir um número de versão.
+# O HASH É A TRAVA. O `sha256sum` corre em TODA execução, e o arquivo do cache é conferido como o
+# que vem da rede: um cache corrompido, um download truncado ou um asset substituído falham aqui,
+# antes de gerar nada. **Ao subir a versão, mudam-se quatro coisas juntas** — a URL, o nome do
+# arquivo, o `key` do cache e o hash — e o cache invalida sozinho, porque a chave leva os dois
+# últimos.
+#
+# O QUE NÃO SE PERDE COM O `apt`. Nada que o repositório use: o `--data-dir` do pandoc não é
+# tocado por gerador nenhum (o template é o `tools/templates/ciclo.html`, que é nosso, e os
+# embutidos estão compilados dentro do binário). O tarball traz só `bin/` e `share/man`.
 
 runs:
   using: composite
   steps:
-    - name: Restaurar os .deb do cache
-      id: debs
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/danca-debs
-        key: debs-${{ runner.os }}-${{ hashFiles('.github/actions/preparar-pandoc/action.yml') }}
-
-    - name: Instalar o pandoc
+    - name: Conferir o sistema
       shell: bash
       run: |
         set -euo pipefail
-
-        pacotes="pandoc"
-
-        # A TENTATIVA DIRETA PRIMEIRO, QUANDO HÁ CACHE. Com os `.deb` restaurados em
-        # /var/cache/apt/archives, o `apt-get install` os usa e não vai à rede. Se o índice do
-        # runner já não casar com as versões guardadas (o espelho do Ubuntu avançou), a
-        # instalação falha — e aí o caminho normal assume. Não se apaga o índice antes de
-        # tentar: é justamente ele (o que vem na imagem) que evita o `apt-get update`.
-        if [ "${{ steps.debs.outputs.cache-hit }}" = "true" ]; then
-          sudo cp ~/.cache/danca-debs/*.deb /var/cache/apt/archives/ 2>/dev/null || true
-          if sudo apt-get install -y -q --no-install-recommends $pacotes; then
-            echo "instalado do cache"
-            exit 0
-          fi
-          echo "o cache não serviu para este índice — seguindo pelo caminho normal" >&2
+        # O binário fixado é `linux-amd64`. Noutro sistema o arquivo seria outro, e falhar com
+        # uma mensagem que o diz é melhor do que descomprimir um ELF num runner que não o corre.
+        if [ "${{ runner.os }}" != "Linux" ] || [ "${{ runner.arch }}" != "X64" ]; then
+          echo "erro: o binário fixado é linux-amd64, e este runner é ${{ runner.os }}/${{ runner.arch }}" >&2
+          echo "      Publicar o asset certo em .github/actions/preparar-pandoc/action.yml." >&2
+          exit 1
         fi
 
-        sudo apt-get update -q
-        sudo apt-get install -y -q --no-install-recommends $pacotes
+    # O CACHE GUARDA O ARQUIVO BAIXADO, E NÃO A ÁRVORE EXTRAÍDA. É de propósito: assim a
+    # conferência do hash corre em toda execução, e não só na primeira. Descomprimir são 0,7 s —
+    # barato a mais para se ganhar a garantia de que o binário que corre hoje é o que o hash diz.
+    - name: Restaurar o arquivo do binário
+      id: binario
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/danca-pandoc/pandoc-3.1.3-linux-amd64.tar.gz
+        key: pandoc-3.1.3-linux-amd64-74bc434908e4d858
 
-        # Guardar só o que esta instalação realmente baixou.
-        mkdir -p ~/.cache/danca-debs
-        sudo cp /var/cache/apt/archives/*.deb ~/.cache/danca-debs/ 2>/dev/null || true
-        echo "cache semeado: $(ls -1 ~/.cache/danca-debs | wc -l) pacote(s)"
+    - name: Baixar o binário
+      if: steps.binario.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        set -euo pipefail
+        mkdir -p ~/.cache/danca-pandoc
+        curl -fsSL --retry 3 --retry-delay 2 \
+          -o ~/.cache/danca-pandoc/pandoc-3.1.3-linux-amd64.tar.gz \
+          https://github.com/jgm/pandoc/releases/download/3.1.3/pandoc-3.1.3-linux-amd64.tar.gz
 
-    # A CONFERÊNCIA SEPARA «INSTALOU» DE «ESTÁ LÁ». Um `apt-get install` que devolvesse 0 sem o
-    # binário ficaria invisível até a geração falhar — e a geração falha tarde, depois de já ter
-    # escrito metade do pacote. Perguntar ao PATH custa 20 ms.
+    - name: Conferir o hash e instalar
+      shell: bash
+      run: |
+        set -euo pipefail
+        ARQUIVO=~/.cache/danca-pandoc/pandoc-3.1.3-linux-amd64.tar.gz
+        ESPERADO=74bc434908e4d858b3edbfd6271d2e9e499477837e5df1d630df4e62f113803d
+
+        obtido="$(sha256sum "$ARQUIVO" | awk '{print $1}')"
+        if [ "$obtido" != "$ESPERADO" ]; then
+          echo "erro: o hash do binário do pandoc não confere." >&2
+          echo "  esperado: $ESPERADO" >&2
+          echo "  obtido:   $obtido" >&2
+          echo "  O arquivo está em $ARQUIVO — apague-o (ou a chave do cache) e repita." >&2
+          exit 1
+        fi
+        echo "ok: hash do binário confere"
+
+        DESTINO="$HOME/.local/danca-pandoc"
+        rm -rf "$DESTINO"
+        mkdir -p "$DESTINO"
+        tar xzf "$ARQUIVO" -C "$DESTINO" --strip-components=1
+        echo "$DESTINO/bin" >> "$GITHUB_PATH"
+
     - name: Conferir
       shell: bash
       run: |
         set -euo pipefail
-        if ! command -v pandoc > /dev/null 2>&1; then
-          echo "erro: 'pandoc' não está no PATH — sem ele não há HTML nenhum" >&2
-          exit 1
-        fi
-        echo "ok: pandoc $(pandoc --version | head -1 | awk '{print $2}')"
+        # O caminho é explícito porque o `>> $GITHUB_PATH` do passo anterior só vale para os
+        # passos SEGUINTES. Daqui para baixo, os workflows encontram o `pandoc` no PATH.
+        PANDOC="$HOME/.local/danca-pandoc/bin/pandoc"
+        echo "ok: pandoc $("$PANDOC" --version | head -1 | awk '{print $2}')"
+
+        # O SMOKE TEST SEPARA «O BINÁRIO ARRANCA» DE «O BINÁRIO COMPILA O NOSSO DOCUMENTO». Um tar
+        # truncado que ainda descomprima daria um `--version` verde e falharia na geração — tarde,
+        # depois de metade do pacote escrita. Aqui compila-se um documento mínimo com o template
+        # de VERDADE do projecto e com as MESMAS opções do gerador (`--toc --toc-depth=3`,
+        # `markdown+raw_tex+header_attributes`), e conferem-se as três coisas de que ele depende:
+        # o template aplicado, o índice da página, e o `{#id}` que dá as âncoras.
+        saida="$(printf -- '---\ntitle: "Prova"\n---\n\n## Uma seção {#uma-secao}\n\ntexto\n' \
+          | "$PANDOC" -f markdown+raw_tex+header_attributes --to=html5 --standalone \
+              --toc --toc-depth=3 --template=tools/templates/ciclo.html)"
+        for esperado in '<!DOCTYPE html>' 'class="toc-local"' 'id="uma-secao"' 'href="#uma-secao"'; do
+          case "$saida" in
+            *"$esperado"*) : ;;
+            *) echo "erro: o documento de prova saiu sem $esperado — o binário arranca mas não renderiza o que o gerador precisa." >&2
+               exit 1 ;;
+          esac
+        done
+        echo "ok: compila o template do projecto (standalone, toc e header_attributes)"

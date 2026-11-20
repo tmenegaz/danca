@@ -532,10 +532,36 @@ Tirar o poppler **não poupou nada**: o custo não são os pacotes, é a cerimó
 execuções o job variou **16 s** sem nada diferente no repositório — `preparar-node` de 9 para 16 s,
 `Publicar` de 6 para 9 s. **Com este ruído, «1 minuto» é probabilidade, não garantia.**
 
-O número que aponta o remédio: o binário do pandoc no Debian pesa **199 MB** (Haskell sem `strip`),
-e é o que o `apt` passa 25 s a instalar. Um pandoc autocontido (o `tar.gz` estático, ~30 MB
-comprimidos) vindo do cache custaria segundos — sem `apt`, sem dpkg, sem dependências. Fica como a
-próxima decisão de infra, e é dela.
+### g) O `apt` saiu. O pandoc passou a ser um binário, não um pacote (20/11/2026)
+
+O número que apontava o remédio: o binário do pandoc no Debian pesa **199 MB** (Haskell sem
+`strip`), e era isso que o `apt` passava 25 s a instalar. A decisão foi tomada, e o método mudou:
+
+| | pelo `apt` | binário estático (agora) |
+|:--|--:|--:|
+| o que se transfere | 4 pacotes, 28,3 MB de `.deb` | **1 arquivo, 28 MB** |
+| o que se instala | 204 MB de disco, dpkg + gatilhos | **131 MB, `tar xzf`** |
+| tempo do passo | **25–33 s** | **medido em partes: 0,09 s o hash + 0,73 s extrair**; o restore do cache só se mede no runner |
+| versão | a do espelho do Ubuntu no dia | **3.1.3, fixada** |
+| proveniência | o espelho do Ubuntu | **`sha256` conferido em toda execução** |
+
+**A versão é a mesma que o `apt` instalava — 3.1.3 —, e isso é o que garante que nada muda no
+pacote.** Antes de adoptar, mediu-se: cinco fontes reais (o plano, a aula, a notação, a captura e o
+guia do professor) renderizadas pelas duas versões com o template `ciclo.html` — **byte a byte
+idênticas**. E a confirmação mais forte, sobre a árvore inteira: o pacote do `demi-plie/01/breu-rosa`
+gerado com cada um dos binários é **o mesmo, ficheiro por ficheiro** (`diff -r`, sem uma linha).
+
+**A ação faz três coisas, e a terceira é a que faltava.**
+1. Restaura o arquivo do cache (`actions/cache`, chave com a versão e o hash) ou baixa-o do release.
+2. **Confere o `sha256`** e só então extrai. Um download truncado, um cache corrompido ou um asset
+   substituído param aqui — antes de gerar nada.
+3. **Compila um documento de prova com o template do projecto** (`--standalone --toc`, `{#id}` do
+   `header_attributes`) e exige as três marcas no resultado. Esta é a diferença entre «o binário
+   arranca» e «o binário compila o nosso documento»: um tar truncado que ainda descomprima daria um
+   `--version` verde e falharia na geração, tarde, depois de metade do pacote escrita.
+
+**O custo de manter o pin:** uma linha de versão, um nome de ficheiro, uma chave de cache e um
+hash — os quatro mudam juntos, e o cache invalida sozinho. Está escrito no cabeçalho da ação.
 
 ---
 

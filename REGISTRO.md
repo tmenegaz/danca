@@ -55835,3 +55835,63 @@ do cache custaria uns segundos em vez de 25 — sem `apt`, sem dpkg, sem depend�
 nesta entrada: é uma dependência nova (uma versão do binário fixada por hash, vinda de outro
 sítio), e é decisão dela. A §7.1 continua a ser a única alavanca que muda **minutos**: 8 a 10
 execuções por gesto.
+
+## 20/11/2026 — O pandoc deixa de ser um pacote e passa a ser um binário conferido por hash
+
+**A decisão dela.** «Ganho estimado: o job passaria de 34–75 s para ~20–45 s, o que tornaria o
+minuto confiável em vez de sorte. Custo: um pin a manter» — e, à pergunta «quer que eu faça o
+pandoc autocontido?», **sim**.
+
+**O que se mediu antes de decidir, e é a parte que importa.** A versão fixada é a **3.1.3**, que é
+exactamente a que o `apt` do Ubuntu instala hoje — e não é coincidência, é o que garante que o
+pacote não muda. Duas provas, nesta ordem:
+
+1. **Cinco fontes reais** — o plano, a aula, a notação, a captura e o guia do professor —
+   renderizadas pelos dois binários com o template `ciclo.html`, `--standalone --toc
+   --toc-depth=3`, `markdown+raw_tex+header_attributes`: **byte a byte idênticas**.
+2. **A árvore inteira**: o pacote do `demi-plie/01/breu-rosa` gerado com o `pandoc` do `apt` e
+   com o binário estático — `diff -r` entre as duas árvores, **nenhuma diferença**, e o
+   `git status` fica limpo depois das duas gerações.
+
+Sem a segunda prova, adoptar um binário de outro sítio seria trocar 20 s por um risco de deriva
+silenciosa no HTML — e é a deriva que este repositório persegue.
+
+**O que mudou.** `.github/actions/preparar-pandoc/action.yml` deixou de instalar pelo `apt`
+(4 pacotes, 28,3 MB de `.deb`, 204 MB de disco, dpkg e gatilhos — 25 a 33 s por execução, medidos
+nos runs 44781355240 e 44781717178) e passou a:
+
+1. **restaurar do cache** o arquivo `pandoc-3.1.3-linux-amd64.tar.gz` (28 MB), com a chave a levar
+   a versão e o hash, ou **baixá-lo** do release do projecto quando não está lá;
+2. **conferir o `sha256`**
+   (`74bc434908e4d858b3edbfd6271d2e9e499477837e5df1d630df4e62f113803d`) e só então extrair para
+   `~/.local/danca-pandoc`, pondo o `bin` no `$GITHUB_PATH`;
+3. **compilar um documento de prova** com o template do projecto e exigir quatro marcas no
+   resultado — `<!DOCTYPE html>`, `class="toc-local"`, `id="uma-secao"` e `href="#uma-secao"`.
+
+**A terceira é a que faltava, e não é enfeite.** Um tar truncado que ainda descomprima daria um
+`--version` verde e falharia na geração — tarde, depois de metade do pacote escrita. O smoke test
+usa o template **de verdade** e as opções **do gerador**: separa «o binário arranca» de «o binário
+compila o nosso documento».
+
+**Porque o cache guarda o ARQUIVO e não a árvore extraída.** Assim o hash corre em **toda**
+execução, e não só na primeira: custa 0,09 s, e descomprimir são 0,73 s. É barato a mais para se
+ganhar a garantia de que o binário que corre hoje é o que o hash diz.
+
+**E o que NÃO se perde com o `apt`.** Nada que o repositório use: o `--data-dir` do pandoc não é
+tocado por gerador nenhum — o template é o `tools/templates/ciclo.html`, que é nosso, e os
+embutidos estão compilados dentro do binário. O tarball traz só `bin/` e `share/man`.
+
+**O custo de manter o pin, declarado.** Ao subir a versão, mudam-se **quatro coisas juntas** — a
+URL, o nome do arquivo, o `key` do cache e o hash — e o cache invalida sozinho, porque a chave leva
+os dois últimos. Está no cabeçalho da ação, e é o único sítio onde se mexe.
+
+**Com o quê.** `.github/actions/preparar-pandoc/action.yml` (reescrito) · `.github/workflows/gerar-ciclo.yml`
+(o comment do passo) · `CUSTO-DOS-FLUXOS.md` (§7.8 g) · `REGISTRO.md`.
+
+**Verificado.** Os passos da ação corridos à mão, um a um, com o arquivo real: hash confere,
+extrai em 0,73 s, `pandoc 3.1.3`, e as quatro marcas do smoke test presentes. `gerar-ciclo` com o
+binário estático à frente do `PATH` → **0 erros, 1 aviso**, pacote idêntico ao do `apt`.
+`check-github-headers` 5/5; os três YAML passam pelo `yaml.safe_load`.
+
+**O que fica por medir.** O tempo do passo no runner com esta ação — o restore do cache não se
+mede fora dele. Duas execuções, como das outras vezes, e o número entra aqui e na §7.8.
