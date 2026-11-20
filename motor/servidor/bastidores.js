@@ -2236,22 +2236,52 @@ async function planoDaTurmaNaSala(env, escola, turma, professores) {
   const armazenamento = acervo.combinar(acervo.doAmbiente(env, { legado, escola }), legado);
   let lista = null;
   try { lista = await porta.planos(armazenamento); } catch (e) { return { plano: null, houve: false, leu: false }; }
+  /* OS VIGENTES DAQUELA SALA — a marca `anterior` é a mesma de `porta.planos`: o elo com sucessor
+   * não é o vigente. */
   const vigentes = (Array.isArray(lista) ? lista : [])
     .filter((p) => p && String(p.turma || '').trim() === alvo && !p.anterior);
-  const houve = vigentes.length > 0;
   const ordem = (Array.isArray(professores) ? professores : [])
     .map((p) => String(p || '').trim()).filter(Boolean);
-  if (!houve) return { plano: null, houve, leu: true };
   /* O MAIS RECENTE, e não o primeiro da lista: `porta.planos` já ordena do carimbo maior para o
-   * menor, e é o topo que vale. */
+   * menor, e é o topo que vale. E o professor da SALA vem primeiro em `ordem` — é a autoridade
+   * desde 19/11/2026; o da cópia da Turma é o recurso. */
   const doProfessor = ordem.length
     ? vigentes.find((p) => ordem.indexOf(String(p.professor || '').trim()) !== -1)
     : vigentes[0];
-  if (!doProfessor) return { plano: null, houve, leu: true };
-  try {
-    const plano = await porta.lerEnvelope(armazenamento, String(doProfessor.carimbo)) || null;
-    return { plano, houve, leu: true };
-  } catch (e) { return { plano: null, houve, leu: false }; }
+  if (doProfessor) {
+    try {
+      const plano = await porta.lerEnvelope(armazenamento, String(doProfessor.carimbo)) || null;
+      return { plano, houve: true, leu: true };
+    } catch (e) { return { plano: null, houve: true, leu: false }; }
+  }
+  /* A SAÍDA DE EMERGÊNCIA, e ela existe porque o resumo do índice tira a turma de
+   * `respostas['contexto-turma']` — um elo antigo que não a declare fica com `turma: null` e nunca
+   * casaria. O acervo é a verdade: leem-se os candidatos do professor que o resumo não situa (no
+   * máximo três) e confirma-se o `contexto.turma` no documento. É uma leitura a mais **só quando o
+   * caminho rápido falha**, e o caminho rápido é o de todos os planos escritos desde que o campo
+   * existe. */
+  const candidatos = ordem.length
+    ? (Array.isArray(lista) ? lista : [])
+      .filter((p) => p && !p.anterior && !String(p.turma || '').trim()
+        && ordem.indexOf(String(p.professor || '').trim()) !== -1)
+    : [];
+  let houve = vigentes.length > 0;
+  for (const c of candidatos.slice(0, 3)) {
+    let plano = null;
+    try { plano = await porta.lerEnvelope(armazenamento, String(c.carimbo)); } catch (e) {
+      return { plano: null, houve, leu: false };
+    }
+    if (!plano) continue;
+    /* AS DUAS FONTES DA SALA NO DOCUMENTO: a resposta `contexto-turma` (é dela que o resumo do
+     * índice a tira) e o `contexto.turma` do envelope. Um elo antigo pode declarar só uma — e é
+     * precisamente por isso que ele chegou aqui. */
+    const daResposta = String(porta.turmaDoEnvelope(plano) || '').trim();
+    const doContexto = String((plano.contexto && plano.contexto.turma) || '').trim();
+    if (daResposta === alvo || doContexto === alvo) {
+      return { plano, houve: true, leu: true };
+    }
+  }
+  return { plano: null, houve, leu: true };
 }
 
 /**

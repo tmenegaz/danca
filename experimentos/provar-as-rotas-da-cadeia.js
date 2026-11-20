@@ -179,6 +179,22 @@ function rotasQueUsamACadeia(texto) {
     provar('…e não devolve o plano de outro professor quando o pedido é de um terceiro',
       semNinguem.plano === null && semNinguem.houve === true, semNinguem);
 
+    /* O ELO SEM `contexto-turma` NO RESUMO — o caso que a saída de emergência existe para
+     * apanhar: um plano antigo cujo resumo não declara a turma. Lê-se o documento e confirma-se. */
+    await kv.put('breu/envelope/plano-20261112-1000.json', JSON.stringify({
+      id: 'plano-20261112-1000', gerado_em: '2026-11-12T10:00',
+      contexto: { escola: 'breu', professor: 'demi-plie', ciclo: '01', turma: 'Piano' },
+      respostas: { 'marcos-por-aula': r(['a']), repertorio: r(['Plié']) },
+    }));
+    await kv.put('breu/envelope/.indice.json', JSON.stringify({
+      nomes: ['plano-20261101-1000.json', 'plano-20261112-1000.json', 'plano-20261110-1000.json'],
+      resumos: {},
+    }));
+    const semOTurmaNoResumo = await bastidores.planoDaTurmaNaSala(env, 'breu', 'Piano', ['demi-plie']);
+    provar('…e acha o plano antigo cujo resumo não declara a turma, lendo o documento',
+      semOTurmaNoResumo.plano && String(semOTurmaNoResumo.plano.id) === 'plano-20261112-1000',
+      semOTurmaNoResumo.plano && semOTurmaNoResumo.plano.id);
+
     const outraSala = await bastidores.planoDaTurmaNaSala(env, 'breu', 'Outra', ['demi-plie']);
     provar('…e diz que NÃO HÁ plano quando a sala não tem nenhum',
       outraSala.plano === null && outraSala.houve === false && outraSala.leu === true, outraSala);
