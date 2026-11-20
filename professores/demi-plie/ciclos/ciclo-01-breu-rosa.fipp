@@ -22,7 +22,7 @@ notacao_modalidade: bale-classico
 notacao_alfabeto: ballet-classico
 notacao_versao: 63
 notacao_sha: 28647f220ad94343798982869b105079eb63a64a80474546b3ab5e7bdf6bda41
-notacao_vocabulario_sha: e061d8d48f595ca5c2d714cf948af9d11b02ab7f245394b15129fd8c865e8d0c
+notacao_vocabulario_sha: 8096674237dbf006d02019051d7064cf3d111539cf5b047421be81327042f8c9
 cobertura:
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md
