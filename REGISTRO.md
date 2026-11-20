@@ -54712,3 +54712,53 @@ nomeado e medido, para o passo seguinte.
 mesma segurança com que afirma o resto é pior do que um documento omisso: ninguém vai conferir. A
 pergunta que faltou foi a mais barata de todas — *abrir um pacote publicado e ler o `ciclos.json`* —, e
 a resposta estava a um `python3 -c` de distância.
+
+### 19/11/2026 — O recado da geração: o que o verbo fazia e a tela não dizia
+
+> «Explica isso: a tela do Estilo ainda não mostra o `geracao` da resposta.» — e a explicação mostrou
+> que era entrega incompleta, não sutileza de desenho.
+
+**O que estava.** Com o T5 e o T6, gravar (ou apagar) um verbete e gravar um termo passaram a disparar
+a geração das Turmas que usam o exercício, e o servidor devolve o que aconteceu em `geracao`. As três
+telas que gravam liam `versao`/`ajustou`/`criouVersao` e **nunca** liam `geracao`. O comentário da rota
+dizia *«para o gasto ficar à vista»* — e ficava à vista de quem lesse o JSON com `curl`, e de mais
+ninguém.
+
+**O que se perdia, e são três casos distintos.** Com Turma a usar o exercício, ela abria o documento
+minutos depois, via a notação antiga e não tinha como saber que a nova estava a caminho. Sem Turma, a
+resposta trazia a frase certa e a tela calava-a. E com o disparo falhado — `ok: true` na gravação,
+`disparos[0].ok === false` —, a tela dizia «gravado» e nada mais: o verbo dizia sucesso e o documento
+não ia ser refeito.
+
+**O que passou a valer.** `avisarDaGeracao` põe **um segundo aviso, em atenção, por cima do
+«gravado»** — a escolha dela entre as três que estavam à mesa. As frases:
+
+| o caso | o que se lê no canto |
+|:--|:--|
+| a geração partiu | «os documentos de «Rosa» estão a ser refeitos — leva alguns minutos, e é lá que a notação nova aparece» |
+| o disparo falhou | «a geração de «Rosa» não partiu — os documentos dessa Turma continuam com a notação antiga» |
+| usam o exercício, não há ciclo | «as Turmas «Rosa» e «Lilás» usam este exercício e ainda não têm plano de ensino — não há ciclo para regenerar…» |
+| ninguém usa | **nada** — não há documento a refazer, e um recado a mais é ruído |
+
+**Três decisões pequenas que a frase exigiu, e cada uma vale por si:**
+
+1. **É atenção, não êxito.** «Gravado» está feito; a geração está a caminho — leva minutos, e o aviso
+   dura 8 segundos. Pintá-la de verde seria prometer o que o prazo do aviso não pode cumprir.
+2. **A Turma é nomeada pelo nome que se ensina, não pela variante do pacote.** O disparo levava só
+   `variante` (`breu-rosa`); passou a levar `turma` («Rosa»), porque a frase é lida por uma pessoa.
+3. **A resposta passou a dizer `motivo`** (`sem-plano` × `sem-token`) — o **caso**, e não o texto. Quem
+   mostra já sabe a quem se refere; compor a frase a adivinhar por palavras o que o código já sabe é a
+   família do `if` que filtrava o título vazio.
+
+**E um facto medido que fica escrito:** `sem-token` **não é alcançável numa bancada** — o mesmo token
+que cria o disparador é o que deixa ler o índice dos planos; sem ele, a resposta cai em `sem-plano`.
+Em produção o token existe. O ramo fica como está (correcto se for alcançado) e a bancada diz o que
+mediu, em vez de fingir que provou o outro caso. A frase desse caso é medida na §F do `provar-avisos`,
+que lhe dá o payload directamente.
+
+**Medido.** `provar-avisos` **25 → 37**, com a §F a correr `avisarDaGeracao` **na página** — é o que a
+pessoa lê no canto, e não o que a resposta traz; **controlo negativo: 10 de 37** contra o
+`bastidores.js` anterior. `provar-o-estilo-regera` **15 → 19** (o contrato do `motivo` e as três telas
+a chamarem o aviso, lido no fonte); **controlo negativo: 3 de 19** antes desta correcção. Vizinhas:
+`provar-os-fluxos-da-derivacao` 65, `provar-gravar-e-gravar` 49, `provar-dicionario` 123,
+`check-identidade` ok.

@@ -279,8 +279,21 @@ para `gerarOsCiclosDasTurmas` quando o **segundo** gesto precisou dele. Um camin
 em que a geração mudar, muda-se uma vez. As frases de «não há alvo» entram por parâmetro, porque um
 recado que mente sobre o que aconteceu é da mesma família do gatilho que mente sobre o gesto.
 
-**O que fica por mostrar.** A tela do Estilo ainda **não exibe** o `geracao` da resposta: o gesto
-regera, e o professor não vê a frase. É a peça que falta, e é de desenho — não se inventa aqui.
+**O que a tela diz** *(fechado no mesmo dia)*. As três telas que gravam — o verbete, o apagar do
+verbete e o termo do dicionário — chamam `avisarDaGeracao`, que põe **um segundo aviso, em atenção**,
+por cima do «gravado». Três respostas, e o silêncio:
+
+| o caso | o que se lê no canto |
+|:--|:--|
+| a geração partiu | «os documentos de «Rosa» estão a ser refeitos — leva alguns minutos, e é lá que a notação nova aparece» |
+| o disparo falhou | «a geração de «Rosa» não partiu — os documentos dessa Turma continuam com a notação antiga» |
+| as Turmas usam e não há ciclo | «as Turmas «Rosa» e «Lilás» usam este exercício e ainda não têm plano de ensino — não há ciclo para regenerar. A geração parte do «Guardar» do plano» |
+| ninguém usa o exercício | **nada** — não há documento a refazer, e um recado a mais é ruído |
+
+A frase é de **atenção** e não de êxito, e é o T5 que o obriga: «gravado» está feito; a geração está a
+caminho, leva minutos, e o aviso dura 8 segundos — pintá-la de verde seria prometer o que ele não pode
+cumprir. Para a frase saber qual dos casos dizer sem adivinhar por palavras, a resposta passou a levar
+**`motivo`** (`sem-plano` × `sem-token`) — o caso, e não o texto.
 
 **Medido.** `provar-o-estilo-regera` **12** (§A quem usa, §B o disparo, §C o que não se perde);
 **controlo negativo: 9 de 12** contra o `bastidores.js` anterior. E o fecho do T4 vale aqui: depois da

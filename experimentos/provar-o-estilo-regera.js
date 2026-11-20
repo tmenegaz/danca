@@ -242,11 +242,58 @@ async function principal() {
     (await regerar(env, ESCOLA, 'Battement fondu')).disparos.length === 0
       && /nenhuma Turma usa/i.test(String((await regerar(env, ESCOLA, 'Battement fondu')).aviso)));
 
+  /* O SERVIDOR DIZ O MOTIVO, E NÃO SÓ A FRASE (19/11/2026). Quem mostra já sabe a quem se refere, e
+   * a frase compõe-se do caso — depender do texto para saber qual dos dois foi seria adivinhar por
+   * palavras o que o código já sabe. Mede-se a FORMA da resposta, que é o contrato com a tela. */
+  /* TRÊS CASOS, TRÊS `motivo` DIFERENTES — e não se confundem, que é o que a tela precisa:
+   *   · ninguém usa o exercício → não há `motivo` (não há Turma nenhuma a mencionar);
+   *   · uma Turma usa e NÃO tem plano → `sem-plano`;
+   *   * uma Turma usa e TEM plano, mas o Worker não tem token → `sem-token`. */
+  const comTurmaSemPlano = criarKV({
+    [RAIZ + '/turmas']: JSON.stringify([SALA_ROSA]),
+    [RAIZ + '/curadorias']: JSON.stringify([{ id: 'c-rosa', turmas: ['Rosa'], repertorio: ['plie'] }]),
+  });
+  const semPlano = await regerar(ambiente(comTurmaSemPlano), ESCOLA, 'Plié');
+  const comTurmaComPlano = criarKV({
+    [RAIZ + '/turmas']: JSON.stringify([SALA_ROSA]),
+    [RAIZ + '/curadorias']: JSON.stringify([{ id: 'c-rosa', turmas: ['Rosa'], repertorio: ['plie'] }]),
+    [ESCOLA + '/envelope/.indice.json']: JSON.stringify({
+      nomes: [PLANO_ROSA.id + '.json'],
+      resumos: { [PLANO_ROSA.id + '.json']: {
+        id: PLANO_ROSA.id, gerado_em: PLANO_ROSA.gerado_em,
+        professor: 'pe-torto', turma: 'Rosa', ciclo: '01',
+      } },
+    }),
+  });
+  const semToken = await regerar({
+    ESCOLA_SLUG: ESCOLA, SENHA_ADMIN: 'segredo', PADD_KV: comTurmaComPlano,
+  }, ESCOLA, 'Plié');
+  provar('a Turma usa o exercício e não tem plano: `motivo: "sem-plano"`',
+    semPlano.motivo === 'sem-plano', semPlano.motivo);
+  /* `sem-token` NÃO É ALCANÇÁVEL NUMA BANCADA, e é um facto que vale a pena escrever: o MESMO token
+   * que cria o disparador é o que deixa ler o índice dos planos. Sem ele, `paresComPlano` não vê
+   * plano nenhum e a resposta cai em `sem-plano` — medido. Em produção o token existe (é ele que
+   * escreve no repositório), e por isso o ramo `sem-token` fica como está: correcto se um dia for
+   * alcançado, e nunca mentindo sobre o que se mediu. A FRASE desse caso é medida na §F do
+   * `provar-avisos`, que lhe dá o payload directamente. */
+  provar('…e sem token o índice nem se lê: a resposta cai em `sem-plano`, e não inventa `sem-token`',
+    semToken.motivo === 'sem-plano', semToken.motivo);
+  provar('…e ninguém a usar, não há motivo nenhum a inventar — só o aviso',
+    semNinguem.motivo === undefined && Boolean(semNinguem.aviso), semNinguem.motivo);
+
+  /* E A TELA TEM DE O MOSTRAR. Os três gestos que gravam (o verbete, o apagar do verbete, o termo)
+   * chamam `avisarDaGeracao` — o aviso do canto que diz o que a geração fez. Lido no FONTE e dito:
+   * é a lista dos sítios, e a §F do `provar-avisos` mede o que cada um escreve. */
+  provar('as três telas que gravam chamam o aviso da geração (a declaração + três chamadas)',
+    (fonte.match(/avisarDaGeracao\(/g) || []).length >= 4,
+    (fonte.match(/avisarDaGeracao\(/g) || []).length);
+
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + provas + ' asserções: a pergunta «que Turmas usam este exercício» responde '
       + 'pela composição e em nomes; editar o verbete regera uma vez por Turma com plano, e nenhuma '
-      + 'quando não há alvo — e diz-se; um disparo que falha não desfaz a gravação; e as quatro '
-      + 'rotas do dicionário chamam a mesma travessia, que é condicional ao uso.'
+      + 'quando não há alvo — e diz-se; um disparo que falha não desfaz a gravação; as quatro '
+      + 'rotas do dicionário chamam a mesma travessia, que é condicional ao uso; a resposta diz o '
+      + 'MOTIVO do que não partiu; e as três telas que gravam mostram-na no canto.'
     : 'FALHOU — ' + falhas + ' de ' + provas + ' asserção(ões).'));
   process.exit(falhas === 0 ? 0 : 1);
 }

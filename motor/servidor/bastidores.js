@@ -2008,13 +2008,22 @@ async function gerarOsCiclosDasTurmas(env, escola, turmas, recados) {
     }
   }
   if (!alvos.length) {
-    return { disparos, aviso: avisos.semPlano || 'nenhuma destas Turmas tem plano de ensino — não há ciclo para gerar.' };
+    /* `motivo` DIZ QUAL DOS DOIS CASOS FOI, e é o que permite a quem mostra compor a frase em vez de
+     * adivinhar pelo texto (19/11/2026). O `aviso` continua a ser a frase inteira, para quem lê a
+     * resposta sozinha; o `motivo` é para quem já sabe a quem se refere. */
+    return {
+      disparos, motivo: 'sem-plano',
+      aviso: avisos.semPlano || 'nenhuma destas Turmas tem plano de ensino — não há ciclo para gerar.',
+    };
   }
   const disparar = criarDisparador({
     token: (env && env.GITHUB_TOKEN) || null, dono: 'tmenegaz', repo: 'danca', workflow: 'gerar-ciclo.yml',
   });
   if (typeof disparar !== 'function') {
-    return { disparos, aviso: avisos.semToken || 'sem GITHUB_TOKEN neste Worker: o pacote não foi gerado.' };
+    return {
+      disparos, motivo: 'sem-token',
+      aviso: avisos.semToken || 'sem GITHUB_TOKEN neste Worker: o pacote não foi gerado.',
+    };
   }
   for (const a of alvos) {
     try {
@@ -2022,9 +2031,17 @@ async function gerarOsCiclosDasTurmas(env, escola, turmas, recados) {
         professor: a.professor, ciclo: a.ciclo, escola,
         variante: varianteDoContexto({ escola, turma: a.turma }),
       });
-      disparos.push(Object.assign({ variante: varianteDoContexto({ escola, turma: a.turma }) }, r));
+      /* A TURMA VAI NO DISPARO (19/11/2026). A `variante` é o NOME DO PACOTE
+       * (`breu-rosa`) — serve para a geração, não para uma frase lida por quem ensina. Antes de a
+       * resposta chegar à tela, quem falha tem de poder ser nomeado pelo nome que a pessoa conhece:
+       * «a geração de «Rosa» não partiu», e não «de «breu-rosa»». */
+      disparos.push(Object.assign({
+        turma: a.turma,
+        variante: varianteDoContexto({ escola, turma: a.turma }),
+      }, r));
     } catch (erro) {
       disparos.push({
+        turma: a.turma,
         variante: varianteDoContexto({ escola, turma: a.turma }),
         ok: false, erro: erro && erro.message ? erro.message : String(erro),
       });
@@ -11272,6 +11289,68 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  el.avisoPrazo = setTimeout(function(){ fecharAviso(el); }, 8000);' +
     '  return el;' +
     '}' +
+    /* O QUE A GERAÇÃO FEZ, DITO A QUEM GRAVOU (19/11/2026).
+     *
+     * O DEFEITO QUE ISTO FECHA, e foi medido no mesmo dia em que o T5 entrou: o servidor passou a
+     * disparar a geração das Turmas que usam o exercício e a devolver o que aconteceu em `geracao`
+     * — e as três telas que gravam (o verbete, o apagar do verbete, o termo do dicionário) liam
+     * `versao`/`ajustou`/`criouVersao` e nunca `geracao`. O comentário da rota dizia «para o gasto
+     * ficar à vista»; ficava à vista de quem lesse o JSON com `curl`, e de mais ninguém.
+     *
+     * A FRASE É DE ATENÇÃO E NÃO DE ÊXITO, e a diferença é a que o T5 obriga: o aviso verde diz
+     * «gravado», que é verdade e está feito. O que se segue não está feito — está a caminho, leva
+     * minutos, e só aparece lá quando o GitHub acabar. Pintar isso de verde seria prometer o que o
+     * prazo de 8 segundos do aviso não pode cumprir.
+     *
+     * E O SILÊNCIO TAMBÉM É UMA RESPOSTA. Sem Turma que use o exercício não há documento a refazer:
+     * não se diz nada, em vez de se dizer «nada foi regenerado» a quem acabou de corrigir um verbete
+     * que ninguém usa. Um recado a mais é ruído; um recado a menos é o defeito que aqui se fecha.
+     *
+     * AS TRÊS RESPOSTAS QUE NÃO SÃO SUCESSO, cada uma com a sua frase:
+     *   · o disparo desta Turma FALHOU → «a geração de «X» não partiu — os documentos continuam com
+     *     a notação antiga». É a que faltava, e é a pior de todas em silêncio: o verbo diz «gravado»,
+     *     a pessoa abre o documento e vê o de antes, e não há nada que explique porquê;
+     *   · as Turmas usam o exercício e NÃO HÁ CICLO (sem plano, sem token) → a frase do servidor,
+     *     que já diz o caminho («a geração parte do «Guardar» do plano»);
+     *   · a travessia ESTOUROU → o erro, em atenção, e não um 500 que faria parecer que a gravação
+     *     não aconteceu (ela já estava feita).
+     */
+    'function avisarDaGeracao(g){' +
+    '  if (!g || typeof g !== "object") return;' +
+    '  var nomes = function(lista){' +
+    '    if (lista.length === 1) return "«" + lista[0] + "»";' +
+    '    return "«" + lista.slice(0, -1).join("», «") + "» e «" + lista[lista.length - 1] + "»";' +
+    '  };' +
+    '  if (g.erro) {' +
+    '    avisar("atencao", "a geração dos documentos não partiu: " + g.erro);' +
+    '    return;' +
+    '  }' +
+    '  var turmas = Array.isArray(g.turmas) ? g.turmas.filter(Boolean) : [];' +
+    '  if (!turmas.length) return;' +
+    '  var disparos = Array.isArray(g.disparos) ? g.disparos : [];' +
+    '  var falharam = [];' +
+    '  for (var i = 0; i < disparos.length; i++) {' +
+    '    var d = disparos[i] || {};' +
+    '    if (d.ok === false) falharam.push(String(d.turma || d.variante || "—"));' +
+    '  }' +
+    '  if (falharam.length) {' +
+    '    avisar("atencao", "a geração de " + nomes(falharam) + " não partiu — os documentos dessa Turma continuam com a notação antiga.");' +
+    '    return;' +
+    '  }' +
+    '  if (!disparos.length) {' +
+    /* AS TURMAS USAM O EXERCÍCIO E NADA PARTIU — e a frase diz QUAL dos dois motivos, porque o
+     * `motivo` do servidor é isso mesmo: o caso, e não o texto. Depender do texto seria adivinhar
+     * por palavras o que o código já sabe. */
+    '    var razao = g.motivo === "sem-plano"' +
+    '      ? "e ainda não têm plano de ensino — não há ciclo para regenerar. A geração parte do «Guardar» do plano."' +
+    '      : (g.motivo === "sem-token"' +
+    '        ? "mas este Worker não tem GITHUB_TOKEN: os documentos não vão ser gerados."' +
+    '        : (g.aviso ? String(g.aviso) : "e não há ciclo para regenerar."));' +
+    '    avisar("atencao", "as Turmas " + nomes(turmas) + " usam este exercício " + razao);' +
+    '    return;' +
+    '  }' +
+    '  avisar("atencao", "os documentos de " + nomes(turmas) + " estão a ser refeitos — leva alguns minutos, e é lá que a notação nova aparece.");' +
+    '}' +
     /* O AVISO ATRAVESSA A RECARGA (19/11/2026) — e sem isto ele morria sempre.
      *
      * A maior parte das gravações desta página termina em `location.reload()`, porque a página é
@@ -17768,6 +17847,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }).then(lerResposta).then(function(d){' +
     '    if (!d.ok) { liberar(); recado("erro", d.erro || "não foi possível apagar"); return; }' +
     '    recado("ok", "verbete de «" + qual + "» apagado — versão " + d.versao);' +
+    '    avisarDaGeracao(d.geracao);' +
     // E O FORMULÁRIO SAI DE CIMA DELE: apagar o exercício que está aberto deixaria a tela a compor
     // trechos de um verbete que já não existe, e a gravação seguinte recriava-o sem ninguém pedir.
     '    var emFoco = (document.getElementById("vbnome") || {}).value || "";' +
@@ -17991,6 +18071,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * pilha do canto, e não para o `.res` do formulário que acabou de se fechar. */
     '    carregarDicionario();' +
     '    concluirOGesto("sec-dicionario", d.avisos && d.avisos.length ? "atencao" : "ok", frase);' +
+    // O DICIONÁRIO TAMBÉM REGERA — mas só quando alguém usa o exercício (T6). Quando ninguém usa,
+    // `avisarDaGeracao` não diz nada: não há documento a refazer.
+    '    avisarDaGeracao(d.geracao);' +
     '  }).catch(function(err){' +
     '    liberar(); recado("erro", "Erro: " + (err && err.message ? err.message : err));' +
     '  });' +
@@ -18280,6 +18363,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    if (d.avisos && d.avisos.length) {' +
     '      avisar("atencao", "há um desacordo por resolver: " + d.avisos.join(" "));' +
     '    }' +
+    /* E O DOCUMENTO VAI ATRÁS DA NOTAÇÃO (T5, 19/11/2026) — o servidor já disparou a geração das
+     * Turmas que usam este exercício, e é aqui que isso chega a quem gravou. O aviso é de ATENÇÃO,
+     * e não de êxito: «gravado» está feito, a geração está a caminho. */
+    '    avisarDaGeracao(d.geracao);' +
     '    pintarDesacordo();' +
     '    carregarVerbetes();' +
     /* E O FORMULÁRIO LIMPA-SE E RECOLHE — a regra dela, e é a MESMA sequência do «Cancelar».

@@ -4711,8 +4711,8 @@ muda é a leitura que o documento faz do exercício, e um elo novo faria o passa
 reescreveu uma decisão que ninguém tocou. O miolo da geração, que vivia dentro do
 `gerarOsCiclosDoElenco`, foi extraído para `gerarOsCiclosDasTurmas` — um caminho, um sítio. **O custo
 é real** (uma geração são vários subpedidos) e é por isso que a resposta leva as Turmas e cada
-disparo; **e fica por mostrar**: a tela não exibe esse `geracao` ainda. **CONFIRMADO** por
-`provar-o-estilo-regera` (12; **9 de 12** reprovavam contra o `bastidores.js` anterior). **Próximo:**
+disparo. **E a tela passou a dizê-lo** (fechado no mesmo dia, ver abaixo). **CONFIRMADO** por
+`provar-o-estilo-regera` (12 → 19; **9 de 12** reprovavam contra o `bastidores.js` anterior). **Próximo:**
 o T6 — o Dicionário, a mudança condicional.
 
 **RESOLVIDO a 19/11/2026 — o T6: o dicionário regera, mas só quando alguém usa o exercício.** É a
@@ -4720,8 +4720,19 @@ regra dela por palavras próprias, e a condição não se escreve em nenhuma rot
 o termo (`POST`, os dois caminhos do `PUT`, o `DELETE`) chamam a mesma colagem do T5
 (`comAGeracaoDoTermo`), e é a travessia que pergunta quem usa o exercício — quando ninguém usa,
 responde com o aviso e não dispara nada. Uma regra, um sítio. **CONFIRMADO** por
-`provar-o-estilo-regera` (15; a §D nova, e **1 de 15** reprova contra o `bastidores.js` do T5 sem o
-T6 — é exactamente a ligação). **Próximo:** o T7 — o calendário. **E a premissa com que eu o abri estava errada** (ver abaixo).
+`provar-o-estilo-regera` (15 → 19; a §D nova, e **1 de 15** reprova contra o `bastidores.js` do T5 sem
+o T6 — é exactamente a ligação).
+
+**RESOLVIDO a 19/11/2026 — o recado da geração na tela.** O servidor disparava a geração e devolvia o
+que aconteceu em `geracao`; as três telas que gravam liam `versao`/`ajustou`/`criouVersao` e
+**ignoravam-no** — o comentário da rota dizia «para o gasto ficar à vista», e ficava à vista de quem
+lesse o JSON com `curl`. Passou a haver **um segundo aviso, em atenção**, por cima do «gravado»: que a
+geração partiu (e leva minutos), que **falhou** (e os documentos ficam com a notação antiga), que não
+há ciclo (com o caminho) — e o **silêncio** quando ninguém usa o exercício. A Turma passa a ser
+nomeada pelo nome que se ensina (o disparo levava só a `variante` do pacote), e a resposta passou a
+dizer **`motivo`** (`sem-plano` × `sem-token`) para a frase não adivinhar por palavras o que o código
+sabe. **CONFIRMADO** por `provar-avisos` (37; §F medida **na página**, **10 de 37** reprovavam antes) e
+por `provar-o-estilo-regera` (19; **3 de 19** antes). **Próximo:** o T7 — o calendário. **E a premissa com que eu o abri estava errada** (ver abaixo).
 
 **CORRIGIDO a 19/11/2026 — as datas das aulas existem, e vêm da Sala.** Estava escrito aqui que «não
 há data por aula» e que a regra «o passado não se mexe» não tinha o dado de que precisa. **É falso**, e
@@ -4761,6 +4772,11 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   havia data por aula, e o `ciclos.json` publicado mostra 24 aulas datadas, calculadas do ritmo da
   Sala. O T7 passa a ser «**congelar** a data das aulas que já aconteceram», não «criar a data». Nenhum
   código mudou; a nota está na §3.4 do `ARQUITETURA-GERAL.md`, no T7 do plano e no `REGISTRO.md`.
+
+- **19/11/2026** — **O recado da geração.** As três telas que gravam passaram a mostrar o que a
+  geração fez: partiu (e leva minutos), falhou (e os documentos continuam com a notação antiga), não
+  há ciclo (com o caminho) — ou nada, quando ninguém usa o exercício. O aviso é de atenção, e não de
+  êxito, porque «gravado» está feito e a geração está a caminho.
 
 - **19/11/2026** — **T6: o dicionário regera, condicionado ao uso.** As quatro rotas que escrevem o
   termo chamam a mesma travessia do T5; a condição — «só se um exercício estiver vinculado à turma» —

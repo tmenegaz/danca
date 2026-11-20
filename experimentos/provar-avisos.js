@@ -24,6 +24,10 @@
  *   E. A ESTRUTURA, que não depende do navegador: o contentor está no casco da página (fora do
  *      `.conteudo`, ao lado do véu) e nasce vazio; a peça está declarada na folha; e o caminho de
  *      gravação que recarrega guarda o aviso antes de recarregar (senão ele morria no `reload`).
+ *   F. O RECADO DA GERAÇÃO (19/11/2026): gravar um verbete ou um termo dispara a geração das Turmas
+ *      que usam o exercício, e o canto tem de o dizer — que partiu (e leva minutos), que falhou (e
+ *      os documentos ficam com a notação antiga), que não há ciclo (com o caminho), e o SILÊNCIO
+ *      quando ninguém usa o exercício. Sem isto o trabalho acontecia e o professor não o via.
  *
  * Requer Chrome/Chromium (puppeteer-core do marp-cli global). Sem ele: NÃO MEDIDA.
  *
@@ -256,6 +260,79 @@ function servir(html) {
   await new Promise((r) => setTimeout(r, 8600));
   const depois = await pg.evaluate(() => document.getElementById('avisos').children.length);
   provar('o aviso sai sozinho aos 8 segundos', depois === 0, depois);
+
+  /* ---- F. O RECADO DA GERAÇÃO ---- */
+  /* O DEFEITO QUE ISTO FECHA (19/11/2026). Com o T5 e o T6, gravar um verbete ou um termo passou a
+   * disparar a geração das Turmas que usam o exercício — e o servidor devolve o que aconteceu em
+   * `geracao`. As três telas que gravam liam `versao`/`ajustou`/`criouVersao` e ignoravam
+   * `geracao`: o trabalho acontecia e ninguém o via. Mede-se AQUI, no navegador, porque a pergunta
+   * é o que a pessoa lê no canto — e não o que a resposta traz. */
+  bloco('F. O recado da geração — as três respostas, e o silêncio quando não há nada a refazer');
+
+  const gerados = await pg.evaluate(() => {
+    const pilha = document.getElementById('avisos');
+    const limpar = () => { while (pilha.firstChild) pilha.removeChild(pilha.firstChild); };
+    const correr = (g) => {
+      limpar();
+      /* DEGRADA, NÃO REBENTA — é o que faz o controlo negativo medir em vez de estourar: contra o
+       * `bastidores.js` de antes desta correcção a função não existe, e sem esta guarda o
+       * `pg.evaluate` morria num `ReferenceError` sem dizer quantas asserções falham. */
+      if (typeof avisarDaGeracao === 'function') avisarDaGeracao(g);
+      const el = pilha.firstElementChild;
+      return {
+        quantos: pilha.children.length,
+        tipo: el ? el.getAttribute('data-tipo') : null,
+        texto: el ? el.textContent : '',
+      };
+    };
+    return {
+      partiu: correr({ turmas: ['Rosa'], disparos: [{ turma: 'Rosa', ok: true, variante: 'breu-rosa' }] }),
+      falhou: correr({ turmas: ['Rosa'], disparos: [{ turma: 'Rosa', ok: false, variante: 'breu-rosa' }] }),
+      /* O `motivo` é o que o servidor sabe e o texto não deixava ver: qual dos dois casos foi. A
+       * frase compõe-se dele, e a prova mede a frase — não o contrário. */
+      semCiclo: correr({ turmas: ['Rosa', 'Lilás'], disparos: [], motivo: 'sem-plano' }),
+      semToken: correr({ turmas: ['Rosa'], disparos: [], motivo: 'sem-token' }),
+      ninguem: correr({ turmas: [], disparos: [] }),
+      estourou: correr({ disparos: [], erro: 'sem GITHUB_TOKEN neste Worker' }),
+      ausente: correr(undefined),
+    };
+  });
+
+  provar('quando a geração PARTE, o canto diz que os documentos estão a ser refeitos',
+    gerados.partiu.quantos === 1 && /ser refeitos/.test(gerados.partiu.texto),
+    gerados.partiu);
+  provar('…e nomeia a Turma pelo nome que a pessoa conhece, e não pela variante do pacote',
+    /«Rosa»/.test(gerados.partiu.texto) && !/breu-rosa/.test(gerados.partiu.texto),
+    gerados.partiu.texto);
+  provar('…e avisa que leva minutos — o prazo do aviso não pode prometer o fim da geração',
+    /alguns minutos/.test(gerados.partiu.texto), gerados.partiu.texto);
+  provar('…em ATENÇÃO, e não em êxito: «gravado» está feito, a geração está a caminho',
+    gerados.partiu.tipo === 'atencao', gerados.partiu.tipo);
+
+  provar('quando o disparo FALHA, o canto di-lo — e não deixa o «gravado» sozinho a mentir',
+    gerados.falhou.quantos === 1 && /não partiu/.test(gerados.falhou.texto)
+      && /notação antiga/.test(gerados.falhou.texto), gerados.falhou);
+  provar('…e nomeia a Turma que ficou por gerar', /«Rosa»/.test(gerados.falhou.texto),
+    gerados.falhou.texto);
+
+  provar('quando as Turmas usam o exercício mas não há ciclo, o canto diz o caminho',
+    gerados.semCiclo.quantos === 1 && /plano de ensino/.test(gerados.semCiclo.texto),
+    gerados.semCiclo);
+  provar('…e nomeia as duas Turmas — «Rosa» e «Lilás»',
+    /«Rosa»/.test(gerados.semCiclo.texto) && /«Lilás»/.test(gerados.semCiclo.texto),
+    gerados.semCiclo.texto);
+  provar('…e o caso do token é OUTRO, e diz-se de outra maneira',
+    gerados.semToken.quantos === 1 && /GITHUB_TOKEN/.test(gerados.semToken.texto)
+      && !/plano de ensino/.test(gerados.semToken.texto), gerados.semToken.texto);
+
+  provar('quando NINGUÉM usa o exercício, o canto fica calado — não há documento a refazer',
+    gerados.ninguem.quantos === 0, gerados.ninguem);
+  provar('…e uma resposta sem `geracao` (um Worker de ontem) não parte nada',
+    gerados.ausente.quantos === 0, gerados.ausente);
+
+  provar('quando a travessia ESTOURA, o erro aparece — e não se esconde atrás do «gravado»',
+    gerados.estourou.quantos === 1 && /não partiu/.test(gerados.estourou.texto)
+      && /GITHUB_TOKEN/.test(gerados.estourou.texto), gerados.estourou);
 
   /* ---- A.2 A GEOMETRIA NO TELEMÓVEL ---- */
   bloco('A.2 No telemóvel a pilha atravessa o ecrã e desce para o fundo');
