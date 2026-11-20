@@ -59,11 +59,11 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 | Critério | O que se observa |
 |:--|:--|
-| 1ª posição — pés | sem registo na anamnese |
-| 1ª posição — braços | sem registo na anamnese |
-| Mobilidade de quadril (en dehors de origem) | sem registo na anamnese |
-| Mobilidade de flexão/extensão do tornozelo | sem registo na anamnese |
-| Força excêntrica / recuo na flexão de tronco | sem registo na anamnese |
+| 1ª posição — pés | 2 de 2 em «precisa desenvolver» (por consciência própria) — ponto de atenção |
+| 1ª posição — braços | 2 de 2 em «razoável» (por consciência própria) — ponto de atenção |
+| Mobilidade de quadril (en dehors de origem) | 2 de 2 em «Origem restrita (rotação forçada a partir dos joelhos/tornozelos)» — ponto de atenção |
+| Mobilidade de flexão/extensão do tornozelo | 2 de 2 em «Moderada» — ponto de atenção |
+| Força excêntrica / recuo na flexão de tronco | 2 de 2 em «Retorna enrolando (roll-up)» — ponto de atenção |
 
 > **Sem restrições físicas declaradas** no Plano de Observação.
 
