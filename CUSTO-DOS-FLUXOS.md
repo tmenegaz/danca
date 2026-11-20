@@ -123,10 +123,22 @@ caminho real dos ficheiros.** Ficam registadas porque o erro é instrutivo:
 | `feat(plano)` | `professores/demi-plie/ciclos/ciclo-01-breu-rosa-plano.md` | `Fechar os derivados` |
 | `feat(acervo)` ×2 + `feat(po)` | idem, para o PO | `Fechar os derivados` |
 
-**Seis commits, seis execuções de `Fechar os derivados` — e cinco canceladas.** O `concurrency` do
-workflow mata a anterior quando chega a seguinte, e é isso que segura a factura: **seis commits
-custaram 1 minuto, não seis.** É a alavanca mais eficaz que o sistema já tem, e não foi preciso
-inventá-la — está lá desde 16/11/2026.
+**Seis commits, seis execuções de `Fechar os derivados` — e cinco canceladas.**
+
+> **CORRECÇÃO DE 20/11/2026, e ela desfaz a conclusão que aqui estava.** Este parágrafo dizia que o
+> `concurrency` «funde» o que cai no mesmo minuto, e que «seis commits custaram 1 minuto, não seis».
+> **Medido outra vez, não funde: LANÇA e CANCELA.** Oito commits em 33 segundos produziram **oito
+> execuções**, sete `cancelled` ao fim de 3 a 5 segundos. Se a execução cancelada for faturada — e a
+> documentação do GitHub manda arredondar ao minuto —, o `derivados` custa **8 minutos** onde esta
+> nota dizia 1, e a «alavanca mais eficaz que o sistema já tem» **não existe**: o que reduz o custo é
+> o número de commits, não o `concurrency`.
+>
+> **E não se resolve hoje por medição:** o `timing` do GitHub devolve `billable_ms: 0` em todas as
+> execuções, porque o repositório é **público** e nesse regime nada é facturado. O teste decisivo é
+> um gesto igual a este depois de o repositório voltar a privado, lido na página de facturação.
+> Enquanto isso não acontecer, **os números de `derivados` deste documento têm duas leituras
+> possíveis, com factor 8** — e apresentar uma delas como medida seria exactamente o erro que este
+> documento existe para não cometer. Ver `REGISTRO.md` 20/11/2026.
 
 **E nenhum `Publicar o sistema` nem `Gerar o ciclo` nesse gesto.** Gravar o plano e o PO, na porta,
 **não** publica nem gera: o que fecha o ciclo é a geração, e ela é pedida por outros caminhos.
@@ -288,8 +300,10 @@ de container com o conjunto já instalado), o job cai a ~40 s e factura **1 min*
 O «Concluir elenco» escreve **o ficheiro** e **o índice da escola** em dois commits, e cada um
 dispara o `derivados`. Um commit com os dois arquivos faz o mesmo por 1 minuto.
 
-- **Ganho:** 1 min por conclusão (−22 min/mês no B). E quando os dois commits caem no mesmo minuto, o
-  `concurrency` já os funde — é o que se viu às 00:44, com cinco execuções canceladas.
+- **Ganho:** 1 min por conclusão (−22 min/mês no B). **O `concurrency` NÃO reduz este ganho** — ele
+  cancela a segunda execução, mas cada execução lançada continua a ser uma linha na factura (ver a
+  correcção de 20/11/2026 na §4). Pelo contrário: é esta alavanca que continua a valer, porque o que
+  se poupa é **uma execução a menos**, e não uma execução interrompida.
 - **O que verificar:** que os dois arquivos entram na mesma árvore de commit (§5.3).
 
 ### 7.4 Tirar `biblioteca/modalidades/**` do `publicar` — **−1 min por edição de estilo/dicionário**
@@ -334,7 +348,8 @@ Duas gravações seguidas do mesmo plano disparam duas gerações; a primeira é
   hipotéticas; o §L9f já validou o **modelo** contra a fatura (3,5 % de erro), e o que aqui se
   acrescenta é a **contagem de execuções por gesto**, que era a parte que faltava.
 - **Não é a factura das requisições** — essa está na §7.1 do `ARQUITETURA-GERAL.md`. As duas somam-se:
-  **uma anamnese custa 1 minuto de CI** (dois commits em `escola/**`, fundidos pelo `concurrency`) e
+  **uma anamnese custa 1 a 2 minutos de CI** (dois commits em `escola/**`; o `concurrency` cancela
+  um deles, mas não o apaga da factura — ver a correcção de 20/11/2026) e
   ~6 `PUT`; **uma aula custa 3 minutos** (por confirmar ao vivo) e ~10.
 - **Não inclui KV nem invocações do Worker**: outra factura, e a regra de ouro continua a ser a de
   sempre — **medir na bancada, ir ao ar uma vez por escola.**

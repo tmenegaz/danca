@@ -54976,3 +54976,86 @@ fica escrito em vez de suposto.
 o plano e o PO, e por isso pagou uma geração só. A travessia correcta escreve dois elos (dois
 commits) e gera — a medição do caminho certo fica para o gesto seguinte, e é ela que vale para o
 `CUSTO-DOS-FLUXOS.md`.
+
+## 20/11/2026 — «Derivei outra vez e agora foi» — a cadeia funcionou, e expôs a duração de 70 minutos
+
+**O segundo gesto, e ele é a prova ao vivo da correcção anterior.** Depois do deploy do
+`0bf8217e` (a guarda do ritmo), ela derivou a Sala `Rosa` outra vez: **09:30**, **70 minutos**,
+fim 08/01. Resultado, medido nos commits e nos envelopes:
+
+| etapa | o que aconteceu |
+|:--|:--|
+| Sala | `rosa-2026-11-19-4`, `substitui: …-3` — persistiu |
+| Plano de ensino | **DERIVOU** — `plano-20261119-2350`, `ajuste_de: plano-20261119-2144`, com `[{1,hora},{10,minuto}]` e 12 aulas |
+| Manifesto | **RECOMPOSTO** — `DIAS="1@09:30,3@09:30,5@09:30"` (a hora nova) |
+| Plano de observação | **DERIVOU** — `po-20261119-2350` |
+| Geração | **FALHOU** — mas por outra causa, medida abaixo |
+
+O que no gesto das 02:34 ficou parado nos elos velhos, neste derivou. **A guarda do ritmo funciona
+ao vivo, e não só na bancada.**
+
+**E a geração falhou, e a mensagem é precisa:** `aula-01 não declara 'volume-total:' para o dia de
+10 min (Regra 9)`. O `.conf` foi composto com `DURACAO_POR_DIA="10,60 min por encontro"` e
+`DURACOES="10,60"`.
+
+**A causa são DOIS CAMPOS DIFERENTES COM O MESMO NOME.** `DURACOES`, no `.conf`, é uma lista —
+«curta e longa», e o gerador lê-a em duas partes (`DUR_CURTA=${DURACOES%%,*}`). `contexto-duracao`,
+no PLANO, é **uma** duração escrita em duas parcelas: o conteúdo declara `"campo": "Duração por
+aula"` e `"medida": { "pares": 2, "fixas": ["hora", "minuto"] }`. `minutosDaDuracao` tratava os
+dois como lista, e juntava as parcelas por vírgula. Com 45 (`[{45,minuto}]`) e com 60
+(`[{1,hora}]`) há **uma só** parcela, e o valor saía certo por acidente; com 1 h 10 há duas, e
+`70` virou `10,60` — um dia de 10 minutos, que a Regra 9 não perdoa.
+
+Corrigido: a função **soma por posição**, e a asserção `'lista 60 + 120 → "60,120"'` foi corrigida
+— codificava a leitura errada, e o conteúdo é a autoridade que a desmente.
+
+**O que fica por fazer, e porquê.** O `.conf` em `main` continua com `DURACOES="10,60"` — a
+correcção só vale **quando o `.conf` for recomposto**, e isso acontece quando um plano é escrito
+(`escreverPlano` → `comporManifestoDaTurma`). **E há uma armadilha:** derivar a Sala outra vez com
+os MESMOS valores não serve — a guarda do ritmo encontra tudo em dia, não deriva elo nenhum, e o
+`.conf` fica como está. O caminho é **gravar o plano de ensino**: deriva o elo, recompõe o
+manifesto com `70`, arrasta o PO e dispara a geração.
+
+---
+
+## 20/11/2026 — O custo deste gesto, e uma correcção ao que ficou escrito ontem
+
+**Hoje a fatura é ZERO, e o número que se segue é uma projecção.** O `timing` do GitHub devolve
+`billable_ms: 0` em **todas** as execuções desta noite — inclusive na que demorou 33 segundos. O
+repositório é **público**, e nesse regime os minutos de Actions não são faturados. Tudo abaixo vale
+para o dia em que ele voltar a privado.
+
+**As duas derivações, medidas:**
+
+| | 02:34 (sem a correcção) | 02:50 (com a correcção) |
+|:--|:--|:--|
+| Commits no `main` | 2 | **12** |
+| Execuções | 1 | **12** |
+| `Gerar o ciclo` | 1 (sucesso, 1 m 34 s) | 1 (**falhou**, 1 m 06 s) |
+| Projecto de minutos | **2** | **13** |
+| Do clique aos documentos | 1 m 44 s | — (a geração morreu) |
+
+**E aqui está a correcção, e ela é séria.** O `CUSTO-DOS-FLUXOS.md` diz que o `concurrency` do
+`derivados` «funde o que cai no mesmo minuto — seis commits custaram 1 minuto». **O `concurrency`
+não funde nada: ele LANÇA e CANCELA.** Medido agora: oito commits em 33 segundos produziram **oito
+execuções**, sete `cancelled` ao fim de 3 a 5 segundos. Se uma execução cancelada for faturada — e
+é o que a documentação do GitHub indica, arredondada ao minuto —, o `derivados` custa **8 minutos**
+onde a nota dizia 1, e a alavanca de custo «mais eficaz que já existe» **não existe**.
+
+**O que a API não permite decidir, e fica declarado.** O `timing` devolve `billable_ms: 0` em tudo,
+porque nada é facturado num repositório público — logo não distingue os dois mundos. As duas
+leituras possíveis, e a diferença é de factor 8:
+
+- **se a cancelada é faturada:** 8 min por gesto de derivação, e a alavanca é *reduzir o número de
+  commits*, não o `concurrency`;
+- **se não é:** 1 min, e a nota de ontem está certa.
+
+O teste decisivo é um gesto igual a este **depois de o repositório voltar a privado**, lido na
+página de facturação. Não se resolve por inferência — e foi por inferência que a nota de ontem
+ficou como ficou.
+
+**Uma segunda correcção, e é do meu próprio instrumento.** O monitor contava `cancelled` como
+falha e reportou **«7 falha(s)»** num gesto em que nada falhou: eram sete execuções fundidas pelo
+`concurrency`, que é o sistema a fazer o que se lhe pediu. Corrigido — cancelada e falhada são
+coisas diferentes, e confundi-las faz o relatório dizer que o sistema está quebrado quando ele
+está a funcionar.
