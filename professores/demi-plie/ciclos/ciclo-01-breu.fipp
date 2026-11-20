@@ -10,9 +10,9 @@ type: Ciclo
 professor: Demi Plié
 ciclo: 01
 variante: breu
-hash_conteudo: f05b491ce6e129a27a848bfe61f94c05060e323620c1755f1539a1f6482c14af
+hash_conteudo: 0f720d983f2dd543856bf16df984e522ac14ac9e57c902463ca99b75c3c037c2
 parentHash: 
-hash: 384328c6ec396e05cd6333a25bbe11dccaa692a510e1aedbb91838f137530fb7
+hash: 59b86b60252a81180881414f479fb61f978b1d7a33c6368f91c880224572d9a6
 algoritmo: SHA-256
 po: ausente — este ciclo ainda não tem PO declarado
 po_state: 

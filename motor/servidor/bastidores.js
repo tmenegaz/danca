@@ -1904,11 +1904,24 @@ function montarEstadoDaCadeia(cadeia, contexto, r) {
     ? (travada.turma ? 'Turma «' + travada.turma + '»: ' : '') + String(travada.falta || '')
     : null;
 
+  /* O QUE O GESTO SABE E O CI DIRIA DEPOIS (20/11/2026).
+   *
+   * A cadeia fechou as quatro etapas e respondeu `ok: true` — e o `gerar-ciclo` morreu dois
+   * minutos depois com «sem faixa de volume para 110 min». O professor leu «está em dia» e o
+   * site continuou a mostrar o pacote antigo. A pendência existia (o `comporConf` declara-a) e
+   * não chegava a ninguém.
+   *
+   * Agora ela sobe até aqui, entra no `recado` — que é a frase que se lê — e vai também numa
+   * lista própria, para a tela a poder mostrar com destaque. Um gesto que fecha em falso custa
+   * mais que um gesto que recusa: o primeiro faz esperar por um documento que não vem. */
+  const avisos = Array.isArray(r.avisos) ? r.avisos : [];
+
   return {
     executada: true,
     ok: Boolean(r.ok),
     completa: Boolean(r.completa),
     parouPor,
+    avisos,
     /* O QUE JÁ ESTÁ GRAVADO — a lista que o professor precisa para não refazer o feito. */
     fecharam,
     restam,
@@ -1932,9 +1945,11 @@ function montarEstadoDaCadeia(cadeia, contexto, r) {
      * professor lia o mesmo parágrafo duas vezes, uma delas sem link, e a impressão era de duas
      * avarias. O detalhe pertence à LINHA, que é onde ele se resolve; o recado diz onde a cadeia
      * parou e o que vem a seguir. */
-    recado: recado + (porOrcamento
-      ? ' A geração não cabia neste pedido — ela corre já a seguir, num pedido próprio.'
-      : ''),
+    recado: recado
+      + (avisos.length ? ' Mas há um impedimento declarado: ' + avisos[0] : '')
+      + (porOrcamento
+        ? ' A geração não cabia neste pedido — ela corre já a seguir, num pedido próprio.'
+        : ''),
     erro: r.erro || null,
     log: r.log || null,
   };

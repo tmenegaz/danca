@@ -160,7 +160,8 @@ const curadoria = (extra) => Object.assign({
 }, extra || {});
 
 /** A cadeia, com escritores espiões. As curadorias vivem no KV e são lidas de lá. */
-function montar({ linhas = [elenco()], curadorias = [curadoria()], temPlano = true, temPo = true } = {}) {
+function montar({ linhas = [elenco()], curadorias = [curadoria()], temPlano = true, temPo = true,
+  pendencias = null } = {}) {
   const kv = kvDeMentira({ ['bastidores/' + ESCOLA + '/curadorias']: JSON.stringify(curadorias) });
   const visto = { planos: [], pos: [], conclusoes: [], disparos: [] };
   const arm = criarMemoria();
@@ -171,7 +172,10 @@ function montar({ linhas = [elenco()], curadorias = [curadoria()], temPlano = tr
     conteudoPO: ler('po/conteudo/po.json'),
     esquema: ler('envelope/elicitacao-schema.json'),
     carimbar: () => QUANDO,
-    escreverPlano: async (envelope) => { visto.planos.push(envelope.id); return { ok: true }; },
+    escreverPlano: async (envelope) => {
+      visto.planos.push(envelope.id);
+      return { ok: true, pendencias: pendencias || [] };
+    },
     escreverPO: async () => ({ ok: true }),
     escreverCiclo: async () => ({ ok: true, documentos: [{}] }),
     disparar: async () => { visto.disparos.push(true); return { ok: true }; },
@@ -581,6 +585,42 @@ async function ids(arm, familia) {
       .alunas.length === 1);
     const log = await cadeia.lerLog();
     provar('…e a recusa fica no log', log.length === 1 && log[0].orcamento === true, log);
+  }
+
+  /* ==========================================================================
+   * I. O AVISO QUE NÃO CHEGAVA A NINGUÉM (20/11/2026)
+   *
+   * A Sala `Rosa` passou a 110 minutos. A cadeia derivou o plano, o PO e o `.conf`, o
+   * `comporConf` declarou a pendência certa — «a escola não declara VOLUME_MIN_110 nem
+   * VOLUME_MAX_110 — o gerador recusa a aula de 110 min» — e ela ficou no relatório do
+   * escrevedor. A cadeia respondeu `ok: true`, as quatro etapas disseram «feita», o professor
+   * leu «está em dia», e o `gerar-ciclo` morreu dois minutos depois. O site ficou no pacote
+   * antigo.
+   *
+   * O que se mede: a pendência SOBE ao topo da resposta do gesto, com uma frase que se lê.
+   * ========================================================================== */
+  console.log('\nI. A PENDÊNCIA DO MANIFESTO SOBE AO GESTO');
+
+  {
+    const pendencia = 'a escola não declara VOLUME_MIN_110 nem VOLUME_MAX_110 — o gerador recusa '
+      + 'a aula de 110 min sem a faixa da Regra 9';
+    const { cadeia, arm } = montar({ pendencias: [pendencia] });
+    await semear(arm, { planoGerado: '2026-11-01T10:00', poGerado: '2026-11-01T11:00' });
+    const r = await cadeia.executar({ gatilho: 'mudanca-de-sala', turmas: [TURMA], quando: QUANDO });
+
+    provar('a pendência sobe ao topo da resposta, e não fica no relatório do escrevedor',
+      Array.isArray(r.avisos) && r.avisos.length === 1, r.avisos);
+    provar('…e diz o que vai acontecer, em vez de esperar pelo CI',
+      /vai recusar esta aula/.test(String((r.avisos || [])[0])), (r.avisos || [])[0]);
+    provar('…e nomeia a chave que falta',
+      /VOLUME_MIN_110/.test(String((r.avisos || [])[0] || '')), (r.avisos || [])[0]);
+    /* E O CONTRÁRIO: sem pendência, nenhum aviso é inventado. */
+    const limpo = montar({});
+    await semear(limpo.arm, { planoGerado: '2026-11-01T10:00', poGerado: '2026-11-01T11:00' });
+    const r2 = await limpo.cadeia.executar({
+      gatilho: 'mudanca-de-sala', turmas: [TURMA], quando: QUANDO });
+    provar('CONTROLE NEGATIVO: sem pendência, a resposta não leva aviso nenhum',
+      r2.avisos === undefined, r2.avisos);
   }
 
   console.log('\n' + (falhas === 0

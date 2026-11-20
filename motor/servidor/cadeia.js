@@ -457,7 +457,20 @@ function criarCadeia({
         return { ok: false, erro: 'o plano foi gravado, mas a fonte não: ' + (erro && erro.message) };
       }
     }
-    return { ok: true, id: envelope && envelope.id, de: anterior.id, fonte };
+    /* AS PENDÊNCIAS DO MANIFESTO SOBEM COM O ELO (20/11/2026) — e não morrem aqui.
+     *
+     * O QUE ACONTECEU. A Sala `Rosa` passou a 110 minutos. O `.conf` foi recomposto, o plano e o
+     * PO derivaram, e o `comporConf` escreveu a pendência certa: «a escola não declara
+     * VOLUME_MIN_110 nem VOLUME_MAX_110 — o gerador recusa a aula de 110 min». Ela ficou no
+     * relatório do `escreverPlano` e **não chegou a ninguém**: a cadeia respondeu `ok: true`, as
+     * quatro etapas disseram «feita», e o professor só soube no GitHub Actions, dois minutos
+     * depois, com o site a mostrar o pacote antigo.
+     *
+     * A pendência é do MANIFESTO, e é o único aviso que existe antes de o CI recusar. Subir com o
+     * elo é o que a torna visível no gesto que a criou. */
+    const avisos = (fonte && Array.isArray(fonte.pendencias) ? fonte.pendencias : [])
+      .map((p) => 'a geração vai recusar esta aula: ' + p);
+    return { ok: true, id: envelope && envelope.id, de: anterior.id, fonte, avisos };
   }
 
   /**
@@ -702,6 +715,11 @@ function criarCadeia({
       if (r.ok) {
         marcar('plano-de-ensino', 'feita', { id: r.id, detalhe: 'elo novo: ' + r.de + ' → ' + r.id });
         planoNovo = await porta.lerEnvelope(armazenamento, String(r.id)) || plano;
+        /* O AVISO VIAJA COM O RESULTADO DA TURMA — ver `derivarPlano`. Sem esta linha, a
+         * pendência do manifesto existiria no relatório do escritor e em mais sítio nenhum. */
+        if (Array.isArray(r.avisos) && r.avisos.length) {
+          resultado.avisos = (resultado.avisos || []).concat(r.avisos);
+        }
       } else {
         // A GUARDA DA AUTORIA NÃO É UMA FALHA DE PASSAGEM: é um facto que não se resolve a
         // repetir o gesto. O passo fica BLOQUEADO, e não «pendente» (12/11/2026).
@@ -942,6 +960,12 @@ function criarCadeia({
         const turma = turmasDe(c)[0] || '';
         const elenco = c.linhaDeBase ? (porId.get(String(c.linhaDeBase)) || null) : null;
         const r = await porTurma({ turma, curadoria: c, elenco, quando: agora, motivo });
+        /* OS AVISOS SOBEM AO TOPO (20/11/2026). A tela do gesto lê `cadeia` inteira, e um aviso
+         * enterrado em `alvos[0].avisos` não se vê — foi exactamente o que aconteceu com a faixa
+         * que faltava: `ok: true`, quatro etapas «feita», e o CI a recusar dois minutos depois. */
+        if (Array.isArray(r.avisos) && r.avisos.length) {
+          entrada.avisos = (entrada.avisos || []).concat(r.avisos);
+        }
         entrada.alvos.push({
           curadoria: c.id, turma, ciclo: r.ciclo || null, elenco: c.linhaDeBase || null,
           ok: r.ok, erro: r.erro || null,
