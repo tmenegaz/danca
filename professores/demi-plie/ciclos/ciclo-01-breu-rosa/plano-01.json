@@ -1,7 +1,7 @@
 {
   "contexto": {
     "frequenciaSemanal": "3x semanal — seg e qua e sex",
-    "duracaoPorAula": "2 horas",
+    "duracaoPorAula": "1 hora 30 minutos",
     "calendario": "2026-12-14 → 2027-01-15",
     "numeroTotalDeAulas": "15",
     "professorResponsavel": "demi-plie",
@@ -49,22 +49,22 @@
   "distribuicaoDeVolume": [
     {
       "bloco": "Solo",
-      "proporcaoAlvo": "12",
+      "proporcaoAlvo": "9",
       "justificativa": "Aquecimento e consciência corporal."
     },
     {
       "bloco": "Barra",
-      "proporcaoAlvo": "12",
+      "proporcaoAlvo": "9",
       "justificativa": "Apoio e alinhamento."
     },
     {
       "bloco": "Centro",
-      "proporcaoAlvo": "72",
+      "proporcaoAlvo": "54",
       "justificativa": "Transferência e sequência."
     },
     {
       "bloco": "Musicalidade",
-      "proporcaoAlvo": "24",
+      "proporcaoAlvo": "18",
       "justificativa": "Pulso e frase."
     }
   ],
