@@ -7,8 +7,8 @@
         "recorte:tami"
       ],
       "primeira": "20261117-1709",
-      "ultima": "20261119-2052",
-      "versoes": 6
+      "ultima": "20261120-1626",
+      "versoes": 7
     },
     {
       "aspecto": "cinco-posicoes-1a-bracos",
@@ -17,8 +17,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261119-2052",
-      "versoes": 3
+      "ultima": "20261120-1626",
+      "versoes": 4
     },
     {
       "aspecto": "cinco-posicoes-1a-pes",
@@ -27,8 +27,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261119-2052",
-      "versoes": 3
+      "ultima": "20261120-1626",
+      "versoes": 4
     },
     {
       "aspecto": "forca-excentrica-recuo-na-flexao-de-tronco",
@@ -37,8 +37,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261119-2052",
-      "versoes": 3
+      "ultima": "20261120-1626",
+      "versoes": 4
     },
     {
       "aspecto": "mobilidade-de-flexao-extensao-do-tornozelo",
@@ -47,8 +47,18 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261119-2052",
-      "versoes": 3
+      "ultima": "20261120-1626",
+      "versoes": 4
+    },
+    {
+      "aspecto": "musicalidade-e-pulsacao-ritmica",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261120-1626",
+      "ultima": "20261120-1626",
+      "versoes": 1
     },
     {
       "aspecto": "meia-ponta",
@@ -101,8 +111,8 @@
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md"
         ],
-        "hash": "27c2e1b263e62b04c7272cfc5cb1802ede7f12a8c948d86d6cf2d203cf771fac",
-        "hash_conteudo": "78ee35d48f71b2c331e6fb5e637cdce5f3adfb972aa25d255becfef19274a6d7",
+        "hash": "aada3e6dad2acce55137ea6f53200974734dd566f0fb97df74616529e9dbd02d",
+        "hash_conteudo": "97041f623392378618976334167d88bac744f28e8d980585b742b63bff2abd69",
         "id": "ciclo-01-breu-rosa-aula-01",
         "lida": true,
         "parent_hash": ""
@@ -133,8 +143,8 @@
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
           "professores/demi-plie/ciclos/ciclo-01.conf"
         ],
-        "hash": "af93aee48f262f86ec80ee9b3a5209243bdbf5c7907d4a77f6d1dd78cd164e75",
-        "hash_conteudo": "3280873114f409cb3ff864542927d41e6c3252771d48f55959f5de5be3adebf2",
+        "hash": "5351a0f5365e980e33e04ac104c2270120fa92201f8a7079db81694f689cab31",
+        "hash_conteudo": "3f493b72cdcb4cd6c3d7f264cb3d087cdc195d782cc2ab244c913c9bad55a579",
         "id": "ciclo-01-breu-rosa",
         "lida": true,
         "parent_hash": ""
@@ -149,8 +159,8 @@
               "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
               "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md"
             ],
-            "hash": "27c2e1b263e62b04c7272cfc5cb1802ede7f12a8c948d86d6cf2d203cf771fac",
-            "hash_conteudo": "78ee35d48f71b2c331e6fb5e637cdce5f3adfb972aa25d255becfef19274a6d7",
+            "hash": "aada3e6dad2acce55137ea6f53200974734dd566f0fb97df74616529e9dbd02d",
+            "hash_conteudo": "97041f623392378618976334167d88bac744f28e8d980585b742b63bff2abd69",
             "id": "ciclo-01-breu-rosa-aula-01",
             "lida": true,
             "parent_hash": ""
@@ -387,10 +397,10 @@
       "aulas": 1,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
-      "planos": 15,
-      "pos": 15,
+      "planos": 16,
+      "pos": 16,
       "recortes": 1,
-      "registros": 34
+      "registros": 36
     },
     "criada_em": "2026-11-17T00:41:45.598067+00:00",
     "expurgada": false,
@@ -424,6 +434,7 @@
       "plano:plano-20261120-1245",
       "plano:plano-20261120-1251",
       "plano:plano-20261120-1310",
+      "plano:plano-20261120-1326",
       "po:po-20261119-1233",
       "po:po-20261119-2144",
       "po:po-20261119-2350",
@@ -438,14 +449,15 @@
       "po:po-20261120-1234",
       "po:po-20261120-1245",
       "po:po-20261120-1251",
-      "po:po-20261120-1310"
+      "po:po-20261120-1310",
+      "po:po-20261120-1326"
     ],
     "slug": "breu"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 34,
+        "contagem": 36,
         "ids": [
           "anamnese:anamnese-20261116-2201",
           "anamnese:anamnese-20261117-1407",
@@ -466,6 +478,7 @@
           "plano:plano-20261120-1245",
           "plano:plano-20261120-1251",
           "plano:plano-20261120-1310",
+          "plano:plano-20261120-1326",
           "po:po-20261119-1233",
           "po:po-20261119-2144",
           "po:po-20261119-2350",
@@ -480,7 +493,8 @@
           "po:po-20261120-1234",
           "po:po-20261120-1245",
           "po:po-20261120-1251",
-          "po:po-20261120-1310"
+          "po:po-20261120-1310",
+          "po:po-20261120-1326"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -526,6 +540,14 @@
         ],
         "rotulo": "mobilidade-de-quadril-en-dehors-de-origem",
         "valor": "mobilidade-de-quadril-en-dehors-de-origem"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "musicalidade-e-pulsacao-ritmica",
+        "valor": "musicalidade-e-pulsacao-ritmica"
       }
     ],
     "estados": [
@@ -548,7 +570,7 @@
         "valor": "bom-bom"
       },
       {
-        "contagem": 34,
+        "contagem": 36,
         "ids": [
           "anamnese:anamnese-20261116-2201",
           "anamnese:anamnese-20261117-1407",
@@ -569,6 +591,7 @@
           "plano:plano-20261120-1245",
           "plano:plano-20261120-1251",
           "plano:plano-20261120-1310",
+          "plano:plano-20261120-1326",
           "po:po-20261119-1233",
           "po:po-20261119-2144",
           "po:po-20261119-2350",
@@ -583,7 +606,8 @@
           "po:po-20261120-1234",
           "po:po-20261120-1245",
           "po:po-20261120-1251",
-          "po:po-20261120-1310"
+          "po:po-20261120-1310",
+          "po:po-20261120-1326"
         ],
         "rotulo": "demi-plie",
         "valor": "demi-plie"
@@ -610,7 +634,7 @@
         "valor": "ciclo"
       },
       {
-        "contagem": 15,
+        "contagem": 16,
         "ids": [
           "plano:plano-20261119-1143",
           "plano:plano-20261119-2144",
@@ -626,13 +650,14 @@
           "plano:plano-20261120-1233",
           "plano:plano-20261120-1245",
           "plano:plano-20261120-1251",
-          "plano:plano-20261120-1310"
+          "plano:plano-20261120-1310",
+          "plano:plano-20261120-1326"
         ],
         "rotulo": "Plano de ensino",
         "valor": "plano"
       },
       {
-        "contagem": 15,
+        "contagem": 16,
         "ids": [
           "po:po-20261119-1233",
           "po:po-20261119-2144",
@@ -648,7 +673,8 @@
           "po:po-20261120-1234",
           "po:po-20261120-1245",
           "po:po-20261120-1251",
-          "po:po-20261120-1310"
+          "po:po-20261120-1310",
+          "po:po-20261120-1326"
         ],
         "rotulo": "Plano de observação",
         "valor": "po"
@@ -657,9 +683,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "f899fce"
+    "commit": "da88774"
   },
-  "gerado_em": "2026-11-20T16:12",
+  "gerado_em": "2026-11-20T16:27",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -748,16 +774,31 @@
         "cinco-posicoes-1a-pes",
         "forca-excentrica-recuo-na-flexao-de-tronco",
         "mobilidade-de-flexao-extensao-do-tornozelo",
-        "mobilidade-de-quadril-en-dehors-de-origem"
+        "mobilidade-de-quadril-en-dehors-de-origem",
+        "musicalidade-e-pulsacao-ritmica"
       ],
-      "atualizada_em": "2026-11-19T20:52:22.697Z",
-      "enviada_em": "2026-11-19T20:52:23.177Z",
+      "atualizada_em": "2026-11-20T16:26:43.727Z",
+      "enviada_em": "2026-11-20T16:26:44.154Z",
       "id": "recorte:tami",
       "linha": "tami",
       "nome": "Tami",
-      "professor": "demi-plie",
+      "professor": null,
       "turma": null,
       "versoes": [
+        {
+          "alunas": 1,
+          "arquivo": "escola/breu/linhas-de-base/tami--20261120-1626.json",
+          "aspectos": [
+            "cinco-posicoes-1a-pes",
+            "cinco-posicoes-1a-bracos",
+            "mobilidade-de-quadril-en-dehors-de-origem",
+            "mobilidade-de-flexao-extensao-do-tornozelo",
+            "musicalidade-e-pulsacao-ritmica",
+            "forca-excentrica-recuo-na-flexao-de-tronco"
+          ],
+          "enviada_em": "2026-11-20T16:26:44.154Z",
+          "versao": "20261120-1626"
+        },
         {
           "alunas": 1,
           "arquivo": "escola/breu/linhas-de-base/tami--20261119-2052.json",
@@ -1090,6 +1131,18 @@
       "turma": "Rosa"
     },
     {
+      "ajuste_de": "plano-20261120-1310",
+      "ano": "2026",
+      "carimbo": "plano-20261120-1326",
+      "ciclo": "01",
+      "data": "2026-11-20T13:26",
+      "id": "plano:plano-20261120-1326",
+      "objetivo": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
+      "professor": "demi-plie",
+      "tipo": "plano",
+      "turma": "Rosa"
+    },
+    {
       "ajuste_de": null,
       "ano": "2026",
       "carimbo": "po-20261119-1233",
@@ -1236,6 +1289,16 @@
       "ciclo": "01",
       "data": "2026-11-20T13:10",
       "id": "po:po-20261120-1310",
+      "professor": "demi-plie",
+      "tipo": "po"
+    },
+    {
+      "ajuste_de": "po-20261120-1310",
+      "ano": "2026",
+      "carimbo": "po-20261120-1326",
+      "ciclo": "01",
+      "data": "2026-11-20T13:26",
+      "id": "po:po-20261120-1326",
       "professor": "demi-plie",
       "tipo": "po"
     }
