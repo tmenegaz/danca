@@ -17,8 +17,8 @@
     },
     "criada_em": "2026-11-16T00:03:52.732057+00:00",
     "expurgada": true,
-    "expurgada_em": "2026-11-16T00:28:42.857Z",
-    "expurgos": 14,
+    "expurgada_em": "2026-11-20T11:54:26.915Z",
+    "expurgos": 15,
     "habilitada": false,
     "id": "escola:batata",
     "nome": "batata",
@@ -53,9 +53,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "99da414"
+    "commit": "1c391da"
   },
-  "gerado_em": "2026-11-20T14:47",
+  "gerado_em": "2026-11-20T15:11",
   "nao_indexado": [
     {
       "familia": "conteudo",
