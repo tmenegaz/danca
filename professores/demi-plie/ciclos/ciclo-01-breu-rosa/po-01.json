@@ -1,5 +1,5 @@
 {
-  "planoDeEnsino": "plano-20261120-1817",
+  "planoDeEnsino": "plano-20261120-1846",
   "horizonte": "Ao fim do ano, a turma do Nível 1 deve sustentar o en dehors a partir do quadril e responder ao pulso sem contar a música em voz alta.",
   "question": "O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?",
   "phenomenon": [
@@ -27,7 +27,7 @@
     {
       "eixo": "Corpo",
       "dimensao": "Estrutura Óssea e Alinhamento Global (Membros Inferiores)",
-      "itens": "Mobilidade de quadril (en dehors de origem)"
+      "itens": "Formato anatômico dos joelhos; Mobilidade de quadril (en dehors de origem)"
     },
     {
       "eixo": "Corpo",
@@ -92,7 +92,7 @@
     },
     {
       "grupo": "Estrutura Óssea e Alinhamento Global (Membros Inferiores)",
-      "aspectosObservados": "Mobilidade de quadril (en dehors de origem)"
+      "aspectosObservados": "Formato anatômico dos joelhos; Mobilidade de quadril (en dehors de origem)"
     },
     {
       "grupo": "Morfologia e Funcionalidade dos Pés e Tornozelos",
@@ -117,7 +117,7 @@
   "inclusionCriteria": [
     "as cinco posições: uma visão geral: 1ª posição — pés; 1ª posição — braços",
     "Os elementos basilares: o passé",
-    "Estrutura Óssea e Alinhamento Global (Membros Inferiores): Mobilidade de quadril (en dehors de origem)",
+    "Estrutura Óssea e Alinhamento Global (Membros Inferiores): Formato anatômico dos joelhos; Mobilidade de quadril (en dehors de origem)",
     "Morfologia e Funcionalidade dos Pés e Tornozelos: Mobilidade de flexão/extensão do tornozelo",
     "Aptidões Coordenadas e Cognitivo-Musicais: Musicalidade e pulsação rítmica",
     "Força Ativa, Potência e Controle Dinâmico: Força excêntrica / recuo na flexão de tronco",
