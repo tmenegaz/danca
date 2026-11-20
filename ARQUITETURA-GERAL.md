@@ -3059,7 +3059,11 @@ cada «Guardar», e é o número que decide se a decisão se sustenta.
 > workflow, que passam a ser cobrados quando o repositório for privado. A conta completa, com os
 > minutos medidos por execução e por gesto, está no [`CUSTO-DOS-FLUXOS.md`](CUSTO-DOS-FLUXOS.md).
 > O resumo que basta para não confundir as duas: **uma anamnese custa 0 minutos de CI e ~6 `PUT`**;
-> **gerar um ciclo custa 2 minutos de CI e nenhum `PUT`**.
+> **gerar um ciclo custa 2 minutos de CI e nenhum `PUT`**; e **uma aula lançada custa 3 minutos de CI**
+> (o commit que fecha os derivados mais a geração que o lançamento pede). A auditoria que fixou a
+> unidade comercial — o §L9f do `PLANEJAMENTO-LASTRO.md` — contava **1** minuto para a aula; a
+> correcção está datada no `CUSTO-DOS-FLUXOS.md` §1, e é ela que reduz a capacidade de 1 478 para 492
+> aulas/mês.
 
 **O que isso quer dizer, em escolas.** A 7 pontos por edição, 500 `PUT`/h dão para ~**70 edições
 por hora** — mais do que um professor faz num mês, e muito mais do que a segunda-feira de uma

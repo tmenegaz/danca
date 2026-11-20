@@ -54763,65 +54763,55 @@ a chamarem o aviso, lido no fonte); **controlo negativo: 3 de 19** antes desta c
 `provar-os-fluxos-da-derivacao` 65, `provar-gravar-e-gravar` 49, `provar-dicionario` 123,
 `check-identidade` ok.
 
-### 19/11/2026 — O recálculo do custo: as duas facturas, e o job que gasta 67 % a instalar TeX
+### 19/11/2026 — O recálculo do custo: a auditoria do §L9f, corrigida num ponto, e o job que gasta 67 % a instalar TeX
 
 > «Agora que nós desenhamos todos esses fluxos, isso impacta diretamente no nosso custo. […] Quando
 > virar o mês, eu vou voltar para o GitHub privado. E aí vai voltar a contar os minutos de cada vez
 > que a gente tem um processo no CI/CD.»
 
-**O que faltava.** A §7.1 do `ARQUITETURA-GERAL.md` conta uma factura só — as **requisições** (PUT/GET
-ao GitHub), que é o custo de *escrever*. Há uma segunda, que nunca foi calculada: os **minutos de
-CI/CD**, que o repositório público não cobra e que o privado passa a cobrar. O novo
-[`CUSTO-DOS-FLUXOS.md`](CUSTO-DOS-FLUXOS.md) é essa conta.
+**O que já existia, e que eu quase dupliquei.** O §L9f do `PLANEJAMENTO-LASTRO.md` (17/11/2026) já
+tinha feito esta auditoria: o modelo `jobs × ⌈s/60⌉` **conferido contra a fatura real com 3,5 % de
+erro**, as constantes por workflow, a projecção (1 332 min/mês = 67 % da cota) e a capacidade
+(1 478 aulas/mês). A primeira versão do documento que escrevi hoje re-deduzia tudo isso de zero, com
+outros números e sem citar o §L9f. **Foi refeita**: o `CUSTO-DOS-FLUXOS.md` parte da auditoria e
+acrescenta só o que faltava.
 
-**O método, e o que ele não é.** Mediram-se, contra a API, a duração de cada job nos últimos 100
-runs, **os passos de cada job**, e **que commits disparam que workflow** (cruzando os `paths:` com os
-ficheiros de cada commit). **Não** se mediu o consumo real: a conta está num repositório público, a
-API de billing responde `{"billable":{}}`, e o `/timing` de cada workflow vem vazio. O que se mede é o
-**tempo**; o preço é a multiplicação — `$0,006/min` no runner Linux, com **$12 de compute incluído no
-Free** (2 000 min) e **$18 no Pro/Team** (3 000 min).
+**A correcção, e é de factor 3.** O §L9f mede a linha «lançar uma aula» como **1 minuto** (uma
+execução, `Fechar os derivados`, 14 s). Mas o `POST /api/receber` tem um `depois` que **pede a
+geração** desde 06/11/2026 — o §L9f mediu **um dos dois fluxos** do gesto. Medido por execução
+(`provar-o-custo-da-aula`, 12 asserções): um lançamento pede a geração **uma vez**, com o contexto do
+acto; sem disparador nenhum disparo é contado, e sem a porta do lançamento nada é disparado (os dois
+contra-factuais que provam que é ali que ele nasce).
 
-**As constantes, medidas:** um job por execução, e facturação arredondada ao minuto. `Gerar o ciclo`
-**2 min** (job de 74–135 s, mediana 111 s); `Fechar os derivados` **1 min**; `Publicar o sistema`
-**1 min**; `Criar a escola` **1 min**.
+**Uma aula custa 3 minutos, não 1** — 1 do `derivados` + 2 do `Gerar o ciclo`. Pela fórmula do
+próprio §L9f, a capacidade da cota gratuita cai de **1 478 para 492 aulas/mês**, e a franquia do
+Avançado (**800 aulas**) **deixa de caber sozinha**. O que isso não põe em causa é a margem: R$ 0,033
+de minuto contra R$ 0,175–0,699 de receita continua a dar 81–95 %. O que muda é a capacidade — e
+portanto o gatilho de migração, que o §L9f já definiu como sendo de **disponibilidade** e não de preço.
 
-**O achado que vale mais do que todas as alavancas juntas.** Dos 117 s do job de gerar, **78 s são o
-`preparar-tex`** (pandoc, TeX, pdfinfo, dos `.deb` em cache), 14–21 s o `preparar-node`, e **5 s** a
-geração do pacote. **O trabalho pelo qual se paga são 5 segundos; os outros 112 são preparar a máquina
-que o faz**, e ela é descartada no fim. E o número que manda não é a média: é o **arredondamento** —
-61 s custam o mesmo que 120 s. O job está a **111 s, a nove segundos da fronteira**: baixar a 60 s
-factura **1 minuto em vez de 2**, e corta **metade dos 73 %** que a geração pesa na factura.
+**O achado que vale mais do que as alavancas.** Dos 117 s do job de gerar: **78 s são o
+`preparar-tex`**, 14–21 s o `preparar-node`, e **5 s** a geração do pacote. O trabalho pelo qual se
+paga são 5 segundos; os outros 112 preparam a máquina que o faz, e ela é descartada no fim. E o que
+manda é o arredondamento, não a média: 61 s custam o mesmo que 120 s. O job está a **111 s — a nove
+segundos da fronteira**, e baixar a 60 s factura 1 min em vez de 2.
 
-**A matriz por gesto**, medida nas escritas de cada um e publicada no documento. Os três resultados
-que mudam a conversa:
+**A matriz por gesto**, agora com a origem de cada número (paths, código ou log de runs): anamnese
+**0 min**; criar Sala/professor/aluna **0**; **T2, T3 e T4 — os três fluxos que ela mandou desenhar —
+0**, porque bloqueiam e uma etapa bloqueada não chega à geração; lançar aula **3**; plano/PO **4**;
+elenco **4**; verbete em uso **3**; termo **1 livre · 3 em uso**.
 
-| o gesto | min de CI |
-|:--|--:|
-| criar/editar a anamnese | **0** |
-| criar Sala, professor, aluna | **0** |
-| **T2** (mudar o professor), **T3** (modalidade), **T4** (conteúdos) | **0** |
-| lançar uma aula | 2 |
-| gravar plano ou PO | 4 |
-| concluir o elenco (1 Turma) | 4 |
-| editar um verbete em uso (T5) | 3 |
-| editar um termo (T6) | 1 livre · 3 em uso |
+**Os cenários, refeitos com a aula a 3 min:** escola pequena **72 min/mês** (US$ 0,43 — 3,6 % da
+cota); escola em produção com 5 professoras **1 430 min/mês** (US$ 8,58 — **71,5 % da cota Free**);
+stress de três escolas com 40 gestos/dia **11 250 min/mês** (US$ 67,50, ou US$ 49,50 de excedente no
+Pro). **E uma única escola em stress (3 750 min/mês) já estoura o Free e a Pro** — o stress não é um
+cenário de 40 escolas.
 
-**Os três fluxos que ela mandou desenhar (T2, T3, T4) são os mais baratos de todos — zero.** O que
-eles fazem é **parar** e dizer; uma etapa `bloqueada` não chega à geração. O que custa é o T5, e o
-custo dele é o preço de o documento deixar de mentir.
-
-**Os três cenários.** Escola pequena, uso corrente: **60 min/mês** ($0,36) — ruído. Escola em produção
-com 5 professoras: **1 210 min/mês** ($7,26), que é **60 % da cota Free** — uma escola grande sozinha
-come mais de metade do que o plano inclui. Stress, três escolas com 40 gestos/dia: **10 800 min/mês**
-($64,80, ou **$46,80 de excedente** no Pro). **E o número que importa não é o total: uma única escola
-em stress (3 600 min/mês) já estoura o Free e passa o Pro.**
-
-**As cinco alavancas, com o ganho calculado e uma verificação obrigatória cada.** (1) tirar o TeX do
-caminho crítico — até **−36 %** no total (B: 1 210 → ~770 min; C: $64,80 → ~$41); (2) um commit em vez
-de dois no elenco — −1 min por conclusão; (3) tirar `biblioteca/modalidades/**` do `publicar`, **só
-depois de medir** se algum Worker lê aquilo em runtime; (4) uma geração por lote em vez de uma por
-Turma; (5) `concurrency` por variante. Nenhuma foi aplicada: **a ordem é dela**, e a única que exige
-uma medição antes é a terceira.
+**Seis alavancas, com ganho calculado e uma verificação obrigatória cada.** A maior é nova e é de
+desenho, não de infra: **agrupar as gerações dos lançamentos** — dez aulas seguidas disparam dez
+gerações, e um agrupamento pouparia 9 de cada 10 (**−352 min/mês** no cenário B, −25 %). Depois, tirar
+o TeX do caminho crítico (até −18 %); um commit em vez de dois no elenco; `biblioteca/modalidades/**`
+fora do `publicar` (**só depois de medir** se algum Worker lê aquilo em runtime); uma geração por lote
+em vez de uma por Turma; e `concurrency` por variante. **Nenhuma foi aplicada: a ordem é dela.**
 
 **O que este documento não é**, e está escrito lá: não é ensaio de carga, não é a factura das
 requisições (as duas somam-se), e não inclui KV nem invocações do Worker.

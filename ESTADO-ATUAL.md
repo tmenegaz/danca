@@ -4774,15 +4774,17 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   Sala. O T7 passa a ser «**congelar** a data das aulas que já aconteceram», não «criar a data». Nenhum
   código mudou; a nota está na §3.4 do `ARQUITETURA-GERAL.md`, no T7 do plano e no `REGISTRO.md`.
 
-- **19/11/2026** — **O recálculo do custo dos fluxos.** Criado o `CUSTO-DOS-FLUXOS.md`: a segunda
-  factura, que nunca tinha sido calculada — os **minutos de CI/CD**, que o repositório público não
-  cobra e o privado passa a cobrar ($12 de compute no Free, $18 no Pro; $0,006/min no Linux). Medidos
-  por job: `Gerar o ciclo` **2 min**, `derivados` 1, `publicar` 1, `criar-escola` 1, e **um job por
-  execução**. O achado: **78 dos 117 s do job de gerar são o `preparar-tex`**, e a geração são 5 s —
-  o job está a nove segundos da fronteira dos 2 minutos. Por gesto: anamnese **0 min**, T2/T3/T4
-  **0 min** (bloqueiam), lançar aula 2, plano/PO 4, elenco 4, verbete em uso 3. Cenários: 60 min/mês
-  (escola pequena) · 1 210 (escola a sério, 60 % do Free) · 10 800 (stress de três escolas, $64,80).
-  Cinco alavancas com ganho calculado; **nenhuma aplicada** — a ordem é dela.
+- **19/11/2026** — **O recálculo do custo dos fluxos, sobre a auditoria do §L9f.** O
+  `CUSTO-DOS-FLUXOS.md` parte da auditoria de 17/11/2026 (modelo conferido contra a fatura com 3,5% de
+  erro) e acrescenta o que faltava: os fluxos novos e a **contagem de execuções por gesto**. E
+  corrige-a num ponto, de factor 3: **uma aula custa 3 minutos, e não 1** — o lançamento pede a
+  geração (`provar-o-custo-da-aula`, 12 asserções), o que baixa a capacidade de **1 478 para 492
+  aulas/mês** e faz a franquia do Avançado (800) deixar de caber sozinha. Constantes medidas: `Gerar o
+  ciclo` 2 min, `derivados` 1, `publicar` 1, `criar-escola` 1 — e **78 dos 117 s do job de gerar são
+  o `preparar-tex`**, para 5 s de geração real. Por gesto: anamnese 0, T2/T3/T4 0 (bloqueiam), aula
+  3, plano/PO 4, elenco 4, verbete em uso 3. Cenários: 72 min/mês (escola pequena) · 1 430 (escola a
+  sério, 71,5% do Free) · 11 250 (stress de três escolas). Seis alavancas com ganho calculado;
+  **nenhuma aplicada** — a ordem é dela.
 
 - **19/11/2026** — **O recado da geração.** As três telas que gravam passaram a mostrar o que a
   geração fez: partiu (e leva minutos), falhou (e os documentos continuam com a notação antiga), não

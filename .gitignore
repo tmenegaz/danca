@@ -1688,3 +1688,7 @@ experimentos/modelo-formulario/*
 # automaticamente»: que Turmas usam o exercício (pela composição, em nomes), uma geração por Turma
 # com plano e nenhuma sem alvo, e um disparo falhado que não desfaz a gravação.
 !experimentos/provar-o-estilo-regera.js
+
+# O CUSTO DE UMA AULA (19/11/2026). Décima primeira vez. Mede quantos disparos um lançamento provoca —
+# a linha que a auditoria do §L9f media por um lado só, e que muda a capacidade por um factor de 3.
+!experimentos/provar-o-custo-da-aula.js
