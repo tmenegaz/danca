@@ -7,14 +7,14 @@ responsavel: demi-plie
 professor: demi-plie
 title: "Plano de Observação do Ciclo 01 — breu"
 state: Input_PO_Validado
-envelope: po-20261120-1818
+envelope: po-20261120-1846
 ---
 
 **Fenómeno.** A rotação externa visível na 1ª posição e no en dehors: o joelho acompanha o pé sem forçar, e o quadril não sobe quando a perna roda.
 
 ## Plano de ensino
 
-plano-20261120-1817
+plano-20261120-1846
 
 ## Horizonte
 
@@ -49,7 +49,7 @@ Calendário: 2026-12-14 → 2027-01-15 · Volume de trabalho: 3–6 séries · C
 |:--|:--|:--|
 | Corpo | **as cinco posições: uma visão geral** | 1ª posição — pés; 1ª posição — braços |
 | Corpo | **Os elementos basilares** | o passé |
-| Corpo | **Estrutura Óssea e Alinhamento Global (Membros Inferiores)** | Mobilidade de quadril (en dehors de origem) |
+| Corpo | **Estrutura Óssea e Alinhamento Global (Membros Inferiores)** | Formato anatômico dos joelhos; Mobilidade de quadril (en dehors de origem) |
 | Corpo | **Morfologia e Funcionalidade dos Pés e Tornozelos** | Mobilidade de flexão/extensão do tornozelo |
 | Corpo | **Aptidões Coordenadas e Cognitivo-Musicais** | Musicalidade e pulsação rítmica |
 | Corpo | **Força Ativa, Potência e Controle Dinâmico** | Força excêntrica / recuo na flexão de tronco |
@@ -79,7 +79,7 @@ Metodologia de referência: RAD · Notação de dança: Código de dança
 |:--|:--|
 | **as cinco posições: uma visão geral** | 1ª posição — pés; 1ª posição — braços |
 | **Os elementos basilares** | o passé |
-| **Estrutura Óssea e Alinhamento Global (Membros Inferiores)** | Mobilidade de quadril (en dehors de origem) |
+| **Estrutura Óssea e Alinhamento Global (Membros Inferiores)** | Formato anatômico dos joelhos; Mobilidade de quadril (en dehors de origem) |
 | **Morfologia e Funcionalidade dos Pés e Tornozelos** | Mobilidade de flexão/extensão do tornozelo |
 | **Aptidões Coordenadas e Cognitivo-Musicais** | Musicalidade e pulsação rítmica |
 | **Força Ativa, Potência e Controle Dinâmico** | Força excêntrica / recuo na flexão de tronco |
@@ -93,7 +93,7 @@ Metodologia de referência: RAD · Notação de dança: Código de dança
 
 - as cinco posições: uma visão geral: 1ª posição — pés; 1ª posição — braços
 - Os elementos basilares: o passé
-- Estrutura Óssea e Alinhamento Global (Membros Inferiores): Mobilidade de quadril (en dehors de origem)
+- Estrutura Óssea e Alinhamento Global (Membros Inferiores): Formato anatômico dos joelhos; Mobilidade de quadril (en dehors de origem)
 - Morfologia e Funcionalidade dos Pés e Tornozelos: Mobilidade de flexão/extensão do tornozelo
 - Aptidões Coordenadas e Cognitivo-Musicais: Musicalidade e pulsação rítmica
 - Força Ativa, Potência e Controle Dinâmico: Força excêntrica / recuo na flexão de tronco
