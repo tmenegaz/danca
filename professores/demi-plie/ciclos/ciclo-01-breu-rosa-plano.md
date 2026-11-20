@@ -84,6 +84,7 @@ Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turm
 - Razoável
 - Em desenvovimento
 - Não se aplica
+- Erros
 
 > **A régua da turma — e só ela.** Os níveis, como a escola os escreve, na ordem da escala
 > — o primeiro é o mais baixo. É com ela que o LANÇAMENTO da aula mede cada critério: o
