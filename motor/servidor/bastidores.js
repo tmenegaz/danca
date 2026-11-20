@@ -6826,6 +6826,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
    * cliente — escrita duas vezes, a segunda diria outra coisa no primeiro ajuste. */
   const temElencoGravado = elencosParaMover.length > 0;
   const FRASE_DA_ABA_SEM_ELENCO = 'Abre quando existir um elenco gravado.';
+  /* AS ABAS 2 E 3 FECHAM ENQUANTO HÁ UM ELENCO EM COMPOSIÇÃO (20/11/2026).
+   *
+   * «Se eu não pedir para esconder o recorte e a transferência quando eu estiver derivando ou
+   * editando, pode esconder, pode bloquear, viu? Esconder não, bloquear, né? Pode deixar
+   * inabilitado.»
+   *
+   * A RAZÃO É A MESMA DAS ABAS DO PROFESSOR, e é de desenho: a aba 1 é o acto de compor UM elenco,
+   * a 2 é a leitura de TODOS os recortes da escola, e a 3 move uma aluna de um elenco para outro. Com
+   * uma composição a meio, a 2 lê um acervo que não inclui o que se está a compor, e a 3 move corpos
+   * que o formulário aberto ainda está a decidir — metade do trabalho numa aba e metade na outra, que
+   * é exactamente o que a regra do professor evita.
+   *
+   * A FRASE DIZ QUAL DOS DOIS ESTADOS É (é por isso que o `pintar` passou a aceitar função): «não há
+   * elenco nenhum» e «há um elenco a meio» pedem coisas diferentes de quem lê. */
+  const FRASE_DA_ABA_COM_ELENCO_EM_PROCESSO =
+    'Termine ou cancele o elenco em composição para abrir esta aba.';
   /* AS ABAS QUE NÃO SE ABREM ENQUANTO HÁ UM PROFESSOR EM COMPOSIÇÃO (19/11/2026).
    *
    * «Enquanto eu faço o cadastro e navego pelos steps, cadastro e rubrica, até que eu conclua isso,
@@ -10152,6 +10168,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * professor ficaria com abas que só respondem depois de recarregar a página. */
     'var ELENCOS_GRAVADOS = ' + (temElencoGravado ? 1 : 0) + ';' +
     'var FRASE_DA_ABA_SEM_ELENCO = ' + JSON.stringify(FRASE_DA_ABA_SEM_ELENCO) + ';' +
+    'var FRASE_DA_ABA_COM_ELENCO_EM_PROCESSO = ' +
+      JSON.stringify(FRASE_DA_ABA_COM_ELENCO_EM_PROCESSO) + ';' +
     'var FRASE_DA_ABA_COM_CADASTRO_ABERTO = ' + JSON.stringify(FRASE_DA_ABA_COM_CADASTRO_ABERTO) + ';' +
     'var FRASE_DO_EXCLUIR_TRAVADO = ' + JSON.stringify(FRASE_DO_EXCLUIR_TRAVADO) + ';' +
     /* AS DUAS FRASES DO ELENCO VAZIO — do núcleo, como MODELO (12/11/2026). O `%ELENCO%` e o
@@ -12567,19 +12585,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * `aria-disabled` acompanha o `disabled` porque o atributo sozinho não diz ao leitor de ecrã
      * QUE ela existe; os dois juntos dizem-no. */
     '  function pintar() {' +
+    /* A RAZÃO PODE DEPENDER DA ABA (20/11/2026). Era uma frase só, e passou a haver duas na
+     * Audição: «não há elenco nenhum» e «há um elenco em composição». São estados diferentes, e
+     * uma frase só mandaria procurar o defeito no sítio errado em metade dos casos. Quem não
+     * declara função continua a passar uma string, e não vê diferença nenhuma. */
+    '    var razaoDe = function(k){' +
+    '      return typeof cfg.fraseSem === "function" ? cfg.fraseSem(k) : cfg.fraseSem;' +
+    '    };' +
     '    nomes.forEach(function(k){' +
     '      var ok = pode(k);' +
     '      var b = porId(cfg.prefixoAba, k);' +
     '      if (b) {' +
     '        b.disabled = !ok;' +
     '        b.setAttribute("aria-disabled", ok ? "false" : "true");' +
-    '        if (ok) b.removeAttribute("title"); else b.setAttribute("title", cfg.fraseSem);' +
+    '        if (ok) b.removeAttribute("title"); else b.setAttribute("title", razaoDe(k));' +
     '      }' +
     '      var item = document.querySelector("#" + cfg.menu + " [data-aba=\\\"" + k + "\\\"]");' +
     '      if (item) {' +
     '        item.disabled = !ok;' +
     '        item.setAttribute("aria-disabled", ok ? "false" : "true");' +
-    '        if (ok) item.removeAttribute("title"); else item.setAttribute("title", cfg.fraseSem);' +
+    '        if (ok) item.removeAttribute("title"); else item.setAttribute("title", razaoDe(k));' +
     '      }' +
     '    });' +
     /* A ABA ABERTA QUE PERDE O DIREITO FECHA-SE. Na Audição acontece num caminho só — apagar o
@@ -12621,12 +12646,36 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * `disabled` do HTML é o que a pessoa vê; a guarda é o que impede que um caminho novo se
      * esqueça dele. */
     'function abaDaAudicaoAberta(n) {' +
-    '  return String(n) === "1" || ELENCOS_GRAVADOS > 0;' +
+    '  return String(n) === "1" || (ELENCOS_GRAVADOS > 0 && !elencoEmProcesso());' +
+    '}' +
+    /* «EM PROCESSO» FECHA AS ABAS 2 E 3 (20/11/2026) — e é a mesma pergunta que o grupo do
+     * professor faz, com os sinais que ESTE formulário tem. Cada um é um estado que a tela já
+     * conhece:
+     *
+     *   1. o MODO tem um id — um elenco aberto para editar ou derivar (é o caso que ela nomeou);
+     *   2. o passo à vista é outro que não o 1 — a composição já avançou;
+     *   3. o NOME está escrito — composição começada é composição em curso;
+     *   4. há ALUNAS marcadas — o corpo já está a ser escolhido.
+     *
+     * O QUE NÃO CONTA: o formulário aberto e vazio. Ninguém está a compor no instante em que a
+     * página abre, e fechar as abas aí fecharia também a consulta — que é um dos usos: ler o
+     * recorte da escola sem mexer em nada. Quem desiste tem o «Cancelar», que limpa os quatro
+     * sinais de uma vez (`limparForm` → `mostrarPassoLb(1)` → a repintura). */
+    'function elencoEmProcesso(){' +
+    '  var modo = document.getElementById("lb-modo");' +
+    '  if (modo && String(modo.value || "").trim()) return true;' +
+    '  if (Number(LB_PASSO) > 1) return true;' +
+    '  if (nomeDoFormulario()) return true;' +
+    '  if (alunasMarcadas().length) return true;' +
+    '  return false;' +
     '}' +
     'var MOTOR_DA_AUDICAO = motorDeAbas({' +
     '  nomes: ABAS_DA_AUDICAO, nav: "lb-abas", prefixoAba: "lb-aba-", prefixoPainel: "lb-painel-",' +
     '  menu: "lb-abas-menu", botao: "lb-abas-botao", veu: "lb-abas-veu",' +
-    '  fraseSem: FRASE_DA_ABA_SEM_ELENCO, pode: abaDaAudicaoAberta,' +
+    /* A RAZÃO DE CADA ESTADO, e não uma frase para os dois: ver `FRASE_DA_ABA_COM_ELENCO_EM_PROCESSO`. */
+    '  fraseSem: function(){' +
+    '    return ELENCOS_GRAVADOS > 0 ? FRASE_DA_ABA_COM_ELENCO_EM_PROCESSO : FRASE_DA_ABA_SEM_ELENCO;' +
+    '  }, pode: abaDaAudicaoAberta,' +
     '  aoTrocar: function(n){' +
     '    var faixa = document.getElementById("lb-faixa");' +
     '    if (faixa) faixa.hidden = n !== "1";' +
@@ -12634,7 +12683,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '});' +
     'function fecharFolhaDasAbas() { MOTOR_DA_AUDICAO.fecharFolha(); }' +
     'function abrirAbaDaAudicao(n) { MOTOR_DA_AUDICAO.abrir(String(n)); }' +
-    'function pintarAbasDaAudicao() { MOTOR_DA_AUDICAO.pintar(); }' +
+    /* A GUARDA É A MESMA DO PROFESSOR, e pela mesma razão de ordem: `pintarTravasLb` corre no
+     * arranque (dentro do `mostrarPassoLb(1)`), e `MOTOR_DA_AUDICAO` é uma `var` — vale `undefined`
+     * até à linha que a atribui. `typeof` é o que impede o `undefined.pintar()`. */
+    'function pintarAbasDaAudicao() {' +
+    '  if (typeof MOTOR_DA_AUDICAO !== "undefined" && MOTOR_DA_AUDICAO) MOTOR_DA_AUDICAO.pintar();' +
+    '}' +
     /* O GRUPO DO PROFESSOR — três abas que abrem sempre. A ordem é a do trabalho: primeiro o
      * cadastro (quem é a pessoa), depois o que ela sabe ensinar, depois o que fazer quando sai. */
     /* A TIRA SÓ SE VÊ NA ABA DO CADASTRO (19/11/2026) — «o step só aparece quando eu estou na aba
@@ -19935,6 +19989,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '  pintarCancelarLb();' +
     '  pintarTiraLb();' +
+    /* AS ABAS 2 E 3 ACOMPANHAM A COMPOSIÇÃO (20/11/2026) — e o funil é este, pela mesma razão do
+     * «Excluir» acima: por aqui passam os quatro sinais de `elencoEmProcesso` (o modo, o passo, o
+     * nome e as alunas). Pôr a repintura nos quatro sítios que escrevem cada um deles seria a
+     * quarta cópia a esquecer-se de um caminho novo. */
+    '  if (typeof pintarAbasDaAudicao === "function") pintarAbasDaAudicao();' +
     /* O «EXCLUIR» DO ELENCO ACOMPANHA O MODO (19/11/2026) — abrir um elenco para editar é o
      * mesmo que «há uma ficha em curso», e `#lb-modo` é o sinal que esta secção usa. Vai aqui
      * porque este é o funil por onde passam a abertura (`editarLinha`) e o fecho (`limparForm`). */

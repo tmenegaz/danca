@@ -55578,3 +55578,47 @@ delas e se apresenta como medida.
 **O que ainda não está feito.** O teste decisivo da alavanca das canceladas (um gesto igual, depois de
 o repositório voltar a privado, lido na página de facturação). E a §7.1 — tirar o PDF do job — não foi
 desenhada: é a única que muda a unidade comercial, e é decisão da proprietária.
+
+## 20/11/2026 — «Recorte» e «Transferência» fecham enquanto há um elenco em composição
+
+**O pedido.** «Se eu não pedir para esconder o recorte e a transferência quando eu estiver derivando
+ou editando, pode esconder, pode bloquear, viu? Esconder não, bloquear, né? Pode deixar inabilitado.»
+
+**O que ficou.** As abas 2 («Recorte») e 3 («Transferência») da Audição passam a estar `disabled`
+enquanto houver um elenco em composição — e voltam a abrir quando ele fecha. É a mesma regra que as
+abas do Professor já seguem desde 19/11: a aba 1 é o acto de compor UM elenco, a 2 lê o recorte de
+TODOS, e a 3 move corpos entre elencos; com uma composição a meio, a 2 lê um acervo que não inclui o
+que se está a compor, e a 3 mexe no corpo que o formulário aberto ainda está a decidir.
+
+**Os quatro sinais de «em composição»**, e cada um é um estado que a tela já tem: `#lb-modo` com um
+id (editar/derivar), `LB_PASSO > 1`, o nome escrito, e alunas marcadas. O formulário **aberto e
+vazio** não conta — ninguém está a compor no instante em que a página abre, e fechar as abas aí
+fecharia também a consulta (ler o recorte da escola sem mexer em nada).
+
+**Duas frases, e não uma.** «Abre quando existir um elenco gravado» e «Termine ou cancele o elenco em
+composição» são estados diferentes, e uma frase só mandaria procurar o defeito no sítio errado em
+metade dos casos. O `pintar()` do motor passou a aceitar uma **função** em `fraseSem` — quem declara
+uma string não vê diferença nenhuma. A repintura entra no `pintarTravasLb`, que é o funil por onde
+passam os quatro sinais; pô-la nos quatro sítios que os escrevem seria a quarta cópia a esquecer-se
+de um caminho novo.
+
+**A/B, medido.** Sem a regra, `provar-salas-e-elencos` falha **4** (as duas abas abertas ao escrever
+o nome, a razão errada, o editar, e a guarda do motor); com ela, **187 de 187**.
+
+**O campo «Professor responsável» da Audição — a auditoria que ela pediu, e o resultado é que ela
+está certa.** O campo é escrito (`#lb-professor` → `normalizar` → `linha.professor`), guardado no
+rascunho do KV e no acto do repositório, exigido pelo passo 1, e mostrado no cartão do elenco. **Não
+é lido por derivação nenhuma:** `linhaDeBaseDoActo` (`derivar-po.js`) leva só
+`{nome, em, turma, alunas, recorte}`; `elencoDoCiclo` usa `alunas`; a autoria da cadeia vem da SALA
+(`salaDeHoje.professor`) e não do elenco. E **selecioná-lo não traz modalidade, tradição nem régua
+nenhuma** — não há ouvinte no `lb-professor`; quem traz essas informações é o professor da SALA, no
+cadastro da Turma. O único consumo fora do cartão é `detalhe` no `/api/linhas-de-base`, que a porta
+**não desenha**. Fica registado: o campo é o autor do acto, e não tem desdobramento no processo.
+
+**Com o quê.** `motor/servidor/bastidores.js` (o motor das abas, `elencoEmProcesso`, a frase nova, a
+repintura) e `experimentos/provar-salas-e-elencos.js` (secção M).
+
+**O que ainda não está feito.** O campo «Professor responsável» continua onde está — a remoção mexe
+na regra do passo 1, no formato do acto e em sete bancadas, e é decisão dela. E a aba 2 continua a
+não se abrir enquanto houver composição **mesmo quando quem abriu só quer consultar**: é o preço da
+regra, e o «Cancelar» é o caminho de saída.

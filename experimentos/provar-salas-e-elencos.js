@@ -1690,6 +1690,143 @@ const RITMO = {
     }
   }
 
+  /* ========================================================================
+   * M. AS ABAS 2 E 3 FECHAM COM UM ELENCO EM COMPOSIÇÃO (20/11/2026)
+   *
+   * «Se eu não pedir para esconder o recorte e a transferência quando eu estiver derivando ou
+   * editando, pode esconder, pode bloquear, viu? Esconder não, bloquear, né? Pode deixar
+   * inabilitado.»
+   *
+   * MEDE-SE O QUE SE VÊ E O QUE SE PODE: a aba 2 («Recorte») e a 3 («Transferência») ficam
+   * `disabled` com o formulário a meio, e voltam a abrir quando ele fecha. A página é montada com
+   * UM ELENCO CONCLUÍDO — sem ele as abas já nascem fechadas por outra razão, e a asserção
+   * passaria sem medir nada.
+   * ====================================================================== */
+  {
+    let JSDOML = null;
+    let VCL = null;
+    try { ({ JSDOM: JSDOML, VirtualConsole: VCL } = require('jsdom')); } catch (e) { JSDOML = null; }
+    if (!JSDOML) {
+      naoMedida('as abas da Audição com um elenco em composição', 'jsdom ausente');
+    } else {
+      const ELENCO_CONCLUIDO = {
+        id: 'elenco-a', nome: 'Nível 1', professor: 'demi-plie',
+        alunas: ['Ana'], campos: [{ id: 'forca-global', nome: 'Força global' }],
+        carimbo: '20261120-1000', atualizada_em: '2026-11-20T10:00:00.000Z',
+      };
+      const htmlM = bastidores.paginaProducao.apply(null, [
+        'breu', {},
+        [{ nome: 'Demi Plié', slug: 'demi-plie' }], [],
+        'Demi', 'demi-plie',
+        [], [], {},
+        [],
+        [{ id: 'padrao', nome: 'Padrão', professor: 'demi-plie', niveis: ['Ótimo'] }],
+        [],
+        { professores: new Set(), turmas: new Set(), termos: new Set(), planos: 0 },
+        null, null,
+        [ELENCO_CONCLUIDO], new Set(), { ok: true, contrato: null },
+      ]);
+      /* A PÁGINA NASCE A MOSTRAR A ABA 1, e as outras duas abertas — é o estado de consulta. */
+      const errosM = [];
+      const vcM = new VCL();
+      vcM.on('jsdomError', (e) => errosM.push(String((e && e.message) || e)));
+      vcM.on('error', () => {});
+      const domM = new JSDOML(htmlM.replace(/<script src="[^"]*"><\/script>/g, ''), {
+        runScripts: 'dangerously', url: BASE + '/bastidores/producao#corpo',
+        pretendToBeVisual: true, virtualConsole: vcM,
+        beforeParse(w) {
+          w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+            addListener() {}, removeListener() {} });
+          w.fetch = (u) => {
+            const url = String(u);
+            if (url.indexOf('/api/bastidores/linhas-de-base') !== -1) {
+              return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({
+                ok: true, linhas: [ELENCO_CONCLUIDO],
+                /* A MESMA LISTA QUE A PÁGINA RECEBEU — é dela que o `carregarLinhas` tira o
+                 * número que abre as abas. Um `elencos: []` aqui apagava o elenco da tela, e as
+                 * abas ficavam fechadas pela razão errada. */
+                elencos: [{ id: 'elenco-a', nome: 'Nível 1', alunas: ['Ana'], rascunho: false }],
+                indice: { dimensoes: [], cegos: [] },
+              }) });
+            }
+            if (url.indexOf('/api/bastidores/alunas-com-anamnese') !== -1) {
+              return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({
+                ok: true, alunas: [{ aluna: 'Ana', novo: false }], registradas: 1,
+              }) });
+            }
+            return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({
+              ok: true, alunas: [], linhas: [], campos: [], grupos: [], elencos: [],
+            }) });
+          };
+        },
+      });
+      const wM = domM.window;
+      const dM = wM.document;
+      const esperarM = (ms) => new Promise((r) => wM.setTimeout(r, ms || 400));
+      await esperarM(500);
+
+      const abas = () => ({
+        aba2: dM.getElementById('lb-aba-2'),
+        aba3: dM.getElementById('lb-aba-3'),
+        estado: ['2', '3'].map((k) => {
+          const b = dM.getElementById('lb-aba-' + k);
+          return b ? { disabled: b.disabled, title: b.getAttribute('title') } : null;
+        }),
+      });
+      const semComposicao = abas();
+      conferir('a página da Audição CORRE sem erro de script (secção M)', errosM.length === 0,
+        errosM.slice(0, 1));
+      conferir('com um elenco gravado e o formulário vazio, as abas 2 e 3 estão ABERTAS',
+        semComposicao.estado.every((e) => e && e.disabled === false), semComposicao.estado);
+
+      /* ESCREVER O NOME JÁ É COMPOR — é o sinal mais fácil de esquecer, e é o primeiro que a
+       * pessoa dá. */
+      const por = (id, v) => {
+        const e = dM.getElementById(id);
+        if (!e) return false;
+        e.value = v;
+        e.dispatchEvent(new wM.Event('input', { bubbles: true }));
+        e.dispatchEvent(new wM.Event('change', { bubbles: true }));
+        return true;
+      };
+      por('lb-nome', 'Nível 1 — mobilidade');
+      const aoEscrever = abas();
+      conferir('…e escrever o NOME fecha as duas — composição começada é composição em curso',
+        aoEscrever.estado.every((e) => e && e.disabled === true), aoEscrever.estado);
+      conferir('…e a razão dita é a composição, e não «não há elenco»',
+        aoEscrever.estado.every((e) => /composição/.test(String(e.title || ''))),
+        aoEscrever.estado.map((e) => e && e.title));
+
+      /* O CANCELAR LIMPA OS QUATRO SINAIS E AS ABAS VOLTAM. `limparForm` é o mesmo caminho do
+       * «Cancelar» do formulário — e é ele que a pessoa usa para desistir. */
+      wM.eval('limparForm()');
+      await esperarM(120);
+      const aoLimpar = abas();
+      conferir('…e limpar o formulário (o «Cancelar») devolve as duas ao estado aberto',
+        aoLimpar.estado.every((e) => e && e.disabled === false), aoLimpar.estado);
+
+      /* ABRIR UM ELENCO PARA EDITAR/DERIVAR — o caso que ela nomeou. O `lb-modo` é o sinal, e é o
+       * mesmo que o «Excluir» e o rótulo do «Gravar» já leem. */
+      wM.eval('document.getElementById("lb-modo").value = "elenco-a"; mostrarPassoLb(1);');
+      await esperarM(120);
+      const aoEditar = abas();
+      conferir('…e abrir um elenco para DERIVAR/EDITAR fecha as duas', 
+        aoEditar.estado.every((e) => e && e.disabled === true), aoEditar.estado);
+      /* A GUARDA É DO MOTOR, e não só do `disabled`: um caminho novo (a folha do telemóvel, o
+       * teclado) não pode abrir uma aba fechada. */
+      const tentouAbrir = wM.eval(`(function(){
+        abrirAbaDaAudicao('2');
+        return document.getElementById('lb-painel-2').hidden;
+      })()`);
+      conferir('…e a aba fechada NÃO abre por outro caminho (o `pode` guarda as três portas)',
+        tentouAbrir === true, tentouAbrir);
+      /* E A ABA 1 CONTINUA A ABRIR — é lá que o trabalho está. */
+      conferir('…e a aba 1 continua a abrir, que é onde está o trabalho',
+        dM.getElementById('lb-aba-1').disabled === false, null);
+      wM.close();
+    }
+  }
+
   if (falhas) {
     console.log('FALHOU — ' + falhas + ' de ' + n + ' asserção(ões).');
     process.exit(1);
