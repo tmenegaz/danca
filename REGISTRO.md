@@ -54666,3 +54666,49 @@ disparar), e — **lido no fonte, e diz-se** — que os quatro caminhos chamam a
 negativo: 1 de 15** contra o `bastidores.js` do T5 sem o T6, e é exactamente essa ligação. Vizinhas:
 `provar-dicionario` 123, `provar-gestos-do-shard` 33, `provar-salas-e-elencos` 132,
 `provar-os-fluxos-da-derivacao` 65, `provar-a-migracao-dos-conteudos` 24, `check-identidade` ok.
+
+### 19/11/2026 — Correção: as datas das aulas **existem**, vêm da Sala, e o que falta é o corte
+
+> «Isso não é verdade, porque nós temos a sala. […] Essa é a programação da aula. […] É assim que a
+> gente tem a data de cada aula.» — a proprietária, ao ler o que eu tinha escrito.
+
+**O que eu tinha escrito, e era falso.** Na §3.4 do `ARQUITETURA-GERAL.md` e na abertura do T7 do
+`PLANO-FLUXOS-DE-DERIVACAO.md` ficou dito que «não há data por aula» e que a regra dela — *«com a data
+da mudança, o que está para trás não se mexe e o que está para a frente se altera»* — «não tem hoje o
+dado de que precisa». Foi eu que lhe perguntei de onde vinha a data, com essa premissa na pergunta, e
+a resposta dela foi a correção.
+
+**O que é verdade, medido.** `publicacao/breu/rosa/ciclos.json` — `aulas` é uma lista de **24**
+entradas, uma por aula:
+
+| campo | exemplo | de onde vem |
+|:--|:--|:--|
+| `n` | `"01"` | a ordem no ciclo |
+| **`data`** | `2026-12-14` | **calculada do ritmo da Sala** (dias, horários, duração, período) pelo `calendario.py`, dentro de `tools/gerar-ciclo.sh` |
+| `inicio` / `fim` | `16:30` / `17:15` | o horário do dia + a duração |
+| `marco` | «reconhecer o apoio…» | o plano de ensino |
+| `lancada` / `ancora` | `false` / `null` | o lançamento, quando existe |
+| `prazo` | `2026-12-15T16:30` | calculado por bloco de data (§3.1 do `ARQUITETURA-AULA.md`) |
+
+E são **lidas**: `aulas-dadas.js` usa `a.data` para a lista e `a.prazo` para dizer se o registo ainda
+é ajustável.
+
+**Então o que é que falta — e é o T7, agora com a premissa certa.** O **corte**:
+
+1. a lista `aulas` é **recalculada a cada geração** a partir do ritmo **actual** da Sala. Uma aula já
+   lançada recebe a data que o ritmo de hoje produz: se os dias ou o período mudarem, a data de uma
+   aula que **já aconteceu** move-se — o passado reescrito, em silêncio;
+2. **nada no motor compara `a.data` com a data da mudança** para decidir o que se reescreve;
+3. o **lançamento** guarda quando se registou (`ultimo_lancamento`), não quando a aula foi — é a
+   `data` da lista, e não o carimbo, que diz «já passou».
+
+**O que fica escrito, e o que fica por fazer.** As duas secções foram corrigidas com nota datada (a
+§3.4 do `ARQUITETURA-GERAL.md` e o T7 do plano), e o `ESTADO-ATUAL` também. **O código não muda
+hoje:** a correção do `gerar-ciclo.sh` — preservar a `data` das aulas já lançadas — mexe no sítio onde
+um erro se paga em dados, e ela vai fazer o expurgo da `breu` a seguir. Fica declarado, com o defeito
+nomeado e medido, para o passo seguinte.
+
+**A lição, e é a razão de este registo existir.** Um documento que afirma «não há este dado» com a
+mesma segurança com que afirma o resto é pior do que um documento omisso: ninguém vai conferir. A
+pergunta que faltou foi a mais barata de todas — *abrir um pacote publicado e ler o `ciclos.json`* —, e
+a resposta estava a um `python3 -c` de distância.

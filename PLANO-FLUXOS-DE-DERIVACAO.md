@@ -305,25 +305,45 @@ quem usa o exercício e, quando ninguém usa, devolve o aviso sem disparar nada.
 quatro caminhos chamam a colagem — um sítio que a perca numa edição futura reprova. **Controlo
 negativo: 1 de 15** contra o `bastidores.js` do T5 sem o T6, e é exactamente essa ligação.
 
-### T7 — O calendário: saber o que já passou *(o maior, e o que dá sentido aos outros)*
+### T7 — O calendário: a data existe, e o que falta é **congelar** a das aulas que já aconteceram
 
-**O que é.** A regra dela — *«com a data da mudança, o que está para trás não se mexe e o que está
-para frente se altera»* — exige um dado que hoje não existe: **a data de cada aula**.
+> **Correcção a 19/11/2026, no mesmo dia em que este passo foi escrito.** A primeira versão dizia que
+> «não há data por aula» e que a regra dela não tinha o dado de que precisa. **É falso**, e ela
+> corrigiu-o com a frase certa: *«temos a sala. Essa sala diz que na segunda, na quarta e na sexta às
+> 16:30 […] Essa é a programação da aula. […] É assim que a gente tem a data de cada aula.»*
 
-**O que existe hoje:** o período (`contexto-calendario = {inicio, fim}`), os dias e a hora da Sala, a
-duração, e o número total de aulas. Com esses cinco, **a data de cada aula é calculável** — e não é
-inventada: é a mesma conta que o calendário escolar faz.
+**O que já existe** — medido em `publicacao/breu/rosa/ciclos.json`: `aulas` é uma lista de 24
+entradas com `n`, **`data`**, `inicio`/`fim`, `marco`, `lancada`, `ancora` e `prazo`. As datas vêm do
+ritmo da Sala pelo `calendario.py` (dentro de `tools/gerar-ciclo.sh`), e são lidas — `aulas-dadas.js`
+usa `a.data` e `a.prazo`.
 
-**O que muda.** Um `calendario` derivado (aula N → data) que:
-1. entra no plano e no PO como **leitura do cadastro** (`daTurma`, como o ritmo já é);
-2. permite à derivação **partir o ciclo**: o que é anterior à data da mudança **não se reescreve**;
-   o que é posterior passa a valer;
-3. permite à tela dizer, por aula, «dada» / «programada» / «fica como estava».
+**A decisão dela, e já está tomada:** a data **vem do ritmo da Sala** (opção A — dias, horários,
+período), e a Sala associada ao professor e à Turma **é** a programação da aula. Se a secretaria mudar
+alguma coisa, muda em Produção e a geração corre outra vez.
 
-**A decidir:** a data de cada aula passa a ser um dado **calculado** (dias + hora + início) ou
-**declarado** (a escola escreve as datas, com feriados e recessos)? Um calendário calculado mente nos
-feriados; um declarado custa a quem o declara. A recomendação é **calculado, com a lista visível e
-editável** — o cálculo é o padrão, a correcção é da escola.
+**O que falta, então, é o corte — e é o mais delicado:**
+
+1. **A lista `aulas` é recalculada a cada geração a partir do ritmo ACTUAL.** Uma aula já lançada
+   (`lancada: true`) recebe a data que o ritmo de hoje produz: se os dias ou o período mudarem, a data
+   de uma aula que **já aconteceu** move-se. O passado reescrito, em silêncio.
+2. **Nada no motor compara `a.data` com a data da mudança.** O `-plano.md` e o `-aula-01.md` são
+   regerados inteiros.
+3. O **lançamento** guarda quando se registou (`ultimo_lancamento`), não quando a aula foi — e é da
+   `data` da lista, não do carimbo, que sai o «já passou».
+
+**O que muda.** A geração passa a **preservar a data das aulas já lançadas** (a `data` que tinham no
+`ciclos.json` anterior, que a própria geração escreve), e o corte a ser lido por quem decide o que se
+reescreve. O que é futuro continua a ser recalculado — é isso que faz a mudança chegar a quem ainda
+não teve a aula.
+
+**Como se mede.** Com um `ciclos.json` anterior que tem uma aula lançada, e um ritmo novo: a data
+dessa aula **não** muda, a das futuras muda, e `lancada`/`ancora` ficam. É uma prova sobre o que a
+geração escreve — e é o sítio onde ela é mais difícil de provar: o `gerar-ciclo.sh` só corre inteiro,
+com um ciclo real.
+
+**Porque fica para o passo seguinte, e não se faz aqui.** Mexer no `gerar-ciclo.sh` sem o poder correr
+contra um ciclo real é mexer no sítio onde um erro se paga em dados — e ela vai fazer o expurgo da
+`breu` a seguir a estes testes.
 
 ### T8 — O véu que dura o que o GitHub durar
 

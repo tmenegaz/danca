@@ -4721,8 +4721,19 @@ o termo (`POST`, os dois caminhos do `PUT`, o `DELETE`) chamam a mesma colagem d
 (`comAGeracaoDoTermo`), e é a travessia que pergunta quem usa o exercício — quando ninguém usa,
 responde com o aviso e não dispara nada. Uma regra, um sítio. **CONFIRMADO** por
 `provar-o-estilo-regera` (15; a §D nova, e **1 de 15** reprova contra o `bastidores.js` do T5 sem o
-T6 — é exactamente a ligação). **Próximo:** o T7 — o calendário: saber o que já passou. É o maior, e
-precisa de uma decisão dela: a data de cada aula é **declarada** ou **calculada**.
+T6 — é exactamente a ligação). **Próximo:** o T7 — o calendário. **E a premissa com que eu o abri estava errada** (ver abaixo).
+
+**CORRIGIDO a 19/11/2026 — as datas das aulas existem, e vêm da Sala.** Estava escrito aqui que «não
+há data por aula» e que a regra «o passado não se mexe» não tinha o dado de que precisa. **É falso**, e
+ela corrigiu-o: *«temos a sala. […] Essa é a programação da aula. […] É assim que a gente tem a data de
+cada aula.»* Medido em `publicacao/breu/rosa/ciclos.json`: `aulas` é uma lista de **24** entradas com
+`n`, **`data`** (`2026-12-14`), `inicio`/`fim`, `marco`, `lancada`, `ancora` e `prazo`, calculadas do
+ritmo da Sala pelo `calendario.py` dentro do `gerar-ciclo.sh` — e lidas por `aulas-dadas.js`. **O que
+falta é o CORTE, não o dado:** a lista é recalculada a cada geração a partir do ritmo **actual**, e
+uma aula já lançada move-se se os dias ou o período mudarem; e nada compara `a.data` com a data da
+mudança. Ela decidiu que a data **vem do ritmo da Sala** (opção A). O código não mudou hoje: a
+correcção mexe no `gerar-ciclo.sh`, que só corre inteiro com um ciclo real — e ela vai fazer o expurgo
+da `breu` a seguir. Ver a nota datada na §3.4 do `ARQUITETURA-GERAL.md` e a reescrita do T7.
 
 **ABERTO a 19/11/2026 — os fluxos de derivação, e o que falta neles.** A verificação da
 verdade mediu o que dispara hoje: **seis** rotas percorrem a cadeia (`turma-editar`, `turma-derivar`,
@@ -4745,6 +4756,11 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **19/11/2026** — **Correção: as datas das aulas existem.** A §3.4 desta fotografia afirmava que não
+  havia data por aula, e o `ciclos.json` publicado mostra 24 aulas datadas, calculadas do ritmo da
+  Sala. O T7 passa a ser «**congelar** a data das aulas que já aconteceram», não «criar a data». Nenhum
+  código mudou; a nota está na §3.4 do `ARQUITETURA-GERAL.md`, no T7 do plano e no `REGISTRO.md`.
 
 - **19/11/2026** — **T6: o dicionário regera, condicionado ao uso.** As quatro rotas que escrevem o
   termo chamam a mesma travessia do T5; a condição — «só se um exercício estiver vinculado à turma» —

@@ -1200,18 +1200,38 @@ modalidade da Sala; `direcao(doc)`, a do elo.
 | `indice().completa` | «está tudo em dia» | «as **quatro peças existem**» — vem `true` com etapas `pendente`. Medido |
 | `-aula-01.md` | «a aula 1 do ciclo» | o **único** documento de aula que a geração escreve. A §8 do plano aponta para uma `aula-02` «ainda não elaborada», e os marcos são `N: texto` — **sem data** |
 
-#### O calendário: o que o sistema sabe sobre «o que já passou»
+#### O calendário: as datas existem, e vêm da Sala *(corrigido a 19/11/2026)*
 
-O calendário do ciclo é `contexto-calendario = {inicio, fim}` — o **período**. Não há data por aula.
-O que o sistema sabe com precisão é **que aulas foram lançadas**: o `-dados.json` traz
-`aulas[n]` (presentes, ausentes, marcas), e a geração **preserva** esse mapa em cada derivação. Logo:
+> **Correcção de uma afirmação errada, escrita nesta secção no mesmo dia.** Estava aqui que «não há
+> data por aula» e que a regra dela «não tem hoje o dado de que precisa». **É falso**, e ela
+> corrigiu-o: *«temos a sala. Essa sala diz que na segunda, na quarta e na sexta às 16:30, com
+> duração de 45 minutos, com o início e o fim do período, vai ter aula […] Essa é a programação da
+> aula. […] É assim que a gente tem a data de cada aula.»*
 
-- a **evidência do que aconteceu** está protegida (o `aulas` não se reescreve);
-- o **programado** (o `-plano.md` e o `-aula-01.md`) é reescrito a cada geração, sem olhar a se o que
-  mudou é passado ou futuro — porque, sem data por aula, **não há como saber**;
-- a regra que ela fixou — *«com a data da mudança, o que está para trás não se mexe e o que está
-  para a frente se altera»* — **não tem hoje o dado de que precisa**. É a tarefa maior do
-  [`PLANO-FLUXOS-DE-DERIVACAO.md`](PLANO-FLUXOS-DE-DERIVACAO.md) (T8), e não se resolve com um `if`.
+**O que existe, medido** no pacote publicado (`publicacao/breu/rosa/ciclos.json`): `aulas` é uma
+lista de 24 entradas, uma por aula, cada uma com `n`, **`data`** (`2026-12-14`), `inicio`/`fim`
+(`16:30`–`17:15`), `marco`, `lancada`, `ancora` e **`prazo`**. As datas são **calculadas do ritmo da
+Sala** (dias, horários, duração, período) pelo `calendario.py`, dentro de `tools/gerar-ciclo.sh` —
+que também calcula os prazos por aula (§3.1 do `ARQUITETURA-AULA.md`). E são lidas: `aulas-dadas.js`
+usa `a.data` para listar, e `a.prazo` para dizer se o registo ainda é ajustável.
+
+**O que falta, então, não é o dado.** É o **corte**:
+
+- a lista `aulas` é **recalculada a cada geração** a partir do ritmo **actual** da Sala. Uma aula já
+  lançada (`lancada: true`) recebe a data que o ritmo de hoje produz — e se o período ou os dias
+  mudarem, a data de uma aula que **já aconteceu** move-se. É o passado a ser reescrito, e é o
+  defeito que a regra dela existe para impedir;
+- nada no motor compara `a.data` com a data da mudança para decidir o que se reescreve. O
+  `-plano.md` e o `-aula-01.md` são regerados inteiros, sem olhar a se falam de uma aula que já
+  passou;
+- a evidência do **lançamento** está protegida (o `aulas[n]` do `-dados.json` preserva-se e a fusão
+  é por aula, com carimbo) — mas o lançamento guarda **quando se registou** (`ultimo_lancamento`),
+  não **quando a aula foi**.
+
+**O que isto muda no plano.** O T7 do [`PLANO-FLUXOS-DE-DERIVACAO.md`](PLANO-FLUXOS-DE-DERIVACAO.md)
+deixa de ser «criar a data» e passa a ser «**congelar a data das aulas que já aconteceram**», e a
+decisão dela já está tomada: a data **vem do ritmo da Sala** (opção A), e se a secretaria mudar algo
+em Produção, a geração corre outra vez — com as aulas passadas presas.
 
 #### O que continua verdadeiro nas tabelas acima
 
