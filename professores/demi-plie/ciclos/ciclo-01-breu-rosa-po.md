@@ -7,14 +7,14 @@ responsavel: demi-plie
 professor: demi-plie
 title: "Plano de Observação do Ciclo 01 — breu"
 state: Input_PO_Validado
-envelope: po-20261120-1411
+envelope: po-20261120-1751
 ---
 
 **Fenómeno.** A rotação externa visível na 1ª posição e no en dehors: o joelho acompanha o pé sem forçar, e o quadril não sobe quando a perna roda.
 
 ## Plano de ensino
 
-plano-20261120-1411
+plano-20261120-1750
 
 ## Horizonte
 
