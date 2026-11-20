@@ -74,20 +74,20 @@
   "reguaDaRubrica": [
     "Satisfatório",
     "Razoável",
-    "Em desenvolvimento",
+    "Em desenvovimento",
     "Não se aplica"
   ],
   "criterioDeExtensao": "Estender o ciclo em duas aulas se o último marco não for alcançado.",
   "musicasVideos": [
-    "Plié — 8 tempos em 4/4",
-    "Battement tendu — 8 tempos em 4/4",
-    "Port de bras — 16 tempos em 3/4",
+    "Battement tendu — 8 tempos em 2/4",
+    "Plié — 4 tempos em 2/4",
+    "Relevé — 8 tempos em 2/4",
     "Faixa de teste em 4/4 e 3/4; vídeo de referência de teste."
   ],
   "repertorio": [
-    "Plié",
     "Battement tendu",
-    "Port de bras"
+    "Plié",
+    "Relevé"
   ],
   "proveniencia": "Plano derivado da metodologia RAD, adaptado ao âmbito da turma; Plano derivado de literatura de apoio sobre corpo e aula",
   "calendario": "[Preencher: o calendário não está no .md — o gerador injeta o bloco calculado do .conf da variante (Regra 10, camada 2)]"
