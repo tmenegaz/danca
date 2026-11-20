@@ -16,7 +16,7 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 | Item | Valor |
 |:------------------------|:--------------------------------------------------------|
 | **Frequência semanal** | 3x semanal — seg e qua e sex |
-| **Duração por aula** | 1 hora 40 minutos |
+| **Duração por aula** | 1 hora 45 minutos |
 | **Calendário** | 2026-12-14 → 2027-01-15 |
 | **Número total de aulas** | 15 |
 
