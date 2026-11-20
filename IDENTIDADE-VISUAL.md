@@ -1019,6 +1019,25 @@ consequência ela não pode ver** — e só então. O caso canónico é a duraç
 | um exercício novo numa **Turma sem plano** | **não** | não há objetivos a que ligá-lo; a Turma fica em suspensão e o plano, quando nascer, leva o conteúdo |
 | mexer no **Estilo** | **não** | um exercício no Estilo nasce livre: não pertence a aula nenhuma, e nada a jusante depende dele |
 
+#### A ação que leva o que ficou para trás — «Atualizar o ciclo» *(20/11/2026)*
+
+**O problema, nas palavras dela:** «há derivações que são feitas, elas têm efeito diretamente na
+turma, mas elas param ali». A régua da sala, o vocabulário e o verbete mudam-se e chegam à Turma —
+e param: a régua viaja no plano como fotografia, e os documentos só a leem quando um plano novo
+nasce. O professor tem de poder dizer «leva isto agora».
+
+**O nome.** «Regeneração» diz o mecanismo; **«Atualizar o ciclo»** diz o que a pessoa leva — o ciclo
+que ela lê passa a ter o que a Turma declara hoje. E é vocabulário que o sistema já tem: o fluxo do
+CI chama-se «Gerar o ciclo», e a etapa 4 é «os documentos gerados».
+
+**A peça é a que já existe.** O botão é um `.acao secundario pequena`, ao lado do «Derivar», e a
+nota é um `.nota` — a mesma peça que o cartão do Elenco usa. Nada de novo foi desenhado; o que se
+acrescentou foi uma **gancho** (`data-ciclo-atualizar`) e uma frase.
+
+**A frase diz o facto e não conta nada.** Não há número de «ajustes pendentes»: o sistema não sabe
+distingui-los — uma régua mudada não deixa marca no plano —, e um número inventado seria a mesma
+família de erro que este repositório persegue. A nota diz o que acontece e aponta o botão.
+
 **A pergunta não começa por «Gravar».** A regra da casa — «não tem nada de gravar de um jeito,
 gravar de outro jeito, é só gravar» — é uma varredura de **texto**, e uma legenda «Gravar a
 distribuição com estes minutos?» reprovava-a com razão: no ecrã, ao lado de um botão «Gravar», a

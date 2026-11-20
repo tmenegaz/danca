@@ -860,6 +860,36 @@ hoje custa minutos sem mudar um byte é outra coisa, e é do Dicionário.
 
 ---
 
+## 7.9f O que fica na Turma, e o botão que o leva ao ciclo (20/11/2026)
+
+**A frase dela.** «Há derivações que são feitas, elas têm efeito diretamente na turma, mas elas param
+ali. […] a gente vai colocar um aviso […] que diz que esses ajustes estão registados na turma, mas
+serão vinculados ao ciclo […] E se ele quiser que seja gerado agora, a gente vai colocar um botão na
+turma que dispara então a regeneração. […] Eu acho que isso vai ser executado poucas vezes, então
+não vai impactar muito no nosso custo.»
+
+**Quais são esses ajustes, e porque param.** A **régua** da sala viaja no envelope do plano como
+fotografia — é o que ela confirmou («sim, continua assim»): o passado não se reescreve, e mudar os
+níveis não marca o plano pendente. O **vocabulário** e o **verbete** chegam ao documento pela
+geração, mas não criam plano novo. Nos três casos, o que está na Turma não está no papel.
+
+**O botão, e porque é que ele FORÇA a derivação.** Se ele corresse só a etapa 4 (gerar), geraria
+sobre o mesmo plano e **não mudaria um byte** — o encargo não está no plano antigo. O `forcar`
+(`motor/nucleo/cadeia.js`) marca o plano como `pendente` mesmo em dia, com a falta escrita («o
+professor pediu para levar a Turma ao ciclo agora»), e daí em diante a cadeia segue sozinha: plano →
+PO → documentos. O gatilho novo (`atualizacao-pedida`) fica no log, para que um elo nascido de um
+clique não se confunda com um elo nascido de um facto.
+
+**O nome.** «Regeneração» descreve o mecanismo; **«Atualizar o ciclo»** descreve o que a pessoa leva.
+É, além disso, vocabulário que o sistema já tem («Gerar o ciclo» é o fluxo, «os documentos gerados» é
+a etapa 4).
+
+**O custo, e é o que a torna aceitável.** O botão abre a travessia toda: um plano, um PO e uma
+geração. A §7.10 mede o gesto em 2 a 3 minutos. Ele existe para ser usado **poucas vezes** — o caso
+normal é a próxima derivação levar o que ficou — e é a autonomia que ela pediu em troca desse custo.
+
+---
+
 ## 7.10 As execuções de um gesto, contadas uma a uma (20/11/2026)
 
 A §7.1 dizia «8 a 10 execuções por gesto». **Está contado: são dez.** E a contagem devolve uma lei

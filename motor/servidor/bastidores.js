@@ -2717,7 +2717,21 @@ function acoesDaCuradoria(c, vinculada) {
     ? '<button class="acao secundario pequena" disabled title="Vinculada a um plano de ensino: não se apaga">Excluir</button>'
     : '<button class="apagar acao perigo pequena" data-tipo="curadoria" data-alvo="' + esc(c.id) +
       '" title="Remover turma">Excluir</button>';
-  return botao + excluir;
+  /* «ATUALIZAR O CICLO» — A AUTONOMIA QUE ELA PEDIU (20/11/2026).
+   *
+   * «se ele quiser que seja gerado agora, a gente vai colocar um botão na turma que dispara então a
+   * regeneração». Só existe na Turma COM plano, porque é para ela que a pergunta tem sentido: sem
+   * plano não há ciclo a atualizar — há um plano por nascer.
+   *
+   * O NOME. «Regeneração» descreve o mecanismo; «Atualizar o ciclo» descreve o que a pessoa leva.
+   * E diz o que muda: o ciclo que ela lê passa a ter o que a Turma declara hoje — a régua, o
+   * conteúdo, o dicionário —, que sem este clique só entra quando um plano novo nascer. */
+  const atualizar = vinculada
+    ? ' <button class="atualizar-ciclo acao secundario pequena" data-ciclo-atualizar="' + esc(c.id) + '"' +
+      ' title="Levar ao ciclo o que esta Turma declara hoje — a régua, o conteúdo, o dicionário. ' +
+      'Deriva um plano novo e gera os documentos.">Atualizar o ciclo</button>'
+    : '';
+  return botao + atualizar + excluir;
 }
 
 /**
@@ -7079,6 +7093,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
             : ' hidden')
           + '>!</span>';
         const botaoAjuste = acoesDaCuradoria(c, vinculada);
+        /* O AVISO QUE ELA PEDIU (20/11/2026) — e o sítio é o cartão da Turma, porque é a Turma que
+         * guarda estes ajustes.
+         *
+         * «há derivações que são feitas, elas têm efeito diretamente na turma, mas elas param ali.
+         * Então a gente vai colocar um aviso para o professor […] que diz que esses ajustes estão
+         * registrados na turma, mas serão vinculados ao ciclo […] E se ele quiser que seja gerado
+         * agora, a gente vai colocar um botão.»
+         *
+         * SEM NÚMERO E SEM ALARME. Não se conta quantos ajustes há — o sistema não sabe distingui-los
+         * (uma régua mudada não deixa marca no plano), e um número inventado seria a mesma família
+         * de erro que este repositório persegue. A frase diz o facto e aponta o botão que o resolve. */
+        const notaDoCiclo = vinculada
+          ? '<p class="nota">Ajustes na régua, no Estilo ou no Dicionário ficam registados nesta '
+            + 'Turma e só passam ao ciclo quando ele é atualizado — «Atualizar o ciclo» faz isso agora.</p>'
+          : '';
         /* O HISTÓRICO DO AJUSTE SAIU DAQUI (11/11/2026) — e a ordem foi dela, com a razão certa:
          *
          *   «esses ajustes anteriores que você tem aqui na listagem das turmas atribuídas, por hora
@@ -7299,6 +7328,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           '</span>' +
           '<span class="acoes" data-acoes-da-turma="' + esc(c.id) + '">' + botaoAjuste + '</span></div>' +
           (complemento.length ? '<div class="dono">' + complemento.join(' · ') + '</div>' : '') +
+          notaDoCiclo +
           '<div class="trio">' +
           caixa('Sala', salasDaTurma.length ? turmas.join(' · ') : 'sem sala', 'sala',
             'ver o ritmo e a régua da sala desta Turma') +
@@ -13617,6 +13647,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * palavras convivem no produto e significam coisas diferentes: a SALA é o ritmo e o professor;
      * a TURMA é a atribuição. O véu passa a dizer o que ela diz na tela. */
     '    "/api/bastidores/turma-rubrica": {etiqueta: "Sala", texto: "a concluir a Sala — a gravar a régua e o vínculo\u2026"},' +
+    '    "/api/bastidores/atualizar-o-ciclo": {etiqueta: "Atualizar o ciclo", texto: "a levar ao ciclo o que esta Turma declara hoje — a derivar o plano e a gerar os documentos\u2026"},' +
     '    "/api/bastidores/elenco-mover": {etiqueta: "Transferência", texto: "a mover a aluna e a revincular a Turma\u2026"},' +
     '    "/api/bastidores/linha-de-base": {etiqueta: "Elenco", texto: "a gravar o Elenco\u2026"},' +
     /* AS DUAS FRASES DO ELENCO (12/11/2026). O `POST /linha-de-base` tem dois sentidos — guardar o
@@ -15384,6 +15415,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // nova é um elo novo, com identidade própria, e é ao derivar que a escola troca quem ensina ou
     // em que modalidade a sala passa a funcionar. Travar aqui obrigaria a apagar e recriar a turma
     // — o que perderia a cadeia.
+    /* O GESTO DO BOTÃO (20/11/2026). A rota quer o NOME da sala; o cartão guarda o id da Turma, e
+     * `turmasDeUma` é a mesma leitura que o resto da página usa para ir do registo à sala. Sem
+     * sala não há ciclo: uma Turma sem sala não tem plano de ensino, e o botão só existe nas que
+     * têm — a guarda fica para um pedido forjado, e diz o que falta em vez de falhar em silêncio. */
+    'function atualizarOCiclo(id){' +
+    '  var alvo = null;' +
+    '  for (var i = 0; i < CURADORIAS.length; i++) {' +
+    '    if (CURADORIAS[i] && CURADORIAS[i].id === id) { alvo = CURADORIAS[i]; break; }' +
+    '  }' +
+    '  if (!alvo) { alert("Turma não encontrada na lista."); return; }' +
+    '  var daTurma = turmasDeUma(alvo);' +
+    '  if (!daTurma.length) {' +
+    '    alert("Esta Turma ainda não tem sala — sem sala não há ciclo a atualizar.");' +
+    '    return;' +
+    '  }' +
+    '  enviar("/api/bastidores/atualizar-o-ciclo", { turma: daTurma[0] },' +
+    '    "a levar ao ciclo o que esta Turma declara hoje\u2026", true, null);' +
+    '}' +
     'function ajustarCuradoria(id, modo) {' +
     '  var c = null;' +
     '  for (var i = 0; i < CURADORIAS.length; i++) { if (CURADORIAS[i] && CURADORIAS[i].id === id) { c = CURADORIAS[i]; break; } }' +
@@ -15533,6 +15582,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'document.addEventListener("click", function(e){' +
     '  var b = e.target.closest ? e.target.closest("[data-curadoria-ajustar]") : null;' +
     '  if (b) { ajustarCuradoria(b.getAttribute("data-curadoria-ajustar"), b.getAttribute("data-modo")); return; }' +
+    /* «ATUALIZAR O CICLO» (20/11/2026) — o clique que leva ao papel o que a Turma declara hoje. */
+    '  var ac = e.target.closest ? e.target.closest("[data-ciclo-atualizar]") : null;' +
+    '  if (ac) { atualizarOCiclo(ac.getAttribute("data-ciclo-atualizar")); return; }' +
     '  if (e.target.closest && e.target.closest("#cu-cancelar")) {' +
     '    document.getElementById("cuderivar").value = "";' +
     '    document.getElementById("cumodo").value = "";' +
@@ -27486,6 +27538,58 @@ function parDaSalaNoCorpo(corpo, registo) {
    * O QUE ELE NÃO FAZ. Não deriva plano nem PO. As etapas 1 a 3 fecharam no pedido anterior, e
    * derivá-las outra vez empilharia elos gémeos — o defeito que a idempotência da cadeia evita.
    */
+  /* POST /api/bastidores/atualizar-o-ciclo — «LEVAR ISTO AO CICLO AGORA» (20/11/2026).
+   *
+   * A FRASE DELA, e é o desenho inteiro: «há derivações que são feitas, elas têm efeito diretamente
+   * na turma, mas elas param ali. Então a gente vai colocar um aviso para o professor […] que diz
+   * que esses ajustes estão registrados na turma, mas serão vinculados ao ciclo […] E se ele quiser
+   * que seja gerado agora, a gente vai colocar um botão na turma que dispara então a regeneração.»
+   *
+   * O QUE ESTE BOTÃO FAZ, E PORQUE É `executar` E NÃO `fecharPacotes`. A régua da sala viaja no
+   * ENVELOPE do plano como fotografia — é o que ela confirmou a 20/11/2026 («sim, continua assim»):
+   * o passado não se reescreve. Logo, gerar os documentos outra vez sobre o mesmo plano não muda
+   * um byte: o encargo só chega ao papel quando um plano NOVO é derivado. Este é o pedido explícito
+   * para o derivar — e o `forcar` (ver `motor/nucleo/cadeia.js`) é o que o torna verdadeiro. Daí
+   * em diante a cadeia segue sozinha: plano → PO → documentos.
+   *
+   * O NOME. «Regeneração» diz o mecanismo e não o resultado; «Atualizar o ciclo» diz o que a pessoa
+   * leva — o ciclo que ela lê passa a ter o que a Turma declara hoje. É o nome que a tela usa, e é
+   * vocabulário que o sistema já tem (o fluxo do CI chama-se «Gerar o ciclo», e a etapa 4 é «os
+   * documentos gerados»).
+   */
+  if (path === '/api/bastidores/atualizar-o-ciclo' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!(await autorizacaoDirecaoOk(env, corpo))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const lista = (Array.isArray(corpo.turmas) ? corpo.turmas : [corpo.turma])
+      .map((t) => String(t || '').trim()).filter(Boolean);
+    if (!lista.length) return json(400, { ok: false, erro: 'diga de que turma é o ciclo' });
+    if (!cadeia || typeof cadeia.executar !== 'function') {
+      return json(200, {
+        ok: false,
+        motivo: 'a cadeia automática não está montada neste Worker (sem token ou sem os '
+          + 'conteúdos da porta) — o ciclo atualiza-se pelo «Guardar» do plano de ensino.',
+      });
+    }
+    try {
+      const r = await cadeia.executar({
+        gatilho: 'atualizacao-pedida',
+        turmas: lista,
+        forcar: true,
+        motivo: 'o professor pediu para levar ao ciclo o que a Turma declara hoje',
+      });
+      return json(200, {
+        ok: Boolean(r.ok),
+        cadeia: montarEstadoDaCadeia(cadeia, contexto, r),
+        erro: r.erro || null,
+      });
+    } catch (erro) {
+      return json(200, { ok: false, erro: erro && erro.message ? erro.message : String(erro) });
+    }
+  }
+
   if (path === '/api/bastidores/cadeia-pacote' && request.method === 'POST') {
     if (!cadeia || typeof cadeia.fecharPacotes !== 'function') {
       return json(200, {

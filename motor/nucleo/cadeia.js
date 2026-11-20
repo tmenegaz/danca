@@ -411,7 +411,23 @@ function indice(estado) {
       falta: fraseDoRitmo(e.plano),
     });
   } else if (novo(e.plano.gerado_em || e.plano.id)) {
-    passos.push({ chave: 'plano-de-ensino', estado: 'feita', id: e.plano.id || null });
+    /* E O PEDIDO DELA DE ATUALIZAR AGORA (20/11/2026). Há ajustes que NÃO passam pela cadeia — a
+     * régua da sala, o vocabulário, o verbete —, e que só chegam ao documento quando um plano novo
+     * é derivado: a régua, por exemplo, viaja no envelope do plano como fotografia, e a geração lê
+     * o envelope. Sem isto, o botão «Atualizar o ciclo» gerava documentos a partir de um plano
+     * velho e não mudava um byte — um botão que promete e não faz.
+     *
+     * `forcar` é o pedido explícito do professor, e por isso fica escrito na falta: quem lê o log
+     * meses depois tem de saber que este elo nasceu de um clique, e não de uma mudança. */
+    if (e.forcar) {
+      passos.push({
+        chave: 'plano-de-ensino', estado: 'pendente', id: e.plano.id || null,
+        falta: 'O professor pediu para levar a Turma ao ciclo agora — a cadeia deriva um elo novo '
+          + 'com o estado de hoje: a régua, o conteúdo e o ritmo que a Turma declara.',
+      });
+    } else {
+      passos.push({ chave: 'plano-de-ensino', estado: 'feita', id: e.plano.id || null });
+    }
   } else {
     passos.push({
       chave: 'plano-de-ensino', estado: 'pendente', id: e.plano.id || null,
@@ -559,6 +575,10 @@ const ROTULOS_DO_GATILHO = {
   'saida-de-aluna': 'saída de aluna do elenco',
   'troca-de-direcao': 'troca de professor ou modalidade da turma',
   'mudanca-de-sala': 'mudança de sala (o ritmo da Turma)',
+  /* O PEDIDO DELA (20/11/2026): «se ele quiser que seja gerado agora, a gente vai colocar um botão
+   * na turma que dispara então a regeneração». O gatilho diz o que foi — um clique —, e não uma
+   * mudança; é o que distingue este elo dos que nascem de factos. */
+  'atualizacao-pedida': 'o professor pediu para atualizar o ciclo',
 };
 
 function rotuloDoGatilho(gatilho) {

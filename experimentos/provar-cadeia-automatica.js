@@ -646,6 +646,52 @@ async function ids(arm, familia) {
       JSON.stringify(rep) === JSON.stringify(['Battement tendu', 'Plié']), rep);
   }
 
+  /* ==========================================================================
+   * B5. O PEDIDO DE ATUALIZAR AGORA — o botão da Turma (20/11/2026)
+   *
+   * «há derivações que são feitas, elas têm efeito diretamente na turma, mas elas param ali […]
+   * se ele quiser que seja gerado agora, a gente vai colocar um botão na turma que dispara então a
+   * regeneração.» O ajuste que não passa pela cadeia (a régua, o vocabulário, o verbete) só chega
+   * ao papel quando um plano NOVO nasce — a régua viaja no envelope como fotografia. Logo o botão
+   * tem de FORÇAR a derivação; sem isso gerava sobre o mesmo plano e não mudava um byte.
+   */
+  console.log('\nB5. «Atualizar o ciclo» força um plano novo — e só quando é pedido');
+
+  {
+    const { cadeia, arm } = montar();
+    await semear(arm);
+    /* O PRIMEIRO GESTO põe tudo em dia. */
+    await cadeia.executar({ gatilho: 'troca-de-aluna', elencos: ['elenco-a'], quando: QUANDO });
+    const antes = (await ids(arm, 'plano')).length;
+
+    /* O CONTROLE NEGATIVO: repetir o gesto NÃO cria elo — é a idempotência de sempre. */
+    const semPedido = await cadeia.executar({ gatilho: 'troca-de-aluna', elencos: ['elenco-a'], quando: QUANDO });
+    provar('sem o pedido, a Turma em dia não deriva nada',
+      (await ids(arm, 'plano')).length === antes && semPedido.ok === true, semPedido.erro);
+
+    /* O PEDIDO: deriva, mesmo em dia. */
+    const r = await cadeia.executar({
+      gatilho: 'atualizacao-pedida', turmas: [TURMA], quando: QUANDO, forcar: true,
+      motivo: 'o professor pediu para levar ao ciclo o que a Turma declara hoje',
+    });
+    provar('com o pedido, a travessia corre', r.ok === true, r.erro);
+    provar('…e há UM elo novo de plano, mesmo com o anterior em dia',
+      (await ids(arm, 'plano')).length === antes + 1,
+      { antes, depois: (await ids(arm, 'plano')).length });
+    /* E O GATILHO DIZ O QUE FOI — um clique, e não uma mudança: é o que distingue este elo dos
+     * que nascem de factos, quando alguém lê o log meses depois. */
+    provar('…e o registo diz que foi um pedido, e não uma mudança',
+      /pediu para atualizar o ciclo/.test(nucleoCadeia.rotuloDoGatilho('atualizacao-pedida')),
+      nucleoCadeia.rotuloDoGatilho('atualizacao-pedida'));
+    /* O ELO NOVO HERDA O CONTEÚDO — atualizar não reescreve a pedagogia. */
+    const novos = (await ids(arm, 'plano')).filter((x) => x !== 'plano-20261103-2200');
+    const ultimo = await porta.lerEnvelope(arm, novos[novos.length - 1]);
+    const matriz = (ultimo.respostas['aula-1-parametro'] || {});
+    const linha = (matriz.valor || matriz || []).find((l) => Number(l.marco) === 1) || {};
+    provar('…e o conteúdo do plano passa igual — atualizar não decide pedagogia',
+      JSON.stringify(linha.marcados) === JSON.stringify(['Battement tendu']), linha.marcados);
+  }
+
   // ==========================================================================
   console.log('\nC. O REGISTO INCOMPLETO — avança até onde pode, e diz o que falta');
 

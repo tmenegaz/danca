@@ -56314,3 +56314,42 @@ foi medida com a `cadeia` injetada e um plano no acervo, nos dois casos de profe
 **Com o quê.** `motor/servidor/bastidores.js` (`curadoriaEmCurso`, o gancho do `esc-conteudos`,
 `pedirOObjetivo` e a rota `impacto-da-inclusao`); `CUSTO-DOS-FLUXOS.md` §7.9c;
 `IDENTIDADE-VISUAL.md`.
+
+## 20/11/2026 — «Atualizar o ciclo»: o botão que leva o que ficou na Turma
+
+**O pedido, nas palavras dela.** «Há derivações que são feitas, elas têm efeito diretamente na turma,
+mas elas param ali. […] a gente vai colocar um aviso […] que diz que esses ajustes estão registados
+na turma, mas serão vinculados ao ciclo […] E se ele quiser que seja gerado agora, a gente vai colocar
+um botão na turma que dispara então a regeneração.»
+
+**Quais ajustes param, e porquê.** A **régua** viaja no envelope do plano como fotografia — o que ela
+confirmou a 20/11/2026 (mudar os níveis não marca o plano pendente, e o passado não se reescreve). O
+**vocabulário** e o **verbete** chegam ao documento pela geração, mas não criam plano novo. Nos três
+casos, o que está na Turma não está no papel.
+
+**O botão FORÇA a derivação, e essa é a parte que o torna verdadeiro.** Se corresse só a etapa 4,
+geraria sobre o mesmo plano e não mudaria um byte — o encargo não está no plano antigo. `forcar`
+(`motor/nucleo/cadeia.js`) marca o plano como `pendente` mesmo em dia, com a falta escrita («o
+professor pediu para levar a Turma ao ciclo agora»); daí em diante a cadeia segue: plano → PO →
+documentos. O gatilho novo (`atualizacao-pedida`) fica no log, para um elo nascido de um clique não
+se confundir com um elo nascido de um facto.
+
+**O nome, e a razão dele.** «Regeneração» descreve o mecanismo; **«Atualizar o ciclo»** descreve o que
+a pessoa leva. E é vocabulário que o sistema já tem: o fluxo do CI chama-se «Gerar o ciclo», e a etapa
+4 é «os documentos gerados». Fica dito que o nome é reversível numa linha, e que «criar ciclo» e
+«atualizar ciclo» foram as hipóteses dela.
+
+**O que NÃO se faz: contar ajustes pendentes.** O sistema não sabe distingui-los — uma régua mudada
+não deixa marca no plano. A nota diz o facto e aponta o botão; um número inventado seria a mesma
+família de erro que este repositório persegue.
+
+**As provas.** `provar-cadeia-automatica.js` secção **B5** — 5 asserções novas (105 no total): sem o
+pedido nada é derivado, com o pedido há um elo novo mesmo em dia, o rótulo diz que foi um pedido, e o
+conteúdo passa igual (atualizar não decide pedagogia). `provar-salas-e-elencos.js` secção **N** — 2
+asserções novas (222 no total): o botão existe na Turma com plano e o clique pede a rota com o nome da
+sala.
+
+**Com o quê.** `motor/nucleo/cadeia.js` (`forcar` no índice, `atualizacao-pedida` nos rótulos);
+`motor/servidor/cadeia.js` (`forcar` em `executar`/`porTurma`); `motor/servidor/bastidores.js` (a rota
+`atualizar-o-ciclo`, o botão em `acoesDaCuradoria`, a nota no cartão e o handler do cliente);
+`IDENTIDADE-VISUAL.md`; `CUSTO-DOS-FLUXOS.md` §7.9f; as duas provas.

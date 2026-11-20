@@ -751,7 +751,7 @@ function criarCadeia({
       : { plano: null, herdado: false, de: null, deOutro };
   }
 
-  async function porTurma({ turma, curadoria, elenco, quando, motivo, ajusteDeVolume, declaracoes }) {
+  async function porTurma({ turma, curadoria, elenco, quando, motivo, ajusteDeVolume, declaracoes, forcar }) {
     /* A SALA DE HOJE VAI COM O ESTADO (19/11/2026) — é dela que sai a DIREÇÃO, e não da cópia que
      * a curadoria guarda. Uma leitura por alvo, e a mesma que a derivação já fazia para o ritmo. */
     const sala = await salaDaTurma(turma);
@@ -783,6 +783,11 @@ function criarCadeia({
        * (`derivarPlano` → `ritmoDaSala`). Uma segunda forma de ler o ritmo divergiria da
        * primeira, e a divergência apareceria como um elo derivado com o valor errado. */
       ritmo: respostasDoRitmo(sala),
+      /* O PEDIDO EXPLÍCITO DE ATUALIZAR AGORA (20/11/2026) — ver `forcar` no núcleo. Há ajustes
+       * que não passam pela cadeia (a régua, o vocabulário, o verbete) e que só chegam ao documento
+       * quando um plano novo nasce: a régua viaja como fotografia no envelope. Sem isto, o botão
+       * «Atualizar o ciclo» gerava sobre um plano velho e não mudava um byte. */
+      forcar: Boolean(forcar),
       plano, po,
       planoDeOutro: plano ? null : (achado.deOutro || null),
       quando,
@@ -1022,7 +1027,7 @@ function criarCadeia({
    * A EXECUÇÃO. `elencos` (a troca e a saída) e `turmas` (a troca de direção) dizem onde a
    * mudança tocou; a cadeia resolve as Turmas e corre uma a uma.
    */
-  async function executar({ gatilho, elencos = [], turmas = [], quando, motivo, ajusteDeVolume, declaracoes } = {}) {
+  async function executar({ gatilho, elencos = [], turmas = [], quando, motivo, ajusteDeVolume, declaracoes, forcar } = {}) {
     const agora = quando || (carimbar ? carimbar() : new Date().toISOString());
     /* O ORÇAMENTO DO PEDIDO — A TRAVESSIA NÃO COMEÇA O QUE NÃO CABE (09/11/2026).
      *
@@ -1076,7 +1081,7 @@ function criarCadeia({
       for (const c of alvos) {
         const turma = turmasDe(c)[0] || '';
         const elenco = c.linhaDeBase ? (porId.get(String(c.linhaDeBase)) || null) : null;
-        const r = await porTurma({ turma, curadoria: c, elenco, quando: agora, motivo, ajusteDeVolume, declaracoes });
+        const r = await porTurma({ turma, curadoria: c, elenco, quando: agora, motivo, ajusteDeVolume, declaracoes, forcar });
         /* OS AVISOS SOBEM AO TOPO (20/11/2026). A tela do gesto lê `cadeia` inteira, e um aviso
          * enterrado em `alvos[0].avisos` não se vê — foi exactamente o que aconteceu com a faixa
          * que faltava: `ok: true`, quatro etapas «feita», e o CI a recusar dois minutos depois. */

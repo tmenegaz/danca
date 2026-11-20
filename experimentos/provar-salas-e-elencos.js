@@ -1841,6 +1841,12 @@ const RITMO = {
                 return Promise.resolve({ ok: true, status: 200,
                   json: () => Promise.resolve(resposta), text: () => Promise.resolve('') });
               }
+              if (url.indexOf('/api/bastidores/atualizar-o-ciclo') !== -1) {
+                pedidos.push({ rota: 'ciclo', corpo });
+                return Promise.resolve({ ok: true, status: 200,
+                  json: () => Promise.resolve({ ok: true, cadeia: { ok: true } }),
+                  text: () => Promise.resolve('') });
+              }
               if (url.indexOf('/api/bastidores/curadoria-derivar') !== -1) {
                 pedidos.push({ rota: 'derivar', corpo });
                 return Promise.resolve({ ok: true, status: 201,
@@ -1995,6 +2001,25 @@ const RITMO = {
           && /16/.test(String((mSoma || {}).textContent || '')),
         String((mSoma || {}).textContent || '').replace(/\s+/g, ' ').slice(0, 300));
       cSoma.fechar();
+
+      /* ── O BOTÃO «ATUALIZAR O CICLO» (20/11/2026) ──────────────────────────
+       *
+       * A Turma com plano ganha o botão e o aviso; a Turma sem plano, nenhum dos dois. E o clique
+       * vai à rota certa, com o NOME da sala — que é o que o servidor usa para achar o ciclo. */
+      const cBotao = await correrON(true);
+      conferir('a Turma com plano tem o botão «Atualizar o ciclo»',
+        Boolean(cBotao.d.querySelector('[data-ciclo-atualizar="cu-n"]')),
+        String((cBotao.d.querySelector('[data-acoes-da-turma="cu-n"]') || {}).textContent || ''));
+      conferir('…e diz onde os ajustes que param na Turma entram',
+        /só passam ao ciclo quando ele é atualizado/.test(
+          String((cBotao.d.querySelector('[data-curadoria="cu-n"]') || {}).textContent || '')), null);
+      await cBotao.clicar(cBotao.d.querySelector('[data-ciclo-atualizar="cu-n"]'));
+      const pedidoDoCiclo = cBotao.pedidos.filter((p) => p.rota === 'ciclo');
+      conferir('o clique pede a atualização do ciclo à rota, com o nome da sala',
+        pedidoDoCiclo.length === 1 && pedidoDoCiclo[0].corpo.turma === 'Rosa',
+        pedidoDoCiclo.map((p) => p.corpo));
+      cBotao.fechar();
+      cVin.fechar();
 
       const cSem = await correrON(false);
       await cSem.escolherEJuntar('Battement jeté');
