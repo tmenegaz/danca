@@ -56049,3 +56049,54 @@ tabela do que é automatizável (escolher o objectivo não é), e o custo de con
 
 **O que ainda não está feito.** O modal não foi construído: primeiro decide-se onde a declaração é
 escrita, porque as duas opções têm consequências diferentes na proveniência.
+
+## 20/11/2026 — A declaração do Estilo vai para a curadoria, e as execuções de um gesto passam a ter contagem
+
+**Duas coisas, e a primeira é uma decisão dela que fecha uma pergunta aberta.** A entrada anterior
+deixou duas hipóteses para o sítio onde a declaração «a que objectivo este exercício serve» é escrita:
+o envelope do **plano** (`aula-1-parametro`), ou a **curadoria** guardar o par e o plano herdá-lo.
+A resposta veio no seguimento, e não deixa dúvida:
+
+> «Quando eu incluir um outro exercício lá no estilo, a mesma coisa, ele tem que ir para o mesmo
+> lugar, para o termo de objetivos na curadoria. Então ele amplia ou diminui esse termo de objetivos.
+> […] adicionou exercício, aumenta; tirou exercício, diminui. E aí ele tem que disparar o plano de
+> ensino, toda a cadeia de novo tem que andar. Esse é o fluxo. A gente não vai fazer nunca nenhum
+> desvio para colocar direto, porque a gente estaria quebrando o nosso próprio sistema. A sua
+> proposta A é um crime, praticamente. Não pode ser.»
+
+**Portanto a hipótese do envelope do plano fica recusada**, e não por gosto: escrever `aula-1-parametro`
+a partir da derivação do Estilo salta a curadoria e chega ao documento que a aula segue — é o atalho
+que ela recusou. O caminho é o de sempre: Estilo → curadoria (o termo de objetivos) → plano → o resto.
+**O que continua em aberto é a *forma* do campo na curadoria**, e é desenho, não princípio.
+
+**O Dicionário fica como está.** Confirmado na mesma resposta: um ajuste de verbete não dispara nada
+por si; entra na próxima geração que tiver motivo para correr, e a cadeia anda a partir do exercício
+do Estilo que ele toca. É o que já estava desenhado.
+
+**A segunda coisa é a contagem que faltava.** O §7.1 estimava «8 a 10 execuções por gesto». Contado
+em `actions/runs` e nos `jobs` de cada execução, um acto completo — concluir o elenco, gravar o plano,
+gravar o PO — custou **dez execuções em 30 segundos**, das quais **sete foram canceladas entre 2 e 15
+segundos** sem fazer trabalho nenhum.
+
+**A lei que sai da contagem, e é mais útil do que a estimativa:** *uma execução = um push que casa o
+`paths:` de um workflow*. Não é a duração, não é o `concurrency`, e não é o volume de trabalho — é o
+número de commits. Duas provas na mesma janela: dois commits com **árvore idêntica à do pai** não
+lançaram execução nenhuma (não casam `paths:`), e três dos oito pushes eram **escrita de índice**, um
+deles o mesmo ficheiro duas vezes, porque em `gravarEnvelope` o índice é gravado antes do envelope.
+
+**O que fica medido, e corrige duas afirmações anteriores.** (1) `Gerar o ciclo` **não é sempre uma
+execução por acto** — foi pedido duas vezes (86 s e 41 s), porque cada gravação que fecha uma etapa
+pede a sua geração; é a §7.1 com um número. (2) Depois do pandoc estático os três jobs cabem em 60 s
+(`gerar` 34–45 s, `derivados` 19–21 s, `publicar` 30–48 s), e a regra dela — «uma execução, um
+minuto» — está ganha **na unidade**; o que falta é o número. A mesma `Gerar o ciclo` correu **41 s e
+86 s no mesmo minuto**, no mesmo código: a variância do runner é maior do que o que falta optimizar,
+e 34–45 s é margem, não garantia.
+
+**E o que não se resolve daqui.** Se a execução cancelada factura, o gesto custou **11 min**; se não,
+**3 min** — factor 3,7, e não há como decidir por medição enquanto o repositório for público
+(`billable_ms: 0` em todas as execuções) e o token da sessão for *fine-grained* sem
+`manage_billing:read`. O teste decisivo é este mesmo gesto depois de o repositório voltar a privado.
+
+**Com o quê.** `CUSTO-DOS-FLUXOS.md` §7.10 (a contagem, execução a execução, e as três alavancas com
+o ganho de cada uma); a §7.3 passa a ter a confirmação medida; a §7.1 e o quadro da §7.7 ganham a
+reserva; a §7.9 corrige o destino da declaração e passa a dizer **curadoria** onde dizia **plano**.

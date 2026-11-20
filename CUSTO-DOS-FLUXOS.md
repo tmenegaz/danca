@@ -285,6 +285,11 @@ pouparia **9 de cada 10** dessas gerações.
   que um agrupamento não perde o que não couber na janela.
 - **Porque é a primeira:** não mexe em infra nem em imagem — mexe numa decisão de **quando** gerar.
 
+> **Medida a 20/11/2026, e vale mais do que a estimativa.** Num gesto real de 30 segundos, o
+> `Gerar o ciclo` foi pedido **duas vezes** para um só acto — 86 s e 41 s —, porque a conclusão do
+> elenco e a gravação que fecha o lote pedem uma geração cada. Agrupar poupa **uma delas por acto**,
+> e não só nas dez aulas seguidas. A contagem inteira, execução a execução, está na **§7.10**.
+
 ### 7.2 Tirar a instalação do TeX do caminho crítico — **até −18 % no total**
 
 O job está a **111 s**; a fronteira dos 2 min é a 120 s. Tirando o `preparar-tex` do caminho (imagem
@@ -311,6 +316,13 @@ dispara o `derivados`. Um commit com os dois arquivos faz o mesmo por 1 minuto.
   correcção de 20/11/2026 na §4). Pelo contrário: é esta alavanca que continua a valer, porque o que
   se poupa é **uma execução a menos**, e não uma execução interrompida.
 - **O que verificar:** que os dois arquivos entram na mesma árvore de commit (§5.3).
+
+> **Confirmada a 20/11/2026, e é a maior das três em execuções.** No gesto medido na **§7.10**,
+> **três dos oito pushes são escrita de índice** — `linhas-de-base/.indice.json`,
+> `envelopes/.indice.json` e outra vez `envelopes/.indice.json`, este último gravado **antes** do
+> envelope que o justifica. Um commit com os dois faz o mesmo por uma execução menos, e há um ganho
+> que não é de minutos: hoje o `derivados` pode ver o índice novo com o envelope velho, porque o
+> índice chega primeiro.
 
 ### 7.4 Tirar `biblioteca/modalidades/**` do `publicar` — **−1 min por edição de estilo/dicionário**
 
@@ -374,6 +386,12 @@ de 2 minutos:
 
 **De 8–10 para 3–4 minutos por gesto — cerca de 60 % menos**, e é a fusão dos workflows que o fez:
 o mesmo trabalho passou de três ou quatro execuções para uma.
+
+> **Duas reservas a esta linha, medidas a 20/11/2026 (§7.10).** Primeira: `Gerar o ciclo` **não é
+> sempre 1** — num acto com elenco, plano e PO ele foi pedido **duas vezes** (86 s e 41 s), porque
+> cada gravação que fecha uma etapa pede a sua geração. Segunda: o gesto completo custou **dez**
+> execuções, e não oito — os commits do índice entram na conta. As duas reservas não desfazem a
+> conclusão da fusão; desfazem é a ideia de que o número já está no chão.
 
 **A ressalva das canceladas continua de pé.** Se as 6–8 execuções canceladas forem facturadas
 (arredondadas ao minuto), o gesto de hoje custa **10–11 min** e o de 15/11 custava **16–18** — a
@@ -674,9 +692,11 @@ Isto é o que a correcção fixa, e é o que o modal tem de perguntar:
 ```
 incluir um exercício no Estilo
         ↓  (é o que falta hoje: a declaração)
-a que OBJECTIVO ele serve?          → aula-1-parametro · marcados[]
+a que OBJECTIVO ele serve?          → a declaração nasce aqui, e viaja no passo seguinte
         ↓
-o objectivo observa este exercício  → «1 reconhecer… — observa: Battement tendu · Plié · Fondue»
+a CURADORIA guarda o par           → o termo de objetivos da Turma · {termo, objetivos}
+        ↓   (a cadeia anda: é o plano a herdar, não a derivação a escrever no plano)
+o objectivo observa este exercício  → aula-1-parametro · marcados[] · «1 reconhecer… — observa: …»
         ↓
 ele passa a poder ser escolhido     → item 10 · aula-1-sequencia (Bloco · Objetivo · Conteúdo)
         ↓
@@ -700,7 +720,7 @@ cliente abre a janela, e o mesmo pedido é reenviado com a decisão.
 | `objectivosDoPlano(plano)` — os marcos daquela turma, em texto | `motor/nucleo/derivar-plano-ciclo.js` (`marcosEmTexto` já existe) | **pronta** |
 | `impactoDaInclusao({ plano, exercicio, objectivos })` — o que muda no parâmetro e no item 10 | `motor/nucleo/`, ao lado de `impactoDaDuracao` | **a construir** — ~80 linhas: acrescenta o termo a `marcados` dos objectivos escolhidos, conta as linhas do item 10 que passam a poder citá-lo, e soma os tempos por bloco |
 | a rota devolve `409` com o impacto | `POST /api/bastidores/curadoria-derivar` (e a criação) | **a acrescentar** — o caminho do `409` já existe nesta página, para a duração |
-| a gravação da declaração | envelope do PLANO (`aula-1-parametro`) | **a construir** — é a parte sensível: é a cadeia a escrever no documento que a aula segue |
+| a gravação da declaração | **a curadoria** — o termo de objetivos da Turma, de onde o plano se alimenta | **a construir** — ver a decisão de desenho nº 1, abaixo; escrever no envelope do plano seria o desvio que ela recusou |
 | a janela | `bastidores.js`, a de `perguntarDaDuracao` | **a generalizar** — hoje ela sabe uma pergunta; passar a receber `{título, corpo, pergunta, campos}` é o trabalho maior (~150 linhas, e as provas de uma e de outra) |
 | a redistribuição dos minutos | `volume.js` (`aplicarMinutos` já existe) | **pronta** — só passa a ser chamada por outra janela |
 
@@ -711,11 +731,17 @@ linha do parâmetro que ganha o termo, e os blocos cujo total muda.
 **O que a janela NÃO pergunta:** em que bloco ele entra. O bloco é do item 10, e o item 10 é do
 professor, linha a linha — o sistema não escolhe pedagogia.
 
-**Duas decisões de desenho que ficam declaradas, e são dela:**
-1. **Onde a declaração é escrita.** A frase dela — «eu preciso dizer aqui no parâmetro de medição» —
-   aponta para o envelope do **plano**. Escrever ali, a partir da derivação do Estilo, é a cadeia a
-   mexer no documento que a aula segue: é o caminho certo, e é o que precisa de uma palavra explícita
-   antes de se fazer.
+**Duas decisões de desenho, e a primeira está decidida:**
+1. **Onde a declaração é escrita — na CURADORIA, e não no plano.** A frase dela, na correcção de
+   20/11/2026, fecha as duas hipóteses que aqui estavam abertas: «*quando eu incluir um outro
+   exercício lá no estilo […] ele tem que ir para o mesmo lugar, para o termo de objetivos na
+   curadoria. […] Na medida em que eu acrescento um objetivo, ele aumenta; na medida em que eu tiro um
+   exercício, ele diminui.* […] *A gente não vai fazer nunca nenhum desvio para colocar direto, porque
+   a gente estaria quebrando o nosso próprio sistema.*» Escrever `aula-1-parametro` a partir da
+   derivação do Estilo seria exactamente esse desvio: um atalho que salta a curadoria e chega ao
+   documento que a aula segue. **Fica recusado.** O caminho é o de sempre — Estilo → curadoria
+   (o termo de objetivos) → plano → o resto da cadeia —, e a declaração viaja no primeiro passo.
+   **O que continua em aberto é a *forma* do campo na curadoria**, e é desenho, não princípio.
 2. **O que acontece quando não há plano.** Sem plano de ensino não há objectivos a que ligar o
    exercício. Aí a janela não tem pergunta: o exercício entra no repertório e o aviso diz que a
    declaração do objectivo nasce no primeiro plano daquela turma.
@@ -752,6 +778,87 @@ e é ele que pode ser interrogado antes de nascer.
 a que objectivo o exercício serve é incluir um exercício que nunca entra em aula — e não para a
 remoção, que se desvincula sozinha. E o que hoje custa minutos sem mudar um byte é outra coisa, e é
 do Dicionário.
+
+---
+
+## 7.10 As execuções de um gesto, contadas uma a uma (20/11/2026)
+
+A §7.1 dizia «8 a 10 execuções por gesto». **Está contado: são dez.** E a contagem devolve uma lei
+mais útil do que a estimativa:
+
+> **Uma execução = um push que casa o `paths:` de um workflow.** Não é a duração, não é o
+> `concurrency`, e não é a quantidade de trabalho: é o **número de commits**.
+
+### a) O gesto, medido
+
+Um acto completo — concluir o elenco, gravar o plano, gravar o PO —, em **30 segundos**
+(17:11:22–17:11:52 de 20/11/2026), lido em `actions/runs` e nos `jobs` de cada execução. A duração
+que conta é a do **job**, e não a da execução: é o job que o GitHub arredonda ao minuto (a da
+execução inclui a fila e engana — uma execução de 78 s tinha um job de 45 s).
+
+| # | commit | o que mudou | execução | job |
+|:--|:--|:--|:--|:--|
+| 1 | `92bd63ce` | `escola/breu/linhas-de-base/tami--20261120-1711.json` — o dado | `Fechar os derivados` | 2 s, **cancelada** |
+| 2 | `c33bff72` | `…/linhas-de-base/.indice.json` — **o índice** | `Fechar os derivados` | 9 s, **cancelada** |
+| 3 | `0a79fee8` | `…/envelopes/.indice.json` — **o índice** | `Fechar os derivados` | 2 s, **cancelada** |
+| 4 | `4b9d4056` | `…/envelopes/plano-20261120-1411.json` — o dado | `Fechar os derivados` | 10 s, **cancelada** |
+| 5 | `e93ec298` | `…/envelopes/.indice.json` — **o índice, outra vez** | `Fechar os derivados` | 3 s, **cancelada** |
+| 6 | `ff4034ce` | `…/envelopes/po-20261120-1411.json` — o dado | `Fechar os derivados` | 5 s, **cancelada** |
+| 7 | `07d90b79` | `…ciclo-01-breu-rosa-po.md` — a fonte | `Fechar os derivados` | 15 s, **cancelada** |
+| 8 | `bd689edf` | as fontes do ciclo, num lote — o derivado que fecha | `Fechar os derivados` | 21 s, sucesso |
+| — | — | a geração pedida pela conclusão do elenco | `Gerar o ciclo` | **86 s → 2 min** |
+| — | — | a geração pedida pelo lote | `Gerar o ciclo` | 41 s → 1 min |
+
+**Dez execuções para um acto. Sete não fizeram trabalho nenhum** — foram canceladas entre 2 e 15
+segundos. E **três dos oito pushes são escrita de índice**, um deles o mesmo ficheiro **duas vezes**
+(`envelopes/.indice.json`, nos commits 3 e 5, a 30 segundos de distância): em `gravarEnvelope` o
+índice é gravado **antes** do envelope, em dois `PUT` e portanto em dois commits
+(`motor/nucleo/porta.js`, `registrarNoIndice` → `gravarEnvelope`).
+
+### b) Os dois commits que não custaram nada
+
+Na mesma janela, `b642dbfc` («o elo da cadeia automática») e `92733726` («o PO elicitado vira a
+fonte do ciclo») têm **árvore idêntica à do pai** — zero ficheiros. São uma segunda escrita do mesmo
+conteúdo, e ficaram no `main`.
+
+**E não lançaram execução nenhuma** — nenhum dos dois aparece nas 13 execuções da janela, porque
+nenhum casa um `paths:`. A nota fica pelo desenho, não pela factura: a escrita repetida não custa CI,
+custa história.
+
+### c) A conta, e as duas leituras que ela tem
+
+| leitura | execuções | minutos do gesto |
+|:--|:--|:--|
+| **a cancelada factura** | 10 | 7×1 + 2 + 1 = **11 min** |
+| **a cancelada não factura** | 10 | 0 + 2 + 1 = **3 min** |
+
+A diferença é de factor **3,7** — e não se resolve daqui. O `timing` do GitHub devolve
+`billable_ms: 0` em **todas** as execuções deste repositório, porque ele é **público**; e o token da
+sessão é *fine-grained*, sem `manage_billing:read`, pelo que nem a facturação da conta se lê
+(`/users/tmenegaz/settings/billing/actions` → 410, `/settings/billing/usage` → 404). O teste
+decisivo é **este mesmo gesto depois de o repositório voltar a privado**, lido na página de
+facturação — e é dela.
+
+### d) O chão: de dez para três
+
+Um acto tem exactamente três coisas para dizer ao mundo: **o dado**, **a geração** e **a
+publicação**. O chão é portanto **três execuções**. Hoje são dez, e a diferença não é trabalho a
+mais — é **commit a mais**.
+
+### e) As três alavancas, por ordem de ganho neste gesto
+
+| alavanca | o que faz | execuções | ganho |
+|:--|:--|:--|:--|
+| **§7.3 — o envelope e o índice no mesmo commit** | os commits 2, 3 e 5 desaparecem dentro dos 1, 4 e 6 | 10 → **7** | −3 min se a cancelada factura; −0 se não. **E ganha correcção**: hoje o `derivados` pode ver o índice novo com o envelope velho |
+| **§7.1 — uma geração por acto** | as duas `Gerar o ciclo` viram uma | 7 → **6** | −2 min (a segunda levou 86 s), e um pacote intermédio que ninguém lê |
+| **A margem dos 60 s** | já ganha no `gerar` (34–45 s após o pandoc estático) e no `publicar` (30–48 s) | — | evita o degrau de 1 → 2 min |
+
+**A regra dela — «uma execução, um minuto» — está ganha na unidade.** Os três jobs medidos cabem
+todos em 60 s. O que falta é o **número**, e o número é o dos commits.
+
+**E o que não se deve prometer:** a mesma `Gerar o ciclo` correu **41 s e 86 s no mesmo minuto**, no
+mesmo código — a variância do runner é maior do que qualquer optimização que falte. 34–45 s é margem,
+não garantia.
 
 ---
 
