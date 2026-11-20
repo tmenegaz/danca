@@ -16,8 +16,8 @@
       "professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
       "professores/demi-plie/ciclos/ciclo-01.conf"
     ],
-    "hash": "db08463197473e49ddf6d7ff21c486ea86988ef4e3016358f3078393e9996e92",
-    "hash_conteudo": "057dd7ed50527a1b004df3649095d823a8900bc9e3ba7baa0b71b08bb6865b5b",
+    "hash": "ebe761a05b327383a24788ccd9ace6d82a0cd65eb528669e4dfd27ee52907c4e",
+    "hash_conteudo": "e32cf8030e41e90b43c4bd5a276c558c41811065ce1d490fef5f46b7087be966",
     "id": "ciclo-01-breu-rosa",
     "lida": true,
     "parent_hash": ""
@@ -115,9 +115,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "6afe227"
+    "commit": "748be31"
   },
-  "gerado_em": "2026-11-20T15:48",
+  "gerado_em": "2026-11-20T15:52",
   "id": "ciclo:demi-plie/01/breu",
   "professor": "demi-plie",
   "versao": 7
