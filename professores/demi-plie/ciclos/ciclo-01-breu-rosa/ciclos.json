@@ -6,251 +6,131 @@
       "professor": "demi-plie",
       "escola": "Breu",
       "inicio": "2026-12-14",
-      "fim": "2027-02-05",
-      "total_aulas": 24,
-      "duracao_min": 45,
+      "fim": "2027-01-08",
+      "total_aulas": 12,
+      "duracao_min": 90,
       "arquivo": "ciclo-01-breu-rosa-dados.json",
       "aulas": [
         {
           "n": "01",
           "data": "2026-12-14",
-          "inicio": "16:30",
-          "fim": "17:15",
+          "inicio": "10:30",
+          "fim": "12:00",
           "marco": "reconhecer o apoio e alinhar o eixo vertical",
           "lancada": false,
           "ancora": null,
-          "prazo": "2026-12-15T16:30",
+          "prazo": "2026-12-15T10:30",
           "config": "captura-aula-01.json"
         },
         {
           "n": "02",
           "data": "2026-12-16",
-          "inicio": "16:30",
-          "fim": "17:15",
+          "inicio": "10:30",
+          "fim": "12:00",
           "marco": "transferir o peso entre os pés sem perder o alinhamento",
           "lancada": false,
           "ancora": null,
-          "prazo": "2026-12-17T16:30"
+          "prazo": "2026-12-17T10:30"
         },
         {
           "n": "03",
           "data": "2026-12-18",
-          "inicio": "16:30",
-          "fim": "17:15",
+          "inicio": "10:30",
+          "fim": "12:00",
           "marco": "sustentar a transferência com musicalidade e controle do movimento",
           "lancada": false,
           "ancora": null,
-          "prazo": "2026-12-20T16:30"
+          "prazo": "2026-12-20T10:30"
         },
         {
           "n": "04",
           "data": "2026-12-21",
-          "inicio": "16:30",
-          "fim": "17:15",
+          "inicio": "10:30",
+          "fim": "12:00",
           "marco": null,
           "lancada": false,
           "ancora": null,
-          "prazo": "2026-12-22T16:30"
+          "prazo": "2026-12-22T10:30"
         },
         {
           "n": "05",
           "data": "2026-12-23",
-          "inicio": "16:30",
-          "fim": "17:15",
+          "inicio": "10:30",
+          "fim": "12:00",
           "marco": null,
           "lancada": false,
           "ancora": null,
-          "prazo": "2026-12-24T16:30"
+          "prazo": "2026-12-24T10:30"
         },
         {
           "n": "06",
           "data": "2026-12-25",
-          "inicio": "16:30",
-          "fim": "17:15",
+          "inicio": "10:30",
+          "fim": "12:00",
           "marco": null,
           "lancada": false,
           "ancora": null,
-          "prazo": "2026-12-27T16:30"
+          "prazo": "2026-12-27T10:30"
         },
         {
           "n": "07",
           "data": "2026-12-28",
-          "inicio": "16:30",
-          "fim": "17:15",
+          "inicio": "10:30",
+          "fim": "12:00",
           "marco": null,
           "lancada": false,
           "ancora": null,
-          "prazo": "2026-12-29T16:30"
+          "prazo": "2026-12-29T10:30"
         },
         {
           "n": "08",
           "data": "2026-12-30",
-          "inicio": "16:30",
-          "fim": "17:15",
+          "inicio": "10:30",
+          "fim": "12:00",
           "marco": null,
           "lancada": false,
           "ancora": null,
-          "prazo": "2026-12-31T16:30"
+          "prazo": "2026-12-31T10:30"
         },
         {
           "n": "09",
           "data": "2027-01-01",
-          "inicio": "16:30",
-          "fim": "17:15",
+          "inicio": "10:30",
+          "fim": "12:00",
           "marco": null,
           "lancada": false,
           "ancora": null,
-          "prazo": "2027-01-03T16:30"
+          "prazo": "2027-01-03T10:30"
         },
         {
           "n": "10",
           "data": "2027-01-04",
-          "inicio": "16:30",
-          "fim": "17:15",
+          "inicio": "10:30",
+          "fim": "12:00",
           "marco": null,
           "lancada": false,
           "ancora": null,
-          "prazo": "2027-01-05T16:30"
+          "prazo": "2027-01-05T10:30"
         },
         {
           "n": "11",
           "data": "2027-01-06",
-          "inicio": "16:30",
-          "fim": "17:15",
+          "inicio": "10:30",
+          "fim": "12:00",
           "marco": null,
           "lancada": false,
           "ancora": null,
-          "prazo": "2027-01-07T16:30"
+          "prazo": "2027-01-07T10:30"
         },
         {
           "n": "12",
           "data": "2027-01-08",
-          "inicio": "16:30",
-          "fim": "17:15",
+          "inicio": "10:30",
+          "fim": "12:00",
           "marco": null,
           "lancada": false,
           "ancora": null,
-          "prazo": "2027-01-10T16:30"
-        },
-        {
-          "n": "13",
-          "data": "2027-01-11",
-          "inicio": "16:30",
-          "fim": "17:15",
-          "marco": null,
-          "lancada": false,
-          "ancora": null,
-          "prazo": "2027-01-12T16:30"
-        },
-        {
-          "n": "14",
-          "data": "2027-01-13",
-          "inicio": "16:30",
-          "fim": "17:15",
-          "marco": null,
-          "lancada": false,
-          "ancora": null,
-          "prazo": "2027-01-14T16:30"
-        },
-        {
-          "n": "15",
-          "data": "2027-01-15",
-          "inicio": "16:30",
-          "fim": "17:15",
-          "marco": null,
-          "lancada": false,
-          "ancora": null,
-          "prazo": "2027-01-17T16:30"
-        },
-        {
-          "n": "16",
-          "data": "2027-01-18",
-          "inicio": "16:30",
-          "fim": "17:15",
-          "marco": null,
-          "lancada": false,
-          "ancora": null,
-          "prazo": "2027-01-19T16:30"
-        },
-        {
-          "n": "17",
-          "data": "2027-01-20",
-          "inicio": "16:30",
-          "fim": "17:15",
-          "marco": null,
-          "lancada": false,
-          "ancora": null,
-          "prazo": "2027-01-21T16:30"
-        },
-        {
-          "n": "18",
-          "data": "2027-01-22",
-          "inicio": "16:30",
-          "fim": "17:15",
-          "marco": null,
-          "lancada": false,
-          "ancora": null,
-          "prazo": "2027-01-24T16:30"
-        },
-        {
-          "n": "19",
-          "data": "2027-01-25",
-          "inicio": "16:30",
-          "fim": "17:15",
-          "marco": null,
-          "lancada": false,
-          "ancora": null,
-          "prazo": "2027-01-26T16:30"
-        },
-        {
-          "n": "20",
-          "data": "2027-01-27",
-          "inicio": "16:30",
-          "fim": "17:15",
-          "marco": null,
-          "lancada": false,
-          "ancora": null,
-          "prazo": "2027-01-28T16:30"
-        },
-        {
-          "n": "21",
-          "data": "2027-01-29",
-          "inicio": "16:30",
-          "fim": "17:15",
-          "marco": null,
-          "lancada": false,
-          "ancora": null,
-          "prazo": "2027-01-31T16:30"
-        },
-        {
-          "n": "22",
-          "data": "2027-02-01",
-          "inicio": "16:30",
-          "fim": "17:15",
-          "marco": null,
-          "lancada": false,
-          "ancora": null,
-          "prazo": "2027-02-02T16:30"
-        },
-        {
-          "n": "23",
-          "data": "2027-02-03",
-          "inicio": "16:30",
-          "fim": "17:15",
-          "marco": null,
-          "lancada": false,
-          "ancora": null,
-          "prazo": "2027-02-04T16:30"
-        },
-        {
-          "n": "24",
-          "data": "2027-02-05",
-          "inicio": "16:30",
-          "fim": "17:15",
-          "marco": null,
-          "lancada": false,
-          "ancora": null,
-          "prazo": "2027-02-07T16:30"
+          "prazo": "2027-01-10T10:30"
         }
       ]
     }
