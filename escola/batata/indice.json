@@ -1270,6 +1270,33 @@
           "derivacao": "nao-conferida"
         }
       }
+    },
+    {
+      "em": "2026-11-20T11:54:26.915Z",
+      "motivo": "desabilitada + prazo de expurgo vencido",
+      "apagado": [],
+      "naoApagado": [
+        "senha SENHA_CRIPTO em tools/.senhas-locais",
+        "senha SENHA_BATATA em tools/.senhas-locais",
+        "acesso LOGIN_BATATA em tools/.senhas-locais",
+        "slug batata em tools/.escolas-teste",
+        "wrangler.lastro-teste.jsonc (config do shard «lastro-teste», que serve outras escolas — NÃO é desta)",
+        "pacote ciclo-01-batata/"
+      ],
+      "proveniencia": {
+        "auditada": true,
+        "em": "2026-11-20T11:54:26.914Z",
+        "ancoras": [],
+        "fontes": 0,
+        "impressao": null,
+        "resumo": {
+          "ancoras": 0,
+          "fontes": 0,
+          "variantes": 0,
+          "cobertos": 0,
+          "variantesConferidas": 0
+        }
+      }
     }
   ],
   "recriacao": [
