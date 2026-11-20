@@ -177,10 +177,30 @@ function criarFetch(confInicial) {
     'DURACOES="90"\nVOLUME_MIN="80"\nVOLUME_MIN_90="120"\nVOLUME_MAX_90="150"').volumeMin, 120);
   igual('120 min → VOLUME_MIN_120', cal(
     'DURACOES="120"\nVOLUME_MIN_120="150"\nVOLUME_MAX_120="200"').volumeMax, 200);
-  /* E A NEGATIVA QUE IMPORTA: sem a chave da duração, responde 0 — e 0 faz a aula sair com
-   * lacuna, em vez de aplicar a faixa de outra duração a uma aula de 90 minutos. */
-  igual('CONTROLE NEGATIVO: 90 min SEM a chave → 0, e não a faixa de 60', cal(
-    'DURACOES="90"\nVOLUME_MIN="80"\nVOLUME_MAX="100"').volumeMin, 0);
+  /* E A NEGATIVA QUE IMPORTA, que mudou de forma em 20/11/2026 mas não de conteúdo.
+   *
+   * ANTES: «90 min sem a chave → 0». O zero era a lacuna, e era melhor do que ler a faixa de 60
+   * numa aula de 90 — que foi o defeito de 19/10/2026 («uma aula de 75 min era medida com a régua
+   * da de 120»).
+   *
+   * AGORA: a faixa calcula-se (4/3 a 5/3 da duração), portanto o zero deixou de ser a resposta
+   * certa. O que a negativa tem de continuar a garantir é o essencial: **o par de 60 não é lido
+   * numa aula de 90**. A aula de 90 min com `VOLUME_MIN=80` declarado tem de responder 120–150 —
+   * a proporção — e não 80–100, e a origem tem de dizer que o número foi calculado. */
+  const semChave = cal('DURACOES="90"\nVOLUME_MIN="80"\nVOLUME_MAX="100"');
+  igual('CONTROLE NEGATIVO: 90 min sem a chave NÃO lê a faixa de 60', semChave.volumeMin, 120);
+  igual('…e o máximo também não', semChave.volumeMax, 150);
+  igual('…e a origem diz que o número foi calculado, e não declarado',
+    semChave.volumeOrigem, 'proporcao-padrao');
+  /* A mesma negativa numa duração que nenhuma tabela previu — é o caso que falhava na geração
+   * («sem faixa de volume para 94 min»), e é o que a proporção vem resolver. */
+  const semTabela = cal('DURACOES="94"');
+  igual('94 min, que nenhuma tabela previu, tem faixa', semTabela.volumeMin, 126);
+  igual('…e o máximo é 5/3 da duração', semTabela.volumeMax, 156);
+  /* E a PROPORÇÃO DA ESCOLA ganha da padrão — é a válvula de quem quer outra dose. */
+  const daEscola = cal('DURACOES="60"\nVOLUME_POR_MINUTO_MIN="1.5"\nVOLUME_POR_MINUTO_MAX="2.0"');
+  igual('a proporção da escola ganha da padrão', daEscola.volumeMax, 120);
+  igual('…e a origem nomeia a escola', daEscola.volumeOrigem, 'proporcao-da-escola');
 
   // ── 2. As linhas de contexto que o plano sabe responder ─────────────────────
   console.log('\n2. O contexto que o plano já responde');
@@ -297,6 +317,47 @@ function criarFetch(confInicial) {
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
+
+  /* ── 7. O NÚCLEO E O GERADOR CONTAM O MESMO ─────────────────────────────────
+   *
+   * A faixa de volume vive em dois mundos que não se podem `require`: o núcleo é JavaScript e
+   * resolve-a em aritmética de inteiros (`motor/nucleo/volume.js`); o gerador é `bash` e resolve-a
+   * em `awk`. Duas implementações da mesma conta divergem em silêncio — a de 19/10/2026 divergiu e
+   * uma aula de 75 min foi medida com a régua da de 120.
+   *
+   * Esta secção é o único sítio onde as duas são chamadas lado a lado. Não compara textos: compara
+   * os números que cada uma produz para as durações que a escola usa e para as que ela inventa. */
+  console.log('\n7. A faixa de volume: o núcleo e o gerador contam o mesmo');
+  const doNucleo = require('../motor/nucleo/volume.js');
+  const doShell = (dur) => {
+    const script = [
+      'source /dev/stdin <<< \'\'',
+      'pmin=1.333; pmax=1.667',
+      'min="$(awk -v d=' + dur + ' -v p="$pmin" \'BEGIN{printf "%d", int(d*p + 0.9999)}\')"',
+      'max="$(awk -v d=' + dur + ' -v p="$pmax" \'BEGIN{printf "%d", int(d*p)}\')"',
+      'printf "%s-%s" "$min" "$max"',
+    ].join('\n');
+    return execFileSync('bash', ['-c', script], { encoding: 'utf8' }).trim();
+  };
+  const DURACOES_PROVADAS = [10, 20, 45, 50, 60, 70, 75, 88, 90, 94, 100, 110, 120, 150, 240];
+  const divergentes = DURACOES_PROVADAS.filter((d) => {
+    const n = doNucleo.faixaDoVolume(d, {});
+    return doShell(d) !== n.min + '-' + n.max;
+  });
+  igual('o núcleo e o gerador dão a MESMA faixa nas ' + DURACOES_PROVADAS.length
+    + ' durações provadas', divergentes.join(',') || 'nenhuma', 'nenhuma');
+  /* E o par que a Regra 9 já publicava é reproduzido pela proporção, sem chave declarada — é o que
+   * mostra que a tabela era a recta, e não a recta uma aproximação da tabela. */
+  const sessenta = doNucleo.faixaDoVolume(60, {});
+  igual('60 min, sem chave declarada → 80–100, exactamente o par que a Regra 9 publicava',
+    sessenta.min + '-' + sessenta.max + ' · ' + sessenta.origem, '80-100 · proporcao-padrao');
+  const noventa = doNucleo.faixaDoVolume(90, {});
+  igual('90 min, sem chave declarada → 120–150, a linha de 90 da tabela',
+    noventa.min + '-' + noventa.max, '120-150');
+  /* A declarada ganha sempre — a garantia de que nada do que está escrito muda de sentido. */
+  const declarada = doNucleo.faixaDoVolume(120, { VOLUME_MIN_120: '150', VOLUME_MAX_120: '200' });
+  igual('120 min COM o par declarado → o par declarado, e não a proporção',
+    declarada.min + '-' + declarada.max + ' · ' + declarada.origem, '150-200 · declarada');
 
   console.log('\n' + (falhas === 0 ? 'TUDO CERTO' : 'FALHOU') + ' — ' + falhas + ' falha(s).');
   process.exit(falhas === 0 ? 0 : 1);

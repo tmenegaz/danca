@@ -55162,3 +55162,62 @@ pendência nenhum aviso é inventado.
 O que faltava não era detectá-la — era **levá-la a quem decide**. Três correcções desta noite foram
 dessa família: o valor certo com a chave errada, a calibração certa no sítio errado, e agora o aviso
 certo que não chegava a ninguém.
+
+### 20/11/2026 — a tabela de volume era uma recta, e o sistema pedia à escola que a declarasse à mão
+
+**A pergunta da proprietária, e ela tinha razão por uma razão que eu não tinha visto:** «Me explica
+qual é o problema em eu ter 70 minutos de aula ou ter 120 minutos de aula. […] Eu posso ter aulas de
+20 minutos, de 10 minutos? Eu posso ter aulas de 2 horas e meia? […] Eu poderia ter uma oficina de
+4 horas? […] Eu posso ter ensaios de 6 horas?»
+
+**A resposta medida: o sistema não limitava nada.** A única regra era `duracaoMin > 0`. O que partia
+era outra coisa — a faixa de volume era uma **lista de durações exactas** (`VOLUME_MIN_90`,
+`VOLUME_MIN_110`…) e uma escola nova nasce (`tools/criar-escola.sh`) a declarar **só 60 e 120**. Cada
+duração nova exigia intervenção à mão em três ficheiros; sem ela o `gerar-ciclo` morria com «sem
+faixa de volume para N min». Aconteceu a 70, a 90 e a 110 — **três gerações perdidas na mesma noite,
+pela mesma causa**.
+
+**E a tabela não era pedagogia, era aritmética.** As cinco linhas que o repositório publica:
+
+| duração | faixa | tempos por minuto |
+|:--|:--|:--|
+| 60 min | 80–100 | 1,33 – 1,67 |
+| 75 min | 100–120 | 1,33 – 1,60 |
+| 90 min | 120–150 | 1,33 – 1,67 |
+| 110 min | 145–185 | 1,32 – 1,68 |
+| 120 min | 150–200 | 1,25 – 1,67 |
+
+De **4/3 a 5/3 tempos por minuto em todos os cinco pontos**. Uma linha recta amostrada cinco vezes.
+O `80`/`100` que o `gerar-ciclo.sh` tinha fixos como padrão dos 60 min são exactamente 4/3 e 5/3 de
+60 — o *default* era a proporção, escrita à mão para uma duração só.
+
+**A correcção**: `motor/nucleo/volume.js` resolve a faixa com uma ordem que torna a mudança segura —
+**1)** o par declarado para aquela duração ganha (nada do que está escrito muda de sentido);
+**2)** a proporção da escola (`VOLUME_POR_MINUTO_MIN`/`_MAX`), se ela declarar uma; **3)** a
+proporção padrão. As cinco cópias da escada `<=60 />60` passaram a chamar o núcleo: `compor-conf.js`,
+`escrever-ciclo.js`, e — em `awk`, porque um script de shell não faz `require` — `gerar-ciclo.sh`.
+O `criar-escola.sh` nasce agora com a proporção em vez da lista de duas durações.
+
+**A/B:** sem a proporção, `provar-manifesto-do-plano` falha **12** asserções; com ela, **2** (as duas
+anteriores, do professor `tiago-menegaz`, que não existe no repositório). A secção nova chama o
+núcleo e o `awk` lado a lado em **15 durações** — duas implementações da mesma conta divergem em
+silêncio, e foi exactamente o que aconteceu a 19/10/2026, quando uma aula de 75 min foi medida com a
+régua da de 120. Concordam nas 15.
+
+**Provado de ponta a ponta na bancada, e não só em asserção:** um manifesto de **94 minutos**, sem
+par de volume declarado em sítio nenhum, gerou com **0 erros** — `gerar-ciclo.sh demi-plie 01
+breu-rosa`, 94 min, 15 aulas, PDFs de 219 KB e 346 KB. Antes desta correcção esse comando morria em
+«sem faixa de volume para 94 min».
+
+**O que a proporção não sabe, e passa a dizer que não sabe.** Aos 10 minutos, 14 tempos não dão para
+aquecer, barra e centro; às 6 horas, 800 tempos não são uma aula, são fadiga. A recta está
+aritmeticamente certa e pedagogicamente cega nos extremos — `suspeitaDaDuracao` devolve a frase
+abaixo dos 30 e acima dos 180 minutos, e `null` no caso comum. É aviso, nunca bloqueio: o sistema
+registra; não avalia.
+
+**O que continua por fazer, e é a segunda metade da proposta 1:** o modal que mostra o impacto antes
+de gravar. O cálculo já existe (`impactoDaDuracao`), com as três partes que ela pediu — em
+`percentual` as fatias não mudam (um clique); em `minutos` a soma tem de fechar com a duração nova e
+a regra de três diz para quanto vai cada bloco; e a dose por exercício **não tem conta**, portanto
+pede-se a decisão e **não se propõe número** («é o professor que vai decidir»). Provado sobre o plano
+real do `breu`, que está em percentual: 30/30/30/10 → 30/30/30/10, `precisaAjuste: false`.

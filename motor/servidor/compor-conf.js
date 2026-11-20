@@ -35,6 +35,10 @@ const ciclo = () => require('./escrever-ciclo.js');
  * requer este módulo, pelo que o `require` de topo não fecha ciclo nenhum — e é ele que impede
  * esta conta de ser escrita uma segunda vez. Ver o comentário em `comporConf`. */
 const { varianteDoContexto } = require('./escrever-po.js');
+/* A FAIXA DE VOLUME PASSOU A SER CALCULÁVEL (20/11/2026) — `motor/nucleo/volume.js` é o
+ * único sítio que a resolve. Antes dela havia cinco cópias da mesma escada `<=60 />60`, e
+ * as cinco ficaram para trás à primeira duração nova. */
+const volume = require('../nucleo/volume.js');
 
 /** Uma hora `HH:MM` válida? A hora é obrigatória: sem ela o prazo não tem de onde contar. */
 function horaValida(h) {
@@ -221,15 +225,46 @@ function comporConf({ turma, plano, identidade, escola, ciclo: numeroDoCiclo, do
     : '';
 
   // ── a faixa de volume que o gerador vai procurar para ESTA duração (Regra 9) ──
-  // Não se inventa faixa: a norma é da escola, e é ela que declara os números. O que se faz aqui
-  // é dizer, antes do CI, qual é o par que esta variante vai exigir e se ele existe.
+  /*
+   * A FAIXA PASSOU A SER CALCULÁVEL (20/11/2026) — ver `motor/nucleo/volume.js`.
+   *
+   * O QUE ACONTECIA. A faixa tinha de ser declarada por duração exacta, e uma escola nova nasce
+   * a declarar só 60 e 120. Cada duração nova — 70, 90, 110 — exigia uma intervenção à mão, e
+   * sem ela o `gerar-ciclo` morria com «sem faixa de volume para N min». Três gerações perdidas
+   * numa noite pela mesma causa.
+   *
+   * A ORDEM DAS RESPOSTAS, e é ela que torna a mudança segura:
+   *   1. o par DECLARADO para esta duração ganha — nada do que já está escrito muda de sentido;
+   *   2. senão, a proporção da escola (`VOLUME_POR_MINUTO_MIN`/`_MAX`);
+   *   3. senão, a proporção padrão (4/3 a 5/3), que é a linha recta que as cinco linhas medidas
+   *      do repositório já seguem.
+   *
+   * O QUE SE ESCREVE NO `.conf` DA VARIANTE. O par RESOLVIDO, com as chaves canónicas desta
+   * duração. É o que faz o manifesto bastar-se: o `gerar-ciclo.sh` continua a encontrar
+   * `VOLUME_MIN_<dur>` sem lhe tocar, e quem abrir o ficheiro lê o número que foi usado, em vez
+   * de ter de o recalcular de uma regra que vive noutro sítio.
+   */
   const pendencias = [];
-  const chavesDeVolume = nd <= 60 ? ['VOLUME_MIN', 'VOLUME_MAX'] : ['VOLUME_MIN_' + nd, 'VOLUME_MAX_' + nd];
-  const faltandoVolume = chavesDeVolume.filter((k) => !String(ident[k] || '').trim());
-  if (faltandoVolume.length) {
-    pendencias.push('a escola não declara ' + faltandoVolume.join(' nem ') +
-      ' — o gerador recusa a aula de ' + nd + ' min sem a faixa da Regra 9 ' +
-      '(o .conf da escola é o dono desse número)');
+  const faixaDoVolume = volume.faixaDoVolume(nd, ident);
+  if (!faixaDoVolume.origem) {
+    pendencias.push('a turma não declara duração legível — sem ela não há faixa de volume '
+      + 'para a Regra 9');
+  }
+  const chaveMin = nd <= 60 ? 'VOLUME_MIN' : 'VOLUME_MIN_' + nd;
+  const chaveMax = nd <= 60 ? 'VOLUME_MAX' : 'VOLUME_MAX_' + nd;
+  const linhasDeVolume = faixaDoVolume.origem
+    ? [linha(chaveMin, faixaDoVolume.min), linha(chaveMax, faixaDoVolume.max)]
+    : [];
+  /* E A PROPORÇÃO VAI JUNTO, quando foi dela que o número saiu. Sem esta linha, o manifesto de
+   * uma variante de 94 min teria um par que ninguém sabe de onde veio — e a escola perderia a
+   * única testemunha de que o número é uma proporção e não uma decisão. */
+  const linhasDaProporcao = [];
+  if (faixaDoVolume.origem === 'proporcao-padrao') {
+    linhasDaProporcao.push(linha('VOLUME_POR_MINUTO_MIN', '1.333'));
+    linhasDaProporcao.push(linha('VOLUME_POR_MINUTO_MAX', '1.667'));
+  } else if (faixaDoVolume.origem === 'proporcao-da-escola') {
+    linhasDaProporcao.push(linha('VOLUME_POR_MINUTO_MIN', String(ident.VOLUME_POR_MINUTO_MIN)));
+    linhasDaProporcao.push(linha('VOLUME_POR_MINUTO_MAX', String(ident.VOLUME_POR_MINUTO_MAX)));
   }
 
   // O `DOCS` já escrito é PRESERVADO: re-eliciar o plano depois de o ciclo ter aulas não pode
@@ -277,8 +312,9 @@ function comporConf({ turma, plano, identidade, escola, ciclo: numeroDoCiclo, do
     // BASE (`ciclo-01.conf`), e não do `.conf` da escola — por isso o par resolvido é copiado
     // para cá. Sem esta cópia, a faixa declarada na escola não chegaria ao gerador, e a turma
     // de 75 min seria recusada por uma chave que existe do outro lado do repositório.
-    ...(faltandoVolume.length ? [] : chavesDeVolume.map((k) => linha(k, ident[k]))),
-    ...(faltandoVolume.length ? [] : ['']),
+    ...linhasDeVolume,
+    ...linhasDaProporcao,
+    ...(linhasDeVolume.length ? [''] : []),
     '# --- conteúdo: do plano elicitado -------------------------------------------',
     linha('NOME', 'Ciclo ' + numeroDoCiclo + ' — ' + (ident.ESCOLA || escola) + ' · ' + nomeDaTurma),
     linha('OBJETIVO_GERAL', objetivo ||

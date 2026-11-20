@@ -180,19 +180,33 @@ for doc in $DOCS; do
     # chave declarar — a faixa é norma da escola, e não se inventa.
     declare -n ref_min="VOLUME_MIN_${dur}" 2>/dev/null || ref_min=""
     declare -n ref_max="VOLUME_MAX_${dur}" 2>/dev/null || ref_max=""
+    min="${ref_min:-}"
+    max="${ref_max:-}"
     if [ "$dur" -le 60 ]; then
-      min="${ref_min:-${VOLUME_MIN:-80}}"
-      max="${ref_max:-${VOLUME_MAX:-100}}"
-    else
-      min="${ref_min:-}"
-      max="${ref_max:-}"
+      min="${min:-${VOLUME_MIN:-}}"
+      max="${max:-${VOLUME_MAX:-}}"
     fi
     unset -n ref_min ref_max 2>/dev/null || true
+    # A FAIXA PASSOU A SER CALCULÁVEL (20/11/2026) — `motor/nucleo/volume.js` é a autoridade, e
+    # esta linha é a mesma conta, em awk, porque um script de shell não faz `require`.
+    #
+    # O QUE ACONTECIA. Aqui havia `${VOLUME_MIN:-80}` e `${VOLUME_MAX:-100}` para tudo até 60 min,
+    # e RECUSA para tudo o resto: «sem faixa de volume para N min». Uma escola nova nasce a
+    # declarar só 60 e 120 (`tools/criar-escola.sh`), portanto 70, 90 e 110 falhavam — e falharam
+    # três vezes na mesma noite, cada uma a custar uma geração.
+    #
+    # A TABELA NÃO ERA PEDAGOGIA, ERA ARITMÉTICA. 60→80-100, 75→100-120, 90→120-150,
+    # 110→145-185, 120→150-200: de 4/3 a 5/3 tempos por minuto em todos os cinco pontos. Uma linha
+    # recta amostrada cinco vezes. O 80 e o 100 que aqui estavam fixos são exactamente 4/3 e 5/3
+    # de 60 — o default era a proporção, escrita à mão e só para uma duração.
+    #
+    # A ORDEM: declarado ganha; depois a proporção da escola; depois a padrão.
     if [ -z "$min" ] || [ -z "$max" ]; then
-      echo "erro: sem faixa de volume para $dur min — declare VOLUME_MIN_$dur e VOLUME_MAX_$dur" >&2
-      echo "  em $(basename "$CONF_VARIANTE") (ou no .conf da escola, que é o dono da norma)." >&2
-      echo "  A faixa é da Regra 9 e muda com a duração: a de 60 min não serve para $dur." >&2
-      exit 1
+      pmin="${VOLUME_POR_MINUTO_MIN:-1.333}"
+      pmax="${VOLUME_POR_MINUTO_MAX:-1.667}"
+      min="$(awk -v d="$dur" -v p="$pmin" 'BEGIN{printf "%d", int(d*p + 0.9999)}')"
+      max="$(awk -v d="$dur" -v p="$pmax" 'BEGIN{printf "%d", int(d*p)}')"
+      [ "$max" -lt "$min" ] && max="$min"
     fi
     vol="$(volume_declarado "$arq" "$dur")"
     if [ -z "$vol" ]; then

@@ -548,10 +548,18 @@ PROFESSOR="$PROFESSOR_NOME"
 TOTAL_AULAS="$TOTAL_AULAS"
 
 # Faixas de volume ativo por duração de aula (Regra 9, etapa 1)
-VOLUME_MIN="80"          # faixa de 60 min
-VOLUME_MAX="100"
-VOLUME_MIN_120="150"     # faixa de 120 min
-VOLUME_MAX_120="200"
+#
+# A FAIXA DEIXOU DE SER UMA LISTA DE DURAÇÕES (20/11/2026).
+#
+# Aqui nasciam DUAS durações — 60 e 120 — e todas as outras eram recusadas na geração: «sem faixa
+# de volume para N min». Foi assim que 70, 90 e 110 minutos morreram, três vezes na mesma noite.
+# A escola nasce agora com a PROPORÇÃO, que é o que estas duas linhas sempre foram: 80/100 são
+# 4/3 e 5/3 de 60, e 150/200 são 4/3 e 5/3 de 120 — a mesma recta, medida em dois pontos.
+#
+# Uma duração declarada à mão continua a ganhar da proporção: a escola que quiser dar outra dose
+# a uma aula concreta acrescenta `VOLUME_MIN_<dur>`/`VOLUME_MAX_<dur>` e é ela que manda.
+VOLUME_POR_MINUTO_MIN="1.333"   # 4/3 tempos activos por minuto de aula
+VOLUME_POR_MINUTO_MAX="1.667"   # 5/3
 
 # Documentos, na ordem em que aparecem no PDF e no menu. COMEÇA VAZIO: nenhum
 # documento foi escrito. O plano elicitado será a primeira fonte
@@ -600,10 +608,11 @@ OBJETIVO_GERAL="[Preencher: objetivo geral do ciclo — o plano elicitado o esta
 
 TOTAL_AULAS="$TOTAL_AULAS"
 
-VOLUME_MIN="80"
-VOLUME_MAX="100"
-VOLUME_MIN_120="150"
-VOLUME_MAX_120="200"
+# A faixa de volume (Regra 9) vem por proporção, e não por duração exacta — ver o `.conf` da
+# escola acima. O par resolvido para a duração desta turma é escrito no manifesto pelo
+# `comporConf`; declará-lo aqui seria a lista de durações outra vez.
+VOLUME_POR_MINUTO_MIN="1.333"
+VOLUME_POR_MINUTO_MAX="1.667"
 
 # Nenhum documento ainda — o ciclo começa do zero (ver ciclo-$CICLO.conf).
 DOCS=""

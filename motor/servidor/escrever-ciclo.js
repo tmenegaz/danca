@@ -23,6 +23,8 @@ const { codificarBase64, decodificarBase64, caminhoDoConf } = require('./escreve
 const { orcamentoDe } = require('./subpedidos.js');
 const { cifrarEnvelopeDeDados } = require('./cifrar-envelope.js');
 const { respostaDo } = require('../nucleo/derivar-po.js');
+/* A faixa de volume resolve-se num sítio só (20/11/2026). */
+const volume = require('../nucleo/volume.js');
 const {
   slugDe,
   derivarAula01,
@@ -315,20 +317,33 @@ function calibracaoDoConf(texto) {
   };
   const duracao = parseInt(pegar('DURACOES'), 10);
   const minutos = Number.isFinite(duracao) ? duracao : 0;
-  /* O par da duração, com a mesma escada do gerador: a chave explícita da duração, depois a
-   * genérica. Sem esta escada, um manifesto de 90 minutos responde 0 — e 0 não é uma faixa. */
-  const faixa = minutos > 60
-    ? [pegar('VOLUME_MIN_' + minutos), pegar('VOLUME_MAX_' + minutos)]
-    : [pegar('VOLUME_MIN_' + minutos) || pegar('VOLUME_MIN'),
-      pegar('VOLUME_MAX_' + minutos) || pegar('VOLUME_MAX')];
-  const volumeMin = parseInt(faixa[0], 10);
-  const volumeMax = parseInt(faixa[1], 10);
+  /* A FAIXA VEM DO NÚCLEO, e não de uma escada local (20/11/2026).
+   *
+   * Havia cinco cópias desta escada — aqui, no `compor-conf`, na `derivar-ciclo`, no
+   * `gerar-ciclo.sh` e no `criar-escola.sh` — e a primeira duração nova mostrou que elas não
+   * andavam juntas. Uma cópia a menos é uma divergência a menos: `motor/nucleo/volume.js`
+   * resolve a faixa pela ordem declarada → proporção da escola → proporção padrão.
+   *
+   * O manifesto da variante já traz o par resolvido (`comporConf` escreve-o), portanto na
+   * prática este `identidade` lê a chave `'declarada'` e o número é o mesmo de antes. */
+  const identidade = {
+    VOLUME_MIN: pegar('VOLUME_MIN'),
+    VOLUME_MAX: pegar('VOLUME_MAX'),
+    ['VOLUME_MIN_' + minutos]: pegar('VOLUME_MIN_' + minutos),
+    ['VOLUME_MAX_' + minutos]: pegar('VOLUME_MAX_' + minutos),
+    VOLUME_POR_MINUTO_MIN: pegar('VOLUME_POR_MINUTO_MIN'),
+    VOLUME_POR_MINUTO_MAX: pegar('VOLUME_POR_MINUTO_MAX'),
+  };
+  const faixa = volume.faixaDoVolume(minutos, identidade);
+  const volumeMin = faixa.min;
+  const volumeMax = faixa.max;
   const escola = pegar('ESCOLA');
   const variante = pegar('VARIANTE');
   return {
     duracaoMinutos: minutos,
     volumeMin: Number.isFinite(volumeMin) ? volumeMin : 0,
     volumeMax: Number.isFinite(volumeMax) ? volumeMax : 0,
+    volumeOrigem: faixa.origem,
     escolaNome: escola || variante,
   };
 }
