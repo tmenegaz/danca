@@ -82,7 +82,7 @@ Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turm
 
 - Satisfatório
 - Razoável
-- Em desenvolvimento
+- Em desenvovimento
 - Não se aplica
 
 > **A régua da turma — e só ela.** Os níveis, como a escola os escreve, na ordem da escala
@@ -104,16 +104,16 @@ Estender o ciclo em duas aulas se o último marco não for alcançado.
 
 ## Música e vídeo de referência
 
-- Plié — 8 tempos em 4/4
-- Battement tendu — 8 tempos em 4/4
-- Port de bras — 16 tempos em 3/4
+- Battement tendu — 8 tempos em 2/4
+- Plié — 4 tempos em 2/4
+- Relevé — 8 tempos em 2/4
 - Faixa de teste em 4/4 e 3/4; vídeo de referência de teste.
 
 ## Repertório
 
-- Plié
 - Battement tendu
-- Port de bras
+- Plié
+- Relevé
 
 ## Registro de proveniência
 
