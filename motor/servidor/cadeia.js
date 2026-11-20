@@ -783,6 +783,24 @@ function criarCadeia({
        * (`derivarPlano` → `ritmoDaSala`). Uma segunda forma de ler o ritmo divergiria da
        * primeira, e a divergência apareceria como um elo derivado com o valor errado. */
       ritmo: respostasDoRitmo(sala),
+      /* O CONTEÚDO DA TURMA VAI COM O ESTADO (20/11/2026) — e é o que faz a DECLARAÇÃO do objetivo
+       * chegar ao papel.
+       *
+       * O DEFEITO MEDIDO, ao vivo. A Turma declara `objetivosDoRepertorio` («o Batman GT serve o
+       * objetivo 3»), a cadeia corre seis vezes e dá o plano por `feita` todas as vezes — porque
+       * a última pergunta da escada comparava a DATA da vigência (`2026-11-20`) com o carimbo do
+       * plano (`2026-11-20T14:11`) e a string do carimbo ganha. O plano nunca foi derivado, e a
+       * declaração nunca teve onde ser aplicada: o `aula-1-parametro` ficou sem um único objetivo
+       * marcado, exactamente como ela viu.
+       *
+       * O QUE VAI: a lista acordada da Turma e as declarações dela. Nada mais — a guarda do
+       * núcleo só precisa destas duas coisas para saber que o plano está velho, e é a lista da
+       * TURMA (não a do pedido) que manda, como em toda a cadeia. */
+      conteudo: {
+        repertorio: repertorioDaCuradoria(curadoria),
+        declaracoes: objetivosDoRepertorio.declaracoesEmMapa(
+          objetivosDoRepertorio.declaracoesLidas(curadoria && curadoria.objetivosDoRepertorio)),
+      },
       /* O PEDIDO EXPLÍCITO DE ATUALIZAR AGORA (20/11/2026) — ver `forcar` no núcleo. Há ajustes
        * que não passam pela cadeia (a régua, o vocabulário, o verbete) e que só chegam ao documento
        * quando um plano novo nasce: a régua viaja como fotografia no envelope. Sem isto, o botão

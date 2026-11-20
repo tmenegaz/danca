@@ -7167,21 +7167,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
             : ' hidden')
           + '>!</span>';
         const botaoAjuste = acoesDaCuradoria(c, vinculada);
-        /* O AVISO QUE ELA PEDIU (20/11/2026) — e o sítio é o cartão da Turma, porque é a Turma que
-         * guarda estes ajustes.
+        /* A NOTA FIXA SAIU DO CARTÃO (20/11/2026) — e a ordem foi dela, olhando para a lista:
          *
-         * «há derivações que são feitas, elas têm efeito diretamente na turma, mas elas param ali.
-         * Então a gente vai colocar um aviso para o professor […] que diz que esses ajustes estão
-         * registrados na turma, mas serão vinculados ao ciclo […] E se ele quiser que seja gerado
-         * agora, a gente vai colocar um botão.»
+         *   «Nas turmas atribuídas, na listagem aqui das turmas, você colocou um texto aqui que diz
+         *    assim: "Ajustes na régua, no estilo ou no dicionário ficam registrados nesta turma e só
+         *    passam ao ciclo quando ele é atualizado." Tira esse texto, não tem que existir esse
+         *    texto. […] Essa mensagem […] tem que existir quando ajustes são feitos nesses lugares,
+         *    tá? Aí sim é que aparece lá no canto superior direito.»
          *
-         * SEM NÚMERO E SEM ALARME. Não se conta quantos ajustes há — o sistema não sabe distingui-los
-         * (uma régua mudada não deixa marca no plano), e um número inventado seria a mesma família
-         * de erro que este repositório persegue. A frase diz o facto e aponta o botão que o resolve. */
-        const notaDoCiclo = vinculada
-          ? '<p class="nota">Ajustes na régua, no Estilo ou no Dicionário ficam registados nesta '
-            + 'Turma e só passam ao ciclo quando ele é atualizado — «Atualizar o ciclo» faz isso agora.</p>'
-          : '';
+         * E ela tem razão pela mesma razão de sempre: um aviso permanente sobre um facto que talvez
+         * não tenha acontecido é ruído. Quem abre a lista de Turmas para trabalhar lê cinco linhas
+         * de contrato em cada cartão que não lhe dizem nada sobre a Turma que está ali. O que fica
+         * no lugar é o aviso do gesto (`avisar`), que só aparece **quando** o ajuste é feito, e
+         * desaparece ao fim de oito segundos.
+         *
+         * O botão «Atualizar o ciclo» NÃO depende disto e continua no cartão: é ele que dá a
+         * autonomia que ela pediu («a gente tem que dar essa autonomia para o professor»), e um
+         * botão não é um aviso — é a porta.
+         */
         /* O HISTÓRICO DO AJUSTE SAIU DAQUI (11/11/2026) — e a ordem foi dela, com a razão certa:
          *
          *   «esses ajustes anteriores que você tem aqui na listagem das turmas atribuídas, por hora
@@ -7402,7 +7405,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           '</span>' +
           '<span class="acoes" data-acoes-da-turma="' + esc(c.id) + '">' + botaoAjuste + '</span></div>' +
           (complemento.length ? '<div class="dono">' + complemento.join(' · ') + '</div>' : '') +
-          notaDoCiclo +
           '<div class="trio">' +
           caixa('Sala', salasDaTurma.length ? turmas.join(' · ') : 'sem sala', 'sala',
             'ver o ritmo e a régua da sala desta Turma') +
@@ -10628,6 +10630,59 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  b.textContent = "Mostrar todas";' +
     '  aviso.appendChild(b);' +
     '}' +
+    /* O CANCELAMENTO DO TRABALHO DA TURMA, NUMA FUNÇÃO (20/11/2026).
+     *
+     * NASCEU DE UMA ORDEM DELA, e a ordem põe o dedo num defeito real: «O botão cancelar
+     * [do modal] ele não está funcionando porque quando clica em cancelar ele tem que fazer o mesmo
+     * efeito de cancelar que o botão cancelar faz no formulário. Quer dizer, ele fecha o modal,
+     * limpa o formulário e colapsa o formulário.»
+     *
+     * O corpo já existia — era o `#cu-cancelar` —, e o defeito era de FRONTEIRA: a janela
+     * limpava-se a si própria e deixava o trabalho da Turma meio-feito. Duas saídas com nomes
+     * iguais e efeitos diferentes é o género de coisa que ninguém consegue explicar a quem
+     * pergunta «mas eu carreguei em cancelar». Agora há uma só: o gesto de cancelar é este, e
+     * quem o oferece chama-o.
+     *
+     * A FUNÇÃO NÃO FECHA A JANELA. Quem a chama é que sabe se há janela para fechar — o
+     * formulário não tem, e a janela tem. Misturar as duas coisas obrigaria o formulário a
+     * procurar um modal que pode não existir. */
+    'function cancelarOTrabalhoDaTurma(){' +
+    '    document.getElementById("cuderivar").value = "";' +
+    '    document.getElementById("cumodo").value = "";' +
+    '    document.getElementById("cu-vigencia-campo").hidden = true;' +
+    '    document.getElementById("cu-cancelar").hidden = true;' +
+    /* O «EXCLUIR» VOLTA A PODER (19/11/2026) — cancelada a edição, não há ficha em curso, e a
+     * listagem tem de o dizer sem esperar por uma recarga. Este handler é o único caminho de saída
+     * da curadoria que não passa pelo `pintarCancelares`. */
+    '    if (typeof pintarExcluires === "function") pintarExcluires();' +
+
+    '    document.getElementById("cuturma").disabled = false;' +
+    '    document.getElementById("form-curadoria").reset();' +
+    '    [["esc-alunas"], ["esc-conteudos"]].forEach(function(par){' +
+    '      var el = document.getElementById(par[0]);' +
+    '      if (!el) return;' +
+    '      Array.prototype.slice.call(el.querySelectorAll(".escolhido")).forEach(function(f){ f.parentElement.removeChild(f); });' +
+    '    });' +
+    // As alunas voltam todas a poder ser escolhidas: a modalidade foi reposta. Os conteúdos
+    // também se limpam — `reset()` não toca em fichas, porque elas não são campos de formulário.
+    '    refiltrarAlunas();' +
+    // E A LISTA DAS MODALIDADES VOLTA A SER A DO CATÁLOGO (03/11/2026): ela tinha sido filtrada
+    // pelas habilitações do professor que estava escolhido, e `reset()` repõe os campos mas não
+    // as opções que o script escreveu.
+    '    pintarModalidades(listaDoCatalogo(), "");' +
+    '    filtrarPorHabilitacao();' +
+    // E O ELENCO VOLTA A SER O DA CRIAÇÃO (07/11/2026): sem edição em curso, o `<select>` fica
+    // vazio e a nota desaparece — o cancelamento não pode deixar o formulário num estado que a
+    // criação não tem.
+    '    var seletorElenco = document.getElementById("cuelenco");' +
+    '    if (seletorElenco) seletorElenco.value = "";' +
+    '    mostrarElenco("");' +
+    // E O FORMULÁRIO FECHA-SE (18/11/2026). Ver `cancelarOFormularioDe`.
+    '    cancelarOFormularioDe("sec-curadorias");' +
+    // …E O BOTÃO SAI COM ELE (19/11/2026): quem decide se ele existe é `pintarCancelares`, a
+    // partir da abertura do formulário — não uma linha escrita à mão que a próxima porta esquece.
+    '    if (typeof pintarCancelares === "function") pintarCancelares();' +
+    '}' +
     'document.addEventListener("click", function(e){' +
     '  var alvo = e.target.closest ? e.target.closest("button.filtrar-turmas") : null;' +
     '  if (alvo) {' +
@@ -11610,6 +11665,33 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *   · a travessia ESTOUROU → o erro, em atenção, e não um 500 que faria parecer que a gravação
      *     não aconteceu (ela já estava feita).
      */
+    /* «O AJUSTE ESTÁ REGISTADO NA TURMA» (20/11/2026) — uma frase, e ela nasceu de uma ordem.
+     *
+     *   «essas derivações […] têm efeito diretamente na turma, mas elas param ali. Então a gente vai
+     *    colocar um aviso para o professor […] que diz que esses ajustes estão registrados na turma,
+     *    mas serão vinculados ao ciclo […] na próxima vez que o ciclo for gerado. […] Mas se ele
+     *    quiser que seja gerado agora, a gente vai colocar um botão na turma que dispara então a
+     *    regeneração.»
+     *
+     * A FRASE DIZ AS TRÊS COISAS, e nenhuma a mais: que o ajuste existe (está gravado), que ele
+     * ainda NÃO chegou aos documentos, e por onde se força a chegada. Sem a terceira, é um aviso de
+     * um problema sem saída; sem a segunda, é uma promessa que o prazo de oito segundos não pode
+     * cumprir.
+     *
+     * E ELA SÓ APARECE QUANDO O AJUSTE É FEITO — é a outra metade da ordem («Tira esse texto, não
+     * tem que existir esse texto […] essa mensagem […] tem que existir quando ajustes são feitos
+     * nesses lugares»). O aviso fixo no cartão saiu; este entra no canto, e sai sozinho. */
+    'function avisarDoAjusteQueParaNaTurma(qual, depoisDaRecarga){' +
+    '  var texto = (qual ? qual + " — " : "") + "o ajuste está registado na Turma, mas só " +' +
+    '    "passa ao ciclo quando ele é gerado outra vez. «Atualizar o ciclo», no cartão da Turma, " +' +
+    '    "faz isso agora.";' +
+    /* O CAMINHO DA RECARGA É O DA RÉGUA. Gravar a régua recarrega a página (`enviar(…, true, …)`),
+     * e um aviso pintado no canto morria no instante seguinte — o defeito que o
+     * `avisarDepoisDaRecarga` já existe para fechar. Quem recarrega pede a ponte; quem não
+     * recarrega fica com o aviso normal. */
+    '  if (depoisDaRecarga) avisarDepoisDaRecarga("atencao", texto);' +
+    '  else avisar("atencao", texto);' +
+    '}' +
     'function avisarDaGeracao(g){' +
     '  if (!g || typeof g !== "object") return;' +
     '  var nomes = function(lista){' +
@@ -11637,7 +11719,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * `motivo` do servidor é isso mesmo: o caso, e não o texto. Depender do texto seria adivinhar
      * por palavras o que o código já sabe. */
     '    var razao = g.motivo === "sem-plano"' +
-    '      ? "e ainda não têm plano de ensino — não há ciclo para regenerar. A geração parte do «Guardar» do plano."' +
+    '      ? "e ainda não têm plano de ensino — não há ciclo para regenerar. A geração parte do «Guardar» do plano, e «Atualizar o ciclo» no cartão da Turma faz o mesmo."' +
     '      : (g.motivo === "sem-token"' +
     '        ? "mas este Worker não tem GITHUB_TOKEN: os documentos não vão ser gerados."' +
     '        : (g.aviso ? String(g.aviso) : "e não há ciclo para regenerar."));' +
@@ -11655,6 +11737,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * O mecanismo é o que a cadeia da geração já usa desde 10/11/2026: `sessionStorage`, um
      * carimbo de tempo, e um prazo. O carimbo é o que impede o aviso de ontem de ser pintado na
      * sessão de hoje como se fosse de agora. */
+    /* O CARIMBO DO AVISO GUARDADO — «alguém já disse alguma coisa?».
+     *
+     * Devolve o instante (o `em`) do aviso que está em `sessionStorage`, ou `""` quando não há
+     * nenhum legível. É comparado antes e depois do `aoOk` para saber se foi ele que falou: uma
+     * comparação de TEXTO confundiria dois avisos iguais, e uma de existência confundiria o aviso
+     * de ontem com o de agora. */
+    'function carimboDoAvisoGuardado(){' +
+    '  try {' +
+    '    var bruto = sessionStorage.getItem("producao:aviso");' +
+    '    if (!bruto) return "";' +
+    '    var g = JSON.parse(bruto);' +
+    '    return g && g.em ? String(g.em) : "";' +
+    '  } catch (err) { return ""; }' +
+    '}' +
     'function avisarDepoisDaRecarga(tipo, texto){' +
     '  try {' +
     '    sessionStorage.setItem("producao:aviso", JSON.stringify({' +
@@ -13781,9 +13877,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * que o `postar` já fazia, e o motivo de ela estar escrita: um `reload()` depois de um `aoOk`
      * assíncrono é uma corrida que se perde em silêncio — e esteve a perder-se. */
     '      if (typeof aoOk === "function") {' +
+    /* QUEM JÁ DISSE O QUE HAVIA A DIZER NÃO É CALADO PELO RESUMO (20/11/2026).
+     *
+     * O DEFEITO, medido em jsdom e ao vivo. O `aoOk` da régua gravava o aviso certo — «a régua de
+     * «X» está gravada — o ajuste está registado na Turma, mas só passa ao ciclo quando ele é
+     * gerado outra vez» — e, três linhas abaixo, este mesmo `enviar` gravava por cima o seu
+     * resumo («gravando a régua...»). O professor via o eco do verbo, e o facto que importava
+     * desaparecia antes de a página recarregar.
+     *
+     * A REGRA: a mensagem do gesto é o RESERVA, e não a palavra final. Quem trata o resultado
+     * (o `aoOk`) sabe mais do que quem fez o pedido, e o que ele escreve fica. Compara-se o
+     * CARIMBO do aviso guardado, e não o texto: um aviso de outra sessão não pode fazer passar
+     * por «já disse» o que ninguém disse. */
+    '        var avisoAntesDoAoOk = carimboDoAvisoGuardado();' +
     '        var seguir = aoOk(d);' +
     '        if (seguir && typeof seguir.then === "function") return;' +
+    '        var oAoOkJaDisse = carimboDoAvisoGuardado() !== avisoAntesDoAoOk;' +
     '      }' +
+    '      var oAoOkJaDisse = typeof oAoOkJaDisse === "undefined" ? false : oAoOkJaDisse;' +
     /* A RECARGA DEPOIS DE GRAVAR VOLTOU A SER A REGRA — E O RECADO DA CADEIA VAI COM ELA
      * (10/11/2026).
      *
@@ -13839,8 +13950,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * etapa `bloqueada`), e vem depois do resumo: primeiro o que ficou gravado, depois porquê. */
     '        var fraseDoRecado = (d.recado || mensagem || "feito").replace(/\u2026$/, "").trim();' +
     '        if (d.cadeia && d.cadeia.parouPor) fraseDoRecado += " " + d.cadeia.parouPor;' +
-    '        avisarDepoisDaRecarga(d.ajustou || (d.cadeia && d.cadeia.faltam && d.cadeia.faltam.length)' +
-    '          ? "atencao" : "ok", fraseDoRecado);' +
+    '        if (!oAoOkJaDisse) {' +
+    '          avisarDepoisDaRecarga(d.ajustou || (d.cadeia && d.cadeia.faltam && d.cadeia.faltam.length)' +
+    '            ? "atencao" : "ok", fraseDoRecado);' +
+    '        }' +
     '        location.reload();' +
     '        return;' +
     '      }' +
@@ -14330,32 +14443,25 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var ja = impacto && impacto.linhasDoItem10' +
     '    ? "<p class=\\"etapa-campo largo\\"><span class=\\"fatos\\"><span>O item 10 já tem " + impacto.linhasDoItem10 + " linha(s) com este exercício.</span></span></p>"' +
     '    : "";' +
-    /* A SOMA POR BLOCO — «quanto muda», a terceira coisa que ela pediu que a janela dissesse.
+    /* O QUE A JANELA **NÃO** DIZ MAIS (20/11/2026) — e é ordem dela, com a razão certa.
      *
-     * DUAS FRASES, E NENHUMA DELAS É UM NÚMERO INVENTADO. Se alguma linha do item 10 já cita o
-     * exercício e está hoje filtrada (ele não está na lista acordada do plano), essas linhas voltam
-     * quando ele entra — e a frase diz quanto, bloco a bloco. Se não há linha nenhuma, a soma não
-     * muda, e a frase diz PORQUÊ: quem escreve a linha do item 10 é o professor, e o sistema não
-     * promete um número que não vai imprimir. */
-    '  var soma = "";' +
-    '  if (impacto && impacto.soma) {' +
-    '    if (impacto.soma.muda) {' +
-    '      var partes = [];' +
-    '      var ms = impacto.soma.mudam;' +
-    '      for (var s2 = 0; s2 < ms.length; s2++) {' +
-    '        partes.push(textoDoPlano(ms[s2].bloco) + " " + ms[s2].antes + " \\u2192 " + ms[s2].depois);' +
-    '      }' +
-    '      soma = "<p class=\\"etapa-campo largo\\"><span class=\\"fatos\\"><span>A soma dos tempos por bloco muda: " + partes.join(" · ") + ".</span></span></p>";' +
-    '    } else {' +
-    '      soma = "<p class=\\"etapa-campo largo\\"><span class=\\"fatos\\"><span>A soma dos tempos por bloco não muda: os tempos vêm das linhas do item 10, e quem as escreve é você.</span></span></p>";' +
-    '    }' +
-    '  }' +
+     * Saiu a frase da soma dos tempos por bloco: «A soma dos tempos por bloco não muda e segue
+     * dizendo outras coisas. Tira, arranca fora.» A razão é boa: o número não muda a decisão — a
+     * pergunta é a QUE OBJETIVO o exercício serve —, e duas linhas de aritmética ao lado de três
+     * caixas de marcar fazem a janela parecer um relatório.
+     *
+     * `impacto.soma` continua no núcleo (a conta está feita e provada, e a §7.9c documenta-a); o
+     * que saiu foi a sua exibição. Uma janela que decide não mostra o que não decide. */
     '  var caixa = document.createElement("div");' +
     '  caixa.className = "modal";' +
     '  caixa.id = "modal-objetivo";' +
     '  caixa.innerHTML =' +
     '    "<div class=\\"modal-fundo\\" data-fechar-objetivo></div>"' +
-    '    + "<div class=\\"modal-caixa\\" role=\\"dialog\\" aria-modal=\\"true\\" aria-labelledby=\\"obj-titulo\\">"' +
+    /* A LARGURA É A DA JANELA DA DURAÇÃO (`modal-largo`, 880px), e não a de uma pergunta de sim
+     * ou não (440px). É o pedido dela, e a razão é a forma do que a janela pede: uma ESCOLHA entre
+     * objetivos que se leem por inteiro — a 440px o texto parte em três linhas e a lista parece
+     * uma tripa. A peça é a mesma, e a modificação também. */
+    '    + "<div class=\\"modal-caixa modal-largo\\" role=\\"dialog\\" aria-modal=\\"true\\" aria-labelledby=\\"obj-titulo\\">"' +
     '    + "  <div class=\\"modal-cab\\"><h2 id=\\"obj-titulo\\">Este exercício é novo nesta Turma</h2>"' +
     '    + "  <button class=\\"modal-x\\" id=\\"obj-x\\" type=\\"button\\" aria-label=\\"Fechar\\">&times;</button></div>"' +
     '    + "  <form class=\\"form\\" id=\\"form-objetivo\\" novalidate>"' +
@@ -14363,8 +14469,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    + "      <p class=\\"etapa-campo largo\\">A que objetivo «" + textoDoPlano(valor) + "» serve? O parâmetro de medição é o que diz, em cada objetivo, o que você vai observar.</p>"' +
     '    + "      <fieldset class=\\"escolhas etapa-campo largo\\"><legend class=\\"campo-rotulo\\">Objetivos desta aula</legend>"' +
     '    + escolhas' +
-    '    + "      </fieldset>" + recurso + ja + soma' +
-    '    + "      <p class=\\"etapa-campo largo\\" id=\\"obj-resumo\\"><span class=\\"fatos\\"><span>Sem objetivo marcado, o exercício não entra em aula nenhuma.</span></span></p>"' +
+    '    + "      </fieldset>" + recurso + ja' +
     '    + "    </div>"' +
     '    + "    <div class=\\"modal-acoes\\">"' +
     '    + "      <button class=\\"acao secundario\\" id=\\"obj-cancelar\\" type=\\"button\\">Cancelar</button>"' +
@@ -14377,30 +14482,48 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  function aoEsc(ev){ if (ev.key === "Escape") fechar(); }' +
     '  document.addEventListener("keydown", aoEsc);' +
     '  document.getElementById("obj-x").addEventListener("click", fechar);' +
-    '  document.getElementById("obj-cancelar").addEventListener("click", fechar);' +
+    /* CANCELAR NÃO É FECHAR (20/11/2026) — é a ordem dela, e a distinção é a que já governa a
+     * janela da duração: «ele tem que fazer o mesmo efeito de cancelar que o botão cancelar faz no
+     * formulário. Quer dizer, ele fecha o modal, limpa o formulário e colapsa o formulário.»
+     *
+     * É a mesma função que o `#cu-cancelar` chama — não uma cópia. Uma janela que fecha e deixa o
+     * formulário meio-preenchido põe a pessoa a procurar o que ficou por limpar; e duas
+     * implementações do mesmo gesto divergem à primeira correcção que só uma delas recebe. */
+    '  document.getElementById("obj-cancelar").addEventListener("click", function(){' +
+    '    fechar();' +
+    '    if (typeof cancelarOTrabalhoDaTurma === "function") cancelarOTrabalhoDaTurma();' +
+    '  });' +
     '  var fundo = caixa.querySelector("[data-fechar-objetivo]");' +
     '  if (fundo) fundo.addEventListener("click", fechar);' +
-    /* O RESUMO ANDA COM AS CAIXAS: a pessoa lê o que vai sair antes de gravar, e não depois. */
-    '  function resumir(){' +
-    '    var marcados = [];' +
-    '    var cs = caixa.querySelectorAll("input[name=\\"obj-marco\\"]:checked");' +
-    '    for (var j = 0; j < cs.length; j++) marcados.push(Number(cs[j].value));' +
-    '    var alvo = caixa.querySelector("#obj-resumo");' +
-    '    if (!alvo) return;' +
-    '    alvo.textContent = marcados.length' +
-    '      ? "O parâmetro de medição passa a observar «" + valor + "» no(s) objetivo(s) " + marcados.join(", ") + "."' +
-    '      : "Sem objetivo marcado, o exercício não entra em aula nenhuma.";' +
-    '  }' +
-    '  var todas = caixa.querySelectorAll("input[name=\\"obj-marco\\"]");' +
-    '  for (var t = 0; t < todas.length; t++) todas[t].addEventListener("change", resumir);' +
+    /* O RESUMO SAIU (20/11/2026), e o motivo é o que ela viu: «Isso daqui você também pode tirar
+     * porque é redundante, já são os objetivos que estão marcados aqui, o professor percebe que
+     * ele está marcando os objetivos.» É a mesma razão que tirou a soma: a janela dizia num
+     * parágrafo aquilo que as caixas já dizem — e dizia-o em voz de sistema («O parâmetro de
+     * medição passa a observar…»), que é a voz que este produto evita.
+     *
+     * O que fica no lugar é o que já existia: a mensagem de erro, e só quando falta. Ela agora
+     * vai para o canto superior direito, com as outras (`avisar`), e não dentro do formulário. */
     '  document.getElementById("form-objetivo").addEventListener("submit", function(ev){' +
     '    ev.preventDefault();' +
     '    var marcados = [];' +
     '    var cs = caixa.querySelectorAll("input[name=\\"obj-marco\\"]:checked");' +
     '    for (var j = 0; j < cs.length; j++) marcados.push(Number(cs[j].value));' +
+    /* O AVISO VAI PARA O CANTO, E NÃO PARA DENTRO DO FORMULÁRIO (20/11/2026). É regra dela, com
+     * a razão escrita: «qualquer informação, qualquer texto, isso é regra, está documentado […] as
+     * mensagens devem aparecer no canto superior direito […] com um botãozinho de x para tirar. Não
+     * é para aparecer dentro do formulário mais nada.»
+     *
+     * E A JANELA NÃO SE FECHA ANTES DA CONTA. O `fechar()` estava primeiro e fechava sempre — a
+     * pessoa carregava em «Gravar» sem nada marcado, a janela desaparecia, a frase caía no sítio do
+     * que se está a compor, e o trabalho dela ia com ela. Agora, sem marcação, a janela FICA — é
+     * ali que está a pergunta — e o que falta é dito no canto, onde o `avisar` o tira ao fim de
+     * oito segundos. */
+    '    if (!marcados.length) {' +
+    '      avisar("atencao", "Sem objetivo marcado o exercício não é incluído — incluir sem dizer a que objetivo serve é não o incluir.");' +
+    '      return;' +
+    '    }' +
     '    fechar();' +
-    '    if (marcados.length) aoGravar(marcados);' +
-    '    else recado("aviso", "Sem objetivo marcado o exercício não é incluído — incluir sem dizer a que objetivo serve é não o incluir.");' +
+    '    aoGravar(marcados);' +
     '  });' +
     '  var primeiro = document.getElementById("obj-gravar");' +
     '  if (primeiro) primeiro.focus();' +
@@ -15659,43 +15782,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     /* «ATUALIZAR O CICLO» (20/11/2026) — o clique que leva ao papel o que a Turma declara hoje. */
     '  var ac = e.target.closest ? e.target.closest("[data-ciclo-atualizar]") : null;' +
     '  if (ac) { atualizarOCiclo(ac.getAttribute("data-ciclo-atualizar")); return; }' +
-    '  if (e.target.closest && e.target.closest("#cu-cancelar")) {' +
-    '    document.getElementById("cuderivar").value = "";' +
-    '    document.getElementById("cumodo").value = "";' +
-    '    document.getElementById("cu-vigencia-campo").hidden = true;' +
-    '    document.getElementById("cu-cancelar").hidden = true;' +
-    /* O «EXCLUIR» VOLTA A PODER (19/11/2026) — cancelada a edição, não há ficha em curso, e a
-     * listagem tem de o dizer sem esperar por uma recarga. Este handler é o único caminho de saída
-     * da curadoria que não passa pelo `pintarCancelares`. */
-    '    if (typeof pintarExcluires === "function") pintarExcluires();' +
-
-    '    document.getElementById("cuturma").disabled = false;' +
-    '    document.getElementById("form-curadoria").reset();' +
-    '    [["esc-alunas"], ["esc-conteudos"]].forEach(function(par){' +
-    '      var el = document.getElementById(par[0]);' +
-    '      if (!el) return;' +
-    '      Array.prototype.slice.call(el.querySelectorAll(".escolhido")).forEach(function(f){ f.parentElement.removeChild(f); });' +
-    '    });' +
-    // As alunas voltam todas a poder ser escolhidas: a modalidade foi reposta. Os conteúdos
-    // também se limpam — `reset()` não toca em fichas, porque elas não são campos de formulário.
-    '    refiltrarAlunas();' +
-    // E A LISTA DAS MODALIDADES VOLTA A SER A DO CATÁLOGO (03/11/2026): ela tinha sido filtrada
-    // pelas habilitações do professor que estava escolhido, e `reset()` repõe os campos mas não
-    // as opções que o script escreveu.
-    '    pintarModalidades(listaDoCatalogo(), "");' +
-    '    filtrarPorHabilitacao();' +
-    // E O ELENCO VOLTA A SER O DA CRIAÇÃO (07/11/2026): sem edição em curso, o `<select>` fica
-    // vazio e a nota desaparece — o cancelamento não pode deixar o formulário num estado que a
-    // criação não tem.
-    '    var seletorElenco = document.getElementById("cuelenco");' +
-    '    if (seletorElenco) seletorElenco.value = "";' +
-    '    mostrarElenco("");' +
-    // E O FORMULÁRIO FECHA-SE (18/11/2026). Ver `cancelarOFormularioDe`.
-    '    cancelarOFormularioDe("sec-curadorias");' +
-    // …E O BOTÃO SAI COM ELE (19/11/2026): quem decide se ele existe é `pintarCancelares`, a
-    // partir da abertura do formulário — não uma linha escrita à mão que a próxima porta esquece.
-    '    if (typeof pintarCancelares === "function") pintarCancelares();' +
-    '  }' +
+    '  if (e.target.closest && e.target.closest("#cu-cancelar")) { cancelarOTrabalhoDaTurma(); return; }' +
     '});' +
     'var NIVEIS_PADRAO = ' + JSON.stringify(NIVEIS_DA_RUBRICA) + ';' +
     'function linhaDaReguaNoDom(valor) {' +
@@ -15782,6 +15869,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * A ESCOLHA DE NÃO DEIXAR O FOCO É DELIBERADA e não apaga trabalho: a régua está gravada no
      * perfil dele, e reabrir o professor é um clique na lista. O que se evita é o contrário — um
      * formulário a dizer «Régua de Fulano» a quem já terminou. */
+    /* A RÉGUA MUDA A TURMA E PÁRA AÍ (20/11/2026) — é um dos três casos que ela nomeou («mudar uma
+     * rubrica do professor ou mudar algo no dicionário ou mudar algo no exercício de estilo»). A
+     * rota não dispara geração nenhuma — uma régua é fotografia no envelope da Turma, e um plano já
+     * gerado não volta atrás por ela —, e por isso a frase não pode ser a da geração: é a do ajuste
+     * que fica registado e espera pelo ciclo seguinte.
+     *
+     * E ELE VEM ANTES DA ARRUMAÇÃO, que é a doutrina que o `concluirOGesto` já escreveu: «o aviso
+     * sai primeiro, e depois arruma-se a tela. A ordem era a inversa, e a inversa é a que mente: se
+     * a arrumação atirar, o aviso nunca chega e o gesto — que está feito e gravado — fica sem
+     * resposta nenhuma.» A `sairDaEdicaoDoProfessor` mexe em cinco passos do cadastro; numa página
+     * onde um deles falte, ela atira, e o aviso ia com ela. */
+    '    avisarDoAjusteQueParaNaTurma("a régua de «" + nome + "» está gravada", true);' +
     '    sairDaEdicaoDoProfessor();' +
     '  });' +
     '  return true;' +

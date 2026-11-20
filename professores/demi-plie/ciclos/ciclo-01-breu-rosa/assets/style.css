@@ -576,7 +576,12 @@ body {
   list-style: none; display: inline-block;
 }
 .topnav summary::-webkit-details-marker { display: none; }
-.topnav summary::after { content: ' ▾'; }
+/* A SETA EM ESCAPE, E NÃO EM GLIFO CRU (20/11/2026).
+   O `content: ' ▾'` escrevia o carácter U+25BE no ficheiro: três bytes UTF-8 que qualquer
+   leitura com outro charset transforma em «â¾» — foi o que ela viu ao lado de «Bastidores».
+   Um escape CSS é ASCII puro e o navegador compõe o carácter: não há bytes para interpretar
+   mal. A regra vale para todo o `content:` desta folha. */
+.topnav summary::after { content: ' \25BE'; }
 .topnav details[open] summary, .topnav summary:hover { background: var(--marca-fundo-hover); }
 .topnav .submenu {
   position: absolute; top: 100%; left: 0; z-index: 21;
@@ -2118,7 +2123,7 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
 .trio-plano { display: block; margin-bottom: .6rem; position: relative; }
 .trio-plano[data-apagando="sim"] { pointer-events: none; }
 .trio-plano[data-apagando="sim"]::after {
-  content: 'apagando…'; position: absolute; inset: 0; z-index: 1;
+  content: 'apagando\2026'; position: absolute; inset: 0; z-index: 1;
   display: flex; align-items: center; justify-content: center;
   background: var(--fundo); opacity: .82;
   color: var(--texto-suave); font-size: .85rem; letter-spacing: .02em;

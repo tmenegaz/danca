@@ -1002,6 +1002,186 @@ async function ids(arm, familia) {
       r2.avisos === undefined, r2.avisos);
   }
 
+  // ==========================================================================
+  /* J. O CONTEÚDO DA TURMA MANDA, E A DATA NÃO O SABE (20/11/2026)
+   * ==========================================================================
+   *
+   * O DEFEITO, medido ao vivo na `breu`. Ela acrescentou o «Batman GT» à Turma `Rosa`, escolheu o
+   * objetivo 3 na janela, gravou — e o `aula-1-parametro` do plano ficou SEM nenhum objetivo
+   * marcado. O log da cadeia tem seis execuções entre 19:20 e 20:22, todas `ok: true`, todas com
+   * `plano-de-ensino · feita · plano-20261120-1411`: o plano nunca foi derivado, e a declaração
+   * nunca teve onde ser aplicada.
+   *
+   * A CAUSA É A ÚLTIMA PERGUNTA DA ESCADA. `novo(gerado_em)` compara strings, e `quando` é a
+   * VIGÊNCIA da Turma — uma DATA. O plano é de `2026-11-20T14:11` e a vigência é `2026-11-20`:
+   * `'2026-11-20T14:11' >= '2026-11-20'`, e o plano passa por mais novo do que a mudança. Todos
+   * os dias, todas as vezes, porque tudo acontece no mesmo dia.
+   *
+   * O QUE SE MEDE AQUI são os DOIS SENTIDOS da guarda, com os números do caso real, e os três
+   * controles negativos que a impedem de derivar para sempre.
+   */
+  console.log('\nJ. O CONTEÚDO DA TURMA MANDA, E A DATA NÃO SABE (o caso da breu, 20/11/2026)');
+
+  {
+    /* Os dados vêm do caso real: vigência `2026-11-20`, plano do MESMO dia às 14:11, a Turma com
+     * quatro exercícios e a declaração do «Batman GT». */
+    const PLANO_DA_BREU = {
+      id: 'plano-20261120-1411', gerado_em: '2026-11-20T14:11',
+      respostas: { repertorio: r(['Battement tendu', 'Plié', 'Relevé']) },
+    };
+    const TURMA_DA_BREU = {
+      repertorio: ['Battement tendu', 'Plié', 'Relevé', 'Batman GT'],
+      declaracoes: { 'Batman GT': [3] },
+    };
+    const indiceCom = (conteudo, plano) => nucleoCadeia.indice({
+      elenco: { id: 'e', alunas: ['A'] }, curadoria: { id: 'c', turma: TURMA, alunas: ['A'] },
+      turma: TURMA,
+      plano: plano || PLANO_DA_BREU,
+      po: { id: 'po-20261120-1411', gerado_em: '2026-11-20T14:11' },
+      /* A VIGÊNCIA É UMA DATA, e é ela que faz o defeito. */
+      quando: '2026-11-20', pacoteEmDia: true,
+      conteudo,
+    });
+    const plano = (i) => i.etapas.find((x) => x.chave === 'plano-de-ensino');
+    const po = (i) => i.etapas.find((x) => x.chave === 'plano-de-observacao');
+
+    /* PRIMEIRO O DEFEITO, para a prova não passar por acidente: sem a guarda, tudo «feita». */
+    const semGuarda = indiceCom(null);
+    provar('sem o conteúdo no estado, a escada dá o plano do MESMO DIA por `feita` — é o defeito',
+      plano(semGuarda).estado === 'feita', plano(semGuarda));
+
+    const comDeclaracao = indiceCom(TURMA_DA_BREU);
+    provar('com o conteúdo, o plano que não carrega o exercício DECLARADO fica `pendente`',
+      plano(comDeclaracao).estado === 'pendente', plano(comDeclaracao));
+    provar('…e a falta nomeia o exercício que a Turma declara',
+      /Batman GT/.test(String(plano(comDeclaracao).falta)), plano(comDeclaracao).falta);
+    provar('…e diz de que plano se trata',
+      /plano-20261120-1411/.test(String(plano(comDeclaracao).falta)), plano(comDeclaracao).falta);
+    provar('…e o PO segue o plano, porque observa um plano que vai mudar',
+      po(comDeclaracao).estado === 'pendente', po(comDeclaracao));
+
+    /* CONTROLE NEGATIVO 1: o mesmo conteúdo do plano. Nada a derivar. */
+    const emDia = indiceCom({
+      repertorio: ['Battement tendu', 'Plié', 'Relevé'],
+      declaracoes: { 'Battement tendu': [1] },
+    });
+    provar('CONTROLE NEGATIVO: conteúdo igual ao do plano não deriva nada',
+      plano(emDia).estado === 'feita', plano(emDia));
+
+    /* CONTROLE NEGATIVO 2: um exercício da Turma SEM declaração não faz o plano mudar — a
+     * derivação não o aplicaria, e exigi-la seria pedir uma derivação que não deriva nada, para
+     * sempre. */
+    const semDeclaracao = indiceCom({
+      repertorio: ['Battement tendu', 'Plié', 'Relevé', 'Novo sem declaração'], declaracoes: {},
+    });
+    provar('CONTROLE NEGATIVO: exercício novo SEM declaração não põe o plano a derivar',
+      plano(semDeclaracao).estado === 'feita', plano(semDeclaracao));
+
+    /* CONTROLE NEGATIVO 3: uma Turma sem lista declarada não julga ninguém. */
+    const semLista = indiceCom({ repertorio: [], declaracoes: {} });
+    provar('CONTROLE NEGATIVO: Turma sem repertório declarado não acusa o plano',
+      plano(semLista).estado === 'feita', plano(semLista));
+
+    /* O OUTRO SENTIDO: o exercício que a Turma já não ensina sai do plano. É a remoção — o gesto
+     * que ela fez primeiro («eu removi o Batman GT»), e que também parava na data. */
+    const comRemocao = indiceCom({
+      repertorio: ['Battement tendu', 'Plié'], declaracoes: {},
+    });
+    provar('o plano que carrega um exercício que a Turma já não ensina fica `pendente`',
+      plano(comRemocao).estado === 'pendente', plano(comRemocao));
+    provar('…e a frase diz o que sai, em vez de dizer só que mudou',
+      /Relevé/.test(String(plano(comRemocao).falta)) && /já não/.test(String(plano(comRemocao).falta)),
+      plano(comRemocao).falta);
+    /* E A MESMA GUARDA NÃO DISPARA OUTRA VEZ depois de derivar: o plano podado já não carrega o
+     * termo, e o aplicado já o tem. É isto que impede o ciclo infinito. */
+    const depoisDePodar = indiceCom(
+      { repertorio: ['Battement tendu', 'Plié'], declaracoes: {} },
+      { id: 'plano-20261120-1500', gerado_em: '2026-11-20T15:00',
+        respostas: { repertorio: r(['Battement tendu', 'Plié']) } });
+    provar('…e depois de derivar, a guarda cala-se (é idempotente)',
+      plano(depoisDePodar).estado === 'feita', plano(depoisDePodar));
+    const depoisDeAplicar = indiceCom(
+      { repertorio: ['Battement tendu', 'Plié', 'Relevé', 'Batman GT'],
+        declaracoes: { 'Batman GT': [3] } },
+      { id: 'plano-20261120-1500', gerado_em: '2026-11-20T15:00',
+        respostas: { repertorio: r(['Battement tendu', 'Plié', 'Relevé', 'Batman GT']) } });
+    provar('…e o mesmo com a declaração já aplicada',
+      plano(depoisDeAplicar).estado === 'feita', plano(depoisDeAplicar));
+  }
+
+  // ==========================================================================
+  /* K. A TRAVESSIA INTEIRA, COM O CONTEÚDO DA TURMA — o gesto dela, de ponta a ponta
+   * ==========================================================================
+   *
+   * A secção J mediu o NÚCLEO: a escada passa a reconhecer que o plano está velho quando o
+   * conteúdo da Turma mudou. Isto mede a LIGAÇÃO — que o servidor lhe ENTREGA esse conteúdo, e
+   * que a declaração escolhida na janela chega, de facto, ao `aula-1-parametro` do elo novo.
+   *
+   * É a prova que faltava, e a falta dela é a história desta sessão: o núcleo estava certo e a
+   * travessia não tinha por onde o saber. Uma prova que injeta o `conteudo` no `indice` e outra
+   * que não o passa medem coisas diferentes — e o defeito vivia exactamente entre as duas.
+   */
+  console.log('\nK. A TRAVESSIA COM O CONTEÚDO DA TURMA — a declaração chega ao plano');
+
+  {
+    /* OS DADOS DO CASO REAL: vigência `2026-11-20` (uma DATA), plano do MESMO dia às 14:11, e a
+     * Turma com o «Batman GT» a servir o objetivo 2 (a fixture só tem dois marcos). */
+    const CU = curadoria({
+      repertorio: ['Battement tendu', 'Batman GT'],
+      objetivosDoRepertorio: { 'Batman GT': [2] },
+    });
+    const c = montar({ curadorias: [CU] });
+    /* O plano não carrega o «Batman GT» — é o estado em que ela ficou. */
+    await semear(c.arm, { planoGerado: '2026-11-20T14:11', poGerado: '2026-11-20T14:11' });
+
+    const r = await c.cadeia.executar({
+      gatilho: 'troca-de-direcao', turmas: [TURMA], quando: '2026-11-20',
+      motivo: 'a direção da turma passou a coqui · Balé clássico',
+      declaracoes: [{ termo: 'Batman GT', objetivos: [2] }],
+    });
+
+    provar('a travessia derivou um elo novo de plano (o do mesmo dia já não passa)',
+      c.visto.planos.length === 1, { planos: c.visto.planos, erro: r.erro });
+    const novoId = c.visto.planos[0];
+    const novo = novoId ? await porta.lerEnvelope(c.arm, novoId) : null;
+    provar('…e o elo novo existe no acervo', Boolean(novo), novoId);
+    const valorNoNovo = (chave) => {
+      const cru = novo && novo.respostas && novo.respostas[chave];
+      return cru && typeof cru === 'object' && !Array.isArray(cru) && 'valor' in cru
+        ? cru.valor : cru;
+    };
+    provar('…e o «Batman GT» ENTROU no repertório do plano',
+      JSON.stringify(valorNoNovo('repertorio')) === JSON.stringify(['Battement tendu', 'Batman GT']),
+      valorNoNovo('repertorio'));
+    /* AS DUAS COISAS QUE ELA VIU FALTAR: a lista do item 10 e a marca no parâmetro. */
+    const parametro = valorNoNovo('aula-1-parametro');
+    const marcoDois = (Array.isArray(parametro) ? parametro : [])
+      .find((l) => l && Number(l.marco) === 2);
+    provar('…e o item 10 passou a citar o exercício no objetivo que ela marcou',
+      Boolean(marcoDois) && (marcoDois.marcados || []).indexOf('Batman GT') !== -1, parametro);
+    provar('…e o elo novo aponta o anterior — a proveniência acrescenta',
+      novo && novo.ajuste_de === 'plano-20261103-2200', novo && novo.ajuste_de);
+    /* O PO CONTA-SE PELO ACERVO, e não pelo espião: a fixture de `escreverPO` não regista nada, e
+     * uma asserção que lesse o espião mediria a fixture em vez do produto. */
+    provar('…e o PO também derivou, porque observa um plano que mudou',
+      (await ids(c.arm, 'po')).length === 2, await ids(c.arm, 'po'));
+
+    /* A IDEMPOTÊNCIA NA TRAVESSIA, e não só no núcleo: com a declaração já aplicada, a segunda
+     * passagem não empilha elo nenhum. Sem isto, a guarda transformaria o «Atualizar o ciclo» num
+     * gerador de elos infinitos — e é a diferença entre uma correcção e uma avaria. */
+    const antes = (await ids(c.arm, 'plano')).length;
+    /* A VIGÊNCIA DA SEGUNDA PASSAGEM É A DO ELO NOVO, e não a da primeira. Na produção é o que
+     * acontece: derivada a Turma, a vigência dela passa a ser de agora, e o plano que nasceu nesta
+     * travessia é do mesmo instante. Comparar outra vez com a data antiga mediria a escada da data
+     * — que já tem as suas provas —, e não a guarda do conteúdo, que é o que esta secção mede. */
+    await c.cadeia.executar({
+      gatilho: 'troca-de-direcao', turmas: [TURMA], quando: QUANDO,
+      motivo: 'segunda passagem', declaracoes: [],
+    });
+    provar('a segunda passagem, com a declaração já no plano, NÃO empilha elo',
+      (await ids(c.arm, 'plano')).length === antes, { antes, depois: (await ids(c.arm, 'plano')).length });
+  }
+
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + provas + ' asserções: a cadeia percorre vínculos → plano → PO → pacote, '
       + 'pára no que falta e diz onde, não empilha elos repetidos e deixa o rasto no log.'

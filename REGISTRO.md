@@ -56428,3 +56428,98 @@ calculada (`Solo 36 → 36`, sem mudança — não há linha do item 10 com o ex
 **Com o quê.** `motor/nucleo/objetivos-do-repertorio.js` (`oTermoEntra` em `estadoDaDeclaracao` e em
 `impactoDaInclusao`); `motor/servidor/bastidores.js` (a rota passa `oTermoEntra: true`);
 `provar-o-exercicio-novo.js` (5 asserções novas, 55 no total).
+
+## 20/11/2026 — Porque a declaração escolhida na janela não chegava ao plano
+
+**O sintoma, na letra dela.** Escolheu o objetivo no modal, gravou, e o `aula-1-parametro` do plano
+de ensino ficou **sem nenhum objetivo marcado**. A Turma tinha a declaração
+(`objetivosDoRepertorio: {"Battement jeté": [3]}`); o plano não.
+
+**A prova está no log da cadeia, e é ela que fecha o diagnóstico.** Seis travessias entre 19:20 e
+20:22, todas `ok: true`, todas com `plano-de-ensino · feita · plano-20261120-1411`. O plano **nunca
+foi derivado** — portanto `aplicarDeclaracoes`, que é quem escreve a declaração nas respostas, nunca
+correu. Não era a janela, não era a rota, não era o núcleo do objetivo: era a **escada** que decide
+se há derivação a fazer.
+
+**A causa é a mesma dos três defeitos anteriores, e a quarta vez que este documento a escreve.** A
+última pergunta da escada compara **datas**: `novo(e.plano.gerado_em || e.plano.id)` contra
+`e.quando`, que é a vigência da Turma — uma **DATA**, `'2026-11-20'`. O plano é de
+`'2026-11-20T14:11'`, e a comparação de strings diz que `'2026-11-20T14:11' >= '2026-11-20'` — ou
+seja, que o plano é **mais novo do que a mudança**. Todos os dias, todas as vezes, porque tudo
+acontece no mesmo dia. A doutrina já estava escrita no ficheiro: *«a data é um indício; a identidade
+é a prova»*.
+
+**A correcção é a identidade do CONTEÚDO**, e é o único caminho por onde a declaração chega ao
+papel. A escada ganha uma guarda antes da data, comparando a lista acordada da Turma com a do plano
+(documento), nos dois sentidos:
+
+| o que se compara | o que significa | o que a derivação faz |
+|:--|:--|:--|
+| a Turma **declara** um exercício que o plano não carrega | o plano está velho | aplica (`aplicarDeclaracoes`) |
+| o plano carrega um exercício que a Turma já **não ensina** | o plano está velho | poda (`podarForaDoRepertorio`) |
+
+As duas são **idempotentes** — depois de derivar, nenhuma volta a disparar — e é isso que impede o
+ciclo infinito. E há três coisas que a guarda **não** faz, todas de propósito: um exercício da Turma
+**sem declaração** não a dispara (a derivação não o aplicaria, e exigi-la seria pedir uma derivação
+que não deriva nada, para sempre); uma Turma **sem `repertorio` declarado** não julga ninguém (o
+vazio não conta, a convenção de sempre); e uma bancada que não passe `e.conteudo` cala-a por
+completo.
+
+**O que a travessia faz agora, medido em jsdom e no núcleo:** com a vigência `2026-11-20` e o plano
+do mesmo dia às 14:11, a cadeia deriva um elo novo, o `repertorio` do elo novo passa a ter o
+«Batman GT», e o `aula-1-parametro` passa a citá-lo **no objetivo que ela marcou** (o 2, na
+fixture). O PO também deriva, porque observa um plano que mudou.
+
+**Com o quê.** `motor/nucleo/cadeia.js` (`conteudoMudou`/`diferencaDeConteudo`/`fraseDoConteudo` na
+escada do plano); `motor/servidor/cadeia.js` (`conteudo: {repertorio, declaracoes}` no estado que a
+escada lê); `provar-cadeia-automatica.js` (secção J, o núcleo com os números da `breu`, e secção K, a
+travessia inteira — 124 asserções no total).
+
+## 20/11/2026 — Os ajustes da janela, um a um, e o que a ordem dela mudou no resto
+
+**A largura.** A janela do objetivo tinha `modal-caixa` (440px) e a da duração tem
+`modal-caixa modal-largo` (880px). Passa a ter a mesma — «ele tem que ser da mesma largura» —, e a
+razão é a forma do que ela pede: uma escolha entre objetivos que se leem por inteiro.
+
+**Duas frases saíram, e as duas por redundância:**
+
+| o que saiu | a razão dela |
+|:--|:--|
+| «A soma dos tempos por bloco não muda: os tempos vêm das linhas do item 10…» | «Tira, arranca fora» — o número não muda a decisão |
+| «O parâmetro de medição passa a observar «X» no(s) objetivo(s) 3.» | «é redundante, já são os objetivos que estão marcados aqui» |
+
+`impacto.soma` continua no núcleo — a conta está feita, provada e documentada na §7.9c do
+`CUSTO-DOS-FLUXOS.md`; o que saiu foi a sua **exibição**. Uma janela que decide não mostra o que não
+decide.
+
+**O «Cancelar» da janela passou a ser o mesmo gesto do «Cancelar» do formulário** — fecha, limpa o
+formulário, colapsa. O corpo já existia: era o `#cu-cancelar`, e a função nova
+(`cancelarOTrabalhoDaTurma`) é a mesma para as duas portas, porque duas implementações do mesmo gesto
+divergem à primeira correcção que só uma delas recebe.
+
+**E o «Gravar» sem objetivo marcado deixou de mentir de duas maneiras:** o `fechar()` estava antes da
+guarda e fechava sempre (a pessoa perdia o trabalho e a janela ia com ele), e a frase caía dentro do
+formulário. Agora a janela **fica** — é ali que está a pergunta — e o que falta é dito no **canto**,
+pela pilha `#avisos` com os oito segundos e o ×, que é a regra escrita: *mensagem de gesto concluído
+vai para o canto; o `.res` é do que se está a compor*.
+
+**A nota fixa do cartão da Turma saiu.** «Ajustes na régua, no Estilo ou no Dicionário ficam
+registados nesta Turma e só passam ao ciclo quando ele é atualizado» era um contrato impresso em
+cada cartão, sobre um facto que talvez não tivesse acontecido. Passa a ser um **aviso de gesto**, e
+só quando o ajuste é feito: `avisarDoAjusteQueParaNaTurma` (régua do professor por agora, e o
+dicionário e o verbete a seguir, que já têm o `avisarDaGeracao`). O botão «Atualizar o ciclo» fica —
+um botão não é um aviso, é a porta.
+
+**O `enviar` deixou de calar o `aoOk`.** O aviso da régua era gravado e, três linhas abaixo, o
+resumo do pedido («gravando a régua…») gravava por cima. A mensagem do gesto é a **reserva**, e não
+a última palavra: quem trata o resultado sabe mais do que quem fez o pedido. A comparação é de
+**carimbo**, não de texto — dois avisos iguais são avisos diferentes.
+
+**O «Bastidores â ¾».** O `content: ' ▾'` escrevia o U+25BE em três bytes UTF-8 crus na folha, que é
+servida como `text/css` sem charset. Passa a `\25BE` (e o `'apagando…'` a `\2026`): um escape CSS é
+ASCII e não há bytes para interpretar mal.
+
+**Com o quê.** `motor/servidor/bastidores.js`, `tools/templates/ciclo.css`, `raiz/assets/style.css` e
+os dois `assets/style.css` dos pacotes da `breu` (regenerados);
+`provar-salas-e-elencos.js` (237 asserções: a ausência das duas frases, a largura, o Cancelar a
+limpar e a colapsar, o aviso no canto, e o aviso da régua a atravessar a recarga).

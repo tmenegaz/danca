@@ -806,13 +806,17 @@ linha do parâmetro que ganha o termo, e os blocos cujo total muda.
 **O que a janela NÃO pergunta:** em que bloco ele entra. O bloco é do item 10, e o item 10 é do
 professor, linha a linha — o sistema não escolhe pedagogia.
 
-**E ela diz quanto muda a soma por bloco — com uma conta que não é óbvia.** Os tempos vêm das linhas
-do item 10, e uma linha cujo exercício não está na lista acordada do plano é **filtrada** da leitura
-(`linhasDoRepertorio`). Quando o exercício entra no repertório do plano, as linhas que já existiam
-com o seu nome **voltam**, e é aí que os totais sobem. Para um exercício sem linha nenhuma a
-diferença é **zero**, e a janela diz zero e porquê — «os tempos vêm das linhas do item 10, e quem as
-escreve é você». As duas frases existem para o número não ser promessa: o sistema não inventa uma
-linha que não vai imprimir, e não esconde a que vai passar a imprimir.
+**A conta da soma por bloco existe, e a janela já não a mostra (20/11/2026).** Os tempos vêm das
+linhas do item 10, e uma linha cujo exercício não está na lista acordada do plano é **filtrada** da
+leitura (`linhasDoRepertorio`); quando o exercício entra, as linhas que já existiam com o seu nome
+**voltam**, e é aí que os totais sobem. `impactoDaInclusao` calcula isso (`somaPorBloco`,
+`efeitoNaSoma`), e continua a calcular: a conta está feita e provada. O que **saiu foi a frase na
+janela** — «A soma dos tempos por bloco não muda e segue dizendo outras coisas. Tira, arranca fora.»
+A razão dela é boa e é de desenho: o número não muda a decisão (a pergunta é a que objetivo o
+exercício serve), e duas linhas de aritmética ao lado de três caixas de marcar fazem a janela parecer
+um relatório. Pela mesma razão saiu o resumo «O parâmetro de medição passa a observar «X» no(s)
+objetivo(s) N» — «é redundante, já são os objetivos que estão marcados aqui». **Uma janela que decide
+não mostra o que não decide.**
 
 **Duas decisões de desenho, e a primeira está decidida:**
 1. **Onde a declaração é escrita — na TURMA, e não no plano.** A frase dela, na correcção de
@@ -836,13 +840,23 @@ rota, uma janela e um gancho. **Custo de manutenção:** duas janelas a manter e
 generalização ficou por fazer** — o que se disse que não se devia adiar foi adiado, e fica dito aqui
 para não se descobrir por acidente: quem escrever a terceira janela paga as três.
 
-**As provas.** `experimentos/provar-o-exercicio-novo.js` (34 asserções) mede o núcleo — que aplica uma
+**As provas.** `experimentos/provar-o-exercicio-novo.js` (55 asserções) mede o núcleo — que aplica uma
 vez e só uma, que não aplica o que a Turma não acordou, e que escreve o termo no parâmetro **e** no
 repertório do plano (sem o segundo, o documento apagava-o na leitura). A secção B3 de
 `provar-cadeia-automatica.js` mede o caminho inteiro até ao elo novo do plano, e a secção N de
 `provar-salas-e-elencos.js` mede a página: a janela abre ao acrescentar e não ao gravar, nenhum
 objetivo vem pré-marcado, o «Cancelar» e o `Escape` não escrevem nada, e a ficha só nasce depois da
-resposta. **A/B feito nos três**: sem o gancho, 5 asserções falham; sem a aplicação na cadeia, 3.
+resposta, o «Cancelar» faz o mesmo gesto do «Cancelar» do formulário (limpa e colapsa) e a caixa é a
+larga. **A/B feito nos três**: sem o gancho, 5 asserções falham; sem a aplicação na cadeia, 3.
+
+**E o quarto defeito, que só apareceu no gesto inteiro (20/11/2026).** A declaração escolhida na
+janela ficava na Turma e **não chegava ao plano**: o log da cadeia mostra seis travessias com
+`plano-de-ensino · feita`, todas sobre o mesmo plano. A escada decidia pela **data** — a vigência da
+Turma é `2026-11-20` e o plano é de `2026-11-20T14:11`, e a string do carimbo ganha. A guarda nova
+compara o **conteúdo** (ver `REGISTRO.md`, 20/11/2026), e é o único caminho por onde a resposta da
+janela chega ao papel. Fica a lição de método: as provas do núcleo passavam porque **injetavam** o
+`conteudo` no `indice`; o que faltava era a travessia entregá-lo — e agora há asserção para as duas
+metades (secções J e K de `provar-cadeia-automatica.js`).
 
 ### d) O que se economiza, e o que se **paga**
 
@@ -905,6 +919,16 @@ a etapa 4).
 **O custo, e é o que a torna aceitável.** O botão abre a travessia toda: um plano, um PO e uma
 geração. A §7.10 mede o gesto em 2 a 3 minutos. Ele existe para ser usado **poucas vezes** — o caso
 normal é a próxima derivação levar o que ficou — e é a autonomia que ela pediu em troca desse custo.
+
+**A frase vai no GESTO, e não no cartão (20/11/2026).** Ela viu a nota fixa na listagem das Turmas e
+mandou-a embora: «Tira esse texto, não tem que existir esse texto. […] essa mensagem […] tem que
+existir quando ajustes são feitos nesses lugares, tá? Aí sim é que aparece lá no canto superior
+direito.» A regra é a mesma que governa todos os gestos desta página — `.res` é para o que se está a
+compor, o canto é para o gesto concluído —, e a consequência prática é que hoje só **três** gestos a
+dizem: a régua do professor, o verbete do Dicionário e o termo. `avisarDoAjusteQueParaNaTurma` é a
+frase, e há duas coisas nela que não são decoração: diz que o ajuste **está** registado, diz que ele
+**ainda não** chegou ao papel, e nomeia o botão que resolve. Sem a segunda é uma promessa que o prazo
+de oito segundos não pode cumprir; sem a terceira é um problema sem saída.
 
 ---
 

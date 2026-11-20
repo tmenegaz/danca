@@ -1942,6 +1942,12 @@ const RITMO = {
       conferir('…e NENHUM vem pré-marcado — a escolha é do professor',
         Array.prototype.every.call(opcoesObj, (o) => !o.checked),
         Array.prototype.map.call(opcoesObj, (o) => o.checked));
+      /* A LARGURA É A DA JANELA DA DURAÇÃO (20/11/2026) — «Eu pedi que você usasse o modal no mesmo
+       * padrão do outro modal […] ele tem que ser da mesma largura.» A peça é a mesma, e a
+       * modificação também: `modal-largo` (880px), e não os 440px de uma pergunta de sim ou não. */
+      conferir('…e a caixa é LARGA, como a da duração (`modal-caixa modal-largo`)',
+        Boolean(mObj.querySelector('.modal-caixa.modal-largo')),
+        (mObj.querySelector('.modal-caixa') || {}).className);
       conferir('…e as peças são as da folha (`modal`, `modal-caixa`, `escolhas`, `modal-acoes`)',
         Boolean(mObj.querySelector('.modal-fundo')) && Boolean(mObj.querySelector('.modal-acoes'))
           && Boolean(mObj.querySelector('fieldset.escolhas'))
@@ -1953,16 +1959,41 @@ const RITMO = {
           return acoes.length === 2 && /Cancelar/.test(acoes[0].textContent)
             && /Gravar/.test(acoes[1].textContent);
         })(), mObj.querySelector('.modal-acoes').textContent);
-      /* O RESUMO DIZ O QUE VAI SAIR, e diz o contrário quando não há nada marcado — sem isso, o
-       * «Gravar» com a lista vazia seria um botão que não faz nada sem explicar porquê. */
-      conferir('…e o resumo começa por dizer que sem objetivo o exercício não entra em aula',
-        /não entra em aula nenhuma/.test((mObj.querySelector('#obj-resumo') || {}).textContent || ''),
-        (mObj.querySelector('#obj-resumo') || {}).textContent);
+      /* O RESUMO SAIU (20/11/2026) — e a ordem dela chegou com a razão junto: «Isso daqui você
+       * também pode tirar porque é redundante, já são os objetivos que estão marcados aqui, o
+       * professor percebe que ele está marcando os objetivos.»
+       *
+       * O que se mede agora é a AUSÊNCIA — e ela é o contrato, não um pormenor: a janela diz o que
+       * perguntar e as caixas dizem o que foi marcado, e um parágrafo a repetir isso em voz de
+       * sistema («O parâmetro de medição passa a observar…») é a voz que este produto evita. */
+      conferir('…e o resumo redundante NÃO existe mais na janela',
+        !mObj.querySelector('#obj-resumo'), mObj.innerHTML.length);
+      conferir('…e a frase «O parâmetro de medição passa a observar» também não',
+        !/passa a observar/.test(String(mObj.textContent || '')),
+        String(mObj.textContent || '').replace(/\s+/g, ' ').slice(0, 240));
+      /* E GRAVAR SEM MARCAR NADA NÃO PODE FECHAR A JANELA (20/11/2026). O `fechar()` estava
+       * primeiro e fechava sempre: a pessoa carregava em «Gravar» sem nada marcado, a janela
+       * desaparecia, e o trabalho dela ia com ela. Agora a guarda vem antes, e o que falta é dito
+       * no CANTO — a pilha `#avisos`, oito segundos, com o × —, e não dentro do formulário, que é
+       * a regra dela com o mecanismo que a folha já tem. */
+      await cVin.clicar(cVin.d.getElementById('obj-gravar'));
+      const avisoDoCanto = cVin.d.querySelector('#avisos .aviso-do-gesto');
+      conferir('…e gravar sem marcar nada NÃO fecha a janela — é ali que está a pergunta',
+        Boolean(cVin.modal() && !cVin.modal().hidden),
+        Boolean(cVin.modal() && cVin.modal().hidden));
+      conferir('…e o que falta é dito no CANTO, e não dentro do formulário',
+        Boolean(avisoDoCanto)
+          && avisoDoCanto.getAttribute('data-tipo') === 'atencao'
+          && /Sem objetivo marcado/.test(avisoDoCanto.textContent || ''),
+        avisoDoCanto && avisoDoCanto.textContent);
+      conferir('…e o aviso traz o × que o tira sem esperar pelos oito segundos',
+        Boolean(avisoDoCanto && avisoDoCanto.querySelector('.aviso-do-gesto-fechar')), null);
+      conferir('…e a ficha continua FORA do conteúdo — nada foi incluído',
+        cVin.fichas().length === 0, cVin.fichas());
+      /* Marcado o objetivo, o gesto segue: a ficha entra, a janela fecha, e a declaração fica
+       * guardada à espera do «Gravar» da Turma. */
       opcoesObj[1].checked = true;
       opcoesObj[1].dispatchEvent(new cVin.w.Event('change', { bubbles: true }));
-      conferir('…e marcar um objetivo muda o resumo para o que vai ser declarado',
-        /objetivo\(s\) 2/.test((mObj.querySelector('#obj-resumo') || {}).textContent || ''),
-        (mObj.querySelector('#obj-resumo') || {}).textContent);
       await cVin.clicar(cVin.d.getElementById('obj-gravar'));
       conferir('…e gravar a decisão ACRESCENTA a ficha', cVin.fichas().indexOf('Battement jeté') !== -1,
         cVin.fichas());
@@ -1986,19 +2017,27 @@ const RITMO = {
       /* «pode ser que o estilo esteja com derivação em uma turma, mas essa turma ainda não foi
        * elaborado o seu plano de ensino, então não faz sentido disparar o processo, porque aí é só
        * custo». A ficha entra — o exercício é da Turma —, e a declaração nasce no plano. */
-      /* A SOMA POR BLOCO — «quanto muda», a terceira coisa que ela pediu. Duas frases, e o caso
-       * que importa é o segundo: quando a linha do item 10 já existe e está filtrada, a janela tem
-       * de mostrar o número, e não um zero tranquilizador. */
-      conferir('…e a janela diz que a soma por bloco NÃO muda, quando não há linha nenhuma',
-        /soma dos tempos por bloco não muda/.test(String(mObj.textContent || '')),
+      /* A SOMA POR BLOCO SAIU DA JANELA (20/11/2026) — «A soma dos tempos por bloco não muda e
+       * segue dizendo outras coisas. Tira, arranca fora.»
+       *
+       * A RAZÃO É BOA E FICA MEDIDA. O número não muda a decisão (a pergunta é a que objetivo o
+       * exercício serve), e duas linhas de aritmética ao lado de três caixas de marcar fazem a
+       * janela parecer um relatório. `impacto.soma` continua no núcleo — a conta está feita e
+       * provada —, e o que se mede aqui é que ela JÁ NÃO SE EXIBE, nos dois casos: sem linha
+       * nenhuma e com a linha filtrada (o caso em que o número existe e era o mais tentador).
+       *
+       * O CONTROLE POSITIVO FICA: o `impacto` com soma é o mesmo objecto que antes enchia a frase,
+       * portanto uma janela que ainda a mostrasse seria apanhada aqui. */
+      conferir('…e a janela NÃO diz mais nada sobre a soma por bloco (o caso sem linha)',
+        !/soma dos tempos/.test(String(mObj.textContent || '')),
         String(mObj.textContent || '').replace(/\s+/g, ' ').slice(0, 300));
 
       const cSoma = await correrON(true, impactoComSoma);
       await cSoma.escolherEJuntar('Battement jeté');
       const mSoma = cSoma.modal();
-      conferir('…e quando há linha filtrada, a janela mostra o número por bloco',
-        /Barra 8/.test(String((mSoma || {}).textContent || ''))
-          && /16/.test(String((mSoma || {}).textContent || '')),
+      conferir('…nem quando a linha filtrada existe e a soma mudaria — o número não se mostra',
+        Boolean(mSoma) && !/soma dos tempos/.test(String(mSoma.textContent || ''))
+          && !/Barra 8/.test(String(mSoma.textContent || '')),
         String((mSoma || {}).textContent || '').replace(/\s+/g, ' ').slice(0, 300));
       cSoma.fechar();
 
@@ -2010,9 +2049,19 @@ const RITMO = {
       conferir('a Turma com plano tem o botão «Atualizar o ciclo»',
         Boolean(cBotao.d.querySelector('[data-ciclo-atualizar="cu-n"]')),
         String((cBotao.d.querySelector('[data-acoes-da-turma="cu-n"]') || {}).textContent || ''));
-      conferir('…e diz onde os ajustes que param na Turma entram',
-        /só passam ao ciclo quando ele é atualizado/.test(
-          String((cBotao.d.querySelector('[data-curadoria="cu-n"]') || {}).textContent || '')), null);
+      /* A NOTA FIXA SAIU DO CARTÃO (20/11/2026): «Tira esse texto, não tem que existir esse texto.
+       * […] Essa mensagem […] tem que existir quando ajustes são feitos nesses lugares, tá? Aí sim
+       * é que aparece lá no canto superior direito.» O botão fica — é a porta que ela pediu —, e o
+       * que sai é o contrato escrito em cada cartão.
+       *
+       * O aviso do ajuste é medido onde ele nasce: no gesto que grava a régua (ver `provar-rubrica`
+       * e a função `avisarDoAjusteQueParaNaTurma`). Aqui mede-se o contrário — que a lista não o
+       * diz a quem não fez ajuste nenhum. */
+      conferir('…e o cartão da Turma NÃO tem a nota fixa sobre os ajustes',
+        !/só passam ao ciclo/.test(
+          String((cBotao.d.querySelector('[data-curadoria="cu-n"]') || {}).textContent || '')),
+        String((cBotao.d.querySelector('[data-curadoria="cu-n"]') || {}).textContent || '')
+          .replace(/\s+/g, ' ').slice(0, 240));
       await cBotao.clicar(cBotao.d.querySelector('[data-ciclo-atualizar="cu-n"]'));
       const pedidoDoCiclo = cBotao.pedidos.filter((p) => p.rota === 'ciclo');
       conferir('o clique pede a atualização do ciclo à rota, com o nome da sala',
@@ -2030,21 +2079,122 @@ const RITMO = {
       cSem.fechar();
 
       /* ── o CANCELAR, e o `Escape` ──────────────────────────────────────────── */
+      /* CANCELAR É O MESMO GESTO NAS DUAS PORTAS (20/11/2026). A ordem dela: «quando clica em
+       * cancelar ele tem que fazer o mesmo efeito de cancelar que o botão cancelar faz no
+       * formulário. Quer dizer, ele fecha o modal, limpa o formulário e colapsa o formulário.»
+       *
+       * O formulário é aberto e preenchido ANTES de cancelar — senão o limpar e o recolher não se
+       * medem, porque não havia nada para limpar. É a mesma armadilha da prova do cancelar da
+       * duração, e a razão de ela a ter apanhado ao vivo e eu não. */
       const cCancN = await correrON(true);
       await cCancN.escolherEJuntar('Battement jeté');
+      cCancN.w.eval(`(function(){
+        abrirOFormularioDe('sec-curadorias');
+        var a = document.getElementById('cuderivar'); if (a) a.value = 'cu-n';
+        var m = document.getElementById('cumodo'); if (m) m.value = 'editar';
+        var t = document.getElementById('cuturma'); if (t) t.value = 'Rosa';
+        return true;
+      })()`);
+      await cCancN.esperar(150);
+      /* O RECOLHIMENTO É `data-recolhido` NA SECÇÃO (ver `definirSecaoRecolhida`), e não uma
+       * classe — medir a classe seria medir outra coisa. */
+      const seccaoAntes = cCancN.d.getElementById('sec-curadorias');
+      const abertaAntes = seccaoAntes && seccaoAntes.getAttribute('data-recolhido') === 'nao';
+      const fichaAntes = cCancN.fichas().length;
+      conferir('o formulário da Turma está ABERTO e preenchido antes de cancelar',
+        Boolean(abertaAntes) && (cCancN.d.getElementById('cuderivar').value === 'cu-n'),
+        { aberta: abertaAntes, id: cCancN.d.getElementById('cuderivar').value });
       await cCancN.clicar(cCancN.d.getElementById('obj-cancelar'));
       conferir('o «Cancelar» da janela fecha e NÃO acrescenta ficha',
-        cCancN.fichas().length === 0 && Boolean(cCancN.modal() && cCancN.modal().hidden),
+        cCancN.fichas().length === fichaAntes && Boolean(cCancN.modal() && cCancN.modal().hidden),
         cCancN.fichas());
-      /* O `Escape` É O CONTRATO DA JANELA POR CIMA (20/11/2026): fecha, e não decide. */
+      conferir('…e LIMPA o formulário da Turma, como o «Cancelar» de lá',
+        cCancN.d.getElementById('cuderivar').value === ''
+          && cCancN.d.getElementById('cumodo').value === '',
+        { id: cCancN.d.getElementById('cuderivar').value,
+          modo: cCancN.d.getElementById('cumodo').value });
+      conferir('…e as fichas do conteúdo ficam limpas',
+        cCancN.fichas().length === 0, cCancN.fichas());
+      conferir('…e o formulário fica RECOLHIDO — o mesmo gesto do «Cancelar» de lá',
+        (() => {
+          const sec = cCancN.d.getElementById('sec-curadorias');
+          return Boolean(sec) && sec.getAttribute('data-recolhido') === 'sim';
+        })(),
+        (() => {
+          const sec = cCancN.d.getElementById('sec-curadorias');
+          return sec ? { recolhido: sec.getAttribute('data-recolhido') } : 'sem secção';
+        })());
+      /* O `Escape` É O CONTRATO DA JANELA POR CIMA (20/11/2026): fecha, e não decide.
+       *
+       * O FORMULÁRIO VOLTA A SER ABERTO antes — e isso é a prova de que o cancelamento anterior
+       * foi completo: com a Turma em curso vazia, o «Adicionar» nem pergunta (não há Turma a que
+       * ligar o exercício) e a ficha entra directa. O que se mede é o `Escape` sobre uma janela
+       * ABERTA: que ele fecha, e que não acrescenta ficha nenhuma. */
+      cCancN.w.eval(`(function(){
+        abrirOFormularioDe('sec-curadorias');
+        var a = document.getElementById('cuderivar'); if (a) a.value = 'cu-n';
+        return true;
+      })()`);
+      await cCancN.esperar(150);
       await cCancN.escolherEJuntar('Battement jeté');
       const mEsc = cCancN.modal();
+      const fichasAntesDoEsc = cCancN.fichas().length;
+      conferir('…e o `Escape` tem uma janela ABERTA para fechar (a ficha ainda não entrou)',
+        Boolean(mEsc) && !mEsc.hidden && fichasAntesDoEsc === 0,
+        { oculto: mEsc && mEsc.hidden, fichas: cCancN.fichas() });
       mEsc.dispatchEvent(new cCancN.w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
       await cCancN.esperar(100);
       conferir('…e o `Escape` fecha a janela, sem acrescentar ficha',
-        Boolean(mEsc.hidden) && cCancN.fichas().length === 0,
+        Boolean(mEsc.hidden) && cCancN.fichas().length === fichasAntesDoEsc,
         { oculto: mEsc.hidden, fichas: cCancN.fichas() });
       cCancN.fechar();
+
+      /* ── O AVISO DO AJUSTE QUE PARA NA TURMA (20/11/2026) ───────────────────
+       *
+       * A ORDEM, na letra: «essas derivações […] têm efeito diretamente na turma, mas elas param
+       * ali. Então a gente vai colocar um aviso para o professor […] que diz que esses ajustes
+       * estão registrados na turma, mas serão vinculados ao ciclo […]» E a outra metade, sobre o
+       * texto fixo que aqui esteve: «Tira esse texto, não tem que existir esse texto. […] essa
+       * mensagem […] tem que existir quando ajustes são feitos nesses lugares, tá? Aí sim é que
+       * aparece lá no canto superior direito.»
+       *
+       * O QUE SE MEDE é o gesto de gravar a RÉGUA — um dos três casos que ela nomeou — e o aviso a
+       * atravessar a recarga, que é como este caminho termina (`enviar(…, true, …)`). Medir o
+       * aviso no DOM antes da recarga seria medir um instante que o professor não vê. */
+      const cRegua = await correrON(true);
+      cRegua.w.eval(`(function(){
+        abrirOFormularioDe('sec-professores');
+        var n = document.getElementById('rubr-nome'); if (n) n.value = 'Régua da prova';
+        var dono = document.getElementById('rubr-niveis');
+        if (dono && !dono.querySelector('input[name="rubrica"]')) {
+          var l = document.createElement('span'); l.className = 'linha-regua';
+          var i = document.createElement('input'); i.name = 'rubrica'; i.value = 'Satisfatório';
+          l.appendChild(i); dono.appendChild(l);
+        }
+        return true;
+      })()`);
+      await cRegua.esperar(120);
+      cRegua.w.eval('gravarAReguaDoProfessor("demi-plie")');
+      await cRegua.esperar(400);
+      const guardado = (() => {
+        try { return cRegua.w.sessionStorage.getItem('producao:aviso'); } catch (e) { return null; }
+      })();
+      conferir('gravar a régua REGISTA o aviso de que o ajuste para na Turma',
+        Boolean(guardado) && /registado na Turma/.test(guardado), guardado);
+      conferir('…e o aviso diz onde se força a passagem ao ciclo, com o nome do botão',
+        Boolean(guardado) && /Atualizar o ciclo/.test(guardado), guardado);
+      conferir('…e é de ATENÇÃO, e não de êxito — o ajuste está gravado, o ciclo é que não',
+        Boolean(guardado) && /"tipo":"atencao"/.test(guardado.replace(/\s+/g, '')), guardado);
+      /* E ele APARECE no canto, na página seguinte — o mecanismo que já existe (`repintarAvisosGuardados`). */
+      cRegua.w.eval('repintarAvisosGuardados()');
+      await cRegua.esperar(150);
+      const noCanto = cRegua.d.querySelector('#avisos .aviso-do-gesto');
+      conferir('…e o aviso repinta no CANTO superior direito da página que vem',
+        Boolean(noCanto) && /registado na Turma/.test(noCanto.textContent || ''),
+        noCanto && noCanto.textContent);
+      conferir('…e traz o × que o fecha sem esperar pelos oito segundos',
+        Boolean(noCanto && noCanto.querySelector('.aviso-do-gesto-fechar')), null);
+      cRegua.fechar();
     }
   }
 

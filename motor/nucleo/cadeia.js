@@ -311,6 +311,105 @@ function indice(estado) {
     }
     return false;
   };
+  /* O CONTEÚDO DA TURMA MANDA, E A DATA NÃO O SABE (20/11/2026) — o quarto defeito da mesma
+   * família, e o que ela mediu ao vivo com todas as letras.
+   *
+   * O QUE ACONTECEU. Ela acrescentou o «Batman GT» à Turma `Rosa`, escolheu o objetivo 3 na
+   * janela, gravou — e o plano continuou com o `aula-1-parametro` sem nenhum objetivo marcado. A
+   * Travessia correu: o log tem seis execuções entre 19:20 e 20:22, todas `ok: true`, todas com
+   * `plano-de-ensino · feita · id plano-20261120-1411`. O plano NUNCA foi derivado, e a
+   * declaração da Turma nunca teve onde ser aplicada.
+   *
+   * A CAUSA É A ESCADA, E É A MESMA DAS TRÊS VEZES ANTERIORES. A última pergunta da escada é
+   * `novo(e.plano.gerado_em || e.plano.id)`, e `e.quando` é a VIGÊNCIA da Turma — uma DATA,
+   * `2026-11-20`. O plano é de `2026-11-20T14:11`: a comparação de strings diz que
+   * `'2026-11-20T14:11' >= '2026-11-20'`, ou seja, que o plano é mais novo do que a mudança. Foi
+   * verdade para o ritmo (a lição está escrita dezasseis linhas acima) e é verdade para o
+   * conteúdo, todos os dias, todas as vezes — porque tudo acontece no mesmo dia.
+   *
+   * A PROVA É A IDENTIDADE, NÃO A DATA — a regra que este ficheiro já segue desde 10/11: «A data é
+   * um indício; a identidade é a prova.» Aqui a identidade é o CONTEÚDO, e ela é comparável sem
+   * horas nenhumas:
+   *
+   *   · a Turma DECLARA um exercício que serve um objetivo e o plano não o carrega → o plano está
+   *     velho, e derivá-lo é aplicá-lo (`aplicarDeclaracoes`);
+   *   · o plano carrega um exercício que a Turma já não ensina → o plano está velho, e derivá-lo é
+   *     podá-lo (`podarForaDoRepertorio`).
+   *
+   * AS DUAS CONDIÇÕES SÃO IDEMPOTENTES, e é isso que as torna seguras: depois de derivar, ou o
+   * termo está no plano (e a primeira deixa de valer), ou foi podado (e a segunda deixa de valer).
+   * A única declaração que a derivação NÃO aplica é a de um exercício que a aula já usa — e essa
+   * também não dispara nada, porque ela exige que o termo FALTE no plano.
+   *
+   * O QUE NÃO ENTRA NESTA CONTA, e é de propósito:
+   *   · um exercício da Turma SEM declaração não faz o plano mudar — `aplicarDeclaracoes` só
+   *     escreve o que foi declarado, portanto exigi-lo aqui seria pedir uma derivação que não
+   *     deriva nada, para sempre;
+   *   · uma Turma sem `repertorio` declarado não julga ninguém (a convenção de sempre: o vazio não
+   *     conta), e uma bancada que não passe `e.conteudo` cala esta guarda por completo. */
+  const termosDe = (valor) => {
+    const lista = Array.isArray(valor) ? valor
+      : (valor === null || valor === undefined ? [] : [valor]);
+    const saida = [];
+    for (const item of lista) {
+      const t = String(item === null || item === undefined ? '' : item).trim();
+      if (t && saida.indexOf(t) === -1) saida.push(t);
+    }
+    return saida;
+  };
+  /** A resposta de um id no documento, desembrulhada do registro `{valor, …}`. */
+  const valorNoDocumento = (doc, chave) => {
+    const cru = (doc && doc.respostas && doc.respostas[chave]) || null;
+    return cru && typeof cru === 'object' && !Array.isArray(cru) && 'valor' in cru
+      ? cru.valor : cru;
+  };
+  /** O conteúdo que a Turma manda hoje — `{repertorio: [...], declaracoes: {termo: [n]}}`. */
+  const conteudoDeHoje = () => (e.conteudo && typeof e.conteudo === 'object' ? e.conteudo : null);
+  /**
+   * O que o plano carrega a mais, e o que a Turma declara a mais. Devolve `{falta, sobra}` com os
+   * termos — vazio e vazio é «está em dia».
+   */
+  const diferencaDeConteudo = (doc) => {
+    const hoje = conteudoDeHoje();
+    if (!hoje) return { falta: [], sobra: [] };
+    const daTurma = termosDe(hoje.repertorio);
+    if (!daTurma.length) return { falta: [], sobra: [] }; // o vazio não julga
+    const doPlano = termosDe(valorNoDocumento(doc, 'repertorio'));
+    const declarados = Object.keys(hoje.declaracoes || {});
+    const falta = [];
+    for (const termo of declarados) {
+      const t = String(termo || '').trim();
+      if (t && daTurma.indexOf(t) !== -1 && doPlano.indexOf(t) === -1) falta.push(t);
+    }
+    const sobra = [];
+    for (const termo of doPlano) {
+      if (daTurma.indexOf(termo) === -1) sobra.push(termo);
+    }
+    return { falta, sobra };
+  };
+  const conteudoMudou = (doc) => {
+    const d = diferencaDeConteudo(doc);
+    return Boolean(d.falta.length || d.sobra.length);
+  };
+  /** A frase do conteúdo — uma só, para o plano e para o PO, porque o facto é o mesmo. */
+  const fraseDoConteudo = (doc) => {
+    const d = diferencaDeConteudo(doc);
+    const partes = [];
+    if (d.falta.length) {
+      partes.push('a Turma declara ' + (d.falta.length === 1 ? 'o exercício ' : 'os exercícios ')
+        + d.falta.map((t) => '«' + t + '»').join(', ')
+        + ', e ' + (d.falta.length === 1 ? 'ele não está' : 'eles não estão')
+        + ' na lista de «' + String((doc && doc.id) || '—') + '»');
+    }
+    if (d.sobra.length) {
+      partes.push('«' + String((doc && doc.id) || '—') + '» ainda carrega '
+        + d.sobra.map((t) => '«' + t + '»').join(', ')
+        + ', e a Turma já não ' + (d.sobra.length === 1 ? 'o ensina' : 'os ensina'));
+    }
+    return 'O conteúdo da Turma mudou: ' + partes.join('; ') + '. A cadeia deriva um elo novo '
+      + 'com a lista de hoje — o passado fica no elo anterior.';
+  };
+
   /** O plano de ensino vai mudar nesta passagem? Lê a etapa que já foi calculada acima. */
   const planoVaiMudar = () => {
     const passo = passos.find((p) => p.chave === 'plano-de-ensino');
@@ -409,6 +508,14 @@ function indice(estado) {
     passos.push({
       chave: 'plano-de-ensino', estado: 'pendente', id: e.plano.id || null,
       falta: fraseDoRitmo(e.plano),
+    });
+  } else if (conteudoMudou(e.plano)) {
+    /* ANTES DA DATA, E PELA MESMA RAZÃO DO RITMO (20/11/2026): o conteúdo é prova, a data é
+     * indício. E aqui é o único caminho por onde a DECLARAÇÃO do objetivo — a resposta que a
+     * janela da Turma recebeu — chega ao papel. */
+    passos.push({
+      chave: 'plano-de-ensino', estado: 'pendente', id: e.plano.id || null,
+      falta: fraseDoConteudo(e.plano),
     });
   } else if (novo(e.plano.gerado_em || e.plano.id)) {
     /* E O PEDIDO DELA DE ATUALIZAR AGORA (20/11/2026). Há ajustes que NÃO passam pela cadeia — a
