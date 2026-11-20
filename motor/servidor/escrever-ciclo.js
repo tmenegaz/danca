@@ -320,36 +320,52 @@ function calibracaoDoConf(texto) {
 const DIA_ISO = { seg: 1, ter: 2, qua: 3, qui: 4, sex: 5, sab: 6, 'sáb': 6, 'sábado': 6, sabado: 6, dom: 7 };
 const UNIDADE_FREQUENCIA = { semanal: 'semana', 'diária': 'dia' };
 
-/** A duração elicitada (pares hora+minuto) em minutos, ou `null`. */
 /**
- * As durações da aula, no formato do `.conf` (`DURACOES="60"` ou `"60,120"`).
+ * AS DURAÇÕES DO PLANO, EM MINUTOS — e a forma é COMPOSTA, não uma lista (20/11/2026).
  *
- * Duas correções em 18/10/2026, e a primeira explica o CI vermelho de `fita`:
+ * O DEFEITO MEDIDO. Ela derivou a Sala `Rosa` com **70 minutos** (1 h 10). O plano novo saiu
+ * certo — `contexto-duracao: [{1, hora}, {10, minuto}]` —, mas o `.conf` foi composto com
+ * `DURACAO_POR_DIA="10,60 min por encontro"` e a geração morreu: «aula-01 não declara
+ * 'volume-total:' para o dia de 10 min (Regra 9)». A cadeia inteira correu; o documento não saiu.
  *
- * 1. **O valor chega como OBJETO** (`{numero, unidade}`), não como lista — é o que
- *    `respostaDo` devolve e o que `comporMedida` (nucleo/derivar-po.js) já sabia ler. A versão
- *    anterior exigia `Array.isArray` e devolvia `null` para o caso normal, de modo que
- *    `DURACOES` e `DURACAO_POR_DIA` **nunca** eram escritos pelo ato: o `.conf` ficava com o
- *    que `criar-escola.sh` tinha posto. Foi por isso que um plano de 55 min conviveu com um
- *    manifesto de 60.
- * 2. **Duas durações são uma LISTA, não uma soma.** O `.conf` lê `DURACOES` como «curta e
- *    longa» (`DUR_CURTA=${DURACOES%%,*}`, `DUR_LONGA=${DURACOES##*,}`). Somar 60 + 120 daria
- *    180 e o gerador aplicaria a faixa de 180 min — uma duração que não existe.
+ * A CAUSA, E ELA É DE DOIS CAMPOS DIFERENTES COM O MESMO NOME.
+ *
+ *   · `DURACOES`, no `.conf`, é uma lista — «curta e longa». O gerador lê-a em duas partes
+ *     (`DUR_CURTA=${DURACOES%%,*}`, `DUR_LONGA=${DURACOES##*,}`), e somar 60 + 120 daria 180,
+ *     uma duração que não existe. Essa parte da correção de 18/10/2026 continua verdadeira.
+ *   · `contexto-duracao`, no PLANO, não é isso. É UMA duração escrita em duas parcelas, e a
+ *     autoridade é o conteúdo (`porta/plano/conteudo/plano.json`):
+ *
+ *         "campo": "Duração por aula",          ← uma, e «por aula»
+ *         "medida": { "pares": 2, "fixas": ["hora", "minuto"] }
+ *
+ *     Duas posições FIXAS — a hora e o minuto. Somam-se.
+ *
+ * O QUE SE PERDEU AO TRATAR OS DOIS COMO UM. Com 45 min (`[{45, minuto}]`) e com 60
+ * (`[{1, hora}]`) há uma só parcela, e o erro não aparecia: o valor saía certo por acidente. Com
+ * 1 h 10 há duas, e a vírgula do `.conf` transformou `70` em `10,60` — um dia de 10 minutos, que
+ * a Regra 9 não perdoa.
+ *
+ * Somar por POSIÇÃO (e não acumular tudo) mantém o caso de um valor repetido a valer uma vez:
+ * `[{60,minutos},{60,minutos}]` continua a ser 60, porque não há duas parcelas de horas a somar.
  */
 function minutosDaDuracao(duracao) {
   if (!duracao) return null;
   const partes = Array.isArray(duracao) ? duracao : [duracao];
-  const minutos = [];
+  let horas = 0;
+  let minutos = 0;
+  let viu = false;
   for (const p of partes) {
     if (!p || typeof p !== 'object') continue;
-    const n = Number(p.numero) || 0;
+    const n = Number(p.numero);
+    if (!Number.isFinite(n) || n <= 0) continue;
     const u = String(p.unidade || '').toLowerCase();
-    const valor = (u === 'hora' || u === 'horas') ? n * 60 : (u === 'minuto' || u === 'minutos') ? n : 0;
-    if (valor > 0 && minutos.indexOf(valor) === -1) minutos.push(valor);
+    if (u === 'hora' || u === 'horas') { horas = n; viu = true; }
+    else if (u === 'minuto' || u === 'minutos') { minutos = n; viu = true; }
   }
-  if (!minutos.length) return null;
-  minutos.sort((a, b) => a - b);
-  return minutos.join(',');
+  if (!viu) return null;
+  const total = horas * 60 + minutos;
+  return total > 0 ? String(total) : null;
 }
 
 /** `2026-10-20` → `20/10/2026` (o `.conf` usa dd/mm/aaaa). */

@@ -188,10 +188,15 @@ function comporConf({ turma, plano, identidade, escola, ciclo: numeroDoCiclo, do
         ciclo().dataBrasil(turma.periodoFim));
     }
   }
-  const duracoesDoPlano = String(ciclo().minutosDaDuracao(respostaDo(plano, 'contexto-duracao')) || '')
-    .split(',').map(Number).filter((n) => n > 0);
-  if (duracoesDoPlano.length && duracoesDoPlano.indexOf(nd) === -1) {
-    conflitos.push('o plano declara ' + duracoesDoPlano.join('/') + ' min por aula e a turma declara ' + nd);
+  /* A DURAÇÃO DO PLANO É COMPOSTA, E JÁ SE COMPARA COMO TAL (20/11/2026).
+   *
+   * Aqui fazia-se `.split(',')` porque `minutosDaDuracao` devolvia uma lista de durações
+   * autónomas — e um plano de 70 min (1 h + 10 min) chegava como `"10,60"`. O campo do plano é
+   * UMA duração em duas parcelas (o conteúdo declara `"pares": 2, "fixas": ["hora","minuto"]`), e
+   * a função soma-as. O valor é agora um número só, e o que sobra é a comparação com a Sala. */
+  const duracoesDoPlano = Number(ciclo().minutosDaDuracao(respostaDo(plano, 'contexto-duracao')));
+  if (Number.isFinite(duracoesDoPlano) && duracoesDoPlano > 0 && duracoesDoPlano !== nd) {
+    conflitos.push('o plano declara ' + duracoesDoPlano + ' min por aula e a turma declara ' + nd);
   }
   const calendario = respostaDo(plano, 'contexto-calendario');
   const inicioDoPlano = calendario && calendario.inicio ? ciclo().dataBrasil(calendario.inicio) : null;

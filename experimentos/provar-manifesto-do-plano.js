@@ -133,9 +133,22 @@ function criarFetch(confInicial) {
   console.log('1. A duração vem como OBJETO, e duas durações são lista');
   igual('{numero:55, unidade:minutos} → 55', minutosDaDuracao({ numero: 55, unidade: 'minutos' }), '55');
   igual('{numero:2, unidade:horas} → 120', minutosDaDuracao({ numero: 2, unidade: 'horas' }), '120');
-  igual('lista 60 + 120 → "60,120" (não 180)', minutosDaDuracao([
-    { numero: 60, unidade: 'minutos' }, { numero: 2, unidade: 'horas' },
-  ]), '60,120');
+  /* A FORMA COMPOSTA, e esta asserção já dizia o contrário (20/11/2026).
+   *
+   * O campo do plano é UMA duração em duas parcelas — o conteúdo declara-o com
+   * `"medida": { "pares": 2, "fixas": ["hora", "minuto"] }`, e o rótulo é «Duração por aula».
+   * A leitura de «lista de alternativas» é do `DURACOES` do `.conf`, que é outro campo com o
+   * mesmo nome. A confusão custou uma geração: uma Sala de 70 min (1 h 10) compôs
+   * `DURACAO_POR_DIA="10,60 min por encontro"` e o gerador morreu na Regra 9. */
+  igual('1 hora + 10 minutos → "70" (é uma duração, não duas)', minutosDaDuracao([
+    { numero: 1, unidade: 'hora' }, { numero: 10, unidade: 'minuto' },
+  ]), '70');
+  igual('2 horas + 30 minutos → "150"', minutosDaDuracao([
+    { numero: 2, unidade: 'hora' }, { numero: 30, unidade: 'minuto' },
+  ]), '150');
+  igual('CONTROLE NEGATIVO: a ordem das parcelas não muda a soma', minutosDaDuracao([
+    { numero: 10, unidade: 'minuto' }, { numero: 1, unidade: 'hora' },
+  ]), '70');
   igual('duração repetida não se duplica', minutosDaDuracao([
     { numero: 60, unidade: 'minutos' }, { numero: 60, unidade: 'minutos' },
   ]), '60');
