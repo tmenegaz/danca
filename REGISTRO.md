@@ -55996,7 +55996,56 @@ dos três campos, a tabela do repertório, o que custa construir (a janela a gen
 maior), o que se economiza (um gesto em vez de dois = 1 a 2 min por remoção) e o que dá para
 automatizar (a redistribuição em percentual, não a em minutos).
 
-**O que ainda não está feito.** Nada mudou no Dicionário: a regra continua a ser «regerar sempre», e
-a troca para «regerar só quando o que mudou é o que o documento lê» é uma alteração de
-comportamento — precisa da palavra dela. E o modal do Estilo não foi construído: este capítulo é o
-estudo que ela pediu antes.
+**E ela decidiu, com o estudo à frente: o Dicionário fica como está.** Posta a escolha entre afinar a
+regra («regerar só quando o que mudou é o que o documento lê»), adiar a geração, ou não mexer, a
+resposta foi **não mexer**. O preço fica registado, e é dela: uma geração por gravação de termo,
+mesmo quando o campo gravado não chega a documento nenhum. É reversível no dia em que a conta pesar.
+
+## 20/11/2026 — O estudo do modal do Estilo, corrigido por ela: é na INCLUSÃO, e a pergunta é o objectivo
+
+**O que eu tinha concluído, e o que estava errado.** A primeira versão do §7.9 dizia que incluir um
+exercício não tinha impacto nenhum — porque olhei para a **sequência** (`aula-1-sequencia`) e não para
+a matriz do **parâmetro de medição** (`aula-1-parametro`), que é `[{marco: N, marcados: [termos]}]`:
+«o objectivo N observa estes exercícios».
+
+**A correcção, nas palavras dela.** «se eu vou lá no estilo e incluo pela derivação um novo exercício,
+eu tenho um impacto direto no parâmetro de medição. Aí eu preciso dizer […] se é o objetivo um, dois
+ou três, ele se encaixa. […] não faz sentido eu incluir um exercício e não dizer a qual objetivo ele
+serve. […] E aí isso impacta na construção do item 10, que é a sequência do exercício por bloco. […]
+o modal precisa existir quando inclui um exercício no estilo.» E a outra metade: «quando eu removo,
+não tem impacto. […] o modal não precisaria existir para remover, porque aí ele se desvincula dos
+objetivos.»
+
+**A cadeia, e é ela que fixa o desenho:**
+
+```
+incluir um exercício no Estilo
+        ↓  (é o que falta hoje)
+a que OBJECTIVO ele serve?          → aula-1-parametro · marcados[]
+        ↓
+«1 reconhecer… — observa: Battement tendu · Plié · Fondue»
+        ↓
+passa a poder ser escolhido         → item 10 · aula-1-sequencia
+        ↓
+os tempos somam por bloco           → a estimativa de Solo · Barra · Centro · Musicalidade
+```
+
+**Portanto o modal é o da INCLUSÃO, e pergunta uma coisa só:** a que objectivo(s) o exercício serve.
+O sistema não pode responder por ela — escolher o objectivo é a declaração pedagógica — e pode mostrar
+o que a resposta implica: a linha do parâmetro que ganha o termo, e os blocos cujo total muda.
+
+**O que a janela NÃO pergunta:** em que bloco ele entra. O bloco é do item 10, e o item 10 é escrito
+linha a linha pelo professor.
+
+**Duas decisões que ficam em aberto, e são dela.** (1) **Onde a declaração é escrita**: a frase dela
+(«eu preciso dizer aqui no parâmetro de medição») aponta para o envelope do **plano**; escrever ali a
+partir da derivação do Estilo é a cadeia a mexer no documento que a aula segue, e a alternativa é a
+curadoria guardar o par (`{termo, objetivos}`) e o plano herdá-lo ao nascer. (2) **O que acontece sem
+plano**: não há objectivos a que ligar o exercício — entra no repertório e a declaração nasce no
+primeiro plano daquela turma.
+
+**Com o quê.** `CUSTO-DOS-FLUXOS.md` §7.9 — as secções b, b.1, c, d e e reescritas com a correcção, a
+tabela do que é automatizável (escolher o objectivo não é), e o custo de construir.
+
+**O que ainda não está feito.** O modal não foi construído: primeiro decide-se onde a declaração é
+escrita, porque as duas opções têm consequências diferentes na proveniência.

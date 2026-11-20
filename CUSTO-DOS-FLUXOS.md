@@ -624,8 +624,14 @@ O que os documentos chamam «categoria» é outra coisa: as categorias do **alfa
 do vocabulário só chega ao documento **pelo verbete** — os trechos, a música, os sinais.
 
 **Conclusão:** hoje, corrigir a categoria de um termo paga uma geração para não mudar um byte. A
-regra certa não é «nunca regerar» nem «regerar sempre»: é **regerar quando o que mudou é o que o
-documento lê**.
+regra certa não seria «nunca regerar» nem «regerar sempre», e sim **regerar quando o que mudou é o
+que o documento lê**.
+
+> **E ela decidiu deixar como está (20/11/2026).** Posta a escolha entre afinar a regra, adiar a
+> geração, ou não mexer, a resposta foi **não mexer** — «nada». O que fica registado é o preço: uma
+> geração por gravação de termo, mesmo quando o campo gravado não chega a documento nenhum. Não é
+> erro de ninguém: é uma decisão tomada com o número à frente, e é reversível no dia em que a conta
+> começar a pesar.
 
 ### b) O Estilo: o que a inclusão e a remoção fazem de facto
 
@@ -639,38 +645,91 @@ sequência):
 | `Relevé` | **8** | 20 · 16 · 12 |
 | `Battement tendu` | **10** | 20 · 24 · 20 |
 
-**Remover tem impacto real, e é automático:** as linhas que citam o exercício caem por
-`linhasDoRepertorio`, e os totais por bloco descem com elas. É exactamente o que ela descreveu.
+**Remover tem impacto, e é automático:** as linhas que citam o exercício caem por
+`linhasDoRepertorio`, os totais por bloco descem, e a linha do **Parâmetro de medição** daquele
+objectivo perde o termo por `termosDoRepertorio`. Nada a decidir — o exercício desvincula-se, e o
+documento segue a régua do repertório acordado sozinho.
 
-**Incluir não tem impacto nenhum, e isso é estrutural.** O exercício passa a estar *disponível* — não
-entra sozinho na sequência, porque **o bloco não é uma propriedade do exercício**: o mesmo `Plié`
-aparece em Solo, Barra e Centro, e quem escolhe onde é o professor, linha a linha, no plano. Não há
-nada para o sistema calcular, e inventar uma proposta seria o sistema a decidir pedagogia.
+> **CORRECÇÃO DE 20/11/2026, no mesmo dia, e ela é dela.** A primeira versão deste capítulo dizia que
+> **incluir** não tinha impacto nenhum, e concluía que o modal só se justificava na remoção. Estava
+> errado, e o erro foi de leitura: olhei para a sequência (`aula-1-sequencia`) e não para a matriz do
+> **parâmetro de medição** (`aula-1-parametro`), que é `[{marco: N, marcados: [termos]}]` — «o
+> objectivo N observa estes exercícios». É por ali que um exercício entra na aula, e é essa a
+> declaração que hoje falta:
+>
+> «se eu vou lá no estilo e incluo pela derivação um novo exercício, eu tenho um impacto direto no
+> parâmetro de medição. Aí eu preciso dizer […] em qual aspecto dos objetivos específicos […] o
+> objetivo um, dois ou três, ele se encaixa. […] não faz sentido eu incluir um exercício e não dizer
+> a qual objetivo ele serve. […] E aí isso impacta na construção do item 10, que é a sequência do
+> exercício por bloco. […] o modal precisa existir quando inclui um exercício no estilo.»
+>
+> E a outra metade da frase dela fecha o desenho pelo lado oposto: **«quando eu removo, não tem
+> impacto. […] o modal não precisaria existir para remover, porque aí ele se desvincula dos
+> objetivos.»**
 
-**Consequência para o modal:** justifica-se **na remoção** — e só nela. «Vai atender todos os
-elementos da aula?» não é uma pergunta que o sistema saiba responder sobre um exercício que acabou de
-entrar; é uma pergunta sobre o que o professor ainda vai escrever.
+### b.1) A cadeia, do exercício ao item 10
 
-### c) O que o modal da remoção mostraria — e o que custa construí-lo
+Isto é o que a correcção fixa, e é o que o modal tem de perguntar:
 
-O que já existe para a duração serve, e é a mesma forma: o `409` com `impacto`, o cliente a abrir a
-janela, e o mesmo pedido reenviado com a decisão.
+```
+incluir um exercício no Estilo
+        ↓  (é o que falta hoje: a declaração)
+a que OBJECTIVO ele serve?          → aula-1-parametro · marcados[]
+        ↓
+o objectivo observa este exercício  → «1 reconhecer… — observa: Battement tendu · Plié · Fondue»
+        ↓
+ele passa a poder ser escolhido     → item 10 · aula-1-sequencia (Bloco · Objetivo · Conteúdo)
+        ↓
+os tempos da linha somam por bloco  → a estimativa de Solo · Barra · Centro · Musicalidade
+```
+
+**O que o sistema NÃO pode decidir sozinho, e por isso o modal pergunta:** a que objectivo o exercício
+serve. **O que ele pode mostrar:** o que a resposta implica — quantas linhas do item 10 passam a poder
+citá-lo, e quanto isso muda a soma por bloco face aos minutos declarados.
+
+**E a remoção fica sem janela** — mas não sem rasto: o `409` que hoje existe para o plano continua a
+avisar que a linha caiu, e o aviso é uma frase, não uma pergunta.
+
+### c) O que o modal da INCLUSÃO pergunta — e o que custa construí-lo
+
+O que já existe para a duração serve, e é a mesma forma: a rota recusa com `409` e um `impacto`, o
+cliente abre a janela, e o mesmo pedido é reenviado com a decisão.
 
 | peça | onde | estado |
 |:--|:--|:--|
-| `impactoDoRepertorio({ plano, de, para })` | `motor/nucleo/`, ao lado de `impactoDaDuracao` | **a construir** — ~80 linhas: filtra as linhas pelo repertório novo e soma por bloco |
-| a rota devolve `409` com o impacto | `POST /api/bastidores/curadoria-derivar` | **a acrescentar** — o caminho do `409` já existe nesta página, para a duração |
-| a janela | `bastidores.js`, a de `perguntarDaDuracao` | **a generalizar** — hoje ela sabe uma pergunta; passar a receber `{título, corpo, pergunta}` é o trabalho maior (~150 linhas, e as provas de uma e de outra) |
-| a decisão de redistribuir | `volume.js` (`aplicarMinutos` já existe) | **pronta** — só passa a ser chamada por outra janela |
+| `objectivosDoPlano(plano)` — os marcos daquela turma, em texto | `motor/nucleo/derivar-plano-ciclo.js` (`marcosEmTexto` já existe) | **pronta** |
+| `impactoDaInclusao({ plano, exercicio, objectivos })` — o que muda no parâmetro e no item 10 | `motor/nucleo/`, ao lado de `impactoDaDuracao` | **a construir** — ~80 linhas: acrescenta o termo a `marcados` dos objectivos escolhidos, conta as linhas do item 10 que passam a poder citá-lo, e soma os tempos por bloco |
+| a rota devolve `409` com o impacto | `POST /api/bastidores/curadoria-derivar` (e a criação) | **a acrescentar** — o caminho do `409` já existe nesta página, para a duração |
+| a gravação da declaração | envelope do PLANO (`aula-1-parametro`) | **a construir** — é a parte sensível: é a cadeia a escrever no documento que a aula segue |
+| a janela | `bastidores.js`, a de `perguntarDaDuracao` | **a generalizar** — hoje ela sabe uma pergunta; passar a receber `{título, corpo, pergunta, campos}` é o trabalho maior (~150 linhas, e as provas de uma e de outra) |
+| a redistribuição dos minutos | `volume.js` (`aplicarMinutos` já existe) | **pronta** — só passa a ser chamada por outra janela |
 
-**Custo de construção:** pequeno. **Custo de manutenção:** duas janelas a manter em paralelo, se não
-se generalizar — e é por isso que a generalização é a parte que não se deve adiar.
+**A pergunta que a janela faz** é uma só, e é de escolha múltipla: *«A que objectivo(s) este exercício
+serve?»* — com os marcos da turma, e sem pré-selecção. A partir dela o sistema sabe o que mostrar: a
+linha do parâmetro que ganha o termo, e os blocos cujo total muda.
+
+**O que a janela NÃO pergunta:** em que bloco ele entra. O bloco é do item 10, e o item 10 é do
+professor, linha a linha — o sistema não escolhe pedagogia.
+
+**Duas decisões de desenho que ficam declaradas, e são dela:**
+1. **Onde a declaração é escrita.** A frase dela — «eu preciso dizer aqui no parâmetro de medição» —
+   aponta para o envelope do **plano**. Escrever ali, a partir da derivação do Estilo, é a cadeia a
+   mexer no documento que a aula segue: é o caminho certo, e é o que precisa de uma palavra explícita
+   antes de se fazer.
+2. **O que acontece quando não há plano.** Sem plano de ensino não há objectivos a que ligar o
+   exercício. Aí a janela não tem pergunta: o exercício entra no repertório e o aviso diz que a
+   declaração do objectivo nasce no primeiro plano daquela turma.
+
+**Custo de construção:** pequeno no núcleo, médio na janela. **Custo de manutenção:** duas janelas a
+manter em paralelo, se não se generalizar — e é por isso que a generalização é a parte que não se deve
+adiar.
 
 ### d) O que se economiza, e o que se **paga**
 
-O gesto de hoje, quando se tira um exercício, são **dois**: tirar do repertório (que corre a cadeia e
-derruba as linhas do plano) e depois voltar ao plano para reescrever a distribuição. Com o modal é
-**um**. Cada gesto poupado é uma geração — 1 a 2 minutos.
+O gesto de hoje, quando se inclui um exercício, são **dois**: incluí-lo na derivação do Estilo, e
+depois ir ao plano de ensino escrever o objectivo a que ele serve — sem o que o exercício entra no
+repertório e não entra em aula nenhuma. Com o modal é **um**, e é o mesmo pedido que já leva a
+decisão. Cada gesto poupado é uma geração: **1 a 2 minutos**.
 
 **E há um limite que não é medido em minutos:** a janela abre **só na derivação**, e não na edição —
 foi ela quem o disse, e a razão é a mesma da duração: a edição é o presente; a derivação é o elo novo,
@@ -680,15 +739,19 @@ e é ele que pode ser interrogado antes de nascer.
 
 | passo | automatizável? | porquê |
 |:--|:--|:--|
-| derrubar as linhas do exercício removido | **já é** | `linhasDoRepertorio`, na derivação |
-| somar os tempos por bloco | **já é** | é aritmética, e o modal mostra |
-| redistribuir os **minutos** por bloco | **não** | a soma tem de fechar com a duração, e quem decide é ela — a mesma regra da duração |
+| derrubar as linhas e o termo do exercício removido | **já é** | `linhasDoRepertorio` e `termosDoRepertorio`, na derivação |
+| escrever o termo no parâmetro do objectivo escolhido | **sim, depois da resposta** | é o que a janela faz: a resposta é dela, a escrita é aritmética |
+| contar as linhas do item 10 que passam a citar o exercício | **sim** | é a mesma filtragem do núcleo |
+| somar os tempos por bloco | **sim** | é aritmética, e a janela mostra |
+| **escolher o objectivo** | **não** | é a declaração pedagógica — e é a razão de a janela existir |
+| escolher o bloco do exercício novo | **não** | o bloco é do item 10, e o item 10 é escrito linha a linha |
+| redistribuir os **minutos** por bloco | **não** | a soma tem de fechar com a duração, e quem decide é ela |
 | redistribuir em **percentual** | **sim** | 30 % de 90 são 27, de 165 são 49,5: a conta resolve-se, e não há modal |
-| propor o bloco de um exercício novo | **não** | o bloco não é do exercício; é decisão pedagógica do professor |
 
-**A conclusão do estudo, em uma linha:** o modal existe para a **remoção** (há impacto, há conta a
-fechar) e não para a inclusão (não há impacto nenhum); e o que hoje custa minutos não é este modal —
-é o Dicionário a regerar quando muda um campo que documento nenhum lê.
+**A conclusão do estudo, em uma linha:** o modal existe para a **inclusão** — porque incluir sem dizer
+a que objectivo o exercício serve é incluir um exercício que nunca entra em aula — e não para a
+remoção, que se desvincula sozinha. E o que hoje custa minutos sem mudar um byte é outra coisa, e é
+do Dicionário.
 
 ---
 
