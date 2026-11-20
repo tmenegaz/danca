@@ -100,7 +100,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código de dança (ballet clássico)",
-  "versao": 63,
+  "versao": 64,
   "aplicaseA": [
     "codigo-de-danca"
   ],
@@ -1209,7 +1209,7 @@
       "8|2/4@breu": {
         "cobre": 8,
         "posicao": null,
-        "metodo": "compartilhada",
+        "metodo": "Vaganova",
         "celulas": {
           "a-la-seconde": [
             {
@@ -1246,7 +1246,52 @@
             }
           ]
         },
-        "escola": "breu"
+        "escola": "breu",
+        "versoes": [
+          {
+            "ate": "2026-11-20",
+            "cobre": 8,
+            "posicao": null,
+            "metodo": "compartilhada",
+            "celulas": {
+              "a-la-seconde": [
+                {
+                  "contagem": "1–2",
+                  "categoria": "Peso",
+                  "sinais": [
+                    "5ª",
+                    "→",
+                    "-",
+                    "●",
+                    "×",
+                    "5ª"
+                  ],
+                  "descricao": "Lançamento rápido da perna estendida a uma altura baixa (geralmente a 45 graus do chão), escovando o chão\nLê-se: Peso, quinta posição, conduz a, ao lado, fecha, atrás, quinta posição.",
+                  "ordem": 1,
+                  "repeticoes": 2,
+                  "orientacao": "croise"
+                },
+                {
+                  "contagem": "1–2",
+                  "categoria": "Peso",
+                  "sinais": [
+                    "5ª",
+                    "→",
+                    "-",
+                    "●",
+                    "+",
+                    "5ª"
+                  ],
+                  "descricao": "Lançamento rápido da perna estendida a uma altura baixa (geralmente a 45 graus do chão), escovando o chão\nLê-se: Peso, quinta posição, conduz a, ao lado, fecha, à frente, quinta posição.",
+                  "ordem": 2,
+                  "repeticoes": 2,
+                  "orientacao": "croise"
+                }
+              ]
+            },
+            "motivo": "ajuste do verbete"
+          }
+        ]
       }
     },
     "Battement fondu": {
