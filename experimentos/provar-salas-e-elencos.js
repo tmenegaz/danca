@@ -1344,7 +1344,6 @@ const RITMO = {
           totalDe: 90, totalPara: 120, linhas: [
             { bloco: 'Solo', de: 27, para: 36 }, { bloco: 'Barra', de: 27, para: 36 },
             { bloco: 'Centro', de: 27, para: 36 }, { bloco: 'Musicalidade', de: 9, para: 12 }] },
-        dose: { texto: '3 a 6 séries', paraRever: true },
         suspeita: null,
       };
       const impactoPercentagem = {
@@ -1380,9 +1379,11 @@ const RITMO = {
                 let corpo = {};
                 try { corpo = JSON.parse((init && init.body) || '{}'); } catch (e) { corpo = {}; }
                 corpos.push(corpo);
-                /* A PRIMEIRA VEZ PERGUNTA; A SEGUNDA — com a decisão no corpo — grava. É o
-                 * contrato inteiro do gesto, e é o que faz a prova valer. */
-                if (!corpo.decisaoDaDuracao) {
+                /* A PRIMEIRA VEZ PERGUNTA — E SÓ QUANDO HÁ O QUE PERGUNTAR. O dublê imita a
+                 * condição do servidor, e não o contrário: `perguntaDaDuracao` só devolve o `409`
+                 * quando a distribuição está em MINUTOS. Um dublê que perguntasse sempre mediria o
+                 * dublê. */
+                if (!corpo.decisaoDaDuracao && impacto.proporcao && impacto.proporcao.precisaAjuste) {
                   return Promise.resolve({ ok: false, status: 409,
                     json: () => Promise.resolve({ ok: false, precisaDecisao: 'duracao',
                       erro: 'a duração mudou', impacto }),
@@ -1464,33 +1465,17 @@ const RITMO = {
         /Solo/.test(tMin) && /27 min/.test(tMin) && /36 min/.test(tMin), null);
       conferir('…e o total, com a regra à vista («tem de fechar com a duração»)',
         /tem de fechar com a duração/.test(tMin), null);
-      conferir('…e a dose pede decisão sem propor número',
-        /3 a 6 séries/.test(tMin) && /precisa de ajuste/.test(tMin), null);
-      /* «precisa de ajuste E DIZ AONDE» — «coloca precisa de ajuste e diz aonde, né? Precisa de
-       * ajuste lá no plano de ensino». O sítio é o plano de ensino: `contexto-volume` («Volume de
-       * trabalho») está em `porta/plano/conteudo/plano.json`. */
-      /* A ASSERÇÃO MEDE AS CÉLULAS DA LINHA, e não a presença da palavra no texto do modal.
-       *
-       * A primeira versão procurava «no plano de ensino» em qualquer sítio — e a opção «Vou revê-la
-       * no plano de ensino» já tem essa frase, portanto a prova passava mesmo com o impacto a dizer
-       * só «precisa de si». Uma prova que passa por outra razão é o pior dos defeitos: ela autoriza
-       * o que devia recusar. A segunda procurava dois pontos, e o caso dos minutos é TABELA — o
-       * `textContent` junta as células sem separador. Ler as células é o que mede a linha. */
-      const linhaDaDose = (mMin ? [...mMin.querySelectorAll('tbody tr')] : [])
-        .find((tr) => /Dose por exercício/.test(tr.textContent));
-      const celulasDaDose = linhaDaDose
-        ? [...linhaDaDose.children].map((td) => td.textContent.replace(/\s+/g, ' ').trim())
-        : null;
-      conferir('…e a linha da dose diz o valor, o ajuste e ONDE se faz',
-        JSON.stringify(celulasDaDose)
-          === JSON.stringify(['Dose por exercício', '3 a 6 séries', 'precisa de ajuste no plano de ensino']),
-        celulasDaDose);
-      conferir('…e NENHUM número novo para a dose é proposto',
-        !/(7 a 12|6 a 12|4 a 8|12 séries)/.test(tMin), null);
+      /* A DOSE NÃO ESTÁ AQUI (20/11/2026), e a razão é da dança: numa aula a música divide-se em
+       * oito, portanto três séries são 3×8 tempos musicais. A série mede-se contra a MÚSICA; a aula
+       * mede-se contra o relógio. «Não tem relação com o tempo de trabalho. Ele vai dosar isso com
+       * o que tem.» Mudar a duração não põe a dose em causa, e pedir que se revise um número que
+       * nunca esteve em causa é ruído. */
+      conferir('…e a DOSE não aparece — ela mede-se contra a música, não contra a aula',
+        !/dose/i.test(tMin), (tMin.match(/[^.]*dose[^.]*/i) || [])[0]);
       /* AS PERGUNTAS SÃO A PEÇA DA FOLHA (`escolhas`/`escolha`), e os botões estão na barra do
        * modal — não soltos, que é o erro de margem que ela já apontou. */
-      conferir('…as duas perguntas usam a peça `escolhas` da folha',
-        (mMin ? mMin.querySelectorAll('fieldset.escolhas').length : 0) === 2,
+      conferir('…a pergunta usa a peça `escolhas` da folha',
+        (mMin ? mMin.querySelectorAll('fieldset.escolhas').length : 0) === 1,
         mMin ? mMin.querySelectorAll('fieldset.escolhas').length : 0);
       const botaoMin = mMin ? mMin.querySelector('.modal-acoes > .acao') : null;
       conferir('…e o botão vive na barra do modal (`.modal-acoes`)', !!botaoMin, null);
@@ -1511,9 +1496,9 @@ const RITMO = {
       await cMin.decidir();
       conferir('…e o MESMO pedido é reenviado, agora com a decisão',
         cMin.corpos.length === 2, cMin.corpos.length);
-      conferir('…com as duas respostas, e com os valores que protegem',
+      conferir('…com a decisão, e com o valor que protege',
         JSON.stringify((cMin.corpos[1] || {}).decisaoDaDuracao)
-          === JSON.stringify({ proporcao: 'sim', dose: 'rever' }),
+          === JSON.stringify({ proporcao: 'sim' }),
         (cMin.corpos[1] || {}).decisaoDaDuracao);
       conferir('…e o que o professor tinha escrito não se perde no caminho',
         String((cMin.corpos[1] || {}).duracaoMin) === '120', (cMin.corpos[1] || {}).duracaoMin);
@@ -1521,35 +1506,21 @@ const RITMO = {
         !!(cMin.modal() && cMin.modal().hidden), cMin.modal() && cMin.modal().hidden);
       cMin.fechar();
 
-      /* ── o caso da PERCENTAGEM: uma pergunta só ────────────────────────────── */
-      /* «O do percentual é só para ele dizer sim ou não.» As fatias não mudam (30% de outra coisa
-       * continua a ser 30%), portanto a pergunta sobre os blocos NÃO existe — e o que sobra é a
-       * dose. Um modal com uma pergunta a menos é um clique a menos. */
+      /* ── o caso da PERCENTAGEM: o modal NÃO EXISTE ────────────────────────── */
+      /* «É apenas aqui, quando é em minutos, que tem impacto, viu? Nos demais casos não tem impacto
+       * nenhum trocar lá a duração da aula nas salas. […] E aí o modal faz sentido existir para essa
+       * situação. Para as demais não, realmente não precisa.»
+       *
+       * Em percentagem as fatias não mudam — 30% de outra coisa continua a ser 30% — e a dose
+       * mede-se contra a música, não contra a aula. Não sobra nada a perguntar, e o `409` nem é
+       * devolvido. */
       const cPct = await correrOCenario(impactoPercentagem);
       const mPct = cPct.modal();
-      const tPct = mPct ? mPct.textContent : '';
-      conferir('em percentagem o modal abre na mesma', !!mPct);
-      conferir('…e a pergunta dos blocos NÃO aparece',
-        (mPct ? mPct.querySelectorAll('fieldset.escolhas').length : -1) === 1,
-        mPct ? mPct.querySelectorAll('fieldset.escolhas').length : -1);
-      /* A TELA ENXUGA ATÉ AO QUE TEM IMPACTO. Em percentagem as fatias não mudam, portanto a linha
-       * delas não existe — «a gente tinha alinhado isso que não era para aparecer». Sobra a dose, e
-       * com um impacto só a TABELA DESAPARECE: uma tabela de uma linha é uma moldura para uma
-       * frase. */
-      conferir('…e a linha dos blocos NÃO aparece (as fatias não mudam, e isso não se mostra)',
-        !/não mudam/.test(tPct), (tPct.match(/.{0,20}não mudam/gi) || [])[0]);
-      conferir('…e com um impacto só, a tabela desaparece',
-        (mPct ? mPct.querySelectorAll('table').length : -1) === 0,
-        mPct ? mPct.querySelectorAll('table').length : -1);
-      conferir('…e o impacto único lê-se como uma frase',
-        /Dose por exercício: 3 a 6 séries — precisa de ajuste no plano de ensino\./.test(tPct),
-        (tPct.match(/Dose por exercício[^.]*\./) || [])[0]);
-      conferir('…e não há «NaN» nem «undefined»',
-        mPct && !/NaN|undefined/.test(tPct), mPct ? (tPct.match(/NaN|undefined/g) || []) : null);
-      conferir('…e o botão diz «Gravar», e só isso',
-        (mPct && mPct.querySelector('.modal-acoes > .acao')
-          ? mPct.querySelector('.modal-acoes > .acao').textContent.trim() : null) === 'Gravar',
-        mPct && mPct.querySelector('.modal-acoes > .acao').textContent.trim());
+      conferir('em percentagem NÃO há 409 — o gesto grava directo', cPct.corpos.length === 1,
+        cPct.corpos.length);
+      conferir('…e o modal da duração não chega a existir', !mPct, !!mPct);
+      conferir('…e o pedido levou a decisão? não — não havia nada a decidir',
+        !(cPct.corpos[0] || {}).decisaoDaDuracao, (cPct.corpos[0] || {}).decisaoDaDuracao);
       await cPct.decidir();
       /* A PERGUNTA NÃO EXISTE NA EDIÇÃO (20/11/2026). «Essa tela só vai aparecer quando for
        * derivação. Se for editar ou criação […] esse modal nem existe para esses outros casos.»
@@ -1572,10 +1543,9 @@ const RITMO = {
       conferir('…e mudar-lhe a duração NÃO abre a pergunta — a edição não tem desdobramentos',
         editada.status === 200, { status: editada.status, precisaDecisao: editada.corpo && editada.corpo.precisaDecisao });
 
-      conferir('…e um clique basta',
-        JSON.stringify((cPct.corpos[1] || {}).decisaoDaDuracao)
-          === JSON.stringify({ proporcao: 'nao', dose: 'rever' }),
-        (cPct.corpos[1] || {}).decisaoDaDuracao);
+      /* EM PERCENTAGEM UM PEDIDO BASTA: não há decisão a pedir, portanto não há segundo envio. */
+      conferir('…e um pedido basta — não há segundo envio', cPct.corpos.length === 1,
+        cPct.corpos.length);
       cPct.fechar();
     }
   }

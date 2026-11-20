@@ -1810,7 +1810,19 @@ async function perguntaDaDuracao({ cadeia, anterior, corpo, paraMin }) {
   const impacto = volume.impactoDaDuracao({ plano, deMin: de, paraMin: para });
   if (!impacto) return null;
   const precisaProporcao = Boolean(impacto.proporcao && impacto.proporcao.precisaAjuste);
-  if (!precisaProporcao && !impacto.dose.paraRever) return null;
+  /* O MODAL SÓ EXISTE QUANDO HÁ IMPACTO, E SÓ HÁ UM CASO (20/11/2026).
+   *
+   * «É apenas aqui, quando é em minutos, que tem impacto, viu? Nos demais casos não tem impacto
+   * nenhum trocar lá a duração da aula nas salas. Então é somente aqui. E aí o modal faz sentido
+   * existir para essa situação. Para as demais não, realmente não precisa.»
+   *
+   * `precisaAjuste` é verdadeiro só quando a distribuição está em MINUTOS; em percentagem as
+   * fatias não mudam, e não há nada a perguntar.
+   *
+   * E A DOSE SAIU DE VEZ. Numa aula de dança a música divide-se em oito, portanto três séries são
+   * 3×8 tempos musicais: a série mede-se contra a MÚSICA, não contra o relógio. «Não tem relação
+   * com o tempo de trabalho. Ele vai dosar isso com o que tem.» Ver `motor/nucleo/volume.js`. */
+  if (!(impacto.proporcao && impacto.proporcao.precisaAjuste)) return null;
   /* A DECISÃO VEM NO CORPO. A forma é pequena de propósito: o cliente não manda números (o
    * reescalonamento é do servidor), manda só as duas respostas. Menos coisas a divergir. */
   const decisao = corpo && corpo.decisaoDaDuracao;
@@ -1819,7 +1831,6 @@ async function perguntaDaDuracao({ cadeia, anterior, corpo, paraMin }) {
       impacto,
       ajusteDeVolume: {
         proporcao: String(decisao.proporcao || '').trim() === 'sim',
-        reverDose: String(decisao.dose || '').trim() === 'rever',
         deMin: de,
         paraMin: para,
       },
@@ -13806,7 +13817,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var antigo = document.getElementById("modal-duracao");' +
     '  if (antigo && antigo.parentNode) antigo.parentNode.removeChild(antigo);' +
     '  var precisaProporcao = !!(i.proporcao && i.proporcao.precisaAjuste);' +
-    '  var precisaDose = !!(i.dose && i.dose.paraRever);' +
     '  var impactos = [];' +
     '  if (precisaProporcao) {' +
     '    var ls = i.proporcao.linhas || [];' +
@@ -13816,10 +13826,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    }' +
     '    impactos.push({rotulo: "Total", hoje: numeroCurto(i.proporcao.totalDe) + " min",' +
     '      depois: numeroCurto(i.proporcao.totalPara) + " min", nota: "tem de fechar com a duração"});' +
-    '  }' +
-    '  if (precisaDose) {' +
-    '    impactos.push({rotulo: "Dose por exercício", hoje: i.dose.texto,' +
-    '      depois: "precisa de ajuste", nota: "no plano de ensino"});' +
     '  }' +
     '  var corpo = "";' +
     '  if (impactos.length > 1) {' +
@@ -13840,18 +13846,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    perguntas += "<fieldset class=\\"escolhas etapa-campo largo\\"><legend class=\\"campo-rotulo\\">Recalcular os minutos pela proporção que está declarada?</legend>"' +
     '      + "<label class=\\"escolha\\"><input type=\\"radio\\" name=\\"dur-proporcao\\" value=\\"sim\\" checked><span>Sim, recalcular</span></label>"' +
     '      + "<label class=\\"escolha\\"><input type=\\"radio\\" name=\\"dur-proporcao\\" value=\\"nao\\"><span>Não, deixar como está</span></label></fieldset>";' +
-    '  }' +
-    '  if (precisaDose) {' +
-    /* O LEGEND NÃO REPETE O QUE A LINHA ACIMA JÁ DIZ. Quando a dose é o ÚNICO impacto, a frase do
-     * corpo traz o valor — «Dose por exercício: 3 a 6 séries» —, e repeti-lo no legend seria dizer
-     * duas vezes a mesma coisa em duas linhas seguidas. Com mais impactos (a tabela dos minutos), o
-     * legend nomeia-o, porque aí está no meio de outros. */
-    '    var rotuloDose = precisaProporcao' +
-    '      ? "A dose por exercício (" + i.dose.texto + ") foi escrita para outra duração. O que fazer?"' +
-    '      : "A dose foi escrita para outra duração. O que fazer?";' +
-    '    perguntas += "<fieldset class=\\"escolhas etapa-campo largo\\"><legend class=\\"campo-rotulo\\">" + rotuloDose + "</legend>"' +
-    '      + "<label class=\\"escolha\\"><input type=\\"radio\\" name=\\"dur-dose\\" value=\\"rever\\" checked><span>Vou revê-la no plano de ensino</span></label>"' +
-    '      + "<label class=\\"escolha\\"><input type=\\"radio\\" name=\\"dur-dose\\" value=\\"manter\\"><span>Manter como está</span></label></fieldset>";' +
     '  }' +
     '  var caixa = document.createElement("div");' +
     '  caixa.className = "modal";' +
@@ -13885,7 +13879,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (fundo) fundo.addEventListener("click", fechar);' +
     '  document.getElementById("form-duracao").addEventListener("submit", function(ev){' +
     '    ev.preventDefault();' +
-    '    var decisao = {proporcao: valorDe("dur-proporcao") || "nao", dose: valorDe("dur-dose") || "manter"};' +
+    '    var decisao = {proporcao: valorDe("dur-proporcao") || "nao"};' +
     '    var seguir = PERGUNTA_DA_DURACAO;' +
     '    caixa.hidden = true;' +
     '    if (seguir) seguir(decisao);' +
@@ -23243,24 +23237,21 @@ async function fetch(request, env, extras) {
         turmas: [nova.nome],
         quando: vigencia,
         ajusteDeVolume,
-        /* A DECISÃO FICA NO MOTIVO DO ELO (20/11/2026).
+        /* A DECISÃO FICA NO MOTIVO DO ELO (20/11/2026). Quando a distribuição está em minutos, a
+         * duração nova deixa de fechar com a aula, e a pergunta é se os minutos dos blocos se
+         * reescalonam. A resposta entra no `motivoDoElo`, que é o campo que o histórico do cartão
+         * mostra: uma decisão sem rasto não é um registo, é um clique.
          *
-         * O modal pergunta «o que fazer?» com duas respostas, e ela perguntou o que isso É: «é só
-         * para dizer se a pessoa está ciente, é isso?» É — o sistema registra. Mas uma resposta que
-         * não deixa rasto não é um registo: é um clique. A decisão entra no `motivoDoElo`, que é o
-         * campo que o histórico do cartão mostra; assim «porque é que a dose não foi revista»
-         * responde-se meses depois, e a resposta é de quem ajustou, não do sistema.
-         *
-         * NO PLANO, E NÃO NO PO: `contexto-volume` («Volume de trabalho») vive em
-         * `porta/plano/conteudo/plano.json`; o PO deriva do plano e não o declara. */
+         * A DOSE NÃO ESTÁ AQUI, e é dela a razão: a série mede-se contra a música (×8), não contra
+         * o relógio da aula — nunca esteve em causa por a duração mudar. */
         motivo: (parMudouNaDerivacao
           ? 'o par (modalidade, professor) da sala «' + nova.nome + '» passou a valer a partir de '
             + vigencia
           : 'o ritmo da sala «' + nova.nome + '» passou a valer a partir de ' + vigencia)
           + (ajusteDeVolume
-            ? (ajusteDeVolume.reverDose
-              ? ' · a dose por exercício foi assinalada para revisão no plano de ensino'
-              : ' · a dose por exercício foi mantida, por decisão de quem ajustou')
+            ? (ajusteDeVolume.proporcao
+              ? ' · a distribuição por bloco foi reescalonada para a duração nova'
+              : ' · a distribuição por bloco foi mantida, por decisão de quem ajustou')
             : ''),
       })
       : { executada: false, motivo: 'nenhuma Turma ocupa esta sala — não há plano nem PO a reavaliar' };

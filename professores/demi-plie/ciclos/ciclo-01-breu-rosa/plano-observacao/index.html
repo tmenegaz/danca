@@ -5612,14 +5612,55 @@ function impedimentoDoNo(no) {
  * é o mesmo caminho de qualquer troca de nó. O professor não digita a unidade em duas
  * pontas: a tabela tem uma só, e as linhas seguem.
  */
+/*
+ * TROCAR A UNIDADE LIMPA A COLUNA — e não converte (20/11/2026).
+ *
+ * O DEFEITO, dito por ela: «quando eu troco de percentual para minutos, precisa que os campos
+ * preenchidos de percentual fiquem limpos para o professor colocar os minutos. E aí se ele mudar
+ * para percentual e tiver preenchido aqui em tempos de minutos, aí ele tem que limpar também para
+ * ele preencher o percentual.»
+ *
+ * MEDIDO, no código que aqui estava: `mudarUnidadeDaGrelha` lia as linhas do formulário e
+ * GRAVAVA-AS DE VOLTA com a unidade nova. `30%` passava a ler-se como «30 min» — um número que
+ * ninguém escreveu, na unidade errada, e a soma a fechar contra a duração da aula com valores que
+ * eram percentagens. O pior género: os números certos na unidade trocada.
+ *
+ * PORQUE É QUE NÃO SE CONVERTE, e a razão é dela: «a conta é do professor, a gente não mexe em nada
+ * aqui». Converter 30% de 120 min em 36 min seria o sistema a decidir a dose de trabalho — que é
+ * dado pedagógico, e não lhe pertence. A coluna esvazia-se e o professor escreve.
+ */
 function mudarUnidadeDaGrelha(valor) {
   const no = MAPA.nos[INDICE];
   if (!no || !no.tabela || !no.tabela.unidade) return;
   const lido = lerGrelha(no, $('pergunta'));
   const linhas = linhasDaTabela(lido);
-  RESPOSTAS.set(no.id, { unidade: valor, linhas: linhas });
-  gravarRespostaDoNo(no);
+  const anterior = (lido && lido.unidade) || unidadeDoNo(no);
+  const coluna = no.tabela.unidade.coluna || null;
+  /* SÓ LIMPA QUANDO A UNIDADE MUDA DE VERDADE, e só a coluna da medida: o Bloco e a
+   * Justificativa não são da unidade, e apagá-los destruiria trabalho que nada tem a ver. */
+  const limpas = (coluna && valor !== anterior)
+    ? linhas.map((linha) => {
+      if (!linha || typeof linha !== 'object') return linha;
+      const copia = Object.assign({}, linha);
+      delete copia[coluna];
+      return copia;
+    })
+    : linhas;
+  RESPOSTAS.set(no.id, { unidade: valor, linhas: limpas });
+  /* A ORDEM É O QUE FAZ ISTO FUNCIONAR (20/11/2026) — e ela estava ao contrário.
+   *
+   * `gravarRespostaDoNo` RELÊ a grelha do DOM e grava o que lá está. Chamado antes do
+   * `renderPergunta`, ele relia os campos ainda com os valores da unidade antiga e desfazia a
+   * limpeza: `RESPOSTAS` ficava com `unidade: 'minutos'` e as linhas com `30%`. O utilizador
+   * escolhia minutos e via 30% no ecrã, ou seja, o defeito que se queria corrigir continuava lá.
+   *
+   * A correcção não é chamar `gravarRespostaDoNo` depois — `unidade` vive na RESPOSTA e não no
+   * formulário (`lerGrelha` lê-a de `RESPOSTAS`), portanto ele gravaria a unidade já certa mas
+   * continuaria a reler linhas de um DOM desactualizado. A correcção é REDESENHAR PRIMEIRO: o
+   * `renderPergunta` pinta a grelha com as linhas limpas, e a gravação que se segue lê o que está
+   * certo. */
   renderPergunta();
+  gravarRespostaDoNo(no);
   pintarRoteiro();
 }
 

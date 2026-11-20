@@ -103,8 +103,12 @@ function planoCom(unidade, valores, dose) {
   igual('…e não há nada a reajustar', emPercentagem.proporcao.precisaAjuste, false);
   igual('…e a soma continua 100', [emPercentagem.proporcao.totalDe, emPercentagem.proporcao.totalPara],
     [100, 100]);
-  igual('…e a dose aparece, e pede revisão', [emPercentagem.dose.texto, emPercentagem.dose.paraRever],
-    ['3 a 6 séries', true]);
+  /* A DOSE NÃO ENTRA NO CÁLCULO (20/11/2026), e a razão é dela: numa aula de dança a música
+   * divide-se em oito, portanto três séries são 3×8 tempos musicais. A série mede-se contra a
+   * MÚSICA; a aula mede-se contra o relógio. «Não tem relação com o tempo de trabalho. Ele vai
+   * dosar isso com o que tem.» Mudar a duração não põe a dose em causa. */
+  igual('…e a DOSE não aparece no cálculo — ela mede-se contra a música, não contra a aula',
+    'dose' in emPercentagem, false);
 
   const emMinutos = volume.impactoDaDuracao({
     plano: planoCom('minutos', [18, 18, 18, 6], '3 a 6 séries'),

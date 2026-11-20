@@ -1027,6 +1027,69 @@ async function porta() {
   ok('sem o atributo, o painel não aparece e o fixture não é carregado');
   normal.dom.window.close();
 
+  /* ---- 3f. TROCAR A UNIDADE LIMPA A COLUNA (20/11/2026) ----
+   *
+   * O PEDIDO, dela: «quando eu troco de percentual para minutos, precisa que os campos preenchidos
+   * de percentual fiquem limpos para o professor colocar os minutos. E aí se ele mudar para
+   * percentual e tiver preenchido aqui em tempos de minutos, aí ele tem que limpar também para ele
+   * preencher o percentual.»
+   *
+   * O DEFEITO QUE ESTAVA: `mudarUnidadeDaGrelha` lia as linhas do formulário e gravava-as DE VOLTA
+   * com a unidade nova. `30%` passava a ler-se como «30 min» — um número que ninguém escreveu, na
+   * unidade errada. O pior género: os números certos na unidade trocada.
+   *
+   * E o que NÃO se faz: converter. «A conta é do professor, a gente não mexe em nada aqui» —
+   * converter 30% de 120 min em 36 min seria o sistema a decidir a dose de trabalho. */
+  const unid = await abrir('plano-ensino/?professor=docente&ciclo=01&fonte=plano');
+  const troca = JSON.parse(await unid.win.eval(`(function(){
+    var i = MAPA.nos.findIndex(function(n){return n.id === 'distribuicao-de-volume';});
+    INDICE = i; renderPergunta();
+    // escreve na coluna da medida, como o professor faria
+    var campos = document.querySelectorAll('#pergunta [data-grelha]');
+    for (var k = 0; k < campos.length; k++) {
+      if (campos[k].dataset.coluna === 'Proporção alvo') campos[k].value = '30%';
+    }
+    var antes = JSON.parse(JSON.stringify(RESPOSTAS.get('distribuicao-de-volume')));
+    // o select da unidade, e o gesto: trocar para minutos
+    var sel = document.querySelector('#pergunta [data-unidade]');
+    sel.value = 'minutos';
+    sel.dispatchEvent(new Event('change', {bubbles: true}));
+    var depois = JSON.parse(JSON.stringify(RESPOSTAS.get('distribuicao-de-volume')));
+    var naTela = Array.prototype.slice.call(document.querySelectorAll('#pergunta [data-grelha]'))
+      .filter(function(el){ return el.dataset.coluna === 'Proporção alvo'; })
+      .map(function(el){ return el.value; });
+    return JSON.stringify({antes: antes, depois: depois, naTela: naTela});
+  })()`));
+  assert.equal(troca.depois.unidade, 'minutos', 'a unidade não mudou: ' + troca.depois.unidade);
+  const colunaDaMedida = troca.depois.linhas.map((l) => l['Proporção alvo']);
+  assert.deepEqual(colunaDaMedida.filter((v) => v !== undefined && v !== ''), [],
+    'a coluna da medida não foi limpa ao trocar de unidade: ' + JSON.stringify(colunaDaMedida));
+  assert.ok(troca.naTela.every((v) => v === ''),
+    'a tela ainda mostra os valores da unidade anterior: ' + JSON.stringify(troca.naTela));
+  /* E O QUE NÃO É DA UNIDADE FICA: apagar o Bloco e a Justificativa destruiria trabalho que nada
+   * tem a ver com a medida. */
+  assert.ok(troca.depois.linhas.every((l) => l.Bloco),
+    'a troca de unidade apagou os blocos: ' + JSON.stringify(troca.depois.linhas));
+  ok('trocar a unidade limpa a coluna da medida, e o número de uma unidade não passa a valer na outra');
+
+  /* A VOLTA TAMBÉM, e é a metade que ela pediu explicitamente: de minutos para percentual. */
+  const volta = JSON.parse(await unid.win.eval(`(function(){
+    var campos = document.querySelectorAll('#pergunta [data-grelha]');
+    for (var k = 0; k < campos.length; k++) {
+      if (campos[k].dataset.coluna === 'Proporção alvo') campos[k].value = '36 min';
+    }
+    var sel = document.querySelector('#pergunta [data-unidade]');
+    sel.value = 'percentual';
+    sel.dispatchEvent(new Event('change', {bubbles: true}));
+    return JSON.stringify(RESPOSTAS.get('distribuicao-de-volume'));
+  })()`));
+  const voltaLimpa = volta.linhas.map((l) => l['Proporção alvo'])
+    .filter((v) => v !== undefined && v !== '');
+  assert.deepEqual(voltaLimpa, [],
+    'a volta para percentual não limpou os minutos: ' + JSON.stringify(volta.linhas));
+  ok('…e a volta limpa também: 36 min não vira 36%');
+  unid.dom.window.close();
+
   servidor.close();
 }
 

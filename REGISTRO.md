@@ -55343,3 +55343,61 @@ porque a opção «Vou revê-la no plano de ensino» já tinha a frase); repor �
 uma que mede contra o servidor que a edição **não** abre a pergunta), `provar-gravar-e-gravar` **53**
 (era 49), `provar-cadeia-automatica` **78** (era 76; a resposta «manter» também está medida, e os
 minutos são reescalonados na mesma, porque a dose é outra pergunta).
+
+> **Correção de 20/11/2026 (mesmo dia).** Esta entrada pôs a **dose por exercício** dentro do modal da
+> duração. **Está errado**, e a razão é da dança: a série mede-se contra a **música**, não contra o
+> relógio da aula — ver a entrada seguinte, «A gente pode tirar do modal essa parte». A redação fica
+> como o elo que registra o que se pensou antes da correção; o que mudou está medido lá.
+
+## 20/11/2026 — «A gente pode tirar do modal essa parte» — a dose sai, e a série mede-se contra a música
+
+**A explicação, nas palavras de quem dá a aula.** «Numa aula de dança a gente divide a música em oito.
+Então, quando tem três séries, quer dizer que são 3 × 8 […] tempos musicais. […] E aí tempos ativos é
+a mesma coisa, é × 8. […] Então não tem relação com o tempo de trabalho. Ele vai dosar isso com o que
+tem. Então a gente pode tirar do modal essa parte, porque realmente não tem nenhuma relação.»
+
+**E o argumento verifica-se no conteúdo, não na retórica.** As cinco unidades de `contexto-volume`
+são `tempos ativos` e `séries` (as duas ×8 da **música**), `minutos ativos` (a minutagem da faixa, que
+é do professor e não da aula), `exercícios` e `repetições` (contagens). **A duração da aula não
+aparece em nenhuma.** A série mede-se contra a música; a aula mede-se contra o relógio. São duas
+réguas, e o modal tinha-as confundido.
+
+*(A conta que ela fez em voz alta trazia um escorregão — 3 × 8 é 24, não 18 —, e não muda nada do
+argumento: o que a dose acompanha é a música, e o número dela é a música que estiver no aparelho.)*
+
+**O que saiu, um sítio por linha.**
+
+| sítio | o que deixou de existir |
+|:--|:--|
+| `motor/nucleo/volume.js` | `impactoDaDuracao` deixa de devolver `dose`; `contexto-volume` deixa de ser lido |
+| `motor/servidor/bastidores.js` | o modal só existe com `proporcao.precisaAjuste` — isto é, **em minutos**; saem o campo da dose, o `legend` e o `decisao.dose` |
+| `motor/servidor/cadeia.js` | os dois avisos «reveja a dose» / «a dose foi mantida» |
+| `porta/index.html` | a troca de unidade **limpa** a coluna da medida — e não converte |
+
+**O modal fica reduzido ao único caso que tem conta.** «É apenas aqui, quando é em minutos, que tem
+impacto […] Para as demais não, realmente não precisa.» Em percentagem a fatia não se move (30% de
+outra coisa continua a ser 30%), e o modal não chega a existir; em minutos a soma tem de fechar com a
+duração nova, e a pergunta é se os blocos se reescalonam. A decisão continua a entrar no `motivoDoElo`
+— «a distribuição por bloco foi reescalonada» / «foi mantida» —, porque uma decisão sem rasto é um
+clique.
+
+**E a troca de unidade deixou de gravar o número na unidade errada.** `mudarUnidadeDaGrelha` lia as
+linhas do formulário e gravava-as de volta: `30%` passava a ler-se «30 min». Não se converte — «a
+conta é do professor, a gente não mexe em nada aqui» —, limpa-se a coluna da medida e o professor
+escreve. A ordem é o que faz funcionar: `renderPergunta` **antes** de `gravarRespostaDoNo`, senão a
+releitura do DOM desfazia a limpeza.
+
+**Bancadas, todas corridas depois da mudança:** `provar-a-pergunta-da-duracao` **24** (inclui «a DOSE
+não aparece no cálculo»), `provar-salas-e-elencos` **156**, `provar-cadeia-automatica` **78**,
+`provar-teste` **45** — e as duas últimas entram com as metades da limpeza («36 min não vira 36%» e a
+volta).
+
+**Com o quê.** `motor/nucleo/volume.js`, `motor/servidor/bastidores.js`, `motor/servidor/cadeia.js`,
+`porta/index.html`, `experimentos/provar-a-pergunta-da-duracao.js`,
+`experimentos/provar-salas-e-elencos.js`, `experimentos/provar-cadeia-automatica.js`,
+`experimentos/provar-teste.js`, e as cópias da porta em
+`professores/demi-plie/ciclos/ciclo-01-breu{,-rosa}/plano-observacao/index.html`.
+
+**O que ainda não está feito.** A dose continua a ser perguntada e guardada — o que saiu foi o
+**modal** e o aviso. E o `contexto-volume` continua a declarar `minutos ativos` sem que nada confira
+que a minutagem escrita cabe na música; é do professor, e o sistema não a mede.

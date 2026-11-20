@@ -373,12 +373,15 @@ async function ids(arm, familia) {
     /* AS DUAS FRASES QUE O GESTO PASSA A DIZER — o que foi feito e o que fica por decidir. */
     const avisos = (r2.avisos || []).join(' | ');
     provar('…e o gesto diz que reescalonou', /reescalonada de 60 para 120 minutos/.test(avisos), avisos);
-    provar('…e diz que a dose NÃO mudou sozinha, e manda revê-la no plano de ensino',
-      /dose por exercício foi escrita para a duração anterior/.test(avisos)
-        && /revê-la no plano de ensino/.test(avisos), avisos);
+    /* A DOSE NÃO ENTRA NOS AVISOS (20/11/2026). Numa aula de dança a música divide-se em oito,
+     * portanto três séries são 3×8 tempos musicais: a série mede-se contra a MÚSICA, não contra o
+     * relógio da aula. «Não tem relação com o tempo de trabalho.» Um aviso que mandasse revê-la por
+     * a duração ter mudado seria um aviso falso. */
+    provar('…e NÃO manda rever a dose — ela mede-se contra a música, não contra a aula',
+      !/dose/i.test(avisos), avisos);
     /* A OUTRA RESPOSTA DO MODAL, e é a metade que faltava medir: quando quem ajustou diz «manter»,
-     * o aviso não pode continuar a MANDAR revê-la — o sistema registra a decisão, e a decisão foi
-     * essa. O que ele faz é lembrar onde ela se revê se um dia ele quiser. */
+     * o aviso não pode dizer que reescalonou — o sistema registra a decisão, e a decisão foi essa.
+     * O que ele faz é dizer que a distribuição ficou como estava, por decisão de quem ajustou. */
     const { cadeia: c3, arm: arm3 } = montar();
     const manter = planoFixture('plano-20261103-2200', { geradoEm: '2026-11-03T22:00' });
     manter.respostas['distribuicao-de-volume'] = r({ unidade: 'minutos', linhas: [
@@ -390,21 +393,21 @@ async function ids(arm, familia) {
       { planoId: 'plano-20261103-2200', geradoEm: '2026-11-03T22:21' }), relatorioDe('po-20261103-2221'));
     const r4 = await c3.executar({
       gatilho: 'troca-de-aluna', elencos: ['elenco-a'], quando: QUANDO, motivo: 'dose mantida',
-      ajusteDeVolume: { proporcao: true, reverDose: false, deMin: 60, paraMin: 120 },
+      ajusteDeVolume: { proporcao: false, deMin: 60, paraMin: 120 },
     });
     const avisos4 = (r4.avisos || []).join(' | ');
-    provar('…e quando a resposta é «manter», o aviso regista em vez de mandar',
-      /mantida como estava, por decisão de quem ajustou/.test(avisos4)
-        && !/não mudou sozinha: revê-la/.test(avisos4), avisos4);
-    /* E MESMO COM «MANTER», O REESCALONAMENTO DOS MINUTOS ACONTECE: são duas decisões separadas, e
-     * a de manter é sobre a DOSE. A distribuição em minutos não tem escolha — sem ela a soma deixa
-     * de fechar com a duração, e a Aula 01 imprimiria os tempos a metade. */
+    /* COM «NÃO» NÃO HÁ AVISO NENHUM, e é o comportamento certo: a pessoa decidiu, o sistema não tem
+     * nada a acrescentar. A decisão está no `motivoDoElo`, que é onde o histórico a vai ler. Um aviso
+     * a repetir a decisão que a pessoa acabou de tomar é ruído — e ensina a fechar avisos sem ler. */
+    provar('…e quando a resposta é «não», não há aviso de reescalonamento',
+      !/reescalonada/.test(avisos4), avisos4);
+    /* E A DISTRIBUIÇÃO FICA INTACTA — é o que «não, deixar como está» quer dizer. */
     const novos4 = (await ids(arm3, 'plano')).filter((x) => x !== 'plano-20261103-2200');
     const novo4 = novos4.length ? await porta.lerEnvelope(arm3, novos4[0]) : null;
     const v4 = novo4 && novo4.respostas['distribuicao-de-volume'];
     const l4 = (v4 && (v4.valor || v4).linhas) || [];
-    provar('…e os minutos são reescalonados na mesma (a dose é outra pergunta)',
-      l4.map((l) => String(l['Proporção alvo'])).join(' '), '60 min 60 min');
+    provar('…e os minutos NÃO são reescalonados', l4.map((l) => String(l['Proporção alvo'])).join(' '),
+      '30 min 30 min');
     /* O CONTROLE NEGATIVO: sem ajuste, nada disto acontece. Um reescalonamento que corresse
      * sempre seria uma reescrita silenciosa de planos que ninguém pediu para mudar. */
     const { cadeia: c2, arm: arm2 } = montar();

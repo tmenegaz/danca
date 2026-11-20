@@ -177,17 +177,25 @@ function suspeitaDaDuracao(duracaoMin) {
  *          duração ANTIGA. Aos 60 min, 18+18+18+6=60 ✓; aos 120, os mesmos 18+18+18+6=60 deixam
  *          METADE da aula por declarar. Aqui não basta confirmar: os números têm de ser
  *          reajustados — e a proporção diz para quanto.
- *   3. **A dose por exercício** (`contexto-volume`, ex.: 3 a 6 séries) — NÃO tem conta. Uma série
- *      não é tempo: dobrar a duração pode significar mais tempo por exercício, ou mais
- *      exercícios, ou mais intensidade — três respostas pedagógicas, e nenhuma é aritmética. O
- *      sistema diz que a dose foi escrita para outra duração e PEDE A DECISÃO; não sugere número,
- *      porque o número seria inventado.
+ *   3. **A dose por exercício** (`contexto-volume`, ex.: 3 a 6 séries) — **NÃO ENTRA AQUI, e a
+ *      razão é da dança.** Eu tinha-a posto no modal, e estava errado. Ela explicou-o melhor do
+ *      que eu o teria conseguido:
  *
- * O QUE ELA DECIDIU (20/11/2026): «a dose de três a seis séries vamos pedir para ser revista e a
- * gente não vai propor número, é o professor que vai decidir, mas a gente diz que ele tem que
- * rever». E: «se manter assim vai dar errado» — não dá errado TECNICAMENTE (o documento gera, o
- * PDF sai); o que acontece é que o plano passa a declarar uma dose pensada para outra aula. É um
- * erro pedagógico, e o sistema não deve fingir que sabe corrigi-lo.
+ *        «Numa aula de dança a gente divide a música em oito. Então, quando tem três séries, quer
+ *         dizer que são 3 × 8 […] tempos musicais. […] E aí tempos ativos é a mesma coisa, é × 8.
+ *         Só a unidade de medida aqui depende do tempo que o professor quer usar. […] Então não tem
+ *         relação com o tempo de trabalho. Ele vai dosar isso com o que tem. Então a gente pode
+ *         tirar do modal essa parte, porque realmente não tem nenhuma relação.»
+ *
+ *      É isso, e é verificável no conteúdo: as cinco unidades de `contexto-volume` são `tempos
+ *      ativos` e `séries` (as duas ×8 da MÚSICA), `minutos ativos` (a minutagem da faixa, que é do
+ *      professor e não da aula), `exercícios` e `repetições` (contagens). **A duração da aula não
+ *      aparece em nenhuma.** A série mede-se contra a música; a aula mede-se contra o relógio. São
+ *      duas réguas diferentes, e eu tinha-as confundido.
+ *
+ *      E a razão de fundo é a mesma de sempre: «a conta é do professor, a gente não mexe em nada
+ *      aqui no plano de ensino». O sistema não propõe número, e também não pede que se revise um
+ *      número que nunca esteve em causa.
  */
 
 /** O valor de uma resposta do envelope, desembrulhando `{valor, origem, …}`. */
@@ -242,7 +250,6 @@ function numeroLegivel(n) {
  *     mudou: { de, para },
  *     volume:  { de: {min,max,total}, para: {min,max,total} },
  *     proporcao: { unidade, precIsAjuste, linhas: [{bloco, de, para}], totalDe, totalPara, alvoDe, alvoPara },
- *     dose:    { valor, texto, paraRever },
  *     suspeita: '…' | null,
  *   }
  */
@@ -295,21 +302,6 @@ function impactoDaDuracao({ plano, deMin, paraMin, identidadeDe, identidadePara 
     };
   }
 
-  /* 3. A DOSE POR EXERCÍCIO. Não tem conta, e o sistema não inventa uma. */
-  const dose = valorDaResposta(plano, 'contexto-volume');
-  let doseTexto = null;
-  if (dose && typeof dose === 'object') {
-    const min = dose.min !== undefined ? dose.min : dose.minimo;
-    const max = dose.max !== undefined ? dose.max : dose.maximo;
-    const un = dose.unidade || dose.unidades || '';
-    if (min !== undefined || max !== undefined) {
-      doseTexto = numeroLegivel(Number(min)) + (String(min) !== String(max) ? ' a ' + numeroLegivel(Number(max)) : '')
-        + (un ? ' ' + String(un) : '');
-    }
-  } else if (dose !== null && dose !== undefined && String(dose).trim()) {
-    doseTexto = String(dose).trim();
-  }
-
   return {
     mudou: { de, para },
     volume: {
@@ -317,7 +309,6 @@ function impactoDaDuracao({ plano, deMin, paraMin, identidadeDe, identidadePara 
       para: { min: faixaPara.min, max: faixaPara.max, total: totalPara, origem: faixaPara.origem },
     },
     proporcao,
-    dose: { texto: doseTexto, paraRever: Boolean(doseTexto) },
     suspeita: suspeitaDaDuracao(para),
   };
 }

@@ -492,16 +492,11 @@ function criarCadeia({
     const avisos = (fonte && Array.isArray(fonte.pendencias) ? fonte.pendencias : [])
       .map((p) => 'a geração vai recusar esta aula: ' + p);
     if (volumeEscalado) avisos.push(volumeEscalado);
-    /* O AVISO DIZ O SÍTIO E RESPEITA A RESPOSTA (20/11/2026). «Precisa de ajuste e diz aonde, né?
-     * Precisa de ajuste lá no plano de ensino.» E, quando quem ajustou disse «manter», o aviso não
-     * pode continuar a mandar revê-la: o sistema registra a decisão, e a decisão foi essa. */
-    if (ajusteDeVolume && ajusteDeVolume.reverDose) {
-      avisos.push('a dose por exercício foi escrita para a duração anterior e não mudou sozinha: '
-        + 'revê-la no plano de ensino, porque não há conta que a resolva');
-    } else if (ajusteDeVolume) {
-      avisos.push('a dose por exercício foi mantida como estava, por decisão de quem ajustou — '
-        + 'ela continua a dizer a duração anterior, e o plano de ensino é onde se revê');
-    }
+    /* A DOSE SAIU DOS AVISOS (20/11/2026), e a razão é dela: numa aula de dança a música divide-se
+     * em oito, portanto três séries são 3×8 tempos musicais — a série mede-se contra a MÚSICA, não
+     * contra o relógio da aula. «Não tem relação com o tempo de trabalho. Ele vai dosar isso com o
+     * que tem.» Mudar a duração não põe a dose em causa, e um aviso que a mandasse rever seria um
+     * aviso falso. Ver `motor/nucleo/volume.js`. */
     return { ok: true, id: envelope && envelope.id, de: anterior.id, fonte, avisos };
   }
 
