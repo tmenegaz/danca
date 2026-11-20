@@ -269,10 +269,10 @@
   "contagens": {
     "arestas": 43,
     "marcas": 0,
-    "nos": 41,
+    "nos": 42,
     "porTipo": {
       "ancora": 2,
-      "aspecto": 8,
+      "aspecto": 9,
       "aula": 15,
       "captura": 1,
       "ciclo": 1,
@@ -327,6 +327,12 @@
       "eixo": "Corpo",
       "id": "aspecto:mobilidade_de_quadril_en_dehors_de_origem",
       "rotulo": "Mobilidade de quadril (en dehors de origem)",
+      "tipo": "aspecto"
+    },
+    {
+      "eixo": "Corpo",
+      "id": "aspecto:musicalidade_e_pulsacao_ritmica",
+      "rotulo": "Musicalidade e pulsação rítmica",
       "tipo": "aspecto"
     },
     {

@@ -34,23 +34,27 @@
     "Corpo": [
       {
         "criterio": "1ª posição — pés",
-        "oQueSeObserva": "2 de 2 em «precisa desenvolver» (por consciência própria) — ponto de atenção"
+        "oQueSeObserva": "sem registo na anamnese"
       },
       {
         "criterio": "1ª posição — braços",
-        "oQueSeObserva": "2 de 2 em «razoável» (por consciência própria) — ponto de atenção"
+        "oQueSeObserva": "sem registo na anamnese"
       },
       {
         "criterio": "Mobilidade de quadril (en dehors de origem)",
-        "oQueSeObserva": "2 de 2 em «Origem restrita (rotação forçada a partir dos joelhos/tornozelos)» — ponto de atenção"
+        "oQueSeObserva": "sem registo na anamnese"
       },
       {
         "criterio": "Mobilidade de flexão/extensão do tornozelo",
-        "oQueSeObserva": "2 de 2 em «Moderada» — ponto de atenção"
+        "oQueSeObserva": "sem registo na anamnese"
+      },
+      {
+        "criterio": "Musicalidade e pulsação rítmica",
+        "oQueSeObserva": "sem registo na anamnese"
       },
       {
         "criterio": "Força excêntrica / recuo na flexão de tronco",
-        "oQueSeObserva": "2 de 2 em «Retorna enrolando (roll-up)» — ponto de atenção"
+        "oQueSeObserva": "sem registo na anamnese"
       }
     ],
     "Técnica": [
@@ -154,7 +158,7 @@
       }
     ]
   },
-  "proveniencia": "**[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261120-1310?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho? **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261120-1310?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento. **Anamnese de cada aluna** A anamnese de cada aluna do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.",
+  "proveniencia": "**[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261120-1326?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho? **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261120-1326?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento. **Anamnese de cada aluna** A anamnese de cada aluna do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.",
   "auditoria": [
     {
       "verificacao": "Objetivo específico declarado",
