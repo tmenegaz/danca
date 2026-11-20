@@ -541,7 +541,7 @@ O número que apontava o remédio: o binário do pandoc no Debian pesa **199 MB*
 |:--|--:|--:|
 | o que se transfere | 4 pacotes, 28,3 MB de `.deb` | **1 arquivo, 28 MB** |
 | o que se instala | 204 MB de disco, dpkg + gatilhos | **131 MB, `tar xzf`** |
-| tempo do passo | **25–33 s** | **medido em partes: 0,09 s o hash + 0,73 s extrair**; o restore do cache só se mede no runner |
+| tempo do passo | **25–33 s** | **2 s** |
 | versão | a do espelho do Ubuntu no dia | **3.1.3, fixada** |
 | proveniência | o espelho do Ubuntu | **`sha256` conferido em toda execução** |
 
@@ -562,6 +562,29 @@ gerado com cada um dos binários é **o mesmo, ficheiro por ficheiro** (`diff -r
 
 **O custo de manter o pin:** uma linha de versão, um nome de ficheiro, uma chave de cache e um
 hash — os quatro mudam juntos, e o cache invalida sozinho. Está escrito no cabeçalho da ação.
+
+#### Medido no ar, duas execuções de cada método
+
+| | `preparar-pandoc` | **job** |
+|:--|--:|--:|
+| `apt`, cache frio — 44781355240 | 26 s | 59 s |
+| `apt`, cache quente — 44781717178 | 33 s | 75 s |
+| **binário, cache frio** — 44783606786 («Cache not found») | **2 s** | **45 s** |
+| **binário, cache quente** — 44783646385 (download saltado) | **2 s** | **34 s** |
+
+**O passo caiu de 25–33 s para 2 s — e é 2 s nos dois casos.** Com o cache vazio, o download do
+release são 392 ms (144 MB/s) e o resto é o hash e o `tar`; com o cache cheio, o `actions/cache`
+restaura o mesmo arquivo em 395 ms. Não há diferença prática entre os dois caminhos, o que é uma
+propriedade e não uma coincidência: o que se paga é o mesmo arquivo de 28 MB, venha de onde vier.
+
+**E o job ficou em 34–45 s** — os dois abaixo da fronteira dos 60 s, com margem. A variação que
+resta é do `preparar-node` (7 a 14 s) e do ruído do runner, não da geração: o passo «Gerar e
+validar» foi de 1 a 2 s nas quatro execuções.
+
+> **A segunda execução não foi pedida por mim.** Ela partiu da página (Bastidores → Produção),
+> com o mesmo commit da primeira — é o fluxo dela, ao vivo, e passou com a ação nova. Fica
+> registado porque uma prova pedida por quem construiu a bancada e uma prova pedida por quem usa a
+> página não têm o mesmo peso.
 
 ---
 

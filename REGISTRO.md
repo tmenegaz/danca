@@ -55893,5 +55893,25 @@ extrai em 0,73 s, `pandoc 3.1.3`, e as quatro marcas do smoke test presentes. `g
 binário estático à frente do `PATH` → **0 erros, 1 aviso**, pacote idêntico ao do `apt`.
 `check-github-headers` 5/5; os três YAML passam pelo `yaml.safe_load`.
 
-**O que fica por medir.** O tempo do passo no runner com esta ação — o restore do cache não se
-mede fora dele. Duas execuções, como das outras vezes, e o número entra aqui e na §7.8.
+**E a medição, no ar — duas execuções de cada método.**
+
+| | `preparar-pandoc` | **job** |
+|:--|--:|--:|
+| `apt`, cache frio — 44781355240 | 26 s | 59 s |
+| `apt`, cache quente — 44781717178 | 33 s | 75 s |
+| **binário, cache frio** — 44783606786 («Cache not found») | **2 s** | **45 s** |
+| **binário, cache quente** — 44783646385 (download saltado) | **2 s** | **34 s** |
+
+**O passo caiu de 25–33 s para 2 s, e é 2 s nos dois casos.** Com o cache vazio, o download do
+release leva 392 ms (144 MB/s) e o resto é o hash e o `tar`; com o cache cheio, o `actions/cache`
+restaura o mesmo arquivo em 395 ms. Os dois caminhos custam o mesmo porque pagam o mesmo arquivo de
+28 MB — venha ele da rede ou do cache.
+
+**E o job ficou em 34–45 s**, os dois abaixo dos 60 s e com margem. A variação que resta é do
+`preparar-node` (7 a 14 s) e do ruído do runner: o passo «Gerar e validar» foi de 1 a 2 s nas
+quatro execuções.
+
+> **A segunda execução não foi pedida por mim.** Partiu da página (Bastidores → Produção), com o
+> mesmo commit — é o fluxo dela ao vivo, e passou com a ação nova. Fica a ressalva porque uma prova
+> pedida por quem construiu a bancada e uma prova pedida por quem usa a página não têm o mesmo peso;
+> esta segunda é a que interessa.
