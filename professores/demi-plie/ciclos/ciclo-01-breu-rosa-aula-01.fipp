@@ -10,9 +10,9 @@ professor: demi-plie
 ciclo: 01
 variante: breu-rosa
 aula: 01
-hash_conteudo: ec8334c5420f21602a6324b939c1114f63dddecadb8ad97acb2f13dcfaf40027
+hash_conteudo: e17a95c57c3177e9c1883147982e4244a96aa9952b84a36f53ade8e2a1ca7d7c
 parentHash: 
-hash: 30f6523d14ed3f7c71c48f2b740d95ac44d9a5609807e72138c6e3cda7018922
+hash: 62f1e921ce405beaf543b25a9f52f97c8fd84ae90ef22bcb550b2f272c0d2ebf
 algoritmo: SHA-256
 ancorado_em: 2026-11-20
 cobertura:
