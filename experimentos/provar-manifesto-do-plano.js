@@ -50,7 +50,8 @@ const os = require('os');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
-const { minutosDaDuracao, linhasDeContexto, aplicarLinhas } = require('../motor/servidor/escrever-ciclo.js');
+const { minutosDaDuracao, linhasDeContexto, aplicarLinhas, calibracaoDoConf } =
+  require('../motor/servidor/escrever-ciclo.js');
 const { atualizarManifesto } = require('../motor/servidor/escrever-plano.js');
 
 const RAIZ = path.join(__dirname, '..');
@@ -154,6 +155,32 @@ function criarFetch(confInicial) {
   ]), '60');
   igual('sem duração → null', minutosDaDuracao(null), null);
   igual('texto solto não é inventado → null', minutosDaDuracao('55 minutos'), null);
+
+  /* ── 1.1 A FAIXA DE VOLUME E A DA DURACAO (20/11/2026) ────────────────────────
+   *
+   * O DEFEITO MEDIDO. A Sala Rosa passou de 60 para 90 minutos. O .conf da variante passou a
+   * declarar DURACOES="90" e VOLUME_MIN_90="120" / VOLUME_MAX_90="150" — mas calibracaoDoConf
+   * continuava a ler VOLUME_MIN / VOLUME_MAX, as chaves da faixa de 60, que o comporConf já não
+   * escreve num manifesto de 90. Lia 0, o volume-alvo dava 0, e a Aula 01 saía com
+   * «[Preencher: volume em tempos]» — que o gerar-ciclo.sh RECUSA:
+   *
+   *   erro: aula-01 não declara 'volume-total-90:' para o dia de 90 min (Regra 9).
+   *
+   * A escada é a do próprio gerador (corrigida em 18/10/2026 para o mesmo problema numa aula
+   * de 75 min): acima dos 60, a chave explícita da duração; até 60, ela ou a genérica. */
+  const cal = (texto) => calibracaoDoConf(texto);
+  igual('45 min sem chave própria → a faixa genérica', cal(
+    'DURACOES="45"\nVOLUME_MIN="80"\nVOLUME_MAX="100"').volumeMin, 80);
+  igual('60 min com a chave _60 explícita → essa', cal(
+    'DURACOES="60"\nVOLUME_MIN_60="90"\nVOLUME_MAX_60="110"').volumeMax, 110);
+  igual('90 min → VOLUME_MIN_90, e não a de 60', cal(
+    'DURACOES="90"\nVOLUME_MIN="80"\nVOLUME_MIN_90="120"\nVOLUME_MAX_90="150"').volumeMin, 120);
+  igual('120 min → VOLUME_MIN_120', cal(
+    'DURACOES="120"\nVOLUME_MIN_120="150"\nVOLUME_MAX_120="200"').volumeMax, 200);
+  /* E A NEGATIVA QUE IMPORTA: sem a chave da duração, responde 0 — e 0 faz a aula sair com
+   * lacuna, em vez de aplicar a faixa de outra duração a uma aula de 90 minutos. */
+  igual('CONTROLE NEGATIVO: 90 min SEM a chave → 0, e não a faixa de 60', cal(
+    'DURACOES="90"\nVOLUME_MIN="80"\nVOLUME_MAX="100"').volumeMin, 0);
 
   // ── 2. As linhas de contexto que o plano sabe responder ─────────────────────
   console.log('\n2. O contexto que o plano já responde');

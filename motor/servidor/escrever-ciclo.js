@@ -286,18 +286,47 @@ async function gravarArquivosNumCommit({ token, dono, repo, ref, arquivos, mensa
  * A calibração da aula a partir do `.conf`: duração (min) e faixa de volume (tempos). O
  * `DURACOES="60"` é a duração em minutos; `VOLUME_MIN/MAX` são a faixa de tempos (Regra 9).
  */
+/**
+ * A CALIBRAÇÃO DO MANIFESTO — e a faixa de volume tem de ser a DA DURAÇÃO (20/11/2026).
+ *
+ * O DEFEITO, medido na Sala `Rosa` a 20/11/2026. A turma passou de 60 para 90 minutos. O
+ * `.conf` da variante passou a declarar `DURACOES="90"` e `VOLUME_MIN_90="120"`/
+ * `VOLUME_MAX_90="150"` — e esta função continuava a ler `VOLUME_MIN`/`VOLUME_MAX`, as chaves
+ * da faixa de 60, que o `comporConf` **já não escreve** num manifesto de 90. Resultado:
+ * `volumeMin = 0`, `volumeMax = 0`, `volumeTotal = 0`, e a Aula 01 saía com
+ * «[Preencher: volume em tempos]» — o que a `gerar-ciclo.sh` recusa com
+ *
+ *   erro: aula-01 não declara 'volume-total-90:' para o dia de 90 min (Regra 9).
+ *
+ * A cadeia inteira corria, o site ficava no pacote antigo, e ninguém sabia porquê.
+ *
+ * A REGRA É A DO GERADOR, e é copiada de propósito: `tools/gerar-ciclo.sh` resolve o par por
+ * `VOLUME_MIN_<dur>` acima dos 60 minutos desde 18/10/2026 — quando uma aula de 75 min era
+ * medida com a régua da de 120. Duas leituras diferentes do mesmo manifesto foi exactamente o
+ * que produziu este defeito: a do gerador estava certa, a do Worker ficou para trás.
+ *
+ * O `_60` explícito também vale, e o par genérico continua a ser a reserva até 60 minutos — é a
+ * forma que as escolas de antes desta data declaram.
+ */
 function calibracaoDoConf(texto) {
   const pegar = (chave) => {
     const m = new RegExp('^' + chave + '="([^"]*)"', 'm').exec(texto || '');
     return m ? m[1] : '';
   };
   const duracao = parseInt(pegar('DURACOES'), 10);
-  const volumeMin = parseInt(pegar('VOLUME_MIN'), 10);
-  const volumeMax = parseInt(pegar('VOLUME_MAX'), 10);
+  const minutos = Number.isFinite(duracao) ? duracao : 0;
+  /* O par da duração, com a mesma escada do gerador: a chave explícita da duração, depois a
+   * genérica. Sem esta escada, um manifesto de 90 minutos responde 0 — e 0 não é uma faixa. */
+  const faixa = minutos > 60
+    ? [pegar('VOLUME_MIN_' + minutos), pegar('VOLUME_MAX_' + minutos)]
+    : [pegar('VOLUME_MIN_' + minutos) || pegar('VOLUME_MIN'),
+      pegar('VOLUME_MAX_' + minutos) || pegar('VOLUME_MAX')];
+  const volumeMin = parseInt(faixa[0], 10);
+  const volumeMax = parseInt(faixa[1], 10);
   const escola = pegar('ESCOLA');
   const variante = pegar('VARIANTE');
   return {
-    duracaoMinutos: Number.isFinite(duracao) ? duracao : 0,
+    duracaoMinutos: minutos,
     volumeMin: Number.isFinite(volumeMin) ? volumeMin : 0,
     volumeMax: Number.isFinite(volumeMax) ? volumeMax : 0,
     escolaNome: escola || variante,
