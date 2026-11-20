@@ -49,22 +49,22 @@
   "distribuicaoDeVolume": [
     {
       "bloco": "Solo",
-      "proporcaoAlvo": "30",
+      "proporcaoAlvo": "20",
       "justificativa": "Aquecimento e consciência corporal."
     },
     {
       "bloco": "Barra",
-      "proporcaoAlvo": "30",
+      "proporcaoAlvo": "10",
       "justificativa": "Apoio e alinhamento."
     },
     {
       "bloco": "Centro",
-      "proporcaoAlvo": "30",
+      "proporcaoAlvo": "15",
       "justificativa": "Transferência e sequência."
     },
     {
       "bloco": "Musicalidade",
-      "proporcaoAlvo": "10",
+      "proporcaoAlvo": "60",
       "justificativa": "Pulso e frase."
     }
   ],
