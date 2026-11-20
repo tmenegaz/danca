@@ -22,10 +22,10 @@ exercícios deste ciclo podem ser lidos de volta sem depender da memória de que
 | Item | Valor |
 |:--|:--|
 | Código | `ballet-classico` — Código de dança (ballet clássico) |
-| Versão | 48 |
+| Versão | 60 |
 | Categorias | 5 |
 | Sinais | 32 |
-| Verbetes (exercícios) | 4 |
+| Verbetes (exercícios) | 5 |
 
 ## Como ler o registro
 
@@ -42,39 +42,147 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 ## Exercícios da Aula 01
 
-### 1. Solo — Plié
+### 1. Solo — Battement tendu
 
-*música ainda não declarada · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical*
+*8 tempos, 2/4 · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical*
 
-| Compasso | Contagem | Notação | Descrição |
-|:----------:|:----------:|:----------------------|:---------------------------------------------------|
-| — | — | [Preencher: notação do exercício] | o verbete de «Plié» está declarado para 4 em 2/4; esta linha pede 8 tempos em 4/4 |
-
-### 2. Barra — Battement tendu
-
-*música ainda não declarada · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento*
+> **Descrição.** Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo. Detalhe técnico: direcoes, devant,a la seconde,derriere funcao, fortalecimento do peito do pé e articulação do tornozelo.
 
 | Compasso | Contagem | Notação | Descrição |
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
-| — | — | [Preencher: notação do exercício] | o verbete de «Battement tendu» está declarado para 8 em 2/4; esta linha pede 8 tempos em 4/4 |
+| 1 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
+| 3 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
 
-### 3. Centro — Port de bras
+### 2. Solo — Plié
 
-*música ainda não declarada · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento*
+*4 tempos, 2/4 · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical*
 
 | Compasso | Contagem | Notação | Descrição |
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
-| — | — | [Preencher: notação do exercício] | o alfabeto não tem verbete para «Port de bras» — um exercício entra no registro depois de o seu verbete existir (P-16) |
+| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe. |
 
-## O que ficou em lacuna
+### 3. Solo — Relevé
 
-| Estado | Linhas | Por quê |
-|:--|:--:|:--|
-| musica-nao-coberta | 2 | o verbete existe, mas não para esta música |
-| sem-verbete | 1 | o exercício não tem verbete no alfabeto do ciclo |
+*8 tempos, 2/4 · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical*
 
-Nenhuma destas linhas foi preenchida por aproximação: um sinal inventado tem
-aparência de fato, e não se distingue do certo por leitura. A lacuna, sim.
+> **Descrição.** Elevação para meia-ponta ou ponta, conforme o contexto.
+
+| Compasso | Contagem | Notação | Descrição |
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
+| 1 | 1–2 | `[Perna: ED → ↑ +]` | Lê-se: Perna, varredura para fora, conduz a, sobe, à frente. |
+| 3 | 1–2 | `[Perna: ED → ↓ 5ª]` | Lê-se: Perna, varredura para fora, conduz a, cede, quinta posição. |
+
+### 4. Solo — Battement tendu
+
+*8 tempos, 2/4 · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento*
+
+> **Descrição.** Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo. Detalhe técnico: direcoes, devant,a la seconde,derriere funcao, fortalecimento do peito do pé e articulação do tornozelo.
+
+| Compasso | Contagem | Notação | Descrição |
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
+| 1 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
+| 3 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
+
+### 5. Solo — Relevé
+
+*8 tempos, 2/4 · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento*
+
+> **Descrição.** Elevação para meia-ponta ou ponta, conforme o contexto.
+
+| Compasso | Contagem | Notação | Descrição |
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
+| 1 | 1–2 | `[Perna: ED → ↑ +]` | Lê-se: Perna, varredura para fora, conduz a, sobe, à frente. |
+| 3 | 1–2 | `[Perna: ED → ↓ 5ª]` | Lê-se: Perna, varredura para fora, conduz a, cede, quinta posição. |
+
+### 6. Barra — Battement tendu
+
+*8 tempos, 2/4 · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical*
+
+> **Descrição.** Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo. Detalhe técnico: direcoes, devant,a la seconde,derriere funcao, fortalecimento do peito do pé e articulação do tornozelo.
+
+| Compasso | Contagem | Notação | Descrição |
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
+| 1 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
+| 3 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
+
+### 7. Barra — Plié
+
+*4 tempos, 2/4 · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical*
+
+| Compasso | Contagem | Notação | Descrição |
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
+| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe. |
+
+### 8. Barra — Relevé
+
+*8 tempos, 2/4 · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical*
+
+> **Descrição.** Elevação para meia-ponta ou ponta, conforme o contexto.
+
+| Compasso | Contagem | Notação | Descrição |
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
+| 1 | 1–2 | `[Perna: ED → ↑ +]` | Lê-se: Perna, varredura para fora, conduz a, sobe, à frente. |
+| 3 | 1–2 | `[Perna: ED → ↓ 5ª]` | Lê-se: Perna, varredura para fora, conduz a, cede, quinta posição. |
+
+### 9. Barra — Plié
+
+*4 tempos, 2/4 · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento*
+
+| Compasso | Contagem | Notação | Descrição |
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
+| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe. |
+
+### 10. Barra — Relevé
+
+*8 tempos, 2/4 · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento*
+
+> **Descrição.** Elevação para meia-ponta ou ponta, conforme o contexto.
+
+| Compasso | Contagem | Notação | Descrição |
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
+| 1 | 1–2 | `[Perna: ED → ↑ +]` | Lê-se: Perna, varredura para fora, conduz a, sobe, à frente. |
+| 3 | 1–2 | `[Perna: ED → ↓ 5ª]` | Lê-se: Perna, varredura para fora, conduz a, cede, quinta posição. |
+
+### 11. Centro — Plié
+
+*4 tempos, 2/4 · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento*
+
+| Compasso | Contagem | Notação | Descrição |
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
+| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe. |
+
+### 12. Centro — Relevé
+
+*8 tempos, 2/4 · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento*
+
+> **Descrição.** Elevação para meia-ponta ou ponta, conforme o contexto.
+
+| Compasso | Contagem | Notação | Descrição |
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
+| 1 | 1–2 | `[Perna: ED → ↑ +]` | Lê-se: Perna, varredura para fora, conduz a, sobe, à frente. |
+| 3 | 1–2 | `[Perna: ED → ↓ 5ª]` | Lê-se: Perna, varredura para fora, conduz a, cede, quinta posição. |
+
+### 13. Centro — Battement tendu
+
+*8 tempos, 2/4 · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento*
+
+> **Descrição.** Ação de estender a perna de trabalho no chão até a ponta do pé esticada ao máximo, mantendo o joelho rígido e o en dehors sem transferir o peso do corpo. Detalhe técnico: direcoes, devant,a la seconde,derriere funcao, fortalecimento do peito do pé e articulação do tornozelo.
+
+| Compasso | Contagem | Notação | Descrição |
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
+| 1 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
+| 3 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
+
+### 14. Centro — Relevé
+
+*8 tempos, 2/4 · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento*
+
+> **Descrição.** Elevação para meia-ponta ou ponta, conforme o contexto.
+
+| Compasso | Contagem | Notação | Descrição |
+|:----------:|:----------:|:----------------------|:---------------------------------------------------|
+| 1 | 1–2 | `[Perna: ED → ↑ +]` | Lê-se: Perna, varredura para fora, conduz a, sobe, à frente. |
+| 3 | 1–2 | `[Perna: ED → ↓ 5ª]` | Lê-se: Perna, varredura para fora, conduz a, cede, quinta posição. |
 
 > **Sobre os símbolos:** os sinais deste código são digitáveis e legíveis numa folha
 > impressa. Nenhum deles substitui a escrita completa do sistema — eles **apontam** para a

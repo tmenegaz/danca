@@ -15,7 +15,7 @@ subtitle: "Folha de marcação para uso durante a aula"
 
 **Data:** `___/___/____` · **Presentes:** ☐ Aluna A · **Início:** `__:__` · **Fim:** `__:__` · **Duração efetiva:** `___ min`
 
-**Origem metodológica (anamnese):** Aluna A — Cubana
+**Origem metodológica (anamnese):** Aluna A — não declarada
 
 ## Condições de contorno
 
