@@ -7,8 +7,8 @@
         "recorte:tami"
       ],
       "primeira": "20261117-1709",
-      "ultima": "20261120-1711",
-      "versoes": 8
+      "ultima": "20261120-2146",
+      "versoes": 9
     },
     {
       "aspecto": "cinco-posicoes-1a-bracos",
@@ -17,8 +17,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261120-1711",
-      "versoes": 5
+      "ultima": "20261120-2146",
+      "versoes": 6
     },
     {
       "aspecto": "cinco-posicoes-1a-pes",
@@ -27,8 +27,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261120-1711",
-      "versoes": 5
+      "ultima": "20261120-2146",
+      "versoes": 6
     },
     {
       "aspecto": "forca-excentrica-recuo-na-flexao-de-tronco",
@@ -37,8 +37,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261120-1711",
-      "versoes": 5
+      "ultima": "20261120-2146",
+      "versoes": 6
     },
     {
       "aspecto": "mobilidade-de-flexao-extensao-do-tornozelo",
@@ -47,8 +47,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261120-1711",
-      "versoes": 5
+      "ultima": "20261120-2146",
+      "versoes": 6
     },
     {
       "aspecto": "musicalidade-e-pulsacao-ritmica",
@@ -57,8 +57,8 @@
         "recorte:tami"
       ],
       "primeira": "20261120-1626",
-      "ultima": "20261120-1711",
-      "versoes": 2
+      "ultima": "20261120-2146",
+      "versoes": 3
     },
     {
       "aspecto": "espiral-rotacao-de-tronco",
@@ -67,8 +67,8 @@
         "recorte:tami"
       ],
       "primeira": "20261120-1711",
-      "ultima": "20261120-1711",
-      "versoes": 1
+      "ultima": "20261120-2146",
+      "versoes": 2
     },
     {
       "aspecto": "estabilidade-vestibular-e-deslocamento",
@@ -77,8 +77,8 @@
         "recorte:tami"
       ],
       "primeira": "20261120-1711",
-      "ultima": "20261120-1711",
-      "versoes": 1
+      "ultima": "20261120-2146",
+      "versoes": 2
     },
     {
       "aspecto": "passe",
@@ -87,7 +87,17 @@
         "recorte:tami"
       ],
       "primeira": "20261120-1711",
-      "ultima": "20261120-1711",
+      "ultima": "20261120-2146",
+      "versoes": 2
+    },
+    {
+      "aspecto": "formato-anatomico-dos-joelhos",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261120-2146",
+      "ultima": "20261120-2146",
       "versoes": 1
     },
     {
@@ -600,6 +610,14 @@
         "ids": [
           "recorte:tami"
         ],
+        "rotulo": "formato-anatomico-dos-joelhos",
+        "valor": "formato-anatomico-dos-joelhos"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
         "rotulo": "mobilidade-de-flexao-extensao-do-tornozelo",
         "valor": "mobilidade-de-flexao-extensao-do-tornozelo"
       },
@@ -785,9 +803,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "3509635"
+    "commit": "78dbc82"
   },
-  "gerado_em": "2026-11-20T21:45",
+  "gerado_em": "2026-11-20T21:47",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -877,19 +895,38 @@
         "espiral-rotacao-de-tronco",
         "estabilidade-vestibular-e-deslocamento",
         "forca-excentrica-recuo-na-flexao-de-tronco",
+        "formato-anatomico-dos-joelhos",
         "mobilidade-de-flexao-extensao-do-tornozelo",
         "mobilidade-de-quadril-en-dehors-de-origem",
         "musicalidade-e-pulsacao-ritmica",
         "passe"
       ],
-      "atualizada_em": "2026-11-20T17:11:17.970Z",
-      "enviada_em": "2026-11-20T17:11:18.382Z",
+      "atualizada_em": "2026-11-20T21:46:33.470Z",
+      "enviada_em": "2026-11-20T21:46:33.875Z",
       "id": "recorte:tami",
       "linha": "tami",
       "nome": "Tami",
       "professor": null,
       "turma": null,
       "versoes": [
+        {
+          "alunas": 2,
+          "arquivo": "escola/breu/linhas-de-base/tami--20261120-2146.json",
+          "aspectos": [
+            "cinco-posicoes-1a-pes",
+            "cinco-posicoes-1a-bracos",
+            "passe",
+            "formato-anatomico-dos-joelhos",
+            "mobilidade-de-quadril-en-dehors-de-origem",
+            "mobilidade-de-flexao-extensao-do-tornozelo",
+            "musicalidade-e-pulsacao-ritmica",
+            "forca-excentrica-recuo-na-flexao-de-tronco",
+            "estabilidade-vestibular-e-deslocamento",
+            "espiral-rotacao-de-tronco"
+          ],
+          "enviada_em": "2026-11-20T21:46:33.875Z",
+          "versao": "20261120-2146"
+        },
         {
           "alunas": 2,
           "arquivo": "escola/breu/linhas-de-base/tami--20261120-1711.json",
