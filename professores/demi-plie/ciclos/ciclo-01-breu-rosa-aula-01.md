@@ -61,10 +61,13 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 |:--|:--|
 | 1ª posição — pés | sem registo na anamnese |
 | 1ª posição — braços | sem registo na anamnese |
+| o passé | sem registo na anamnese |
 | Mobilidade de quadril (en dehors de origem) | sem registo na anamnese |
 | Mobilidade de flexão/extensão do tornozelo | sem registo na anamnese |
 | Musicalidade e pulsação rítmica | sem registo na anamnese |
 | Força excêntrica / recuo na flexão de tronco | sem registo na anamnese |
+| Estabilidade vestibular e deslocamento | sem registo na anamnese |
+| Espiral / rotação de tronco | sem registo na anamnese |
 
 > **Sem restrições físicas declaradas** no Plano de Observação.
 
@@ -104,19 +107,21 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 ## 6. Proveniência consolidada
 
-- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261120-1326?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
-- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261120-1326?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.
+- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261120-1411?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
+- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261120-1411?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.
 
 **Anamnese de cada aluna**
 
-A anamnese de cada aluna do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.
+A anamnese de cada uma das 2 alunas do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.
 
 ```{=html}
 <select id="prov-seletor" aria-label="Aluna cuja anamnese se quer abrir">
 <option value="">— escolha a aluna —</option>
 <option value="Aluna A">Aluna A</option>
+<option value="Aluna B">Aluna B</option>
 </select>
 <div class="acoes-da-aluna" data-prov-par="Aluna A"><a class="acao secundario pequena" href="/anamnese/?professor=demi-plie&amp;ciclo=01&amp;novo=anamnese-20261118-1737&amp;aluna=Aluna%20A">novo registo</a> <a class="acao secundario pequena" href="/anamnese/api/ficha-preenchida.anamnese-20261118-1737?formato=html">imprimir</a><span class="origem-da-aluna">origem metodológica não declarada</span></div>
+<div class="acoes-da-aluna" data-prov-par="Aluna B"><a class="acao secundario pequena" href="/anamnese/?professor=demi-plie&amp;ciclo=01&amp;editar=anamnese-20261119-1145&amp;aluna=Aluna%20B">editar</a> <a class="acao secundario pequena" href="/anamnese/api/ficha-preenchida.anamnese-20261119-1145?formato=html">imprimir</a><span class="origem-da-aluna">origem metodológica não declarada</span></div>
 <script>(function(){
 var s=document.getElementById("prov-seletor");if(!s)return;
 var p=document.querySelectorAll("[data-prov-par]");
