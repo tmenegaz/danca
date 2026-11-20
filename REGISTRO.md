@@ -56642,3 +56642,66 @@ perfil para uma de cada. É a diferença entre uma validação que se pode corre
 gasta a cota do dia — e teria sido invisível se eu tivesse dito «está feito» sem medir no ar.
 
 **Com o quê.** `motor/servidor/bastidores.js` (a rota `…/curadorias-estado`), `REGISTRO.md`.
+
+## 20/11/2026 — O plano de ensino abria uma condução vazia
+
+**O sintoma que ela mediu.** «Eu escolhi os três objetivos. Estou aqui no plano de ensino, no item
+nove, parâmetro de medição. O Batman GT aparece aqui, mas nenhum dos três que eu escolhi está
+marcado.» O dado estava certo no ar: a Turma vigente da `breu` declara
+`objetivosDoRepertorio: {"Battement jeté": [1,2,3]}` e o envelope `plano-20261120-1817` chega pela
+API com o «Battement jeté» marcado nos três marcos. **O que faltava era a página abrir o que está
+gravado.**
+
+**Duas causas, e as duas do mesmo tipo — o caminho real substituído por um atalho.**
+
+1. `semearDoPlano()` começava por `if (FONTE !== 'po') return`. A porta do **plano** nunca lia o
+   plano: mostrava uma **condução vazia** e deixava o resto às sementes parciais
+   (`SEMEADURA_DO_PLANO`, quatro chaves, do PO). Passa a aceitar `FONTE === 'plano'`, filtra a
+   estante pelo **ciclo** da barra e entrega o envelope **inteiro** a `carregarPlanoNaConducao` — o
+   caminho que já existia para o «editar» da estante.
+2. `motor/servidor/teste-cliente.js` escrevia por cima. O `autoPlano` → `preencherPlano` injetava
+   `aula-1-parametro` da **fixture** da escola de teste — e era isso que ela via: «Port de bras» e
+   «Rond de jambe» marcados, nenhum dos três escolhidos. O preenchedor é um auxiliar de escola de
+   teste; quando a página abriu um plano gravado (`PLANO_ABERTO` com o carimbo), ele não escreve.
+   Dependência fraca de propósito (`typeof PLANO_ABERTO`), para o script sobreviver a uma página
+   que ainda não o declare.
+
+**A bancada, e o segundo lugar onde ela mentiu.** `provar-o-parametro-do-plano.js` (novo, 7
+asserções) sonda o gesto real no jsdom: o endereço `/plano-ensino/?professor=…&escola=…&ciclo=01`
+sobre HTTP de verdade, o envelope do caso real, e as caixas contadas no DOM. As primeiras cinco
+corridas deram **2 de 7**, e a causa não era a página: a bancada **não servia
+`/api/bastidores/curadoria-professor`**, `listaDeTurmasDoProfessor` devolvia `[]`, e `selectDaTurma`
+apagava a turma do plano (`RESPOSTAS.delete`, a limpeza de 27/10/2026). O plano chegava com «Rosa» e
+o widget caía em «escolha a turma». Achado com o `Map.prototype.delete` instrumentado, e o `stack`
+apontou `selectDaTurma ← renderTurmaDoCabecalho ← carregarPlanoNaConducao ← semearDoPlano`. Servida a
+curadoria na forma da rota do ar (`{ ok, professor, curadorias, rotulos }`) e as opções de turma como
+`opcoesDeTurmas` as escreve (`{ valor: nome, rotulo: nome }`), as sete passam.
+
+**A lição já estava escrita e voltou a valer.** Uma bancada que serve menos do que o Worker serve
+não mede o produto — mede-se a si mesma. Foi assim com as rotas da cadeia (três vezes) e foi assim
+aqui: o vermelho não era da correcção, era da bancada.
+
+**Com o quê.** `porta/index.html` (`PLANO_ABERTO`, `RASCUNHO_RESTAURADO`, o ramo `FONTE === 'plano'`
+de `semearDoPlano`); `motor/servidor/teste-cliente.js` (a guarda do `autoPlano`); as portas dos dois
+pacotes da `breu` recopiadas (`criar-escola.sh --somente-porta`); `provar-o-parametro-do-plano.js`
+(novo, 7 asserções, agora versionado).
+
+**E o commit parou numa incoerência herdada.** O `pre-commit` reprovou o pacote `breu-rosa` com a
+checagem 7.1: o `-po.md` declara `envelope: po-20261120-1818` e o `-dados.json` declarava
+`po: po-20261120-1802` — «o pacote mistura dois Planos de Observação». **Já estava no `main`**
+(medido com o worktree limpo): o commit `6c5947b5`, escrito pelo motor pela API, mudou duas linhas
+do `-po.md` e não regerou o derivado. É o segundo caminho de escrita do `main` a publicar o que o
+`check-pacote` recusa — a mesma família de defeito da regra do «remoto primeiro».
+
+**O que NÃO se fez, e porquê.** A primeira tentativa de regerar o `-dados.json` a partir do `1818`
+devolvia **uma** aluna: `elencoDoCiclo` lê a linha de base da Turma, e `linhaDeBaseDaTurma` casa
+pelo nome da **sala** — que os ficheiros de `escola/breu/linhas-de-base/` não têm (`turma` ausente,
+o `id` é `tami`). Sem linha de base, o elenco cai nos `sujeitos` do PO, que são só a «Aluna A».
+Regerar assim apagaria a «Aluna B» do ciclo. Perguntado: «duas, manter as duas». A linha de base
+certa é a mais recente do elenco (`tami--20261120-1711`, A e B), e com ela `derivarDados` devolve o
+ficheiro **igual em tudo menos o carimbo** — que é exactamente o que o motor teria escrito se
+tivesse regerado o derivado na derivação do PO.
+
+**Com o quê.** `ciclo-01-breu-rosa-dados.json` (`po` → `1818`; elenco, apelidos e `aulas` intactos);
+o pacote regerado (`gerar-ciclo.sh demi-plie 01 breu-rosa`, agora **0 erros**, com o `check-pacote` a
+dizer «a fonte e o JSON de dados vêm do mesmo envelope»); a âncora `.fipp` recalculada.

@@ -1719,3 +1719,10 @@ experimentos/modelo-formulario/*
 # citada no REGISTRO e no rodapé `Auditoria:` do commit, e um arquivo citado que não existe no
 # clone é uma afirmação que ninguém pode conferir.
 !experimentos/provar-o-que-mudou.js
+# O PLANO DE ENSINO ABRE O QUE ESTÁ GRAVADO (20/11/2026). Ela escolheu os três objetivos, o
+# «Battement jeté» apareceu no item 9 — e nenhum marcado. A bancada sonda no jsdom o caminho do
+# endereço (`/plano-ensino/?…`), que é o que a porta faz: o plano gravado entra na condução
+# inteiro, e o widget casa o termo do nível com o termo do plano. É citada no REGISTRO e no
+# rodapé `Auditoria:` do commit, e um arquivo citado que não existe no clone é uma afirmação
+# que ninguém pode conferir.
+!experimentos/provar-o-parametro-do-plano.js

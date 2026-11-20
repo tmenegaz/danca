@@ -75,7 +75,8 @@
     "Satisfatório",
     "Razoável",
     "Em desenvovimento",
-    "Não se aplica"
+    "Não se aplica",
+    "Erros"
   ],
   "criterioDeExtensao": "Estender o ciclo em duas aulas se o último marco não for alcançado.",
   "musicasVideos": [

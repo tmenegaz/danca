@@ -1124,6 +1124,28 @@ let PLANO_RESPOSTAS = new Map();
  * cabeçalho só o usa quando o plano em causa é o escolhido, senão um ciclo antigo ficaria a
  * nomear um plano novo. */
 let PLANO_CICLO = { carimbo: '', ciclo: '' };
+
+/* O PLANO DO CICLO QUE A PÁGINA ABRIU (20/11/2026) — o carimbo dele, ou `null`.
+ *
+ * PORQUE EXISTE. A porta do PLANO abria sempre uma CONDUÇÃO VAZIA: pedir o plano de ensino pelo
+ * endereço não carregava o que estava gravado. O que ela via era o formulário em branco — ou,
+ * nas escolas de teste, o PREENCHEDOR da fixture a enchê-lo —, e o parâmetro de medição com as
+ * marcas da fixture em vez das que ela tinha escolhido na Turma. Foi assim que ela leu «escolhi
+ * os três e nenhum está marcado» sobre um plano que estava certo no acervo (medido ao vivo a
+ * 20/11/2026: `plano-20261120-1817`, os três marcos, o «Battement jeté» nos três).
+ *
+ * É lido por dois: pela tela, para não voltar a semear por cima do que está gravado; e pelo
+ * PREENCHEDOR DAS ESCOLAS DE TESTE, que sem isto enche o formulário de fixture sobre um plano
+ * que existe — o que faz o produto parecer avariado exactamente a quem o está a testar.
+ *
+ * `null` = não se abriu plano nenhum (condução nova). Vazio e nulo dizem coisas diferentes: um
+ * plano pode não ter carimbo e estar aberto. */
+let PLANO_ABERTO = null;
+
+/* SE O PROFESSOR JÁ TINHA UM RASCUNHO NESTE NAVEGADOR — lido no arranque, antes de qualquer
+ * semeadura. É o que decide se o plano gravado se abre: o trabalho dele vence a sugestão, e
+ * carregar por cima seria apagá-lo (a mesma lei do `restaurar`). */
+let RASCUNHO_RESTAURADO = false;
 // A correção socrática (Frente 5): id -> o VALOR já apontado. Pergunta-se UMA vez
 // por resposta — se a professora insiste no mesmo texto, o sistema respeita e
 // deixa seguir; se reformula, a checagem roda de novo.
@@ -6615,7 +6637,22 @@ const SEMEADURA_DO_PLANO = {
 };
 
 async function semearDoPlano() {
-  if (FONTE !== 'po' || !MAPA) return;
+  /* O PLANO DE ENSINO TAMBÉM ABRE O QUE ESTÁ GRAVADO (20/11/2026).
+   *
+   * O que a função fazia: só o PO lia o plano. A porta do PLANO abria uma condução VAZIA, e quem
+   * chegava pelo endereço via um formulário em branco sobre um plano que existia — o defeito que
+   * ela mediu como «escolhi os três objetivos e nenhum está marcado». Os três estavam no envelope
+   * (`plano-20261120-1817`); a tela é que nunca os pediu.
+   *
+   * AS DUAS GUARDAS, e cada uma tem um caso:
+   *   · `RASCUNHO_RESTAURADO` — se o professor já tinha trabalho neste navegador, ele vence. É a
+   *     mesma lei do `restaurar`, e carregar por cima seria apagá-lo;
+   *   · o CICLO — a estante é do professor, e o plano do ciclo 01 não é o do ciclo 02. Um plano
+   *     de outro ciclo não se abre: quem está a compor o ciclo 02 quer o formulário em branco.
+   *
+   * A ESCOLHA É DO PROFESSOR quando ele a fez (`plano-de-ensino` já em `RESPOSTAS`); a estante só
+   * responde quando ele ainda não escolheu nada. */
+  if ((FONTE !== 'po' && FONTE !== 'plano') || !MAPA) return;
 
   // O PO consome o PLANO SALVO (não o rascunho do navegador, que some quando o
   // plano é gravado) — e semeia os campos que vêm dele: sugestão, nunca reescrita.
@@ -6633,7 +6670,18 @@ async function semearDoPlano() {
     }
     const estante = OPCOES.get(estanteDoProfessor) || [];
     if (!estante.length) return;
-    carimbo = estante[0].carimbo || estante[0].valor;
+    /* O PLANO ABRE-SE PELO CICLO DELE (20/11/2026). A estante é do professor e traz os planos de
+     * todos os ciclos; abrir «o primeiro» no ciclo 02 carregaria o do 01, e o professor comporia
+     * por cima de um documento de outro ciclo. Sem plano DESTE ciclo, a condução fica nova — que
+     * é o que ela quer quando começa um ciclo. */
+    let daEstante = estante[0];
+    if (FONTE === 'plano') {
+      if (RASCUNHO_RESTAURADO) return;
+      const cicloDaBarra = String(($('ctx-ciclo') || {}).value || '').trim();
+      daEstante = estante.find((o) => String((o && o.ciclo) || '').trim() === cicloDaBarra) || null;
+      if (!daEstante) return;
+    }
+    carimbo = daEstante.carimbo || daEstante.valor;
     /* A ESCOLHA FICA REGISTADA, e não só usada (27/10/2026).
      *
      * O plano que a página lê já era o primeiro da estante — e o `plano-de-ensino` ficava VAZIO
@@ -6681,6 +6729,24 @@ async function semearDoPlano() {
   const vivos = new Set(MAPA.nos.map((n) => n.id));
   const vazio = (v) => v === undefined || v === null || v === '';
 
+  /* NO PLANO DE ENSINO O DOCUMENTO GRAVADO É O FORMULÁRIO (20/11/2026).
+   *
+   * A `SEMEADURA_DO_PLANO` é do PO — quatro chaves que o identificam. O plano de ensino precisa do
+   * CONTRÁRIO: o formulário tem de mostrar o que está no envelope inteiro, porque é esse documento
+   * que o professor lê no ecrã e que o gerador imprime. Semear duas chaves daria um plano meio
+   * preenchido, que é pior do que vazio — parece completo e não está.
+   *
+   * `carregarPlanoNaConducao` é a mesma função do «editar» e do «derivar», e é de propósito: um
+   * plano aberto para leitura e um aberto para edição têm de mostrar exactamente o mesmo, senão a
+   * leitura e a correcção discordam sobre o dado.
+   *
+   * O `return` é o que impede a semeadura parcial de correr por cima — e `PLANO_ABERTO` fica com o
+   * carimbo para o preenchedor das escolas de teste não encher a fixture sobre um plano real. */
+  if (FONTE === 'plano') {
+    PLANO_ABERTO = String(carimbo || '');
+    carregarPlanoNaConducao(plano);
+    return;
+  }
   for (const [de, paraLista] of Object.entries(SEMEADURA_DO_PLANO)) {
     const valor = doPlano.get(de);
     if (vazio(valor)) continue;
@@ -9896,6 +9962,10 @@ async function iniciar() {
    */
   const guardado = lerMemoria();
   if (guardado) {
+    /* O RASCUNHO DO PROFESSOR VENCE O PLANO GRAVADO (20/11/2026) — ver `RASCUNHO_RESTAURADO`.
+     * A marca é lida por `semearDoPlano`, que sem ela abriria o plano por cima do trabalho a meio
+     * de quem voltou à página. */
+    RASCUNHO_RESTAURADO = true;
     const t = restaurar(guardado);
     // A categoria etária é DERIVADA da idade. Restaurar traz de volta uma categoria
     // que pode estar defasada da idade (a idade foi corrigida e a categoria ficou

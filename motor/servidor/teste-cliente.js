@@ -312,6 +312,28 @@ const SCRIPT = String.raw`(function () {
    * lista estava vazia no primeiro instante e o preenchimento corria sobre um seletor que ainda
    * ia encher. */
   function autoPlano(tentativas) {
+    /* O PLANO GRAVADO NÃO SE ENCHE POR CIMA (20/11/2026) — e este é o defeito que ela viu.
+     *
+     * O QUE ACONTECIA. Nas escolas de teste, esta função corria sempre que a porta do PLANO
+     * abria, e o preenchimento escrevia as respostas da FIXTURE em RESPOSTAS. A página não abria o
+     * plano gravado (era o outro defeito, corrigido na mesma data), portanto o que estava no ecrã
+     * era a fixture — com «Port de bras» e «Rond de jambe» marcados no parâmetro de medição, e sem
+     * o exercício que ela tinha acabado de declarar na Turma. Ela leu «escolhi os três objetivos e
+     * nenhum está marcado» sobre um plano que estava certo no acervo.
+     *
+     * O PREENCHEDOR CONTINUA A SERVIR PARA O QUE EXISTE: uma condução VAZIA. Quando a página abre
+     * um plano do acervo (PLANO_ABERTO), ele cala-se — o dado real vence a fixture, que é a mesma
+     * regra de tudo o resto nesta casa. O painel do teste continua à vista, com o botão que
+     * preenche à mão: quem quiser a fixture sobre um plano aberto carrega nele, e sabe o que fez.
+     *
+     * A DEPENDÊNCIA É DECLARADA E FRACA, de propósito: typeof e não acesso directo. Um script de
+     * teste que rebentasse por a página não ter a variável derrubaria a página inteira — e o
+     * preenchedor nunca pode ser o que impede o produto de funcionar. */
+    if (typeof PLANO_ABERTO !== 'undefined' && PLANO_ABERTO) {
+      dizer('Este ciclo já tem plano de ensino: a página abriu o documento gravado, e o '
+        + 'preenchimento automático não o substitui. Use o botão Preencher para o trocar pela fixture.');
+      return;
+    }
     var sel = porId('ctx-turma');
     var lista = fixture.plano || [];
     var opcoes = [];
