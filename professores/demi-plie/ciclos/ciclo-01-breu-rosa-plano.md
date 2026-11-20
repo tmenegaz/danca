@@ -28,7 +28,7 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 | **Turma observada** | Rosa |
 | **Volume de trabalho** | 3–6 séries |
 | **Condição de registro** | Na sala: professor, alunas da turma · observa: o próprio professor. |
-| **Metodologia de referência** | RAD |
+| **Metodologia de referência** | Francesa |
 | **Notação de dança** | Código de dança |
 
 ## Objetivo geral
