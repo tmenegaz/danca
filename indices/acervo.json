@@ -68,10 +68,10 @@
         "aulas": 1,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
-        "planos": 26,
-        "pos": 26,
+        "planos": 27,
+        "pos": 27,
         "recortes": 1,
-        "registros": 56
+        "registros": 58
       },
       "criada_em": "2026-11-17T00:41:45.598067+00:00",
       "expurgada": false,
@@ -116,6 +116,7 @@
         "plano:plano-20261120-1854",
         "plano:plano-20261120-1919",
         "plano:plano-20261120-1920",
+        "plano:plano-20261120-1939",
         "po:po-20261119-1233",
         "po:po-20261119-2144",
         "po:po-20261119-2350",
@@ -141,7 +142,8 @@
         "po:po-20261120-1846",
         "po:po-20261120-1854",
         "po:po-20261120-1919",
-        "po:po-20261120-1920"
+        "po:po-20261120-1920",
+        "po:po-20261120-1939"
       ],
       "slug": "breu"
     },
@@ -211,7 +213,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 56,
+        "contagem": 58,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -394,12 +396,12 @@
         "valor": "anamnese"
       },
       {
-        "contagem": 26,
+        "contagem": 27,
         "rotulo": "Plano de ensino",
         "valor": "plano"
       },
       {
-        "contagem": 26,
+        "contagem": 27,
         "rotulo": "Plano de observação",
         "valor": "po"
       }
@@ -407,9 +409,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "40a3d26"
+    "commit": "fe52255"
   },
-  "gerado_em": "2026-11-20T22:31",
+  "gerado_em": "2026-11-20T22:39",
   "nao_indexado": [
     {
       "familia": "conteudo",
