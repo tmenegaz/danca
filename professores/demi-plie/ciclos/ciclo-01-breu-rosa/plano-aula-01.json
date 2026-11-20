@@ -34,43 +34,43 @@
     "Corpo": [
       {
         "criterio": "1ª posição — pés",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "2 de 4 em «Bom» (com toque) · 2 de 4 em «precisa desenvolver» (por consciência própria) — ponto de atenção"
       },
       {
         "criterio": "1ª posição — braços",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "2 de 4 em «razoável» (por consciência própria) · 2 de 4 em «precisa desenvolver» (com toque) — ponto de atenção"
       },
       {
         "criterio": "o passé",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "2 de 4 em «Bom» (com toque) · 2 de 4 em «precisa desenvolver» (por consciência própria) — ponto de atenção"
       },
       {
         "criterio": "Formato anatômico dos joelhos",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "2 de 4 em «Varo (\"arqueado\")» · 2 de 4 em «Recurvato (hiperflexão)» — ponto de atenção"
       },
       {
         "criterio": "Mobilidade de quadril (en dehors de origem)",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "2 de 4 em «Origem clara no quadril» · 2 de 4 em «Origem restrita (rotação forçada a partir dos joelhos/tornozelos)» — ponto de atenção"
       },
       {
         "criterio": "Mobilidade de flexão/extensão do tornozelo",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "2 de 4 em «Moderada» · 2 de 4 em «Duro (restrição frontal)» — ponto de atenção"
       },
       {
         "criterio": "Musicalidade e pulsação rítmica",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "2 de 4 em «Domina» · 2 de 4 em «Domínio parcial» — ponto de atenção"
       },
       {
         "criterio": "Força excêntrica / recuo na flexão de tronco",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "2 de 4 em «Retorna enrolando (roll-up)» · 2 de 4 em «Parcial» — ponto de atenção"
       },
       {
         "criterio": "Estabilidade vestibular e deslocamento",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "2 de 4 em «Caminha virando a cabeça sem desviar» · 2 de 4 em «Perde o prumo» — ponto de atenção"
       },
       {
         "criterio": "Espiral / rotação de tronco",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "2 de 4 em «Compreende e executa torções guiadas» · 2 de 4 em «Rigidez total» — ponto de atenção"
       }
     ],
     "Técnica": [
@@ -174,7 +174,7 @@
       }
     ]
   },
-  "proveniencia": "**[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261120-2013?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho? **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261120-2012?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento. **Anamnese de cada aluna** A anamnese de cada uma das 2 alunas do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.",
+  "proveniencia": "**[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261120-2052?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho? **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261120-2052?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento. **Anamnese de cada aluna** A anamnese de cada uma das 2 alunas do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.",
   "auditoria": [
     {
       "verificacao": "Objetivo específico declarado",
