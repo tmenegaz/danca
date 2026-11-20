@@ -22,7 +22,7 @@ exercícios deste ciclo podem ser lidos de volta sem depender da memória de que
 | Item | Valor |
 |:--|:--|
 | Código | `ballet-classico` — Código de dança (ballet clássico) |
-| Versão | 63 |
+| Versão | 64 |
 | Categorias | 5 |
 | Sinais | 32 |
 | Verbetes (exercícios) | 5 |

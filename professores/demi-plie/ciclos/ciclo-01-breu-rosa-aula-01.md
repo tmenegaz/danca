@@ -59,16 +59,16 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 | Critério | O que se observa |
 |:--|:--|
-| 1ª posição — pés | sem registo na anamnese |
-| 1ª posição — braços | sem registo na anamnese |
-| o passé | sem registo na anamnese |
-| Formato anatômico dos joelhos | sem registo na anamnese |
-| Mobilidade de quadril (en dehors de origem) | sem registo na anamnese |
-| Mobilidade de flexão/extensão do tornozelo | sem registo na anamnese |
-| Musicalidade e pulsação rítmica | sem registo na anamnese |
-| Força excêntrica / recuo na flexão de tronco | sem registo na anamnese |
-| Estabilidade vestibular e deslocamento | sem registo na anamnese |
-| Espiral / rotação de tronco | sem registo na anamnese |
+| 1ª posição — pés | 2 de 4 em «Bom» (com toque) · 2 de 4 em «precisa desenvolver» (por consciência própria) — ponto de atenção |
+| 1ª posição — braços | 2 de 4 em «razoável» (por consciência própria) · 2 de 4 em «precisa desenvolver» (com toque) — ponto de atenção |
+| o passé | 2 de 4 em «Bom» (com toque) · 2 de 4 em «precisa desenvolver» (por consciência própria) — ponto de atenção |
+| Formato anatômico dos joelhos | 2 de 4 em «Varo ("arqueado")» · 2 de 4 em «Recurvato (hiperflexão)» — ponto de atenção |
+| Mobilidade de quadril (en dehors de origem) | 2 de 4 em «Origem clara no quadril» · 2 de 4 em «Origem restrita (rotação forçada a partir dos joelhos/tornozelos)» — ponto de atenção |
+| Mobilidade de flexão/extensão do tornozelo | 2 de 4 em «Moderada» · 2 de 4 em «Duro (restrição frontal)» — ponto de atenção |
+| Musicalidade e pulsação rítmica | 2 de 4 em «Domina» · 2 de 4 em «Domínio parcial» — ponto de atenção |
+| Força excêntrica / recuo na flexão de tronco | 2 de 4 em «Retorna enrolando (roll-up)» · 2 de 4 em «Parcial» — ponto de atenção |
+| Estabilidade vestibular e deslocamento | 2 de 4 em «Caminha virando a cabeça sem desviar» · 2 de 4 em «Perde o prumo» — ponto de atenção |
+| Espiral / rotação de tronco | 2 de 4 em «Compreende e executa torções guiadas» · 2 de 4 em «Rigidez total» — ponto de atenção |
 
 > **Sem restrições físicas declaradas** no Plano de Observação.
 
@@ -108,8 +108,8 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 ## 6. Proveniência consolidada
 
-- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261120-2013?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
-- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261120-2012?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.
+- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261120-2052?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
+- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261120-2052?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.
 
 **Anamnese de cada aluna**
 
