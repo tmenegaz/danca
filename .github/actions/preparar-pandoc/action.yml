@@ -1,0 +1,85 @@
+name: Preparar pandoc
+description: >-
+  Instala o pandoc — o compilador de Markdown para HTML de todo o pacote — reusando os `.deb`
+  de um cache.
+
+# POR QUE O PANDOC, E SÓ ELE (20/11/2026).
+#
+# TODO o HTML do sistema sai daqui. O `tools/gerar-ciclo.sh` chama-o uma vez por documento do
+# pacote (uma dezena delas), com o template `tools/templates/ciclo.html`; o
+# `tools/criar-escola.sh` chama-o para a apresentação da escola; e o `tools/gerar-raiz.sh` para
+# a página da raiz. Sem o pandoc não há site — é ele que transforma o Markdown que a
+# pesquisadora escreve em página que se lê e que se imprime.
+#
+# O QUE SAIU DAQUI, e porquê. Até 20/11/2026 esta ação também instalava **TeX** (o conjunto
+# mínimo medido, 191 MB) e o **pdfinfo** do poppler — para compilar dois PDFs por ciclo. Os
+# PDFs deixaram de existir (a entrega impressa é a própria página, pelo `Ctrl+P` do navegador),
+# e com eles o TeX, o poppler e a conferência por `kpsewhich`. A decisão, os três runs medidos
+# e a ressalva da fronteira dos 60 s estão no `REGISTRO.md` de 20/11/2026.
+#
+# A HISTÓRIA QUE VALE GUARDAR. Em 22/10/2026 este passo levava **116 s de um job de 127 s**
+# (91 % do tempo), quase todo em `texlive-fonts-extra` — 1,7 GB instalados, com ZERO arquivos
+# abertos por ele. O conjunto foi reduzido por medição (`dpkg -S` de cada arquivo que o
+# `pdflatex` abria), de 1,9 GB para 191 MB. A lição não foi «encolher a lista»: foi que o
+# trabalho pelo qual se paga eram 5 segundos, e o resto era preparar a máquina. Hoje a máquina
+# prepara-se para instalar um programa só.
+#
+# O CACHE. `actions/cache` guarda só os `.deb` (é o que ele consegue restaurar sem sudo). Isso
+# corta o `apt-get update` e o download; a descompactação continua a acontecer, porque o banco
+# do dpkg não se cacheia de forma confiável. Medido: com o cache a servir, este passo são
+# **10 s**; quando o índice do runner avança e o cache não serve, **25–31 s**.
+#
+# A chave do cache é o hash DESTE arquivo: mexer na lista invalida o cache sozinho, sem
+# ninguém precisar lembrar de subir um número de versão.
+
+runs:
+  using: composite
+  steps:
+    - name: Restaurar os .deb do cache
+      id: debs
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/danca-debs
+        key: debs-${{ runner.os }}-${{ hashFiles('.github/actions/preparar-pandoc/action.yml') }}
+
+    - name: Instalar o pandoc
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        pacotes="pandoc"
+
+        # A TENTATIVA DIRETA PRIMEIRO, QUANDO HÁ CACHE. Com os `.deb` restaurados em
+        # /var/cache/apt/archives, o `apt-get install` os usa e não vai à rede. Se o índice do
+        # runner já não casar com as versões guardadas (o espelho do Ubuntu avançou), a
+        # instalação falha — e aí o caminho normal assume. Não se apaga o índice antes de
+        # tentar: é justamente ele (o que vem na imagem) que evita o `apt-get update`.
+        if [ "${{ steps.debs.outputs.cache-hit }}" = "true" ]; then
+          sudo cp ~/.cache/danca-debs/*.deb /var/cache/apt/archives/ 2>/dev/null || true
+          if sudo apt-get install -y -q --no-install-recommends $pacotes; then
+            echo "instalado do cache"
+            exit 0
+          fi
+          echo "o cache não serviu para este índice — seguindo pelo caminho normal" >&2
+        fi
+
+        sudo apt-get update -q
+        sudo apt-get install -y -q --no-install-recommends $pacotes
+
+        # Guardar só o que esta instalação realmente baixou.
+        mkdir -p ~/.cache/danca-debs
+        sudo cp /var/cache/apt/archives/*.deb ~/.cache/danca-debs/ 2>/dev/null || true
+        echo "cache semeado: $(ls -1 ~/.cache/danca-debs | wc -l) pacote(s)"
+
+    # A CONFERÊNCIA SEPARA «INSTALOU» DE «ESTÁ LÁ». Um `apt-get install` que devolvesse 0 sem o
+    # binário ficaria invisível até a geração falhar — e a geração falha tarde, depois de já ter
+    # escrito metade do pacote. Perguntar ao PATH custa 20 ms.
+    - name: Conferir
+      shell: bash
+      run: |
+        set -euo pipefail
+        if ! command -v pandoc > /dev/null 2>&1; then
+          echo "erro: 'pandoc' não está no PATH — sem ele não há HTML nenhum" >&2
+          exit 1
+        fi
+        echo "ok: pandoc $(pandoc --version | head -1 | awk '{print $2}')"

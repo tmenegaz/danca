@@ -498,7 +498,28 @@ imagem para manter, nem `pull` a somar tempo de job.
 
 O `tools/templates/ciclo-cabecalho.tex` e o modo `--latex` do `lib-tokens.js` ficaram **sem
 consumidor**. Não se apagaram: `tools/templates/` está em `CONGELAMENTO.md`, e mexer num congelado
-pede motivo declarado e commit próprio — o que se fez aqui foi tirar-lhe o uso, não o ficheiro.
+pede motivo declarado e commit próprio. E, sobretudo: **não custam nada** — não são executados em
+geração nenhuma. São 113 linhas de preâmbulo LaTeX que ficam como o caminho de volta, caso o PDF
+regresse; apagá-las economizaria **zero segundos**.
+
+### f) O que saiu a seguir, e o que **não** vale a pena tirar (20/11/2026, mesma data)
+
+A ação de preparo chamava-se `preparar-tex` e passou a chamar-se **`preparar-pandoc`** — porque é o
+que ela faz. Com ela saíram o TeX (já não estava a ser instalado), o **poppler** (`pdfinfo` e
+`pdftotext`, que só liam PDFs) e a conferência por `kpsewhich` dos 20 `.sty`. Uma ação que diz
+«TeX» e instala só pandoc é a mesma família de defeito que este documento persegue: a tela a
+afirmar um facto que não leu.
+
+**E o pandoc não sai.** Ele é o compilador: o `gerar-ciclo.sh` chama-o uma vez por documento com o
+template `ciclo.html`, o `criar-escola.sh` para a apresentação da escola, e o `gerar-raiz.sh` para a
+página da raiz. Sem ele não há HTML nenhum. Trocá-lo por um renderizador próprio (o
+`motor/nucleo/ficha-html.js` já tem um, mínimo, para as fichas) seria reescrever a geração — índice,
+template, `{#id}`, tabelas, `raw_tex` — com o `check-pacote` a medir 240 links internos por pacote.
+
+**E, mesmo que se reescrevesse, não pouparia dinheiro.** A factura arredonda ao minuto: 49 s e 25 s
+custam o mesmo. O ganho de tirar o pandoc seria **margem** (folga contra a fronteira dos 60 s), não
+minutos. Onde há minutos a ganhar é no **número de execuções por gesto** — a §7.1 —, não na duração
+de cada uma.
 
 ---
 

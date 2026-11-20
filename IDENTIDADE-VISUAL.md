@@ -62,8 +62,9 @@ gerada** de `tools/templates/ciclo.css`. Mudar a identidade é editar a **fonte*
 > circuito pega.
 
 **`tools/lib-tokens.js`** é a ponte: lê o `:root` da fonte e entrega os tokens a
-quem não é CSS. O modo `--latex` é o que leva a paleta ao PDF; os geradores JS o
-usam para não escrever hex.
+quem não é CSS. Os geradores JS o usam para não escrever hex. O modo `--latex` — que
+levava a paleta ao PDF — ficou **sem consumidor** quando o PDF saiu do fluxo
+(20/11/2026); está lá como caminho de volta, e não como parte do gerador.
 
 ### A mesma folha carrega os componentes *(16/10/2026)*
 

@@ -131,11 +131,8 @@ jobs:
 
       - uses: ./.github/actions/preparar-node
 
-      # Só pandoc: o scaffold monta o pacote-zero e não compila LaTeX. O `pdfinfo` vem junto
-      # porque a ação confere o que instalou, e ele custa poucos KB.
-      - uses: ./.github/actions/preparar-tex
-        with:
-          com-tex: 'false'
+      # Só o pandoc: o scaffold monta o pacote-zero, que é HTML. Não compila nada.
+      - uses: ./.github/actions/preparar-pandoc
 
       - name: Montar o scaffold (professor + ciclo + pacote-zero + wrangler)
         id: scaffold

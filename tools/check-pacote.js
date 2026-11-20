@@ -101,8 +101,8 @@ if (docsDoCiclo) {
  * Ele obrigava a que houvesse um PDF — e era isso que prendia o TeX ao fluxo padrão: sem
  * `pdflatex` instalado o pacote nascia incompleto e este validador reprovava-o, em toda geração,
  * mesmo quando ninguém ia abrir o ficheiro. Hoje a entrega impressa é a própria página (a folha de
- * estilo tem `@media print`), e o PDF é opcional: `pdfinfo`/`pdftotext` continuam a servi-lo se
- * ele estiver lá — ver a verificação 5. */
+ * estilo tem `@media print`), e o PDF deixou de ser gerado — ver a verificação 5, que continua a
+ * valer para um pacote anterior que ainda o traga. */
 obrigatorios.push('assets/style.css');
 
 if (!fs.existsSync(pacote)) {
@@ -482,6 +482,10 @@ if (fs.existsSync(pdf)) {
     if (faltando.length === 0) ok.push('PDF: todos os documentos das páginas HTML estão no PDF');
     else erros.push(`PDF: documentos ausentes no texto do PDF → ${faltando.join(', ')}`);
   } catch (e) {
+    /* SEM POPPLER NA MÁQUINA, AS CHECAGENS DE PÁGINA NÃO CORREM — e dizem-no. O poppler saiu do
+     * fluxo de CI a 20/11/2026 (não há PDF para ele ler), mas a máquina da pesquisadora tem-no, e
+     * é lá que um pacote antigo ainda se confere por inteiro. O aviso é o que impede o silêncio
+     * de se ler como aprovação. */
     avisos.push('PDF: pdfinfo/pdftotext indisponíveis — checagens de paginação/rodapé puladas'
       + ` (${String(e.message).split('\n')[0].slice(0, 90)})`);
   }

@@ -94,7 +94,7 @@ opcional).
 
 ## O gatilho da geração (F3)
 
-A geração (pandoc/pdflatex → HTML + PDF + menu) **não roda no Worker** (workerd é
+A geração (pandoc → HTML + menu) **não roda no Worker** (workerd é
 JavaScript/Wasm). Por isso o Worker não gera — ele **dispara**: quando o PO fica completo E
 gravado (`POST /api/elicitar`, `fonte=po`, `gravado=true`), a rota chama `disparar(contexto)`,
 que pede ao GitHub Actions que rode `.github/workflows/gerar-ciclo.yml` (`workflow_dispatch`

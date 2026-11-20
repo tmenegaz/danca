@@ -55759,3 +55759,58 @@ O `tools/templates/ciclo-cabecalho.tex` e o modo `--latex` do
 `CONGELAMENTO.md`, e tirar um ficheiro de lá pede motivo declarado e **commit próprio** — o que se
 fez foi tirar-lhe o uso. E o PDF por demanda não foi desenhado como botão: a decisão foi que ele não
 existe, e a impressão é a do navegador.
+
+## 20/11/2026 — O preparo de máquina passa a instalar um programa só
+
+**A pergunta dela.** «Esse pandoc, ele é usado para quê? A gente ainda usa ele? […] o tex é algo
+completamente desnecessário, a gente não usa ele para nada. É isso mesmo? […] Imagem com pandoc, a
+gente não tem imagem, não temos nada com imagem, por que que a gente tem o pandoc então?»
+
+**As três respostas, e a primeira é uma correção de leitura minha.** «Imagem de container» era
+Docker — uma máquina pronta, guardada —, não figura nenhuma; o pandoc nunca teve nada a ver com
+imagens. E o que ele faz é o passo mais central do sistema: **é o compilador de Markdown para
+HTML**. O `gerar-ciclo.sh` chama-o **uma vez por documento** do pacote, com o template
+`ciclo.html`; o `criar-escola.sh` para a apresentação da escola; o `gerar-raiz.sh` para a página da
+raiz. Sem ele não há site.
+
+**O TeX, sim, é completamente desnecessário — e já não estava a ser instalado.** Ele saiu com o PDF
+no commit anterior, mas três coisas tinham ficado para trás a dizer o contrário: a ação chamava-se
+`preparar-tex`, o `com-tex` continuava a existir (com o caminho do `kpsewhich` e dos 20 `.sty`
+dentro), e o poppler continuava a instalar-se para ler PDFs que já não existem.
+
+**O que mudou agora.**
+- `.github/actions/preparar-tex/` → **`.github/actions/preparar-pandoc/`**. Uma ação que se chama
+  «TeX» e instala só pandoc é a mesma família de defeito que este repositório persegue: a tela a
+  afirmar um facto que não leu.
+- A entrada `com-tex` **saiu**, e com ela o ramo que instalava `texlive-base`, `texlive-latex-base`,
+  `texlive-latex-recommended`, `texlive-latex-extra` e `lmodern`, e a conferência por `kpsewhich`
+  dos 20 arquivos. Nenhum caller a passava a `true` — a última chamada com `true` foi a de antes de
+  o PDF sair.
+- O **poppler** (`pdfinfo`, `pdftotext`) saiu: só servia as verificações de PDF do `check-pacote`.
+  Ele continua a correr na máquina da pesquisadora, e é lá que um pacote antigo se confere por
+  inteiro; sem ele, a verificação **diz que não correu** (aviso), em vez de passar em silêncio.
+- O nome do passo no fixture de `provar-geracao.js` acompanhou (`Instalar o pandoc`).
+
+**E o que NÃO se fez, com o número à frente.** Não se tentou tirar o pandoc. Trocá-lo por um
+renderizador próprio (o `motor/nucleo/ficha-html.js` já tem um, mínimo, para as fichas) seria
+reescrever a geração — índice, template, `{#id}`, tabelas, `raw_tex` — com o `check-pacote` a medir
+240 links internos por pacote. E **não pouparia dinheiro**: a factura arredonda ao minuto, e 49 s e
+25 s custam o mesmo. O ganho seria **margem** contra a fronteira dos 60 s, não minutos. Também não
+se apagou o `tools/templates/ciclo-cabecalho.tex` nem o modo `--latex`: são **113 linhas que não
+correm em geração nenhuma**, custam zero, e ficam como o caminho de volta. `tools/templates/` está
+em `CONGELAMENTO.md`, e apagar um congelado para poupar nada seria trocar risco por nada.
+
+**Com o quê.** `.github/actions/preparar-pandoc/action.yml` (novo) · `.github/actions/preparar-tex/`
+(removido) · `.github/workflows/gerar-ciclo.yml` · `.github/workflows/criar-escola.yml` ·
+`tools/check-pacote.js` (o aviso de poppler ausente) · `experimentos/provar-geracao.js` ·
+`motor/servidor/README.md` · `.github/agents/ciclo-entrega.agent.md` · `IDENTIDADE-VISUAL.md` ·
+`CUSTO-DOS-FLUXOS.md` (§7.8 e a §7.9, «o que não vale a pena tirar»).
+
+**Verificado.** `provar-geracao` **38 de 40** — as duas falhas são as mesmas da linha de base,
+medidas com `git stash` antes de tocar em nada; `check-pacote` do pacote real **0 erros, 1 aviso**;
+`check-github-headers` **5/5**; `check-sem-destruicao` ok; `check-identidade` sem erros; os dois
+workflows e a ação passam pelo `yaml.safe_load`.
+
+**O que fica por medir.** O passo de preparo com o poppler e o TeX fora: com o cache dos `.deb` a
+servir espera-se menos do que os 10 s de antes; mede-se na primeira geração que correr com esta
+ação. E a §7.1 continua a ser a única alavanca que muda minutos: **8 a 10 execuções por gesto**.

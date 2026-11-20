@@ -259,7 +259,7 @@ async function oEstado() {
       passos: [{ name: 'Gerar e validar o pacote', status: 'completed', conclusion: 'success' }] }, {}],
     ['falhou', { execucoes: [execucao({ status: 'completed', conclusion: 'failure' })],
       passos: [
-        { name: 'Instalar pandoc, TeX e pdfinfo', status: 'completed', conclusion: 'success' },
+        { name: 'Instalar o pandoc', status: 'completed', conclusion: 'success' },
         { name: 'Gerar e validar o pacote', status: 'completed', conclusion: 'failure' },
       ] }, (r) => assert.equal(r.etapaQueFalhou, 'Gerar e validar o pacote')],
   ];

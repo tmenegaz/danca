@@ -16,7 +16,7 @@ run-name: Gerar o ciclo · ${{ inputs.professor }}/${{ inputs.ciclo }}/${{ input
 # PO concluído declarou no contexto do ato.
 #
 # O que ele faz: gera o pacote (HTML + menu, por `tools/gerar-ciclo.sh` — sem PDF
-# desde 20/11/2026, e é isso que dispensa o TeX aqui: ver o passo `preparar-tex`),
+# desde 20/11/2026: ver o passo `preparar-pandoc`)
 # reancora a cadeia (`tools/hash-ciclo.sh`, porque o PO elicitado vira fonte),
 # commita o que mudou e PUBLICA o pacote no Cloudflare (`wrangler deploy`).
 #
@@ -86,33 +86,19 @@ jobs:
 
       - uses: ./.github/actions/preparar-node
 
-      # O TeX SAIA INTEIRO A CADA EXECUÇÃO, E CUSTAVA 91% DO JOB. Medido no run 39660657812:
-      # 116 s de 127 s só neste passo. A ação instala o conjunto mínimo medido (191 MB, contra
-      # 1,9 GB) e reusa os `.deb` de um cache.
+      # O ÚNICO PREPARO DE MÁQUINA QUE FICOU (20/11/2026). O pandoc é de onde sai TODO o HTML do
+      # pacote — uma chamada por documento, com o template `tools/templates/ciclo.html` — e não há
+      # como tirá-lo sem escrever outro compilador de Markdown.
       #
-      # E SAIU DE VEZ (20/11/2026). O PDF DO CICLO DEIXOU DE EXISTIR COMO FICHEIRO: quem imprime
-      # é o navegador, a partir da própria página — que sempre teve `@media print`, e cujo
-      # conteúdo é o mesmo (a folha nasce do markdown que o pandoc já converte para HTML aqui).
+      # O TeX esteve aqui e saiu com o PDF. Medido antes e depois, três execuções de cada:
       #
-      # O QUE ISSO POUPA, medido — e não é o PDF, são SEGUNDOS de PDF dentro de um passo de 5 a 6 s
-      # que também escreve as nove páginas HTML:
+      #   com TeX     este passo 61 · 67 · 68 s  →  job 97 · 107 · 107 s
+      #   só pandoc   este passo 10 · 31 · 25 s  →  job 34 ·  60 ·  49 s
       #
-      #   COM TeX (20/11/2026, antes):  run 44770733345 · 44769892060 · 44767545583
-      #                                 este passo 61 · 67 · 68 s   ·   job 97 · 107 · 107 s
-      #   SEM TeX (20/11/2026, depois): run 44776801265 · 44777144712 · 44777538667
-      #                                 este passo 10 · 31 · 25 s   ·   job 34 · 60 · 49 s
-      #
-      # O job caiu de 97–107 s para 34–60 s, e o passo «Gerar e validar o pacote» de 5–6 s para
-      # 2–3 s. O QUE ISSO NÃO GARANTE, e fica dito: 60 s é exactamente a fronteira do Actions, e
-      # uma das três execuções encostou nela. A variação vem do caminho do `apt` (cache dos `.deb`
-      # a servir ou não), não do gerador — com o cache a servir, o passo é de 10 s.
-      #
-      # O `preparar-tex` continua aqui — o pandoc é de onde sai TODO o HTML do pacote — e o
-      # `pdfinfo` continua a servir o `check-pacote.js` de um pacote antigo que ainda traga o seu
-      # PDF.
-      - uses: ./.github/actions/preparar-tex
-        with:
-          com-tex: 'false'
+      # A ressalva que fica: 60 s é exactamente a fronteira onde o Actions cobra 2 minutos, e uma
+      # das três encostou nela. A variação de 10 a 31 s é do `apt` (o cache dos `.deb` a servir ou
+      # não), não do gerador. Ver a §7.8 do `CUSTO-DOS-FLUXOS.md`.
+      - uses: ./.github/actions/preparar-pandoc
 
       # Sem o passo das senhas locais: a senha de criptografia vive no Worker (SENHA_CRIPTO), e a
       # cópia cifrada do `-dados.json` nasce no «Guardar» do PO (caminho (a)). O gerador só COPIA

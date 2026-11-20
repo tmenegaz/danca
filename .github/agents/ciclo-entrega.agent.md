@@ -16,7 +16,7 @@ Você **produz saídas a partir de fontes existentes**. Não é você quem decid
 - **DO NOT** editar fontes (`ciclo-XX*.md`, `ciclo-XX*.conf`) nem qualquer arquivo em `tools/`. As fontes são do professor; `tools/` e `prompts/` estão **congelados** (`CONGELAMENTO.md`).
 - **DO NOT** inventar objetivo, marco, volume, data, fonte ou observação. Lacuna é lacuna: reporte `[Preencher: …]` e `[conferir]`, não preencha.
 - **DO NOT** commitar, criar branch, fazer merge, push, reset ou deploy sem solicitação explícita do usuário.
-- **DO NOT** trocar o engine de PDF (`pdflatex` funciona nesta máquina; `xelatex` não está instalado; `lualatex` está quebrado) nem usar `-V mainfont=` (`fontspec` está fora de propósito).
+- **DO NOT** reintroduzir PDF no fluxo. Ele saiu a 20/11/2026 (o `REGISTRO.md` tem a decisão e os três runs medidos): a entrega impressa é a própria página, pelo `Ctrl+P`. O cabeçalho LaTeX (`tools/templates/ciclo-cabecalho.tex`) e o modo `--latex` do `lib-tokens.js` ficaram no repositório como caminho de volta, e não como parte do gerador.
 - **DO NOT** ler, exibir, copiar ou versionar `tools/.senhas-locais` e credenciais de deploy.
 - **DO NOT** tratar `experimentos/` como fonte: é demonstrativo e não entra em pacote, hash ou publicação.
 - Nunca copie o conteúdo de uma escola para outra. A variante com sufixo da escola prevalece sobre o arquivo sem sufixo (`tools/lib-fontes.sh`).
