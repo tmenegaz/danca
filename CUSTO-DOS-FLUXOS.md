@@ -297,9 +297,9 @@ de container com o conjunto já instalado), o job cai a ~40 s e factura **1 min*
 
 > **Resolvida a 20/11/2026, e por um caminho mais barato do que este.** Não foi preciso imagem
 > nenhuma: o **PDF saiu do fluxo**, e com ele o TeX. O `preparar-tex` continua a instalar pandoc
-> (é dele que sai todo o HTML) mas já não instala TeX. Medido: o passo caiu de **61–68 s** para
-> **10–11 s** — o mesmo valor do `criar-escola`, que já corria com `com-tex: false` —, e o job de
-> **97–107 s** para ~45–50 s, facturando **1 minuto**. Ver a §7.8.
+> (é dele que sai todo o HTML) mas já não instala TeX. Medido em três execuções: o passo caiu de
+> **61–68 s** para **10–31 s**, e o job de **97–107 s** para **34–60 s**. Ver a §7.8 — e, lá, a
+> ressalva: uma das três encostou nos 60 s, que é a fronteira da factura.
 
 ### 7.3 A conclusão do elenco escreve dois commits — **−1 min por conclusão**
 
@@ -451,17 +451,32 @@ dia, `action.yml:36`) — e serve de controlo, porque é o mesmo runner, a mesma
 | `gerar-ciclo` (com TeX) | **61–68 s** | 97–107 s |
 | `criar-escola` (sem TeX) | **10–11 s** | **30 s** |
 
-### c) O que se ganha
+### c) O que se ganha — medido de ponta a ponta, no ar
 
-O job de geração passa de **97–107 s** para **~45–50 s** — abaixo dos 60 s, que é a fronteira onde o
-Actions deixa de cobrar 2 minutos e passa a cobrar **1**.
+Três execuções de verdade com o fluxo novo, na mesma infra e no mesmo dia:
+
+| | `preparar-tex` | «Gerar e validar» | **job** |
+|:--|--:|--:|--:|
+| **antes** — 44770733345 | 61 s | 5 s | **97 s** |
+| **antes** — 44769892060 | 67 s | 6 s | **107 s** |
+| **antes** — 44767545583 | 68 s | 5 s | **107 s** |
+| **depois** — 44776801265 | 10 s | 3 s | **34 s** |
+| **depois** — 44777144712 | 31 s | 2 s | **60 s** |
+| **depois** — 44777538667 | 25 s | 2 s | **49 s** |
 
 | | antes | depois |
 |:--|--:|--:|
-| duração do job | 97–107 s | ~45–50 s |
+| duração do job | 97–107 s | **34–60 s** |
 | **minutos facturados por geração** | **2** | **1** |
 | execuções de `gerar-ciclo` em 20/11/2026 | 22 (17 com sucesso) | — |
 | minutos de geração nesse dia | ~44 | **~22** |
+
+**E o número que não é confortável, e fica escrito.** Os 60 s de 44777144712 são **exactamente** a
+fronteira do Actions: acima dela, a execução factura 2 minutos outra vez. A variação de 10 a 31 s no
+`preparar-tex` é do caminho do `apt` — quando o cache dos `.deb` serve, são 10 s e o job fecha nos
+34; quando não, o `apt-get update` volta e o job sobe. **O que isto quer dizer: a poupança é real
+(~50 % na duração) mas a passagem a 1 minuto depende de o cache servir.** Se se quiser a folga, o
+passo seguinte é tirar o `apt` do caminho (imagem de container — o §7.2), e essa conta muda.
 
 **Isto é a alavanca do §7.2, e é a versão mais barata dela.** O §7.2 propunha uma imagem de
 container com o TeX já instalado; não é preciso nada disso — basta não precisar de TeX. Não há

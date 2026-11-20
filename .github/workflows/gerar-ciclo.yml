@@ -94,16 +94,22 @@ jobs:
       # é o navegador, a partir da própria página — que sempre teve `@media print`, e cujo
       # conteúdo é o mesmo (a folha nasce do markdown que o pandoc já converte para HTML aqui).
       #
-      # O QUE ISSO POUPA, medido nos runs de 20/11/2026 — e não é o PDF, são SEGUNDOS de PDF
-      # dentro de um passo de 5 a 6 s:
+      # O QUE ISSO POUPA, medido — e não é o PDF, são SEGUNDOS de PDF dentro de um passo de 5 a 6 s
+      # que também escreve as nove páginas HTML:
       #
-      #   run 44770733345 · 44769892060 · 44767545583 → este passo levava 61, 67 e 68 s
-      #   criar-escola (com-tex: false)               → 10 e 11 s, com o job inteiro em 30 s
+      #   COM TeX (20/11/2026, antes):  run 44770733345 · 44769892060 · 44767545583
+      #                                 este passo 61 · 67 · 68 s   ·   job 97 · 107 · 107 s
+      #   SEM TeX (20/11/2026, depois): run 44776801265 · 44777144712 · 44777538667
+      #                                 este passo 10 · 31 · 25 s   ·   job 34 · 60 · 49 s
       #
-      # O job ia a 97–107 s e cai para ~49 s: abaixo dos 60, que é a fronteira onde o Actions
-      # deixa de cobrar 2 minutos e passa a cobrar 1. O `preparar-tex` continua aqui — o pandoc
-      # é de onde sai TODO o HTML do pacote — e o `pdfinfo` continua a servir o `check-pacote.js`
-      # de um pacote antigo que ainda traga o seu PDF.
+      # O job caiu de 97–107 s para 34–60 s, e o passo «Gerar e validar o pacote» de 5–6 s para
+      # 2–3 s. O QUE ISSO NÃO GARANTE, e fica dito: 60 s é exactamente a fronteira do Actions, e
+      # uma das três execuções encostou nela. A variação vem do caminho do `apt` (cache dos `.deb`
+      # a servir ou não), não do gerador — com o cache a servir, o passo é de 10 s.
+      #
+      # O `preparar-tex` continua aqui — o pandoc é de onde sai TODO o HTML do pacote — e o
+      # `pdfinfo` continua a servir o `check-pacote.js` de um pacote antigo que ainda traga o seu
+      # PDF.
       - uses: ./.github/actions/preparar-tex
         with:
           com-tex: 'false'

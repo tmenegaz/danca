@@ -55705,10 +55705,22 @@ custava era **instalar o TeX para os compilar**, em toda geração, mesmo quando
 | 44767545583 | 68 s | 107 s |
 | `criar-escola` (o mesmo passo com `com-tex: false`) | **10–11 s** | 30 s |
 
-**A decisão, tomada com o número à frente: o PDF deixa de existir como ficheiro.** O job cai a
-**~45–50 s** — abaixo dos 60, que é a fronteira do Actions — e passa a facturar **1 minuto em vez de
-2**. No dia: 22 execuções de `gerar-ciclo`, ~44 min → **~22 min**. Isto é a alavanca do §7.2 do
-`CUSTO-DOS-FLUXOS.md`, e a versão mais barata dela: sem imagem de container, sem `pull` a somar.
+**A decisão, tomada com o número à frente: o PDF deixa de existir como ficheiro.** Isto é a alavanca
+do §7.2 do `CUSTO-DOS-FLUXOS.md`, e a versão mais barata dela: sem imagem de container, sem `pull` a
+somar.
+
+**E depois de feito, medido no ar — três execuções, não uma estimativa:**
+
+| | `preparar-tex` | «Gerar e validar» | **job** |
+|:--|--:|--:|--:|
+| antes — 44770733345 · 44769892060 · 44767545583 | 61 · 67 · 68 s | 5 · 6 · 5 s | **97 · 107 · 107 s** |
+| depois — 44776801265 · 44777144712 · 44777538667 | 10 · 31 · 25 s | 3 · 2 · 2 s | **34 · 60 · 49 s** |
+
+No dia: 22 execuções de `gerar-ciclo`, ~44 min → **~22 min**. **Com uma ressalva que fica escrita:**
+os 60 s de 44777144712 são *exactamente* a fronteira do Actions, e acima dela a execução volta a
+custar 2 minutos. A variação de 10 a 31 s no `preparar-tex` é do `apt` — quando o cache dos `.deb`
+serve são 10 s; quando não, o `apt-get update` volta. A poupança de **duração** é real e é de ~50 %;
+a passagem a 1 minuto depende do cache.
 
 **O que mudou, e onde.**
 - `gerar-ciclo.yml` chama `preparar-tex` com **`com-tex: 'false'`** — o pandoc fica (é dele que sai
@@ -55737,7 +55749,12 @@ de hoje: **24 de 24**. `check-pacote` do pacote real: **0 erros, 1 aviso** (o do
 · `tools/templates/ciclo.css` · `raiz/assets/style.css` · os dois pacotes de `demi-plie` regerados ·
 `experimentos/provar-geracao-do-ciclo.js` · `README-ciclos.md` · `CUSTO-DOS-FLUXOS.md` (§7.2 e §7.8).
 
-**O que ainda não está feito.** O `tools/templates/ciclo-cabecalho.tex` e o modo `--latex` do
+**O que ainda não está feito.** O `apt` continua no caminho do job: com o cache dos `.deb` a
+servir, o `preparar-tex` são 10 s e o job fecha nos 34; quando o cache falha, são 25–31 s e o job
+sobe aos 49–60. Tirar o `apt` do caminho (imagem com pandoc, o §7.2) é o que daria folga à fronteira
+dos 60 s — e é a próxima conta a fazer, não esta.
+
+O `tools/templates/ciclo-cabecalho.tex` e o modo `--latex` do
 `lib-tokens.js` ficaram **sem consumidor**. Não se apagaram: `tools/templates/` está em
 `CONGELAMENTO.md`, e tirar um ficheiro de lá pede motivo declarado e **commit próprio** — o que se
 fez foi tirar-lhe o uso. E o PDF por demanda não foi desenhado como botão: a decisão foi que ele não
