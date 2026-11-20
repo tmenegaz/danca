@@ -269,10 +269,10 @@
   "contagens": {
     "arestas": 43,
     "marcas": 0,
-    "nos": 42,
+    "nos": 45,
     "porTipo": {
       "ancora": 2,
-      "aspecto": 9,
+      "aspecto": 12,
       "aula": 15,
       "captura": 1,
       "ciclo": 1,
@@ -313,6 +313,18 @@
     },
     {
       "eixo": "Corpo",
+      "id": "aspecto:espiral_rotacao_de_tronco",
+      "rotulo": "Espiral / rotação de tronco",
+      "tipo": "aspecto"
+    },
+    {
+      "eixo": "Corpo",
+      "id": "aspecto:estabilidade_vestibular_e_deslocamento",
+      "rotulo": "Estabilidade vestibular e deslocamento",
+      "tipo": "aspecto"
+    },
+    {
+      "eixo": "Corpo",
       "id": "aspecto:forca_excentrica_recuo_na_flexao_de_tronco",
       "rotulo": "Força excêntrica / recuo na flexão de tronco",
       "tipo": "aspecto"
@@ -333,6 +345,12 @@
       "eixo": "Corpo",
       "id": "aspecto:musicalidade_e_pulsacao_ritmica",
       "rotulo": "Musicalidade e pulsação rítmica",
+      "tipo": "aspecto"
+    },
+    {
+      "eixo": "Corpo",
+      "id": "aspecto:o_passe",
+      "rotulo": "o passé",
       "tipo": "aspecto"
     },
     {

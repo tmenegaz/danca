@@ -1,5 +1,5 @@
 {
-  "planoDeEnsino": "plano-20261120-1326",
+  "planoDeEnsino": "plano-20261120-1411",
   "horizonte": "Ao fim do ano, a turma do Nível 1 deve sustentar o en dehors a partir do quadril e responder ao pulso sem contar a música em voz alta.",
   "question": "O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?",
   "phenomenon": [
@@ -21,6 +21,11 @@
     },
     {
       "eixo": "Corpo",
+      "dimensao": "Os elementos basilares",
+      "itens": "o passé"
+    },
+    {
+      "eixo": "Corpo",
       "dimensao": "Estrutura Óssea e Alinhamento Global (Membros Inferiores)",
       "itens": "Mobilidade de quadril (en dehors de origem)"
     },
@@ -38,6 +43,11 @@
       "eixo": "Corpo",
       "dimensao": "Força Ativa, Potência e Controle Dinâmico",
       "itens": "Força excêntrica / recuo na flexão de tronco"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
+      "itens": "Estabilidade vestibular e deslocamento; Espiral / rotação de tronco"
     },
     {
       "eixo": "Corpo",
@@ -67,13 +77,18 @@
   ],
   "metodologiaENotacao": "Metodologia de referência: RAD · Notação de dança: Código de dança",
   "subjects": [
-    "Aluna A"
+    "Aluna A",
+    "Aluna B"
   ],
   "norma": "[Preencher: padrão — descreva o padrão de referência contra o qual a execução deste ciclo será confrontada]",
   "linhaDeBase": [
     {
       "grupo": "as cinco posições: uma visão geral",
       "aspectosObservados": "1ª posição — pés; 1ª posição — braços"
+    },
+    {
+      "grupo": "Os elementos basilares",
+      "aspectosObservados": "o passé"
     },
     {
       "grupo": "Estrutura Óssea e Alinhamento Global (Membros Inferiores)",
@@ -90,6 +105,10 @@
     {
       "grupo": "Força Ativa, Potência e Controle Dinâmico",
       "aspectosObservados": "Força excêntrica / recuo na flexão de tronco"
+    },
+    {
+      "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
+      "aspectosObservados": "Estabilidade vestibular e deslocamento; Espiral / rotação de tronco"
     }
   ],
   "restricoes": [
@@ -97,10 +116,12 @@
   ],
   "inclusionCriteria": [
     "as cinco posições: uma visão geral: 1ª posição — pés; 1ª posição — braços",
+    "Os elementos basilares: o passé",
     "Estrutura Óssea e Alinhamento Global (Membros Inferiores): Mobilidade de quadril (en dehors de origem)",
     "Morfologia e Funcionalidade dos Pés e Tornozelos: Mobilidade de flexão/extensão do tornozelo",
     "Aptidões Coordenadas e Cognitivo-Musicais: Musicalidade e pulsação rítmica",
-    "Força Ativa, Potência e Controle Dinâmico: Força excêntrica / recuo na flexão de tronco"
+    "Força Ativa, Potência e Controle Dinâmico: Força excêntrica / recuo na flexão de tronco",
+    "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal: Estabilidade vestibular e deslocamento; Espiral / rotação de tronco"
   ],
   "exclusionCriteria": [
     "Os aspectos do corpo que o recorte do passo 4 não selecionou — a ausência é declarada, e não é esquecimento: o que fica de fora está nomeado no índice do recorte"
