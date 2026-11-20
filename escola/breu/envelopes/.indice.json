@@ -30,6 +30,7 @@
     "plano-20261120-1846.json",
     "plano-20261120-1854.json",
     "plano-20261120-1919.json",
+    "plano-20261120-1920.json",
     "po-20261119-1233.json",
     "po-20261119-2144.json",
     "po-20261119-2350.json",
@@ -533,6 +534,24 @@
         "Battement tendu",
         "Plié",
         "Relevé"
+      ],
+      "professorNome": "demi-plie"
+    },
+    "plano-20261120-1920.json": {
+      "id": "plano-20261120-1920",
+      "fonte": "plano",
+      "escola": "breu",
+      "professor": "demi-plie",
+      "ciclo": "01",
+      "ajuste_de": "plano-20261120-1919",
+      "gerado_em": "2026-11-20T19:20",
+      "objetivo": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
+      "turma": "Rosa",
+      "repertorio": [
+        "Battement tendu",
+        "Plié",
+        "Relevé",
+        "Battement jeté"
       ],
       "professorNome": "demi-plie"
     },
