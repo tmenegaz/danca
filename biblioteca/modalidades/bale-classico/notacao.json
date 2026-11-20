@@ -100,7 +100,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código de dança (ballet clássico)",
-  "versao": 58,
+  "versao": 59,
   "aplicaseA": [
     "codigo-de-danca"
   ],
@@ -1209,6 +1209,44 @@
           ]
         },
         "escola": "calango"
+      }
+    },
+    "Relevé": {
+      "8|2/4@breu": {
+        "cobre": 8,
+        "posicao": null,
+        "metodo": "compartilhada",
+        "celulas": {
+          "devant": [
+            {
+              "contagem": "1–2",
+              "categoria": "Perna",
+              "sinais": [
+                "ED",
+                "→",
+                "↑",
+                "+"
+              ],
+              "descricao": "Elevação para meia-ponta ou ponta, conforme o contexto.\nLê-se: Perna, varredura para fora, conduz a, sobe, à frente.",
+              "ordem": 1,
+              "repeticoes": 2
+            },
+            {
+              "contagem": "1–2",
+              "categoria": "Perna",
+              "sinais": [
+                "ED",
+                "→",
+                "↓",
+                "5ª"
+              ],
+              "descricao": "Elevação para meia-ponta ou ponta, conforme o contexto.\nLê-se: Perna, varredura para fora, conduz a, cede, quinta posição.",
+              "ordem": 2,
+              "repeticoes": 2
+            }
+          ]
+        },
+        "escola": "breu"
       }
     }
   }
