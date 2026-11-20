@@ -2069,6 +2069,24 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
 .selo.opt { border-style: dashed; }
 .selo.legado { border-style: dotted; }
 
+/* ---------- O CONTADOR DO «ATUALIZAR O CICLO» (20/11/2026) ---------------------------
+
+   «A gente vai colocar aqui um contador ao invés do ponto de exclamação. Ele vai mostrar quantos
+   têm, quantos vão atualizar.»
+
+   É o mesmo `.selo alerta` — a cor do que pede atenção —, com o número no lugar da palavra. Duas
+   diferenças, e as duas são de leitura: o versalete sai (um algarismo em versalete não se lê, e o
+   `2` ficaria do tamanho do `!`), e o recheio horizontal aperta para a pílula ficar redonda com um
+   dígito e não com dois.
+
+   `min-width` com `box-sizing` garante o círculo com um algarismo e a pílula com dois — sem ele,
+   «1» saía oval e «10» saía mais largo do que a linha do botão. */
+.selo.contador {
+  text-transform: none; letter-spacing: 0;
+  min-width: 18px; box-sizing: border-box; padding: 0 var(--esp-1);
+  margin-left: var(--esp-1); text-align: center; font-variant-numeric: tabular-nums;
+}
+
 /* ---------- O TRIO DE NÚMEROS e a lista que o usa (23/10/2026) -----------------------
 
    A PEÇA SUBIU PARA A FOLHA. Ela vivia em `motor/servidor/bastidores.js`, escrita linha a linha

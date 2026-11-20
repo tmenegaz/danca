@@ -2083,11 +2083,12 @@ const RITMO = {
       conferir('…e depois da validação ele fica LIGADO',
         Boolean(botaoDoCiclo) && botaoDoCiclo.disabled === false,
         botaoDoCiclo && botaoDoCiclo.disabled);
-      conferir('…e traz o «!» do que mudou',
-        Boolean(botaoDoCiclo && botaoDoCiclo.querySelector('.selo.alerta')),
+      /* O «!» VIROU CONTADOR (20/11/2026) — «um contador ao invés do ponto de exclamação». */
+      conferir('…e traz o CONTADOR do que mudou, no lugar do «!»',
+        Boolean(botaoDoCiclo && botaoDoCiclo.querySelector('.selo.alerta.contador')),
         botaoDoCiclo && botaoDoCiclo.innerHTML);
-      conferir('…e o `title` diz só o que mudou — «A régua foi modificada»',
-        Boolean(botaoDoCiclo) && /A régua foi modificada/.test(botaoDoCiclo.getAttribute('title') || ''),
+      conferir('…e o `title` põe o que mudou em LISTA — «Foi modificado:» e o item embaixo',
+        Boolean(botaoDoCiclo) && /Foi modificado:\n· a régua/.test(botaoDoCiclo.getAttribute('title') || ''),
         botaoDoCiclo && botaoDoCiclo.getAttribute('title'));
       /* A NOTA FIXA SAIU DO CARTÃO (20/11/2026): «Tira esse texto, não tem que existir esse texto.
        * […] Essa mensagem […] tem que existir quando ajustes são feitos nesses lugares, tá? Aí sim

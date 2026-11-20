@@ -56771,3 +56771,74 @@ entrou e as fontes não».
 quando a única divergência é o dicionário); `motor/servidor/escrever-ciclo.js` (`poMarkdown` no
 lote); `motor/servidor/concluir-po.js` (um commit, uma linha de base, um markdown);
 `provar-o-commit-do-po.js` (novo, 14 asserções) e `provar-o-que-mudou.js` (secção D, 7 novas).
+
+## 20/11/2026 — O botão acusava para sempre, e a razão era uma chave que não existe
+
+**O sintoma, na letra dela.** «Quando eu clico em atualizar ciclo, ele não atualiza, ele continua
+indicando que a habilidade do professor foi modificada e não é verdade. Eu já mandei atualizar
+ciclo, não há mais modificação. Ele tem que se alinhar.»
+
+### 1. A causa — `contexto-modalidade` não existe, e a bancada injetava-a
+
+`derivarPlano` releu a tradição desde a correcção de 20/11, mas lia a modalidade de
+`valorDeResposta('contexto-modalidade')`. **Esse id não existe em pergunta nenhuma do conteúdo do
+plano.** Medido na `breu`: as respostas do plano são `contexto-turma`, `contexto-metodologia`,
+`contexto-escola`…, e a modalidade vive em `envelope.contexto.modalidade` (`"Balé clássico"`).
+
+`String(undefined)` é `''` → `idDaModalidade('')` é `''` → `tradicaoDoProfessor` devolve `null` por
+não ter chave. A tradição **nunca** era relida: o plano derivava sempre com o `contexto-metodologia`
+do elo anterior (`RAD`, de um plano velho), o botão acusava «a habilidade do professor foi
+modificada», e clicar não mudava um byte. **O botão estava certo e a derivação não cumpria.**
+
+**E a bancada mentia.** `provar-cadeia-automatica.js` semeava `contexto-modalidade` **como resposta**
+do plano — injetava exactamente a chave que a produção não tem. Por isso a secção L passava com a
+derivação quebrada. A fixture passou a pôr a modalidade onde ela vive (no contexto do elo), e o
+defeito reproduz-se nela: com o código de antes, a secção L reprova.
+
+A correcção lê-a pela ordem da casa: a resposta (se um conteúdo futuro a introduzir), o **contexto do
+elo** (o sítio real), a curadoria como recurso.
+
+**Com o quê.** `motor/servidor/cadeia.js` (`derivarPlano`); `provar-cadeia-automatica.js` (a fixture
+real, mais três asserções: o recurso da curadoria, o «não sei» que não apaga, e a modalidade lida do
+contexto). Medido ao vivo na `breu`: antes do clique `['habilidade']`, depois do clique `[]` e
+`igual: true`.
+
+**E um defeito latente fechado no mesmo sítio.** A tradição de um professor com duas escolas da mesma
+modalidade é escrita `«Francesa / Vaganova»` no plano e declarada `['Francesa','Vaganova']` no perfil.
+`lista()` dava um item e dois, e a comparação acusava para sempre. `listaQueAceitaBarras` divide pelo
+mesmo `/` que o escritor usa.
+
+### 2. O contador, a lista, e o botão escondido
+
+**O pedido.** «A gente vai colocar aqui um contador ao invés do ponto de exclamação. Ele vai mostrar
+quantos têm, quantos vão atualizar. […] ao invés de colocar toda a string em uma linha só, você vai
+colocar ela como uma lista […] Aí você vai dizer assim: foi modificado, dois pontos, embaixo você diz
+habilidade do professor. […] O atualizar ciclo […] vai ficar escondido. Ele só vai aparecer caso tenha
+realmente algo a ser atualizado.»
+
+- O «!» deu lugar ao **número** (`.selo.contador` na folha — versalete fora, `min-width` para o
+  círculo com um algarismo e a pílula com dois).
+- O `title` é uma **lista**: `Foi modificado:` e um `· item` por linha. Os nomes curtos vivem em
+  `ITENS`, ao lado das frases de `ROTULOS` — duas formas do mesmo facto, no mesmo sítio.
+- O botão **nasce escondido** (`hidden`) e só aparece quando há o que fazer. Um botão apagado
+  deixou de ocupar o lugar de uma acção que quase nunca está disponível.
+
+**O que NÃO se perdeu, e é a trava.** «Não saber» não é «nada mudou»: quando a comparação não corre,
+o botão **aparece** e fica ligado — e `libertarCiclosSemResposta` passou a **mostrar** (era só
+levantar o `disabled`), senão uma rota que não responde deixava a única porta para o ciclo fechada
+para sempre.
+
+### 3. O «Cancelar» das habilitações estava à esquerda
+
+«Você colocou no lugar errado. Ele é à direita do gravar e não à esquerda do gravar. Tem que seguir o
+padrão. **Não está documentado isso, se não tiver tem que documentar.**»
+
+Estava. O padrão é o dos quatro formulários com `.par-botoes`: a acção principal primeiro, o recuo
+depois. O botão passou para a direita do «Gravar», e a ordem ficou escrita em `IDENTIDADE-VISUAL.md`
+(§ A ordem na fileira), com a tabela dos quatro e a razão — um formulário fora do padrão é o único
+sítio onde a mão não encontra o que aprendeu nos outros.
+
+**Com o quê.** `motor/nucleo/o-que-mudou.js` (`ITENS`, `listaDoQueMudou`, `listaQueAceitaBarras`);
+`motor/servidor/bastidores.js` (`botaoDeAtualizar`, `libertarCiclosSemResposta`, a ordem de
+`hab-enviar`/`hab-cancelar`); `tools/templates/ciclo.css` (`.selo.contador`); `IDENTIDADE-VISUAL.md`;
+`provar-o-que-mudou.js` (43) e `provar-salas-e-elencos.js` (240, a asserção do contador).

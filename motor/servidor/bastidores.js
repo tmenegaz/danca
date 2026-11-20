@@ -2981,36 +2981,59 @@ function acoesDaCuradoria(c, vinculada, estado) {
 }
 
 /**
- * O BOTÃO, COM O «!» E A FRASE DO QUE MUDOU — uma função só, porque ele tem dois desenhos (o do
- * cartão e o da repintura) e duas cópias divergiriam no primeiro ajuste.
+ * O BOTÃO — o CONTADOR, a LISTA do que mudou, e o silêncio quando não há nada (20/11/2026).
  *
- * O «!» é o `selo alerta` que a casa já usa para a revisão da Turma: a mesma peça, o mesmo `role`
- * e o mesmo `title`, para não haver um segundo sinal a significar a mesma coisa.
+ * UMA FUNÇÃO, PORQUE ELE TEM DOIS DESENHOS (o do cartão e o da repintura) e duas cópias
+ * divergiriam no primeiro ajuste.
+ *
+ * O QUE MUDOU A 20/11/2026, e é a segunda correcção do mesmo botão no mesmo dia:
+ *
+ *   · O «!» VIROU CONTADOR. «A gente vai colocar aqui um contador ao invés do ponto de
+ *     exclamação. Ele vai mostrar quantos têm, quantos vão atualizar.» Um «!» diz «há alguma
+ *     coisa»; «3» diz quanto, e é isso que deixa decidir se vale o clique.
+ *   · O `title` VIROU LISTA. «Ao invés de colocar toda a string em uma linha só, você vai colocar
+ *     ela como uma lista para eu poder enxergar isso como uma lista.» Ver `listaDoQueMudou`.
+ *   · O BOTÃO NASCE ESCONDIDO E SÓ APARECE QUANDO HÁ O QUE FAZER. «O atualizar ciclo só aparece o
+ *     botão, ele vai ficar escondido. Ele só vai aparecer caso tenha realmente algo a ser
+ *     atualizado.» Era um botão permanentemente à vista, apagado, a ocupar o lugar de uma acção que
+ *     quase nunca está disponível.
+ *
+ * O QUE NÃO MUDOU, e é a trava: um botão apagado não é o mesmo que um botão ausente. Quando a
+ * comparação NÃO CORREU — o plano não foi lido, o perfil não respondeu, a rota não veio —, o botão
+ * APARECE e fica ligado. «Não saber» não é «nada mudou», e esconder a única porta que leva a Turma
+ * ao ciclo por causa de uma leitura falhada seria o pior desfecho de uma trava que existe para
+ * poupar.
  */
 function botaoDeAtualizar(c, estado) {
   const e = estado && typeof estado === 'object' ? estado : null;
-  /* SEM ESTADO É O DESENHO DO CARTÃO, e ele nasce APAGADO — a comparação custa uma leitura do
+  const abre = '<button class="atualizar-ciclo acao secundario pequena" data-ciclo-atualizar="' +
+    esc(c.id) + '"';
+  /* SEM ESTADO É O DESENHO DO CARTÃO, e ele nasce ESCONDIDO — a comparação custa uma leitura do
    * plano e uma do perfil, e não se paga duas vezes por carregamento de página: quem a faz é a rota
-   * `…/curadorias-estado`, que já é chamada no arranque e repinta as acções com o HTML daqui. A
-   * frase do estado por comparar é curta e some com a resposta. */
+   * `…/curadorias-estado`, que já é chamada no arranque e repinta as acções com o HTML daqui. */
   if (!e) {
-    return ' <button class="atualizar-ciclo acao secundario pequena" data-ciclo-atualizar="' + esc(c.id) +
-      '" disabled title="A verificar se algo mudou desde o último ciclo…">Atualizar o ciclo</button>';
+    return ' ' + abre + ' hidden disabled title="A verificar se algo mudou desde o último ciclo…"' +
+      '>Atualizar o ciclo</button>';
   }
   const mudou = Array.isArray(e.mudou) ? e.mudou : [];
-  const frase = oQueMudouNucleo.fraseDoQueMudou(mudou);
-  /* `podeAtualizar === false` é a única coisa que apaga o botão, e ela só existe quando a
-   * comparação CORREU e disse «é igual». Todo o resto — não li, não sei — deixa-o ligado. */
+  /* `podeAtualizar === false` é a única coisa que esconde o botão, e ela só existe quando a
+   * comparação CORREU e disse «é igual». Todo o resto — não li, não sei — mostra-o ligado. */
   const igual = e.podeAtualizar === false;
+  const lista = oQueMudouNucleo.listaDoQueMudou(mudou);
   const titulo = igual
     ? 'Nada mudou desde o último ciclo — não há o que atualizar'
-    : (frase || e.motivo || '');
-  const selo = mudou.length ? '<span class="selo alerta" role="img" title="' + esc(frase) +
-    '" aria-label="' + esc(frase) + '">!</span>' : '';
-  return ' <button class="atualizar-ciclo acao secundario pequena" data-ciclo-atualizar="' + esc(c.id) + '"' +
-    (igual ? ' disabled' : '') +
+    : (lista || e.motivo || '');
+  /* O CONTADOR — o número do que vai ser atualizado, e a frase inteira do que ele conta no
+   * `aria-label` (um número sozinho não se lê em voz alta). */
+  const contador = mudou.length
+    ? '<span class="selo alerta contador" role="img" title="' + esc(lista || '') +
+      '" aria-label="' + esc(lista || (mudou.length + ' item(ns) a atualizar')) + '">' +
+      String(mudou.length) + '</span>'
+    : '';
+  return ' ' + abre +
+    (igual ? ' hidden disabled' : '') +
     (titulo ? ' title="' + esc(titulo) + '"' : '') +
-    '>Atualizar o ciclo' + selo + '</button>';
+    '>Atualizar o ciclo' + contador + '</button>';
 }
 
 /**
@@ -8900,8 +8923,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * — devolvendo o que o professor declara, que é o estado de quando a aba abriu — e colapsa o
      * formulário. Nasce oculto, e é `pintarCancelares` que o mostra com a secção aberta, como os
      * outros cinco. */
-    '<button type="button" class="acao secundario" id="hab-cancelar" hidden>Cancelar</button>' +
+    /* O «CANCELAR» FICA À DIREITA DO «GRAVAR» (20/11/2026) — «você colocou no lugar errado. Ele é
+     * à direita do gravar e não à esquerda do gravar. Tem que seguir o padrão.»
+     *
+     * Ele nasceu à esquerda porque foi acrescentado depois, ao lado do que já lá estava. O padrão
+     * desta casa é o contrário e está nos quatro outros formulários com `par-botoes`: a acção
+     * principal primeiro (Gravar), o recuo depois (Cancelar) — `prof-enviar`/`prof-cancelar`,
+     * `rubr-gravar`/`rubr-cancelar`, `cu-enviar`/`cu-cancelar`. Um só fora do padrão faz duvidar
+     * do que os outros fazem, e a mão procura «Cancelar» no mesmo sítio em todos.
+     *
+     * A ORDEM DOS BOTÕES É O QUE SE LÊ PRIMEIRO à direita: quem chega ao fim de um formulário
+     * encontra «Gravar» debaixo do polegar e «Cancelar» ao lado, para o recuo. */
     '<button type="submit" class="acao grande" id="hab-enviar">' + ROTULO_DO_GRAVAR + '</button>' +
+    '<button type="button" class="acao secundario" id="hab-cancelar" hidden>Cancelar</button>' +
     '</span>' +
     '</form>' +
     '</div>' +
@@ -16012,19 +16046,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    })' +
     '    .catch(function(){ libertarCiclosSemResposta(); return false; });' +
     '}' +
-    /* A ROTA É QUE APAGA O BOTÃO — e uma rota que não responde não pode deixá-lo preso APAGADO.
+    /* A ROTA É QUE MOSTRA O BOTÃO — e uma rota que não responde não o pode deixar ESCONDIDO.
      *
-     * O botão nasce apagado («a verificar…»), porque sem comparação não há prova de que nada mudou.
-     * Se a resposta nunca chegar, o `disabled` ficaria para sempre e a pessoa perderia a única porta
-     * que leva a Turma ao ciclo — o pior desfecho possível de uma trava que existe para poupar.
+     * O botão nasce escondido e apagado («a verificar…»), porque sem comparação não há prova de
+     * que nada mudou. Se a resposta nunca chegar, ficaria escondido para sempre e a pessoa
+     * perderia a única porta que leva a Turma ao ciclo — o pior desfecho possível de uma trava que
+     * existe para poupar.
      *
      * A REGRA É A MESMA DO `leu: false` no servidor: sem prova de igualdade, quem pede para
-     * atualizar é atendido. Aqui só se levanta o `disabled` do que já está na página; nada é
-     * desenhado de novo, e o `title` que lá está («a verificar…») é substituído pela frase honesta. */
+     * atualizar é atendido. Aqui mostra-se e levanta-se o `disabled` do que já está na página;
+     * nada é desenhado de novo, e o `title` que lá está («a verificar…») é substituído pela frase
+     * honesta. */
     'function libertarCiclosSemResposta(){' +
     '  var botoes = document.querySelectorAll("[data-ciclo-atualizar]");' +
     '  Array.prototype.slice.call(botoes).forEach(function(b){' +
-    '    if (!b.disabled) return;' +
+    '    if (!b.hidden && !b.disabled) return;' +
+    '    b.hidden = false;' +
     '    b.disabled = false;' +
     '    b.title = "Não consegui comparar com os documentos agora — atualizar deriva o plano na mesma.";' +
     '  });' +

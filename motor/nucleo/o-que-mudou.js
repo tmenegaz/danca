@@ -43,6 +43,22 @@ const ROTULOS = {
   dicionario: 'O dicionário foi modificado',
 };
 
+/* O NOME CURTO DE CADA ITEM, PARA A LISTA DO `title` (20/11/2026).
+ *
+ * «Ao invés de colocar toda a string em uma linha só, você vai colocar ela como uma lista para eu
+ * poder enxergar isso como uma lista. Aí você vai dizer assim: foi modificado, dois pontos, embaixo
+ * você diz habilidade do professor, por exemplo. Ou senão o verbete tal.»
+ *
+ * Duas formas do MESMO facto, e por isso as duas aqui: a frase (para o selo e para quem lê uma
+ * linha) e o item (para a lista de quem abre o `title`). Escrevê-las em sítios diferentes daria um
+ * botão cujo número e cuja lista falavam de coisas diferentes no dia em que uma fosse corrigida. */
+const ITENS = {
+  regua: 'a régua',
+  estilo: 'o conteúdo do Estilo',
+  habilidade: 'a habilidade do professor',
+  dicionario: 'o dicionário',
+};
+
 /** Uma lista de valores, sem vazios nem repetidos, na ordem em que veio. */
 function lista(valor) {
   const cru = Array.isArray(valor) ? valor : (valor === null || valor === undefined ? [] : [valor]);
@@ -50,6 +66,33 @@ function lista(valor) {
   for (const item of cru) {
     const t = String(item === null || item === undefined ? '' : item).trim();
     if (t && saida.indexOf(t) === -1) saida.push(t);
+  }
+  return saida;
+}
+
+/**
+ * UMA LISTA QUE PODE VIR ESCRITA COM «/» (20/11/2026).
+ *
+ * A tradição de um professor com mais de uma escola da mesma modalidade é escrita no plano como
+ * `«Francesa / Vaganova»` — é assim que `derivarPlano` a junta —, e o perfil a declara como
+ * `['Francesa', 'Vaganova']`. Passada por `lista()`, a primeira forma dá UM item («francesa /
+ * vaganova») e a segunda dá dois, e a comparação acusaria «a habilidade do professor foi
+ * modificada» para sempre — o mesmo defeito de silêncio que esta sessão veio fechar, uma camada
+ * abaixo. O separador é o mesmo que o escritor usa; uma segunda convenção divergiria da primeira.
+ *
+ * O que NÃO se parte: uma lista já declarada como lista. Só o texto com `/` é dividido, porque é
+ * só ele que tem essa ambiguidade.
+ */
+function listaQueAceitaBarras(valor) {
+  const cru = Array.isArray(valor) ? valor : (valor === null || valor === undefined ? [] : [valor]);
+  const saida = [];
+  for (const item of cru) {
+    const texto = String(item === null || item === undefined ? '' : item);
+    const partes = texto.indexOf('/') === -1 ? [texto] : texto.split('/');
+    for (const parte of partes) {
+      const t = parte.trim();
+      if (t && saida.indexOf(t) === -1) saida.push(t);
+    }
   }
   return saida;
 }
@@ -116,8 +159,8 @@ function oQueMudou({ hoje, documento } = {}) {
    * A COMPARAÇÃO É DE CONJUNTO pelo mesmo motivo do conteúdo: um professor pode ensinar mais do que
    * uma tradição na mesma modalidade (`RAD / Vaganova`), e a ordem em que as escreveu não é um
    * facto pedagógico. */
-  const tradicaoDeHoje = lista(deHoje.metodologia);
-  const tradicaoNoPapel = lista(noPapel.metodologia);
+  const tradicaoDeHoje = listaQueAceitaBarras(deHoje.metodologia);
+  const tradicaoNoPapel = listaQueAceitaBarras(noPapel.metodologia);
   if (tradicaoDeHoje.length && tradicaoNoPapel.length) {
     const agora = tradicaoDeHoje.map(chaveDeTexto);
     const papel = tradicaoNoPapel.map(chaveDeTexto);
@@ -166,9 +209,32 @@ function fraseDoQueMudou(mudou) {
   return lista.map((m) => m.rotulo).join(' · ');
 }
 
+/**
+ * O `title` DO BOTÃO EM LISTA (20/11/2026) — «Foi modificado:» e, embaixo, um item por linha.
+ *
+ * O pedido, na letra dela: «ao invés de colocar toda a string em uma linha só, você vai colocar ela
+ * como uma lista para eu poder enxergar isso como uma lista». Uma linha com «A régua foi
+ * modificada · A habilidade do professor foi modificada · O dicionário foi modificado» é uma frase
+ * que ninguém lê até ao fim; três linhas com um ponto cada é uma lista.
+ *
+ * O separador de linha é `\n`, que o `title` do HTML renderiza como quebra desde sempre. O
+ * marcador é o ponto médio que esta casa já usa nas listas de prosa — e não um `•`, que é de outra
+ * tipografia e apareceria a negrito no meio de um `title`.
+ *
+ * Devolve `''` quando não há nada — quem chama decide o que dizer, como em `fraseDoQueMudou`.
+ */
+function listaDoQueMudou(mudou) {
+  const itens = Array.isArray(mudou) ? mudou.filter((m) => m && m.chave) : [];
+  if (!itens.length) return '';
+  const linhas = itens.map((m) => '· ' + (ITENS[m.chave] || m.rotulo || m.chave));
+  return 'Foi modificado:\n' + linhas.join('\n');
+}
+
 module.exports = {
   ORDEM,
   ROTULOS,
+  ITENS,
   oQueMudou,
   fraseDoQueMudou,
+  listaDoQueMudou,
 };

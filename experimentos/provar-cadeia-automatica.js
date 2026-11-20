@@ -1210,13 +1210,24 @@ async function ids(arm, familia) {
   {
     const REGUA_VELHA = ['Satisfatório', 'Razoável', 'Em desenvolvimento', 'Não se aplica'];
     const REGUA_NOVA = ['Ótimo', 'Bom', 'Em progresso'];
-    /* A fixture do plano não declara `rubrica` nem `contexto-metodologia`; acrescentam-se para o
-     * caso ser o real. O `contexto-modalidade` idem — é a chave que o perfil indexa. */
-    const semearComRegua = async (arm, id, geradoEm, { rubrica, metodologia }) => {
+    /* A FIXTURE TEM DE SER O DOCUMENTO REAL (20/11/2026) — e ela não era.
+     *
+     * Aqui semeava-se `contexto-modalidade` como RESPOSTA do plano. **Essa chave não existe** em
+     * pergunta nenhuma do conteúdo: no plano real a modalidade vive em `envelope.contexto.modalidade`
+     * (medido na `breu`: as respostas são `contexto-turma`, `contexto-metodologia`,
+     * `contexto-escola`…, e o contexto do elo diz `modalidade: "Balé clássico"`). A derivação lia a
+     * resposta, achava `''`, e o `tradicaoDoProfessor` devolvia `null` por não ter chave — a
+     * tradição nunca era relida. **Esta bancada passava porque injetava a chave que a produção não
+     * tem**, e por isso o botão «Atualizar o ciclo» acusava «a habilidade do professor foi
+     * modificada» para sempre sem ninguém ver o defeito.
+     *
+     * Agora a modalidade vai onde ela vive — no CONTEXTO do elo —, e o `semModalidade` existe para
+     * o controle negativo de quem não a declara em sítio nenhum. */
+    const semearComRegua = async (arm, id, geradoEm, { rubrica, metodologia, semModalidade }) => {
       const env = planoFixture(id, { geradoEm });
+      if (!semModalidade) env.contexto.modalidade = 'Balé clássico';
       env.respostas.rubrica = r(rubrica);
       env.respostas['contexto-metodologia'] = r(metodologia);
-      env.respostas['contexto-modalidade'] = r('bale-classico');
       await porta.gravarEnvelope(arm, env, relatorioDe(id));
     };
 
@@ -1291,6 +1302,39 @@ async function ids(arm, familia) {
     })();
     provar('CONTROLE: «não sei» não apaga o que está escrito (a tradição fica RAD)',
       String(metodoSemSaber) === 'RAD', metodoSemSaber);
+
+    /* O DEFEITO EXACTO DE 20/11/2026, E O RECURSO QUE O COBRE: um plano que NÃO declara a
+     * modalidade no CONTEXTO do elo. Antes da correcção isto não era um controlo — era o caso
+     * NORMAL, e a derivação lia uma resposta que não existe e desistia. Agora a segunda fonte
+     * responde: a CURADORIA declara a modalidade desta Turma, e é ela que serve de recurso. A
+     * tradição é relida na mesma, e é isso que faz o botão alinhar depois do clique. */
+    const semModalidade = montar({ regua: REGUA_NOVA, tradicao: ['Francesa'] });
+    await semearComRegua(semModalidade.arm, 'plano-20261103-2200', '2026-11-03T22:00',
+      { rubrica: REGUA_VELHA, metodologia: 'RAD', semModalidade: true });
+    await porta.gravarEnvelope(semModalidade.arm, poFixture(poId,
+      { planoId: 'plano-20261103-2200', geradoEm: '2026-11-03T22:21' }), relatorioDe(poId));
+    await semModalidade.cadeia.executar({
+      gatilho: 'atualizacao-pedida', turmas: [TURMA], quando: QUANDO, motivo: 'sem modalidade' });
+    const semModalidadeId = semModalidade.visto.planos[0];
+    const semModalidadeNovo = semModalidadeId
+      ? await porta.lerEnvelope(semModalidade.arm, semModalidadeId) : null;
+    const valorSemModalidade = (chave) => {
+      const cru = semModalidadeNovo && semModalidadeNovo.respostas
+        && semModalidadeNovo.respostas[chave];
+      return cru && typeof cru === 'object' && 'valor' in cru ? cru.valor : cru;
+    };
+    provar('sem a modalidade no CONTEXTO do elo, a curadoria serve de recurso — e a tradição é relida',
+      String(valorSemModalidade('contexto-metodologia')) === 'Francesa',
+      valorSemModalidade('contexto-metodologia'));
+    provar('…e a régua, essa, é da SALA mesmo assim — ela não depende da modalidade',
+      JSON.stringify(valorSemModalidade('rubrica')) === JSON.stringify(REGUA_NOVA),
+      valorSemModalidade('rubrica'));
+
+    /* E A MODALIDADE VEM DO CONTEXTO DO ELO — o sítio onde ela vive no documento real. Uma
+     * asserção negativa de propósito: o plano que a declara no contexto NÃO pode ser tratado como
+     * «não sei». */
+    provar('a modalidade é lida do `contexto` do elo (o sítio real), e não de uma resposta',
+      String(valor('contexto-metodologia')) === 'Francesa', valor('contexto-metodologia'));
   }
 
   console.log('\n' + (falhas === 0

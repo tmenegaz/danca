@@ -878,6 +878,35 @@ bordô da mesma página parecia de outra família, quatro pixels mais baixo.
 e o vão de cada ação contra o «Cadastrar professor», que é o modelo. Com o código de antes,
 os três formulários reprovam.
 
+#### A ORDEM na fileira: a que grava primeiro, o recuo à direita *(20/11/2026)*
+
+«O botão de cancelar […] você colocou no lugar errado. Ele é à direita do gravar e não à esquerda
+do gravar. **Tem que seguir o padrão.** Não está documentado isso, se não tiver tem que documentar.»
+
+**A ordem é sempre esta: a ação principal primeiro, o recuo depois.** Na fileira, da esquerda para
+a direita: `Avançar` ou `Gravar` → `Cancelar`.
+
+| formulário | a fileira, na ordem |
+|:--|:--|
+| Cadastro do professor | `prof-enviar` (Avançar) · `prof-cancelar` |
+| Régua do professor | `rubr-voltar` · `rubr-gravar` · `rubr-cancelar` |
+| Habilitações | `hab-enviar` · `hab-cancelar` |
+| Turmas atribuídas | `cu-enviar` · `cu-cancelar` |
+
+**Porque esta ordem, e não a outra.** A pessoa chega ao fim de um formulário e a mão procura o
+gesto que conclui — é ele que fica debaixo do polegar, e é ele que leva a classe `grande`. O recuo
+fica ao lado, e não à frente: um «Cancelar» à esquerda do «Gravar» é a primeira coisa que se lê
+onde devia estar a última decisão, e faz duvidar do que o botão ao lado faz.
+
+**Como o defeito nasceu, e é a lição.** O «Cancelar» das habilitações foi acrescentado depois dos
+outros — e foi posto **antes** do «Gravar», ao lado do que já lá estava, sem se conferir a fileira
+dos vizinhos. Um formulário fora do padrão não é um detalhe de gosto: é o único sítio onde a mão
+não encontra o que já aprendeu nos outros quatro. Quem acrescentar um botão a uma `.par-botoes`
+confere primeiro **a ordem dos que lá estão**.
+
+Quem mede isto é a secção C da `experimentos/provar-o-que-mudou.js`, que compara as posições de
+`hab-enviar` e `hab-cancelar` na marcação — a ordem no HTML é a ordem na fileira.
+
 ### A fileira das acções de uma ESCOLHA — e o `<div>` nu *(06/11/2026)*
 
 A §6 «Proveniência consolidada» da aula passou a ter um menu de alunas e, por aluna, os dois

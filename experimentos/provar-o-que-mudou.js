@@ -13,9 +13,10 @@
  *   A. O NÚCLEO — as três comparações e as regras que não são óbvias (a régua é uma escala e a
  *      ordem mede; o conteúdo é um conjunto; o vazio nunca acusa). É onde vive a decisão, e é onde
  *      um erro custa um ciclo inteiro.
- *   B. O DESENHO DO BOTÃO — os três estados: sem comparação (apagado), igual (apagado, e diz
- *      porquê), mudou (ligado, com «!» e a frase do que mudou). E o texto antigo — «Levar ao ciclo
- *      o que esta Turma declara hoje…» — NÃO pode voltar: foi ela que o mandou tirar.
+ *   B. O DESENHO DO BOTÃO — os três estados: sem comparação (escondido), igual (escondido, e diz
+ *      porquê), mudou (visível, com o CONTADOR do que falta e a lista do que mudou). E o texto
+ *      antigo — «Levar ao ciclo o que esta Turma declara hoje…» — NÃO pode voltar: foi ela que o
+ *      mandou tirar. E o «!» não volta: virou contador a 20/11/2026.
  *   C. O CANCELAR DAS HABILITAÇÕES — o botão existe, está na tabela dos cancelares, e o gesto
  *      devolve o que está declarado antes de fechar.
  *   D. O DICIONÁRIO — o quarto item, e a razão de ele ter ficado de fora na primeira versão (não
@@ -143,28 +144,44 @@ function conferir(titulo, condicao, detalhe) {
     const naoLeu = htmlDe({ mudou: [], podeAtualizar: true, leu: false,
       motivo: 'Não consegui ler o plano de ensino agora — atualizar deriva-o na mesma.' });
 
-    /* O ESTADO DO DESENHO: apagado, porque ainda não se comparou nada. */
-    conferir('sem comparação, o botão nasce APAGADO',
-      /data-ciclo-atualizar/.test(semComparacao) && / disabled/.test(semComparacao)
-        && /A verificar/.test(semComparacao), semComparacao.slice(0, 200));
-    conferir('…e sem o «!» — não há prova nenhuma ainda',
-      !/class="selo alerta"/.test(semComparacao), semComparacao.slice(0, 200));
+    /* O ESTADO DO DESENHO: ESCONDIDO, porque ainda não se comparou nada (20/11/2026). */
+    conferir('sem comparação, o botão nasce ESCONDIDO e apagado',
+      /data-ciclo-atualizar/.test(semComparacao) && / hidden/.test(semComparacao)
+        && / disabled/.test(semComparacao) && /A verificar/.test(semComparacao),
+      semComparacao.slice(0, 200));
+    conferir('…e sem contador — não há prova nenhuma ainda',
+      !/selo alerta/.test(semComparacao), semComparacao.slice(0, 200));
 
-    /* A VALIDAÇÃO A DIZER «É IGUAL»: apagado, e com a razão. */
-    conferir('quando a validação diz «é igual», o botão fica APAGADO',
-      / disabled/.test(igual), igual.slice(0, 200));
+    /* A VALIDAÇÃO A DIZER «É IGUAL»: ESCONDIDO — «ele vai ficar escondido. Ele só vai aparecer
+     * caso tenha realmente algo a ser atualizado». */
+    conferir('quando a validação diz «é igual», o botão fica ESCONDIDO',
+      / hidden/.test(igual) && / disabled/.test(igual), igual.slice(0, 200));
     conferir('…e o `title` diz por que não há nada a fazer',
       /Nada mudou desde o último ciclo/.test(igual), igual.slice(0, 240));
-    conferir('…sem «!» e sem inventar itens',
+    conferir('…sem contador e sem inventar itens',
       !/selo alerta/.test(igual) && !/modificada/.test(igual), igual.slice(0, 240));
 
-    /* A VALIDAÇÃO A DIZER «MUDOU»: ligado, com «!», e a frase certa. */
-    conferir('quando mudou, o botão fica LIGADO',
-      !/ disabled/.test(mudouRegua), mudouRegua.slice(0, 200));
-    conferir('…e ganha o ponto de exclamação',
-      /<span class="selo alerta"[^>]*>!<\/span>/.test(mudouRegua), mudouRegua.slice(0, 300));
-    conferir('…e o `title` diz SÓ o que mudou',
-      /title="A régua foi modificada"/.test(mudouRegua), mudouRegua.slice(0, 300));
+    /* A VALIDAÇÃO A DIZER «MUDOU»: VISÍVEL, ligado, com CONTADOR (20/11/2026 — «um contador ao
+     * invés do ponto de exclamação»). */
+    conferir('quando mudou, o botão APARECE e fica ligado',
+      !/ hidden/.test(mudouRegua) && !/ disabled/.test(mudouRegua), mudouRegua.slice(0, 200));
+    conferir('…e o «!» deu lugar ao CONTADOR — o número do que vai ser atualizado',
+      /<span class="selo alerta contador"[^>]*>1<\/span>/.test(mudouRegua), mudouRegua.slice(0, 300));
+    conferir('…e o `title` está em LISTA — «Foi modificado:» e um item por linha',
+      /title="Foi modificado:\n· a régua"/.test(mudouRegua), mudouRegua.slice(0, 400));
+
+    /* DUAS COISAS MUDADAS: o contador diz 2, e a lista tem duas linhas na ordem do cartão. */
+    const duas = htmlDe({ mudou: [
+      { chave: 'habilidade', rotulo: 'A habilidade do professor foi modificada' },
+      { chave: 'dicionario', rotulo: 'O dicionário foi modificado' },
+    ], podeAtualizar: true, leu: true });
+    conferir('duas mudanças: o contador diz 2',
+      />2<\/span>/.test(duas), duas.slice(0, 400));
+    conferir('…e a lista tem as duas, uma por linha',
+      /Foi modificado:\n· a habilidade do professor\n· o dicionário/.test(duas),
+      duas.slice(0, 500));
+    conferir('…e o `title` do botão é a mesma lista (o contador repete-a no `aria-label`)',
+      (duas.match(/Foi modificado:/g) || []).length === 3, duas.slice(0, 600));
 
     /* O TEXTO ANTIGO SAIU, e ela foi explícita. */
     const todos = semComparacao + igual + mudouRegua + naoLeu;
@@ -179,10 +196,11 @@ function conferir(titulo, condicao, detalhe) {
     conferir('…e diz o motivo, em vez de ficar sem explicação',
       /Não consegui ler o plano/.test(naoLeu), naoLeu.slice(0, 240));
 
-    /* O «!» É A PEÇA DA CASA — o mesmo `selo alerta` da revisão da Turma, com `role`/`aria`. */
-    conferir('o «!» usa a peça que a casa já tem (`selo alerta`), com nome para o leitor de ecrã',
-      /role="img"/.test(mudouRegua) && /aria-label="A régua foi modificada"/.test(mudouRegua),
-      mudouRegua.slice(0, 400));
+    /* O CONTADOR É A PEÇA DA CASA — o mesmo `selo alerta` da revisão da Turma, com `role`/`aria`
+     * (um número sozinho não se lê em voz alta). */
+    conferir('o contador usa a peça da casa (`selo alerta`) e diz o que conta no leitor de ecrã',
+      /role="img"/.test(mudouRegua) && /aria-label="Foi modificado:\n· a régua"/.test(mudouRegua),
+      mudouRegua.slice(0, 500));
 
     /* E O BOTÃO NÃO EXISTE SEM PLANO — a regra de sempre. */
     const semPlano = bastidores.acoesDaCuradoria(CU, false, null);
@@ -210,8 +228,11 @@ function conferir(titulo, condicao, detalhe) {
       /id="hab-cancelar"/.test(html), null);
     conferir('…e nasce OCULTO — quem o mostra é `pintarCancelares`, com a secção aberta',
       /id="hab-cancelar" hidden/.test(html), null);
-    conferir('…e está ao lado do «Gravar», e não depois dele',
-      html.indexOf('id="hab-cancelar"') < html.indexOf('id="hab-enviar"'), null);
+    /* À DIREITA DO «GRAVAR» (20/11/2026) — «Ele é à direita do gravar e não à esquerda do gravar.
+     * Tem que seguir o padrão.» O padrão dos quatro outros formulários com `par-botoes`: a acção
+     * principal primeiro, o recuo depois. */
+    conferir('…e fica à DIREITA do «Gravar», como nos outros quatro formulários',
+      html.indexOf('id="hab-enviar"') < html.indexOf('id="hab-cancelar"'), null);
     conferir('o gesto existe e faz as duas metades — DEVOLVER e FECHAR',
       /function cancelarAsHabilitacoes\(\)/.test(html)
         && /carregarHabilitacoes\(\)/.test(html.slice(html.indexOf('function cancelarAsHabilitacoes')))
@@ -294,11 +315,12 @@ function conferir(titulo, condicao, detalhe) {
   }
 
   console.log('\n' + (falhas === 0
-    ? 'TUDO CERTO — ' + provas + ' asserções: o botão «Atualizar o ciclo» nasce apagado, só acende '
+    ? 'TUDO CERTO — ' + provas + ' asserções: o botão «Atualizar o ciclo» nasce escondido, só '
       + 'quando a comparação prova que a régua, o conteúdo, a habilidade do professor ou o '
       + 'dicionário (o verbete e o vocabulário) mudaram, '
-      + 'diz no «!» o que mudou, e não gasta um ciclo quando os documentos já dizem o mesmo. '
-      + 'E o «Cancelar» das habilitações devolve o que está declarado e fecha o formulário.'
+      + 'aparece com o CONTADOR do que falta e a lista do que mudou no `title`, e não gasta um '
+      + 'ciclo quando os documentos já dizem o mesmo. E o «Cancelar» das habilitações devolve o que '
+      + 'está declarado, fecha o formulário e fica à direita do «Gravar».'
     : 'FALHARAM ' + falhas + ' de ' + provas + ' asserções.'));
   process.exit(falhas === 0 ? 0 : 1);
 })().catch((erro) => {

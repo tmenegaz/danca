@@ -549,7 +549,27 @@ function criarCadeia({
     }
     if (typeof tradicaoDoProfessor === 'function') {
       try {
-        const modalidade = String(valorDeResposta('contexto-modalidade') || '').trim();
+        /* A MODALIDADE VEM DO CONTEXTO DO ELENCO, E NÃO DE UMA RESPOSTA QUE NÃO EXISTE
+         * (20/11/2026).
+         *
+         * O DEFEITO, medido ao vivo na `breu`. Aqui lia-se `valorDeResposta('contexto-modalidade')`
+         * — e esse id **não existe** em pergunta nenhuma do conteúdo do plano (as respostas dele
+         * são `contexto-turma`, `contexto-metodologia`, `contexto-escola`…; a modalidade vive em
+         * `envelope.contexto.modalidade`). `String(undefined)` é `''`, `idDaModalidade('')` é
+         * `''`, e o `tradicaoDoProfessor` devolve `null` por não ter chave. Resultado: a tradição
+         * **nunca** era relida, o plano derivava sempre com o `contexto-metodologia` do elo
+         * anterior, e o botão «Atualizar o ciclo» acusava «a habilidade do professor foi
+         * modificada» **para sempre** — clicar não mudava um byte.
+         *
+         * A ORDEM É A DA CASA: o documento do elo primeiro (é ele que diz a que modalidade este
+         * plano pertence), a curadoria como recurso, e a resposta só se alguém a declarar — um
+         * conteúdo futuro que a introduza não fica sem efeito, e um envelope antigo que traga o id
+         * por engano não passa à frente do contexto. */
+        const modalidade = String(
+          valorDeResposta('contexto-modalidade')
+          || (anterior && anterior.contexto && anterior.contexto.modalidade)
+          || (curadoria && curadoria.modalidade)
+          || '').trim();
         const professor = professorEfetivo(curadoria, sala);
         const declaradas = await tradicaoDoProfessor(professor, modalidade);
         if (Array.isArray(declaradas) && declaradas.length) {
