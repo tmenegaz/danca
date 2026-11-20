@@ -181,6 +181,8 @@ const enquadramento = require('../nucleo/enquadramento.js');
 const transferencia = require('../nucleo/transferencia.js');
 // O ÍNDICE DAS ETAPAS da cadeia automática (09/11/2026) — a ordem e os rótulos vivem no núcleo.
 const nucleoCadeia = require('../nucleo/cadeia.js');
+/* A faixa de volume e o reescalonamento da distribuição (20/11/2026). */
+const volume = require('../nucleo/volume.js');
 const desligamento = require('../nucleo/desligamento.js');
 // OS TRÊS ESTADOS DA TURMA (03/11/2026) — livre, curada, vinculada. O professor já tinha três
 // (livre → curado → vinculado) e a turma tinha dois: uma turma que já compunha uma curadoria
@@ -1779,6 +1781,53 @@ async function paresComPlano(env, escola, jaLido) {
  * que falta com o ENDEREÇO de cada sítio — é o que a pesquisadora pediu: «o professor só é
  * alertado sobre o que falta, com links de acesso rápido».
  */
+/**
+ * A PERGUNTA QUE SE FAZ ANTES DE MUDAR A DURAÇÃO DE UMA SALA (20/11/2026).
+ *
+ * PORQUE ANTES, E NÃO DEPOIS. Derivar já cria o elo novo. Perguntar depois seria perguntar sobre um
+ * facto consumado, e a resposta «não, afinal não quero» teria de desfazer um elo — que é exactamente
+ * o que a proveniência não permite. A pergunta vive no caminho da escrita, e enquanto ela não for
+ * respondida nada é gravado.
+ *
+ * QUANDO NÃO HÁ PERGUNTA, e são os casos comuns: a duração não mudou; a Sala não tem plano (não há
+ * documentos a reavaliar); a distribuição está em percentual E a dose não foi declarada (é só
+ * aritmética, e a aritmética faz-se sozinha). Um modal que aparece sem haver o que decidir é um
+ * clique a mais, e a pessoa aprende a carregar em «sim» sem ler.
+ *
+ * A FRASE DA DOSE NÃO PROPÕE NÚMERO — decisão da proprietária, 20/11/2026: «a gente não vai propor
+ * número, é o professor que vai decidir». Ela não é tempo, é intensidade: dobrar a duração pode
+ * significar mais tempo por exercício, ou mais exercícios, ou mais carga — três respostas
+ * pedagógicas, e o sistema não escolhe nenhuma.
+ */
+async function perguntaDaDuracao({ cadeia, anterior, corpo, paraMin }) {
+  const de = Number(anterior && anterior.duracaoMin) || 0;
+  const para = Number(paraMin) || 0;
+  if (!de || !para || de === para) return null;
+  if (!cadeia || typeof cadeia.planoDaTurma !== 'function') return null;
+  let plano = null;
+  try { plano = await cadeia.planoDaTurma(anterior.nome, anterior.professor); } catch (erro) { plano = null; }
+  if (!plano) return null;
+  const impacto = volume.impactoDaDuracao({ plano, deMin: de, paraMin: para });
+  if (!impacto) return null;
+  const precisaProporcao = Boolean(impacto.proporcao && impacto.proporcao.precisaAjuste);
+  if (!precisaProporcao && !impacto.dose.paraRever) return null;
+  /* A DECISÃO VEM NO CORPO. A forma é pequena de propósito: o cliente não manda números (o
+   * reescalonamento é do servidor), manda só as duas respostas. Menos coisas a divergir. */
+  const decisao = corpo && corpo.decisaoDaDuracao;
+  if (decisao && typeof decisao === 'object') {
+    return {
+      impacto,
+      ajusteDeVolume: {
+        proporcao: String(decisao.proporcao || '').trim() === 'sim',
+        reverDose: String(decisao.dose || '').trim() === 'rever',
+        deMin: de,
+        paraMin: para,
+      },
+    };
+  }
+  return { impacto, ajusteDeVolume: null };
+}
+
 async function rodarCadeia(cadeia, contexto, pedido) {
   if (!cadeia || typeof cadeia.executar !== 'function') {
     return { executada: false, motivo: 'a cadeia automática não está montada neste Worker' };
@@ -13529,6 +13578,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      liberar();' +
     '      res.className = "res ok"; res.textContent = "ok (" + (d.turmasNovas != null ? d.turmasNovas + " turmas, " + d.termosNovos + " termos, " + d.associacoes + " associações" : "feito") + ")";' +
     '    }' +
+    /* O SERVIDOR PERGUNTOU ANTES DE GRAVAR (20/11/2026) — e a pergunta tem números, não uma
+     * frase de aviso. O `409` traz o `impacto` já calculado; aqui só se mostra e se devolve a
+     * decisão. O MESMO pedido é reenviado com `decisaoDaDuracao` no corpo: nada é reconstruído, e
+     * portanto nada do que a pessoa tinha escrito se perde pelo caminho. */
+    '    else if (d.precisaDecisao === "duracao") {' +
+    '      liberar();' +
+    '      perguntarDaDuracao(d, function(decisao){' +
+    '        corpo.decisaoDaDuracao = decisao;' +
+    '        enviar(ep, corpo, mensagem, recarregar, aoOk);' +
+    '      });' +
+    '    }' +
     '    else { liberar(); recado("erro", "Erro: " + (d.erro || "desconhecido")); }' +
     '  }).catch(function(err){ liberar(); recado("erro", "Erro: " + err.message); });' +
     '}' +
@@ -13686,6 +13746,112 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  campos.modalidade = modalidade;' +
     '  campos.professor = professor;' +
     '  enviar("/api/bastidores/turma-derivar", campos, "ajustando a sala...", true, concluirTurma);' +
+    '}' +
+    /* ======================================================================
+     * A PERGUNTA DA DURAÇÃO — O MODAL QUE DIZ O QUE MUDA ANTES DE GRAVAR
+     * (20/11/2026)
+     * ======================================================================
+     *
+     * ELA PEDIU-O ASSIM: «é possível a gente abrir um modal com a pergunta e já com os campos que
+     * ele precisa preencher? […] E aí confirma e segue o barco, já faz as alterações aonde precisa
+     * mudar sem ele precisar sair navegando indo para tudo quanto é lugar.» E, sobre o tom:
+     * «não tem que ter muita explicação, muito texto não, tem que ser prático».
+     *
+     * O QUE O MODAL NÃO FAZ, e é de propósito: não mostra a faixa de volume em tempos. Ela é
+     * aritmética que ninguém decide — e um número que o ecrã afirma e a geração depois corrige
+     * seria a mentira por omissão que este projecto persegue. O que se mostra é o que é EXACTO: a
+     * duração, os minutos de cada bloco quando estão declarados em minutos, e a dose, que não tem
+     * conta.
+     *
+     * AS TRÊS LINHAS SÃO AS TRÊS NATUREZAS, e cada uma leva o seu tratamento:
+     *   1. a duração — muda sozinha, e mostra-se porque é o facto que desencadeia tudo;
+     *   2. os blocos — em `percentual` não mudam (30% de outra coisa continua a ser 30%), e um
+     *      clique basta; em `minutos` a soma tem de fechar com a duração e a regra de três diz
+     *      para quanto vai cada um;
+     *   3. a dose — não muda sozinha, e NÃO SE PROPÕE NÚMERO: «a gente não vai propor número, é o
+     *      professor que vai decidir».
+     *
+     * O `409` do servidor traz o cálculo feito (`impacto`), e o cliente não refaz conta nenhuma:
+     * duas contas da mesma coisa divergem à primeira correcção. O `repetir` é o pedido que estava
+     * a ser feito, guardado para ser reenviado com a decisão no corpo. */
+    'var PERGUNTA_DA_DURACAO = null;' +
+    'function numeroCurto(n){' +
+    '  if (n === null || n === undefined || isNaN(n)) return "—";' +
+    '  return Math.round(n * 10) / 10 === Math.round(n) ? String(Math.round(n)) : String(Math.round(n * 10) / 10);' +
+    '}' +
+    'function linhaDoFato(rotulo, hoje, depois, nota){' +
+    '  return "<tr><td>" + rotulo + (nota ? " <span class=\\"fatos\\"><span>" + nota + "</span></span>" : "") + "</td>"' +
+    '    + "<td>" + hoje + "</td><td>" + depois + "</td></tr>";' +
+    '}' +
+    'function perguntarDaDuracao(d, repetir){' +
+    '  var i = d && d.impacto;' +
+    '  if (!i) { recado("erro", (d && d.erro) || "erro"); return; }' +
+    '  PERGUNTA_DA_DURACAO = repetir;' +
+    '  var antigo = document.getElementById("modal-duracao");' +
+    '  if (antigo && antigo.parentNode) antigo.parentNode.removeChild(antigo);' +
+    '  var precisaProporcao = !!(i.proporcao && i.proporcao.precisaAjuste);' +
+    '  var precisaDose = !!(i.dose && i.dose.paraRever);' +
+    '  var corpo = linhaDoFato("Duração da aula", i.mudou.de + " min", i.mudou.para + " min", "automático");' +
+    '  if (precisaProporcao) {' +
+    '    var ls = i.proporcao.linhas || [];' +
+    '    for (var k = 0; k < ls.length; k++) {' +
+    '      corpo += linhaDoFato(ls[k].bloco, numeroCurto(ls[k].de) + " min", numeroCurto(ls[k].para) + " min", "");' +
+    '    }' +
+    '    corpo += linhaDoFato("Total", numeroCurto(i.proporcao.totalDe) + " min",' +
+    '      numeroCurto(i.proporcao.totalPara) + " min", "tem de fechar com a duração");' +
+    '  } else if (i.proporcao) {' +
+    '    corpo += linhaDoFato("Blocos", "em percentagem", "não mudam", "30% de outra coisa continua a ser 30%");' +
+    '  }' +
+    '  if (precisaDose) {' +
+    '    corpo += linhaDoFato("Dose por exercício", i.dose.texto, "precisa de si", "não há conta que a resolva");' +
+    '  }' +
+    '  var perguntas = "";' +
+    '  if (precisaProporcao) {' +
+    '    perguntas += "<fieldset class=\\"escolhas etapa-campo largo\\"><legend class=\\"campo-rotulo\\">Recalcular os minutos pela proporção que está declarada?</legend>"' +
+    '      + "<label class=\\"escolha\\"><input type=\\"radio\\" name=\\"dur-proporcao\\" value=\\"sim\\" checked><span>Sim, recalcular</span></label>"' +
+    '      + "<label class=\\"escolha\\"><input type=\\"radio\\" name=\\"dur-proporcao\\" value=\\"nao\\"><span>Não, deixar como está</span></label></fieldset>";' +
+    '  }' +
+    '  if (precisaDose) {' +
+    '    perguntas += "<fieldset class=\\"escolhas etapa-campo largo\\"><legend class=\\"campo-rotulo\\">A dose por exercício (" + i.dose.texto + ") foi escrita para a duração anterior. O que fazer?</legend>"' +
+    '      + "<label class=\\"escolha\\"><input type=\\"radio\\" name=\\"dur-dose\\" value=\\"rever\\" checked><span>Vou revê-la no plano</span></label>"' +
+    '      + "<label class=\\"escolha\\"><input type=\\"radio\\" name=\\"dur-dose\\" value=\\"manter\\"><span>Manter como está</span></label></fieldset>";' +
+    '  }' +
+    '  var caixa = document.createElement("div");' +
+    '  caixa.className = "modal";' +
+    '  caixa.id = "modal-duracao";' +
+    '  caixa.innerHTML =' +
+    '    "<div class=\\"modal-fundo\\" data-fechar-duracao></div>"' +
+    '    + "<div class=\\"modal-caixa modal-largo\\" role=\\"dialog\\" aria-modal=\\"true\\" aria-labelledby=\\"dur-titulo\\">"' +
+    '    + "  <div class=\\"modal-cab\\"><h2 id=\\"dur-titulo\\">A duração da aula mudou</h2>"' +
+    '    + "  <button class=\\"modal-x\\" id=\\"dur-x\\" type=\\"button\\" aria-label=\\"Fechar\\">&times;</button></div>"' +
+    '    + "  <form class=\\"form\\" id=\\"form-duracao\\" novalidate>"' +
+    '    + "    <div class=\\"etapa-campos\\">"' +
+    '    + "      <p class=\\"etapa-campo largo\\">De " + i.mudou.de + " para " + i.mudou.para + " minutos. Isto é o que muda nos documentos que já existem.</p>"' +
+    '    + "      <div class=\\"etapa-campo largo\\"><table><thead><tr><th>O quê</th><th>Hoje</th><th>Com " + i.mudou.para + " min</th></tr></thead><tbody>"' +
+    '    + corpo + "</tbody></table></div>"' +
+    '    + perguntas +' +
+    '    + "    </div>"' +
+    '    + "    <div class=\\"modal-acoes\\"><button class=\\"acao\\" id=\\"dur-gravar\\" type=\\"submit\\">Gravar assim</button></div>"' +
+    '    + "  </form>"' +
+    '    + "</div>";' +
+    '  (document.body || document.documentElement).appendChild(caixa);' +
+    '  function fechar(){ caixa.hidden = true; PERGUNTA_DA_DURACAO = null; }' +
+    '  function valorDe(nome){' +
+    '    var e = document.querySelector("input[name=\\"" + nome + "\\"]:checked");' +
+    '    return e ? e.value : "";' +
+    '  }' +
+    '  document.getElementById("dur-x").addEventListener("click", fechar);' +
+    '  var fundo = caixa.querySelector("[data-fechar-duracao]");' +
+    '  if (fundo) fundo.addEventListener("click", fechar);' +
+    '  document.getElementById("form-duracao").addEventListener("submit", function(ev){' +
+    '    ev.preventDefault();' +
+    '    var decisao = {proporcao: valorDe("dur-proporcao") || "nao", dose: valorDe("dur-dose") || "manter"};' +
+    '    var seguir = PERGUNTA_DA_DURACAO;' +
+    '    caixa.hidden = true;' +
+    '    if (seguir) seguir(decisao);' +
+    '  });' +
+    '  var primeiro = document.getElementById("dur-gravar");' +
+    '  if (primeiro) primeiro.focus();' +
     '}' +
     'document.getElementById("t-enviar").addEventListener("click", function(){' +
     '  irParaPassoTurma("vincular");' +
@@ -22805,6 +22971,27 @@ async function fetch(request, env, extras) {
       ajustado[k] = declarado[k];
     }
     const indice = lista.findIndex((t) => t && t.id === idAntigo);
+    /* A MESMA PERGUNTA DA DERIVAÇÃO, E ANTES DA ESCRITA (20/11/2026) — ver `perguntaDaDuracao`.
+     *
+     * A edição no lugar só acontece em Sala LIVRE (sem Turma a declará-la), e uma Sala livre não
+     * tem plano — portanto aqui a pergunta quase nunca tem o que perguntar. Ela fica escrita porque
+     * «quase nunca» não é «nunca»: um registo antigo pode ter Turma sem o estado o saber, e uma
+     * escrita que muda a duração sem avisar é a mesma família de erro que a derivação. */
+    const perguntaDaEdicao = await perguntaDaDuracao({
+      cadeia, anterior: alvo, corpo, paraMin: (ajustado.duracaoMin !== undefined
+        ? ajustado.duracaoMin : alvo.duracaoMin),
+    });
+    if (perguntaDaEdicao && !perguntaDaEdicao.ajusteDeVolume) {
+      const i = perguntaDaEdicao.impacto;
+      return json(409, {
+        ok: false,
+        precisaDecisao: 'duracao',
+        impacto: i,
+        erro: 'a duração passou de ' + i.mudou.de + ' para ' + i.mudou.para + ' min, e há '
+          + 'documentos que dependem dela. Confirme o que muda antes de gravar — nada foi gravado.',
+      });
+    }
+    const ajusteDeVolumeDaEdicao = perguntaDaEdicao ? perguntaDaEdicao.ajusteDeVolume : null;
     /* O QUE MUDOU, ANTES DE MUDAR (T2, 19/11/2026). O gatilho da travessia dizia sempre
      * «mudança de sala» — o rótulo do RITMO —, mesmo quando o que mudou foi quem a dá. O log da
      * cadeia lê-se por esse rótulo, e um rótulo que mente sobre o gesto é a mesma família de erro
@@ -22837,6 +23024,7 @@ async function fetch(request, env, extras) {
          * direção ela pára e diz que a autoria não se reescreve. */
         gatilho: parMudouNaEdicao ? 'troca-de-direcao' : 'mudanca-de-sala',
         turmas: [lista[indice].nome],
+        ajusteDeVolume: ajusteDeVolumeDaEdicao,
         motivo: parMudouNaEdicao
           ? 'o par (modalidade, professor) da sala «' + lista[indice].nome + '» mudou na edição'
           : 'o ritmo da sala «' + lista[indice].nome + '» foi ajustado',
@@ -22954,6 +23142,25 @@ async function fetch(request, env, extras) {
         falta,
       });
     }
+    /* A DURAÇÃO MUDOU? PERGUNTA-SE ANTES DE DERIVAR (20/11/2026).
+     *
+     * A pergunta é a da `perguntaDaDuracao`, e a razão de ser aqui é a ordem: derivar já cria o elo
+     * novo, e uma pergunta feita depois seria feita sobre um facto consumado. Enquanto ela não for
+     * respondida, nada é gravado — e o `409` leva o cálculo inteiro, para o modal o mostrar com os
+     * números e não com uma frase de aviso. */
+    const pergunta = await perguntaDaDuracao({ cadeia, anterior, corpo, paraMin: nova.duracaoMin });
+    if (pergunta && !pergunta.ajusteDeVolume) {
+      const i = pergunta.impacto;
+      return json(409, {
+        ok: false,
+        precisaDecisao: 'duracao',
+        impacto: i,
+        erro: 'a duração passou de ' + i.mudou.de + ' para ' + i.mudou.para + ' min, e há '
+          + 'documentos que dependem dela. Confirme o que muda antes de gravar — nada foi gravado.',
+      });
+    }
+    const ajusteDeVolume = pergunta ? pergunta.ajusteDeVolume : null;
+
     // A ANTERIOR fica, e diz quem a substituiu e quando — o elo, não o apagamento.
     const indice = lista.findIndex((t) => t && t.id === anterior.id);
     lista[indice] = Object.assign({}, anterior, {
@@ -23001,6 +23208,7 @@ async function fetch(request, env, extras) {
         gatilho: parMudouNaDerivacao ? 'troca-de-direcao' : 'mudanca-de-sala',
         turmas: [nova.nome],
         quando: vigencia,
+        ajusteDeVolume,
         motivo: parMudouNaDerivacao
           ? 'o par (modalidade, professor) da sala «' + nova.nome + '» passou a valer a partir de '
             + vigencia

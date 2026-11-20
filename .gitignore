@@ -1692,3 +1692,11 @@ experimentos/modelo-formulario/*
 # O CUSTO DE UMA AULA (19/11/2026). Décima primeira vez. Mede quantos disparos um lançamento provoca —
 # a linha que a auditoria do §L9f media por um lado só, e que muda a capacidade por um factor de 3.
 !experimentos/provar-o-custo-da-aula.js
+
+# A PERGUNTA DA DURAÇÃO (20/11/2026). Décima segunda vez. Mede o núcleo que a proposta 1 abriu: a
+# faixa de volume vem do declarado, senão da proporção da escola, senão da padrão; em percentagem a
+# mudança de duração não toca nas fatias, em minutos a regra de três reescalona-as preservando a
+# relação entre os blocos e a lacuna que já existia; e a duração extrema produz uma frase, nunca um
+# bloqueio. É citada no REGISTRO e no rodapé `Auditoria:` do commit, e um arquivo citado que não
+# existe no clone é uma afirmação que ninguém pode conferir.
+!experimentos/provar-a-pergunta-da-duracao.js

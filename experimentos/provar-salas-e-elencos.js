@@ -1267,6 +1267,229 @@ const RITMO = {
   if (naoMedidas.length) {
     console.log('NÃO MEDIDAS: ' + naoMedidas.length + ' — ' + naoMedidas.join('; '));
   }
+  // -------------------------------------------------------------------------------------------
+  console.log('\nL. A PERGUNTA DA DURAÇÃO — o modal que diz o que muda antes de gravar (20/11/2026)');
+
+  /* O QUE ELA PEDIU: «é possível a gente abrir um modal com a pergunta e já com os campos que ele
+   * precisa preencher? […] E aí confirma e segue o barco, já faz as alterações aonde precisa mudar
+   * sem ele precisar sair navegando indo para tudo quanto é lugar.» E o tom: «não tem que ter muita
+   * explicação, muito texto não, tem que ser prático». E a forma: «coloca um modal mais largo que
+   * ocupa uma faixa grande de tela assim na horizontal».
+   *
+   * O PERCURSO MEDIDO É O DO PROFESSOR, e não uma chamada directa à função: preenche-se o
+   * formulário, carrega-se em «Gravar sala», o servidor responde `409` com o cálculo, e o modal
+   * aparece. Carregar em «Gravar assim» tem de reenviar O MESMO PEDIDO com a decisão no corpo.
+   *
+   * E MEDE-SE PRIMEIRO QUE A PÁGINA CORRE. Esta secção nasceu de um defeito real: a primeira
+   * versão do modal deixou o script inteiro da página em `SyntaxError` (aspas por escapar dentro da
+   * string que emite o HTML), e nenhum `grep` ao fonte o via — o painel é que ficava morto. Uma
+   * expressão regular lê o que está escrito; o jsdom lê o que a página FAZ. */
+  {
+    let JSDOML = null;
+    let VCL = null;
+    try { ({ JSDOM: JSDOML, VirtualConsole: VCL } = require('jsdom')); } catch (e) { JSDOML = null; }
+    if (!JSDOML) {
+      naoMedida('o modal da duração a correr', 'jsdom ausente');
+    } else {
+      const SALA_L = { id: 'sala-k', nome: 'Rosa', dias: ['qua'], horarios: { qua: '10:30' },
+        duracaoMin: 90, periodoInicio: '2026-01-01', periodoFim: '2026-06-01',
+        modalidade: 'Balé clássico', professor: 'demi-plie' };
+      /* OS ARGUMENTOS VÃO NOMEADOS, e não em fila: `paginaProducao` tem vinte, e três deles são
+       * listas e um é um mapa de usos — trocar dois de lugar dá uma página que desenha outra coisa
+       * sem dar erro. Foi assim que esta chamada ficou errada duas vezes seguidas. */
+      const htmlL = bastidores.paginaProducao.apply(null, [
+        'breu', {},                                               // escola, contexto
+        [{ nome: 'Demi Plié', slug: 'demi-plie' }], [],            // profs, alunas
+        'Demi', 'demi-plie',                                       // dono, donoSlug
+        [SALA_L], [], {},                                          // turmas, termos, relação
+        [],                                                        // curadorias
+        [{ id: 'padrao', nome: 'Padrão', professor: 'demi-plie', niveis: ['Ótimo'] }],
+        [{ professor: 'demi-plie', turma: 'Rosa', ciclo: '01' }],   // pares usados
+        { professores: new Set(), turmas: new Set(), termos: new Set(), planos: 0 },
+        null,                                                      // aparência
+        'sala-k',                                                  // a turma em foco
+        [], new Set(), { ok: true, contrato: null },
+      ]);
+
+      /* O IMPACTO QUE O SERVIDOR DEVOLVE. Os dois casos que a decisão distingue:
+       *
+       *   · MINUTOS — a duração muda sozinha, os blocos têm de ser reajustados (a soma tem de
+       *     fechar com a duração nova), e a dose não tem conta que a resolva. Duas perguntas;
+       *   · PERCENTAGEM — as fatias não mudam (30% de outra coisa continua a ser 30%). Só a dose,
+       *     portanto uma pergunta. «O do percentual é só para ele dizer sim ou não.»
+       */
+      const impactoMinutos = {
+        mudou: { de: 90, para: 120 },
+        volume: { de: { min: 120, max: 150, total: 135 }, para: { min: 150, max: 200, total: 175 } },
+        proporcao: { unidade: 'minutos', precisaAjuste: true, alvoDe: 90, alvoPara: 120,
+          totalDe: 90, totalPara: 120, linhas: [
+            { bloco: 'Solo', de: 27, para: 36 }, { bloco: 'Barra', de: 27, para: 36 },
+            { bloco: 'Centro', de: 27, para: 36 }, { bloco: 'Musicalidade', de: 9, para: 12 }] },
+        dose: { texto: '3 a 6 séries', paraRever: true },
+        suspeita: null,
+      };
+      const impactoPercentagem = {
+        mudou: { de: 90, para: 120 },
+        volume: { de: { min: 120, max: 150, total: 135 }, para: { min: 150, max: 200, total: 175 } },
+        proporcao: { unidade: 'percentual', precisaAjuste: false, alvoDe: 100, alvoPara: 100,
+          totalDe: 100, totalPara: 100, linhas: [] },
+        dose: { texto: '3 a 6 séries', paraRever: true },
+        suspeita: null,
+      };
+
+      /* O CENÁRIO CORRE NUMA PÁGINA NOVA, e não duas vezes na mesma: depois de a decisão ser
+       * aceita o cliente recarrega, e uma página que já recarregou não é o sítio onde se mede o
+       * gesto seguinte. Duas medições independentes valem mais do que uma sequência encadeada. */
+      const correrOCenario = async (impacto) => {
+        const erros = [];
+        const corpos = [];
+        const vc = new VCL();
+        vc.on('jsdomError', (e) => erros.push(String((e && e.message) || e)));
+        vc.on('error', () => {});
+        const dom = new JSDOML(htmlL.replace(/<script src="[^"]*"><\/script>/g, ''), {
+          runScripts: 'dangerously', url: BASE + '/bastidores/producao#turmas',
+          pretendToBeVisual: true, virtualConsole: vc,
+          beforeParse(w) {
+            w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
+              addListener() {}, removeListener() {} });
+            w.alert = (m) => erros.push('ALERT: ' + m);
+            w.confirm = () => true;
+            w.fetch = (u, init) => {
+              const url = String(u);
+              if (url.indexOf('/api/bastidores/turma-derivar') !== -1
+                || url.indexOf('/api/bastidores/turma-editar') !== -1) {
+                let corpo = {};
+                try { corpo = JSON.parse((init && init.body) || '{}'); } catch (e) { corpo = {}; }
+                corpos.push(corpo);
+                /* A PRIMEIRA VEZ PERGUNTA; A SEGUNDA — com a decisão no corpo — grava. É o
+                 * contrato inteiro do gesto, e é o que faz a prova valer. */
+                if (!corpo.decisaoDaDuracao) {
+                  return Promise.resolve({ ok: false, status: 409,
+                    json: () => Promise.resolve({ ok: false, precisaDecisao: 'duracao',
+                      erro: 'a duração mudou', impacto }),
+                    text: () => Promise.resolve('') });
+                }
+                return Promise.resolve({ ok: true, status: 200,
+                  json: () => Promise.resolve({ ok: true, turma: 'sala-k' }),
+                  text: () => Promise.resolve('') });
+              }
+              /* O RESTO DAS RESPOSTAS É O MÍNIMO, e não uma imitação da produção: um
+               * `curadorias-estado` com `turmas: []` faz o cliente concluir que a escola não tem
+               * turma nenhuma, e a sala em foco perde-se antes de o gesto começar. Um dublê que
+               * mente sobre o estado mede o dublê. */
+              const generico = { ok: true, alunas: [], linhas: [], divergentes: [], campos: [],
+                grupos: [] };
+              return Promise.resolve({ ok: true, status: 200,
+                json: () => Promise.resolve(generico), text: () => Promise.resolve('') });
+            };
+          },
+        });
+        const w = dom.window;
+        const d = w.document;
+        const esperar = (ms) => new Promise((r) => w.setTimeout(r, ms || 400));
+        await esperar();
+        const por = (id, v) => {
+          const e = d.getElementById(id);
+          if (!e) return false;
+          e.value = v;
+          e.dispatchEvent(new w.Event('change', { bubbles: true }));
+          e.dispatchEvent(new w.Event('input', { bubbles: true }));
+          return true;
+        };
+        const preencheu = [por('tnome', 'Rosa'), por('tduracao', '120'),
+          por('tinicio', '2026-01-05'), por('tfim', '2026-06-30'),
+          por('tderivar', 'sala-k'), por('tmodo', 'derivar'),
+          por('vinc-professor', 'demi-plie'), por('vinc-modalidade', 'Balé clássico')];
+        const dia = d.querySelector('input[name="dia"][value="qua"]');
+        if (dia) { dia.checked = true; dia.dispatchEvent(new w.Event('change', { bubbles: true })); }
+        /* O CLIQUE É DISPARADO À MÃO. O `.click()` do jsdom não chegou ao `addEventListener` do
+         * botão; o evento é o mesmo que o navegador emite. E há um assentamento a esperar: os
+         * pedidos que a página faz ao abrir (curadorias, campos, linhas) ainda estão a correr, e
+         * um deles repõe o estado do formulário. Clicar antes disso mede a corrida, não o gesto. */
+        const carregar = async (botao) => {
+          botao.dispatchEvent(new w.MouseEvent('click', { bubbles: true, cancelable: true }));
+          await esperar(450);
+        };
+        await esperar(400);
+        const botao = d.getElementById('vinc-gravar');
+        if (botao) await carregar(botao);
+        const modal = () => d.getElementById('modal-duracao');
+        const decidir = async () => {
+          const b = d.getElementById('dur-gravar');
+          if (b) await carregar(b);
+        };
+        return { d, w, erros, corpos, preencheu, modal, decidir, fechar: () => w.close() };
+      };
+
+      // ── o caso dos MINUTOS: as duas perguntas ────────────────────────────────
+      const cMin = await correrOCenario(impactoMinutos);
+      conferir('a página da Produção CORRE sem erro de script', cMin.erros.length === 0,
+        cMin.erros.slice(0, 1));
+      conferir('o formulário da sala tem os campos que o gesto lê',
+        cMin.preencheu.every(Boolean), cMin.preencheu);
+      conferir('o gesto é enviado, e o servidor responde que precisa de decisão',
+        cMin.corpos.length === 1, cMin.corpos.length || cMin.erros.slice(0, 2));
+      const mMin = cMin.modal();
+      conferir('…e o modal abre antes de gravar', !!mMin);
+      conferir('…na caixa LARGA da folha (`modal-largo`)',
+        !!(mMin && mMin.querySelector('.modal-caixa.modal-largo')), null);
+      const tMin = mMin ? mMin.textContent : '';
+      conferir('…e diz a duração de origem e a de destino',
+        /De 90 para 120 minutos/.test(tMin), tMin.slice(0, 140));
+      /* AS TRÊS NATUREZAS, uma a uma: o que muda sozinho, o que muda com conta, e o que precisa de
+       * uma pessoa. */
+      conferir('…marca a duração como automática', /automático/.test(tMin), null);
+      conferir('…mostra os minutos de cada bloco, antes e depois',
+        /Solo/.test(tMin) && /27 min/.test(tMin) && /36 min/.test(tMin), null);
+      conferir('…e o total, com a regra à vista («tem de fechar com a duração»)',
+        /tem de fechar com a duração/.test(tMin), null);
+      conferir('…e a dose pede decisão sem propor número',
+        /3 a 6 séries/.test(tMin) && /precisa de si/.test(tMin), null);
+      conferir('…e NENHUM número novo para a dose é proposto',
+        !/(7 a 12|6 a 12|4 a 8|12 séries)/.test(tMin), null);
+      /* AS PERGUNTAS SÃO A PEÇA DA FOLHA (`escolhas`/`escolha`), e os botões estão na barra do
+       * modal — não soltos, que é o erro de margem que ela já apontou. */
+      conferir('…as duas perguntas usam a peça `escolhas` da folha',
+        (mMin ? mMin.querySelectorAll('fieldset.escolhas').length : 0) === 2,
+        mMin ? mMin.querySelectorAll('fieldset.escolhas').length : 0);
+      conferir('…e o botão vive na barra do modal (`.modal-acoes`)',
+        !!(mMin && mMin.querySelector('.modal-acoes > .acao')), null);
+      /* A DECISÃO: o padrão protege o professor — recalcular (a alternativa é metade da aula por
+       * declarar) e rever a dose (foi escrita para outra duração). */
+      await cMin.decidir();
+      conferir('…e o MESMO pedido é reenviado, agora com a decisão',
+        cMin.corpos.length === 2, cMin.corpos.length);
+      conferir('…com as duas respostas, e com os valores que protegem',
+        JSON.stringify((cMin.corpos[1] || {}).decisaoDaDuracao)
+          === JSON.stringify({ proporcao: 'sim', dose: 'rever' }),
+        (cMin.corpos[1] || {}).decisaoDaDuracao);
+      conferir('…e o que o professor tinha escrito não se perde no caminho',
+        String((cMin.corpos[1] || {}).duracaoMin) === '120', (cMin.corpos[1] || {}).duracaoMin);
+      conferir('…e o modal fecha depois de decidir',
+        !!(cMin.modal() && cMin.modal().hidden), cMin.modal() && cMin.modal().hidden);
+      cMin.fechar();
+
+      /* ── o caso da PERCENTAGEM: uma pergunta só ────────────────────────────── */
+      /* «O do percentual é só para ele dizer sim ou não.» As fatias não mudam (30% de outra coisa
+       * continua a ser 30%), portanto a pergunta sobre os blocos NÃO existe — e o que sobra é a
+       * dose. Um modal com uma pergunta a menos é um clique a menos. */
+      const cPct = await correrOCenario(impactoPercentagem);
+      const mPct = cPct.modal();
+      const tPct = mPct ? mPct.textContent : '';
+      conferir('em percentagem o modal abre na mesma', !!mPct);
+      conferir('…e a pergunta dos blocos NÃO aparece',
+        (mPct ? mPct.querySelectorAll('fieldset.escolhas').length : -1) === 1,
+        mPct ? mPct.querySelectorAll('fieldset.escolhas').length : -1);
+      conferir('…e a linha diz que as fatias não mudam', /não mudam/.test(tPct), tPct.slice(0, 180));
+      await cPct.decidir();
+      conferir('…e um clique basta',
+        JSON.stringify((cPct.corpos[1] || {}).decisaoDaDuracao)
+          === JSON.stringify({ proporcao: 'nao', dose: 'rever' }),
+        (cPct.corpos[1] || {}).decisaoDaDuracao);
+      cPct.fechar();
+    }
+  }
+
   if (falhas) {
     console.log('FALHOU — ' + falhas + ' de ' + n + ' asserção(ões).');
     process.exit(1);

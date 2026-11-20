@@ -32,6 +32,8 @@
  */
 
 const nucleoCadeia = require('../nucleo/cadeia.js');
+/* A faixa e o reescalonamento do volume vivem num sítio só (20/11/2026). */
+const volume = require('../nucleo/volume.js');
 // O RITMO que a Sala declara, na forma das respostas do plano (09/11/2026).
 const { respostasDoRitmo, acharTurma } = require('./compor-conf.js');
 /* A pergunta «isto é orçamento?» tem dono — o módulo que conta os subpedidos. Há duas frases
@@ -417,7 +419,7 @@ function criarCadeia({
    * em tudo menos nos quatro campos que são do cadastro: esses são substituídos pelo valor de
    * hoje, e é isso que faz o documento novo dizer o horário novo.
    */
-  async function derivarPlano({ anterior, curadoria, turma, motivo, sala }) {
+  async function derivarPlano({ anterior, curadoria, turma, motivo, sala, ajusteDeVolume }) {
     // A GUARDA DA AUTORIA VEM ANTES DE TUDO (12/11/2026): sem ela, o elo novo recebia o nome do
     // professor de hoje sobre o texto do professor de ontem. Ver `autoriaIntacta`.
     if (!autoriaIntacta(anterior, curadoria, sala)) {
@@ -426,6 +428,25 @@ function criarCadeia({
     const respostas = JSON.parse(JSON.stringify((anterior && anterior.respostas) || {}));
     const ritmo = await ritmoDaSala(turma);
     if (ritmo) Object.assign(respostas, ritmo);
+    /* A DISTRIBUIÇÃO POR BLOCO, REESCALONADA PELA DECISÃO DO PROFESSOR (20/11/2026).
+     *
+     * O gesto que mudou a duração da Sala perguntou-lhe, com os números à frente, e ele disse
+     * «sim, recalcula». Isto é o sim a acontecer. A regra de três preserva a INTENÇÃO (o Solo vale
+     * o mesmo que a Barra) e não só a soma; em percentual não se toca, porque 30% de outra coisa
+     * continua a ser 30%.
+     *
+     * O elo ANTERIOR não é tocado: ele continua a declarar os minutos da duração antiga, e é isso
+     * que faz a pergunta «como estava planeada a aula de 60 minutos» ter resposta. */
+    let volumeEscalado = null;
+    if (ajusteDeVolume && ajusteDeVolume.proporcao) {
+      const escalado = volume.escalarDistribuicao(
+        respostas['distribuicao-de-volume'], ajusteDeVolume.deMin, ajusteDeVolume.paraMin);
+      if (escalado) {
+        respostas['distribuicao-de-volume'] = escalado;
+        volumeEscalado = 'a distribuição por bloco foi reescalonada de ' + ajusteDeVolume.deMin
+          + ' para ' + ajusteDeVolume.paraMin + ' minutos, pela proporção que estava declarada';
+      }
+    }
     /* A IDENTIDADE VAI COM O ELO (10/11/2026) — nas RESPOSTAS, que é o que o documento imprime.
      * O NOME É O DO AUTOR (12/11/2026): o do documento anterior, que é — pela guarda acima — o
      * mesmo que dirige a Turma hoje. A fonte do nome é a autoria, e não a curadoria, porque a
@@ -470,6 +491,11 @@ function criarCadeia({
      * elo é o que a torna visível no gesto que a criou. */
     const avisos = (fonte && Array.isArray(fonte.pendencias) ? fonte.pendencias : [])
       .map((p) => 'a geração vai recusar esta aula: ' + p);
+    if (volumeEscalado) avisos.push(volumeEscalado);
+    if (ajusteDeVolume && ajusteDeVolume.reverDose) {
+      avisos.push('a dose por exercício foi escrita para a duração anterior e não mudou sozinha: '
+        + 'revê-la no plano, porque não há conta que a resolva');
+    }
     return { ok: true, id: envelope && envelope.id, de: anterior.id, fonte, avisos };
   }
 
@@ -634,7 +660,7 @@ function criarCadeia({
       : { plano: null, herdado: false, de: null, deOutro };
   }
 
-  async function porTurma({ turma, curadoria, elenco, quando, motivo }) {
+  async function porTurma({ turma, curadoria, elenco, quando, motivo, ajusteDeVolume }) {
     /* A SALA DE HOJE VAI COM O ESTADO (19/11/2026) — é dela que sai a DIREÇÃO, e não da cópia que
      * a curadoria guarda. Uma leitura por alvo, e a mesma que a derivação já fazia para o ritmo. */
     const sala = await salaDaTurma(turma);
@@ -711,7 +737,7 @@ function criarCadeia({
     let planoNovo = plano;
     const passoPlano = etapas.find((e) => e.chave === 'plano-de-ensino');
     if (passoPlano && passoPlano.estado === 'pendente') {
-      const r = await derivarPlano({ anterior: plano, curadoria, turma, motivo, sala });
+      const r = await derivarPlano({ anterior: plano, curadoria, turma, motivo, sala, ajusteDeVolume });
       if (r.ok) {
         marcar('plano-de-ensino', 'feita', { id: r.id, detalhe: 'elo novo: ' + r.de + ' → ' + r.id });
         planoNovo = await porta.lerEnvelope(armazenamento, String(r.id)) || plano;
@@ -905,7 +931,7 @@ function criarCadeia({
    * A EXECUÇÃO. `elencos` (a troca e a saída) e `turmas` (a troca de direção) dizem onde a
    * mudança tocou; a cadeia resolve as Turmas e corre uma a uma.
    */
-  async function executar({ gatilho, elencos = [], turmas = [], quando, motivo } = {}) {
+  async function executar({ gatilho, elencos = [], turmas = [], quando, motivo, ajusteDeVolume } = {}) {
     const agora = quando || (carimbar ? carimbar() : new Date().toISOString());
     /* O ORÇAMENTO DO PEDIDO — A TRAVESSIA NÃO COMEÇA O QUE NÃO CABE (09/11/2026).
      *
@@ -959,7 +985,7 @@ function criarCadeia({
       for (const c of alvos) {
         const turma = turmasDe(c)[0] || '';
         const elenco = c.linhaDeBase ? (porId.get(String(c.linhaDeBase)) || null) : null;
-        const r = await porTurma({ turma, curadoria: c, elenco, quando: agora, motivo });
+        const r = await porTurma({ turma, curadoria: c, elenco, quando: agora, motivo, ajusteDeVolume });
         /* OS AVISOS SOBEM AO TOPO (20/11/2026). A tela do gesto lê `cadeia` inteira, e um aviso
          * enterrado em `alvos[0].avisos` não se vê — foi exactamente o que aconteceu com a faixa
          * que faltava: `ok: true`, quatro etapas «feita», e o CI a recusar dois minutos depois. */
@@ -1062,7 +1088,20 @@ function criarCadeia({
       .concat(doPlano));
   }
 
-  return { executar, fecharPacotes, lerLog, anotar, enderecos, enderecoDaEtapa };
+  /**
+   * O PLANO VIGENTE DE UMA TURMA, PARA QUEM PERGUNTA ANTES DE MUDAR (20/11/2026).
+   *
+   * `planoVigenteDaTurma` é interno porque a travessia o usa no meio do seu próprio trabalho. Este
+   * acesso existe para o gesto que muda a duração de uma Sala poder mostrar, ANTES de gravar, o que
+   * vai mudar nos documentos — e ele precisa exactamente do mesmo plano, lido da mesma maneira.
+   * Duas leituras diferentes do «plano vigente» dariam uma prévia que não corresponde ao que a
+   * derivação depois faz.
+   */
+  async function planoDaTurma(turma, professor) {
+    return planoVigenteDaTurma(turma, professor);
+  }
+
+  return { executar, fecharPacotes, lerLog, anotar, enderecos, enderecoDaEtapa, planoDaTurma };
 }
 
 module.exports = { criarCadeia, RAIZ, LIMITE_DO_LOG };

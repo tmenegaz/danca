@@ -55221,3 +55221,57 @@ de gravar. O cálculo já existe (`impactoDaDuracao`), com as três partes que e
 a regra de três diz para quanto vai cada bloco; e a dose por exercício **não tem conta**, portanto
 pede-se a decisão e **não se propõe número** («é o professor que vai decidir»). Provado sobre o plano
 real do `breu`, que está em percentual: 30/30/30/10 → 30/30/30/10, `precisaAjuste: false`.
+
+**A segunda metade da proposta 1 — o modal que pergunta com os números à frente (20/11/2026).**
+
+Ela desenhou-o em três frases: «é possível a gente abrir um modal com a pergunta e já com os campos
+que ele precisa preencher? […] E aí confirma e segue o barco, já faz as alterações aonde precisa
+mudar sem ele precisar sair navegando indo para tudo quanto é lugar.» E o tom: «não tem que ter
+muita explicação, muito texto não, tem que ser prático». E a forma: «coloca um modal mais largo que
+ocupa uma faixa grande de tela assim na horizontal».
+
+**A PERGUNTA ACONTECE ANTES DA ESCRITA, e é isso que a torna possível.** Derivar já cria o elo novo;
+perguntar depois seria perguntar sobre um facto consumado, e o «não, afinal não quero» teria de
+desfazer um elo — exactamente o que a proveniência não permite. As duas rotas da Sala
+(`turma-derivar`, `turma-editar`) respondem **`409` com o cálculo feito** quando a duração mudou e há
+documentos que dependem dela; nada é gravado, e o mesmo pedido volta com `decisaoDaDuracao` no corpo.
+
+**AS TRÊS LINHAS SÃO AS TRÊS NATUREZAS**, e cada uma leva o seu tratamento — é o que o modal mostra:
+
+| o quê | em `percentual` | em `minutos` |
+|:--|:--|:--|
+| a duração | muda sozinha | muda sozinha |
+| as fatias por bloco | **não mudam** — 30% de outra coisa continua a ser 30% | **têm de fechar** com a duração nova; a regra de três diz para quanto vai cada uma |
+| a dose por exercício | **não muda sozinha** — pede-se a decisão, e **não se propõe número** | igual |
+
+O caso dos minutos, com o número que o justifica: 18+18+18+6 numa aula de 60 fecha; a duração passa a
+120 e os mesmos 18+18+18+6 deixam **metade da aula por declarar**. O formulário só avisa («faltar
+avisa»), portanto gravaria, e a Aula 01 imprimiria os tempos a metade.
+
+**A DOSE NÃO TEM CONTA, E O SISTEMA NÃO A INVENTA.** «A gente não vai propor número, é o professor que
+vai decidir» — e o modal diz isso com todas as letras: `precisa de si`, `não há conta que a resolva`.
+Dobrar a duração pode significar mais tempo por exercício, ou mais exercícios, ou mais carga: três
+respostas pedagógicas, e nenhuma é aritmética.
+
+**O QUE O MODAL NÃO MOSTRA, e é de propósito:** a faixa de volume em tempos. Ela é aritmética que
+ninguém decide, e um número que o ecrã afirma e a geração depois corrige seria a mentira por omissão
+que este projecto persegue. Mostra-se o que é exacto.
+
+**A LIÇÃO QUE ESTA SECÇÃO DEIXOU, e ela é de método.** A primeira versão do modal deixou **o script
+inteiro da página em `SyntaxError`** — aspas por escapar dentro da string que emite o HTML —, e o
+painel ficava morto. Nenhum `grep` ao fonte o via: no fonte estava tudo certo. Foi o `jsdom` que o
+disse, ao ler `Unexpected identifier 'fatos'`. Uma expressão regular lê o que está escrito; a página a
+correr lê o que ela **faz**. A bancada passou a medir as duas coisas, e a primeira asserção da secção
+nova é «a página corre sem erro de script».
+
+**A/B:** `provar-salas-e-elencos` vai de **132 a 153** asserções (secção L, o percurso real: preenche,
+carrega em «Gravar sala», recebe o `409`, vê o modal, decide, e o mesmo pedido volta com as duas
+respostas). Sem o elo que liga o `409` à pergunta, falham **17**; com ele, **0**. `provar-cadeia-automatica`
+vai de 66 a **76** (secção B2): a decisão chega ao elo novo do plano, a soma fecha, a relação entre
+blocos é preservada, **o elo anterior continua a declarar os minutos da duração antiga**, e o controle
+negativo confirma que sem ajuste nada disto acontece. `provar-a-pergunta-da-duracao` é nova, 24
+asserções sobre o núcleo.
+
+**O custo, medido e não estimado:** a pergunta lê o plano vigente (duas leituras: a lista e o
+envelope), e só quando a duração efectivamente mudou — que é o caso raro. Não há escrita nenhuma no
+caminho da recusa: zero commits, zero execuções de CI.

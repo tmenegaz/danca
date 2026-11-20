@@ -322,6 +322,62 @@ function impactoDaDuracao({ plano, deMin, paraMin, identidadeDe, identidadePara 
   };
 }
 
+/**
+ * O REESCALONAMENTO DA DISTRIBUIÇÃO POR BLOCO — a decisão «sim, recalcula» posta em prática.
+ *
+ * O QUE ELE RESOLVE, com o número: uma aula de 60 min com 18+18+18+6 = 60 minutos declarados. A
+ * duração passa a 120. As fatias em PERCENTUAL não têm problema — 30% continua a ser 30% de outra
+ * coisa. As fatias em MINUTOS têm: 18+18+18+6 continuam a somar 60 numa aula de 120, e **metade da
+ * aula fica por declarar**. O formulário só avisa («faltar avisa»), portanto gravaria, e a Aula 01
+ * imprimiria os tempos a metade.
+ *
+ * A CONTA É A REGRA DE TRÊS, e ela preserva a INTENÇÃO e não só a soma: o que o professor declarou
+ * foi uma proporção entre blocos (o Solo vale o mesmo que a Barra). Multiplicar todos pelo mesmo
+ * factor mantém essa relação, e é isso que ele quer dizer com «recalcular».
+ *
+ * O QUE NÃO É REESCALONADO, e é de propósito: se a soma declarada não fechava com a duração antiga,
+ * a nova também não fecha — a diferença é conservada, e não distribuída. Inventar o que faltava
+ * seria decidir pedagogia, e a lacuna é informação.
+ *
+ * Devolve o valor novo de `distribuicao-de-volume` (a mesma forma do envelope, com as linhas
+ * trocadas), ou `null` quando não há nada a reescalonar — sem tabela, em percentual, ou sem linhas
+ * legíveis. `null` significa «não toques», e não «falhou».
+ */
+function escalarDistribuicao(atual, deMin, paraMin) {
+  const de = minutosDeDuracao(deMin);
+  const para = minutosDeDuracao(paraMin);
+  if (!de || !para || de === para) return null;
+  if (!atual || typeof atual !== 'object') return null;
+  const bruto = (atual && typeof atual === 'object' && 'valor' in atual && !Array.isArray(atual.valor))
+    ? atual.valor : atual;
+  if (!bruto || typeof bruto !== 'object') return null;
+  const unidade = String(bruto.unidade || '').trim().toLowerCase();
+  /* EM PERCENTUAL NÃO SE TOCA — e o teste é o que impede o pior dos mundos: reescalonar uma tabela
+   * de percentagens transformaria 30% em 60%, e a soma deixaria de ser 100. */
+  if (unidade !== 'minutos') return null;
+  const linhas = Array.isArray(bruto.linhas) ? bruto.linhas : null;
+  if (!linhas || !linhas.length) return null;
+
+  let mudouAlgo = false;
+  const novas = linhas.map((linha) => {
+    if (!linha || typeof linha !== 'object' || Array.isArray(linha)) return linha;
+    const copia = Object.assign({}, linha);
+    for (const chave of Object.keys(copia)) {
+      if (!/(propor|fatia|percent|porcent|tempo|minuto|duracao)/i.test(String(chave))) continue;
+      const numero = numeroDaCelula(copia[chave]);
+      if (numero === null || numero === 0) continue;
+      const escalado = Math.round((numero * para / de) * 10) / 10;
+      const sufixo = String(copia[chave]).replace(/[\d.,-]+/g, '');
+      copia[chave] = numeroLegivel(escalado) + (sufixo || '');
+      mudouAlgo = true;
+    }
+    return copia;
+  });
+  if (!mudouAlgo) return null;
+  const valorNovo = Object.assign({}, bruto, { linhas: novas });
+  return 'valor' in atual && !Array.isArray(atual.valor) ? Object.assign({}, atual, { valor: valorNovo }) : valorNovo;
+}
+
 module.exports = {
   PROPORCAO_PADRAO,
   DURACAO_CURTA,
@@ -332,5 +388,6 @@ module.exports = {
   suspeitaDaDuracao,
   /* O IMPACTO DE MUDAR A DURAÇÃO — o que o gesto mostra antes de gravar. */
   impactoDaDuracao,
+  escalarDistribuicao,
   numeroLegivel,
 };

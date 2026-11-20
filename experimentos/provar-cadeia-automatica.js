@@ -314,6 +314,85 @@ async function ids(arm, familia) {
   }
 
   // ==========================================================================
+  console.log('\nB2. A DECISÃO DO PROFESSOR CHEGA AO DOCUMENTO — o reescalonamento (20/11/2026)');
+
+  /* O GESTO PERGUNTA, E O SIM TEM DE ACONTECER ALGURES. Quando a duração de uma Sala muda e a
+   * distribuição por bloco está declarada em MINUTOS, a soma antiga deixa de fechar com a duração
+   * nova — 18+18+18+6 numa aula que passou de 60 a 120 minutos deixa metade da aula por declarar.
+   * O professor vê os números no modal e responde «sim, recalcula». É essa resposta que se mede
+   * aqui, no sítio onde ela tem de aparecer: no ELO NOVO DO PLANO.
+   *
+   * O elo ANTERIOR não pode mudar. A proveniência acrescenta — e um reescalonamento que
+   * reescrevesse o passado faria a pergunta «como estava planeada a aula de 60 minutos» deixar de
+   * ter resposta. */
+  {
+    const { cadeia, arm } = montar();
+    const emMinutos = planoFixture('plano-20261103-2200', { geradoEm: '2026-11-03T22:00' });
+    emMinutos.respostas['distribuicao-de-volume'] = r({ unidade: 'minutos', linhas: [
+      { Bloco: 'Barra', 'Proporção alvo': '30 min', Justificativa: 'Apoio.' },
+      { Bloco: 'Centro', 'Proporção alvo': '18 min', Justificativa: 'Deslocamento.' },
+      { Bloco: 'Musicalidade', 'Proporção alvo': '6 min', Justificativa: 'Pulso.' },
+      { Bloco: 'Expressão', 'Proporção alvo': '6 min', Justificativa: 'Braços.' },
+    ] });
+    /* Os quatro blocos somam 60 — a duração antiga. A nova é 120. */
+    await porta.gravarEnvelope(arm, emMinutos, relatorioDe('plano-20261103-2200'));
+    await porta.gravarEnvelope(arm, poFixture('po-20261103-2221',
+      { planoId: 'plano-20261103-2200', geradoEm: '2026-11-03T22:21' }), relatorioDe('po-20261103-2221'));
+
+    /* O GATILHO É O DESTA PROVA (`troca-de-aluna`), e não o da sala: o que se mede aqui não é
+     * quando a decisão nasce — é que, nascendo, ela chega ao documento. O gesto da Sala já está
+     * medido em `provar-salas-e-elencos`, secção L. */
+    const r2 = await cadeia.executar({
+      gatilho: 'troca-de-aluna', elencos: ['elenco-a'], quando: QUANDO,
+      motivo: 'a duração da sala passou de 60 para 120 minutos',
+      ajusteDeVolume: { proporcao: true, reverDose: true, deMin: 60, paraMin: 120 },
+    });
+    provar('a travessia corre com o ajuste declarado', r2.ok === true,
+      { erro: r2.erro, etapas: (r2.alvos || []).map((a) => a.etapas.map((e) => e.chave + ':' + e.estado)) });
+    const novos = (await ids(arm, 'plano')).filter((x) => x !== 'plano-20261103-2200');
+    provar('…e há UM elo novo de plano', novos.length === 1, novos);
+    const novo = novos.length ? await porta.lerEnvelope(arm, novos[0]) : null;
+    const valor = novo && novo.respostas['distribuicao-de-volume'];
+    const linhas = valor && (valor.valor || valor).linhas || [];
+    provar('…e os minutos dos blocos foram reescalonados de 60 para 120',
+      linhas.map((l) => String(l['Proporção alvo'])).join(' '), '60 min 36 min 12 min 12 min');
+    provar('…e a soma fecha com a duração nova',
+      linhas.reduce((t, l) => t + parseInt(l['Proporção alvo'], 10), 0), 120);
+    /* A RELAÇÃO ENTRE BLOCOS É A INTENÇÃO, e é ela que a regra de três preserva: a Barra valia
+     * metade da aula e continua a valer metade da aula. */
+    provar('…e a relação entre os blocos é a mesma (a Barra era metade, e continua metade)',
+      parseInt(linhas[0]['Proporção alvo'], 10) * 2, 120);
+
+    /* O ELO ANTERIOR NÃO SE TOCA. */
+    const antes = await porta.lerEnvelope(arm, 'plano-20261103-2200');
+    const linhasAntes = ((antes.respostas['distribuicao-de-volume'].valor
+      || antes.respostas['distribuicao-de-volume']).linhas || []);
+    provar('…e o elo ANTERIOR continua a declarar os minutos da duração antiga',
+      linhasAntes.map((l) => String(l['Proporção alvo'])).join(' '), '30 min 18 min 6 min 6 min');
+
+    /* AS DUAS FRASES QUE O GESTO PASSA A DIZER — o que foi feito e o que fica por decidir. */
+    const avisos = (r2.avisos || []).join(' | ');
+    provar('…e o gesto diz que reescalonou', /reescalonada de 60 para 120 minutos/.test(avisos), avisos);
+    provar('…e diz que a dose NÃO mudou sozinha, e tem de ser revista',
+      /dose por exercício foi escrita para a duração anterior/.test(avisos), avisos);
+    /* O CONTROLE NEGATIVO: sem ajuste, nada disto acontece. Um reescalonamento que corresse
+     * sempre seria uma reescrita silenciosa de planos que ninguém pediu para mudar. */
+    const { cadeia: c2, arm: arm2 } = montar();
+    await semear(arm2);
+    const r3 = await c2.executar({
+      gatilho: 'troca-de-aluna', elencos: ['elenco-a'], quando: QUANDO, motivo: 'sem ajuste',
+    });
+    const novos2 = (await ids(arm2, 'plano')).filter((x) => x !== 'plano-20261103-2200');
+    const novo2 = novos2.length ? await porta.lerEnvelope(arm2, novos2[0]) : null;
+    const v2 = novo2 && novo2.respostas['distribuicao-de-volume'];
+    const l2 = v2 && (v2.valor || v2).linhas || [];
+    provar('CONTROLE NEGATIVO: sem ajuste, as fatias ficam como estavam',
+      l2.map((l) => String(l['Proporção alvo'])).join(' '), '40% 30% 10% 20%');
+    provar('…e sem ajuste não há aviso de reescalonamento',
+      !/reescalonada/.test((r3.avisos || []).join(' | ')), r3.avisos);
+  }
+
+  // ==========================================================================
   console.log('\nC. O REGISTO INCOMPLETO — avança até onde pode, e diz o que falta');
 
   {
