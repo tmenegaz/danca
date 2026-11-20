@@ -1847,6 +1847,21 @@ const RITMO = {
                   json: () => Promise.resolve({ ok: true, cadeia: { ok: true } }),
                   text: () => Promise.resolve('') });
               }
+              /* A ROTA DO ESTADO É A QUE LIGA O BOTÃO «ATUALIZAR O CICLO» (20/11/2026): o cartão
+               * nasce com ele APAGADO, e é esta resposta que traz o HTML com a validação feita. Sem
+               * este ramo, o pedido cairia no genérico (sem `estados`) e o botão só se abriria pelo
+               * caminho de socorro — o que mediria o socorro, e não o gesto. */
+              if (url.indexOf('/api/bastidores/curadorias-estado') !== -1) {
+                pedidos.push({ rota: 'estado', corpo });
+                const acoes = bastidores.acoesDaCuradoria(CURADORIA_N, true, {
+                  mudou: [{ chave: 'regua', rotulo: 'A régua foi modificada' }],
+                  podeAtualizar: true, leu: true,
+                });
+                return Promise.resolve({ ok: true, status: 200,
+                  json: () => Promise.resolve({ ok: true, escola: 'breu',
+                    estados: { [CURADORIA_N.id]: { vinculada: true, selo: '', acoes, ciclo: null } } }),
+                  text: () => Promise.resolve('') });
+              }
               if (url.indexOf('/api/bastidores/curadoria-derivar') !== -1) {
                 pedidos.push({ rota: 'derivar', corpo });
                 return Promise.resolve({ ok: true, status: 201,
@@ -1904,14 +1919,19 @@ const RITMO = {
        * (`turmaVinculadaEmDerivacao`) devolvia `""` e a ficha entrava sem pergunta e sem palavra.
        * Agora o cliente pergunta na mesma, e é o servidor que responde. */
       const cDesencontro = await correrON(true, null, htmlSemPares);
-      conferir('mesmo com o mapa do cliente a dizer «sem plano», o cliente PERGUNTA ao servidor',
-        JSON.stringify(cDesencontro.w.eval('VINCULADAS')) === '{"cu-n":false}',
-        cDesencontro.w.eval('VINCULADAS'));
+      /* O MAPA DO CLIENTE JÁ NÃO É «false» NESTE PONTO: a rota `…/curadorias-estado` respondeu
+       * entretanto (é ela que valida o botão) e disse «vinculada». O que se mede passou a ser o
+       * que importa — que o PEDIDO de impacto foi feito sem o cliente olhar para o mapa. */
+      cDesencontro.w.eval('VINCULADAS["cu-n"] = false;');
       await cDesencontro.escolherEJuntar('Battement jeté');
+      conferir('o cliente PERGUNTA ao servidor o impacto, sem decidir pelo mapa',
+        cDesencontro.pedidos.some((p) => p.rota === 'impacto'),
+        cDesencontro.pedidos.map((p) => p.rota));
       conferir('…e a janela abre, porque quem decide é o servidor',
         Boolean(cDesencontro.modal() && !cDesencontro.modal().hidden),
         cDesencontro.modal() && cDesencontro.modal().hidden);
-      conferir('…e o pedido do impacto foi feito', cDesencontro.pedidos.length === 1,
+      conferir('…e o pedido do impacto foi feito',
+        cDesencontro.pedidos.filter((p) => p.rota === 'impacto').length === 1,
         cDesencontro.pedidos.map((p) => p.rota));
       cDesencontro.fechar();
 
@@ -1925,13 +1945,16 @@ const RITMO = {
       conferir('…e a ficha ainda NÃO existe antes do gesto', cVin.fichas().length === 0,
         cVin.fichas());
       await cVin.escolherEJuntar('Battement jeté');
+      /* SÓ OS PEDIDOS DE IMPACTO CONTAM: a página também fala com `…/curadorias-estado` no
+       * arranque (é ela que valida o botão «Atualizar o ciclo»), e essa conversa não é o gesto. */
+      const impactosDeVin = cVin.pedidos.filter((p) => p.rota === 'impacto');
       conferir('acrescentar o exercício pergunta ao servidor o que ele muda',
-        cVin.pedidos.length === 1 && cVin.pedidos[0].rota === 'impacto',
+        impactosDeVin.length === 1 && cVin.pedidos.filter((p) => p.rota === 'impacto').length === 1,
         cVin.pedidos.map((p) => p.rota));
       conferir('…e diz de que exercício e de que Turma se trata',
-        cVin.pedidos[0] && cVin.pedidos[0].corpo.termo === 'Battement jeté'
-          && cVin.pedidos[0].corpo.curadoria === 'cu-n',
-        cVin.pedidos[0] && cVin.pedidos[0].corpo);
+        impactosDeVin[0] && impactosDeVin[0].corpo.termo === 'Battement jeté'
+          && impactosDeVin[0].corpo.curadoria === 'cu-n',
+        impactosDeVin[0] && impactosDeVin[0].corpo);
       const mObj = cVin.modal();
       conferir('…e a janela abre', !!mObj);
       conferir('…e a FICHA AINDA NÃO ENTROU — o exercício só existe depois de declarado',
@@ -2049,6 +2072,23 @@ const RITMO = {
       conferir('a Turma com plano tem o botão «Atualizar o ciclo»',
         Boolean(cBotao.d.querySelector('[data-ciclo-atualizar="cu-n"]')),
         String((cBotao.d.querySelector('[data-acoes-da-turma="cu-n"]') || {}).textContent || ''));
+      /* O BOTÃO NASCE APAGADO E A ROTA É QUE O ABRE (20/11/2026). A ordem é a segura — um botão
+       * que nasce ligado gasta um ciclo inteiro no primeiro clique —, e o preço dela é este
+       * instante: até a resposta de `…/curadorias-estado` chegar, não há prova de que valha a pena.
+       *
+       * O QUE SE MEDE É O FIM: a resposta com `mudou: [régua]` deixa o botão LIGADO, com o «!» e
+       * com a frase do que mudou no `title`. Sem isto, o botão ficaria morto para sempre numa
+       * página cujo JavaScript não chegasse a correr. */
+      const botaoDoCiclo = cBotao.d.querySelector('[data-ciclo-atualizar="cu-n"]');
+      conferir('…e depois da validação ele fica LIGADO',
+        Boolean(botaoDoCiclo) && botaoDoCiclo.disabled === false,
+        botaoDoCiclo && botaoDoCiclo.disabled);
+      conferir('…e traz o «!» do que mudou',
+        Boolean(botaoDoCiclo && botaoDoCiclo.querySelector('.selo.alerta')),
+        botaoDoCiclo && botaoDoCiclo.innerHTML);
+      conferir('…e o `title` diz só o que mudou — «A régua foi modificada»',
+        Boolean(botaoDoCiclo) && /A régua foi modificada/.test(botaoDoCiclo.getAttribute('title') || ''),
+        botaoDoCiclo && botaoDoCiclo.getAttribute('title'));
       /* A NOTA FIXA SAIU DO CARTÃO (20/11/2026): «Tira esse texto, não tem que existir esse texto.
        * […] Essa mensagem […] tem que existir quando ajustes são feitos nesses lugares, tá? Aí sim
        * é que aparece lá no canto superior direito.» O botão fica — é a porta que ela pediu —, e o

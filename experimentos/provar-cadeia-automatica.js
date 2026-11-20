@@ -161,7 +161,7 @@ const curadoria = (extra) => Object.assign({
 
 /** A cadeia, com escritores espiões. As curadorias vivem no KV e são lidas de lá. */
 function montar({ linhas = [elenco()], curadorias = [curadoria()], temPlano = true, temPo = true,
-  pendencias = null } = {}) {
+  pendencias = null, regua = null, tradicao = null } = {}) {
   const kv = kvDeMentira({ ['bastidores/' + ESCOLA + '/curadorias']: JSON.stringify(curadorias) });
   const visto = { planos: [], pos: [], conclusoes: [], disparos: [] };
   const arm = criarMemoria();
@@ -188,6 +188,10 @@ function montar({ linhas = [elenco()], curadorias = [curadoria()], temPlano = tr
     lerTurmas: async () => [{ nome: TURMA }],
     lerLinhasDeBase: async () => linhas,
     linhaDeBaseDaTurma: async () => linhas[0] || null,
+    /* OS DOIS LEITORES DO CADASTRO QUE O BOTÃO PROMETE (20/11/2026) — ver `criarCadeia`. São
+     * opcionais: sem eles a derivação comporta-se como antes (a fotografia do elo anterior). */
+    reguaDaSala: regua === null ? undefined : (async () => regua),
+    tradicaoDoProfessor: tradicao === null ? undefined : (async () => tradicao),
     kv, escola: ESCOLA,
     urlDaPorta: (base, contexto, extra) => base,
   });
@@ -1187,6 +1191,106 @@ async function ids(arm, familia) {
     });
     provar('a segunda passagem, com a declaração já no plano, NÃO empilha elo',
       (await ids(c.arm, 'plano')).length === antes, { antes, depois: (await ids(c.arm, 'plano')).length });
+  }
+
+  // ==========================================================================
+  /* L. A RÉGUA E A TRADIÇÃO RELIDAS — o botão só é honesto se a derivação as levar
+   * ==========================================================================
+   *
+   * O DEFEITO QUE ISTO MEDE, e ele é o outro lado do botão «Atualizar o ciclo». A régua viaja no
+   * envelope do plano como FOTOGRAFIA, e a tradição também (a resposta `contexto-metodologia`).
+   * `derivarPlano` copiava as respostas do elo anterior e só relia o RITMO — portanto um elo novo
+   * nascia com a régua e a tradição VELHAS. O botão acendia, derivava, e o documento saía igual.
+   *
+   * A REGRA É A MESMA QUE JÁ GOVERNA O RITMO, e está escrita no mesmo ficheiro: um campo
+   * `deContexto` não é uma decisão do professor, é a leitura de um cadastro que mudou.
+   */
+  console.log('\nL. A RÉGUA E A TRADIÇÃO RELIDAS DO CADASTRO (o outro lado do botão)');
+
+  {
+    const REGUA_VELHA = ['Satisfatório', 'Razoável', 'Em desenvolvimento', 'Não se aplica'];
+    const REGUA_NOVA = ['Ótimo', 'Bom', 'Em progresso'];
+    /* A fixture do plano não declara `rubrica` nem `contexto-metodologia`; acrescentam-se para o
+     * caso ser o real. O `contexto-modalidade` idem — é a chave que o perfil indexa. */
+    const semearComRegua = async (arm, id, geradoEm, { rubrica, metodologia }) => {
+      const env = planoFixture(id, { geradoEm });
+      env.respostas.rubrica = r(rubrica);
+      env.respostas['contexto-metodologia'] = r(metodologia);
+      env.respostas['contexto-modalidade'] = r('bale-classico');
+      await porta.gravarEnvelope(arm, env, relatorioDe(id));
+    };
+
+    const c = montar({ regua: REGUA_NOVA, tradicao: ['Francesa'] });
+    const poId = 'po-20261103-2221';
+    await semearComRegua(c.arm, 'plano-20261103-2200', '2026-11-03T22:00',
+      { rubrica: REGUA_VELHA, metodologia: 'RAD' });
+    await porta.gravarEnvelope(c.arm, poFixture(poId, { planoId: 'plano-20261103-2200',
+      geradoEm: '2026-11-03T22:21' }), relatorioDe(poId));
+
+    const rr = await c.cadeia.executar({
+      gatilho: 'atualizacao-pedida', turmas: [TURMA], quando: QUANDO,
+      motivo: 'o professor pediu para levar a Turma ao ciclo agora',
+    });
+    const novoId = c.visto.planos[0];
+    const novo = novoId ? await porta.lerEnvelope(c.arm, novoId) : null;
+    const valor = (chave) => {
+      const cru = novo && novo.respostas && novo.respostas[chave];
+      return cru && typeof cru === 'object' && !Array.isArray(cru) && 'valor' in cru ? cru.valor : cru;
+    };
+
+    provar('a travessia derivou um elo novo', Boolean(novo), { erro: rr.erro, planos: c.visto.planos });
+    provar('…e o elo novo traz a RÉGUA de hoje, e não a fotografia do anterior',
+      JSON.stringify(valor('rubrica')) === JSON.stringify(REGUA_NOVA), valor('rubrica'));
+    provar('…e a TRADIÇÃO que o perfil declara hoje',
+      String(valor('contexto-metodologia')) === 'Francesa', valor('contexto-metodologia'));
+    provar('…e o aviso diz que a régua mudou, em vez de a trocar em silêncio',
+      (rr.avisos || []).some((a) => /régua do plano passou a ser a da Sala/.test(a)), rr.avisos);
+    provar('…e o mesmo para a tradição',
+      (rr.avisos || []).some((a) => /tradição do plano passou a ser/.test(a)), rr.avisos);
+    /* O ELO ANTERIOR não é tocado: a proveniência acrescenta. */
+    const antigo = await porta.lerEnvelope(c.arm, 'plano-20261103-2200');
+    const valorAntigo = (() => {
+      const cru = antigo && antigo.respostas && antigo.respostas.rubrica;
+      return cru && typeof cru === 'object' && 'valor' in cru ? cru.valor : cru;
+    })();
+    provar('…e o elo ANTERIOR continua a dizer a régua que valia (o passado não se reescreve)',
+      JSON.stringify(valorAntigo) === JSON.stringify(REGUA_VELHA), valorAntigo);
+
+    /* CONTROLE NEGATIVO 1: sem os leitores, nada muda — é o comportamento de antes, e ele não pode
+     * ter sido quebrado por acidente. */
+    const semLeitores = montar({});
+    await semearComRegua(semLeitores.arm, 'plano-20261103-2200', '2026-11-03T22:00',
+      { rubrica: REGUA_VELHA, metodologia: 'RAD' });
+    await porta.gravarEnvelope(semLeitores.arm, poFixture(poId,
+      { planoId: 'plano-20261103-2200', geradoEm: '2026-11-03T22:21' }), relatorioDe(poId));
+    await semLeitores.cadeia.executar({
+      gatilho: 'atualizacao-pedida', turmas: [TURMA], quando: QUANDO, motivo: 'sem leitores' });
+    const semNovoId = semLeitores.visto.planos[0];
+    const semNovo = semNovoId ? await porta.lerEnvelope(semLeitores.arm, semNovoId) : null;
+    const valorSem = (() => {
+      const cru = semNovo && semNovo.respostas && semNovo.respostas.rubrica;
+      return cru && typeof cru === 'object' && 'valor' in cru ? cru.valor : cru;
+    })();
+    provar('CONTROLE: sem os leitores, a régua do elo novo é a do anterior (comportamento antigo)',
+      JSON.stringify(valorSem) === JSON.stringify(REGUA_VELHA), valorSem);
+
+    /* CONTROLE NEGATIVO 2: `null` é «não sei», e não é «apagar». Um perfil que não se pronuncia
+     * deixa o método do plano como está. */
+    const semSaber = montar({ regua: null, tradicao: null });
+    await semearComRegua(semSaber.arm, 'plano-20261103-2200', '2026-11-03T22:00',
+      { rubrica: REGUA_VELHA, metodologia: 'RAD' });
+    await porta.gravarEnvelope(semSaber.arm, poFixture(poId,
+      { planoId: 'plano-20261103-2200', geradoEm: '2026-11-03T22:21' }), relatorioDe(poId));
+    await semSaber.cadeia.executar({
+      gatilho: 'atualizacao-pedida', turmas: [TURMA], quando: QUANDO, motivo: 'não sei' });
+    const semSaberId = semSaber.visto.planos[0];
+    const semSaberNovo = semSaberId ? await porta.lerEnvelope(semSaber.arm, semSaberId) : null;
+    const metodoSemSaber = (() => {
+      const cru = semSaberNovo && semSaberNovo.respostas && semSaberNovo.respostas['contexto-metodologia'];
+      return cru && typeof cru === 'object' && 'valor' in cru ? cru.valor : cru;
+    })();
+    provar('CONTROLE: «não sei» não apaga o que está escrito (a tradição fica RAD)',
+      String(metodoSemSaber) === 'RAD', metodoSemSaber);
   }
 
   console.log('\n' + (falhas === 0

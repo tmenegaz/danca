@@ -576,11 +576,64 @@ async function montarCadeia(env, escola, fetchImpl) {
     linhaDeBaseDaTurma, anamnesesDaTurma, conteudoPO,
   });
 
+  /* A RÉGUA E A TRADIÇÃO DE HOJE, PARA A DERIVAÇÃO RELER (20/11/2026) — ver `criarCadeia`.
+   *
+   * AS DUAS USAM AS MESMAS FUNÇÕES QUE A PÁGINA E A VALIDAÇÃO DO BOTÃO USAM, e é isso que as
+   * torna fiáveis: a régua é `bastidores.rubricaDaTurma` (a MESMA que o cartão da Sala mostra), e a
+   * tradição é o perfil do professor lido pelo mesmo `lerPerfil` da rota das habilitações. Uma
+   * segunda leitura da mesma coisa divergiria da primeira no dia em que o catálogo mudasse.
+   *
+   * `null` QUANDO NÃO SE SABE, e o `derivarPlano` trata-o como «não mexas»: um KV sem a lista das
+   * rubricas, ou um perfil que não responde, deixam o elo anterior como está. */
+  const reguaDaSala = async (turma) => {
+    try {
+      const nome = String(turma || '').trim();
+      if (!nome) return null;
+      const listaDeRubricas = await lerLista('rubricas');
+      const listaDeProfs = await lerLista('professores');
+      let registoDoDono = null;
+      try {
+        const bruto = kv ? await kv.get('bastidores/' + escola + '/dono') : null;
+        registoDoDono = bruto ? JSON.parse(bruto) : null;
+      } catch (erro) { registoDoDono = null; }
+      const donoSlug = bastidores.slugDoDono(env);
+      const reguasDosProfs = bastidores.rubricasDosProfessores(
+        listaDeProfs, registoDoDono, donoSlug);
+      const sala = (await lerTurmas(escola)).find((t) => t && !t.substituidaPor
+        && String(t.nome || '') === nome) || null;
+      if (!sala) return null;
+      const niveis = bastidores.rubricaDaTurma(sala, listaDeRubricas, reguasDosProfs);
+      return Array.isArray(niveis) && niveis.length ? niveis : null;
+    } catch (erro) { return null; }
+  };
+  const tradicaoDoProfessor = async (slug, modalidade) => {
+    try {
+      const alvo = String(slug || '').trim();
+      if (!alvo) return null;
+      const { lerPerfil } = require('./perfil-professor.js');
+      const r = await lerPerfil({ f: fetchImpl, token: (env && env.GITHUB_TOKEN) || null,
+        dono: 'tmenegaz', repo: 'danca', ref: 'main', slug: alvo });
+      const perfil = r && r.ok ? r.perfil : null;
+      if (!perfil || !perfil.tradicoes) return null;
+      const chave = require('../nucleo/perfil-do-professor.js').idDaModalidade(modalidade);
+      /* A CHAVE TEM DE EXISTIR: o perfil distingue «não ensina nenhuma tradição» (`[]`) de «ainda
+       * não foi perguntado» (a chave ausente). Só a primeira é uma declaração — e mesmo essa não
+       * reescreve o método de um plano já escrito, porque apagar pedagogia do papel é decisão de
+       * quem ensina, não de uma leitura. Devolver `null` deixa o elo como está. */
+      if (!chave || !Object.prototype.hasOwnProperty.call(perfil.tradicoes, chave)) return null;
+      const lista = Array.isArray(perfil.tradicoes[chave]) ? perfil.tradicoes[chave] : [];
+      if (!lista.length) return null;
+      const rotulo = require('./catalogo-seed.js').rotuloDaTradicao || ((x) => x);
+      return lista.map((t) => rotulo(t) || t);
+    } catch (erro) { return null; }
+  };
+
   return criarCadeia({
     armazenamento, porta: portaNucleo, conteudo, conteudoPlano, conteudoPO, esquema,
     carimbar: () => carimbarAgora((env && env.FUSO) || FUSO_PADRAO),
     escreverPlano, escreverPO, escreverCiclo, disparar, geracao, concluirPO,
     lerCuradorias, lerTurmas, lerLinhasDeBase, linhaDeBaseDaTurma, lerProfessores,
+    reguaDaSala, tradicaoDoProfessor,
     kv, escola,
     orcamento: (fetchImpl && fetchImpl.subpedidos) || null,
     urlDaPorta: bastidores.urlDaPorta,

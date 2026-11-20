@@ -185,6 +185,10 @@ const nucleoCadeia = require('../nucleo/cadeia.js');
 const volume = require('../nucleo/volume.js');
 /* A declaração do objetivo — a que exercício serve o exercício novo na Turma (20/11/2026). */
 const objetivosDoRepertorio = require('../nucleo/objetivos-do-repertorio.js');
+/* O QUE MUDOU DESDE O ÚLTIMO CICLO (20/11/2026) — a validação que o botão «Atualizar o ciclo» faz
+ * antes de existir. O pedido é dela: «não vai gastar recurso à toa […] só vai habilitar e colocar
+ * esse ponto de exclamação se realmente passou na validação e é uma mudança legítima.» */
+const oQueMudouNucleo = require('../nucleo/o-que-mudou.js');
 const desligamento = require('../nucleo/desligamento.js');
 // OS TRÊS ESTADOS DA TURMA (03/11/2026) — livre, curada, vinculada. O professor já tinha três
 // (livre → curado → vinculado) e a turma tinha dois: uma turma que já compunha uma curadoria
@@ -2285,6 +2289,106 @@ async function planoDaTurmaNaSala(env, escola, turma, professores) {
 }
 
 /**
+ * O QUE MUDOU DESDE O ÚLTIMO CICLO, PARA UMA TURMA (20/11/2026) — a validação do botão.
+ *
+ * A PERGUNTA. «Você olha lá no plano de ensino ou no plano de observação ou no documento que o
+ * ciclo gerou e vê se está diferente. Se aquele campo ali, aquela chave valor, estiverem
+ * diferentes, aí sim vai para o item atualizar ciclo.»
+ *
+ * CONTRA O QUE SE COMPARA: o **plano de ensino vigente** desta Turma, que é o documento de onde a
+ * geração lê tudo o que se imprime (a régua, a lista de conteúdos, a tradição). O plano de
+ * observação não é preciso: ele observa o plano, e um elo novo de PO nasce com o do plano na mesma
+ * travessia.
+ *
+ * OS TRÊS ITENS, e cada um tem a sua fonte de HOJE e a sua fonte NO PAPEL:
+ *
+ *   · a **régua** — hoje: `rubricaDaTurma` da Sala (KV); no papel: a resposta `rubrica`.
+ *   · o **conteúdo do Estilo** — hoje: o `repertorio` da Turma; no papel: o `repertorio` do plano.
+ *   · a **habilidade do professor** — hoje: a tradição que o perfil dele declara para a modalidade
+ *     que o plano ensina; no papel: a resposta `contexto-metodologia`.
+ *
+ * PORQUE A HABILIDADE É A TRADIÇÃO, E NÃO A LISTA DE MODALIDADES. A lista de modalidades não
+ * chega ao papel: quem muda de modalidade muda de parâmetro (a régua vem com o par), e a cadeia
+ * PÁRA nesse caso de propósito — «quem dirige escreve o plano dele» (T3). Ganhar uma modalidade
+ * também não muda documento nenhum: a Sala continua a declarar a que tem. O que o plano imprime é
+ * a TRADIÇÃO, e é ela que uma mudança no perfil deixa a mentir.
+ *
+ * O QUE ELE DEVOLVE, e o significado de cada campo:
+ *   · `mudou` — a lista do que difere, na ordem do núcleo;
+ *   · `podeAtualizar` — `false` só quando a comparação correu e não achou diferença;
+ *   · `leu` — se as duas leituras caras (o plano e o perfil) responderam;
+ *   · `motivo` — a frase para o `title` quando não se pode comparar.
+ *
+ * CUSTO: uma leitura do plano e uma do perfil por Turma com plano, e nenhuma escrita. É o preço de
+ * não gastar um ciclo inteiro; e o `perfil` é lido uma vez por professor, não uma vez por Turma.
+ */
+async function estadoDoCicloDaTurma(env, escola, c, deps) {
+  const d = deps || {};
+  const turmas = Array.isArray(d.turmas) ? d.turmas : [];
+  const nomeDaSala = (turmasDaCuradoria(c)[0] || '').trim();
+  const sala = nomeDaSala ? turmaVigentePorNome(turmas, nomeDaSala) : null;
+  /* O PROFESSOR QUE DIRIGE HOJE é o da SALA (19/11/2026), com a cópia da Turma como recurso — a
+   * mesma ordem de `planoDaTurmaNaSala` e de `professorEfetivo`. */
+  const professor = String((sala && sala.professor) || (c && c.professor) || '').trim();
+
+  const achado = await planoDaTurmaNaSala(env, escola, nomeDaSala, [professor, String((c && c.professor) || '').trim()]);
+  if (!achado.leu) {
+    return { mudou: [], podeAtualizar: true, leu: false,
+      motivo: 'Não consegui ler o plano de ensino agora — atualizar deriva-o na mesma.' };
+  }
+  if (!achado.plano) {
+    /* SEM PLANO NÃO HÁ O QUE COMPARAR, e não há ciclo a atualizar — há um plano por nascer. O
+     * botão nem existe neste caso (`vinculada` é falso quando não há par), portanto isto é a
+     * defesa para o dia em que o par e o plano discordarem. */
+    return { mudou: [], podeAtualizar: false, leu: true,
+      motivo: 'Esta Turma ainda não tem plano de ensino — o primeiro nasce na porta' };
+  }
+  const plano = achado.plano;
+  const valorDe = (id) => {
+    const cru = (plano.respostas && plano.respostas[id]) || null;
+    return cru && typeof cru === 'object' && !Array.isArray(cru) && 'valor' in cru ? cru.valor : cru;
+  };
+
+  /* A RÉGUA DE HOJE — a mesma função que o cartão da Sala usa, com a lista das rubricas e a régua
+   * de cada professor. Sem a Sala não há régua: a comparação cala-se. */
+  const reguaDeHoje = sala && typeof rubricaDaTurma === 'function'
+    ? rubricaDaTurma(sala, d.rubricas, d.rubricasDosProfs) : [];
+
+  /* A TRADIÇÃO DE HOJE — do PERFIL, que é onde ela se declara (18/11/2026: «a tradição não se lê do
+   * registo, lê-se da sala»). O `d.perfil` já vem resolvido por quem chama, e é `null` quando o
+   * perfil não diz nada desta modalidade — o que, para esta conta, é «não sei», e não «nenhuma». */
+  const perfil = d.perfil || null;
+  const modalidadeDoPlano = String((plano.contexto && plano.contexto.modalidade) || '').trim();
+  /* O PLANO GUARDA O RÓTULO ("Balé clássico") e o PERFIL indexa pelo id ("bale-classico"). A
+   * tradução é a do núcleo, que já ignora acentos e caixa — a mesma que a tela usa. */
+  const modalidadeDoPerfil = perfilNucleo.idDaModalidade(modalidadeDoPlano) || modalidadeDoPlano;
+  let tradicaoDeHoje = [];
+  if (perfil && modalidadeDoPerfil && perfil.tradicoes
+      && Object.prototype.hasOwnProperty.call(perfil.tradicoes, modalidadeDoPerfil)) {
+    const lista = Array.isArray(perfil.tradicoes[modalidadeDoPerfil]) ? perfil.tradicoes[modalidadeDoPerfil] : [];
+    tradicaoDeHoje = lista.map((t) => rotuloDaTradicao(t) || t);
+  }
+
+  const veredito = oQueMudouNucleo.oQueMudou({
+    hoje: {
+      rubrica: reguaDeHoje,
+      /* O CONTEÚDO DA TURMA, lido como lista de termos — a mesma função da cadeia
+       * (`repertorioDaCuradoria`), para o botão e a derivação não julgarem por critérios
+       * diferentes. */
+      repertorio: objetivosDoRepertorio.termosLimpios(c && c.repertorio),
+      metodologia: tradicaoDeHoje,
+    },
+    documento: {
+      rubrica: valorDe('rubrica'),
+      repertorio: valorDe('repertorio'),
+      metodologia: valorDe('contexto-metodologia'),
+    },
+  });
+  return { mudou: veredito.mudou, podeAtualizar: !veredito.igual, leu: true, motivo: null,
+    plano: String(plano.id || '') };
+}
+
+/**
  * AS ALUNAS QUE JÁ TÊM ANAMNESE (26/10/2026) — o conjunto que apaga a marca «nova».
  *
  * O que a marca dizia e o que passou a dizer. Ela nasceu para avisar «esta aluna ainda não tem
@@ -2781,7 +2885,7 @@ function seloDaCuradoria(vinculada) {
     : '<span class="selo livre" title="ainda não nasceu o plano de ensino desta curadoria; pode ser corrigida">livre</span>';
 }
 
-function acoesDaCuradoria(c, vinculada) {
+function acoesDaCuradoria(c, vinculada, estado) {
   const botao = vinculada
     ? '<button class="ajustar acao pequena" data-curadoria-ajustar="' + esc(c.id) + '" data-modo="derivar" ' +
       'title="Derivar: passa a valer a partir de uma data, e a anterior fica no histórico">Derivar</button>'
@@ -2791,21 +2895,68 @@ function acoesDaCuradoria(c, vinculada) {
     ? '<button class="acao secundario pequena" disabled title="Vinculada a um plano de ensino: não se apaga">Excluir</button>'
     : '<button class="apagar acao perigo pequena" data-tipo="curadoria" data-alvo="' + esc(c.id) +
       '" title="Remover turma">Excluir</button>';
-  /* «ATUALIZAR O CICLO» — A AUTONOMIA QUE ELA PEDIU (20/11/2026).
+  /* «ATUALIZAR O CICLO» — A AUTONOMIA QUE ELA PEDIU, COM A TRAVA QUE ELA PEDIU DEPOIS
+   * (20/11/2026).
    *
    * «se ele quiser que seja gerado agora, a gente vai colocar um botão na turma que dispara então a
    * regeneração». Só existe na Turma COM plano, porque é para ela que a pergunta tem sentido: sem
    * plano não há ciclo a atualizar — há um plano por nascer.
    *
-   * O NOME. «Regeneração» descreve o mecanismo; «Atualizar o ciclo» descreve o que a pessoa leva.
-   * E diz o que muda: o ciclo que ela lê passa a ter o que a Turma declara hoje — a régua, o
-   * conteúdo, o dicionário —, que sem este clique só entra quando um plano novo nascer. */
-  const atualizar = vinculada
-    ? ' <button class="atualizar-ciclo acao secundario pequena" data-ciclo-atualizar="' + esc(c.id) + '"' +
-      ' title="Levar ao ciclo o que esta Turma declara hoje — a régua, o conteúdo, o dicionário. ' +
-      'Deriva um plano novo e gera os documentos.">Atualizar o ciclo</button>'
-    : '';
+   * E O BOTÃO ESTÁ DESABILITADO ATÉ HAVER PROVA DE QUE MUDOU ALGUMA COISA. A frase dela: «Esse botão
+   * de atualizar ciclo precisa de uma validação, a gente não vai gastar recurso à toa. […] Só vai
+   * habilitar e colocar esse ponto de exclamação se realmente passou na validação e é uma mudança
+   * legítima, quer dizer, é diferente do que o que está gravado.»
+   *
+   * O `estado` vem de `estadoDoCicloDaTurma`, que compara o que a Turma declara hoje com o que o
+   * plano vigente carrega (`motor/nucleo/o-que-mudou.js`). `estado` ausente é o estado do DESENHO
+   * — o cartão nasce com o botão apagado, porque ainda não se comparou nada, e a repintura da rota
+   * `…/curadorias-estado` traz a resposta. A ordem é a segura: um botão que nasce ligado gasta à
+   * toa no primeiro clique; um que nasce apagado só custa um instante até a rota responder.
+   *
+   * O `title` DIZ SÓ O QUE MUDOU. É a ordem dela, e ela mandou apagar o texto antigo: «Esse texto
+   * que você deixou quando coloca o mouse sobre pode tirar também […] Só coloca a informação do que
+   * foi modificado.» Num botão apagado, o `title` diz por que não há nada a fazer — um botão morto
+   * sem explicação é a mesma família de silêncio que este sistema evita.
+   *
+   * NÃO SABER NÃO É «NADA MUDOU» (a mesma doutrina do `leu` da janela do exercício). Se a
+   * comparação não pôde ser feita — o plano não foi lido, o perfil não respondeu —, o botão fica
+   * LIGADO: sem prova de igualdade, quem pede para atualizar é atendido. O contrário deixaria a
+   * pessoa sem saída por causa de uma leitura falhada. */
+  const atualizar = vinculada ? botaoDeAtualizar(c, estado) : '';
   return botao + atualizar + excluir;
+}
+
+/**
+ * O BOTÃO, COM O «!» E A FRASE DO QUE MUDOU — uma função só, porque ele tem dois desenhos (o do
+ * cartão e o da repintura) e duas cópias divergiriam no primeiro ajuste.
+ *
+ * O «!» é o `selo alerta` que a casa já usa para a revisão da Turma: a mesma peça, o mesmo `role`
+ * e o mesmo `title`, para não haver um segundo sinal a significar a mesma coisa.
+ */
+function botaoDeAtualizar(c, estado) {
+  const e = estado && typeof estado === 'object' ? estado : null;
+  /* SEM ESTADO É O DESENHO DO CARTÃO, e ele nasce APAGADO — a comparação custa uma leitura do
+   * plano e uma do perfil, e não se paga duas vezes por carregamento de página: quem a faz é a rota
+   * `…/curadorias-estado`, que já é chamada no arranque e repinta as acções com o HTML daqui. A
+   * frase do estado por comparar é curta e some com a resposta. */
+  if (!e) {
+    return ' <button class="atualizar-ciclo acao secundario pequena" data-ciclo-atualizar="' + esc(c.id) +
+      '" disabled title="A verificar se algo mudou desde o último ciclo…">Atualizar o ciclo</button>';
+  }
+  const mudou = Array.isArray(e.mudou) ? e.mudou : [];
+  const frase = oQueMudouNucleo.fraseDoQueMudou(mudou);
+  /* `podeAtualizar === false` é a única coisa que apaga o botão, e ela só existe quando a
+   * comparação CORREU e disse «é igual». Todo o resto — não li, não sei — deixa-o ligado. */
+  const igual = e.podeAtualizar === false;
+  const titulo = igual
+    ? 'Nada mudou desde o último ciclo — não há o que atualizar'
+    : (frase || e.motivo || '');
+  const selo = mudou.length ? '<span class="selo alerta" role="img" title="' + esc(frase) +
+    '" aria-label="' + esc(frase) + '">!</span>' : '';
+  return ' <button class="atualizar-ciclo acao secundario pequena" data-ciclo-atualizar="' + esc(c.id) + '"' +
+    (igual ? ' disabled' : '') +
+    (titulo ? ' title="' + esc(titulo) + '"' : '') +
+    '>Atualizar o ciclo' + selo + '</button>';
 }
 
 /**
@@ -7166,7 +7317,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
             ? ' title="' + esc(revisaoDaTurma.texto) + '" aria-label="' + esc(revisaoDaTurma.texto) + '"'
             : ' hidden')
           + '>!</span>';
-        const botaoAjuste = acoesDaCuradoria(c, vinculada);
+        /* O `estado` FICA A `null` NO DESENHO (20/11/2026) — ver `botaoDeAtualizar`: o botão
+         * «Atualizar o ciclo» nasce apagado e a validação chega pela rota `…/curadorias-estado`,
+         * que já repinta este mesmo pedaço de HTML. Uma comparação por cartão, num carregamento de
+         * página, seria uma leitura do plano e uma do perfil por Turma — pagas por quem só quer
+         * ver a lista. */
+        const botaoAjuste = acoesDaCuradoria(c, vinculada, null);
         /* A NOTA FIXA SAIU DO CARTÃO (20/11/2026) — e a ordem foi dela, olhando para a lista:
          *
          *   «Nas turmas atribuídas, na listagem aqui das turmas, você colocou um texto aqui que diz
@@ -8682,6 +8838,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<p class="sub" id="hab-nota">Escolha o professor para ver o que ele já declara.</p>' +
     '<div class="res" data-res="habilitacao"></div>' +
     '<span class="par-botoes">' +
+    /* O «CANCELAR» QUE FALTAVA (20/11/2026) — «Faltou incluir aqui nas habilitações dos professores,
+     * na aba habilitações, o botão cancelar. Ele tem o mesmo efeito dos demais.»
+     *
+     * A AUSÊNCIA ERA UM BURACO DE SIMETRIA, e ela viu-o porque é o único formulário desta página
+     * que não o tinha. O efeito é o de sempre (ver `cancelarAsHabilitacoes`): limpa o que foi mexido
+     * — devolvendo o que o professor declara, que é o estado de quando a aba abriu — e colapsa o
+     * formulário. Nasce oculto, e é `pintarCancelares` que o mostra com a secção aberta, como os
+     * outros cinco. */
+    '<button type="button" class="acao secundario" id="hab-cancelar" hidden>Cancelar</button>' +
     '<button type="submit" class="acao grande" id="hab-enviar">' + ROTULO_DO_GRAVAR + '</button>' +
     '</span>' +
     '</form>' +
@@ -10411,7 +10576,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * É UMA FUNÇÃO SÓ porque são seis secções, e a cópia que ficasse de fora seria a que ninguém
      * notaria até alguém desistir a meio de um cadastro e não ter por onde. */
     'var CANCELARES = [' +
-    '  ["sec-professores", ["prof-cancelar", "rubr-cancelar"]],' +
+    /* A TERCEIRA PEÇA DO MESMO FORMULÁRIO (20/11/2026): o cadastro, a régua e as habilitações. Os
+     * três abrem e fecham com a MESMA secção, e por isso os três cancelares aparecem juntos. */
+    '  ["sec-professores", ["prof-cancelar", "rubr-cancelar", "hab-cancelar"]],' +
     '  ["sec-alunas", ["aluna-cancelar-1", "aluna-cancelar-2"]],' +
     '  ["sec-turmas", ["t-cancelar", "vinc-cancelar"]],' +
     '  ["sec-corpo", ["lb-cancelar"]],' +
@@ -12672,6 +12839,28 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    .then(function(d){ if (d && d.ok !== false) pintarHabilitacoes(d); })' +
     '    .catch(function(){});' +
     '}' +
+    /* CANCELAR AS HABILITAÇÕES — o mesmo gesto dos outros, com uma peça a mais: DEVOLVER.
+     *
+     * O que ela pediu: «volta a ficar exatamente como era, o que já era o padrão de quando entrou em
+     * habilitações, e colapsa o formulário.» As duas metades são duas funções que já existem:
+     *
+     *   · `carregarHabilitacoes()` RELÊ o que o professor declara e repinta as caixas — é o estado
+     *     de quando a aba abriu, e é a única forma honesta de o repor. Limpar as caixas à mão daria
+     *     «não declara nada», que é uma DECLARAÇÃO e não um cancelamento;
+     *   · `cancelarOFormularioDe` fecha, que é o que os outros cinco cancelares fazem.
+     *
+     * A ORDEM IMPORTA: relê primeiro e fecha depois. Ao contrário, a leitura chegava a uma secção
+     * já recolhida — e, como ela não é destrutiva, o resultado parecia o mesmo; mas o dia em que a
+     * leitura passasse a depender de a secção estar à vista seria o dia em que o cancelamento
+     * deixaria de devolver. */
+    'function cancelarAsHabilitacoes(){' +
+    '  if (typeof carregarHabilitacoes === "function") carregarHabilitacoes();' +
+    '  recado("", "");' +
+    '  cancelarOFormularioDe("sec-professores");' +
+    '  if (typeof pintarCancelares === "function") pintarCancelares();' +
+    '}' +
+    'var habCancelar = document.getElementById("hab-cancelar");' +
+    'if (habCancelar) habCancelar.addEventListener("click", cancelarAsHabilitacoes);' +
     'var selHab = document.getElementById("hab-professor");' +
     'if (selHab) { selHab.addEventListener("change", carregarHabilitacoes); carregarHabilitacoes(); }' +
     'var formHab = document.getElementById("form-habilitacao");' +
@@ -15754,7 +15943,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  return fetch("/api/bastidores/curadorias-estado")' +
     '    .then(function(r){ return r.json(); })' +
     '    .then(function(d){' +
-    '      if (!d || !d.ok || !d.estados) return false;' +
+    /* UMA RESPOSTA QUE NÃO SE ENTENDE É UMA RESPOSTA QUE NÃO VEIO (20/11/2026): o botão não pode
+     * ficar preso apagado por um erro do servidor. Ver `libertarCiclosSemResposta`. */
+    '      if (!d || !d.ok || !d.estados) { libertarCiclosSemResposta(); return false; }' +
     '      Object.keys(d.estados).forEach(function(id){' +
     '        var e = d.estados[id];' +
     '        VINCULADAS[id] = !!e.vinculada;' +
@@ -15765,7 +15956,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      });' +
     '      return true;' +
     '    })' +
-    '    .catch(function(){ return false; });' +
+    '    .catch(function(){ libertarCiclosSemResposta(); return false; });' +
+    '}' +
+    /* A ROTA É QUE APAGA O BOTÃO — e uma rota que não responde não pode deixá-lo preso APAGADO.
+     *
+     * O botão nasce apagado («a verificar…»), porque sem comparação não há prova de que nada mudou.
+     * Se a resposta nunca chegar, o `disabled` ficaria para sempre e a pessoa perderia a única porta
+     * que leva a Turma ao ciclo — o pior desfecho possível de uma trava que existe para poupar.
+     *
+     * A REGRA É A MESMA DO `leu: false` no servidor: sem prova de igualdade, quem pede para
+     * atualizar é atendido. Aqui só se levanta o `disabled` do que já está na página; nada é
+     * desenhado de novo, e o `title` que lá está («a verificar…») é substituído pela frase honesta. */
+    'function libertarCiclosSemResposta(){' +
+    '  var botoes = document.querySelectorAll("[data-ciclo-atualizar]");' +
+    '  Array.prototype.slice.call(botoes).forEach(function(b){' +
+    '    if (!b.disabled) return;' +
+    '    b.disabled = false;' +
+    '    b.title = "Não consegui comparar com os documentos agora — atualizar deriva o plano na mesma.";' +
+    '  });' +
     '}' +
     /* E TAMBÉM NO ARRANQUE, DEPOIS DE A PÁGINA ESTAR MONTADA. O cartão já nasce certo — quem o
      * desenha é o servidor —, mas entre o desenho e o primeiro foco pode ter passado o tempo de
@@ -24637,14 +24845,57 @@ function parDaSalaNoCorpo(corpo, registo) {
     const pares = await paresComPlano(env, escola);
     let lista = [];
     try { lista = await curadorias(kv, escola); } catch (erro) { lista = []; }
+    /* O QUE MUDOU DESDE O ÚLTIMO CICLO ENTRA AQUI (20/11/2026), e não no desenho da página.
+     *
+     * A COMPARAÇÃO CUSTA DUAS LEITURAS — o plano vigente e o perfil do professor — por Turma com
+     * plano. A página é desenhada a cada carregamento, e fazê-la ali seria pagá-la sempre, inclusive
+     * a quem só quer ver a lista. Esta rota já é chamada no arranque e a cada foco (com freio de
+     * vinte segundos), e é ela que repinta as acções; é aqui que a validação do botão pertence.
+     *
+     * AS LISTAS SÃO LIDAS UMA VEZ para todas as Turmas (as salas, as rubricas, a régua de cada
+     * professor), e o perfil UMA VEZ POR PROFESSOR — um professor que dê duas Turmas custa uma
+     * leitura, não duas. */
+    const [salasTodas, rubricasTodas, todosOsProfs] = await Promise.all([
+      turmas(kv, escola).catch(() => []), rubricas(kv, escola).catch(() => []),
+      professores(kv, escola).catch(() => []),
+    ]);
+    const rubricasDosProfs = rubricasDosProfessores(todosOsProfs,
+      await registoDoDono(env, kv, escola), slugDoDono(env));
+    const perfisLidos = new Map();
+    const perfilDe = async (slug) => {
+      const alvo = String(slug || '').trim();
+      if (!alvo) return null;
+      if (perfisLidos.has(alvo)) return perfisLidos.get(alvo);
+      let corpo = null;
+      try {
+        const { lerPerfil } = require('./perfil-professor.js');
+        const r = await lerPerfil({ f: (u, o) => globalThis.fetch(u, o), token: env && env.GITHUB_TOKEN,
+          dono: 'tmenegaz', repo: 'danca', ref: 'main', slug: alvo });
+        corpo = r && r.ok ? (r.perfil || null) : null;
+      } catch (erro) { corpo = null; }
+      perfisLidos.set(alvo, corpo);
+      return corpo;
+    };
     const estados = {};
     for (const c of (Array.isArray(lista) ? lista : [])) {
       if (!c || !c.id) continue;
       const vinculada = curadoriaVinculadaA(pares, c);
+      let estado = null;
+      if (vinculada) {
+        const sala = turmaVigentePorNome(salasTodas, (turmasDaCuradoria(c)[0] || '').trim());
+        const professor = String((sala && sala.professor) || c.professor || '').trim();
+        estado = await estadoDoCicloDaTurma(env, escola, c, {
+          turmas: salasTodas, rubricas: rubricasTodas, rubricasDosProfs,
+          perfil: await perfilDe(professor),
+        });
+      }
       estados[String(c.id)] = {
         vinculada,
         selo: seloDaCuradoria(vinculada),
-        acoes: acoesDaCuradoria(c, vinculada),
+        acoes: acoesDaCuradoria(c, vinculada, estado),
+        // O ESTADO VAI CRU TAMBÉM (20/11/2026): a tela não precisa dele hoje, e quem o quiser
+        // amanhã — uma prova, um diagnóstico — não tem de o reconstruir a partir do HTML.
+        ciclo: estado,
       };
     }
     return json(200, { ok: true, escola, estados });
@@ -27887,6 +28138,19 @@ module.exports = {
    * não se via por uma rota: era a LEITURA a depender da montagem de uma escrita. A prova mede o
    * leitor contra um acervo de memória — a mesma composição que o Worker usa. */
   planoDaTurmaNaSala,
+  /* A RÉGUA DE UMA SALA e as listas que ela precisa (20/11/2026) — a validação do botão
+   * «Atualizar o ciclo» e a derivação usam a MESMA conta, e por isso ela é exportada em vez de
+   * recalculada em cada sítio. */
+  rubricaDaTurma,
+  rubricasDosProfessores,
+  estadoDoCicloDaTurma,
+  /* O BOTÃO E O SELO DA TURMA (20/11/2026). Exportados porque a prova os mede como FUNÇÃO — é a
+   * única forma de fixar os três estados (sem comparação, igual, mudou) sem depender de uma página
+   * inteira em jsdom para cada um. */
+  acoesDaCuradoria,
+  /* O slug de quem é dono da escola — a ponte precisa dele para montar a régua dos professores
+   * (`rubricasDosProfessores`), e a função é a mesma que a página usa. */
+  slugDoDono,
   /* O ESTILO REGERA OS DOCUMENTOS — exportado para a bancada (T5, 19/11/2026).
    *
    * O que se quer medir são duas decisões que não se vêem pelo resultado de uma rota: **que Turmas

@@ -1713,3 +1713,9 @@ experimentos/modelo-formulario/*
 # `Auditoria:` do commit, e um arquivo citado que não existe no clone é uma afirmação que ninguém
 # pode conferir.
 !experimentos/provar-as-rotas-da-cadeia.js
+# O BOTÃO «ATUALIZAR O CICLO» SÓ ACENDE QUANDO MUDOU (20/11/2026). A validação que ela pediu —
+# «não vai gastar recurso à toa» — vive num módulo de núcleo (`o-que-mudou.js`) e em três estados
+# de um botão; esta prova mede os três, as três comparações e o «Cancelar» das habilitações. É
+# citada no REGISTRO e no rodapé `Auditoria:` do commit, e um arquivo citado que não existe no
+# clone é uma afirmação que ninguém pode conferir.
+!experimentos/provar-o-que-mudou.js

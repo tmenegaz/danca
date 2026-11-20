@@ -52,6 +52,20 @@ function criarCadeia({
   armazenamento, porta, conteudo, conteudoPlano, conteudoPO, esquema, carimbar,
   escreverPlano, escreverPO, escreverCiclo, disparar, geracao, concluirPO,
   lerCuradorias, lerTurmas, lerLinhasDeBase, linhaDeBaseDaTurma, lerProfessores,
+  /* O QUE O CADASTRO DIZ HOJE E O PLANO GUARDAVA EM FOTOGRAFIA (20/11/2026).
+   *
+   * `reguaDaSala(turma)` devolve os níveis da régua que a Sala tem hoje — ou `null` quando não se
+   * sabe. `tradicaoDoProfessor(slug, modalidade)` devolve as tradições que o PERFIL dele declara
+   * para aquela modalidade — ou `null` quando ele não se pronunciou.
+   *
+   * OS DOIS EXISTEM PORQUE O BOTÃO PROMETE. «Atualizar o ciclo» acende quando a régua ou a
+   * habilidade do professor mudaram desde o último documento; se a derivação copiasse a fotografia
+   * do elo anterior, o botão derivaria um plano igual ao que lá estava e a promessa seria falsa —
+   * exactamente o «botão que promete e não faz» que o `forcar` veio corrigir do outro lado.
+   *
+   * `null` NÃO É «VAZIO», e a distinção é a mesma do ritmo: sem saber o valor de hoje, não se
+   * mexe no que está escrito. */
+  reguaDaSala, tradicaoDoProfessor,
   kv, escola, urlDaPorta, orcamento,
 }) {
   const chaveDoLog = RAIZ + '/' + escola + '/cadeia';
@@ -495,6 +509,59 @@ function criarCadeia({
      * A REGRA DE QUEM NÃO SE APLICA DUAS VEZES é do núcleo (`estadoDaDeclaracao`): um exercício que
      * a aula já usa não volta a ser declarado, e é isso que deixa o professor desmarcar no plano
      * sem que a Turma lhe reponha a marca em cada derivação. */
+    /* A RÉGUA E A TRADIÇÃO RELIDAS DO CADASTRO (20/11/2026) — a outra metade de cada «!" do botão
+     * «Atualizar o ciclo».
+     *
+     * O DEFEITO QUE ISTO FECHA, e ele foi medido ao vivo: a régua viaja no envelope do plano como
+     * FOTOGRAFIA, e a tradição também (a resposta `contexto-metodologia`). `derivarPlano` copiava
+     * as respostas do elo anterior e só relia o RITMO — portanto um elo novo nascia com a régua e a
+     * tradição VELHAS. O botão existia, acendia (com a comparação), e derivava um documento igual.
+     *
+     * A REGRA É A MESMA QUE JÁ GOVERNA O RITMO, e está escrita acima neste ficheiro: um campo
+     * `deContexto` não é uma decisão do professor, é a LEITURA DE UM CADASTRO que mudou; corrigi-lo
+     * num elo derivado é sincronizar a leitura com a fonte, e não reescrever o passado. O elo
+     * anterior fica intacto e continua a dizer os níveis e a tradição que valiam.
+     *
+     * O QUE NÃO VEM, NÃO SE TOCA (`null`): um cadastro que não responde — ou um perfil que não se
+     * pronuncia sobre aquela modalidade — deixa o valor do elo anterior como está. Apagar o que
+     * ninguém reescreveu seria pior do que ficar com uma fotografia antiga. */
+    const valorDeResposta = (id) => {
+      const cru = respostas[id];
+      return cru && typeof cru === 'object' && !Array.isArray(cru) && 'valor' in cru
+        ? cru.valor : cru;
+    };
+    let reguaAtualizada = null;
+    let tradicaoAtualizada = null;
+    if (typeof reguaDaSala === 'function' && turma) {
+      try {
+        const niveis = await reguaDaSala(turma);
+        if (Array.isArray(niveis) && niveis.length) {
+          const hoje = niveis.map((n) => String(n).trim()).filter(Boolean);
+          const noElo = (Array.isArray(valorDeResposta('rubrica')) ? valorDeResposta('rubrica') : [])
+            .map((n) => String(n).trim()).filter(Boolean);
+          if (hoje.length && hoje.join('\u0000') !== noElo.join('\u0000')) {
+            respostas['rubrica'] = Object.assign({}, respostas['rubrica'] || {},
+              { valor: hoje.slice() });
+            reguaAtualizada = hoje.slice();
+          }
+        }
+      } catch (erro) { /* não saber não é apagar: o elo anterior fica como está */ }
+    }
+    if (typeof tradicaoDoProfessor === 'function') {
+      try {
+        const modalidade = String(valorDeResposta('contexto-modalidade') || '').trim();
+        const professor = professorEfetivo(curadoria, sala);
+        const declaradas = await tradicaoDoProfessor(professor, modalidade);
+        if (Array.isArray(declaradas) && declaradas.length) {
+          const texto = declaradas.map((t) => String(t).trim()).filter(Boolean).join(' / ');
+          if (texto && texto !== String(valorDeResposta('contexto-metodologia') || '').trim()) {
+            respostas['contexto-metodologia'] = Object.assign({},
+              respostas['contexto-metodologia'] || {}, { valor: texto });
+            tradicaoAtualizada = texto;
+          }
+        }
+      } catch (erro) { /* idem */ }
+    }
     let declaracaoAplicada = null;
     /* A DECLARAÇÃO VEM DA TURMA, e não do pedido (20/11/2026) — o defeito era um botão que não
      * levava o que a Turma já declarava.
@@ -610,13 +677,22 @@ function criarCadeia({
       avisos.push('saiu do plano o que já não está no conteúdo da Turma: '
         + repertorioPodado.join(' · '));
     }
+    /* A RÉGUA E A TRADIÇÃO DIZEM-SE TAMBÉM (20/11/2026) — pela mesma razão da poda: um documento
+     * que muda de escala ou de método sem uma palavra é o sistema a decidir pedagogia em silêncio.
+     * Aqui ele não decide: relata o que o cadastro e o perfil já declaravam. */
+    if (reguaAtualizada) {
+      avisos.push('a régua do plano passou a ser a da Sala: ' + reguaAtualizada.join(' · '));
+    }
+    if (tradicaoAtualizada) {
+      avisos.push('a tradição do plano passou a ser a do perfil do professor: ' + tradicaoAtualizada);
+    }
     /* A DOSE SAIU DOS AVISOS (20/11/2026), e a razão é dela: numa aula de dança a música divide-se
      * em oito, portanto três séries são 3×8 tempos musicais — a série mede-se contra a MÚSICA, não
      * contra o relógio da aula. «Não tem relação com o tempo de trabalho. Ele vai dosar isso com o
      * que tem.» Mudar a duração não põe a dose em causa, e um aviso que a mandasse rever seria um
      * aviso falso. Ver `motor/nucleo/volume.js`. */
     return { ok: true, id: envelope && envelope.id, de: anterior.id, fonte, avisos, declaracaoAplicada,
-      repertorioPodado };
+      repertorioPodado, reguaAtualizada, tradicaoAtualizada };
   }
 
   /**

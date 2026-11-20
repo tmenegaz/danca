@@ -920,6 +920,30 @@ a etapa 4).
 geração. A §7.10 mede o gesto em 2 a 3 minutos. Ele existe para ser usado **poucas vezes** — o caso
 normal é a próxima derivação levar o que ficou — e é a autonomia que ela pediu em troca desse custo.
 
+**O botão passou a validar antes de existir (20/11/2026), e o custo caiu para quase nada.** Até aqui
+ele abria a travessia inteira a quem carregasse, mesmo quando os documentos já diziam o mesmo — um
+botão que gasta 2 a 3 minutos «para não mudar um byte». Agora compara três coisas antes de se abrir:
+a **régua** (a da Sala, em KV, contra a `rubrica` do plano), o **conteúdo** (o `repertorio` da Turma
+contra o do plano) e a **habilidade do professor** (a tradição do **perfil** contra a
+`contexto-metodologia` do plano). O que se lê: o plano vigente (uma leitura) e o perfil (uma por
+professor). O que não se lê: nada de novo em KV — a régua e o conteúdo já estão lá.
+
+O **dicionário** não entra nesta conta, e é o único dos quatro que ela nomeou que fica de fora: o
+corpo de um verbete não viaja no plano, portanto não há contra o que comparar. Ele já está coberto —
+gravar um verbete ou um termo regenera os documentos das Turmas que o usam (T5/T6, §7.9d) —, e um
+sinal a mais no botão acenderia para não apagar nada.
+
+**A habilitação do professor entrou no grupo, e não dispara sozinha.** Era o único dos quatro itens
+fora de todos os grupos: `POST /api/bastidores/perfil` grava o perfil, marca as Turmas que ficaram sem
+quem as ensine, e não avisa mais ninguém. É de propósito que continua a não disparar — «ele tem que
+ficar lá naquele grupo que é do botão atualizar ciclo lá nas turmas» —, e o custo é o de uma
+comparação, não o de uma geração.
+
+**E a derivação passou a entregar o que o botão promete.** A régua e a tradição viajam no envelope do
+plano como fotografia, e `derivarPlano` copiava as respostas relendo só o ritmo: o elo novo nascia com
+as duas velhas. O botão acendia, derivava, e o documento saía igual. Agora as duas são relidas do
+cadastro, e o elo anterior fica intacto.
+
 **A frase vai no GESTO, e não no cartão (20/11/2026).** Ela viu a nota fixa na listagem das Turmas e
 mandou-a embora: «Tira esse texto, não tem que existir esse texto. […] essa mensagem […] tem que
 existir quando ajustes são feitos nesses lugares, tá? Aí sim é que aparece lá no canto superior

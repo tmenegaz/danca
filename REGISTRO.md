@@ -56555,3 +56555,72 @@ sessão já pagou cinco vezes.
 
 **Com o quê.** `motor/servidor/cadeia.js` (`declaracoesDaVez`, a união das duas fontes);
 `provar-cadeia-automatica.js` (a secção K passa a correr o caminho do botão; 124 asserções).
+
+## 20/11/2026 — O botão «Atualizar o ciclo» passa a validar, e a habilitação do professor entra no grupo
+
+**A pergunta dela, e a resposta é «não tínhamos».** «Nós não temos um fluxo para professor quando ele
+incrementa a habilitação dele ou a tradição que ele ensina? Eu acho que não temos, né?» Confirmado no
+código: `POST /api/bastidores/perfil` grava o perfil, marca as Turmas que ficaram sem quem as ensine
+(`marcarTurmasSemHabilitacao`) e **mais nada**. Não dispara geração, não entra em cadeia nenhuma, não
+avisa ninguém. Era o único dos quatro itens que ela nomeou que estava fora de todos os grupos.
+
+**E não passa a disparar sozinho — passa a entrar no grupo do botão**, que é o que ela pediu: «Ele tem
+que ficar lá naquele grupo que é do botão atualizar ciclo lá nas turmas.» Mudar a tradição não gera
+documentos por si; acende o «!» do botão na Turma que o professor dirige, e quem decide é ele.
+
+**A validação, e porque é que ela era necessária.** «Esse botão de atualizar ciclo precisa de uma
+validação, a gente não vai gastar recurso à toa. […] Você olha lá no plano de ensino […] e vê se está
+diferente. […] E o botão atualizar ciclo […] tem que ficar desabilitado. Só vai habilitar e colocar
+esse ponto de exclamação se realmente passou na validação e é uma mudança legítima.»
+
+O botão existia desde a manhã e **não perguntava nada**: carregar nele abria a travessia inteira (um
+plano, um PO, uma geração — 2 a 3 minutos) mesmo quando os documentos já diziam exactamente o mesmo.
+Agora:
+
+| o item | valor de hoje | valor no papel |
+|:--|:--|:--|
+| **a régua** | `rubricaDaTurma` da Sala (KV) | a resposta `rubrica` do plano vigente |
+| **o conteúdo do Estilo** | o `repertorio` da Turma (KV) | a resposta `repertorio` do plano |
+| **a habilidade do professor** | a tradição que o **perfil** dele declara para a modalidade que o plano ensina | a resposta `contexto-metodologia` |
+
+**Três comparações, três regras que não são óbvias, e as três no núcleo** (`motor/nucleo/o-que-mudou.js`):
+a régua é uma **escala** e a ordem é o que ela mede (a mesma lista noutra ordem é uma mudança); o
+conteúdo é um **conjunto** e a ordem não significa nada (mas um exercício a entrar e outro a sair são
+duas mudanças, e as duas contam); e o **vazio nunca acusa** — um documento antigo que não declara o
+campo não é «diferente», e um professor generalista (`tradicoes: {modalidade: []}`) não acende o «!»
+para sempre.
+
+**E o dicionário não está nesta conta, de propósito.** O quarto item que ela nomeou não tem contra o
+que ser comparado: o corpo de um verbete **não viaja no plano de ensino** — o plano carrega o NOME do
+exercício, não a sua notação. Ele já tem o seu caminho desde 19/11: gravar um verbete ou um termo
+dispara a geração dos documentos das Turmas que o usam (`gerarOsCiclosDoTermo`), e é lá que a notação
+nova entra. Um item «dicionário modificado» no botão seria um sinal que acende e não apaga nada.
+
+**O outro lado do botão, e era o defeito que o tornava mentiroso.** A régua e a tradição viajam no
+envelope do plano como **fotografia**, e `derivarPlano` copiava as respostas do elo anterior relendo
+só o RITMO. Um elo novo nascia, portanto, com a régua e a tradição **velhas**: o botão acendia,
+derivava, e o documento saía igual. Agora a derivação relê as duas do cadastro (`reguaDaSala`,
+`tradicaoDoProfessor`), pela mesma doutrina que já governava o ritmo — um campo `deContexto` não é uma
+decisão do professor, é a leitura de um cadastro que mudou —, e o elo **anterior** fica intacto. `null`
+é «não sei», e não apaga: um perfil que não se pronuncia deixa o método do plano como está.
+
+**O desenho.** O botão nasce **apagado** e é a rota `…/curadorias-estado` que o abre — a comparação
+custa uma leitura do plano e uma do perfil por Turma, e não se paga a cada carregamento de página. O
+`title` diz **só o que mudou** («A régua foi modificada»), e o texto antigo — «Levar ao ciclo o que
+esta Turma declara hoje — a régua, o conteúdo, o dicionário» — saiu por ordem dela. **Não saber não é
+«nada mudou»**: se a comparação não corre, o botão fica **ligado** — sem prova de igualdade, quem pede
+para atualizar é atendido, e uma trava que existe para poupar não pode trancar a porta.
+
+**E o «Cancelar» que faltava nas habilitações.** «Faltou incluir aqui nas habilitações dos professores,
+na aba habilitações, o botão cancelar. […] volta a ficar exatamente como era, o que já era o padrão de
+quando entrou em habilitações, e colapsa o formulário.» O gesto tem duas metades e as duas já existiam:
+`carregarHabilitacoes()` **relê** o que o professor declara (limpar as caixas à mão daria «não declara
+nada», que é uma declaração e não um cancelamento) e `cancelarOFormularioDe` fecha. Nasce oculto e é
+`pintarCancelares` que o mostra, como os outros cinco.
+
+**Com o quê.** `motor/nucleo/o-que-mudou.js` (novo, puro); `motor/servidor/bastidores.js`
+(`estadoDoCicloDaTurma`, `botaoDeAtualizar`, `acoesDaCuradoria` com estado, a rota
+`…/curadorias-estado`, `cancelarAsHabilitacoes`, o botão `hab-cancelar`); `motor/servidor/cadeia.js`
+(a releitura da régua e da tradição em `derivarPlano`, e os dois avisos); `motor/servidor/producao.js`
+(os dois leitores na ponte); `provar-o-que-mudou.js` (novo, 34 asserções), `provar-cadeia-automatica.js`
+(secção L, 8 asserções novas) e `provar-salas-e-elencos.js` (o botão a abrir depois da validação, 3).
