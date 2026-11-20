@@ -115,6 +115,24 @@
       "tipo": "pertence_a"
     },
     {
+      "chave": "aula.ciclo_id",
+      "de": "aula:demi-plie/01/breu-rosa/13",
+      "para": "ciclo:demi-plie/01/breu-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:demi-plie/01/breu-rosa/14",
+      "para": "ciclo:demi-plie/01/breu-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ciclo_id",
+      "de": "aula:demi-plie/01/breu-rosa/15",
+      "para": "ciclo:demi-plie/01/breu-rosa",
+      "tipo": "pertence_a"
+    },
+    {
       "chave": "indice.aulas[].config",
       "de": "captura:demi-plie/01/breu-rosa/01",
       "para": "aula:demi-plie/01/breu-rosa/01",
@@ -249,13 +267,13 @@
   ],
   "ciclo": "demi-plie/01/breu-rosa",
   "contagens": {
-    "arestas": 40,
+    "arestas": 43,
     "marcas": 0,
-    "nos": 38,
+    "nos": 41,
     "porTipo": {
       "ancora": 2,
       "aspecto": 8,
-      "aula": 12,
+      "aula": 15,
       "captura": 1,
       "ciclo": 1,
       "documento": 8,
@@ -399,6 +417,24 @@
       "data": "2027-01-08",
       "id": "aula:demi-plie/01/breu-rosa/12",
       "rotulo": "Aula 12",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-01-11",
+      "id": "aula:demi-plie/01/breu-rosa/13",
+      "rotulo": "Aula 13",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-01-13",
+      "id": "aula:demi-plie/01/breu-rosa/14",
+      "rotulo": "Aula 14",
+      "tipo": "aula"
+    },
+    {
+      "data": "2027-01-15",
+      "id": "aula:demi-plie/01/breu-rosa/15",
+      "rotulo": "Aula 15",
       "tipo": "aula"
     },
     {
