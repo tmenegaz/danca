@@ -6,8 +6,8 @@ aula: "01"
 title: "Plano para a Aula 01 — reconhecer o apoio e alinhar o eixo vertical"
 subtitle: "Turma: Rosa"
 objetivo-especifico: "reconhecer o apoio e alinhar o eixo vertical"
-duracao: "100 minutos"
-volume-total-100: "150 tempos"
+duracao: "105 minutos"
+volume-total-105: "158 tempos"
 referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 ---
 
@@ -19,8 +19,8 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 |:--|:--|
 | **Objetivo específico** | reconhecer o apoio e alinhar o eixo vertical |
 | **Parâmetro de medição** | **1** reconhecer o apoio e alinhar o eixo vertical — observa: Battement tendu · Plié · Relevé · **2** transferir o peso entre os pés sem perder o alinhamento — observa: Plié · Relevé · **3** sustentar a transferência com musicalidade e controle do movimento — observa: Battement tendu · Relevé |
-| **Duração** | 100 minutos (Pré-requisito 4) |
-| **Volume ativo** | 150 tempos (faixa 134–166 da duração de 100 min — Regra 9, etapa 1) |
+| **Duração** | 105 minutos (Pré-requisito 4) |
+| **Volume ativo** | 158 tempos (faixa 140–175 da duração de 105 min — Regra 9, etapa 1) |
 
 ## 2. Condições preliminares de preparação (o espaço e o material)
 
@@ -30,11 +30,11 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 
 | Bloco | Tempos | Fatia |
 |:--|--:|--:|
-| Solo | 45 | 30% |
-| Barra | 45 | 30% |
-| Centro | 45 | 30% |
-| Musicalidade | 15 | 10% |
-| **Total** | **150** | **100%** |
+| Solo | 47,4 | 30% |
+| Barra | 47,4 | 30% |
+| Centro | 47,4 | 30% |
+| Musicalidade | 15,8 | 10% |
+| **Total** | **158** | **100%** |
 
 ## 4. Bloco de musicalidade
 
@@ -103,8 +103,8 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 ## 6. Proveniência consolidada
 
-- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261120-1234?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
-- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261120-1233?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.
+- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261120-1245?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
+- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261120-1245?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.
 
 **Anamnese de cada aluna**
 
@@ -129,8 +129,8 @@ s.addEventListener("change",pintar);pintar();})();</script>
 | Verificação | Resultado |
 |:--|:--|
 | Objetivo específico declarado | ok |
-| Duração declarada (Pré-requisito 4) | ok — 100 minutos |
-| Volume dentro da faixa (Regra 9) | ok — 150 tempos em 134–166 |
+| Duração declarada (Pré-requisito 4) | ok — 105 minutos |
+| Volume dentro da faixa (Regra 9) | ok — 158 tempos em 140–175 |
 
 ## 8. Próximo passo
 
