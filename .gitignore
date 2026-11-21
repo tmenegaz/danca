@@ -1753,3 +1753,9 @@ experimentos/modelo-formulario/*
 # dois escolhedores, no caminho do evento, e também o que nasce depois de a página ter montado — um
 # ouvinte preso ao elemento morria no primeiro repinte.
 !experimentos/provar-o-botao-adicionar.js
+# O ELO DA AULA NÃO SE APAGA A CADA GERAÇÃO (20/11/2026). O `gerar-ciclo.sh` copiava o plano de
+# cada aula para o `-anterior.json` incondicionalmente, e uma corrida sem alteração nenhuma zerava
+# o elo — medido: 44 linhas de diferença viraram 0. A prova corre num `git worktree` temporário e
+# mede os três lados da regra: sem mudança o elo fica, com mudança passa a ser o estado anterior, e
+# depois de mudar não volta a mover-se. É citada no REGISTRO e no rodapé `Auditoria:` do commit.
+!experimentos/provar-o-elo-da-aula.js

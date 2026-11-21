@@ -327,8 +327,25 @@ if [ -f "$AULA_SCHEMA" ]; then
     node "$RAIZ/tools/validar-aula-ciclo.js" "$AULA_SCHEMA" "$aula_src" --json \
       > "$PACOTE/plano-aula-$aula_nn.json.tmp" \
       || { rm -f "$PACOTE/plano-aula-$aula_nn.json.tmp"; echo "erro: a fonte da aula $aula_nn ($aula_src) não fechou com o schema da aula (plano-aula-$aula_nn.json) — veja o relatório acima." >&2; exit 1; }
-    [ -f "$PACOTE/plano-aula-$aula_nn.json" ] \
-      && cp "$PACOTE/plano-aula-$aula_nn.json" "$PACOTE/plano-aula-$aula_nn-anterior.json" || true
+    # O ELO SÓ SE MOVE QUANDO A AULA MUDA (20/11/2026) — e não se moveu sempre.
+    #
+    # O `cp` era INCONDICIONAL: cada geração copiava o plano atual para o
+    # `-anterior.json`, mudasse ele ou não. O efeito, medido no `ciclo-01-breu-rosa`: uma
+    # geração sem alteração nenhuma — «correr para ver se está tudo bem» — apagou um elo de
+    # 44 linhas de diferença, e o «anterior» ficou uma CÓPIA do atual.
+    #
+    # É o contrário do que o parágrafo acima decide («o anterior não se perde»), e é a
+    # família que este repositório não admite: a proveniência acrescenta, não edita. Pior
+    # ainda num gerador que corre a cada commit que toque as fontes: o elo era destruído por
+    # rotina, não por acidente.
+    #
+    # A guarda é o `cmp`: só se copia quando o plano NOVO difere do que lá está. Sem mudança,
+    # o elo fica onde está — e, com mudança, ele passa a ser exatamente o estado anterior, que
+    # é o que a §1.2 promete.
+    if [ -f "$PACOTE/plano-aula-$aula_nn.json" ] \
+       && ! cmp -s "$PACOTE/plano-aula-$aula_nn.json" "$PACOTE/plano-aula-$aula_nn.json.tmp"; then
+      cp "$PACOTE/plano-aula-$aula_nn.json" "$PACOTE/plano-aula-$aula_nn-anterior.json"
+    fi
     mv "$PACOTE/plano-aula-$aula_nn.json.tmp" "$PACOTE/plano-aula-$aula_nn.json"
   done
 fi
