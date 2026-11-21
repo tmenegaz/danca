@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-21T14:57:22-0300`
-Commit atual: `6ba3b387` — feat(po): «o que se observa» é o que a anamnese registou — nível, apoio e a nota
+Gerado em: `2026-11-21T15:02:16-0300`
+Commit atual: `e214985e` — audit(experimentos): o estado de hoje ao vivo — sem leitura no elenco, o painel diz que falta o passo 3
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+e214985e audit(experimentos): o estado de hoje ao vivo — sem leitura no elenco, o painel diz que falta o passo 3
 6ba3b387 feat(po): «o que se observa» é o que a anamnese registou — nível, apoio e a nota
 75b91620 docs(estrutura): «a página não responde» não era a página — era o perfil do navegador
 aeb80aa7 fix(po): «Ajustar» abre o registo, e não um nó que não se preenche
@@ -101,7 +102,6 @@ f23ac5c9 feat(plano): o plano elicitado vira a fonte do ciclo
 31648367 docs(estrutura): a sonda ao vivo que confirma a aula, sem escrever nada
 a4c004d7 fix(estrutura): a aula que se cria passa a existir — e o gesto deixa de mentir
 54be1100 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
-ca7c8aba chore(estrutura): fechar os derivados — âncoras e índices
 ```
 
 ## Por professor
