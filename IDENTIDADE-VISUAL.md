@@ -335,14 +335,48 @@ prova nenhuma entre o tablet e a tela grande, e foi por isso que o defeito durou
 
 | Token | Valor | Papel |
 | --- | --- | --- |
-| `--serif` | `Georgia, 'Times New Roman', serif` | **a prosa institucional**. Corpo a 17px/1.65 |
+| `--serif` | `'Open Sans', system-ui, …` | **a prosa institucional**. Corpo a 17px/1.65 |
 | `--ui` | `system-ui, -apple-system, …` | **o maquinário de formulário** |
 | `--header-height` | `120px` | altura da barra fixa — o `padding-top` do corpo |
+
+> **A fonte do projeto é a Open Sans, e ela é ENTREGUE (21/11/2026).** Os dois `.woff2`
+> (redondo e itálico, variáveis — um ficheiro desenha do 300 ao 800) vivem em
+> `tools/templates/fontes/`, viajam com a folha para `assets/fontes/` de cada superfície, e são
+> pedidos por `@font-face` com um `url()` relativo a ela. A licença (SIL OFL 1.1) vai ao lado,
+> em `fontes/OFL.txt`, porque a redistribuição a exige.
+>
+> **Porque não é uma CDN.** O que não é entregue não é identidade, é loteria: com `'Open Sans'`
+> declarada e nenhum ficheiro, o navegador usa-a **só se ela estiver instalada na máquina de
+> quem abre** — e quem abre num telemóvel não a tem. Medido a 21/11/2026: numa máquina com a
+> fonte instalada (`fc-list`: 13 cortes) a mudança parecia feita; fora dela caía no fallback, e
+> o mesmo documento saía em duas fontes sem nada avisar. As páginas também se abrem do disco,
+> sem rede, e imprimem-se de lá — e um pedido a um terceiro por cada visita levaria o endereço
+> de quem lê para fora.
+>
+> **O nome `--serif` é histórico.** Ele nasceu quando a prosa era serifada (Georgia) e já não
+> descreve o desenho; o que ele nomeia é o **papel** — a voz do documento, por oposição ao
+> maquinário. Mudar-lhe o nome obrigaria a tocar as três folhas, a ficha da anamnese e este
+> documento para dizer a mesma coisa; o que não podia ficar por dizer é o que ele significa.
+>
+> **O fallback não é Georgia.** Se o ficheiro faltar, a pilha cai numa **sans do sistema**.
+> Cair para uma serifa seria trocar a fonte por outra sem avisar; assim erra a favor de não
+> parecer a fonte que não é. Há prova das duas metades — a fonte chega, e o que acontece quando
+> não chega — em `experimentos/provar-a-fonte-do-site.js`.
+>
+> **A Georgia nunca chegou a ser desenhada nesta máquina.** `fc-match Georgia` responde
+> `Noto Serif`: a pilha antiga já era uma promessa que o sistema não cumpria. Não é o motivo da
+> mudança — o motivo é a identidade ser Open Sans —, mas é a razão de a mudança ter de ser
+> entregue para ser verdadeira.
 
 > **A exceção da `--ui`.** A pilha sem serifa é **deliberada e restrita ao
 > maquinário do formulário** — os controles onde se digita e se clica (`input`,
 > `select`, `button`). É ali que a fonte do sistema ajuda. O texto **em volta**
-> desses controles continua serifado. Usar `--ui` em prosa é o defeito.
+> desses controles está na voz do projeto. Usar `--ui` em prosa é o defeito.
+
+> **O PDF do ciclo não lê estes ficheiros.** Um `.woff2` não serve ao `pdflatex`, que compõe com
+> as fontes clássicas do LaTeX (ver `tools/templates/ciclo-cabecalho.tex`). O papel e a tela
+> estão, hoje, em fontes diferentes — está declarado, e é a próxima peça desta frente, não um
+> efeito desta mudança.
 
 O deck Marp usa Georgia para a prosa e `'Helvetica Neue', Arial, sans-serif` a 14px
 para os **rótulos** — mesma lógica, outro veículo.

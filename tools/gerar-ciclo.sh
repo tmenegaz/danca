@@ -1302,6 +1302,11 @@ done
 [ "$gerados" -gt 0 ] || { echo "erro: nenhum documento convertido" >&2; exit 1; }
 
 cp "$TPL/ciclo.css" "$PACOTE/assets/style.css"
+# A FONTE VIAJA COM A FOLHA (21/11/2026). A folha declara `@font-face` com um `url()`
+# relativo a ela própria (`fontes/…`); sem esta cópia o pedido dá 404 e o navegador cai
+# silenciosamente no fallback — o site volta a ter duas fontes conforme a máquina. As
+# fontes são as mesmas para todas as escolas: é identidade, não variante.
+rm -rf "$PACOTE/assets/fontes" && cp -R "$TPL/fontes" "$PACOTE/assets/fontes"
 # O FAVICON (18/10/2026). Ele viaja como os outros dois assets, e pela mesma razão: o
 # navegador pede `/assets/favicon.svg`, e o pacote é o diretório estático do Worker. Sem a
 # cópia, o ícone some da aba — e ninguém repara até alguém reparar.

@@ -163,8 +163,8 @@
     },
     {
       "id": "ativo-do-pacote",
-      "padrao": "/assets/[^/]+$",
-      "motivo": "CSS, JS e ícone do pacote: são reconstruíveis dos templates, e o índice descreve documentos, não a pele da página"
+      "padrao": "/assets/.+$",
+      "motivo": "CSS, JS, ícone e fontes do pacote, em qualquer profundidade (`assets/fontes/…` desde 21/11/2026): são reconstruíveis dos templates, e o índice descreve documentos, não a pele da página"
     },
     {
       "id": "paginas-do-pacote",

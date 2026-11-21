@@ -4,12 +4,30 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 21/11/2026 (commit `a4c004d7`). Nesta entrega, **a Aula 02 existe de
-> facto** — e o caminho que faltava era o terceiro. O envelope `plano-20261121-1120` (o clique
-> dela, já com a correção anterior no ar) **tem** `aula-2-parametro` e `aula-2-sequencia`: o motor
-> gravou-as. O que não as recebeu foi o **manifesto**: com a turma no contexto, a escrita passa por
-> `comporManifestoDaTurma`, e esse caminho **preservava** o `DOCS` como estava enquanto os outros
-> dois o cresciam. **CONFIRMADO** em três cópias da mesma regra — `escrever-plano.js` (crescia),
+> **Última fotografia:** 21/11/2026 (commit `4809fb09`). Nesta entrega, **a fonte do projeto é
+> a Open Sans, e passa a ser ENTREGUE**. A alteração dela — `'Open Sans'` à frente na pilha —
+> estava certa e **não era verdadeira**: não havia `@font-face`, nenhum `.woff2` no repositório e
+> nenhum `<link>` para uma CDN, portanto o navegador só a usava se ela estivesse instalada na
+> máquina de quem abre. Medido: nesta máquina está (`fc-list` → 13 cortes), e é por isso que
+> parecia feito; num telemóvel caía no fallback, e o mesmo documento saía em duas fontes sem nada
+> avisar. E a Georgia **nunca chegou a ser desenhada aqui** — `fc-match Georgia` responde `Noto
+> Serif`. **DECIDIDO**: os dois `.woff2` (variáveis — um ficheiro desenha do 300 ao 800) vivem em
+> `tools/templates/fontes/` com a licença OFL, viajam com a folha para `assets/fontes/` das três
+> superfícies (pacote, raiz, pacote zero), e a ficha da anamnese aponta para o caminho **absoluto**
+> porque é servida sozinha. **O fallback deixou de ser Georgia**: cai numa sans, que erra a favor
+> de não parecer a fonte que não é. **CONFIRMADO** em `provar-a-fonte-do-site.js` (novo, **27/27**,
+> com Chrome sobre o pacote real): o `.woff2` é pedido e chega com **200**, o `@font-face` está
+> `loaded` com peso `300 800`, e a **largura da mesma frase** — 3022px em Open Sans contra 2544px
+> numa serifa, a 100px — atesta que é a fonte que chegou que desenha, não a que a máquina já
+> tinha. Com o ficheiro **recusado**, a página cai numa sans. **O PDF do ciclo não segue**: um
+> `.woff2` não serve ao `pdflatex`, e papel e tela continuam em fontes diferentes — declarado, é
+> a próxima peça desta frente.
+>
+> **Fotografia anterior (21/11/2026 — a Aula 02 existe de facto).** O caminho que faltava era o
+> terceiro. O envelope `plano-20261121-1120` (o clique dela, já com a correção anterior no ar)
+> **tem** `aula-2-parametro` e `aula-2-sequencia`: o motor gravou-as. O que não as recebeu foi o
+> **manifesto**: com a turma no contexto, a escrita passa por `comporManifestoDaTurma`, e esse
+> caminho **preservava** o `DOCS` como estava enquanto os outros dois o cresciam. **CONFIRMADO** em três cópias da mesma regra — `escrever-plano.js` (crescia),
 > `compor-conf.js` (não crescia) e `escrever-ciclo.js` (crescia à mão). Sem `aula-02` no `DOCS`, o
 > gerador não a publica, o derivador não a escreve e a coluna «Ação» continua a oferecer «Criar
 > aula» para uma aula que já existe — que é exactamente o que ela viu. **DECIDIDO**: a regra é uma
@@ -1678,6 +1696,13 @@ Verificado nesta fotografia, com os comandos da §9.
   da marca do projecto (`tools/templates/marca/`); a tipografia é `system-ui` + Georgia **sem ficheiro
   de fonte embutido** (`ciclo.css:76-77`); e a nomenclatura RAD/Vaganova são **nomes de posições**, que
   não são obra. O repositório é **privado**. **CONFIRMADO** em 02/11/2026.
+  > **CORRIGIDO a 21/11/2026 — a segunda metade deixou de ser verdade.** A tipografia do projecto é
+  > **Open Sans**, e o ficheiro da fonte **passou a ser embutido**: dois `.woff2` em
+  > `tools/templates/fontes/`, sob **SIL Open Font License 1.1**, com o texto da licença ao lado
+  > (`fontes/OFL.txt`). Passa a haver **um ativo de terceiros** no repositório. A conclusão da
+  > decisão **não muda** — a OFL permite a redistribuição e a incorporação, e exige exactamente o
+  > que foi feito (o texto da licença viaja com a fonte); o que muda é o facto, e o facto estava
+  > escrito aqui. Ver `REGISTRO.md`, 21/11/2026.
 - **O produto é um PACOTE PRÓPRIO**, com `.fipp` próprio, rota própria no Worker e a **licença do
   produto** — não a do ciclo. **DECIDIDO** 02/11/2026: é a única forma de o produto ter âncora, versão
   e licença independentes; a alternativa amarraria o dicionário ao ciclo daquela escola.
@@ -2938,6 +2963,18 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      página ele **não aparece**, e isso é o desenho, não a falha. O calendário do plano **não**
      pagina: é tabela de documento, e o documento imprime-se inteiro.
 
+132. **A FONTE DO PROJETO É A OPEN SANS, E É ENTREGUE PELO PACOTE.** Palavras dela: «a gente não vai
+     usar a Georgia […] a nossa fonte ela é a Open Sans. Essa fonte é para usar como padrão no site
+     todo.» Declarar a família não é escolher a fonte: sem `@font-face` e sem o ficheiro, ela só
+     aparece em quem já a tem instalada — e não são todos. Os dois `.woff2` (variáveis: um ficheiro
+     desenha do 300 ao 800) moram em `tools/templates/fontes/`, **sob SIL OFL 1.1** com o texto da
+     licença ao lado, e viajam com a folha para `assets/fontes/` das **três** superfícies — pacote,
+     raiz e pacote zero — porque é ao lado da folha que o `@font-face` os procura. **Não é uma CDN**:
+     as páginas abrem-se do disco, sem rede, e imprimem-se de lá. O **fallback deixou de ser Georgia**
+     e passou a ser uma sans do sistema: erra a favor de não parecer a fonte que não é. O nome
+     `--serif` fica (nomeia o papel, e não o desenho) e a `--ui` não muda. **O PDF do ciclo não
+     segue** — um `.woff2` não serve ao `pdflatex`. **DECIDIDO** 21/11/2026.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -3662,7 +3699,20 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (21/11/2026 — a Aula 02 existe, e a paginação nas listagens)
+### Executado nesta fotografia (21/11/2026 — a fonte é Open Sans, e é entregue)
+
+| Verificação | Resultado |
+|:--|:--|
+| o estado antes, medido | `grep -rn '@font-face\|fonts.googleapis'` → **nada**; `find -name '*.woff2'` → **nada**; `fc-list \| grep -ci 'open sans'` → **13** cortes nesta máquina, e `fc-match Georgia` → `Noto Serif`. É a explicação inteira do «acho que deu certo»: a fonte estava instalada aqui, e só aqui |
+| `provar-a-fonte-do-site` (**nova**) | **27/27**, com Chrome sobre o pacote real em `127.0.0.1`. (A) o `.woff2` está em `assets/fontes/` das **três** superfícies, a folha declara o `@font-face` com `url('fontes/…')` relativo, e a licença viaja ao lado; (B) a página **pede** o ficheiro, o servidor do pacote responde **200**, o `@font-face` está `loaded` com peso `300 800`, e a **largura da mesma frase a 100px** — **3022px** em Open Sans contra **2544px** numa serifa — atesta que é a fonte que chegou que desenha, e não a que a máquina já tinha (é o que distingue «carregou» de «usou»); (C) com o `.woff2` **recusado** (404), a página não declara a fonte carregada e cai numa **sans**, não numa serifa; (D) a ficha aponta para `/assets/fontes/…` **absoluto**, e o `/assets/` partilhado da publicação tem a fonte |
+| `node tools/check-identidade.js` · `check-sem-destruicao` · `check-indices` · `check-pacote` · `hash-ciclo --check` | **0 reprovações (22 ok)** · **ok** · **16/16** · **0 erros, 1 aviso** · **cadeia intacta** (as fontes são saída, não fonte — P-04) |
+| `provar-criar-aula` · `provar-formulario-da-aula` · `provar-paginacao` · `provar-curadoria-ilegivel` · `provar-a-moldura-em-todas-as-telas` · `provar-ar-das-paginas` | **53/53 · 53 · 129/129 · 15/15 · 111 · verde** |
+| `provar-assets-sem-worker` · `provar-fecho-do-pacote` | **36 · 57** — as duas atravessam o `assets/` do pacote, que é por onde a fonte entra |
+| `indices/esquema/tipos.json` | `ativo-do-pacote` alargado de `/assets/[^/]+$` para `/assets/.+$`: o `assets/fontes/` é a mesma pele, numa pasta a mais. Sem isto, a verificação **8** reprovava **8** arquivos por «sem tipo declarado» |
+| Falhas que **já existiam**, medidas na linha de base | `provar-largura-da-lista` **45 de 56** — medido **com a folha de `HEAD` no lugar**: os mesmos 45, e as 11 são todas E/F e o controlo negativo N, com a coluna do formulário a medir **0** na bancada (a secção que ela mede já não é desenhada). `provar-celular` **14 de 15** (idem); `provar-saidas-estaveis` **não corre** (precisa da escola `calango-piano`, expurgada); `provar-navegacao` não corre (a `calango` não tem pacote-zero) |
+| Revertido no mesmo passo | **~16 mil linhas** de reformatação em quatro folhas e num HTML de estudo — um formatador que passou os comentários alinhados para linhas próprias. Não é a alteração dela, não foi pedida, e destruiria o alinhamento que a folha usa para explicar cada valor |
+
+### Executado na fotografia anterior (21/11/2026 — a Aula 02 existe, e a paginação nas listagens)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -4382,7 +4432,7 @@ que a decisão exigia saber.
 | Verificação | Resultado |
 |:--|:--|
 | **o repositório é privado** | `tmenegaz/danca`, `private: true`, `license: null` — pela API do GitHub, 02/11/2026. Não há distribuição pública, logo a licença é decisão de negócio e não de compatibilidade |
-| **não há conteúdo de terceiros** | `tools/templates/marca/` — 4 SVG da marca do projecto; `tools/templates/ciclo.css:76-77` — `--serif: Georgia…` e `--ui: system-ui…`, **sem ficheiro de fonte embutido**; RAD/Vaganova são nomes de posições |
+| **não há conteúdo de terceiros** | `tools/templates/marca/` — 4 SVG da marca do projecto; `ciclo.css` — `--serif: 'Open Sans', …` e `--ui: system-ui…`. **CORRIGIDO 21/11/2026: há um ativo de terceiros** — os dois `.woff2` de `tools/templates/fontes/`, sob **SIL OFL 1.1** com o texto da licença ao lado (`fontes/OFL.txt`), que é o que a redistribuição exige; RAD/Vaganova continuam a ser nomes de posições |
 | **a proveniência das descrições** | `vocabulario.json`: 93 termos, **59 com descrição**; `fonte` = 30 do dicionário fornecido, 4 «redigida no projeto», **59 vazio** — e **25 das 59 com descrição estão sem `fonte`** |
 | **a citação da licença** | `sed -n '109p' ARQUITETURA-GERAL.md` → o diagrama do deploy; `grep -n 'licen'` → **uma** ocorrência (§5, «nem licença»); `git log --all -S'Licença do repositório' -- ARQUITETURA-GERAL.md` → **vazio**. A frase está em `REGISTRO.md:109`, entrada de 18/09/2026 |
 | `node tools/check-indices.js` | **14 verificações, 0 falha(s)** — TUDO CERTO |

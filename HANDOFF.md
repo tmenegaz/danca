@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-21T11:42:18-0300`
-Commit atual: `26de0e7f` — fix(estrutura): a Aula 02 passa a existir — a regra do manifesto era três, e uma não crescia
+Gerado em: `2026-11-21T12:44:56-0300`
+Commit atual: `4809fb09` — fix(estrutura): a bancada do ajuste de anamnese volta a montar a página
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,9 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+4809fb09 fix(estrutura): a bancada do ajuste de anamnese volta a montar a página
+562fa739 fix(po): o formulário não se fecha por não se ter podido olhar
+e73bdb2a docs(estrutura): a conferência ao vivo da Aula 02, medida
 26de0e7f fix(estrutura): a Aula 02 passa a existir — a regra do manifesto era três, e uma não crescia
 ceeddca5 chore(estrutura): fechar os derivados — âncoras e índices
 4600c998 feat(acervo): envelope/po-20261121-1120.json
@@ -99,9 +102,6 @@ f8a4a51b feat(acervo): envelope/po-20261121-0933.json
 ee0c4f1a feat(acervo): envelope/.indice.json
 3cdf7f55 feat(plano): o plano elicitado vira a fonte do ciclo
 85b855a2 feat(acervo): envelope/plano-20261121-0933.json
-e02b9430 feat(acervo): envelope/.indice.json
-8d27c001 chore(estrutura): o HANDOFF aponta para o commit de hoje
-1a9baf5b docs(estrutura): a conferência ao vivo do caminho da porta, medida
 ```
 
 ## Por professor
@@ -195,92 +195,79 @@ e02b9430 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 21/11/2026 — A Aula 02 existe de facto: a regra que cresce o manifesto era três, e uma não crescia
+## 21/11/2026 — A fonte é Open Sans, e passa a ser entregue pelo pacote
 
-**O que motivou.** Ela clicou no botão, o modal e o véu funcionaram, ela viu o workflow correr —
-«eu vi no workflow que rodou o PO» — e a Aula 02 não apareceu: «na coluna de ação das aulas, a
-aula dois ainda está com o botão criar aula, ele não se transformou em abrir. E lá em aulas também
-eu não tenho como acessar a aula dois.» E: «me explica para onde foi a aula dois porque eu não a
-encontrei.»
+**O que motivou.** Palavras dela: «A gente não vai usar a Georgia […] A nossa fonte ela é a Open
+Sans. Essa fonte que é para usar como padrão no site todo. […] Eu incluí em `--serif: Georgia,` a
+'Open Sans'. Acho que deu certo mas preciso testar.» Ela fez a alteração, e pediu commit e push
+para testar.
 
-**A aula tinha sido criada, e desta vez o motor gravou-a.** O envelope `plano-20261121-1120` — o
-carimbo daquele clique — tem `ajuste_de` a apontar o anterior, o `motivo` certo e, dentro das
-respostas, **`aula-2-parametro` e `aula-2-sequencia`**. A correção da véspera (a família da chave)
-funcionou. O que faltava era **três passos à frente**.
+**A alteração estava certa e não era verdadeira.** A folha passou a dizer `'Open Sans'` e não
+havia — medido, não estimado — **nenhum `@font-face`, nenhum `.woff2` no repositório e nenhum
+`<link>` para uma CDN**. A pilha era só nomes. Numa máquina com a fonte instalada (`fc-list` → 13
+cortes) o site desenhava-se em Open Sans e a mudança parecia feita; num telemóvel, num Windows de
+fábrica, ou no navegador que imprime, caía para o fallback — e o **mesmo documento** saía em duas
+fontes sem nada avisar. Foi por isso que ela disse «acho que deu certo, mas preciso testar»: no
+computador dela, deu.
 
-**A causa, e é a terceira cópia da mesma regra.** O `DOCS` do manifesto — a lista de documentos que
-o gerador publica — cresce com as aulas que o plano declara, e essa conta estava escrita **três
-vezes**:
+**E a Georgia nunca chegou a ser desenhada.** `fc-match Georgia` responde `Noto Serif`: a pilha
+antiga já era uma promessa que esta máquina não cumpria. Não é o motivo da mudança — o motivo é a
+identidade ser Open Sans —, e é a razão de a mudança ter de ser entregue para ser verdadeira.
 
-| caminho | crescia? |
+**O que entra.**
+
+| onde | o quê |
 |:--|:--|
-| `escrever-plano.js` → `atualizarManifesto` (sem turma) | sim |
-| `escrever-ciclo.js` → passo 4 | sim, com a conta à mão |
-| `compor-conf.js` → `comporManifestoDaTurma` (**com** turma) | **não** — preservava o `DOCS` como estava |
+| `tools/templates/fontes/` | os dois `.woff2` (redondo e itálico, **variáveis**: um ficheiro desenha do 300 ao 800), a licença `OFL.txt` e o `LEIA-ME.md` com origem, sha256 e como refazer |
+| `tools/templates/ciclo.css` | dois `@font-face` com `url('fontes/…')` relativo à folha; `--serif` passa a `'Open Sans', system-ui, …` |
+| `tools/gerar-ciclo.sh`, `tools/gerar-raiz.sh`, `tools/criar-escola.sh` | `cp -R` das fontes para `assets/fontes/` — as três superfícies que a folha veste |
+| `motor/nucleo/ficha-html.js` | o mesmo `@font-face` com o caminho **absoluto** `/assets/fontes/…`, porque a ficha é servida sozinha em `/anamnese/api/…` e um `fontes/…` relativo resolveria para dentro da rota |
+| `indices/esquema/tipos.json` | `ativo-do-pacote` passa a `/assets/.+$` — o `assets/fontes/` é a mesma pele, numa pasta a mais |
 
-O terceiro é o caminho **normal** de uma escola com a turma cadastrada, e foi o que correu. Sem
-`aula-02` no `DOCS`: o derivador não escreve `-aula-02.md`, o gerador não publica `aula-02.html`, a
-lista de Aulas não a mostra, e a coluna «Ação» continua a oferecer «Criar aula» para uma aula que
-existe no acervo. **Cinco passos a jusante outra vez, e outra vez a comportarem-se bem perante um
-dado que faltava.**
+**O fallback mudou de lado, e é decisão.** Se o ficheiro faltar, a pilha cai numa **sans do
+sistema**, e não em Georgia. Cair para uma serifa seria trocar a fonte por outra sem avisar; assim
+erra a favor de não parecer a fonte que não é.
 
-**O que foi decidido.**
+**O nome `--serif` fica.** Ele nomeia o **papel** (a voz do documento, por oposição ao
+maquinário), não o desenho. Renomeá-lo obrigaria a tocar as três folhas, a ficha e o
+`IDENTIDADE-VISUAL.md` para dizer a mesma coisa — e o que faltava não era o nome, era o
+significado declarado.
 
-1. **A regra é uma só** — `docsComAsAulas(docs, plano)` em `motor/nucleo/aulas-do-ciclo.js` — e os
-   **três** caminhos chamam-na. Três cópias divergem na primeira correção; foi o que aconteceu.
-2. **A lista só cresce**, nunca perde uma entrada que alguém lá pôs.
-3. **A família é reposta em ordem numérica**: `aula-01, captura-aula-01, aula-02, captura-aula-02`.
-   Inserir «antes da primeira captura que já exista» dava `aula-01 aula-02 captura-aula-02
-   captura-aula-01` — funcional e ilegível, com a captura da 01 a fechar a família da 02.
-4. **Uma aula acima do `contexto-total-aulas` não entra.** A família não é um passe livre.
-5. **O manifesto dela foi regerado pela mesma regra**, a partir do envelope vigente — não editado à
-   mão —, e as fontes `-aula-02.md` e `-captura-aula-02.md` foram derivadas por
-   `tools/regerar-derivados.js`.
+**A `--ui` não muda.** O maquinário do formulário continua na fonte do sistema. «Padrão no site
+todo» é a prosa, e a exceção dos controles está declarada e é restrita.
 
-**A paginação, no mesmo dia, e é outro pedido.** «Aqui a gente tem 15 aulas, né? E não colocamos
-aqui o que está no nossa identidade visual, que é a paginação. […] o ciclo e os planos já nascem com
-a paginação. A anamnese também tem que nascer com paginação, plano de ensino também, plano de
-observação também, as aulas também e as aulas dadas também têm que nascer com paginação. Eu acho que
-tem uma regra que a paginação só vai aparecer a partir de uma determinada pilha.»
+**Limpeza no mesmo passo.** O worktree trazia **~16 mil linhas** de reformatação em quatro folhas
+e num HTML de estudo — um formatador que passou os comentários alinhados para linhas próprias. Não
+é a alteração dela, não foi pedida, e destruiria o alinhamento dos comentários que a folha usa para
+explicar cada valor. Foi revertido; o que ficou é a alteração, e só ela.
 
-**A regra existe, está medida, e é esta:** `.paginas` nasce `hidden` e o cliente (`paginar()`) só a
-acende **a partir de duas páginas** (`IDENTIDADE-VISUAL.md`, «à vista a partir de duas»). Com 25 por
-página — o número das listas longas deste produto —, uma escola com 15 aulas **não chega a duas
-páginas**, e o rodapé não aparece. É o desenho, não a falha.
+**MOTIVO DECLARADO (`tools/` é congelado).** A folha é a fonte de verdade da identidade, e a
+identidade mudou por decisão dela: a fonte do projeto é Open Sans. As fontes entram em
+`tools/templates/fontes/` porque é ao lado da folha que o `@font-face` as procura, e os três
+geradores — `gerar-ciclo.sh`, `gerar-raiz.sh`, `criar-escola.sh` — passam a copiá-las, porque uma
+fonte que não viaja com o pacote é uma fonte que não existe fora desta máquina. A alteração é
+aditiva nos três geradores (uma linha de cópia em cada) e não desfaz nenhuma regra anterior.
 
-O que **faltava** era a peça, e ela faltava em quatro sítios: `/ciclos/planos/` (que dizia, num
-comentário, «não há paginação… quando passar de ~200, a paginação da Produção entra — e não antes»,
-um número que nunca foi medido, enquanto a lista de aulas do mesmo pacote já paginava a 25) e as
-**três** listas da Área do Professor, que passam todas por **um** chamador só. Os quatro passaram a
-pedi-la, pela peça da casa.
+**Prova.** `experimentos/provar-a-fonte-do-site.js` (nova) — **27/27**, com Chrome sobre o pacote
+real em `127.0.0.1`: o `.woff2` é pedido e chega com **200**; o `@font-face` está `loaded` com peso
+`300 800`; e a **largura da mesma frase** (3022px em Open Sans contra 2544px numa serifa, a 100px)
+atesta que é a fonte que chegou que desenha — e não a que a máquina já tinha, que é o que
+distinguiria «carregou» de «usou». Com o `.woff2` **recusado**, a página cai numa sans e não numa
+serifa. `check-identidade` 22 ok / 0 reprovações, `check-pacote` 0 erros, `check-indices` 16/16,
+`hash-ciclo --check` com a cadeia intacta (as fontes são saída, não fonte — P-04).
+`provar-criar-aula` 53/53, `provar-formulario-da-aula` 53, `provar-paginacao` 129/129,
+`provar-curadoria-ilegivel` 15/15, `provar-a-moldura-em-todas-as-telas` 111,
+`provar-ar-das-paginas` verde, `provar-assets-sem-worker` 36, `provar-fecho-do-pacote` 57.
 
-**O calendário do plano não pagina** — e é uma decisão, não um esquecimento: é uma tabela de
-**documento**, e o documento imprime-se inteiro. Uma paginação ali esconderia dez das quinze aulas
-na folha que a professora leva para a sala.
+**O que já falhava, medido antes e depois.** `provar-largura-da-lista` **45 de 56** — medido com a
+folha de `HEAD` no lugar, dá exactamente os mesmos 45 (todas as falhas em E/F e no controlo
+negativo N, com a coluna do formulário a medir `0` na bancada: a secção que ela mede já não é
+desenhada). `provar-celular` 14 de 15, `provar-saidas-estaveis` não corre (precisa da escola
+`calango-piano`, expurgada), `provar-navegacao` não corre (a `calango` não tem pacote-zero).
 
-**Motivo declarado — `tools/` é congelado.** `tools/montar-publicacao.js` mudou porque é ali que a
-lista dos planos nasce. A alteração é **aditiva**: a lista passa a receber `porPagina` e `campos`,
-como a lista de aulas do mesmo ficheiro já recebia. Nenhum documento foi reescrito por causa disto.
-
-**Onde entrou.** `motor/nucleo/aulas-do-ciclo.js` (`docsComAsAulas`, `lerChaveDaAula`),
-`motor/servidor/compor-conf.js`, `motor/servidor/escrever-plano.js` e
-`motor/servidor/escrever-ciclo.js` (os três caminhos, uma regra), `motor/servidor/listas-do-acervo.js`
-(`porPagina` nas três listas), `tools/montar-publicacao.js` (`porPagina` na lista dos planos),
-`experimentos/provar-manifesto-da-turma.js` (§9.1) e `experimentos/provar-paginacao.js` (§8 e §9).
-
-**Prova.** `provar-criar-aula` **53/53** (a secção F deixou de estar presa ao número `02` — a `02`
-existe, e a prova passou a **ler** qual é a primeira aula por criar); `provar-paginacao` **129/129**
-(§8 monta a publicação e mede o artefacto; §9 mede as três listas da Área do Professor);
-`provar-manifesto-da-turma` §9.1 nova, com **8** asserções a caírem com a regra desligada.
-`provar-geracao` 54, `provar-aula-dada` 34/34, `provar-derivador-da-aula` 35/35,
-`provar-objetivos-por-aula` 55/55, `provar-indices` 64/64, `check-identidade` sem reprovação,
-`check-pacote` 0 erros, `hash-ciclo --check` com a cadeia intacta.
-
-**O que fica declarado.** `provar-manifesto-do-plano` (3), `provar-manifesto-sem-base` (1),
-`provar-celular` (14 de 15) e `provar-producao` (142 de 159) continuam a falhar — **iguais antes e
-depois**, medidos na linha de base. `provar-navegacao` não corre: a `calango` não tem pacote-zero.
-E `Tempos`/`Compasso` continuam vazios na aula nova, e a comporta «só criar a aula N depois de a
-N‑1 ter os dados» continua por construir — as duas são a próxima peça, e são dela.
+**O que fica declarado por fazer.** O **PDF do ciclo** não lê estes ficheiros: um `.woff2` não
+serve ao `pdflatex`, que compõe com as fontes clássicas do LaTeX. Papel e tela estão, hoje, em
+fontes diferentes — e essa é a próxima peça desta frente.
 
 ## O que está pendente
 

@@ -28,6 +28,7 @@ trap 'rm -rf "$TMP"' EXIT
 #    servir uma identidade velha enquanto o resto do sistema já usava outra. Agora a
 #    cópia acontece aqui, e o `tools/check-identidade.js` confere o resultado.
 cp "$RAIZ/tools/templates/ciclo.css" "$RAIZ/raiz/assets/style.css"
+rm -rf "$RAIZ/raiz/assets/fontes" && cp -R "$RAIZ/tools/templates/fontes" "$RAIZ/raiz/assets/fontes"
 cp "$RAIZ/tools/templates/nav.js" "$RAIZ/raiz/assets/nav.js"
 cp "$RAIZ/tools/templates/marca/favicon.svg" "$RAIZ/raiz/assets/favicon.svg"
 echo "folha: raiz/assets/style.css"

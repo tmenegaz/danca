@@ -1791,3 +1791,11 @@ experimentos/modelo-formulario/*
 # DOM mínimo; o `--controle-negativo` corre as mesmas asserções contra a porta de `HEAD`, onde 6
 # de 15 caem. É citada no REGISTRO e no rodapé `Auditoria:` do commit.
 !experimentos/provar-curadoria-ilegivel.js
+# A FONTE É ENTREGUE, E NÃO APENAS DECLARADA (21/11/2026). Décima vez que a armadilha do
+# `experimentos/*` aparece: a prova nasceu ignorada. Ela mede o que nenhuma outra mede — que o
+# `.woff2` do pacote é PEDIDO e CHEGA (200, do próprio servidor), que é ele que desenha (a
+# largura da mesma frase contra uma serifa o atesta, e é o que distingue «carregou» de «usou a
+# fonte que a máquina já tinha»), que o fallback — com o ficheiro recusado — cai numa sans e não
+# numa serifa, e que a ficha da anamnese aponta para o caminho absoluto. É citada no REGISTRO e
+# no rodapé `Auditoria:` do commit.
+!experimentos/provar-a-fonte-do-site.js

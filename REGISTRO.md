@@ -57562,3 +57562,77 @@ existe, e a prova passou a **ler** qual é a primeira aula por criar); `provar-p
 depois**, medidos na linha de base. `provar-navegacao` não corre: a `calango` não tem pacote-zero.
 E `Tempos`/`Compasso` continuam vazios na aula nova, e a comporta «só criar a aula N depois de a
 N‑1 ter os dados» continua por construir — as duas são a próxima peça, e são dela.
+
+## 21/11/2026 — A fonte é Open Sans, e passa a ser entregue pelo pacote
+
+**O que motivou.** Palavras dela: «A gente não vai usar a Georgia […] A nossa fonte ela é a Open
+Sans. Essa fonte que é para usar como padrão no site todo. […] Eu incluí em `--serif: Georgia,` a
+'Open Sans'. Acho que deu certo mas preciso testar.» Ela fez a alteração, e pediu commit e push
+para testar.
+
+**A alteração estava certa e não era verdadeira.** A folha passou a dizer `'Open Sans'` e não
+havia — medido, não estimado — **nenhum `@font-face`, nenhum `.woff2` no repositório e nenhum
+`<link>` para uma CDN**. A pilha era só nomes. Numa máquina com a fonte instalada (`fc-list` → 13
+cortes) o site desenhava-se em Open Sans e a mudança parecia feita; num telemóvel, num Windows de
+fábrica, ou no navegador que imprime, caía para o fallback — e o **mesmo documento** saía em duas
+fontes sem nada avisar. Foi por isso que ela disse «acho que deu certo, mas preciso testar»: no
+computador dela, deu.
+
+**E a Georgia nunca chegou a ser desenhada.** `fc-match Georgia` responde `Noto Serif`: a pilha
+antiga já era uma promessa que esta máquina não cumpria. Não é o motivo da mudança — o motivo é a
+identidade ser Open Sans —, e é a razão de a mudança ter de ser entregue para ser verdadeira.
+
+**O que entra.**
+
+| onde | o quê |
+|:--|:--|
+| `tools/templates/fontes/` | os dois `.woff2` (redondo e itálico, **variáveis**: um ficheiro desenha do 300 ao 800), a licença `OFL.txt` e o `LEIA-ME.md` com origem, sha256 e como refazer |
+| `tools/templates/ciclo.css` | dois `@font-face` com `url('fontes/…')` relativo à folha; `--serif` passa a `'Open Sans', system-ui, …` |
+| `tools/gerar-ciclo.sh`, `tools/gerar-raiz.sh`, `tools/criar-escola.sh` | `cp -R` das fontes para `assets/fontes/` — as três superfícies que a folha veste |
+| `motor/nucleo/ficha-html.js` | o mesmo `@font-face` com o caminho **absoluto** `/assets/fontes/…`, porque a ficha é servida sozinha em `/anamnese/api/…` e um `fontes/…` relativo resolveria para dentro da rota |
+| `indices/esquema/tipos.json` | `ativo-do-pacote` passa a `/assets/.+$` — o `assets/fontes/` é a mesma pele, numa pasta a mais |
+
+**O fallback mudou de lado, e é decisão.** Se o ficheiro faltar, a pilha cai numa **sans do
+sistema**, e não em Georgia. Cair para uma serifa seria trocar a fonte por outra sem avisar; assim
+erra a favor de não parecer a fonte que não é.
+
+**O nome `--serif` fica.** Ele nomeia o **papel** (a voz do documento, por oposição ao
+maquinário), não o desenho. Renomeá-lo obrigaria a tocar as três folhas, a ficha e o
+`IDENTIDADE-VISUAL.md` para dizer a mesma coisa — e o que faltava não era o nome, era o
+significado declarado.
+
+**A `--ui` não muda.** O maquinário do formulário continua na fonte do sistema. «Padrão no site
+todo» é a prosa, e a exceção dos controles está declarada e é restrita.
+
+**Limpeza no mesmo passo.** O worktree trazia **~16 mil linhas** de reformatação em quatro folhas
+e num HTML de estudo — um formatador que passou os comentários alinhados para linhas próprias. Não
+é a alteração dela, não foi pedida, e destruiria o alinhamento dos comentários que a folha usa para
+explicar cada valor. Foi revertido; o que ficou é a alteração, e só ela.
+
+**MOTIVO DECLARADO (`tools/` é congelado).** A folha é a fonte de verdade da identidade, e a
+identidade mudou por decisão dela: a fonte do projeto é Open Sans. As fontes entram em
+`tools/templates/fontes/` porque é ao lado da folha que o `@font-face` as procura, e os três
+geradores — `gerar-ciclo.sh`, `gerar-raiz.sh`, `criar-escola.sh` — passam a copiá-las, porque uma
+fonte que não viaja com o pacote é uma fonte que não existe fora desta máquina. A alteração é
+aditiva nos três geradores (uma linha de cópia em cada) e não desfaz nenhuma regra anterior.
+
+**Prova.** `experimentos/provar-a-fonte-do-site.js` (nova) — **27/27**, com Chrome sobre o pacote
+real em `127.0.0.1`: o `.woff2` é pedido e chega com **200**; o `@font-face` está `loaded` com peso
+`300 800`; e a **largura da mesma frase** (3022px em Open Sans contra 2544px numa serifa, a 100px)
+atesta que é a fonte que chegou que desenha — e não a que a máquina já tinha, que é o que
+distinguiria «carregou» de «usou». Com o `.woff2` **recusado**, a página cai numa sans e não numa
+serifa. `check-identidade` 22 ok / 0 reprovações, `check-pacote` 0 erros, `check-indices` 16/16,
+`hash-ciclo --check` com a cadeia intacta (as fontes são saída, não fonte — P-04).
+`provar-criar-aula` 53/53, `provar-formulario-da-aula` 53, `provar-paginacao` 129/129,
+`provar-curadoria-ilegivel` 15/15, `provar-a-moldura-em-todas-as-telas` 111,
+`provar-ar-das-paginas` verde, `provar-assets-sem-worker` 36, `provar-fecho-do-pacote` 57.
+
+**O que já falhava, medido antes e depois.** `provar-largura-da-lista` **45 de 56** — medido com a
+folha de `HEAD` no lugar, dá exactamente os mesmos 45 (todas as falhas em E/F e no controlo
+negativo N, com a coluna do formulário a medir `0` na bancada: a secção que ela mede já não é
+desenhada). `provar-celular` 14 de 15, `provar-saidas-estaveis` não corre (precisa da escola
+`calango-piano`, expurgada), `provar-navegacao` não corre (a `calango` não tem pacote-zero).
+
+**O que fica declarado por fazer.** O **PDF do ciclo** não lê estes ficheiros: um `.woff2` não
+serve ao `pdflatex`, que compõe com as fontes clássicas do LaTeX. Papel e tela estão, hoje, em
+fontes diferentes — e essa é a próxima peça desta frente.

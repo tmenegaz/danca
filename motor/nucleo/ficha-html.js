@@ -15,6 +15,26 @@ const { escapar } = Markdown;
 const markdownParaHtml = Markdown.paraHtml;
 
 const ESTILO = `
+  /* A FONTE VEM DO PACOTE, PELO CAMINHO ABSOLUTO (21/11/2026). Esta folha é servida
+     sozinha, sem <link> — mas NÃO está sozinha no domínio: corre no mesmo Worker que
+     serve \`/assets/\`, e é de lá que vêm as fontes. O caminho é absoluto porque a ficha
+     responde em \`/anamnese/api/ficha-preenchida\`, e um \`fontes/…\` relativo resolveria
+     para dentro da rota. Sem ficheiro, o navegador cai no fallback — e a ficha sai numa
+     fonte diferente do documento que ela acompanha. */
+  @font-face {
+    font-family: 'Open Sans';
+    font-style: normal;
+    font-weight: 300 800;
+    font-display: swap;
+    src: url('/assets/fontes/open-sans-variavel.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Open Sans';
+    font-style: italic;
+    font-weight: 300 800;
+    font-display: swap;
+    src: url('/assets/fontes/open-sans-variavel-italico.woff2') format('woff2');
+  }
   /*
    * A folha é servida SOZINHA: o Worker devolve este HTML sem <link>, e por isso ela
    * não pode referenciar \`tools/templates/ciclo.css\`. Ela então DECLARA os mesmos
@@ -36,8 +56,10 @@ const ESTILO = `
     --ok: #1d6b2f;
     --alerta: #8f5a12;
     --falha: #9b1c1c;
-    /* As duas pilhas do projeto, e só duas: serifa na prosa, sans no maquinário. */
-    --serif: Georgia, 'Times New Roman', serif;
+    /* As duas pilhas do projeto, e só duas: a prosa na voz do projeto (Open Sans), o
+       maquinário na fonte do sistema. O nome \`--serif\` é histórico — nomeia o PAPEL
+       (a voz), não o desenho; ver tools/templates/ciclo.css. */
+    --serif: 'Open Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     --ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     /* A ESCALA DE RAIO, a mesma da folha (tools/templates/ciclo.css). A ficha não
        carrega o ciclo.css — é servida sozinha —, e por isso DECLARA o que usa. Sem

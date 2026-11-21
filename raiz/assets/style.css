@@ -9,6 +9,36 @@
    quem precisa deles consome o token daqui.
    ========================================================================== */
 
+/* --- A FONTE É ENTREGUE PELO PACOTE, E NÃO PEDIDA A NINGUÉM (21/11/2026) -------
+   A identidade é Open Sans, e ela viaja ao lado desta folha em `assets/fontes/` —
+   copiada pelo gerador, como a folha. Declarar `'Open Sans'` sem entregar o ficheiro
+   não é escolher a fonte: é apostar em que a máquina de quem abre a tenha instalada.
+   Medido a 21/11/2026 — numa máquina que a tem (`fc-list`: 13 cortes) a mudança
+   parecia feita; num telemóvel, um Windows de fábrica, ou o servidor que gera o PDF,
+   caía no fallback, e o mesmo documento saía em duas fontes sem nada avisar.
+
+   UM FICHEIRO, TRÊS PESOS. O Open Sans é variável: o mesmo `.woff2` desenha do 300 ao
+   800, e o `font-weight: 300 800` diz isso ao navegador. Três ficheiros estáticos
+   (400/600/700) seriam o triplo do peso para desenhar o mesmo.
+
+   O `url()` é relativo a ESTA folha, que é servida de `assets/style.css` — logo
+   `fontes/…` resolve para `assets/fontes/…` no pacote, na raiz e no pacote zero.
+   A licença (SIL OFL 1.1) está ao lado das fontes, em `fontes/OFL.txt`. */
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url('fontes/open-sans-variavel.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-style: italic;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url('fontes/open-sans-variavel-italico.woff2') format('woff2');
+}
+
 :root {
   --burgundy: #6b1f2e;
   --burgundy-claro: #8a2a3d;
@@ -70,10 +100,22 @@
   --derivada-fundo: #efe9f2;
 
   /* --- Tipografia -----------------------------------------------------------------
-     Duas pilhas, e só duas: o texto é serifado (a voz do projeto) e os CONTROLES —
-     campo, botão, menu — são sans, porque é onde se digita e se clica, e a serifa
-     atrapalha em corpo pequeno de interface. Nenhum arquivo redeclara estas listas. */
-  --serif: Georgia, 'Times New Roman', serif;
+     Duas pilhas, e só duas: o texto é Open Sans (a voz do projeto) e os CONTROLES —
+     campo, botão, menu — são a fonte do sistema, porque é onde se digita e se clica, e
+     ela é a que o sistema desenha melhor em corpo pequeno de interface. Nenhum arquivo
+     redeclara estas listas.
+
+     O NOME `--serif` É HISTÓRICO (21/11/2026). Ele nasceu quando a prosa era serifada
+     (Georgia), e desde que a identidade é Open Sans ele já não descreve o desenho — o
+     que ele nomeia é o PAPEL: a voz do documento, por oposição ao maquinário. Mudar-lhe
+     o nome obrigaria a tocar as três folhas, a ficha da anamnese e o documento da
+     identidade para dizer a mesma coisa; o que não podia ficar por dizer é o que ele
+     significa, e é isto.
+
+     O FALLBACK NÃO É GEORGIA. Se o ficheiro de `fontes/` não chegar (pacote copiado
+     sem os assets), cair para uma serifa seria trocar a fonte por outra sem avisar. A
+     pilha cai para sans do sistema: erra a favor de não parecer a fonte que não é. */
+  --serif: 'Open Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
   /* Altura da barra fixa. O valor aqui é o FALLBACK (sem JavaScript): cobre a
