@@ -112,9 +112,13 @@ const camposDeCriterio = (doc) => Array.from(doc.querySelectorAll('[id^="t-"]'))
     console.log('\n1. O config do pacote declara os 8 critérios, um por coluna');
     const config = JSON.parse(fs.readFileSync(path.join(PACOTE, 'captura-aula-' + AULA + '.json'), 'utf8'));
     const blocos = config.blocos.filter((b) => b.tipo === 'tabela' && b.chave !== 'linha_de_base');
-    provar('há 4 blocos de dimensão (as 4 bandas da janela)', blocos.length === 4, blocos.length);
+    /* AS CONTAGENS SÃO AS DO PACOTE, E NÃO AS DE OUTRA ESCOLA (20/11/2026). A prova media quatro
+     * bandas e oito critérios — os da `batata`, expurgada. O DEFEITO que ela trava não é o número:
+     * é a coluna que junta DOIS critérios num rótulo só. O que se mede passa a ser a relação
+     * (uma coluna por critério, um campo por coluna × aluna), e o número sai do próprio config. */
+    provar('há blocos de dimensão (as bandas da janela)', blocos.length > 0, blocos.length);
     const colunas = blocos.flatMap((b) => (b.colunas || []).map((c) => c.rotulo));
-    provar('as colunas são os 8 critérios, um por um', colunas.length === 8, colunas);
+    provar('o config declara as colunas de todas as bandas', colunas.length > blocos.length, colunas.length);
     provar('nenhuma coluna junta dois critérios com «;»',
       colunas.every((c) => !c.includes(';')), colunas.filter((c) => c.includes(';')));
     provar('cada critério tem a sua chave (é debaixo dela que a marca se guarda)',
@@ -132,20 +136,21 @@ const camposDeCriterio = (doc) => Array.from(doc.querySelectorAll('[id^="t-"]'))
     win.eval(`sel.aula.value = ${JSON.stringify(AULA)}; renderCaptura(); render();`);
     await espera(win, 400);
     const campos = camposDeCriterio(doc);
-    provar('a tela desenha 8 campos de critério (1 aluna × 8 critérios)', campos.length === 8,
-      campos.map((c) => c.id));
+    /* UMA ALUNA × UMA COLUNA = UM CAMPO. A conta é esta, e não um número escrito à mão: se a tela
+     * desenhasse um campo por banda (o defeito), o total seria `blocos.length × alunas`. */
+    const alunas = [...new Set(campos.map((c) => c.aluna))];
+    provar('a tela desenha um campo por coluna e por aluna',
+      campos.length === colunas.length * alunas.length,
+      { campos: campos.length, colunas: colunas.length, alunas: alunas.length });
     const porBloco = {};
     for (const c of campos) porBloco[c.bloco] = (porBloco[c.bloco] || 0) + 1;
-    provar('…dois por banda, e não um', JSON.stringify(porBloco) ===
-      JSON.stringify({ tecnica_solo: 2, tecnica_barra: 2, tecnica_centro: 2, tecnica_musicalidade: 2 }),
-      porBloco);
+    provar('…e cada banda tem os campos das SUAS colunas, e não um só',
+      blocos.every((b) => porBloco[b.chave] === b.colunas.length * alunas.length),
+      { porBloco, esperado: blocos.map((b) => [b.chave, b.colunas.length * alunas.length]) });
     const rotulos = Array.from(doc.querySelectorAll('#captura-campos table.captura th'))
       .map((th) => th.textContent.trim());
     provar('…e cada cabeçalho nomeia UM critério',
-      ['alinhamento do pé de apoio', 'eixo do corpo na preparação',
-        'saída do calcanhar no tendu', 'quadril sem subir no en dehors',
-        'transferência de peso sem perder a verticalidade', 'braço junto do movimento',
-        'resposta ao pulso na marcação', 'frase até o fim da música'].every((c) => rotulos.includes(c)),
+      colunas.every((c) => rotulos.includes(c)) && rotulos.every((r) => !r.includes(';')),
       rotulos);
 
     /* 3 — O CONTROLE NEGATIVO. Com o config ANTIGO — um rótulo com os dois critérios —, a tela
@@ -164,8 +169,11 @@ const camposDeCriterio = (doc) => Array.from(doc.querySelectorAll('[id^="t-"]'))
       negativo.win.eval(`sel.aula.value = ${JSON.stringify(AULA)}; renderCaptura(); render();`);
       await espera(negativo.win, 400);
       const camposAntigos = camposDeCriterio(negativo.doc);
-      provar('com os dois critérios numa coluna, os campos caem para 4', camposAntigos.length === 4,
-        camposAntigos.map((c) => c.id));
+      /* UMA COLUNA POR BANDA ⇒ UM CAMPO POR BANDA. É a descida que prova que os campos são
+       * LIDOS do config: a tela não os traz escritos na página. */
+      provar('com os critérios todos numa coluna, os campos caem para um por banda',
+        camposAntigos.length === blocos.length * alunas.length,
+        { campos: camposAntigos.length, esperado: blocos.length * alunas.length });
       provar('…e é a tela a dizer, não uma lista escrita na página',
         camposAntigos.length !== campos.length, { comConfigNovo: campos.length, comConfigAntigo: camposAntigos.length });
     } finally {

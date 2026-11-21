@@ -273,6 +273,7 @@ function servir(env) {
       desabilitado: sel.disabled,
       aviso,
       textoDaCaixa: caixa ? String(caixa.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 200) : null,
+      textoDaOpcaoVazia: ((sel.querySelector('option') || {}).textContent || '').trim(),
     };
   });
   const trocar = async (slug) => {
@@ -325,7 +326,7 @@ function servir(env) {
   e = await estadoDaTurma();
   provar('a lista fica vazia', e.opcoes.length === 0, e.opcoes);
   provar('e o aviso diz que a direção não atribuiu turma', /curadoria|atribuiu|turma/i.test(e.aviso),
-    { aviso: e.aviso, caixa: e.textoDaCaixa });
+    { existe: e.existe, aviso: e.aviso, caixa: e.textoDaCaixa, opcao: e.textoDaOpcaoVazia });
 
   console.log('\n5. O SERVIDOR recusa a turma não atribuída — a tela não é a regra');
   /* O PORQUÊ: um filtro de tela é contornável por qualquer `POST` à mão. A regra que a
