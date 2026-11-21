@@ -815,7 +815,17 @@ PY
   # (já extraído acima) mais a lista de aulas que o pacote vai ter. O link só aparece quando a
   # página da aula existe de facto — link para página inexistente é âncora morta.
   if grep -q '<!-- OBJETIVOS -->' "$destino"; then
-    node "$RAIZ/tools/tabela-objetivos.js" "$PACOTE/plano-$CICLO.json" $DOCS > "$TMP/objetivos.md" \
+    # O ÍNDICE DOS EXERCÍCIOS (21/11/2026). A coluna «Exercício» liga cada linha ao exercício
+    # daquele bloco dentro da aula — «Solo» e «Barra» deixam de levar ao mesmo sítio. O índice sai
+    # da FONTE da notação, que é quem declara as âncoras (`### N. Bloco — Exercício {#id}`).
+    # Passa-se só a aula que tem exercícios declarados hoje: a notação é o documento do ciclo que
+    # os compõe, e o mapa abaixo cresce quando ela crescer.
+    EXERCICIOS_ARG=()
+    if [ -f "$(fonte_md notacao)" ]; then
+      EXERCICIOS_ARG=(--exercicios "aula-01=$(fonte_md notacao)")
+    fi
+    node "$RAIZ/tools/tabela-objetivos.js" "$PACOTE/plano-$CICLO.json" $DOCS \
+      ${EXERCICIOS_ARG[@]+"${EXERCICIOS_ARG[@]}"} > "$TMP/objetivos.md" \
       || { echo "erro: não consegui montar «Objetivos por bloco e por aula» (plano-$CICLO.json)." >&2; exit 1; }
     python3 - "$destino" "$TMP/objetivos.md" <<'PY'
 import sys, pathlib

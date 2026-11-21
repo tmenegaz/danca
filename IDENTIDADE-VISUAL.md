@@ -1088,10 +1088,26 @@ campo: uma soma editável seria uma segunda verdade sobre a mesma conta.
 | **`Cancelar`** (`.acao secundario`) | **desiste do gesto inteiro**: fecha, limpa o formulário e recolhe-o | não deixa resíduo para um segundo «Gravar» |
 | **`Gravar`** (`.acao`) | manda a decisão e segue | não é o único caminho de saída |
 
-**A ordem é o secundário primeiro, o principal depois** — a mesma do modal do convite
-(`motor/servidor/painel-html.js`). Nunca o contrário: um «Cancelar» à direita do «Gravar» é o que o
-dedo encontra quando procura o gesto que conclui. A fileira é `.modal-acoes` (o `flex-end` e o
-`gap` são dela), e os dois botões são `.acao` — a peça de sempre, não uma variante de modal.
+**A ordem é o principal primeiro, o «Cancelar» à direita** — e é a MESMA regra em todo o produto:
+nos formulários dos Bastidores, nos modais e nas janelas de confirmação. A fileira é `.modal-acoes`
+(o `flex-end` e o `gap` são dela), e os dois botões são `.acao` — a peça de sempre, não uma variante
+de modal.
+
+> **Correção de 21/11/2026 — a regra anterior estava ao contrário, e foi ela que a desmentiu.**
+> Este documento dizia «a ordem é o secundário primeiro, o principal depois», com uma justificação
+> que parecia boa («um «Cancelar» à direita do «Gravar» é o que o dedo encontra quando procura o
+> gesto que conclui»). **A decisão é dela, e é a oposta**, dita duas vezes em dois gestos
+> diferentes: no formulário das habilitações — «ele é à direita do gravar e não à esquerda do
+> gravar» — e na janela de criar a aula — «o botão cancelar ele fica do lado direito. A gente já
+> conversou sobre isso também». O padrão passa a ser um só: **a acção que conclui vem primeiro, o
+> recuo ao lado dela, à direita**.
+>
+> O que a correção custou, e o que ela ensina: as três janelas que já existiam (a duração, o
+> objetivo do exercício novo e o convite da escola) nasceram com a ordem antiga, e o formulário das
+> habilitações com a nova — **duas ordens no mesmo produto, as duas «documentadas»**. O texto de
+> antes fica aqui como o elo do que se acreditou; o que manda é a linha de cima. A prova que
+> afirmava a ordem antiga (`provar-salas-e-elencos`, secção do modal da duração) passou a afirmar
+> esta, e é por isso que ela é a rede: uma prova que fixa uma ordem errada congela o erro.
 
 **Porque é que o «Cancelar» do modal existe, tendo o `×`.** Porque sem ele o professor tem de clicar
 duas vezes para desistir: «para o professor não ter que clicar duas vezes lá no canto superior

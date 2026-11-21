@@ -57342,3 +57342,70 @@ preenchido, a data da linha, os quatro exercícios e os quatro blocos.
 faltam. O lugar deles é o verbete do exercício (é de lá que a música vem), e é a próxima peça.
 E a `-aula-01.md` da `breu-rosa` continua por re-derivar com a linha de base do elenco — a pendência
 que a entrada de 20/11 já declarou.
+
+## 21/11/2026 — As cinco coisas que ela viu na tela depois de testar
+
+**O que motivou.** Ela testou ao vivo a coluna nova e a janela do «Criar aula», e devolveu cinco
+defeitos. Nenhum era de gosto: todos eram o sistema a entregar uma coisa e a dizer outra. Palavras
+dela: «a coluna que a gente tem que chamamos de criar aula, vamos chamar essa coluna de ação»;
+«Esse link aqui ele não é o link para a aula, ele é o link para o exercício. Então o nome da coluna
+não é aula, é exercício»; «só abre o modal centralizado e alinhado ao que a gente já usa nos outros
+modais. A gente já tem isso na identidade visual, você precisa usar»; «o botão cancelar ele fica do
+lado direito»; e o `404`: «ele dá um unexpected end of JSON input».
+
+**O que foi decidido.** Cinco coisas.
+
+1. **A coluna chama-se «Ação»**, e o «Abrir» passou a **botão** — «Coloca como botão esse abrir para
+   a gente manter a mesma estética». Um link em texto ao lado de um botão na mesma célula não é a
+   mesma estética; é o defeito que ela nomeou.
+2. **A coluna da tabela dos objetivos chama-se «Exercício», e a célula nomeia o exercício e liga à
+   âncora dele.** O defeito era de leitura, e foi medido: as duas linhas do objetivo 01 — Solo e
+   Barra — levavam ao **mesmo** `#exercicios-da-aula-01`, e quem queria o de Barra procurava sozinho.
+   A âncora passa a ser **declarada no título do exercício** por `idDoExercicio` e **lida da fonte**:
+   não há segunda cópia da regra do slug. Ela leva o **número do objetivo** (`solo-plie-ob1`,
+   `solo-plie-ob3`) porque o mesmo exercício serve os dois — sem ele, `normalizar-ids.py` deduplicava
+   por posição (`solo-battement-tendu-1`), e a posição ninguém prevê de fora.
+3. **O `404` do «Guardar e gerar», e a causa não era a rota.** Em produção só uma **lista explícita**
+   de `/api/*` é encaminhada para o motor (`motor/servidor/producao.js`), e as rotas da porta vivem
+   debaixo dos prefixos dela (`/plano-ensino/`, `/plano-observacao/`, `/anamnese/`). A página pedia
+   `api/envelope/…` na raiz. Corrigido para `/plano-ensino/api/envelope/…`. O sintoma que ela viu —
+   `unexpected end of JSON input` — era a página a fazer `JSON.parse` do corpo vazio de um 404, e por
+   isso o aviso passou a nomear o estado e o caminho em vez de deixar o `SyntaxError` falar.
+4. **A janela passou a usar as peças da folha**, e deixou de ter `<style>` inventado dentro da página
+   gerada. Era um `<dialog>` próprio com CSS próprio; passou a `.modal` / `.modal-fundo` /
+   `.modal-caixa` / `.modal-acoes` / `.modal-x` e às pílulas `.escolhas` / `.escolha`.
+5. **A ordem dos botões estava escrita ao contrário — na folha, no painel e numa prova.** A regra
+   dizia «Cancelar antes do Gravar»; ela diz «o botão cancelar ele fica do lado direito». Corrigiu-se
+   `IDENTIDADE-VISUAL.md` (com nota de correção datada, porque documento congelado que muda sem a
+   nota reescreve o passado), as duas janelas do painel (`bastidores.js`, `painel-html.js`) e a
+   asserção de `provar-salas-e-elencos` que fixava a ordem errada. **Uma prova que congela a ordem
+   errada guarda o erro em vez de o apanhar** — foi o que aconteceu, e é a razão de a asserção
+   corrigida citar a decisão no próprio texto.
+
+**Motivo declarado — `tools/` é congelado.** `tools/tabela-objetivos.js`, `tools/calendario.py` e
+`tools/gerar-ciclo.sh` mudaram porque é ali que a coluna e a tabela nascem. As alterações são
+**opcionais e aditivas**: sem `--criar-aula` o calendário sai como saía, e sem `--exercicios` a
+tabela degrada para «—» em vez de inventar um nome (as duas formas são medidas na prova). O
+`plano.md`, o `notacao.md` e o pacote da `breu-rosa` foram regerados pela ferramenta de sempre e vão
+no mesmo commit porque são a **saída** dessa mudança.
+
+**Onde entrou.** `tools/calendario.py` (a coluna «Ação», o «Abrir» como botão),
+`tools/tabela-objetivos.js` (a coluna «Exercício», `exerciciosDaFonte`, `--exercicios`),
+`tools/gerar-ciclo.sh` (passa o índice da notação), `motor/nucleo/derivar-ciclo.js`
+(`idDoExercicio` com o objetivo, âncoras declaradas nos títulos), `motor/nucleo/derivar-plano-ciclo.js`
+(a janela com as peças da folha e o `PORTA` do caminho), `motor/servidor/bastidores.js` e
+`motor/servidor/painel-html.js` (a ordem dos botões), `IDENTIDADE-VISUAL.md` (a regra corrigida),
+`experimentos/provar-criar-aula.js` e `experimentos/provar-objetivos-por-aula.js` (as asserções).
+
+**Prova.** `provar-criar-aula` **39/39**, `provar-objetivos-por-aula` **55/55**,
+`provar-salas-e-elencos` **240/240**, `provar-geracao` **54**, `provar-derivador-da-aula` **35/35**,
+`provar-aula-dada` **34/34**, `provar-indices` **64/64**, `check-identidade` sem reprovação,
+`check-pacote` **0 erros** e `hash-ciclo --check` com a **cadeia intacta**. O pacote da `breu-rosa`
+publica as seis ligações de exercício (`#solo-battement-tendu-ob1` … `#barra-releve-ob1`), conferidas
+na página.
+
+**O que fica declarado, e não feito.** (a) Nenhuma aula pode ser criada antes de a **anterior** ter os
+dados do formulário recolhidos — ela pediu para tomar nota e **não** construir agora; (b)
+`provar-producao` está em **142 de 159**, e é **anterior** a esta entrada: medido no `HEAD`
+(`030ef48c`) num worktree à parte, dá o mesmo 142/159 — as 17 asserções fixam a página de bastidores
+com 8 secções (hoje tem 10) e com a palavra «curadoria» (hoje «turma»), e são provas mortas.

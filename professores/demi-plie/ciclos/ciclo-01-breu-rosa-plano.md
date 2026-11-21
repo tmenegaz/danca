@@ -121,32 +121,46 @@ Estender o ciclo em duas aulas se o último marco não for alcançado.
 Plano derivado da metodologia RAD, adaptado ao âmbito da turma; Plano derivado de literatura de apoio sobre corpo e aula
 
 ```{=html}
-<style>
-dialog.caixa { max-width: min(46rem, 92vw); border: 1px solid var(--borda-campo); }
-dialog.caixa::backdrop { background: rgba(0,0,0,.45); }
-#criar-aula fieldset { border: 0; padding: 0; margin: 0 0 var(--esp-3); }
-#criar-aula fieldset .campo-rotulo { display: block; margin: var(--esp-1) 0; }
-#criar-aula textarea { width: 100%; font: inherit; padding: var(--esp-1) var(--esp-2); border: 1px solid var(--borda-campo); border-radius: var(--raio-1); background: var(--superficie); color: inherit; }
-#criar-aula .acoes { display: flex; gap: var(--esp-2); flex-wrap: wrap; margin: var(--esp-3) 0 0; }
-#criar-aula .fraco { color: var(--texto-fraco); font-size: .92em; margin: var(--esp-1) 0; }
-</style>
-<dialog class="caixa" id="criar-aula" aria-labelledby="criar-aula-titulo">
-<form method="dialog">
-<h3 id="criar-aula-titulo">Criar a aula</h3>
-<p class="fraco" id="criar-aula-quando"></p>
+<div class="modal" id="criar-aula" role="dialog" aria-modal="true" aria-labelledby="criar-aula-titulo" hidden>
+<div class="modal-fundo" data-criar-fechar></div>
+<div class="modal-caixa">
+<div class="modal-cab">
+<h2 id="criar-aula-titulo">Criar a aula</h2>
+<button type="button" class="modal-x" data-criar-fechar aria-label="Fechar">×</button>
+</div>
+<p id="criar-aula-quando"></p>
 <label class="campo-rotulo" for="criar-aula-marco">Objetivo específico (o marco desta aula)</label>
 <textarea id="criar-aula-marco" name="marco" rows="2" required></textarea>
-<fieldset id="criar-aula-exercicios"><legend class="campo-rotulo">Exercícios que trabalham este objetivo</legend></fieldset>
-<fieldset id="criar-aula-blocos"><legend class="campo-rotulo">Blocos onde ele é trabalhado</legend></fieldset>
-<p class="fraco" id="criar-aula-aviso" role="status"></p>
-<div class="acoes">
+<fieldset class="escolhas" id="criar-aula-exercicios"><legend>Exercícios que trabalham este objetivo</legend></fieldset>
+<fieldset class="escolhas" id="criar-aula-blocos"><legend>Blocos onde ele é trabalhado</legend></fieldset>
+<p id="criar-aula-aviso" role="status"></p>
+<div class="modal-acoes">
+<button type="button" class="acao" id="criar-aula-guardar">Criar e gerar</button>
 <button type="button" class="acao secundario" id="criar-aula-cancelar">Cancelar</button>
-<button type="button" class="acao" id="criar-aula-guardar">Guardar e gerar</button>
 </div>
-</form>
-</dialog>
+</div>
+</div>
 <script type="application/json" id="dados-criar-aula">{"id":"plano-20261120-2052","ciclo":"01","professor":"demi-plie","escola":"breu","turma":"Rosa","marcos":["reconhecer o apoio e alinhar o eixo vertical","transferir o peso entre os pés sem perder o alinhamento","sustentar a transferência com musicalidade e controle do movimento"],"repertorio":["Battement tendu","Plié","Relevé","Battement jeté"],"blocos":["Solo","Barra","Centro","Musicalidade"],"temRepertorio":true}</script>
 <script>
+  var PORTA = "/plano-ensino/";
+  function pedir(caminho, init) {
+    return fetch(caminho, init).then(function (r) {
+      return r.text().then(function (texto) {
+        var corpo = null;
+        try { corpo = texto ? JSON.parse(texto) : null; } catch (e) { corpo = null; }
+        if (!r.ok) {
+          throw new Error((corpo && (corpo.erro || corpo.message)) ||
+            ("o servidor respondeu " + r.status + " em " + caminho));
+        }
+        if (corpo === null) {
+          throw new Error("a resposta de " + caminho + " não é JSON — o servidor respondeu " + r.status);
+        }
+        return corpo;
+      });
+    }, function (erro) {
+      throw new Error("não consegui falar com " + caminho + ": " + (erro && erro.message || erro));
+    });
+  }
 (function () {
   var fonte = document.getElementById("dados-criar-aula");
   if (!fonte) return;
@@ -162,25 +176,30 @@ dialog.caixa::backdrop { background: rgba(0,0,0,.45); }
   var btnGuardar = document.getElementById("criar-aula-guardar");
   var alvo = "";
   function dizer(t) { if (aviso) aviso.textContent = t || ""; }
-  function marcar(conjunto, valor) {
-    var itens = conjunto.querySelectorAll("input[type=checkbox]");
-    for (var i = 0; i < itens.length; i++) itens[i].checked = itens[i].value === valor;
-    return itens;
-  }
-  function listar(conjunto, valores, prefixo) {
-    conjunto.innerHTML = "<legend class=\"campo-rotulo\">" + prefixo + "</legend>";
+  function listar(conjunto, valores, legenda) {
+    while (conjunto.firstChild) conjunto.removeChild(conjunto.firstChild);
+    var lg = document.createElement("legend");
+    lg.textContent = legenda;
+    conjunto.appendChild(lg);
     for (var i = 0; i < valores.length; i++) {
       var id = conjunto.id + "-" + i;
       var lab = document.createElement("label");
-      lab.className = "campo-rotulo em-linha";
+      lab.className = "escolha";
       lab.setAttribute("for", id);
       var cx = document.createElement("input");
       cx.type = "checkbox"; cx.id = id; cx.value = valores[i];
+      var vista = document.createElement("span");
+      vista.textContent = valores[i];
       lab.appendChild(cx);
-      lab.appendChild(document.createTextNode(" " + valores[i]));
+      lab.appendChild(vista);
       conjunto.appendChild(lab);
     }
   }
+  function fechar() {
+    caixa.hidden = true;
+    document.removeEventListener("keydown", aoTeclar);
+  }
+  function aoTeclar(e) { if (e.key === "Escape") fechar(); }
   function abrir(nn, linha) {
     alvo = nn;
     titulo.textContent = "Criar a aula " + nn;
@@ -197,7 +216,8 @@ dialog.caixa::backdrop { background: rgba(0,0,0,.45); }
     listar(blocos, dados.blocos, "Blocos onde ele é trabalhado");
     dizer(dados.temRepertorio ? "" : "O repertório da turma está vazio: declare-o no plano antes de criar a aula.");
     btnGuardar.disabled = !dados.temRepertorio;
-    if (caixa.showModal) caixa.showModal(); else caixa.setAttribute("open", "open");
+    caixa.hidden = false;
+    document.addEventListener("keydown", aoTeclar);
   }
   function escolhidos(conjunto) {
     var saida = [], itens = conjunto.querySelectorAll("input[type=checkbox]");
@@ -206,10 +226,10 @@ dialog.caixa::backdrop { background: rgba(0,0,0,.45); }
   }
   document.addEventListener("click", function (e) {
     var b = e.target.closest ? e.target.closest("[data-criar-aula]") : null;
-    if (!b) return;
-    e.preventDefault();
-    abrir(b.getAttribute("data-criar-aula"), b.closest("tr"));
+    if (b) { e.preventDefault(); abrir(b.getAttribute("data-criar-aula"), b.closest("tr")); return; }
+    if (e.target.closest && e.target.closest("[data-criar-fechar]")) fechar();
   });
+  document.getElementById("criar-aula-cancelar").addEventListener("click", fechar);
   try {
     var pedida = new URLSearchParams(window.location.search).get("criar-aula");
     if (pedida) {
@@ -219,9 +239,6 @@ dialog.caixa::backdrop { background: rgba(0,0,0,.45); }
       abrir(nn, botao ? botao.closest("tr") : null);
     }
   } catch (e) { /* endereço sem `URLSearchParams`: fica o clique */ }
-  document.getElementById("criar-aula-cancelar").addEventListener("click", function () {
-    if (caixa.close) caixa.close(); else caixa.removeAttribute("open");
-  });
   btnGuardar.addEventListener("click", function () {
     var marco = String(campoMarco.value || "").trim();
     var ex = escolhidos(exercicios), bl = escolhidos(blocos);
@@ -230,8 +247,7 @@ dialog.caixa::backdrop { background: rgba(0,0,0,.45); }
     if (!bl.length) { dizer("Marque ao menos um bloco: é onde o objetivo acontece."); return; }
     if (!dados.id) { dizer("Este plano ainda não tem carimbo: grave-o primeiro, e a aula nasce dele."); return; }
     btnGuardar.disabled = true; dizer("a gravar…");
-    fetch("/api/envelope/" + encodeURIComponent(dados.id))
-      .then(function (r) { return r.json(); })
+    pedir(PORTA + "api/envelope/" + encodeURIComponent(dados.id))
       .then(function (env) { return gravar(env, marco, ex, bl); })
       .catch(function (erro) { btnGuardar.disabled = false; dizer("não deu: " + (erro && erro.message || erro)); });
   });
@@ -254,20 +270,18 @@ dialog.caixa::backdrop { background: rgba(0,0,0,.45); }
       }
     }
     r["aula-" + n + "-sequencia"] = { valor: seq, origem: "perguntado", respondente: "professor", nota: null };
-    return fetch("/api/elicitar", {
+    return pedir(PORTA + "api/elicitar", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ respostas: r, contexto: env.contexto, fonte: "plano",
         ajuste_de: dados.id, base: env,
         motivo: "a aula " + alvo + " foi criada a partir do calendário do plano" }),
-    }).then(function (resp) { return resp.json().then(function (d) { return { ok: resp.ok, d: d }; }); })
-      .then(function (x) {
-        if (!x.ok) throw new Error((x.d && x.d.erro) || "gravação recusada");
-        dizer("gravado. A aula " + alvo + " está a ser gerada — esta página fica em dia quando o ciclo fechar.");
-        btnGuardar.disabled = true;
-        if (x.d && x.d.disparo && x.d.disparo.ok === false) dizer("gravado, mas o gerador não partiu: " + (x.d.disparo.erro || ""));
-      })
-      .catch(function (erro) { btnGuardar.disabled = false; dizer("não deu: " + (erro && erro.message || erro)); });
+    }).then(function (x) {
+      dizer("gravado. A aula " + alvo + " está a ser gerada — esta página fica em dia quando o ciclo fechar.");
+      btnGuardar.disabled = true;
+      if (x && x.disparo && x.disparo.ok === false) dizer("gravado, mas o gerador não partiu: " + (x.disparo.erro || ""));
+    })
+    .catch(function (erro) { btnGuardar.disabled = false; dizer("não deu: " + (erro && erro.message || erro)); });
   }
 })();
 </script>

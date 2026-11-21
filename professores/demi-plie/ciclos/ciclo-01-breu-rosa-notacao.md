@@ -42,7 +42,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 ## Exercícios da Aula 01
 
-### 1. Solo — Battement tendu
+### 1. Solo — Battement tendu {#solo-battement-tendu-ob1}
 
 *8 tempos, 2/4 · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical*
 
@@ -53,7 +53,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 | 1 | 1–2 | `[Perna: ED 1ª ○ - ●]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha. |
 | 3 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
 
-### 2. Solo — Plié
+### 2. Solo — Plié {#solo-plie-ob1}
 
 *4 tempos, 2/4 · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical*
 
@@ -61,7 +61,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
 | 1 | 1–2 | `[Perna: ED 1ª ↓ ↑ ED]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe, varredura para fora. |
 
-### 3. Solo — Relevé
+### 3. Solo — Relevé {#solo-releve-ob1}
 
 *8 tempos, 2/4 · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical*
 
@@ -72,7 +72,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 | 1 | 1–2 | `[Perna: 5ª ↑ → + ED]` | Lê-se: Perna, quinta posição, sobe, conduz a, à frente, varredura para fora. |
 | 3 | 1–2 | `[Perna: ED → ↓ 5ª]` | Lê-se: Perna, varredura para fora, conduz a, cede, quinta posição. |
 
-### 4. Solo — Battement tendu
+### 4. Solo — Battement tendu {#solo-battement-tendu-ob3}
 
 *8 tempos, 2/4 · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento*
 
@@ -83,7 +83,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 | 1 | 1–2 | `[Perna: ED 1ª ○ - ●]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha. |
 | 3 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
 
-### 5. Solo — Relevé
+### 5. Solo — Relevé {#solo-releve-ob3}
 
 *8 tempos, 2/4 · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento*
 
@@ -94,7 +94,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 | 1 | 1–2 | `[Perna: 5ª ↑ → + ED]` | Lê-se: Perna, quinta posição, sobe, conduz a, à frente, varredura para fora. |
 | 3 | 1–2 | `[Perna: ED → ↓ 5ª]` | Lê-se: Perna, varredura para fora, conduz a, cede, quinta posição. |
 
-### 6. Barra — Battement tendu
+### 6. Barra — Battement tendu {#barra-battement-tendu-ob1}
 
 *8 tempos, 2/4 · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical*
 
@@ -105,7 +105,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 | 1 | 1–2 | `[Perna: ED 1ª ○ - ●]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha. |
 | 3 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
 
-### 7. Barra — Plié
+### 7. Barra — Plié {#barra-plie-ob1}
 
 *4 tempos, 2/4 · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical*
 
@@ -113,7 +113,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
 | 1 | 1–2 | `[Perna: ED 1ª ↓ ↑ ED]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe, varredura para fora. |
 
-### 8. Barra — Relevé
+### 8. Barra — Relevé {#barra-releve-ob1}
 
 *8 tempos, 2/4 · objetivo 1 — reconhecer o apoio e alinhar o eixo vertical*
 
@@ -124,7 +124,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 | 1 | 1–2 | `[Perna: 5ª ↑ → + ED]` | Lê-se: Perna, quinta posição, sobe, conduz a, à frente, varredura para fora. |
 | 3 | 1–2 | `[Perna: ED → ↓ 5ª]` | Lê-se: Perna, varredura para fora, conduz a, cede, quinta posição. |
 
-### 9. Barra — Plié
+### 9. Barra — Plié {#barra-plie-ob2}
 
 *4 tempos, 2/4 · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento*
 
@@ -132,7 +132,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
 | 1 | 1–2 | `[Perna: ED 1ª ↓ ↑ ED]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe, varredura para fora. |
 
-### 10. Barra — Relevé
+### 10. Barra — Relevé {#barra-releve-ob2}
 
 *8 tempos, 2/4 · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento*
 
@@ -143,7 +143,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 | 1 | 1–2 | `[Perna: 5ª ↑ → + ED]` | Lê-se: Perna, quinta posição, sobe, conduz a, à frente, varredura para fora. |
 | 3 | 1–2 | `[Perna: ED → ↓ 5ª]` | Lê-se: Perna, varredura para fora, conduz a, cede, quinta posição. |
 
-### 11. Centro — Plié
+### 11. Centro — Plié {#centro-plie-ob2}
 
 *4 tempos, 2/4 · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento*
 
@@ -151,7 +151,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
 | 1 | 1–2 | `[Perna: ED 1ª ↓ ↑ ED]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe, varredura para fora. |
 
-### 12. Centro — Relevé
+### 12. Centro — Relevé {#centro-releve-ob2}
 
 *8 tempos, 2/4 · objetivo 2 — transferir o peso entre os pés sem perder o alinhamento*
 
@@ -162,7 +162,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 | 1 | 1–2 | `[Perna: 5ª ↑ → + ED]` | Lê-se: Perna, quinta posição, sobe, conduz a, à frente, varredura para fora. |
 | 3 | 1–2 | `[Perna: ED → ↓ 5ª]` | Lê-se: Perna, varredura para fora, conduz a, cede, quinta posição. |
 
-### 13. Centro — Battement tendu
+### 13. Centro — Battement tendu {#centro-battement-tendu-ob3}
 
 *8 tempos, 2/4 · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento*
 
@@ -173,7 +173,7 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 | 1 | 1–2 | `[Perna: ED 1ª ○ - ●]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha. |
 | 3 | 1–2 | `[Perna: ED 1ª ○ - ● 1ª]` | Lê-se: Perna, varredura para fora, primeira posição, abre, ao lado, fecha, primeira posição. |
 
-### 14. Centro — Relevé
+### 14. Centro — Relevé {#centro-releve-ob3}
 
 *8 tempos, 2/4 · objetivo 3 — sustentar a transferência com musicalidade e controle do movimento*
 

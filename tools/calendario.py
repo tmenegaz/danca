@@ -145,7 +145,8 @@ def celula_da_coluna_criar(nn: int, prontas: set, criar: bool) -> str:
         return ''
     dois = f'{nn:02d}'
     if dois in prontas:
-        return f'[abrir](aula-{dois}.html)'
+        return (f'<a class="acao secundario pequena" href="aula-{dois}.html">'
+                f'Abrir</a>')
     return (f'<button type="button" class="acao secundario pequena" '
             f'data-criar-aula="{dois}">Criar aula</button>')
 
@@ -299,12 +300,16 @@ def main() -> int:
     # parte agora começa pelo seu marco, e a segunda retoma o cabeçalho — sem ele, no
     # telefone a tabela de baixo chega sem dizer de que coluna é cada número.
     #
-    # A QUINTA COLUNA — «CRIAR A AULA» (21/11/2026). O calendário já dizia QUANDO cada aula
+    # A QUINTA COLUNA — «AÇÃO» (21/11/2026). O calendário já dizia QUANDO cada aula
     # acontece; o que ele não dizia era o que fazer com isso. A coluna fecha o circuito: a aula
-    # que ainda não tem documento ganha o botão que a cria (e que sabe o número dela, `02`, e a
-    # data), e a que já tem ganha a ligação para o documento. A célula não é escrita à mão em
-    # nenhum sítio — sai da lista de aulas que o ciclo declara, que é o `DOCS` do manifesto.
-    cabecalho_da_tabela = ['| Aula | Data | Dia | Duração | Criar a aula |',
+    # que já tem documento ganha o botão que a abre, e a que ainda não tem ganha o botão que a
+    # cria (e que sabe o número dela, `02`). A célula não é escrita à mão em nenhum sítio — sai
+    # da lista de aulas que o ciclo declara, que é o `DOCS` do manifesto.
+    #
+    # O NOME DA COLUNA É «AÇÃO», e não «Criar a aula» (21/11/2026): ela deixou de ter uma acção
+    # só — passaram a ser duas, abrir e criar —, e um título que nomeia metade das coisas que a
+    # coluna faz obriga a procurar a outra metade.
+    cabecalho_da_tabela = ['| Aula | Data | Dia | Duração | Ação |',
                            '|:---:|:---|:---|:---:|:---|']
 
     def inicio_de_tabela(titulo, id_ascii):

@@ -2,7 +2,7 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "cabd79d026621f819324dc43dcb0ccb7b14171bb35bf81fc015f6f8836ccca12",
+        "hash": "af1a7fd1da00791998a9989fd7ae5139d7d4ea1f19912e6a215eb58a8e1f4d28",
         "id": "ciclo-01-breu-rosa",
         "lida": true,
         "parent_hash": ""
@@ -415,9 +415,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "a37d426a"
+    "commit": "030ef48c"
   },
-  "gerado_em": "2026-11-21T11:47",
+  "gerado_em": "2026-11-21T12:21",
   "nao_indexado": [
     {
       "familia": "conteudo",

@@ -15,10 +15,12 @@
  *
  *   1. a seção do plano é o CRUZAMENTO (bloco × objetivo → aula), com uma linha por par, e não
  *      uma linha por exercício: 14 exercícios viram 7 pares na `batata`;
- *   2. o DETALHE NÃO SE PERDEU: o link aponta para `aula-NN.html#exercicios-da-aula-NN`, que é
- *      onde o exercício, os tempos e o compasso se leem — e a página existe;
- *   3. o link só existe quando a página existe; uma aula ainda sem documento sai «a criar», e
- *      um objetivo sem marco sai `—` (nada é adivinhado);
+ *   2. o DETALHE NÃO SE PERDEU: o link aponta para o EXERCÍCIO dentro da aula
+ *      (`aula-NN.html#<bloco>-<exercício>-ob<N>`) — e a âncora existe na página. Nomeia o
+ *      exercício, e não a aula, porque era esse o defeito de leitura: as duas linhas do
+ *      objetivo 01 (Solo e Barra) levavam ao MESMO endereço;
+ *   3. o link só existe quando a página existe; uma aula ainda sem documento sai «a criar na
+ *      Aula NN», e um objetivo sem marco sai `—` (nada é adivinhado);
  *   4. a ficha de identificação duplicada saiu do «Objetivo geral», e o dado que a máquina
  *      lia dela (a duração) continua no `## Contexto`, que é onde ele nasce.
  *
@@ -54,7 +56,7 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const raiz = path.resolve(__dirname, '..');
-const { tabela, nota } = require(path.join(raiz, 'tools/tabela-objetivos.js'));
+const { tabela, nota, exerciciosDaFonte } = require(path.join(raiz, 'tools/tabela-objetivos.js'));
 const { derivarPlano } = require(path.join(raiz, 'motor/nucleo/derivar-plano-ciclo.js'));
 /* O MAPA SERVIDO, montado pela porta de verdade — não pelo conteúdo em bruto: é a porta que já
  * engoliu uma chave em silêncio (o `recortePeloPlano`), e é ela que a tela lê. */
@@ -185,18 +187,36 @@ const linhasDeDados = (linhas) => linhas.filter((l) => /^\|/.test(l)).slice(2);
   provar('«Musicalidade» idem', contar('Musicalidade') === 1, contar('Musicalidade'));
   provar('a ordem dos blocos é a do documento (Solo, Barra, Centro, Musicalidade)',
     /Solo[\s\S]*Barra[\s\S]*Centro[\s\S]*Musicalidade/.test(dados.join('\n')));
-  provar('as três colunas são as pedidas: Bloco, Objetivo específico, Aula',
-    linhas[0] === '| Bloco | Objetivo específico | Aula |', linhas[0]);
+  /* A COLUNA NOMEIA O EXERCÍCIO, E NÃO A AULA (21/11/2026). Palavras dela: «Esse link aqui ele
+   * não é o link para a aula, ele é o link para o exercício. Então o nome da coluna não é aula,
+   * é exercício.» Uma coluna chamada «Aula» que entrega o exercício mentiria no cabeçalho. */
+  provar('as três colunas são as pedidas: Bloco, Objetivo específico, Exercício',
+    linhas[0] === '| Bloco | Objetivo específico | Exercício |', linhas[0]);
   provar('não sobra nenhuma coluna de detalhe (conteúdo do nível, tempos, compasso)',
     !/Tempos|Compasso|Conteúdo do nível/.test(linhas.join('\n')));
 
   // ---------------------------------------------------------------- 2) o link
-  console.log('\n2. o detalhe não se perdeu: o link leva à sequência dentro da aula');
+  console.log('\n2. o detalhe não se perdeu: o link leva AO EXERCÍCIO dentro da aula');
   const htmlAula = ler(PACOTE, 'aula-01.html');
-  provar('a aula 01 publica o âncora da sequência detalhada',
-    htmlAula.indexOf('id="exercicios-da-aula-01"') !== -1);
-  provar('…e o apanhado liga a ela, na linha do objetivo 1',
-    linhas.some((l) => /\]\(aula-01\.html#exercicios-da-aula-01\)/.test(l)), linhas);
+  const fonteNotacao = path.join(path.dirname(PLANO_MD), path.basename(PLANO_MD).replace('-plano.md', '-notacao.md'));
+  const indiceExercicios = new Map([['01', exerciciosDaFonte(fs.readFileSync(fonteNotacao, 'utf8'))]]);
+  const comIndice = tabela(plano, ['aula-01'], indiceExercicios);
+  const ancoras = (comIndice.join('\n').match(/aula-01\.html#([a-z0-9-]+)/g) || [])
+    .map((h) => h.replace('aula-01.html#', ''));
+  provar('o apanhado liga ao exercício, e não à secção dos exercícios da aula',
+    ancoras.length > 0 && ancoras.every((a) => a !== 'exercicios-da-aula-01'), ancoras);
+  provar('…e cada âncora nomeia o bloco a que pertence (Solo → solo-…, Barra → barra-…)',
+    ancoras.filter((a) => /^solo-/.test(a)).length > 0
+    && ancoras.filter((a) => /^barra-/.test(a)).length > 0, ancoras);
+  /* O DEFEITO QUE ELA VIU, medido: duas linhas do objetivo 01 — Solo e Barra — levavam ao
+     mesmo sítio, e o professor que queria o de Barra tinha de o procurar sozinho. */
+  const linhasDoObjetivo01 = linhasDeDados(comIndice).filter((l) => /\*\*01\*\*/.test(l));
+  provar('…e as duas linhas do objetivo 01 (Solo e Barra) levam a sítios DIFERENTES',
+    linhasDoObjetivo01.length === 2
+    && new Set(linhasDoObjetivo01.map((l) => (/aula-01\.html#[a-z0-9-]+/.exec(l) || [])[0])).size === 2,
+    linhasDoObjetivo01);
+  provar('todas as âncoras citadas existem na página da aula',
+    ancoras.length > 0 && ancoras.every((a) => htmlAula.indexOf('id="' + a + '"') !== -1), ancoras);
   /* O DETALHE É A TABELA DA MÚSICA, e os valores são os da aula do dia — não os de outra escola.
    * A asserção lia `8, 4/4` e `16, 3/4`, que eram o compasso da `batata`; o que ela tem de medir
    * é que a aula publica compasso E tempos, com números dentro. */
@@ -209,7 +229,19 @@ const linhasDeDados = (linhas) => linhas.filter((l) => /^\|/.test(l)).slice(2);
   const semDocumento = tabela(plano, []);
   provar('sem documento de aula, nenhum link é inventado',
     !/\]\(aula-/.test(semDocumento.join('\n')), semDocumento.filter((l) => /Aula 0/.test(l)));
-  provar('…e a célula diz «a criar»', /Aula 01 \*\(a criar\)\*/.test(semDocumento.join('\n')));
+  provar('…e a célula diz «a criar na Aula 01»', /a criar na Aula 01/.test(semDocumento.join('\n')),
+    semDocumento.filter((l) => /Aula 0/.test(l)));
+  /* A AULA 01 EXISTE E AINDA NÃO SE SABE O NOME DO EXERCÍCIO (sem índice, aqui): a célula diz
+     «—», e não um nome que ninguém leu. As dos objetivos 02 e 03 dizem «a criar na Aula 02/03»,
+     que é outra coisa — a aula ainda não nasceu. */
+  const objetivo01SemIndice = dados.filter((l) => /\*\*01\*\*/.test(l));
+  provar('a aula que existe e não tem o exercício em mãos sai «—», e não um nome adivinhado',
+    objetivo01SemIndice.length === 2 && objetivo01SemIndice.every((l) => /\| — \|$/.test(l)),
+    objetivo01SemIndice);
+  provar('…e a que ainda não nasceu diz «a criar na Aula 02» e «03»',
+    dados.filter((l) => /a criar na Aula 02/.test(l)).length === 2
+    && dados.filter((l) => /a criar na Aula 03/.test(l)).length === 3,
+    dados.filter((l) => /a criar na Aula/.test(l)).length);
   const semMarco = tabela({ marcosPorAula: [], estruturaDeCadaAula: plano.estruturaDeCadaAula }, ['aula-01']);
   provar('objetivo sem marco de aula sai «—», e não uma aula suposta',
     semMarco.filter((l) => /^\|/.test(l)).slice(2).every((l) => /\| — \|$/.test(l)), semMarco);
@@ -297,7 +329,10 @@ const linhasDeDados = (linhas) => linhas.filter((l) => /^\|/.test(l)).slice(2);
       { n: '02', objetivos: '01', marco: 'b' },
     ],
   });
-  const comMulti = linhasDeDados(tabela(multi, ['aula-01', 'aula-02']));
+  /* SEM DOCUMENTO, para a célula poder nomear as duas aulas: com documento e sem índice, a
+     célula degrada para «—» (a aula existe, o exercício não se sabe) e a asserção mediria o
+     vazio em vez do cruzamento. */
+  const comMulti = linhasDeDados(tabela(multi, []));
   const doObjetivo01 = comMulti.filter((l) => l.indexOf('| **') === 0 && /\*\*01\*\*/.test(l));
   provar('a aula 01 cita dois objetivos, e o objetivo 01 aparece nas aulas 01 e 02',
     doObjetivo01.length === 2

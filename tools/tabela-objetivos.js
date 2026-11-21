@@ -30,11 +30,16 @@
  * ONDE cada objetivo é trabalhado, e nada sobre quais blocos a aula tem. Era exactamente essa
  * confusão que a secção «Estrutura de cada aula» fazia.
  *
- * O LINK só existe quando a página existe: `aula-NN.html#exercicios-da-aula-NN` quando o
- * documento está no pacote, «Aula NN *(a criar)*» quando não está. Link para página
- * inexistente é âncora morta.
+ * A CÉLULA NOMEIA O EXERCÍCIO, E O LINK VAI PARA ELE (21/11/2026) — `aula-NN.html#<âncora>`,
+ * onde a âncora é DECLARADA no título do exercício e lida da fonte. A coluna chamava-se «Aula» e
+ * a célula dizia «Aula NN»; as duas linhas do mesmo objetivo — Solo e Barra — levavam ao MESMO
+ * endereço (a secção dos exercícios da aula), e o professor que queria o de Barra procurava
+ * sozinho. Onde não há o que nomear, diz-se o que se sabe: a aula que não nasceu sai «a criar na
+ * Aula NN», e o documento sem índice de exercícios sai «—». Link para página inexistente é
+ * âncora morta; nome inventado é pior.
  *
  *   uso: node tools/tabela-objetivos.js <plano-XX.json> [aula-01 aula-02 …]
+ *                                     [--exercicios aula-01=<fonte da notação>]
  *
  * A lista de aulas é a dos documentos que o pacote VAI ter (`$DOCS` do gerador) — e não a dos
  * `.html` que já estão no disco, que depende da ordem em que o laço de geração os escreve.
@@ -136,32 +141,95 @@ function aulasPorObjetivo(plano) {
  *
  * `aulasComDocumento` é a lista de documentos que o pacote terá (`aula-01`, `aula-02`, …).
  */
-function tabela(plano, aulasComDocumento) {
+function tabela(plano, aulasComDocumento, indiceDeExercicios) {
   const comDocumento = new Set((aulasComDocumento || [])
     .filter((a) => /^aula-\d+$/.test(String(a)))
     .map((a) => dois(String(a).replace(/\D/g, ''))));
   const objetivos = objetivosDoPlano(plano);
   const aulasDoObjetivo = aulasPorObjetivo(plano);
+  const exercicios = indiceDeExercicios || new Map();
 
-  const celulaDaAula = (aula) => (comDocumento.has(dois(aula))
-    ? '[Aula ' + dois(aula) + '](aula-' + dois(aula) + '.html#' + ancoraDaSequencia(aula) + ')'
-    : 'Aula ' + dois(aula) + ' *(a criar)*');
+  /* A CÉLULA NOMEIA O EXERCÍCIO, E NÃO A AULA (21/11/2026).
+   *
+   * Palavras dela: «Esse link aqui ele não é o link para a aula, ele é o link para o exercício. Então
+   * o nome da coluna não é aula, é exercício. […] O link que agora se chama aula um, ele vai levar
+   * para o exercício de solo. […] O outro link que também se chama aula 01, ele tem que levar lá
+   * para a aula no exercício de barra.» Está certo, e o defeito era de LEITURA: duas linhas da
+   * tabela — Solo e Barra, o mesmo objetivo 01 — levavam ao MESMO endereço, o da secção dos
+   * exercícios da aula, e o professor que queria ver o de Barra tinha de o procurar sozinho.
+   *
+   * O endereço passa a ser o do exercício: `aula-01.html#solo-plie`. A âncora é DECLARADA no título
+   * do exercício (`derivarNotacao` → `idDoExercicio`) e lida daqui da FONTE — não é adivinhada por
+   * uma segunda cópia da regra do slug.
+   *
+   * SEM ÍNDICE, DIZ-SE O QUE SE SABE. A aula que ainda não foi criada não tem exercício nenhum, e a
+   * célula diz «a criar na Aula NN» — a informação de que aquilo nasce naquela aula não se perde
+   * com a mudança do nome da coluna. A aula que existe e não tem exercício daquele bloco para
+   * aquele objetivo fica com «—», que é a verdade: o cruzamento não tem par. */
+  const celulaDoExercicio = (objetivo, bloco) => {
+    const aulas = aulasDoObjetivo.get(Number(objetivo)) || [];
+    if (!aulas.length) return '—';
+    const partes = [];
+    for (const aula of aulas) {
+      const nn = dois(aula);
+      if (!comDocumento.has(nn)) { partes.push('a criar na Aula ' + nn); continue; }
+      const daAula = exercicios.get(nn) || [];
+      const deste = daAula.filter((e) => e.objetivo === Number(objetivo)
+        && String(e.bloco).toLowerCase() === String(bloco).toLowerCase());
+      if (!deste.length) { partes.push('—'); continue; }
+      for (const e of deste) {
+        partes.push('[' + e.exercicio + '](aula-' + nn + '.html#' + e.id + ')');
+      }
+    }
+    return partes.join(' · ');
+  };
 
-  const linhas = ['| Bloco | Objetivo específico | Aula |', '|:--|:--|:--|'];
+  const linhas = ['| Bloco | Objetivo específico | Exercício |', '|:--|:--|:--|'];
   const vistos = new Set();
   for (const o of objetivos) {
     for (const bloco of o.blocos) {
       const chave = bloco + '\u0000' + o.n;
-      if (vistos.has(chave)) continue;   // o mesmo par bloco × objetivo, uma vez só
+      if (vistos.has(chave)) continue;   // o mesmo par bloco x objetivo, uma vez só
       vistos.add(chave);
-      const aulas = aulasDoObjetivo.get(Number(o.n)) || [];
-      const celula = aulas.length ? aulas.map(celulaDaAula).join(' · ') : '—';
       linhas.push('| **' + bloco + '** | **' + o.n + '**' + (o.objetivo ? ' — ' + o.objetivo : '')
-        + ' | ' + celula + ' |');
+        + ' | ' + celulaDoExercicio(o.n, bloco) + ' |');
     }
   }
   if (linhas.length === 2) return ['- [a decidir — marque em que bloco cada objetivo é trabalhado]'];
   return linhas;
+}
+
+/**
+ * O ÍNDICE DOS EXERCÍCIOS DE UMA AULA, lido da FONTE da notação.
+ *
+ * O QUE ELE LÊ. Cada exercício é um `### N. Bloco — Exercício {#ancora}` seguido, nas linhas
+ * seguintes, da legenda em itálico com «objetivo N» (ou «objetivo N — texto»). As duas coisas são
+ * escritas por `derivarNotacao`, e é por isso que se leem em vez de se reconstruírem: uma tabela
+ * que adivinhasse o par (bloco, exercício) teria de replicar a composição da notação inteira.
+ *
+ * O `{#…}` é o que torna isto possível sem uma segunda regra de slug — ver `idDoExercicio`. Um
+ * título sem âncora declarada é ignorado, e não inventado: um link para uma âncora que talvez não
+ * exista é pior do que nenhum link.
+ */
+function exerciciosDaFonte(texto) {
+  const saida = [];
+  const linhas = String(texto || '').split('\n');
+  for (let i = 0; i < linhas.length; i += 1) {
+    const m = /^###\s+(\d+)\.\s+(.+?)\s+\{#([^}]+)\}\s*$/.exec(linhas[i]);
+    if (!m) continue;
+    const rotulo = m[2];
+    const partes = rotulo.split(/\s+[—–]\s+/);
+    const bloco = partes.length > 1 ? partes[0].trim() : '';
+    const exercicio = partes.length > 1 ? partes.slice(1).join(' — ').trim() : rotulo.trim();
+    let objetivo = null;
+    for (let j = i + 1; j < Math.min(i + 4, linhas.length); j += 1) {
+      const o = /\bobjetivo\s+(\d+)/i.exec(linhas[j]);
+      if (o) { objetivo = Number(o[1]); break; }
+    }
+    if (!bloco || !objetivo) continue;
+    saida.push({ bloco, exercicio, objetivo, id: m[3].trim() });
+  }
+  return saida;
 }
 
 /* A LINHA DE NOTA — o que a tabela É, e o que ela NÃO diz. Sai abaixo, como CITAÇÃO (`>`), que
@@ -178,9 +246,30 @@ const NOTA = [
 ];
 
 function principal() {
-  const [caminhoPlano, ...aulas] = process.argv.slice(2);
+  const argv = process.argv.slice(2);
+  /* O ÍNDICE DOS EXERCÍCIOS — `--exercicios aula-01=<caminho da notação>` (21/11/2026).
+   * Sem ele, a coluna «Exercício» não tem o que nomear e degrada para o que sabia antes
+   * («a criar» / «—»). Opcional de propósito: a tabela continua a montar-se sem ele. */
+  const indice = new Map();
+  const resto = [];
+  for (let i = 0; i < argv.length; i += 1) {
+    if (argv[i] !== '--exercicios') { resto.push(argv[i]); continue; }
+    const par = String(argv[i + 1] || '');
+    i += 1;
+    const igual = par.indexOf('=');
+    if (igual < 0) continue;
+    const nn = par.slice(0, igual).replace(/[^0-9]/g, '').padStart(2, '0');
+    const caminho = par.slice(igual + 1);
+    try {
+      indice.set(nn, exerciciosDaFonte(require('fs').readFileSync(caminho, 'utf8')));
+    } catch (e) {
+      console.error('aviso: não consegui ler os exercícios de ' + caminho + ' (' + e.message + ')');
+    }
+  }
+  const [caminhoPlano, ...aulas] = resto;
   if (!caminhoPlano) {
-    console.error('uso: node tools/tabela-objetivos.js <plano-XX.json> [aula-01 aula-02 …]');
+    console.error('uso: node tools/tabela-objetivos.js <plano-XX.json> [aula-01 aula-02 …] '
+      + '[--exercicios aula-01=<fonte da notação>]');
     return 2;
   }
   let plano;
@@ -190,7 +279,7 @@ function principal() {
     console.error('erro: não consegui ler ' + caminhoPlano + ' (' + e.message + ')');
     return 1;
   }
-  process.stdout.write(tabela(plano, aulas).concat(NOTA).join('\n') + '\n');
+  process.stdout.write(tabela(plano, aulas, indice).concat(NOTA).join('\n') + '\n');
   return 0;
 }
 
@@ -198,4 +287,5 @@ if (require.main === module) process.exit(principal());
 
 module.exports = {
   tabela, nota: NOTA, objetivosDoPlano, aulasPorObjetivo, ancoraDaSequencia,
+  exerciciosDaFonte,
 };

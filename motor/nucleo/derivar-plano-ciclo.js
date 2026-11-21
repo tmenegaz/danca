@@ -603,40 +603,48 @@ function dialogoDaAula(envelope, contexto) {
 
   const linhas = [];
   linhas.push('```{=html}');
-  /* A FOLHA DO DIÁLOGO É DECLARADA AQUI, e não na `ciclo.css`: são cinco regras que só esta
-   * caixa usa, e a folha é das páginas — a página que declara o que usa está no regime da
-   * checagem 4 do `check-identidade`. As peças são as da casa (`.caixa`, `.acao`, `.campo-rotulo`),
-   * e o que se acrescenta é só a arrumação delas dentro do `dialog`. */
-  linhas.push('<style>');
-  linhas.push('dialog.caixa { max-width: min(46rem, 92vw); border: 1px solid var(--borda-campo); }');
-  linhas.push('dialog.caixa::backdrop { background: rgba(0,0,0,.45); }');
-  linhas.push('#criar-aula fieldset { border: 0; padding: 0; margin: 0 0 var(--esp-3); }');
-  linhas.push('#criar-aula fieldset .campo-rotulo { display: block; margin: var(--esp-1) 0; }');
-  linhas.push('#criar-aula textarea { width: 100%; font: inherit; padding: var(--esp-1) var(--esp-2); border: 1px solid var(--borda-campo); border-radius: var(--raio-1); background: var(--superficie); color: inherit; }');
-  linhas.push('#criar-aula .acoes { display: flex; gap: var(--esp-2); flex-wrap: wrap; margin: var(--esp-3) 0 0; }');
-  linhas.push('#criar-aula .fraco { color: var(--texto-fraco); font-size: .92em; margin: var(--esp-1) 0; }');
-  linhas.push('</style>');
-  linhas.push('<dialog class="caixa" id="criar-aula" aria-labelledby="criar-aula-titulo">');
-  linhas.push('<form method="dialog">');
-  linhas.push('<h3 id="criar-aula-titulo">Criar a aula</h3>');
-  linhas.push('<p class="fraco" id="criar-aula-quando"></p>');
-  // O objetivo (o marco). Preenchido quando o plano já o declara para aquela aula.
+  /* AS PEÇAS SÃO AS DA CASA — `.modal`, `.modal-fundo`, `.modal-caixa`, `.modal-cab`, `.modal-x`,
+   * `.modal-acoes` (21/11/2026).
+   *
+   * A PRIMEIRA VERSÃO ABRIU UM `<dialog class="caixa">` com cinco regras de CSS próprias, e ela
+   * viu logo: «só abre o modal centralizado e alinhado ao que a gente já usa nos outros modais. A
+   * gente já tem isso na identidade visual, você precisa usar.» Está na §«Uma janela por cima» do
+   * `IDENTIDADE-VISUAL.md`, e a peça existe na folha desde sempre — um `<dialog>` com `::backdrop`
+   * próprio é uma SEGUNDA identidade de janela no mesmo produto.
+   *
+   * Nada de `<style>` nesta página: quem pinta é a folha, e o corpo do modal usa as peças de
+   * formulário que ela já desenha (`.campo-rotulo`, `.caixa`/`.modal-caixa` com os seus campos,
+   * `.escolhas` para as listas de marcar). */
+  linhas.push('<div class="modal" id="criar-aula" role="dialog" aria-modal="true" aria-labelledby="criar-aula-titulo" hidden>');
+  linhas.push('<div class="modal-fundo" data-criar-fechar></div>');
+  linhas.push('<div class="modal-caixa">');
+  linhas.push('<div class="modal-cab">');
+  linhas.push('<h2 id="criar-aula-titulo">Criar a aula</h2>');
+  linhas.push('<button type="button" class="modal-x" data-criar-fechar aria-label="Fechar">×</button>');
+  linhas.push('</div>');
+  /* NENHUMA CLASSE INVENTADA. `.fraco` existe só no `<style>` da página de lançamento, e não na
+   * folha dos pacotes — usá-la aqui seria a classe que o `IDENTIDADE-VISUAL.md` proíbe, e o
+   * `check-identidade` não a apanha porque não lê o que o gerador injecta no documento. Um
+   * parágrafo simples é a peça certa. */
+  linhas.push('<p id="criar-aula-quando"></p>');
   linhas.push('<label class="campo-rotulo" for="criar-aula-marco">Objetivo específico (o marco desta aula)</label>');
   linhas.push('<textarea id="criar-aula-marco" name="marco" rows="2" required></textarea>');
-  // Os exercícios: a relação do objetivo com o que se propõe.
-  linhas.push('<fieldset id="criar-aula-exercicios"><legend class="campo-rotulo">Exercícios que trabalham este objetivo</legend></fieldset>');
-  // Os blocos.
-  linhas.push('<fieldset id="criar-aula-blocos"><legend class="campo-rotulo">Blocos onde ele é trabalhado</legend></fieldset>');
-  linhas.push('<p class="fraco" id="criar-aula-aviso" role="status"></p>');
-  linhas.push('<div class="acoes">');
+  linhas.push('<fieldset class="escolhas" id="criar-aula-exercicios"><legend>Exercícios que trabalham este objetivo</legend></fieldset>');
+  linhas.push('<fieldset class="escolhas" id="criar-aula-blocos"><legend>Blocos onde ele é trabalhado</legend></fieldset>');
+  linhas.push('<p id="criar-aula-aviso" role="status"></p>');
+  /* A FILEIRA É A DO MODAL, E O «CANCELAR» FICA À DIREITA (21/11/2026) — palavras dela: «O botão
+   * cancelar ele fica do lado direito.» A ordem é a mesma dos formulários dos Bastidores: a acção
+   * que conclui vem primeiro, e o recuo ao lado dela. */
+  linhas.push('<div class="modal-acoes">');
+  linhas.push('<button type="button" class="acao" id="criar-aula-guardar">Criar e gerar</button>');
   linhas.push('<button type="button" class="acao secundario" id="criar-aula-cancelar">Cancelar</button>');
-  linhas.push('<button type="button" class="acao" id="criar-aula-guardar">Guardar e gerar</button>');
   linhas.push('</div>');
-  linhas.push('</form>');
-  linhas.push('</dialog>');
+  linhas.push('</div>');
+  linhas.push('</div>');
   linhas.push('<script type="application/json" id="dados-criar-aula">'
     + JSON.stringify(dados).replace(/</g, '\\u003c') + '</script>');
   linhas.push('<script>');
+  linhas.push(...PEDIR_JS());
   linhas.push(...DIALOGO_DA_AULA_JS());
   linhas.push('</script>');
   linhas.push('```');
@@ -666,25 +674,33 @@ function DIALOGO_DA_AULA_JS() {
     '  var btnGuardar = document.getElementById("criar-aula-guardar");',
     '  var alvo = "";',
     '  function dizer(t) { if (aviso) aviso.textContent = t || ""; }',
-    '  function marcar(conjunto, valor) {',
-    '    var itens = conjunto.querySelectorAll("input[type=checkbox]");',
-    '    for (var i = 0; i < itens.length; i++) itens[i].checked = itens[i].value === valor;',
-    '    return itens;',
-    '  }',
-    '  function listar(conjunto, valores, prefixo) {',
-    '    conjunto.innerHTML = "<legend class=\\"campo-rotulo\\">" + prefixo + "</legend>";',
+    '  function listar(conjunto, valores, legenda) {',
+    '    while (conjunto.firstChild) conjunto.removeChild(conjunto.firstChild);',
+    '    var lg = document.createElement("legend");',
+    '    lg.textContent = legenda;',
+    '    conjunto.appendChild(lg);',
+    /* A PÍLULA É A PEÇA DA CASA (`.escolha` + `input` escondido + `span`), a mesma dos dias da
+     * semana e das modalidades — e não uma caixinha com uma etiqueta ao lado, que seria uma
+     * segunda forma de escolher no mesmo produto. */
     '    for (var i = 0; i < valores.length; i++) {',
     '      var id = conjunto.id + "-" + i;',
     '      var lab = document.createElement("label");',
-    '      lab.className = "campo-rotulo em-linha";',
+    '      lab.className = "escolha";',
     '      lab.setAttribute("for", id);',
     '      var cx = document.createElement("input");',
     '      cx.type = "checkbox"; cx.id = id; cx.value = valores[i];',
+    '      var vista = document.createElement("span");',
+    '      vista.textContent = valores[i];',
     '      lab.appendChild(cx);',
-    '      lab.appendChild(document.createTextNode(" " + valores[i]));',
+    '      lab.appendChild(vista);',
     '      conjunto.appendChild(lab);',
     '    }',
     '  }',
+    '  function fechar() {',
+    '    caixa.hidden = true;',
+    '    document.removeEventListener("keydown", aoTeclar);',
+    '  }',
+    '  function aoTeclar(e) { if (e.key === "Escape") fechar(); }',
     '  function abrir(nn, linha) {',
     '    alvo = nn;',
     '    titulo.textContent = "Criar a aula " + nn;',
@@ -704,7 +720,8 @@ function DIALOGO_DA_AULA_JS() {
     '    listar(blocos, dados.blocos, "Blocos onde ele é trabalhado");',
     '    dizer(dados.temRepertorio ? "" : "O repertório da turma está vazio: declare-o no plano antes de criar a aula.");',
     '    btnGuardar.disabled = !dados.temRepertorio;',
-    '    if (caixa.showModal) caixa.showModal(); else caixa.setAttribute("open", "open");',
+    '    caixa.hidden = false;',
+    '    document.addEventListener("keydown", aoTeclar);',
     '  }',
     '  function escolhidos(conjunto) {',
     '    var saida = [], itens = conjunto.querySelectorAll("input[type=checkbox]");',
@@ -713,13 +730,13 @@ function DIALOGO_DA_AULA_JS() {
     '  }',
     '  document.addEventListener("click", function (e) {',
     '    var b = e.target.closest ? e.target.closest("[data-criar-aula]") : null;',
-    '    if (!b) return;',
-    '    e.preventDefault();',
-    '    abrir(b.getAttribute("data-criar-aula"), b.closest("tr"));',
+    '    if (b) { e.preventDefault(); abrir(b.getAttribute("data-criar-aula"), b.closest("tr")); return; }',
+    '    if (e.target.closest && e.target.closest("[data-criar-fechar]")) fechar();',
     '  });',
-    /* O ENDEREÇO ABRE O DIÁLOGO (21/11/2026) — `?criar-aula=02`. Serve a quem quer mandar a
-     * ligação a alguém («cria a aula 2»), e serve à prova, que precisa de abrir a caixa sem um
-     * rato: um botão que nunca foi clicado por ninguém é a única coisa que esta página não pode
+    '  document.getElementById("criar-aula-cancelar").addEventListener("click", fechar);',
+    /* O ENDEREÇO ABRE O DIÁLOGO (21/11/2026) — `?criar-aula=02`. Serve a quem quer mandar a',
+     * ligação a alguém («cria a aula 2»), e serve à prova, que precisa de abrir a caixa sem um',
+     * rato: um botão que nunca foi clicado por ninguém é a única coisa que esta página não pode',
      * afirmar que funciona. */
     '  try {',
     '    var pedida = new URLSearchParams(window.location.search).get("criar-aula");',
@@ -730,9 +747,6 @@ function DIALOGO_DA_AULA_JS() {
     '      abrir(nn, botao ? botao.closest("tr") : null);',
     '    }',
     '  } catch (e) { /* endereço sem `URLSearchParams`: fica o clique */ }',
-    '  document.getElementById("criar-aula-cancelar").addEventListener("click", function () {',
-    '    if (caixa.close) caixa.close(); else caixa.removeAttribute("open");',
-    '  });',
     '  btnGuardar.addEventListener("click", function () {',
     '    var marco = String(campoMarco.value || "").trim();',
     '    var ex = escolhidos(exercicios), bl = escolhidos(blocos);',
@@ -741,8 +755,7 @@ function DIALOGO_DA_AULA_JS() {
     '    if (!bl.length) { dizer("Marque ao menos um bloco: é onde o objetivo acontece."); return; }',
     '    if (!dados.id) { dizer("Este plano ainda não tem carimbo: grave-o primeiro, e a aula nasce dele."); return; }',
     '    btnGuardar.disabled = true; dizer("a gravar…");',
-    '    fetch("/api/envelope/" + encodeURIComponent(dados.id))',
-    '      .then(function (r) { return r.json(); })',
+    '    pedir(PORTA + "api/envelope/" + encodeURIComponent(dados.id))',
     '      .then(function (env) { return gravar(env, marco, ex, bl); })',
     '      .catch(function (erro) { btnGuardar.disabled = false; dizer("não deu: " + (erro && erro.message || erro)); });',
     '  });',
@@ -765,22 +778,69 @@ function DIALOGO_DA_AULA_JS() {
     '      }',
     '    }',
     '    r["aula-" + n + "-sequencia"] = { valor: seq, origem: "perguntado", respondente: "professor", nota: null };',
-    '    return fetch("/api/elicitar", {',
+    '    return pedir(PORTA + "api/elicitar", {',
     '      method: "POST",',
     '      headers: { "Content-Type": "application/json" },',
     '      body: JSON.stringify({ respostas: r, contexto: env.contexto, fonte: "plano",',
     '        ajuste_de: dados.id, base: env,',
     '        motivo: "a aula " + alvo + " foi criada a partir do calendário do plano" }),',
-    '    }).then(function (resp) { return resp.json().then(function (d) { return { ok: resp.ok, d: d }; }); })',
-    '      .then(function (x) {',
-    '        if (!x.ok) throw new Error((x.d && x.d.erro) || "gravação recusada");',
-    '        dizer("gravado. A aula " + alvo + " está a ser gerada — esta página fica em dia quando o ciclo fechar.");',
-    '        btnGuardar.disabled = true;',
-    '        if (x.d && x.d.disparo && x.d.disparo.ok === false) dizer("gravado, mas o gerador não partiu: " + (x.d.disparo.erro || ""));',
-    '      })',
-    '      .catch(function (erro) { btnGuardar.disabled = false; dizer("não deu: " + (erro && erro.message || erro)); });',
+    '    }).then(function (x) {',
+    '      dizer("gravado. A aula " + alvo + " está a ser gerada — esta página fica em dia quando o ciclo fechar.");',
+    '      btnGuardar.disabled = true;',
+    '      if (x && x.disparo && x.disparo.ok === false) dizer("gravado, mas o gerador não partiu: " + (x.disparo.erro || ""));',
+    '    })',
+    '    .catch(function (erro) { btnGuardar.disabled = false; dizer("não deu: " + (erro && erro.message || erro)); });',
     '  }',
     '})();',
+  ];
+}
+
+/**
+ * O CAMINHO DA PORTA, E O `404` QUE ELA VIU (21/11/2026).
+ *
+ * O QUE ACONTECEU, na letra dela: «quando eu clico em guardar e gerar, ele dá um unexpected end of
+ * JSON input», com `GET https://breu.padd.com.br/api/envelope/plano-20261120-2052 404`.
+ *
+ * A CAUSA É DE ENDEREÇO, e é minha. A página do plano é um documento do PACOTE, e o pacote é
+ * servido pela produção (`motor/servidor/producao.js`), que encaminha para o motor uma LISTA
+ * EXPLÍCITA de caminhos `/api/…` — `receber`, `dados`, `lancamentos/consolidar` e os bastidores.
+ * `/api/envelope/:id` e `/api/elicitar` não estão nessa lista, porque são rotas da PORTA, e a porta
+ * vive sob os seus prefixos (`/plano-ensino/`, `/plano-observacao/`, `/anamnese/`), que a produção
+ * encaminha inteiros para o motor (`caminhoDaPorta`). O caminho certo é, por isso,
+ * `/plano-ensino/api/…` — o mesmo que os links de proveniência do próprio documento já usam.
+ *
+ * E O ERRO MENTIU DUAS VEZES. «unexpected end of JSON input» é o que o `r.json()` diz quando a
+ * resposta é o HTML do 404; e «não deu» escondeu o que o browser já tinha dito. Por isso o `pedir`
+ * abaixo confere o ESTADO antes de tentar ler o corpo, e quando o corpo não é JSON diz o número e
+ * o caminho — que é o que permite a quem lê distinguir «rota não existe» de «a gravação recusou».
+ */
+const PORTA = '/plano-ensino/';
+
+/**
+ * O `pedir` — uma leitura que não mente sobre o que recebeu. Devolve o JSON, ou lança um erro que
+ * diz o estado e o caminho. Ele existe porque a alternativa custou uma sessão de depuração.
+ */
+function PEDIR_JS() {
+  return [
+    '  var PORTA = "' + PORTA + '";',
+    '  function pedir(caminho, init) {',
+    '    return fetch(caminho, init).then(function (r) {',
+    '      return r.text().then(function (texto) {',
+    '        var corpo = null;',
+    '        try { corpo = texto ? JSON.parse(texto) : null; } catch (e) { corpo = null; }',
+    '        if (!r.ok) {',
+    '          throw new Error((corpo && (corpo.erro || corpo.message)) ||',
+    '            ("o servidor respondeu " + r.status + " em " + caminho));',
+    '        }',
+    '        if (corpo === null) {',
+    '          throw new Error("a resposta de " + caminho + " não é JSON — o servidor respondeu " + r.status);',
+    '        }',
+    '        return corpo;',
+    '      });',
+    '    }, function (erro) {',
+    '      throw new Error("não consegui falar com " + caminho + ": " + (erro && erro.message || erro));',
+    '    });',
+    '  }',
   ];
 }
 

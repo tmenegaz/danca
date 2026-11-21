@@ -4,8 +4,31 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 21/11/2026 (commit `a37d426a`). Nesta entrega, **a aula nasce do
-> calendário**. Palavras dela: «a gente vai acrescentar aqui uma quinta coluna, que é a coluna do
+> **Última fotografia:** 21/11/2026 (commit `030ef48c`). Nesta entrega, **o que ela viu na tela
+> depois de testar** — cinco defeitos, e nenhum deles era de gosto. **CONFIRMADO** em
+> `provar-criar-aula` **39/39** e `provar-objetivos-por-aula` **55/55**. (1) **A coluna chama-se
+> «Ação»**, e o «Abrir» passou a **botão**, com a estética do «Criar aula» ao lado — era um link
+> cru: «Coloca como botão esse abrir para a gente manter a mesma estética». (2) **A coluna da
+> tabela dos objetivos chama-se «Exercício», e a célula nomeia o exercício e liga a ele**
+> (`aula-01.html#solo-plie-ob1`), não à secção dos exercícios da aula: as duas linhas do objetivo
+> 01 — Solo e Barra — levavam ao **mesmo endereço**, e o professor que queria o de Barra tinha de
+> o procurar sozinho. A âncora é **declarada no título do exercício** (`idDoExercicio`, com o
+> número do objetivo porque o mesmo exercício serve o 01 e o 03) e lida da fonte — não é adivinhada
+> por uma segunda cópia da regra do slug. (3) **O `404` do «Guardar e gerar»** — e a causa não era
+> a rota: em produção só um **lista explícita** de `/api/*` é encaminhada para o motor, e as rotas
+> da porta vivem debaixo dos prefixos dela. O caminho era `api/envelope/…` na raiz; passou a
+> `/plano-ensino/api/envelope/…`. O sintoma que ela viu — `unexpected end of JSON input` — era a
+> página a ler um corpo vazio de um 404. (4) **O modal passou a usar as peças da folha** (`.modal`,
+> `.modal-fundo`, `.modal-caixa`, `.modal-acoes`, `.modal-x`, `.escolhas`/`.escolha`): era um
+> `<dialog>` próprio com `<style>` inventado dentro da página gerada. (5) **A ordem dos botões** —
+> «o botão cancelar ele fica do lado direito» — estava **escrita ao contrário** em
+> `IDENTIDADE-VISUAL.md`, e um `provar` fixava a ordem errada: corrigiu-se a folha (com nota
+> datada), as duas janelas do painel (`bastidores.js`, `painel-html.js`) e a asserção. **DECIDIDO,
+> e por fazer:** nenhuma aula pode ser criada antes de a anterior ter os dados do formulário
+> recolhidos — ela pediu para tomar nota e **não** construir agora.
+>
+> **Fotografia anterior (21/11/2026 — a aula nasce do calendário).** Nesta entrega, **a aula nasce
+> do calendário**. Palavras dela: «a gente vai acrescentar aqui uma quinta coluna, que é a coluna do
 > criar aula. […] É a coluna que vai criar o botão.» O calendário dizia **quando** cada aula
 > acontece; o que não dizia era o que fazer com isso. **DECIDIDO**, e cada peça no sítio onde já era
 > a verdade: (1) **a coluna** — `tools/calendario.py --criar-aula --aulas-prontas`, com o botão para
@@ -2808,6 +2831,32 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      que a calcula. `?criar-aula=02` abre a caixa pelo endereço. Prova: `provar-criar-aula`
      **38/38** (mutação: **30/38**), com a secção F a abrir a página num Chrome. Ver
      `ARQUITETURA-AULA.md` §4.4 e a entrada de 21/11/2026 no `REGISTRO.md`.
+126. **A COLUNA NOMEIA O QUE ENTREGA — E O ENDEREÇO É O DO EXERCÍCIO, NÃO O DA AULA.** A coluna do
+     calendário passou a chamar-se **«Ação»** (era «Criar a aula») e a coluna da tabela dos objetivos,
+     **«Exercício»** (era «Aula»). A razão não é de gosto: uma coluna chamada «Aula» que entregasse
+     um exercício mentiria **no cabeçalho**, e foi isso que aconteceu — as duas linhas do objetivo 01,
+     Solo e Barra, levavam ao **mesmo** `#exercicios-da-aula-01`, e o professor que queria o de Barra
+     tinha de o procurar sozinho. **DECIDIDO**: a célula nomeia o exercício e liga à **âncora dele**
+     (`aula-01.html#solo-plie-ob1`); a âncora é **declarada no título do exercício** por `idDoExercicio`
+     e **lida da fonte** — nunca reconstruída por uma segunda cópia da regra do slug —, e leva o
+     número do objetivo porque o mesmo exercício serve o 01 e o 03 (sem ele, `normalizar-ids.py`
+     deduplicava por posição, e ninguém prevê a posição de fora). O documento sozinho, sem o índice
+     dos exercícios, diz **«—»** e não inventa nome; a aula que ainda não nasceu diz «a criar na Aula
+     NN». O «Abrir» do calendário passou a **botão** com a estética do «Criar aula», que é o que ela
+     pediu. Prova: `provar-objetivos-por-aula` **55/55** e `provar-criar-aula` **39/39**.
+127. **O CLIENTE FALA COM A PORTA DEBAIXO DO PREFIXO DELA — E A JANELA USA AS PEÇAS DA FOLHA.** O
+     «Guardar e gerar» respondia **404** e a página dizia `unexpected end of JSON input`, que é o que
+     se lê quando se faz `JSON.parse` do corpo vazio de um 404. **CONFIRMADO**: em produção só uma
+     **lista explícita** de `/api/*` é encaminhada para o motor (`motor/servidor/producao.js`), e as
+     rotas da porta vivem debaixo dos prefixos dela (`/plano-ensino/`, `/plano-observacao/`,
+     `/anamnese/`). O cliente pedia `api/envelope/…` na raiz; passou a `/plano-ensino/api/envelope/…`.
+     A janela do «Criar aula» era um `<dialog>` próprio com `<style>` **inventado dentro da página
+     gerada**, e passou a usar `.modal`/`.modal-fundo`/`.modal-caixa`/`.modal-acoes`/`.modal-x` e as
+     pílulas `.escolhas`/`.escolha`. E a **ordem dos botões** — «o botão cancelar ele fica do lado
+     direito» — estava escrita **ao contrário** em `IDENTIDADE-VISUAL.md`, com uma `provar` a fixar a
+     ordem errada: corrigiu-se a folha (com nota de correção datada), as duas janelas do painel
+     (`bastidores.js`, `painel-html.js`) e a asserção, porque **uma prova que congela a ordem errada
+     guarda o erro em vez de o apanhar**. Ver `REGISTRO.md` (21/11/2026).
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
@@ -3533,7 +3582,21 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (21/11/2026 — a aula nasce do calendário)
+### Executado nesta fotografia (21/11/2026 — os cinco defeitos que ela viu na tela)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-criar-aula` | **39/39**. (A) a coluna chama-se **«Ação»**, o «Abrir» é **botão** com a estética do «Criar aula», e a aula com documento **não** tem botão de criar; (B) a janela usa as **peças da folha** (`.modal`, `.modal-fundo`, `.modal-caixa`, `.modal-acoes`, `.modal-x`) e **nenhuma inventada** — nada de `<style>` nem de `.fraco`; (C) a regra da aula declarada; (D) o escritor; (E) a tabela dos objetivos: **nomeia o exercício e liga a ele**, o documento sozinho (sem índice) diz «—» e **não inventa nome**, a aula que não nasceu diz «a criar na Aula 02»; (F) **num Chrome**: a janela abre com `?criar-aula=02` (`hidden` fora, e não um `<dialog open>` que já não existe), o título diz «Criar a aula 02», o marco vem do plano, a data · dia · duração vêm **da linha** |
+| `provar-objetivos-por-aula` | **55/55**. A coluna é «Exercício»; as **duas linhas do objetivo 01 (Solo e Barra) levam a sítios diferentes** e cada âncora nomeia o bloco a que pertence; **todas as âncoras citadas existem** na `aula-01.html` |
+| `provar-salas-e-elencos` | **240/240**. A asserção que fixava o «Cancelar» **antes** do «Gravar» foi corrigida — uma prova que congela a ordem errada guarda o erro em vez de o apanhar |
+| `provar-geracao` · `provar-derivador-da-aula` · `provar-aula-dada` · `provar-aula-prosa` · `provar-formulario-da-aula` · `provar-indices` | **54 · 35/35 · 34/34 · 19 · 53 · 64/64** — verdes |
+| `node tools/check-identidade.js` | **0 reprovações** — as 17 superfícies que emitem marcação usam só peças desenhadas ou ganchos declarados (16 ganchos); Aresta, Base e Respiro verdes |
+| `check-sem-destruicao` · `check-indices` · `check-pacote` · `hash-ciclo --check` | **ok** · **16/16** (índices regerados) · **0 erros, 1 aviso** (o PDF ausente, por desenho desde 20/11) · **cadeia intacta** |
+| O pacote da `breu-rosa` | regerado: **9 páginas**, 0 erros. A tabela dos objetivos publica seis ligações de exercício — `#solo-battement-tendu-ob1`, `#solo-plie-ob1`, `#solo-releve-ob1`, `#barra-battement-tendu-ob1`, `#barra-plie-ob1`, `#barra-releve-ob1` |
+| `provar-producao` | **142 de 159** — e é **anterior** a esta entrega: medido no `HEAD` (`030ef48c`) num worktree à parte, dá o **mesmo 142/159**. As 17 asserções fixam a página de bastidores com **8 secções** (hoje tem 10) e com a palavra «curadoria» (hoje «turma»). São provas mortas, e ficam nomeadas aqui em vez de contadas como verdes |
+| Deploy / ao ar | **Não executado** — o caminho de `/api/envelope` foi corrigido para `/plano-ensino/api/envelope`; a conferência ao vivo é o passo seguinte ao push |
+
+### Executado na fotografia anterior (21/11/2026 — a aula nasce do calendário)
 
 | Verificação | Resultado |
 |:--|:--|

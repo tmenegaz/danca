@@ -1603,6 +1603,37 @@ function rotuloDoExercicio(c) {
   return [c.bloco, c.exercicio].filter(Boolean).join(' — ') || 'exercício';
 }
 
+/**
+ * A ÂNCORA DE UM EXERCÍCIO, DECLARADA NO TÍTULO (21/11/2026) — `solo-plie`.
+ *
+ * PORQUE PASSA A SER DECLARADA. Ela já existia (`### 2. Solo — Plié` → `id="solo-plie"`), mas era
+ * o `normalizar-ids.py` que a inventava a partir do texto do título. Quem precisa de a CITAR — a
+ * tabela «Objetivos por bloco e por exercício», que liga cada linha ao exercício daquele bloco na
+ * aula — teria de reproduzir a regra do normalizador em JavaScript, e duas cópias de uma regra de
+ * slug divergem ao primeiro título com parêntese. Com o `{#…}` escrito, a âncora tem UM autor e a
+ * tabela lê-a da fonte, em vez de a adivinhar.
+ *
+ * O ID É O MESMO QUE O NORMALIZADOR GERAVA — «Solo — Plié» → `solo-plie` —, e é por isso que
+ * nenhum link já publicado se parte. A regra segue a dele: sem acentos, sem numeração, o travessão
+ * cai, os espaços viram hífen.
+ */
+function idDoExercicio(bloco, exercicio, objetivo) {
+  /* O OBJETIVO ENTRA NO ID, E É O QUE O TORNA ÚNICO (21/11/2026). O mesmo exercício aparece em
+   * mais de um objetivo — «Solo — Battement tendu» serve o 1 e o 3 —, e o mesmo par (bloco,
+   * exercício) repetia a âncora: o `normalizar-ids.py` desempatava com um `-1` POSICIONAL
+   * (`solo-battement-tendu-1`), que ninguém pode prever de fora. Com `-ob1`/`-ob3`, a âncora diz a
+   * que objetivo aquele exercício serve, e é isso que a tabela dos objetivos precisa de citar. */
+  const numero = Number(String(objetivo == null ? '' : objetivo).replace(/\D.*$/, ''));
+  const sufixo = numero > 0 ? '-ob' + numero : '';
+  return String([bloco, exercicio].filter(Boolean).join(' ') || 'exercicio')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[.,;:!?/\\|'"()[\]{}]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim().replace(/\s+/g, '-').replace(/-{2,}/g, '-').replace(/^-+|-+$/g, '') + sufixo
+    || 'exercicio';
+}
+
 /** O objetivo da linha, sem o rótulo numérico que já vem escrito («1 — reconhecer…»). */
 function objetivoDaSequencia(linha) {
   const v = String((linha && (linha['Objetivo específico'] || linha['Objetivo'] || linha['Marco'])) || '').trim();
@@ -1707,7 +1738,11 @@ function derivarNotacao({ plano, contexto }) {
   } else {
     composicoes.forEach((c, i) => {
       const musica = c.musica ? c.musica.tempos + ' tempos, ' + c.musica.compasso : null;
-      saida.push('### ' + (i + 1) + '. ' + rotuloDoExercicio(c));
+      /* A ÂNCORA VAI DECLARADA (21/11/2026) — ver `idDoExercicio`. Sem o `{#…}`, o id era o que o
+       * normalizador inventava, e a tabela dos objetivos não o podia citar sem uma segunda cópia da
+       * regra. O id é o MESMO de antes: nenhum link publicado se parte. */
+      saida.push('### ' + (i + 1) + '. ' + rotuloDoExercicio(c) + ' {#'
+        + idDoExercicio(c.bloco, c.exercicio, objetivoDaSequencia(linhas[i])) + '}');
       saida.push('');
       const objetivo = objetivoDaSequencia(linhas[i]);
       // A POSIÇÃO EM PALAVRAS (28/10/2026). O cabeçalho do exercício passa a dizer em que posição
@@ -2530,5 +2565,6 @@ module.exports = {
   blocoDaDimensao,
   eixoDoBloco,
   rotuloDoEixo,
+  idDoExercicio,
   varrerJuizo,
 };

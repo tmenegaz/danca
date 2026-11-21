@@ -14722,8 +14722,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *   · o «Cancelar» DESISTE do gesto inteiro — fecha o modal, limpa o formulário e recolhe-o,
      *     que é exactamente o que o «Cancelar» do formulário da sala faz. */
     '    + "    <div class=\\"modal-acoes\\">"' +
-    '    + "      <button class=\\"acao secundario\\" id=\\"dur-cancelar\\" type=\\"button\\">Cancelar</button>"' +
     '    + "      <button class=\\"acao\\" id=\\"dur-gravar\\" type=\\"submit\\">Gravar</button>"' +
+    '    + "      <button class=\\"acao secundario\\" id=\\"dur-cancelar\\" type=\\"button\\">Cancelar</button>"' +
     '    + "    </div>"' +
     '    + "  </form>"' +
     '    + "</div>";' +
@@ -14893,8 +14893,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    + "      </fieldset>" + recurso + ja' +
     '    + "    </div>"' +
     '    + "    <div class=\\"modal-acoes\\">"' +
-    '    + "      <button class=\\"acao secundario\\" id=\\"obj-cancelar\\" type=\\"button\\">Cancelar</button>"' +
     '    + "      <button class=\\"acao\\" id=\\"obj-gravar\\" type=\\"submit\\">Gravar</button>"' +
+    '    + "      <button class=\\"acao secundario\\" id=\\"obj-cancelar\\" type=\\"button\\">Cancelar</button>"' +
     '    + "    </div>"' +
     '    + "  </form>"' +
     '    + "</div>";' +

@@ -462,10 +462,13 @@ tem; e a regra do §1.3 continua a valer por fonte, dentro do laço.
 O §4.3 deu à segunda aula o seu documento. Faltava o **gesto** que a faz existir, e o lugar dele é
 o calendário do plano: ele já diz **quando** cada aula acontece, e é ali que se decide fazê-la.
 
-**A quinta coluna.** `Aula · Data · Dia · Duração · Criar a aula`. A aula que ainda não tem
-documento ganha um botão; a que já tem, a ligação para ele. A lista das que existem vem do `DOCS`
-do manifesto — a mesma fonte de que a tabela dos objetivos já lê a coluna «Aula». O número vai em
-**dois dígitos** (`02`), como ela pediu: é a forma do pacote inteiro.
+**A quinta coluna, e o nome dela.** `Aula · Data · Dia · Duração · Ação`. Chamava-se «Criar a
+aula»; passou a «Ação» a 21/11/2026, porque ela pediu — «a coluna que a gente tem que chamamos de
+criar aula, vamos chamar essa coluna de ação» —, e porque a coluna faz duas coisas: o botão para a
+aula que ainda não tem documento, e o **botão** «Abrir» para a que já tem («Coloca como botão esse
+abrir para a gente manter a mesma estética»; era um link em texto). A lista das que existem vem do
+`DOCS` do manifesto — a mesma fonte de que a tabela dos objetivos já lê. O número vai em **dois
+dígitos** (`02`), como ela pediu: é a forma do pacote inteiro.
 
 **A regra que faz a aula existir, e ela é derivada.** A aula existe **quando o plano declara a
 sequência dela** — `aula-N-sequencia` no envelope. Não é pedida a ninguém, e não é uma lista à mão:
@@ -480,8 +483,12 @@ precisam dela:
 | `escrever-ciclo.js` → `aulasParaDerivar` | a fonte da aula é derivada **neste** acto, não no seguinte |
 | `escrever-ciclo.js` → passo 4 | o `DOCS` do ciclo cresce pela mesma lista |
 
-**O gesto, e o que ele reusa.** O botão abre um `<dialog>` na própria página do plano que recolhe o
-que falta para **aquela** aula:
+**O gesto, e o que ele reusa.** O botão abre uma **janela** na própria página do plano — não um
+`<dialog>` próprio com `<style>` dentro da página gerada, mas o `.modal` / `.modal-fundo` /
+`.modal-caixa` / `.modal-acoes` / `.modal-x` da folha, com as pílulas `.escolhas` / `.escolha`, e o
+«Cancelar» **à direita** do «Criar e gerar». Ela disse: «só abre o modal centralizado e alinhado ao
+que a gente já usa nos outros modais. A gente já tem isso na identidade visual, você precisa usar.»
+A janela recolhe o que falta para **aquela** aula:
 
 | pergunta | porquê |
 |:--|:--|
@@ -505,9 +512,18 @@ São do **ciclo**, e já estão no plano que ele está a acrescentar.
 linha da tabela, e o script lê-os de lá. Uma segunda cópia seria uma segunda verdade — e a data que
 o calendário calcula é a única.
 
-> **Prova:** `experimentos/provar-criar-aula.js` — **38 asserções**, com um Chrome na secção F a
-> abrir a página de verdade (`?criar-aula=02`) e a conferir a caixa aberta, o marco preenchido, a
-> data da linha e as duas listas. Com a regra a devolver só a 01 caem **8**.
+**O caminho até o motor, e o `404` de 21/11/2026.** Em produção só uma **lista explícita** de
+`/api/*` é encaminhada para o motor (`motor/servidor/producao.js`), e as rotas da porta vivem
+debaixo dos prefixos dela (`/plano-ensino/`, `/plano-observacao/`, `/anamnese/`). A página pedia
+`api/envelope/…` na raiz, e o «Guardar e gerar» respondia **404** — que na tela se lê como
+`unexpected end of JSON input`, porque é isso que dá `JSON.parse` de um corpo vazio. O caminho é
+`/plano-ensino/api/envelope/…`.
+
+> **Prova:** `experimentos/provar-criar-aula.js` — **39 asserções**, com um Chrome na secção F a
+> abrir a página de verdade (`?criar-aula=02`) e a conferir a janela aberta (`hidden` fora), o
+> título, o marco preenchido, a data da linha e as duas listas. Com a regra a devolver só a 01 caem
+> **8**. O `provar-objetivos-por-aula` (**55**) mede o outro lado: as duas linhas do objetivo 01
+> levam a **âncoras diferentes**, e todas as âncoras citadas existem na página.
 >
 > **O que falta:** `Tempos` e `Compasso` nascem vazios no documento da aula nova. O lugar deles é o
 > verbete do exercício — é de lá que a música vem —, e é a peça seguinte.

@@ -1088,8 +1088,8 @@ function modalDoConvite() {
     '<p class="nota" id="recriar-destinos"></p>' +
     '<p class="res" id="recriar-recado" role="status"></p>' +
     '<div class="modal-acoes">' +
-    '<button class="acao secundario" type="button" data-recriar-fechar>Fechar</button>' +
     '<button class="acao" type="button" id="recriar-confirmar">Enviar o convite</button>' +
+    '<button class="acao secundario" type="button" data-recriar-fechar>Fechar</button>' +
     '</div></div></div>';
 }
 

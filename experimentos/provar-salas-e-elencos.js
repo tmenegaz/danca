@@ -1541,14 +1541,16 @@ const RITMO = {
        * cancelar. […] quando ele cancela ele cancela todo o processo e colapsa o formulário e
        * deixa ele limpo e encerra o modal.»
        *
-       * A ORDEM QUE SE MEDE É A DO MODAL DO CONVITE — o secundário primeiro. E o «Cancelar» é
+       * A ORDEM QUE SE MEDE É A DO PRODUTO — a acção que conclui primeiro, o «Cancelar» à direita
+       * (decisão dela, 21/11/2026: «o botão cancelar ele fica do lado direito»). E o «Cancelar» é
        * `type="button"`: um `submit` cancelaria e gravaria no mesmo clique. */
       const botaoCancelar = mMin ? mMin.querySelector('#dur-cancelar') : null;
       conferir('…e há um «Cancelar» ao lado do «Gravar»',
         botoesMin.length === 2 && botaoCancelar
           && botaoCancelar.textContent.trim() === 'Cancelar', botoesMin.map((b) => b.textContent.trim()));
-      conferir('…o secundário vem primeiro, como no modal do convite',
-        botoesMin.length === 2 && botoesMin[0].id === 'dur-cancelar', botoesMin.map((b) => b.id));
+      conferir('…a acção que conclui vem primeiro, e o «Cancelar» à direita',
+        botoesMin.length === 2 && botoesMin[0].id === 'dur-gravar'
+          && botoesMin[1].id === 'dur-cancelar', botoesMin.map((b) => b.id));
       conferir('…e o «Cancelar» não é submeter — um submit cancelaria e gravaria no mesmo clique',
         botaoCancelar && botaoCancelar.getAttribute('type') === 'button',
         botaoCancelar && botaoCancelar.getAttribute('type'));
@@ -1976,11 +1978,14 @@ const RITMO = {
           && Boolean(mObj.querySelector('fieldset.escolhas'))
           && Boolean(mObj.querySelector('.modal-x')),
         null);
-      conferir('…e o «Cancelar» está ao lado do «Gravar», e não depois dele',
+      /* A ORDEM É A DO PRODUTO: a acção que conclui primeiro, o «Cancelar» à direita
+       * (decisão dela, 21/11/2026). Esta asserção afirmava o contrário — e uma prova que fixa uma
+       * ordem errada congela o erro. */
+      conferir('…e o «Cancelar» fica à direita do «Gravar»',
         (() => {
           const acoes = mObj.querySelectorAll('.modal-acoes .acao');
-          return acoes.length === 2 && /Cancelar/.test(acoes[0].textContent)
-            && /Gravar/.test(acoes[1].textContent);
+          return acoes.length === 2 && /Gravar/.test(acoes[0].textContent)
+            && /Cancelar/.test(acoes[1].textContent);
         })(), mObj.querySelector('.modal-acoes').textContent);
       /* O RESUMO SAIU (20/11/2026) — e a ordem dela chegou com a razão junto: «Isso daqui você
        * também pode tirar porque é redundante, já são os objetivos que estão marcados aqui, o

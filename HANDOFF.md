@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-21T08:48:35-0300`
-Commit atual: `a37d426a` — feat(estrutura): o derivador escreve a aula que lhe pedem, e não sempre a primeira
+Gerado em: `2026-11-21T09:26:30-0300`
+Commit atual: `030ef48c` — feat(estrutura): a aula nasce do calendário do plano
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+030ef48c feat(estrutura): a aula nasce do calendário do plano
 a37d426a feat(estrutura): o derivador escreve a aula que lhe pedem, e não sempre a primeira
 3c7de1d0 fix(estrutura): a aula que já foi dada não se reescreve por uma regeneração
 76ec0674 chore(estrutura): fechar os derivados — âncoras e índices
@@ -101,7 +102,6 @@ bf3ffef9 fix(estrutura): as tabelas dentro da moldura, a habilidade só-leitura,
 06ea6e5b chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
 b78ef89c feat(ciclo): o «Guardar» do PO grava as fontes de breu-rosa num commit só
 d7ebcfd0 feat(acervo): envelope/po-20261120-2052.json
-cee9970a feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -128,7 +128,7 @@ cee9970a feat(acervo): envelope/.indice.json
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `59b86b60252a` | (vazio) | — |
-| breu-rosa | ciclo-01-breu-rosa.fipp | `cabd79d02662` | (vazio) | Input_PO_Validado |
+| breu-rosa | ciclo-01-breu-rosa.fipp | `af1a7fd1da00` | (vazio) | Input_PO_Validado |
 
 ### fernando-franciose — 0 ciclo(s)
 
@@ -195,75 +195,72 @@ cee9970a feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 21/11/2026 — A aula nasce do calendário
+## 21/11/2026 — As cinco coisas que ela viu na tela depois de testar
 
-**O que motivou.** Ela estava no plano do ciclo e viu o calendário com quatro colunas — aula, data,
-dia, duração. Palavras dela: «a gente vai acrescentar aqui uma quinta coluna, que é a coluna do
-criar aula. […] É a coluna que vai criar o botão.» O calendário dizia **quando** cada aula acontece;
-o que ele não dizia era o que fazer com isso. E o resto do pedido é a cadeia inteira: «vai perguntar
-qual é o objetivo da aula, o marco, se ele não existir. Vai falar a respeito da relação que tem esse
-objetivo com os exercícios propostos e, enfim, vai mandar gerar todos os documentos».
+**O que motivou.** Ela testou ao vivo a coluna nova e a janela do «Criar aula», e devolveu cinco
+defeitos. Nenhum era de gosto: todos eram o sistema a entregar uma coisa e a dizer outra. Palavras
+dela: «a coluna que a gente tem que chamamos de criar aula, vamos chamar essa coluna de ação»;
+«Esse link aqui ele não é o link para a aula, ele é o link para o exercício. Então o nome da coluna
+não é aula, é exercício»; «só abre o modal centralizado e alinhado ao que a gente já usa nos outros
+modais. A gente já tem isso na identidade visual, você precisa usar»; «o botão cancelar ele fica do
+lado direito»; e o `404`: «ele dá um unexpected end of JSON input».
 
-**O que foi decidido.** Três coisas, e cada uma no sítio onde já era a verdade:
+**O que foi decidido.** Cinco coisas.
 
-1. **A coluna.** `tools/calendario.py` ganhou `--criar-aula` e `--aulas-prontas`: a aula que ainda
-   não tem documento ganha o botão, com o número dela (`02`, dois dígitos, como ela pediu — «eu acho
-   que tem que usar a 02»); a que já tem ganha a ligação para o documento. Quem sabe que aulas
-   existem é o `DOCS` do manifesto, e o gerador passa-o — a mesma fonte de que a tabela dos
-   objetivos já lê a coluna «Aula».
-2. **A regra que faz a aula existir.** A aula existe **quando o plano declara a sequência dela**
-   (`aula-N-sequencia`). É derivada do dado, e não pedida a ninguém: um clique que criasse a aula e
-   esquecesse a lista deixaria o documento por publicar sem erro nenhum. Vive numa função só
-   (`aulasDeclaradasPeloPlano`, em `motor/nucleo/aulas-do-ciclo.js`) e serve os **três** sítios que
-   precisam dela — o manifesto do plano (`escrever-plano.js`), a lista de fontes a derivar e o
-   `DOCS` do ciclo (`escrever-ciclo.js`).
-3. **O gesto.** O botão abre um diálogo na própria página do plano que recolhe o que falta para
-   aquela aula — o objetivo (o marco), os **exercícios** que o trabalham e os **blocos** onde ele
-   acontece — e manda gravar pelo caminho que já existia: `POST /api/elicitar` com o plano anterior
-   como `ajuste_de`. A partir daí é a cadeia de sempre: elo novo do plano, o PO que o observa
-   acompanha, as fontes do ciclo são derivadas (e é o derivador da entrada anterior que escreve
-   `-aula-NN.md` com o número dela) e a geração é disparada. **Não há rota nova, nem escritor novo,
-   nem segunda cópia da cadeia.**
+1. **A coluna chama-se «Ação»**, e o «Abrir» passou a **botão** — «Coloca como botão esse abrir para
+   a gente manter a mesma estética». Um link em texto ao lado de um botão na mesma célula não é a
+   mesma estética; é o defeito que ela nomeou.
+2. **A coluna da tabela dos objetivos chama-se «Exercício», e a célula nomeia o exercício e liga à
+   âncora dele.** O defeito era de leitura, e foi medido: as duas linhas do objetivo 01 — Solo e
+   Barra — levavam ao **mesmo** `#exercicios-da-aula-01`, e quem queria o de Barra procurava sozinho.
+   A âncora passa a ser **declarada no título do exercício** por `idDoExercicio` e **lida da fonte**:
+   não há segunda cópia da regra do slug. Ela leva o **número do objetivo** (`solo-plie-ob1`,
+   `solo-plie-ob3`) porque o mesmo exercício serve os dois — sem ele, `normalizar-ids.py` deduplicava
+   por posição (`solo-battement-tendu-1`), e a posição ninguém prevê de fora.
+3. **O `404` do «Guardar e gerar», e a causa não era a rota.** Em produção só uma **lista explícita**
+   de `/api/*` é encaminhada para o motor (`motor/servidor/producao.js`), e as rotas da porta vivem
+   debaixo dos prefixos dela (`/plano-ensino/`, `/plano-observacao/`, `/anamnese/`). A página pedia
+   `api/envelope/…` na raiz. Corrigido para `/plano-ensino/api/envelope/…`. O sintoma que ela viu —
+   `unexpected end of JSON input` — era a página a fazer `JSON.parse` do corpo vazio de um 404, e por
+   isso o aviso passou a nomear o estado e o caminho em vez de deixar o `SyntaxError` falar.
+4. **A janela passou a usar as peças da folha**, e deixou de ter `<style>` inventado dentro da página
+   gerada. Era um `<dialog>` próprio com CSS próprio; passou a `.modal` / `.modal-fundo` /
+   `.modal-caixa` / `.modal-acoes` / `.modal-x` e às pílulas `.escolhas` / `.escolha`.
+5. **A ordem dos botões estava escrita ao contrário — na folha, no painel e numa prova.** A regra
+   dizia «Cancelar antes do Gravar»; ela diz «o botão cancelar ele fica do lado direito». Corrigiu-se
+   `IDENTIDADE-VISUAL.md` (com nota de correção datada, porque documento congelado que muda sem a
+   nota reescreve o passado), as duas janelas do painel (`bastidores.js`, `painel-html.js`) e a
+   asserção de `provar-salas-e-elencos` que fixava a ordem errada. **Uma prova que congela a ordem
+   errada guarda o erro em vez de o apanhar** — foi o que aconteceu, e é a razão de a asserção
+   corrigida citar a decisão no próprio texto.
 
-**A sequência é o cruzamento, e não uma tabela a preencher.** O modelo do plano já é este: o
-objetivo é trabalhado em **blocos** (`estrutura-de-cada-aula`) e medido por **exercícios**
-(`aula-N-parametro`), e a sequência é o par. Marcar o exercício e o bloco em duas listas dá a mesma
-tabela que o professor preencheria linha a linha — com menos dedos e sem contradição possível entre
-as três coisas.
+**Motivo declarado — `tools/` é congelado.** `tools/tabela-objetivos.js`, `tools/calendario.py` e
+`tools/gerar-ciclo.sh` mudaram porque é ali que a coluna e a tabela nascem. As alterações são
+**opcionais e aditivas**: sem `--criar-aula` o calendário sai como saía, e sem `--exercicios` a
+tabela degrada para «—» em vez de inventar um nome (as duas formas são medidas na prova). O
+`plano.md`, o `notacao.md` e o pacote da `breu-rosa` foram regerados pela ferramenta de sempre e vão
+no mesmo commit porque são a **saída** dessa mudança.
 
-**O que o diálogo NÃO pede** — e é a mesma fronteira do derivador: duração, volume, bloco da aula,
-régua. São do **ciclo**, e já estão no plano que ele está a acrescentar.
+**Onde entrou.** `tools/calendario.py` (a coluna «Ação», o «Abrir» como botão),
+`tools/tabela-objetivos.js` (a coluna «Exercício», `exerciciosDaFonte`, `--exercicios`),
+`tools/gerar-ciclo.sh` (passa o índice da notação), `motor/nucleo/derivar-ciclo.js`
+(`idDoExercicio` com o objetivo, âncoras declaradas nos títulos), `motor/nucleo/derivar-plano-ciclo.js`
+(a janela com as peças da folha e o `PORTA` do caminho), `motor/servidor/bastidores.js` e
+`motor/servidor/painel-html.js` (a ordem dos botões), `IDENTIDADE-VISUAL.md` (a regra corrigida),
+`experimentos/provar-criar-aula.js` e `experimentos/provar-objetivos-por-aula.js` (as asserções).
 
-**A data não é copiada.** O botão traz `data-criar-aula="02"` e mais nada; a data, o dia e a
-duração ficam onde estão — na linha da tabela — e o script lê-os de lá. Copiar a data para um
-atributo seria uma segunda cópia da mesma verdade, e a data que o calendário calcula é a única.
+**Prova.** `provar-criar-aula` **39/39**, `provar-objetivos-por-aula` **55/55**,
+`provar-salas-e-elencos` **240/240**, `provar-geracao` **54**, `provar-derivador-da-aula` **35/35**,
+`provar-aula-dada` **34/34**, `provar-indices` **64/64**, `check-identidade` sem reprovação,
+`check-pacote` **0 erros** e `hash-ciclo --check` com a **cadeia intacta**. O pacote da `breu-rosa`
+publica as seis ligações de exercício (`#solo-battement-tendu-ob1` … `#barra-releve-ob1`), conferidas
+na página.
 
-**O endereço abre a caixa.** `?criar-aula=02` abre o diálogo: serve a quem manda a ligação a alguém,
-e serve à prova, que precisa de abrir a caixa sem um rato — um botão que nunca foi clicado por
-ninguém é a única coisa que esta página não pode afirmar que funciona.
-
-**Motivo declarado — `tools/` é congelado.** `tools/calendario.py` e `tools/gerar-ciclo.sh` mudaram
-porque a coluna nasce no bloco do calendário, que é gerado ali. A alteração é **aditiva e opcional**:
-sem `--criar-aula` o bloco sai exactamente como saía (a prova mede as duas formas), e o gerador é o
-único chamador que a pede. Não foi junto com conteúdo pedagógico — o `plano.md` da `breu-rosa` foi
-regerado pela mesma ferramenta de sempre e vai no mesmo commit porque é a saída dessa mudança.
-
-**Onde entrou.** `tools/calendario.py` (a coluna e a célula), `tools/gerar-ciclo.sh` (as aulas que
-o `DOCS` declara), `motor/nucleo/derivar-plano-ciclo.js` (o diálogo e o guionista, no fim da página),
-`motor/nucleo/aulas-do-ciclo.js` (`aulasDeclaradasPeloPlano`), `motor/servidor/escrever-plano.js` e
-`motor/servidor/escrever-ciclo.js` (o `DOCS` cresce com as aulas do plano),
-`experimentos/provar-criar-aula.js` (novo — **38/38**).
-
-**Prova, e a mutação.** Com `aulasDeclaradasPeloPlano` a devolver só a 01 — o estado de ontem —
-caem **8 das 38**: o `DOCS` não cresce, o `-aula-02.md` não é escrito, e a tabela continua a dizer
-«(a criar)». A secção F abre a página num Chrome de verdade e confere a caixa aberta, o marco
-preenchido, a data da linha, os quatro exercícios e os quatro blocos.
-
-**O que continua por fazer, e é o passo seguinte.** A sequência nasce com `Tempos` e `Compasso`
-**vazios** — o diálogo não os pergunta ainda, e o documento da aula nova declara a lacuna onde eles
-faltam. O lugar deles é o verbete do exercício (é de lá que a música vem), e é a próxima peça.
-E a `-aula-01.md` da `breu-rosa` continua por re-derivar com a linha de base do elenco — a pendência
-que a entrada de 20/11 já declarou.
+**O que fica declarado, e não feito.** (a) Nenhuma aula pode ser criada antes de a **anterior** ter os
+dados do formulário recolhidos — ela pediu para tomar nota e **não** construir agora; (b)
+`provar-producao` está em **142 de 159**, e é **anterior** a esta entrada: medido no `HEAD`
+(`030ef48c`) num worktree à parte, dá o mesmo 142/159 — as 17 asserções fixam a página de bastidores
+com 8 secções (hoje tem 10) e com a palavra «curadoria» (hoje «turma»), e são provas mortas.
 
 ## O que está pendente
 

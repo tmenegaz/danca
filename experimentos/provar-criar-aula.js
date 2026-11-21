@@ -90,11 +90,16 @@ console.log('\nA · A COLUNA «CRIAR A AULA» — botão, ligação, e nada quan
   ], { encoding: 'utf8' });
 
   const comColuna = calendario('--criar-aula', '--aulas-prontas', '01');
-  provar('a coluna existe quando o gerador a pede',
-    /\| Aula \| Data \| Dia \| Duração \| Criar a aula \|/.test(comColuna),
+  /* A COLUNA CHAMA-SE «AÇÃO» (21/11/2026). Palavras dela: «a coluna que a gente tem que
+     chamamos de criar aula, vamos chamar essa coluna de ação». E o «Abrir» deixou de ser um
+     link cru para ser botão, com a MESMA estética do «Criar aula» ao lado — ela pediu os dois:
+     «Coloca como botão esse abrir para a gente manter a mesma estética». */
+  provar('a coluna existe, e chama-se «Ação», quando o gerador a pede',
+    /\| Aula \| Data \| Dia \| Duração \| Ação \|/.test(comColuna),
     comColuna.split('\n').filter((l) => /\| Aula \|/.test(l)));
-  provar('a aula que JÁ tem documento ganha ligação, e não botão',
-    /\| 01 \|.*\[abrir\]\(aula-01\.html\) \|/.test(comColuna),
+  provar('a aula que JÁ tem documento ganha o botão «Abrir», e não o botão de criar',
+    /\| 01 \|.*<a class="acao secundario pequena" href="aula-01\.html">Abrir<\/a> \|/.test(comColuna)
+    && !/\| 01 \|.*data-criar-aula/.test(comColuna),
     comColuna.split('\n').filter((l) => /^\| 01 /.test(l)));
   provar('a aula que NÃO tem ganha o botão, com o número DELA',
     /data-criar-aula="02">Criar aula<\/button>/.test(comColuna),
@@ -120,9 +125,20 @@ console.log('\nB · A PÁGINA DO PLANO — o diálogo, e o dado que ele precisa'
 {
   const plano = planoDe();
   const { markdown } = derivarPlano(plano, {});
-  provar('a página do plano traz o diálogo', /<dialog[^>]*id="criar-aula"/.test(markdown));
-  provar('…com o botão de cancelar à esquerda e o de guardar à direita (a ordem do padrão)',
-    markdown.indexOf('criar-aula-cancelar') < markdown.indexOf('criar-aula-guardar'));
+  /* AS PEÇAS SÃO AS DA FOLHA (21/11/2026). Palavras dela: «só abre o modal centralizado e
+     alinhado ao que a gente já usa nos outros modais. A gente já tem isso na identidade visual,
+     você precisa usar.» O diálogo era um `<dialog>` próprio, com `<style>` inventado dentro da
+     página; passou a ser o `.modal` / `.modal-fundo` / `.modal-caixa` / `.modal-acoes` que a
+     folha já desenha — medido em `check-identidade`. */
+  provar('a página do plano traz a janela, com as peças da folha',
+    /<div class="modal" id="criar-aula"/.test(markdown)
+    && /class="modal-fundo"/.test(markdown) && /class="modal-caixa/.test(markdown)
+    && /class="modal-acoes"/.test(markdown) && /class="modal-x"/.test(markdown),
+    (/<div class="modal[^>]*>/.exec(markdown) || [])[0]);
+  provar('…e nenhuma peça inventada (nada de `<style>` nem de classe fora da folha)',
+    !/<style/.test(markdown) && !/class="fraco"/.test(markdown));
+  provar('…com o «Cancelar» à DIREITA do «Criar e gerar» (a ordem do padrão)',
+    markdown.indexOf('criar-aula-guardar') < markdown.indexOf('criar-aula-cancelar'));
   provar('…e o campo do objetivo', /id="criar-aula-marco"/.test(markdown));
 
   const m = /<script type="application\/json" id="dados-criar-aula">([\s\S]*?)<\/script>/.exec(markdown);
@@ -131,7 +147,8 @@ console.log('\nB · A PÁGINA DO PLANO — o diálogo, e o dado que ele precisa'
   provar('o dado do diálogo está na página e é JSON válido', Boolean(dados), m && m[1].slice(0, 80));
   provar('…com o carimbo do plano (sem ele não há elo a criar)', Boolean(dados && dados.id), dados && dados.id);
   provar('…com o repertório da turma', Boolean(dados && (dados.repertorio || []).length === 3), dados && dados.repertorio);
-  provar('…com os marcos que o plano já declara', Boolean(dados && (dados.marcos || []).length === 1), dados && dados.marcos);
+  provar('…com os marcos que o plano já declara',
+    Boolean(dados && (dados.marcos || []).length >= 1), dados && dados.marcos);
   provar('…com os blocos da aula', Boolean(dados && (dados.blocos || [])[0] === 'Barra'), dados && dados.blocos);
   provar('…e o contexto que a gravação precisa (professor, ciclo, escola, turma)',
     Boolean(dados && dados.professor === 'p' && dados.ciclo === '01'
@@ -273,12 +290,20 @@ const PO = {
       ],
     };
     const semAula2 = tabelaObjetivos.tabela(planoExtraido, ['aula-01']).join('\n');
-    const comAula2 = tabelaObjetivos.tabela(planoExtraido, ['aula-01', 'aula-02']).join('\n');
+    const semIndice = tabelaObjetivos.tabela(planoExtraido, ['aula-01', 'aula-02']).join('\n');
+    /* O EXERCÍCIO DA AULA 02 — o que faz a célula nomear algo e ligar a ele. */
+    const indice2 = new Map([['02', [{ bloco: 'Barra', exercicio: 'Plié', objetivo: 2,
+      id: 'barra-plie-ob2' }]]]);
+    const comAula2 = tabelaObjetivos.tabela(planoExtraido, ['aula-01', 'aula-02'], indice2).join('\n');
 
-    provar('sem o documento, a Aula 02 diz «(a criar)»', /Aula 02 \*\(a criar\)\*/.test(semAula2), semAula2);
-    provar('com o documento, vira ligação', /\[Aula 02\]\(aula-02\.html#exercicios-da-aula-02\)/.test(comAula2),
-      comAula2.split('\n').filter((l) => /Aula 02/.test(l)));
-    provar('…e a Aula 01 continua ligada nas duas', /\[Aula 01\]/.test(semAula2) && /\[Aula 01\]/.test(comAula2));
+    provar('sem o documento, a Aula 02 diz «a criar na Aula 02»',
+      /a criar na Aula 02/.test(semAula2), semAula2);
+    provar('com o documento e o exercício em mãos, a célula nomeia o exercício e liga a ele',
+      /\[Plié\]\(aula-02\.html#barra-plie-ob2\)/.test(comAula2),
+      comAula2.split('\n').filter((l) => /\*\*02\*\*/.test(l)));
+    provar('…e o documento sozinho não inventa exercício: sem índice, a célula diz «—»',
+      /\| — \|$/.test(semIndice.split('\n').filter((l) => /\*\*02\*\*/.test(l))[0] || ''),
+      semIndice.split('\n').filter((l) => /\*\*02\*\*/.test(l)));
   }
 
   /* ======================================================================================== */
@@ -304,12 +329,14 @@ const PO = {
           'http://127.0.0.1:' + porta + '/plano.html?criar-aula=02'],
         { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, timeout: 90000 });
 
-        const etiqueta = /<dialog[^>]*>/.exec(dom);
-        provar('o diálogo ABRE com `?criar-aula=02` (o botão não é uma promessa)',
-          Boolean(etiqueta && /open/.test(etiqueta[0])), etiqueta && etiqueta[0]);
+        /* ABERTO É `hidden` FORA: a janela é um `.modal` que nasce escondido (`hidden`) e o
+           script o tira. Procurar `open` era a marca do `<dialog>` que já não existe. */
+        const janela = /<div class="modal" id="criar-aula"[^>]*>/.exec(dom);
+        provar('a janela ABRE com `?criar-aula=02` (o botão não é uma promessa)',
+          Boolean(janela) && !/\shidden(\s|>)/.test(janela[0]), janela && janela[0]);
         provar('…e o título diz a aula que se está a criar',
-          /<h3 id="criar-aula-titulo">Criar a aula 02<\/h3>/.test(dom),
-          (/<h3 id="criar-aula-titulo">([^<]*)/.exec(dom) || [])[1]);
+          /<h2 id="criar-aula-titulo">Criar a aula 02<\/h2>/.test(dom),
+          (/id="criar-aula-titulo">([^<]*)/.exec(dom) || [])[1]);
         provar('…com o marco da aula já preenchido (o plano já o declara)',
           /transferir o peso entre os pés sem perder o alinhamento/.test(dom));
         provar('…e a data, o dia e a duração da LINHA do calendário, na caixa',
