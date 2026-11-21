@@ -3594,7 +3594,7 @@ recorta» como «a rota está fechada».
 | `check-sem-destruicao` · `check-indices` · `check-pacote` · `hash-ciclo --check` | **ok** · **16/16** (índices regerados) · **0 erros, 1 aviso** (o PDF ausente, por desenho desde 20/11) · **cadeia intacta** |
 | O pacote da `breu-rosa` | regerado: **9 páginas**, 0 erros. A tabela dos objetivos publica seis ligações de exercício — `#solo-battement-tendu-ob1`, `#solo-plie-ob1`, `#solo-releve-ob1`, `#barra-battement-tendu-ob1`, `#barra-plie-ob1`, `#barra-releve-ob1` |
 | `provar-producao` | **142 de 159** — e é **anterior** a esta entrega: medido no `HEAD` (`030ef48c`) num worktree à parte, dá o **mesmo 142/159**. As 17 asserções fixam a página de bastidores com **8 secções** (hoje tem 10) e com a palavra «curadoria» (hoje «turma»). São provas mortas, e ficam nomeadas aqui em vez de contadas como verdes |
-| Deploy / ao ar | **Não executado** — o caminho de `/api/envelope` foi corrigido para `/plano-ensino/api/envelope`; a conferência ao vivo é o passo seguinte ao push |
+| Deploy / ao ar | **CONFIRMADO** em 21/11/2026, com **uma** requisição por caminho: `/plano-ensino/api/envelope/plano-20261120-2052` responde **200** com o envelope; o caminho antigo, `/api/envelope/plano-20261120-2052`, responde **404** — que é o defeito que ela viu, e é o diagnóstico a fechar-se pela boca do próprio servidor |
 
 ### Executado na fotografia anterior (21/11/2026 — a aula nasce do calendário)
 
