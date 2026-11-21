@@ -3,7 +3,7 @@
   "escola": "breu",
   "professor": "demi-plie",
   "criado_em": "2026-11-21",
-  "po": "po-20261121-0933",
+  "po": "po-20261121-1508",
   "apelidos": {
     "aluna_a": "Aluna A",
     "aluna_b": "Aluna B"
@@ -12,10 +12,7 @@
     "aluna_a",
     "aluna_b"
   ],
-  "origem": {
-    "aluna_a": "Cubana",
-    "aluna_b": "Escola livre"
-  },
+  "origem": {},
   "aulas": {},
   "_nota": "JSON de dados do ciclo «do zero»: `aulas` vazio DE PROPÓSITO — é o estado de um ciclo que ainda não teve aula lançada pelo formulário. Gerado pelo «Guardar» do PO."
 }

@@ -101,8 +101,8 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 ## 6. Proveniência consolidada
 
-- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261121-0933?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
-- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261121-0933?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.
+- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261121-1508?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
+- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261121-1508?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.
 
 **Anamnese de cada aluna**
 
@@ -114,8 +114,8 @@ A anamnese de cada uma das 2 alunas do elenco desta turma está na **Área do Pr
 <option value="Aluna A">Aluna A</option>
 <option value="Aluna B">Aluna B</option>
 </select>
-<div class="acoes-da-aluna" data-prov-par="Aluna A"><a class="acao secundario pequena" href="/anamnese/?professor=demi-plie&amp;ciclo=01&amp;novo=anamnese-20261118-1737&amp;aluna=Aluna%20A">novo registo</a> <a class="acao secundario pequena" href="/anamnese/api/ficha-preenchida.anamnese-20261118-1737?formato=html">imprimir</a><span class="origem-da-aluna">origem metodológica declarada: <strong>Cubana</strong></span></div>
-<div class="acoes-da-aluna" data-prov-par="Aluna B"><a class="acao secundario pequena" href="/anamnese/?professor=demi-plie&amp;ciclo=01&amp;novo=anamnese-20261119-1145&amp;aluna=Aluna%20B">novo registo</a> <a class="acao secundario pequena" href="/anamnese/api/ficha-preenchida.anamnese-20261119-1145?formato=html">imprimir</a><span class="origem-da-aluna">origem metodológica declarada: <strong>Escola livre</strong></span></div>
+<div class="acoes-da-aluna" data-prov-par="Aluna A"><a class="acao secundario pequena" href="/anamnese/?professor=demi-plie&amp;ciclo=01&amp;novo=anamnese-20261118-1737&amp;aluna=Aluna%20A">novo registo</a> <a class="acao secundario pequena" href="/anamnese/api/ficha-preenchida.anamnese-20261118-1737?formato=html">imprimir</a><span class="origem-da-aluna">origem metodológica não declarada</span></div>
+<div class="acoes-da-aluna" data-prov-par="Aluna B"><a class="acao secundario pequena" href="/anamnese/?professor=demi-plie&amp;ciclo=01&amp;editar=anamnese-20261119-1145&amp;aluna=Aluna%20B">editar</a> <a class="acao secundario pequena" href="/anamnese/api/ficha-preenchida.anamnese-20261119-1145?formato=html">imprimir</a><span class="origem-da-aluna">origem metodológica não declarada</span></div>
 <script>(function(){
 var s=document.getElementById("prov-seletor");if(!s)return;
 var p=document.querySelectorAll("[data-prov-par]");
@@ -136,4 +136,4 @@ s.addEventListener("change",pintar);pintar();})();</script>
 
 | Item | Proposta |
 |:--|:--|
-| **Marco da Aula 02** | transferir o peso entre os pés sem perder o alinhamento — a Aula 02 ainda não foi elaborada |
+| **[Marco da Aula 02](aula-02.html)** | [transferir o peso entre os pés sem perder o alinhamento](aula-02.html) |
