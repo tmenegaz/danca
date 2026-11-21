@@ -52,9 +52,9 @@ const MAPA = mapa(CONTEUDO);
  * decide se a coluna aguenta. Um stub curto mede um cabeçalho que não existe.
  */
 const ENVELOPE = JSON.parse(fs.readFileSync(
-  path.join(RAIZ, 'escola', 'breu', 'envelopes', 'plano-20261104-1732.json'), 'utf8'));
+  path.join(RAIZ, 'escola', 'breu', 'envelopes', 'plano-20261120-2052.json'), 'utf8'));
 const PLANO = {
-  id: ENVELOPE.id || 'plano-20261104-1732',
+  id: ENVELOPE.id || 'plano-20261120-2052',
   contexto: ENVELOPE.contexto,
   respostas: ENVELOPE.respostas,
 };

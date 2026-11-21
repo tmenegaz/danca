@@ -49,10 +49,13 @@ function envelope(nome) {
   return JSON.parse(fs.readFileSync(path.join(RAIZ, 'escola/breu/envelopes', nome), 'utf8'));
 }
 
-const PLANO = envelope('plano-20261104-1732.json');
-const PO = envelope('po-20261104-1811.json');
-const CONTEXTO = { escola: 'breu', professor: 'coqui-de-redinha', ciclo: '01',
-  turma: 'Balé Nível 1 — Teste 3', aulas: ['01'] };
+/* OS ENVELOPES SÃO OS DA ESCOLA VIVA, e por isso mudam de data quando a escola regera o ciclo —
+ * o que não muda é a FORMA: é ela que esta prova mede (as quatro colunas da música, sem a
+ * notação). Fixar o id num ficheiro que a geração seguinte apaga foi o que a matou. */
+const PLANO = envelope('plano-20261120-2052.json');
+const PO = envelope('po-20261120-2052.json');
+const CONTEXTO = { escola: 'breu', professor: 'demi-plie', ciclo: '01',
+  turma: 'Rosa', aulas: ['01'] };
 const CALIBRACAO = { totalAulas: 35, duracaoMin: 45, volumePorAula: 90 };
 
 /** As linhas de uma tabela Markdown cujo cabeçalho começa pelas células dadas. */

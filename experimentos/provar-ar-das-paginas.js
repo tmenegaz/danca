@@ -60,14 +60,26 @@ const PACOTE = umPacote();
  * o gerador produz, e a prova exige as SETE de documento — as duas restantes (o índice e a folha
  * de captura) entram quando existem. Uma página nova não fica de fora por esquecimento: o que se
  * exige é o conjunto mínimo, e o resto é medido também. */
-const OBRIGATORIAS = ['plano', 'aula-01', 'notacao', 'referencias', 'glossario-benesh', 'harmonizacao', 'index'];
+/* AS SETE PÁGINAS DE DOCUMENTO — e o glossário deixou de ser NOMEADO (20/11/2026).
+ *
+ * A lista escrevia `glossario-benesh` à mão, e o glossário leva o NOME DA NOTAÇÃO que o ciclo
+ * declara (`glossario-<slug>`): a `breu` tem `glossario-codigo_de_danca`. Quando o pacote
+ * descoberto passou a ser o dela, a prova respondeu «faltam glossario-benesh» — uma página que
+ * aquele ciclo nunca teria, porque ele não escreve em Benesh. Não era o pacote que faltava: era a
+ * prova a exigir a notação de outra escola.
+ *
+ * A página é procurada pela FORMA, não pelo nome: qualquer `glossario-*` conta, e o `DOCS` do
+ * manifesto confirma que ela está declarada. Uma notação nova não parte esta prova. */
+const OBRIGATORIAS = ['plano', 'aula-01', 'notacao', 'referencias', 'harmonizacao', 'index'];
 const paginas = fs.readdirSync(path.join(raiz, PACOTE))
   .filter((n) => /\.html$/.test(n))
   .map((n) => n.replace(/\.html$/, ''))
   .filter((n) => !['lancamento'].includes(n)) // o lançamento não é documento: é um formulário
   .sort();
 
-const faltando = OBRIGATORIAS.filter((n) => !paginas.includes(n));
+const temGlossario = paginas.some((n) => /^glossario-/.test(n));
+const faltando = OBRIGATORIAS.filter((n) => !paginas.includes(n))
+  .concat(temGlossario ? [] : ['glossario-*']);
 if (faltando.length) {
   console.error('provar-ar-das-paginas: o pacote «' + PACOTE + '» não tem ' + faltando.join(', ')
     + ' — sem elas não há o que comparar. NÃO FEITO.');

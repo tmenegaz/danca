@@ -71,8 +71,8 @@ const MENU = JSON.parse(fs.readFileSync(path.join(RAIZ, 'publicacao', 'breu', 'n
 /* OS DADOS SÃO OS DA ESCOLA VIVA: o plano do ciclo (que dá as dezasseis leituras do formulário) e
  * a turma. Um fixture de duas linhas mede um formulário que não existe. */
 const ENVELOPE = JSON.parse(fs.readFileSync(
-  path.join(RAIZ, 'escola', 'breu', 'envelopes', 'plano-20261104-1732.json'), 'utf8'));
-const PLANO = { id: ENVELOPE.id || 'plano-20261104-1732', contexto: ENVELOPE.contexto,
+  path.join(RAIZ, 'escola', 'breu', 'envelopes', 'plano-20261120-2052.json'), 'utf8'));
+const PLANO = { id: ENVELOPE.id || 'plano-20261120-2052', contexto: ENVELOPE.contexto,
   respostas: ENVELOPE.respostas };
 const TURMA = {
   id: 'bale-nivel-1-teste-3',
@@ -228,7 +228,10 @@ const MEDIR = () => {
       tag: el.tagName.toLowerCase(),
       classe: String(el.className || el.getAttribute('class') || '').slice(0, 40),
       texto: (el.textContent || '').trim().slice(0, 40),
-      acertaOAlvo: Boolean(alvoLink && (el === alvoLink || el.closest('a') === alvoLink)),
+      /* `contains` cobre o gatilho do menu: o `<summary>` do `Bastidores` é o que se clica, e o
+       * ponto pode devolver um `<span>` de dentro dele. */
+      acertaOAlvo: Boolean(alvoLink && (el === alvoLink || el.closest('a') === alvoLink
+        || alvoLink.contains(el))),
     };
   };
   const visivel = (el) => {
@@ -236,8 +239,21 @@ const MEDIR = () => {
     const r = el.getBoundingClientRect();
     return r.width > 0 && r.height > 0;
   };
-  const linksDaBarra = [...barra.querySelectorAll('a')].filter(visivel);
-  const alvoBarra = linksDaBarra[0] || null;
+  /* O LINK DO MENU SUSPENSO NÃO É «O PRIMEIRO LINK DA BARRA» (20/11/2026). O `Bastidores` abre um
+   * `.submenu` posicionado ABAIXO da barra (y≈58, já fora dos 58,8 px dela), e um `<a>` lá dentro
+   * tem largura e altura — logo passava no `visivel()`. Medir-lhe o centro mede um alvo que só
+   * existe depois do `hover`: o ponto cai no `.conteudo` da página e a prova reprovava a barra por
+   * causa de uma lista que ainda não estava aberta. O que esta asserção quer medir é o repouso. */
+  const linksDaBarra = [...barra.querySelectorAll('a')].filter(visivel)
+    .filter((a) => !a.closest('.submenu'));
+  /* A BARRA NÃO TEM SEMPRE UM `<a>` EM REPOUSO (20/11/2026). Numa página com coluna lateral, a
+   * `.marca` do topo é `display: none` de propósito (`[data-tem-coluna="sim"] .topnav .marca`) —
+   * a identidade vive na coluna —, e o que sobra na barra é o gatilho `Bastidores`
+   * (`details > summary`). O que se mede é «o primeiro alvo clicável da barra, em repouso,
+   * recebe o clique»; exigir que ele seja um `<a>` media a marcação antiga, não a barra. */
+  const alvoBarra = linksDaBarra[0]
+    || [...barra.querySelectorAll('.nav-links summary, .nav-links button')].filter(visivel)[0]
+    || null;
   const alvoColuna = coluna ? [...coluna.querySelectorAll('a')].filter(visivel)[0] : null;
   const estiloBarra = getComputedStyle(barra);
   const fundoBarra = rgb(estiloBarra.backgroundColor);

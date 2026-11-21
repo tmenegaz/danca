@@ -35,11 +35,24 @@ const {
 } = require('../motor/nucleo/derivar-ciclo.js');
 
 const RAIZ = path.resolve(__dirname, '..');
-const ENVELOPES = path.join(RAIZ, 'escola/batata/envelopes');
-const PLANO = JSON.parse(fs.readFileSync(path.join(ENVELOPES, 'plano-20261027-1025.json'), 'utf8'));
-const PO = JSON.parse(fs.readFileSync(path.join(ENVELOPES, 'po-20261027-1353.json'), 'utf8'));
-const CAL = { duracaoMinutos: 50, volumeMin: 80, volumeMax: 100 };
-const CTX = { ciclo: '01', escola: 'Batata' };
+
+/* A ESCOLA MUDOU DE `batata` PARA `breu` (20/11/2026) — e o que a prova mede não mudou.
+ *
+ * Os dois envelopes da `batata` foram expurgados, e a prova rebentava a abri-los. Os da `breu` são
+ * versinados e servem tal e qual: o PO dela declara `o-que-fica-de-fora` com o MESMO texto que a
+ * `batata` declarava («Ficam fora deste ciclo o allegro, o trabalho de ponta e a avaliação de
+ * repertório»), o plano produz as oito secções e o volume sai uma vez só.
+ *
+ * `exclusao` é o único campo que a `breu` não declara — e é ele que a secção 3 exercita, como
+ * SEGUNDA fonte do mesmo dado. Declara-se aqui, com um texto que se reconhece: é o que a asserção
+ * vai procurar. */
+const ENVELOPES = path.join(RAIZ, 'escola/breu/envelopes');
+const PLANO = JSON.parse(fs.readFileSync(path.join(ENVELOPES, 'plano-20261120-2052.json'), 'utf8'));
+const PO = JSON.parse(fs.readFileSync(path.join(ENVELOPES, 'po-20261120-2052.json'), 'utf8'));
+PO.respostas.exclusao = { valor: 'Ficam de fora a intenção declarada e o esforço percebido — '
+  + 'o recorte observa o corpo, e não o que a aluna quis fazer.' };
+const CAL = { duracaoMinutos: 120, volumeMin: 150, volumeMax: 200 };
+const CTX = { ciclo: '01', escola: 'Breu' };
 
 let total = 0;
 let falhas = 0;
@@ -61,7 +74,7 @@ const comPO = aula(PO.respostas);
 const linhaDoEscopo = (md) => (md.split('\n').find((l) => /deixa de fora/.test(l)) || '');
 provar('a frase fixa da Diaghilev já não aparece',
   !/Sem deslocamento, sem giro/.test(comPO), linhaDoEscopo(comPO));
-provar('…e o que aparece é o «O que fica de fora» do PO da Batata',
+provar('…e o que aparece é o «O que fica de fora» do PO da Breu',
   /allegro, o trabalho de ponta e a avaliação de repertório/.test(linhaDoEscopo(comPO)),
   linhaDoEscopo(comPO));
 provar('…com a origem declarada na própria frase (o PO, não a aula)',
@@ -91,7 +104,7 @@ provar('a numeração é contínua de 1 a 8',
   JSON.stringify(secoes.map((t) => t.split('.')[0])) === JSON.stringify(['1', '2', '3', '4', '5', '6', '7', '8']),
   secoes.map((t) => t.split('.')[0]));
 provar('…e o total do volume aparece UMA vez (na §3)',
-  (comPO.match(/\*\*90\*\*/g) || []).length === 1, (comPO.match(/\*\*90\*\*/g) || []).length);
+  (comPO.match(/\*\*175\*\*/g) || []).length === 1, (comPO.match(/\*\*175\*\*/g) || []).length);
 provar('as três secções que desceram continuam a nascer (proveniência, auditoria, próximo passo)',
   ['6. Proveniência', '7. Registro de auditoria', '8. Próximo passo']
     .every((t) => secoes.some((s) => s.startsWith(t))), secoes);

@@ -118,6 +118,27 @@ function servir({ semCuradoria = false, tradicao = 'francesa' } = {}) {
 
     if (rel === 'assets/style.css') return envia(MIME['.css'], fs.readFileSync(path.join(RAIZ, 'tools/templates/ciclo.css')));
     if (rel === 'assets/nav.js') return envia(MIME['.js'], fs.readFileSync(path.join(RAIZ, 'tools/templates/nav.js')));
+    /* OS ASSETS QUE A PÁGINA PEDE COM O CAMINHO DA *OUTRA* PÁGINA (20/11/2026).
+     *
+     * O `porta/index.html` carrega `<script src="/plano-observacao/assets/markdown.js">` — absoluto,
+     * e é de propósito: a mesma porta é servida em `/anamnese/`, `/plano-ensino/` e
+     * `/plano-observacao/`, e um `src` relativo acertava num e dava 404 nos outros dois (está
+     * escrito lá, a 20/10/2026).
+     *
+     * A bancada descia o caminho com `PORTA + rel` e, para `plano-observacao/assets/markdown.js`,
+     * caía no `catch-all` — que devolve **o `index.html`** para tudo o que não encontra. O browser
+     * recebia HTML onde esperava JavaScript, não definia `Markdown`, e a página morria em
+     * «Markdown is not defined» a meio do arranque. O sintoma lia-se como defeito da página.
+     *
+     * Aqui os assets resolvem-se pelo NOME, venha o prefixo que vier: é o mesmo que o servidor de
+     * verdade faz, que serve `porta/assets/*` sob todos os endereços da porta. */
+    const asset = /(?:^|\/)assets\/(.+)$/.exec(rel);
+    if (asset) {
+      const f = path.join(PORTA, 'assets', asset[1]);
+      if (fs.existsSync(f) && fs.statSync(f).isFile()) {
+        return envia(MIME[path.extname(f)] || 'application/octet-stream', fs.readFileSync(f));
+      }
+    }
     const alvo = rel ? path.join(PORTA, rel) : path.join(PORTA, 'index.html');
     if (alvo.startsWith(PORTA) && fs.existsSync(alvo) && fs.statSync(alvo).isFile()) {
       return envia(MIME[path.extname(alvo)] || 'application/octet-stream', fs.readFileSync(alvo));

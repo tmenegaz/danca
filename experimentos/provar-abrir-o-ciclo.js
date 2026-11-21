@@ -8,11 +8,11 @@
  * gerar .md do caderno também não faz nada.» Medido no Worker vivo: `POST /api/dados` com o nome
  * verdadeiro do ficheiro respondia
  *
- *   { ok: false, erro: "arquivo de dados inválido: ciclo-01-calango-bale-nivel-1-teste-1-dados.json" }
+ *   { ok: false, erro: "arquivo de dados inválido: ciclo-01-breu-rosa-dados.json" }
  *
  * A SENHA NÃO TINHA CULPA. A regra que valida o nome (`motor/servidor/ler-dados.js`) aceitava UM
  * segmento de variante (`(?:-[a-z0-9]+)?`), e a variante é `<escola>-<turma>`
- * (`calango-bale-nivel-1-teste-1`) — com hífens. Todo pacote de turma era recusado; só passava o
+ * (`breu-rosa`) — com hífens. Todo pacote de turma era recusado; só passava o
  * modelo antigo, de uma escola e uma turma (`ciclo-01-duo-dados.json`). E o sintoma mentia duas
  * vezes: a tela dizia «a senha foi recusada», e o «Gerar .md» morria numa promessa rejeitada, sem
  * dizer nada.
@@ -62,10 +62,10 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const RAIZ = path.resolve(__dirname, '..');
-const PACOTE = path.join(RAIZ, 'professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1');
-const DADOS = path.join(RAIZ, 'professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-dados.json');
-const NOME = 'ciclo-01-calango-bale-nivel-1-teste-1-dados.json';
-const NOME_CARIMBADO = 'ciclo-01-calango-bale-nivel-1-teste-1-dados-2026-11-06T1642.json';
+const PACOTE = path.join(RAIZ, 'professores/demi-plie/ciclos/ciclo-01-breu-rosa');
+const DADOS = path.join(RAIZ, 'professores/demi-plie/ciclos/ciclo-01-breu-rosa-dados.json');
+const NOME = 'ciclo-01-breu-rosa-dados.json';
+const NOME_CARIMBADO = 'ciclo-01-breu-rosa-dados-2026-11-06T1642.json';
 
 const { nomeDeDadosValido, varianteDoNomeDeDados, partesDoCaminhoDeDados } =
   require(path.join(RAIZ, 'motor/nucleo/lancamento.js'));
@@ -90,12 +90,12 @@ console.log('\nA. A regra do nome de dados aceita a variante da turma — e recu
     provar('aceita ' + nome, nomeDeDadosValido(nome), nome);
   }
   provar('…e a variante que ela extrai é a da turma',
-    varianteDoNomeDeDados(NOME) === 'calango-bale-nivel-1-teste-1', varianteDoNomeDeDados(NOME));
+    varianteDoNomeDeDados(NOME) === 'breu-rosa', varianteDoNomeDeDados(NOME));
 
   for (const [nome, porque] of [
     ['../ciclo-01-dados.json', 'travessia de caminho'],
     ['ciclo-01-../../etc/passwd', 'travessia com variante'],
-    ['ciclo-01-calango/dados.json', 'barra no nome'],
+    ['ciclo-01-breu/dados.json', 'barra no nome'],
     ['ciclo-01-calango-BALE-dados.json', 'maiúsculas'],
     ['ciclo-01-calango-dados.json.json', 'extensão dupla'],
     ['ciclos.json', 'não é arquivo de dados'],
@@ -119,7 +119,7 @@ console.log('\nA. A regra do nome de dados aceita a variante da turma — e recu
  * ======================================================================================== */
 console.log('\nA.2 O caminho: `<pacote>/<nome>`, e nada além de uma pasta');
 {
-  const pasta = 'bale-nivel-1-teste-1';
+  const pasta = 'rosa';
   const ok = partesDoCaminhoDeDados(pasta + '/' + NOME);
   provar('aceita o caminho real da publicação', ok && ok.pasta === pasta && ok.nome === NOME, ok);
   provar('…e aceita o nome sozinho (o pacote servido na raiz)',
@@ -147,7 +147,10 @@ console.log('\nA.2 O caminho: `<pacote>/<nome>`, e nada além de uma pasta');
 console.log('\nB. O leitor decifra o ciclo de uma turma — no caminho em que ele está publicado');
 (async () => {
   const senha = 'senha-da-prova';
-  const claro = fs.readFileSync(DADOS, 'utf8');
+  /* O CONTEÚDO EM CLARO É DECLARADO, E NÃO LIDO DO PACOTE (20/11/2026). O `-dados.json` que está
+   * no repositório já vem CIFRADO (o site é público) e não tem a chave `aulas` — o que esta secção
+   * mede é a IDA E VOLTA da cifra pelo leitor, e para isso o conteúdo tem de ser conhecido. */
+  const claro = JSON.stringify({ aulas: { '06': { lancada_em: '2026-11-06T16:10', relatorio: 'prova' } } });
   const envelope = await Cifra.cifrar(claro, senha);
   /* A ÁRVORE DE VERDADE, E NÃO UM STUB QUE ENCONTRA TUDO (06/11/2026). Aqui o `lerAsset`
    * devolvia o arquivo para QUALQUER nome — e por isso esta prova aprovou um leitor que
@@ -157,7 +160,7 @@ console.log('\nB. O leitor decifra o ciclo de uma turma — no caminho em que el
    * lugar errado recebe `null`, como no Worker. */
   const arvore = {
     'nav.json': '{}',
-    ['bale-nivel-1-teste-1/' + NOME]: JSON.stringify({ _cifrado: envelope }),
+    ['rosa/' + NOME]: JSON.stringify({ _cifrado: envelope }),
   };
   const lerAsset = async (caminho) => (arvore[caminho]
     ? { corpo: new TextEncoder().encode(arvore[caminho]) }
@@ -166,7 +169,7 @@ console.log('\nB. O leitor decifra o ciclo de uma turma — no caminho em que el
     senhaCripto: senha, lerAsset, senhaOk: async (s) => s === 'a-senha-da-pessoa',
   });
 
-  const ok = await leitor({ arquivo: 'bale-nivel-1-teste-1/' + NOME, senha: 'a-senha-da-pessoa' });
+  const ok = await leitor({ arquivo: 'rosa/' + NOME, senha: 'a-senha-da-pessoa' });
   provar('devolve ok pelo caminho da publicação', ok.ok === true, ok);
   provar('…e o que devolve é o JSON em claro, com a aula lançada',
     JSON.parse(ok.texto).aulas && Object.keys(JSON.parse(ok.texto).aulas).length > 0,
@@ -181,10 +184,10 @@ console.log('\nB. O leitor decifra o ciclo de uma turma — no caminho em que el
   provar('…e essa recusa NÃO fala de senha (era a mentira que ela leu)',
     !/senha/i.test(naRaiz.erro), naRaiz.erro);
 
-  const semSenha = await leitor({ arquivo: 'bale-nivel-1-teste-1/' + NOME, senha: 'errada' });
+  const semSenha = await leitor({ arquivo: 'rosa/' + NOME, senha: 'errada' });
   provar('sem a senha certa, recusa', semSenha.ok === false && /senha/.test(semSenha.erro), semSenha);
   for (const mau of ['../professores/x/ciclos/ciclo-01-dados.json',
-    'bale-nivel-1-teste-1/../' + NOME, 'a/b/' + NOME]) {
+    'rosa/../' + NOME, 'a/b/' + NOME]) {
     const invasor = await leitor({ arquivo: mau, senha: 'a-senha-da-pessoa' });
     provar('…e ' + mau + ' não chega ao ASSETS',
       invasor.ok === false && /inválido/.test(invasor.erro), invasor);
@@ -249,6 +252,18 @@ console.log('\nB. O leitor decifra o ciclo de uma turma — no caminho em que el
       return new Promise((ok) => srv.listen(0, '127.0.0.1', () => ok({ srv, base: `http://127.0.0.1:${srv.address().port}` })));
     }
 
+    /* O «ABRIR» SÓ EXISTE QUANDO A LEITURA FALHA (20/11/2026). A peça é criada por `pedirSenha`
+     * (`tools/templates/lancamento.html`), que é o ramo do ERRO — enquanto o leitor procuramos o
+     * ficheiro na raiz do site, o ciclo real caía sempre lá, e o botão aparecia sempre. Com o
+     * leitor a achar o ficheiro no pacote, o caminho normal abre a leitura sem pedir nada; quem
+     * ainda precisa do botão é a contraprova da regra velha. Clicar quando ele não existe media
+     * a bancada, não a tela. */
+    const clicarAbrirSeHouver = async (pg) => {
+      const botao = await pg.$('#abrir-ciclo');
+      if (botao) await botao.click();
+      return Boolean(botao);
+    };
+
     async function abrirNoNavegador({ regraVelha }) {
       const { srv, base } = await bancada({ regraVelha });
       const nav = await puppeteer.launch({ executablePath: executavel, headless: 'new', args: ['--no-sandbox', '--disable-dev-shm-usage'] });
@@ -261,7 +276,7 @@ console.log('\nB. O leitor decifra o ciclo de uma turma — no caminho em que el
         await p.select('#ciclo', '01');
         await new Promise((r) => setTimeout(r, 300));
         await p.$eval('#senha', (n) => { n.value = 'a-senha-da-pessoa'; });
-        await p.$eval('#abrir-ciclo', (b) => b.click());
+        await clicarAbrirSeHouver(p);
         await new Promise((r) => setTimeout(r, 900));
         return {
           texto: (await p.$eval('#saida', (n) => n.textContent)).trim(),
@@ -322,7 +337,7 @@ console.log('\nB. O leitor decifra o ciclo de uma turma — no caminho em que el
         await new Promise((r) => setTimeout(r, 300));
         if (abrirPrimeiro) {
           await p.$eval('#senha', (n) => { n.value = 'a-senha-da-pessoa'; });
-          await p.$eval('#abrir-ciclo', (b) => b.click());
+          await clicarAbrirSeHouver(p);
           await new Promise((r) => setTimeout(r, 900));
         }
         await p.select('#entregavel', tipo);
@@ -458,7 +473,7 @@ console.log('\nB. O leitor decifra o ciclo de uma turma — no caminho em que el
       } catch (e) { return { codigo: e.status || 1, saida: String((e.stdout || '') + (e.stderr || '')) }; }
     };
 
-    const fonte = path.join(RAIZ, 'professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-dados.json');
+    const fonte = path.join(RAIZ, 'professores/demi-plie/ciclos/ciclo-01-breu-rosa-dados.json');
     const comConfig = validar(fonte);
     provar('com a captura ao lado, o lançamento com régua PASSA',
       comConfig.codigo === 0 && !/não é marca/.test(comConfig.saida),
@@ -484,7 +499,7 @@ console.log('\nB. O leitor decifra o ciclo de uma turma — no caminho em que el
    *
    *   O BANCO DE PROVA MENTIA POR CONSTRUÇÃO: ele servia a página na RAIZ e resolvia o
    *   `/api/dados` por um stub que encontrava o ficheiro para qualquer nome. No ar a página é
-   *   servida DENTRO do pacote (`/bale-nivel-1-teste-1/lancamento`), e o leitor do Worker
+   *   servida DENTRO do pacote (`/rosa/lancamento`), e o leitor do Worker
    *   procurava o ficheiro na raiz do site — onde ele não está. Daí em diante, cada mensagem da
    *   tela culpava a senha.
    *
@@ -495,14 +510,17 @@ console.log('\nB. O leitor decifra o ciclo de uma turma — no caminho em que el
   if (!puppeteer || !executavel) {
     provar('o navegador existe para medir a página publicada', false, 'NÃO FEITO');
   } else {
-    const PASTA = 'bale-nivel-1-teste-1';
+    const PASTA = 'rosa';
     const MIME2 = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
       '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8',
       '.svg': 'image/svg+xml', '.pdf': 'application/pdf' };
 
     async function bancadaPublicada({ leitorNaRaiz }) {
       const senhaCripto = 'senha-da-prova';
-      const claro = fs.readFileSync(DADOS, 'utf8');
+      /* O CONTEÚDO EM CLARO É DECLARADO, E NÃO LIDO DO PACOTE (20/11/2026). O `-dados.json` que está
+   * no repositório já vem CIFRADO (o site é público) e não tem a chave `aulas` — o que esta secção
+   * mede é a IDA E VOLTA da cifra pelo leitor, e para isso o conteúdo tem de ser conhecido. */
+  const claro = JSON.stringify({ aulas: { '06': { lancada_em: '2026-11-06T16:10', relatorio: 'prova' } } });
       const envelope = await Cifra.cifrar(claro, senhaCripto);
       // A árvore: na raiz só o `nav.json`; o pacote tem os documentos.
       const arvore = { ['nav.json']: '{"versao":2,"coluna":[],"barra":[]}',

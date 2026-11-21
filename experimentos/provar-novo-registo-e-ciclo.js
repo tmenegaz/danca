@@ -3,8 +3,9 @@
 
 /**
  * provar-novo-registo-e-ciclo.js — o «Novo registo» da anamnese ABRE o formulário e fica aberto; a
- * anamnese não pede ciclo; e o ciclo do Plano de Observação é uma LISTA dos ciclos que já têm
- * plano de ensino.
+ * anamnese não pede ciclo; e o ciclo do Plano de Observação NÃO se escolhe: é uma INSCRIÇÃO que
+ * vem do plano observado. A LISTA existiu (05–06/11/2026) e foi retirada — o PO não pergunta o
+ * ciclo, herda-o; o Plano de Ensino é que o numera, e é lá que a lista continua a servir.
  *
  * O QUE A PESQUISADORA VIU (05/11/2026):
  *
@@ -57,7 +58,7 @@ const MAPA = porta.mapa(CONTEUDO);
 const MENU = JSON.parse(fs.readFileSync(path.join(RAIZ, 'publicacao', 'breu', 'nav.json'), 'utf8'));
 
 const PLANO = JSON.parse(fs.readFileSync(
-  path.join(RAIZ, 'escola', 'breu', 'envelopes', 'plano-20261104-1732.json'), 'utf8'));
+  path.join(RAIZ, 'escola', 'breu', 'envelopes', 'plano-20261120-2052.json'), 'utf8'));
 const TURMA = {
   id: 'bale-nivel-1-teste-3',
   nome: 'Balé Nível 1 — Teste 3',
@@ -230,6 +231,8 @@ function servir(dir, env) {
 const LER = () => {
   const campoCiclo = document.getElementById('ctx-ciclo');
   const caixa = campoCiclo ? campoCiclo.closest('.campo') : null;
+  const inscricao = document.getElementById('ctx-ciclo-nome');
+  const notaDoCiclo = document.getElementById('ctx-ciclo-nota');
   const resumo = document.querySelector('.barra details.ctx-ato .ctx-resumo');
   const detalhe = document.querySelector('.barra details.ctx-ato');
   const visivel = (el) => {
@@ -249,7 +252,17 @@ const LER = () => {
     resumoFechado: resumo ? resumo.textContent.trim() : null,
     aberto: detalhe ? detalhe.hasAttribute('open') : null,
     marcacaoDoCabecalho: detalhe ? detalhe.innerHTML.replace(/\s+/g, ' ') : null,
+    /* A PEÇA VISÍVEL DO CICLO NO PO (06/11/2026): o `<input>` continua no DOM como portador do
+     * valor — `contextoDoAto()` lê-o —, mas fica `type="hidden"`; o que a pessoa lê é a
+     * `.ctx-inscricao` `#ctx-ciclo-nome`. Medir só o `<input>` media o portador, não a peça. */
+    nota: !notaDoCiclo ? null : String(notaDoCiclo.textContent || '').trim(),
+    inscricao: !inscricao ? null : {
+      texto: String(inscricao.textContent || '').trim(),
+      title: String(inscricao.title || ''),
+      visivel: visivel(inscricao),
+    },
     ciclo: !campoCiclo ? null : {
+      escondido: campoCiclo.getAttribute('type') === 'hidden',
       tipo: campoCiclo.tagName.toLowerCase(),
       valor: campoCiclo.value,
       readonly: campoCiclo.readOnly === true,
@@ -351,36 +364,34 @@ const LER = () => {
     const noPo = await page.evaluate(LER);
 
     provar('a fonte é o PO', noPo.fonte === 'po', noPo.fonte);
-    provar('no PO o campo do ciclo está visível', noPo.cicloVisivel === true, noPo.cicloVisivel);
+    provar('no PO o ciclo está visível', noPo.cicloVisivel === true, noPo.cicloVisivel);
     provar('…e o cabeçalho diz «ciclo» (nesta fonte ele é a identidade do ato)',
       Boolean(noPo.resumoFechado) && /ciclo/i.test(noPo.resumoFechado), noPo.resumoFechado);
-    provar('o campo do ciclo é uma LISTA (select), e não um número travado',
-      Boolean(noPo.ciclo) && noPo.ciclo.tipo === 'select', noPo.ciclo);
-    /* A LISTA TEM O 01 E NÃO TEM O 02 — o 02 existe no acervo (o `PO_ORFAO`) e não tem plano de
-     * ensino. É esta a diferença entre «os ciclos que existem» e «os ciclos que se podem observar».
-     */
-    /* A FONTE DA LISTA, medida diretamente: sem isto, «o 01 aparece» não diz de onde veio. */
+
+    /* O CICLO DO PO É UMA INSCRIÇÃO, E NÃO UMA LISTA (06/11/2026). A lista existiu e foi retirada
+     * — «No PO NÃO HÁ CAMPO NENHUM: o ciclo é o do plano de ensino observado» (`porta/index.html`,
+     * `mostrarCicloDoPo`). O `<input id="ctx-ciclo">` fica no DOM como PORTADOR do valor
+     * (`contextoDoAto()` lê-o), `type="hidden"`; a peça que a pessoa lê é a `.ctx-inscricao`.
+     * As asserções abaixo medem a peça, e o portador só para provar que ele não é um campo. */
+    provar('o ciclo do PO é uma INSCRIÇÃO visível, e não um campo',
+      Boolean(noPo.inscricao) && noPo.inscricao.visivel === true, noPo.inscricao);
+    provar('…o portador do valor está escondido (não há caixa de texto a fingir de campo)',
+      Boolean(noPo.ciclo) && noPo.ciclo.escondido === true, noPo.ciclo);
+    provar('…e a inscrição diz de onde o ciclo vem (do plano observado)',
+      Boolean(noPo.inscricao) && /plano de ensino/i.test(noPo.inscricao.title),
+      noPo.inscricao && noPo.inscricao.title);
+    provar('…com o ciclo do plano escolhido', Boolean(noPo.inscricao)
+      && noPo.inscricao.texto === String(PLANO.contexto.ciclo), noPo.inscricao);
+
+    /* A FONTE CONTINUA A SABER QUEM TEM PLANO — é ela que o Plano de Ensino usa para numerar. Sem
+     * esta medição, «o 01 aparece» não diria de onde veio. */
     const doServidor = await page.evaluate(async () => {
       const r = await fetch('/plano-observacao/api/ciclos');
       const d = await r.json();
       return { status: r.status, comPlano: d.comPlano, proximo: d.proximo };
     });
-    provar('o servidor diz que o ciclo 01 tem plano (é daqui que a lista vem)',
+    provar('o servidor continua a dizer que o ciclo 01 tem plano',
       Boolean(doServidor.comPlano) && doServidor.comPlano.indexOf('01') !== -1, doServidor);
-    provar('…e a lista mostra o ciclo 01, que tem plano de ensino',
-      Boolean(noPo.ciclo && noPo.ciclo.opcoes) && noPo.ciclo.opcoes.indexOf('01') !== -1, noPo.ciclo);
-    provar('…e NÃO mostra o ciclo 02, que não tem plano de ensino',
-      Boolean(noPo.ciclo && noPo.ciclo.opcoes) && noPo.ciclo.opcoes.indexOf('02') === -1, noPo.ciclo);
-    /* O CICLO QUE NÃO TEM PLANO, QUANDO APARECE, DIZ-SE. Ele só entra na lista se for o valor que
-     * o documento já tinha (o PO ficou órfão quando o plano dele foi apagado) — e nesse caso a
-     * opção tem de anunciar que gravar vai ser recusado, em vez de o professor descobrir no
-     * «Guardar». Aqui o campo está no 01, que TEM plano: nenhuma opção leva a marca. */
-    provar('…e nenhuma opção se anuncia «sem plano de ensino» quando não há órfão',
-      Boolean(noPo.ciclo && noPo.ciclo.rotulos)
-        && noPo.ciclo.rotulos.every((r) => !/sem plano de ensino/.test(r)),
-      noPo.ciclo && noPo.ciclo.rotulos);
-    provar('…com o ciclo do documento escolhido', Boolean(noPo.ciclo) && noPo.ciclo.valor === '01',
-      noPo.ciclo && noPo.ciclo.valor);
 
     /* O ÓRFÃO, NAS DUAS DIREÇÕES. O `PO_ORFAO` está no ciclo 02, que não tem plano: é o estado que
      * o servidor passou a recusar criar, e que só existe no acervo por escrita direta. Ao abri-lo
@@ -393,13 +404,11 @@ const LER = () => {
     const noOrfao = await page.evaluate(LER);
     provar('o PO órfão abre no ciclo DELE, e não some',
       Boolean(noOrfao.ciclo) && noOrfao.ciclo.valor === '02', noOrfao.ciclo && noOrfao.ciclo.valor);
-    provar('…e a opção do ciclo sem plano ANUNCIA-SE («sem plano de ensino»)',
-      Boolean(noOrfao.ciclo && noOrfao.ciclo.rotulos)
-        && noOrfao.ciclo.rotulos.some((r) => /^02 — sem plano de ensino$/.test(r)),
-      noOrfao.ciclo && noOrfao.ciclo.rotulos);
-    provar('…e o ciclo que TEM plano continua sem a marca',
-      Boolean(noOrfao.ciclo && noOrfao.ciclo.rotulos)
-        && noOrfao.ciclo.rotulos.indexOf('01') !== -1, noOrfao.ciclo && noOrfao.ciclo.rotulos);
+    /* O órfão não tem plano na mão — é isso que o torna órfão. A inscrição mostra o ciclo que o
+     * envelope declara, e o portador não é apagado por a estante não ter chegado. */
+    provar('…e a inscrição NÃO inventa um ciclo que não veio de plano nenhum',
+      Boolean(noOrfao.inscricao) && noOrfao.inscricao.texto === '',
+      { inscricao: noOrfao.inscricao, nota: noOrfao.nota });
 
     /* E O PLANO DE ENSINO CONTINUA TRAVADO NO PRÓXIMO — a lista é do PO, não das três fontes. */
     await page.goto(base + '/plano-ensino/?fonte=plano&professor=coqui-de-redinha&ciclo=01',

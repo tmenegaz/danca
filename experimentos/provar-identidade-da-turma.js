@@ -464,7 +464,12 @@ async function provarANavegador() {
     };
     const linha1 = li.querySelector('.linha-turma');
     const dono = li.querySelector('.dono');
-    const selos = [...li.querySelectorAll('.linha-turma > .nome > .selo')].map((s) => ({
+    /* O SELO DO ESTADO PASOU A TER UM INVÓLUCRO (20/11/2026): ele é escrito dentro de
+     * `<span data-selo-da-turma="…">` — que existe para a tela poder trocá-lo sem redescrever a
+     * linha. O seletor `> .nome > .selo` deixou de o alcançar, e a asserção passou a ver só dois
+     * dos três selos (o de vigência e o «!» da revisão). Passa a descendente: o que se mede é a
+     * geometria dos selos da linha, não a profundidade a que foram escritos. */
+    const selos = [...li.querySelectorAll('.linha-turma > .nome .selo')].map((s) => ({
       texto: s.textContent.trim(), ...r(s),
     }));
     return {
@@ -644,8 +649,14 @@ async function provarANavegador() {
 
   console.log('\nG. OS CAMPOS DO FORMULÁRIO DIZEM «— escolher —» QUANDO ESTÃO VAZIOS');
 
+  /* OS TRÊS CAMPOS QUE SAÍRAM DO FORMULÁRIO (18/11/2026). «São facto da SALA, e um campo que os
+   * repetisse aqui abriria a porta a uma turma que diz uma modalidade e uma sala que diz outra. O
+   * registo continua a GUARDÁ-LOS — a rota deriva-os da sala.» O professor, a modalidade e a
+   * tradição deixaram de se perguntar na Turma; o que sobra a escolher é a Sala, o Elenco e o Grau.
+   * A secção mede as duas metades: as que ficaram abrem em «— escolher —», e as que saíram não
+   * voltaram por descuido. */
   const campos = await p.evaluate(() => {
-    const ids = ['cuprofessor', 'cumodalidade', 'cutradicao', 'cuturma', 'cuelenco'];
+    const ids = ['cuturma', 'cuelenco', 'cugrau'];
     const out = {};
     ids.forEach((id) => {
       const el = document.getElementById(id);
@@ -663,11 +674,18 @@ async function provarANavegador() {
     out.cugrau = g ? { primeira: (g.options[0] || {}).textContent || '', valor: (g.options[0] || {}).value } : null;
     return out;
   });
-  for (const id of ['cuprofessor', 'cumodalidade', 'cutradicao', 'cuelenco']) {
+  for (const id of ['cuturma', 'cuelenco']) {
     provar('o campo «' + id + '» abre com «— escolher —»',
       Boolean(campos[id]) && campos[id].valor === '' && /escolher/.test(campos[id].primeira),
       campos[id]);
   }
+  /* E OS QUE SAÍRAM CONTINUAM FORA — o professor, a modalidade e a tradição são facto da SALA, e
+   * é o servidor que os deriva dela. Se um voltasse a ser campo, a Turma poderia dizer uma
+   * modalidade que a Sala não diz. */
+  const saíram = await p.evaluate(() => ['cuprofessor', 'cumodalidade', 'cutradicao']
+    .filter((id) => document.getElementById(id)));
+  provar('o professor, a modalidade e a tradição NÃO voltaram a ser campos da Turma',
+    saíram.length === 0, saíram);
   provar('o campo «cugrau» abre com «— escolher —» também depois de repovoado',
     Boolean(campos.cugrau) && campos.cugrau.valor === '' && /escolher/.test(campos.cugrau.primeira),
     campos.cugrau);

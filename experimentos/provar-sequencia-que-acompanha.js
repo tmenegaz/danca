@@ -142,6 +142,27 @@ function servir() {
 
     if (rel === 'assets/style.css') return envia(MIME['.css'], fs.readFileSync(path.join(RAIZ, 'tools/templates/ciclo.css')));
     if (rel === 'assets/nav.js') return envia(MIME['.js'], fs.readFileSync(path.join(RAIZ, 'tools/templates/nav.js')));
+    /* OS ASSETS QUE A PÁGINA PEDE COM O CAMINHO DA *OUTRA* PÁGINA (20/11/2026).
+     *
+     * O `porta/index.html` carrega `<script src="/plano-observacao/assets/markdown.js">` — absoluto,
+     * e é de propósito: a mesma porta é servida em `/anamnese/`, `/plano-ensino/` e
+     * `/plano-observacao/`, e um `src` relativo acertava num e dava 404 nos outros dois (está
+     * escrito lá, a 20/10/2026).
+     *
+     * A bancada descia o caminho com `PORTA + rel` e, para `plano-observacao/assets/markdown.js`,
+     * caía no `catch-all` — que devolve **o `index.html`** para tudo o que não encontra. O browser
+     * recebia HTML onde esperava JavaScript, não definia `Markdown`, e a página morria em
+     * «Markdown is not defined» a meio do arranque. O sintoma lia-se como defeito da página.
+     *
+     * Aqui os assets resolvem-se pelo NOME, venha o prefixo que vier: é o mesmo que o servidor de
+     * verdade faz, que serve `porta/assets/*` sob todos os endereços da porta. */
+    const asset = /(?:^|\/)assets\/(.+)$/.exec(rel);
+    if (asset) {
+      const f = path.join(PORTA, 'assets', asset[1]);
+      if (fs.existsSync(f) && fs.statSync(f).isFile()) {
+        return envia(MIME[path.extname(f)] || 'application/octet-stream', fs.readFileSync(f));
+      }
+    }
     const alvo = rel ? path.join(PORTA, rel) : path.join(PORTA, 'index.html');
     if (alvo.startsWith(PORTA) && fs.existsSync(alvo) && fs.statSync(alvo).isFile()) {
       return envia(MIME[path.extname(alvo)] || 'application/octet-stream', fs.readFileSync(alvo));
@@ -373,13 +394,29 @@ const bloco = (titulo) => console.log('\n' + titulo);
       acrescentar: q.querySelectorAll('[data-grelha-add]').length,
       remover: q.querySelectorAll('[data-grelha-del]').length,
       livres: q.querySelectorAll('[data-grelha-livre]').length,
-      selects: q.querySelectorAll('tbody select').length
+      selects: q.querySelectorAll('tbody select').length,
+      textos: q.querySelectorAll('tbody input[type=text], tbody textarea').length,
+      semOpcaoVazia: [].every.call(q.querySelectorAll('tbody select'),
+        function (sel) { return sel.children[0] && sel.children[0].value === ''; })
     };
   })()`);
   provar('não há botão «Adicionar linha»', osBotoes.acrescentar === 0, osBotoes);
   provar('não há ✕ nenhum na tabela', osBotoes.remover === 0, osBotoes);
-  provar('não há campo livre — nem no conteúdo, nem nos tempos e no compasso',
-    osBotoes.livres === 0 && osBotoes.selects === 0, osBotoes);
+  /* «CAMPO LIVRE» É O QUE SE ESCREVE À MÃO — E UM `<select>` NÃO É ISSO (20/11/2026).
+   *
+   * A asserção era `livres === 0 && selects === 0`, e reprovava a tabela certa: os quatro selects
+   * que lá estão são as colunas **Tempos** e **Compasso**, e as opções delas são `8`, `4`, `2/4` —
+   * a lista DECLARADA, sem uma entrada à mão. Um `<select>` de lista fechada é o contrário de um
+   * campo livre: é o que impede inventar.
+   *
+   * O que a regra de negócio proíbe («a gente tá gerando uma fraude») é ESCREVER um valor que
+   * ninguém curou. Isso mede-se nos campos de texto e nos acompanhantes `[data-grelha-livre]`, e
+   * não na existência de listas. A asserção passa a medir o que a frase diz, e fica mais estrita:
+   * exige também que cada lista abra na opção vazia. */
+  provar('não há campo livre — nenhum texto à mão, nem no conteúdo, nem nos tempos e no compasso',
+    osBotoes.livres === 0 && osBotoes.textos === 0, osBotoes);
+  provar('…e cada lista da tabela é a lista DECLARADA, e abre em «— escolher —»',
+    osBotoes.selects > 0 && osBotoes.semOpcaoVazia === true, osBotoes);
 
   /* CONTROLE POSITIVO, e é o que impede a leitura errada de que «a tabela deixou de funcionar»:
    * o caminho legítimo de ter mais exercícios — marcar mais um em «Parâmetro de medição» —

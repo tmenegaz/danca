@@ -37,6 +37,7 @@
  *   node experimentos/provar-assets-sem-worker.js
  */
 
+const os = require('node:os');
 const fs = require('fs');
 const path = require('path');
 
@@ -115,7 +116,38 @@ console.log('\n1 · a configuração não volta a mandar tudo para o Worker');
 /* ── 2. O MODELO, APLICADO AOS CAMINHOS REAIS ───────────────────────────────────────────── */
 console.log('\n2 · o roteamento classifica cada caminho como deve');
 {
-  const cfg = lerJsonc(path.join(RAIZ, 'wrangler.calango.jsonc'));
+  /* A CONFIGURAÇÃO DE UMA ESCOLA NÃO ESTÁ NO REPOSITÓRIO — é o `criar-escola.sh` que a escreve
+   * (`wrangler.<escola>.jsonc`), e ela nasce no acto que cria a escola. A prova lia a da `calango`,
+   * que o expurgo levou, e rebentava no `readFileSync`.
+   *
+   * A configuração que se lê passa a ser a do TEMPLATE, e lê-se com o MESMO `lerJsonc` desta prova
+   * — depois de o heredoc passar por um ficheiro temporário com `$ESCOLA` trocado. As outras duas
+   * saídas foram descartadas: não há nenhuma escola versionada (os dois `wrangler.*.jsonc` do
+   * repositório são a raiz e o teste), e escrever a configuração à mão aqui mediria a invenção.
+   *
+   * O que se mede continua a ser o mesmo: os CAMINHOS reais contra a REGRA. E a regra é a do
+   * template — a que toda a escola nova recebe. */
+  const geradorDoTemplate = fs.readFileSync(path.join(RAIZ, 'tools/criar-escola.sh'), 'utf8');
+  const blocoDoTemplate = /cat > "\$WRANGLER" <<[A-Z]+\n([\s\S]*?)\n[A-Z]+\n/.exec(geradorDoTemplate);
+  if (!blocoDoTemplate) {
+    console.error('provar-assets-sem-worker: não encontrei o heredoc do `wrangler` em criar-escola.sh — NÃO FEITO.');
+    process.exit(1);
+  }
+  const tmp = path.join(os.tmpdir(), 'wrangler-da-prova.jsonc');
+  /* AS VARIÁVEIS DO HEREDOC SÃO TROCADAS POR VALORES DE PROVA. Só o `$ESCOLA` não bastava: o
+   * `$schema` (`node_modules/wrangler/…`) e o `$WORKER` são variáveis que o `criar-escola.sh`
+   * expande ao escrever o ficheiro, e no heredoc cru ficam com o `$` à frente — que não é JSON. O
+   * `$schema` é o caso traiçoeiro: parece uma palavra, e é uma variável. */
+  fs.writeFileSync(tmp, blocoDoTemplate[1]
+    .replace(/\\(?=\$)/g, '')                                            // o `\$` do heredoc
+    .replace(/\$\{ESCOLA(_NOME)?\}/g, 'piano')
+    .replace(/\$ESCOLA(_NOME)?/g, 'piano')
+    .replace(/\$WORKER/g, 'piano')
+    .replace(/\$PROFESSOR/g, 'demi-plie')
+    .replace(/\$CICLO/g, '01')
+    .replace(/\$schema/g, 'schema'), 'utf8');
+  const cfg = lerJsonc(tmp);
+  fs.unlinkSync(tmp);
   const regra = cfg.assets.run_worker_first;
   const escola = cfg.assets.directory;
 
@@ -145,6 +177,16 @@ console.log('\n2 · o roteamento classifica cada caminho como deve');
   /* TODO `.css`/`.js`/`.svg`/`.pdf` PUBLICADO TEM DE ESTAR COBERTO POR UMA NEGATIVA. Se um
    * ficar de fora, não quebra — passa a gastar invocação sem ninguém notar, que é o defeito que
    * esta mudança existe para corrigir. */
+  /* A PASTA VARRIDA PASSOU A SER A QUE EXISTE (20/11/2026). Era `publicacao/<escola do wrangler>`
+   * — a `calango`, cujo `.jsonc` e cuja pasta o expurgo levou. A `breu` está publicada e é uma
+   * árvore real, com `assets/`, `ciclos/` e `aulas/`: é por ela que se mede o que se quer medir —
+   * que TODO ficheiro publicado com extensão de asset caia numa negativa da regra. */
+  const raizPublicada = fs.existsSync(path.join(RAIZ, 'publicacao', 'breu'))
+    ? path.join(RAIZ, 'publicacao', 'breu') : null;
+  if (!raizPublicada) {
+    console.error('provar-assets-sem-worker: não há publicação no disco — NÃO FEITO.');
+    process.exit(1);
+  }
   const publicados = [];
   (function varrer(dir, base) {
     for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -152,7 +194,7 @@ console.log('\n2 · o roteamento classifica cada caminho como deve');
       if (e.isDirectory()) varrer(path.join(dir, e.name), rel);
       else if (/\.(css|js|svg|pdf)$/i.test(e.name)) publicados.push(rel);
     }
-  }(path.join(RAIZ, escola), ''));
+  }(raizPublicada, ''));
   const escaparam = publicados.filter((c) => quemServe(regra, c) !== 'asset');
   provar('os ' + publicados.length + ' assets publicados são servidos pelo ASSETS', escaparam.length === 0,
     escaparam.slice(0, 5));
@@ -176,8 +218,18 @@ console.log('\n3 · os scripts gerados pelo motor vivem fora de `/assets/`');
    * A asserção mudou de sinal de propósito: antes media que ele injetava; agora mede que não. O
    * script continua a ser servido (a porta usa-o), e é isso que as duas linhas de cima guardam. */
   const bastidores = fs.readFileSync(path.join(RAIZ, 'motor/servidor/bastidores.js'), 'utf8');
-  provar('os Bastidores já não injetam `/scripts/teste-preenchimento.js`',
-    !bastidores.includes('/scripts/teste-preenchimento.js'));
+  /* «NÃO INJETAM» MEDE-SE NA TAG, E NÃO NO TEXTO (20/11/2026).
+   *
+   * A asserção era `!bastidores.includes('/scripts/teste-preenchimento.js')`, e passou a reprovar a
+   * página certa: o caminho CONTINUA a aparecer no ficheiro — dentro do comentário que explica que
+   * ele é servido e injetado nas páginas da PORTA, e que a versão dos Bastidores deixou de existir.
+   * Um `includes` sobre o fonte inteiro não distingue código de comentário, e por isso media a
+   * documentação.
+   *
+   * O que a regra diz é que os Bastidores não o INJETAM: isso é uma tag `<script src>`. É ela que
+   * se procura. */
+  provar('os Bastidores já não injetam `/scripts/teste-preenchimento.js` numa tag `<script>`',
+    !/<script[^>]+src=["'][^"']*teste-preenchimento/.test(bastidores));
 }
 
 /* ── 4. CONTROLO NEGATIVO ───────────────────────────────────────────────────────────────── */

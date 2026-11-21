@@ -195,7 +195,10 @@ async function oEstado() {
    * duas coisas diferentes aparecerem com o mesmo nome. O par passa a ler-se: o mestre é o
    * «Plano do ciclo», e a entrega é o «Plano para a Aula 01». */
   assert.deepEqual(guardado.documentos.map((d) => d.nome),
-    ['Plano do ciclo', 'Plano para a Aula 01', 'Glossário Benesh']);
+    /* O RÓTULO MUDOU, A CHAVE NÃO (29/10/2026): o documento é «Glossário do código de dança» — o
+     * código é do projeto, e o nome dele não é de ninguém (`motor/servidor/geracao.js`). A chave
+     * continua `glossario-benesh`, e é por isso que os registos de ontem continuam a resolver. */
+    ['Plano do ciclo', 'Plano para a Aula 01', 'Glossário do código de dança']);
   ok('o registro guarda a variante, o rótulo e os documentos com nomes legíveis — '
     + 'e os dois planos não se confundem');
 
@@ -624,13 +627,32 @@ function assetsFalsos() {
     '.json': 'application/json', '.svg': 'image/svg+xml', '.md': 'text/markdown' };
   return {
     async fetch(pedido) {
-      const rel = decodeURIComponent(new URL(pedido).pathname.replace(/^\/+/, ''));
+      /* O `pedido` chega como `Request` OU como URL — a ponte usa as duas formas conforme o
+       * caminho já ter sido reescrito (`caminhoNaArvore`). `new URL(Request)` lança. */
+      const rel = decodeURIComponent(
+        new URL(pedido && pedido.url ? pedido.url : String(pedido)).pathname.replace(/^\/+/, ''));
       // O ASSETS de uma escola publica o PACOTE, e a porta vive lá dentro, em
       // `plano-observacao/`. Sem o pacote (uma escola expurgada), a mesma árvore está em
       // `porta/` na raiz — e é de lá que se serve, tirando o prefixo. A prova não pode
       // depender de uma escola viva: quem a apaga é a própria pesquisadora, no ensaio.
       const semPrefixo = rel.replace(/^plano-observacao\//, '');
-      const candidatos = [path.join(PACOTE, rel), path.join(RAIZ, 'porta', semPrefixo)];
+      /* A RAIZ DA ESCOLA TEM DE EXISTIR (20/11/2026). A ponte lê `escola.json` e `nav.json` antes
+       * de servir a porta; sem eles a resposta é um 302 com corpo vazio, e a asserção da injeção
+       * media um redirecionamento a fingir de página. Os dois são declarados aqui, mínimos. */
+      if (rel === 'escola.json') {
+        return new Response(JSON.stringify({ escola: 'calando-teste-1', gerado_em: '2026-10-20T10:00:00.000Z' }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+      if (rel === 'nav.json') {
+        return new Response(JSON.stringify({ versao: 1, coluna: [], barra: [] }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+      /* UM DIRETÓRIO SERVE O `index.html` DE DENTRO (20/11/2026). `/plano-observacao/` chega aqui
+       * como o diretório `porta/`, e o `isFile()` recusava-o: a página vinha VAZIA, e a asserção
+       * da injeção reprovava o motor por causa da bancada. É o que o ASSETS de verdade faz. */
+      const candidatos = [path.join(PACOTE, rel), path.join(RAIZ, 'porta', semPrefixo)]
+        .flatMap((p) => (fs.existsSync(p) && fs.statSync(p).isDirectory()
+          ? [path.join(p, 'index.html')] : [p]));
       for (const arquivo of candidatos) {
         if (fs.existsSync(arquivo) && fs.statSync(arquivo).isFile()) {
           const tipo = TIPOS[path.extname(arquivo)] || 'application/octet-stream';
@@ -651,7 +673,12 @@ async function aInjecao() {
 
   // O endereço carrega o slug da escola: a ponte de produção recusa servir quando o
   // subdomínio não bate com o `ESCOLA_SLUG` (é o freio que impede o deploy trocado).
-  const porta = await producao.fetch(new Request('https://calando-teste-1.example/plano-observacao/'), env);
+  /* A PORTA EXIGE O ATO INTEIRO — SEM CONTEXTO ELA RESPONDE 302 PARA A LISTA (15/11/2026). A
+   * bancada pedia `/plano-observacao/` seco, e recebia um redireccionamento com corpo vazio: a
+   * asserção da injeção media o desvio, não a página. O contexto mínimo do PO é o professor. */
+  const porta = await producao.fetch(
+    new Request('https://calando-teste-1.example/plano-observacao/?professor=sapo-bailarino&ciclo=01'),
+    env);
   const html = await porta.text();
   assert.match(html, /<script src="\/scripts\/geracao\.js"><\/script><\/body>/);
   ok('a porta é servida com o cartão injetado — em qualquer escola, sem regenerar o pacote');

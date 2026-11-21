@@ -33,7 +33,14 @@
  *      objetivo em duas aulas.
  *
  * COMO É MEDIDA. O gerador de verdade (`tools/tabela-objetivos.js`) e o pacote de verdade
- * (`professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2/`). Sem rede.
+ * (`professores/demi-plie/ciclos/ciclo-01-breu-rosa/`). Sem rede. Era o pacote da `batata`, e
+ * mudou a 20/11/2026 com o expurgo daquela escola: a mudança é de FIXTURE, e as asserções
+ * passaram a medir os factos da `breu` (três objetivos, quatro blocos, o compasso da aula do dia)
+ * em vez dos números de outra escola.
+ *
+ * O CONTROLE NEGATIVO NÃO SE FAZ NESTE FIXTURE: o plano da `breu` nasceu depois da mudança, e
+ * não há em `git` um estado dele anterior ao apanhado. `--controle-negativo` diz isso e sai com 2
+ * — «não feito» é uma resposta; um controle que passa por vacuidade não é.
  *
  * CONTROLE NEGATIVO (`--controle-negativo`): o mesmo plano, na fonte de `HEAD` — a tabela
  * detalhada, contada como a página a publicava. Se o controle passasse, a prova não estaria a
@@ -53,8 +60,8 @@ const { derivarPlano } = require(path.join(raiz, 'motor/nucleo/derivar-plano-cic
  * engoliu uma chave em silêncio (o `recortePeloPlano`), e é ela que a tela lê. */
 const portaMapa = (conteudo) => require(path.join(raiz, 'motor/nucleo/porta.js')).mapa(conteudo);
 
-const PROF = 'cafe-no-bule';
-const VARIANTE = 'batata-bale-nivel-2-teste-2';
+const PROF = 'demi-plie';
+const VARIANTE = 'breu-rosa';
 const PACOTE = path.join(raiz, 'professores', PROF, 'ciclos', 'ciclo-01-' + VARIANTE);
 const PLANO_MD = path.join(raiz, 'professores', PROF, 'ciclos', 'ciclo-01-' + VARIANTE + '-plano.md');
 
@@ -130,7 +137,14 @@ const linhasDeDados = (linhas) => linhas.filter((l) => /^\|/.test(l)).slice(2);
     try {
       antiga = execSync('git show ' + ref + ':' + caminhoNoGit, { cwd: raiz, encoding: 'utf8' });
     } catch (e) {
-      console.error('erro: não consegui ler ' + caminhoNoGit + ' em ' + ref);
+      /* O CONTROLE PRECISA DE UM «ANTES», E ESTE FIXTURE NÃO O TEM (20/11/2026). O plano da `breu`
+       * nasceu DEPOIS da mudança que esta prova mede (26/10/2026): não existe, em `ref` nenhum,
+       * um estado dele anterior ao apanhado. O controle descrevia a `batata`, que foi expurgada
+       * com a escola. Diz-se — e não se finge um controle que passaria por vacuidade. */
+      console.error('provar-objetivos-por-aula: CONTROLE NEGATIVO NÃO FEITO — ' + caminhoNoGit
+        + '\n  não existe em ' + ref + ': o fixture (`' + VARIANTE + '`) nasceu depois da mudança'
+        + ' que a\n  prova mede, e o fixture anterior (a `batata`) foi expurgado com a escola.'
+        + '\n  A prova sem `--controle-negativo` mede o presente, e passa.');
       process.exit(2);
     }
     const secaoAntiga = (/## Sequência de exercícios por bloco[\s\S]*?(?=\n## )/.exec(antiga) || [''])[0];
@@ -183,8 +197,12 @@ const linhasDeDados = (linhas) => linhas.filter((l) => /^\|/.test(l)).slice(2);
     htmlAula.indexOf('id="exercicios-da-aula-01"') !== -1);
   provar('…e o apanhado liga a ela, na linha do objetivo 1',
     linhas.some((l) => /\]\(aula-01\.html#exercicios-da-aula-01\)/.test(l)), linhas);
+  /* O DETALHE É A TABELA DA MÚSICA, e os valores são os da aula do dia — não os de outra escola.
+   * A asserção lia `8, 4/4` e `16, 3/4`, que eram o compasso da `batata`; o que ela tem de medir
+   * é que a aula publica compasso E tempos, com números dentro. */
+  const compassos = (htmlAula.match(/<td[^>]*>\s*\d+\s*\/\s*\d+\s*<\/td>/g) || []);
   provar('a aula 01 tem o detalhe que saiu do plano (tempos e compasso)',
-    /8, 4\/4/.test(htmlAula) && /16, 3\/4/.test(htmlAula));
+    compassos.length > 0 && /<th[^>]*>Tempos<\/th>/.test(htmlAula), { compassos: compassos.length });
 
   // ---------------------------------------------------------------- 3) nada é adivinhado
   console.log('\n3. sem página e sem marco, a célula DIZ o que falta');
@@ -298,8 +316,14 @@ const linhasDeDados = (linhas) => linhas.filter((l) => /^\|/.test(l)).slice(2);
      da turma. É a asserção que guarda isso. */
   provar('…e `reguaDaRubrica` continua no extraído (é o que o lançamento lê)',
     Array.isArray(plano.reguaDaRubrica) && plano.reguaDaRubrica.length > 0, plano.reguaDaRubrica);
+  /* OS NÍVEIS SÃO OS QUE O PROFESSOR DECLAROU — incluindo o erro de escrita dele. A `breu`
+   * declara «Em desenvovimento» (sem o «l»), e é assim que tem de sair: o sistema não corrige as
+   * palavras de quem declara. E é este detalhe que faz a asserção discriminar: a régua PADRÃO do
+   * motor (`derivar-plano-ciclo.js`, `NIVEIS_DA_RUBRICA`) diz «Em desenvolvimento», com o «l» —
+   * se o extraído caísse nela em silêncio, esta linha reprovava. */
   provar('…com os níveis que a turma declarou, e não os padrão do motor',
-    plano.reguaDaRubrica.join(' · ') === 'Excelente · Bom · Em construção', plano.reguaDaRubrica);
+    plano.reguaDaRubrica.join(' · ') === 'Satisfatório · Razoável · Em desenvovimento · Não se aplica',
+    plano.reguaDaRubrica);
   provar('o «Critério de extensão» passou a «Horizonte do ciclo»',
     htmlPlano.indexOf('id="horizonte-do-ciclo"') !== -1
     && htmlPlano.indexOf('id="criterio-de-extensao"') === -1);

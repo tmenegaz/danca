@@ -6,7 +6,7 @@
  *
  * O RELATO DA PESQUISADORA, em produção:
  *
- *   «Eu tenho a curadoria. O professor Perna Boa está curado para a turma balé nível 1, teste 2.
+ *   «Eu tenho a curadoria. O professor Demi Plié está curado para a turma balé nível 1, teste 2.
  *    O professor Só para a Direita está curado para balé nível 2 e 3. […] E quando eu vou fazer o
  *    plano de ensino, eu consigo misturar aqui os professores e as turmas. Não preciso respeitar a
  *    curadoria. Isso não pode acontecer. […] o professor é o caminho da verdade. Quando eu
@@ -59,10 +59,13 @@ const provar = (nome, ok, detalhe) => {
 
 const negativo = process.argv.includes('--controle-negativo');
 
-const ESCOLA = 'batata';
+/* A ESCOLA MUDOU DE `batata` PARA `breu` (20/11/2026) — a `batata` foi expurgada, e o que esta
+ * prova mede é a REGRA («o professor só vê as turmas dele»), que não depende da escola. Os slugs
+ * acompanham os nomes das fixtures. */
+const ESCOLA = 'breu';
 const TURMAS = ['Balé Nível 1 — Teste 2', 'Balé Nível 2 — Teste 2', 'Balé Nível 3 — Teste 2'];
 const CURADORIAS = [
-  { id: 'pb1', professor: 'perna-boa', modalidade: 'Balé clássico', tradicao: 'Vaganova',
+  { id: 'pb1', professor: 'demi-plie', modalidade: 'Balé clássico', tradicao: 'Vaganova',
     turmas: [TURMAS[0]], alunas: ['Aluna A'] },
   { id: 'sp1', professor: 'so-para-direita', modalidade: 'Balé clássico', tradicao: 'Vaganova',
     turmas: [TURMAS[1]], alunas: ['Aluna B'] },
@@ -171,12 +174,12 @@ function assets(dir) {
   };
 }
 
-const MAPA = require(path.join(raiz, 'professores/perna-boa/ciclos/ciclo-01-batata'
+const MAPA = require(path.join(raiz, 'professores/demi-plie/ciclos/ciclo-01-breu-rosa'
   + '/plano-observacao/plano/conteudo/plano.json'));
 
 function envDaBancada() {
   return {
-    ESCOLA_SLUG: ESCOLA, ESCOLA_HABILITADA: 'sim', PROFESSOR_NOME: 'Perna Boa',
+    ESCOLA_SLUG: ESCOLA, ESCOLA_HABILITADA: 'sim', PROFESSOR_NOME: 'Demi Plié',
     SENHA_PROFESSOR: 'p', SENHA_ADMIN: 'd',
     PADD_KV: kv({
       ['bastidores/' + ESCOLA + '/curadorias']: JSON.stringify(CURADORIAS),
@@ -185,7 +188,7 @@ function envDaBancada() {
         dias: ['terça'], duracao: 60, periodo: '2027-1',
       }))),
       ['bastidores/' + ESCOLA + '/professores']: JSON.stringify([
-        { nome: 'Perna Boa', slug: 'perna-boa', senha: 'p' },
+        { nome: 'Demi Plié', slug: 'demi-plie', senha: 'p' },
         { nome: 'Só para Direita', slug: 'so-para-direita', senha: 'p' },
         { nome: 'Sem Turma', slug: 'sem-turma', senha: 'p' },
       ]),
@@ -269,6 +272,7 @@ function servir(env) {
       valor: sel.value,
       desabilitado: sel.disabled,
       aviso,
+      textoDaCaixa: caixa ? String(caixa.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 200) : null,
     };
   });
   const trocar = async (slug) => {
@@ -281,9 +285,9 @@ function servir(env) {
   };
 
   console.log('\n1. Cada professor vê as turmas da curadoria DELE — e só essas');
-  await abrir('perna-boa');
+  await abrir('demi-plie');
   let e = await estadoDaTurma();
-  provar('perna-boa vê só a turma dele', JSON.stringify(e.opcoes) === JSON.stringify([TURMAS[0]]), e.opcoes);
+  provar('demi-plie vê só a turma dele', JSON.stringify(e.opcoes) === JSON.stringify([TURMAS[0]]), e.opcoes);
   provar('…e não vê as dos outros dois',
     e.opcoes.indexOf(TURMAS[1]) === -1 && e.opcoes.indexOf(TURMAS[2]) === -1, e.opcoes);
 
@@ -291,10 +295,10 @@ function servir(env) {
   e = await estadoDaTurma();
   provar('so-para-direita vê as DUAS turmas dele',
     JSON.stringify(e.opcoes) === JSON.stringify([TURMAS[1], TURMAS[2]]), e.opcoes);
-  provar('…e não vê a do perna-boa', e.opcoes.indexOf(TURMAS[0]) === -1, e.opcoes);
+  provar('…e não vê a do demi-plie', e.opcoes.indexOf(TURMAS[0]) === -1, e.opcoes);
 
   console.log('\n2. Trocar de professor troca a lista, e a escolha do anterior não sobrevive');
-  await abrir('perna-boa');
+  await abrir('demi-plie');
   await pagina.evaluate(() => {
     const sel = document.getElementById('ctx-turma');
     sel.value = sel.options[1].value;
@@ -302,7 +306,7 @@ function servir(env) {
   });
   await new Promise((r) => setTimeout(r, 400));
   const antes = await estadoDaTurma();
-  provar('com o perna-boa, a turma dele fica escolhida', antes.valor === TURMAS[0], antes.valor);
+  provar('com o demi-plie, a turma dele fica escolhida', antes.valor === TURMAS[0], antes.valor);
   await trocar('so-para-direita');
   e = await estadoDaTurma();
   provar('ao trocar, a lista é a do novo professor',
@@ -321,7 +325,7 @@ function servir(env) {
   e = await estadoDaTurma();
   provar('a lista fica vazia', e.opcoes.length === 0, e.opcoes);
   provar('e o aviso diz que a direção não atribuiu turma', /curadoria|atribuiu|turma/i.test(e.aviso),
-    e.aviso);
+    { aviso: e.aviso, caixa: e.textoDaCaixa });
 
   console.log('\n5. O SERVIDOR recusa a turma não atribuída — a tela não é a regra');
   /* O PORQUÊ: um filtro de tela é contornável por qualquer `POST` à mão. A regra que a
@@ -346,8 +350,8 @@ function servir(env) {
     try { json = await r.json(); } catch (e) { json = {}; }
     return { status: r.status, erro: String(json.erro || '') };
   };
-  const cruzado = await pedirPlano('perna-boa', TURMAS[1]);
-  provar('o plano do perna-boa com a turma do so-para-direita é RECUSADO',
+  const cruzado = await pedirPlano('demi-plie', TURMAS[1]);
+  provar('o plano do demi-plie com a turma do so-para-direita é RECUSADO',
     cruzado.status === 403, cruzado);
   provar('…e a recusa nomeia a turma e diz de quem ela é',
     /Balé Nível 2/.test(cruzado.erro) && /professor|curadoria/i.test(cruzado.erro), cruzado.erro);
@@ -356,7 +360,7 @@ function servir(env) {
   provar('um professor sem turma nenhuma não escreve plano de turma alguma',
     alheia.status === 403, alheia);
 
-  const propria = await pedirPlano('perna-boa', TURMAS[0]);
+  const propria = await pedirPlano('demi-plie', TURMAS[0]);
   provar('…e a turma que É dele passa (não se proíbe o que é autorizado)',
     propria.status !== 403, propria);
 

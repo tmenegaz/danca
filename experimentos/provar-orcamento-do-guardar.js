@@ -98,11 +98,14 @@ function gitFalso({ teto = 0 } = {}) {
   return { fetch: contado, chamadas, escritos };
 }
 
-const CICLO = 'professores/dedao-aberto/ciclos/ciclo-01-batata-sala-rosa';
-const po = JSON.parse(ler('escola/batata/envelopes/po-20261108-0956.json'));
-const plano = JSON.parse(ler('escola/batata/envelopes/plano-20261108-0955.json'));
-const linhaDeBase = JSON.parse(ler('escola/batata/linhas-de-base/tami--20261108-1253.json'));
-const CONTEXTO = { escola: 'batata', professor: 'dedao-aberto', ciclo: '01', turma: 'sala rosa' };
+/* AS FONTES SÃO AS DA ESCOLA VIVA (20/11/2026). A `batata` foi expurgada e os três ficheiros que
+ * esta prova lia deixaram de existir; a forma é a mesma, e é ela que o escritor consome. O que a
+ * prova mede — quantos subpedidos a gravação gasta — não depende do conteúdo dos envelopes. */
+const CICLO = 'professores/demi-plie/ciclos/ciclo-01-breu-rosa';
+const po = JSON.parse(ler('escola/breu/envelopes/po-20261120-2052.json'));
+const plano = JSON.parse(ler('escola/breu/envelopes/plano-20261120-2052.json'));
+const linhaDeBase = JSON.parse(ler('escola/breu/linhas-de-base/tami--20261118-2039.json'));
+const CONTEXTO = { escola: 'breu', professor: 'demi-plie', ciclo: '01', turma: 'Rosa' };
 
 function escritor(fetch) {
   return criarEscritorDeCiclo({
@@ -152,8 +155,15 @@ console.log('\nA. O CUSTO — o N+1 saiu do caminho do «Guardar»');
       escritas.map((c) => c.metodo + ' ' + c.url));
     provar('…e sem gastar subpedido nenhum a descobrir isso', leituras.length === 0,
       leituras.map((c) => c.url));
+    /* O QUE A FRASE DEVE DIZER (20/11/2026). Ela já disse «repita o gesto» — e a pesquisadora
+     * perguntou por que razão a travessia parava ali: repetir o mesmo gesto com o mesmo teto dá o
+     * mesmo resultado. O remédio é outro, e a frase passou a nomeá-lo: o teto (`SUBPEDIDOS` em
+     * `wrangler.<escola>.jsonc`). A asserção mede os três factos que a frase tem de carregar: o
+     * número do teto, a garantia de que nada ficou meio-escrito, e o sítio onde se muda. */
     provar('…e o motivo nomeia o teto e o que fazer',
-      /subpedidos/.test(String(relatorio.erro)) && /repita/i.test(String(relatorio.erro)),
+      /subpedidos/i.test(String(relatorio.erro))
+      && /SUBPEDIDOS|wrangler\.[a-z-]+\.jsonc/.test(String(relatorio.erro))
+      && /não foi escrito/i.test(String(relatorio.erro)),
       relatorio.erro);
   }
 

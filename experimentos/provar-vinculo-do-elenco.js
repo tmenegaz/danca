@@ -64,22 +64,31 @@ function provar(rotulo, condicao, detalhe) {
   console.log('  FALHA ' + rotulo + (detalhe === undefined ? '' : '  → ' + JSON.stringify(detalhe)));
 }
 
-const CARIMBO_A = 'anamnese-20261107-1928';
-const CARIMBO_B = 'anamnese-20261107-2204';
-const TURMA = 'sala rosa';
+/* AS FONTES SÃO AS DA ESCOLA VIVA (20/11/2026). A `batata` foi expurgada e esta prova lia dela os
+ * envelopes e as linhas de base. A forma é a mesma; o que muda é QUEM observa quem, e é isso que
+ * as asserções dizem em vez de fixarem carimbos de outra escola:
+ *
+ *   · a ALUNA A tem plano de observação (todos os 30 POs da `breu` a nomeiam em `sujeitos`);
+ *   · a ALUNA B está na linha de base vigente (`tami--20261120-2146`), e nenhum PO a observa.
+ *
+ * É o par que o A/B precisa: uma aluna ligada pelo elenco E observada, outra só ligada. */
+const CARIMBO_A = 'anamnese-20261118-1737';   // Aluna A, o mais recente dela no acervo
+const CARIMBO_B = 'anamnese-20261119-1145';   // Aluna B, a única anamnese dela
+const PO_DA_A = 'po-20261119-1233';           // um PO que a Aluna A observa
+const TURMA = 'Rosa';
 const LINHA = 'tami';
 
-/** Os envelopes REAIS da `batata`, do disco. */
+/** Os envelopes REAIS da escola viva, do disco. */
 function envelopesDaBatata() {
-  const dir = path.join(RAIZ, 'escola/batata/envelopes');
+  const dir = path.join(RAIZ, 'escola/breu/envelopes');
   const mapa = {};
   for (const f of fs.readdirSync(dir)) mapa['envelope/' + f] = fs.readFileSync(path.join(dir, f), 'utf8');
   return mapa;
 }
 
-/** As linhas de base REAIS da `batata`, do disco — a vigente de cada `id` (carimbo maior). */
+/** As linhas de base REAIS da escola viva — a vigente de cada `id` (carimbo maior). */
 function linhasDaBatata() {
-  const dir = path.join(RAIZ, 'escola/batata/linhas-de-base');
+  const dir = path.join(RAIZ, 'escola/breu/linhas-de-base');
   const porId = new Map();
   for (const f of fs.readdirSync(dir)) {
     if (!/--/.test(f)) continue;
@@ -95,8 +104,8 @@ function linhasDaBatata() {
  * É ela que declara qual elenco a sala recebe (a nomenclatura nova: a sala é o ritmo, o elenco é
  * o corpo, e a turma diz qual corpo a sala recebe). */
 const CURADORIAS = [{
-  id: 'dedao-aberto-bale-classico-sala-rosa-2026-11-07',
-  professor: 'dedao-aberto',
+  id: 'demi-plie-bale-classico-rosa',
+  professor: 'demi-plie',
   turmas: [TURMA],
   linhaDeBase: LINHA,
   alunas: ['Aluna A', 'Aluna B'],
@@ -109,7 +118,7 @@ const resposta = (v) => ({ valor: v, origem: 'perguntado', respondente: 'profess
 
 (async () => {
   /* ------------------------------------------------------------------------------------------ */
-  console.log('\nA · O NÚCLEO — os envelopes e a linha de base REAIS da batata');
+  console.log('\nA · O NÚCLEO — os envelopes e a linha de base REAIS da breu');
   /* ------------------------------------------------------------------------------------------ */
   {
     const arm = criarMemoria(envelopesDaBatata());
@@ -125,9 +134,13 @@ const resposta = (v) => ({ valor: v, origem: 'perguntado', respondente: 'profess
       (depois[CARIMBO_B] || {}).vinculada === true, depois[CARIMBO_B]);
     provar('…e o estado diz o mesmo',
       (depois[CARIMBO_B] || {}).estado === 'vinculada', (depois[CARIMBO_B] || {}).estado);
+    /* QUEM NOMEIA OS PO É A ALUNA QUE ELES OBSERVAM. Na `breu` é a Aluna A: os 30 POs declaram
+     * `sujeitos: ['Aluna A']`, e nenhum nomeia a Aluna B — que é justamente a que só o elenco
+     * liga. A asserção mudou de aluna porque o facto mudou de aluna; o que ela mede é o mesmo:
+     * o estado diz QUEM observa, e não só que está ligada. */
     provar('…e nomeia os PO que a observam',
-      ((depois[CARIMBO_B] || {}).por || []).indexOf('po-20261107-2211') !== -1,
-      (depois[CARIMBO_B] || {}).por);
+      ((depois[CARIMBO_A] || {}).por || []).indexOf(PO_DA_A) !== -1,
+      (depois[CARIMBO_A] || {}).por);
     provar('…e a Aluna A continua vinculada (a correcção não a soltou)',
       (depois[CARIMBO_A] || {}).vinculada === true, depois[CARIMBO_A]);
 
@@ -208,13 +221,13 @@ const resposta = (v) => ({ valor: v, origem: 'perguntado', respondente: 'profess
     esquema: ler('envelope/elicitacao-schema.json'),
     conteudoPO: ler('po/conteudo/po.json'),
     conteudoPlano: ler('plano/conteudo/plano.json'),
-    escolaDoWorker: 'batata',
+    escolaDoWorker: 'breu',
     lerCuradorias: async () => CURADORIAS,
     lerLinhasDeBase: async () => linhas,
   });
 
   const pedir = async (metodo, caminho, corpo) => {
-    const r = await rotas.responder(new Request('https://batata.local' + caminho, {
+    const r = await rotas.responder(new Request('https://breu.local' + caminho, {
       method: metodo,
       headers: { 'Content-Type': 'application/json' },
       ...(corpo ? { body: JSON.stringify(corpo) } : {}),
@@ -226,24 +239,26 @@ const resposta = (v) => ({ valor: v, origem: 'perguntado', respondente: 'profess
   };
 
   {
-    const estado = await pedir('GET', '/api/anamnese-estado/' + CARIMBO_B);
-    provar('GET /api/anamnese-estado da Aluna B diz «vinculada»',
+    /* A GUARDA É MEDIDA EM QUEM TEM PO. A recusa nomeia os POs (`estado.por.join`), e a Aluna B
+     * não tem nenhum — a recusa dela seria outra, e não a que esta secção mede. */
+    const estado = await pedir('GET', '/api/anamnese-estado/' + CARIMBO_A);
+    provar('GET /api/anamnese-estado da aluna observada diz «vinculada»',
       (estado.dados.estado || {}).vinculada === true, estado.dados.estado);
 
-    const apagar = await pedir('DELETE', '/api/anamnese-vinculo/' + CARIMBO_B);
-    provar('DELETE da anamnese da Aluna B é RECUSADO (409)', apagar.status === 409, apagar.status);
+    const apagar = await pedir('DELETE', '/api/anamnese-vinculo/' + CARIMBO_A);
+    provar('DELETE da anamnese observada é RECUSADO (409)', apagar.status === 409, apagar.status);
     provar('…e a recusa diz quem a observa',
       /VINCULADA/.test(String(apagar.dados.erro || '')) && /po-/.test(String(apagar.dados.erro || '')),
       apagar.dados.erro);
 
-    const editar = await pedir('PUT', '/api/anamnese-editar/' + CARIMBO_B, { respostas: {} });
-    provar('PUT da anamnese da Aluna B é RECUSADO (409)', editar.status === 409, editar.status);
+    const editar = await pedir('PUT', '/api/anamnese-editar/' + CARIMBO_A, { respostas: {} });
+    provar('PUT da anamnese observada é RECUSADO (409)', editar.status === 409, editar.status);
 
     /* O CONTROLO POSITIVO: a guarda não passou a recusar tudo. Uma aluna que não está no elenco
      * nem em nenhum PO continua editável — é o que a regra sempre disse. */
     await porta.gravarEnvelope(arm, {
       id: 'anamnese-20260101-0900',
-      contexto: { escola: 'batata', professor: 'dedao-aberto', ciclo: '01', aluna: 'Aluna Z' },
+      contexto: { escola: 'breu', professor: 'demi-plie', ciclo: '01', aluna: 'Aluna Z' },
       respostas: {},
     }, {
       id: 'anamnese-20260101-0900', estado: 'prova', contagem: { respondidos: 0, obrigatorios: 0 },
@@ -259,11 +274,16 @@ const resposta = (v) => ({ valor: v, origem: 'perguntado', respondente: 'profess
   console.log('\nD · A GRAVAÇÃO — vinculada EMPILHA, e não substitui');
   /* ------------------------------------------------------------------------------------------ */
   {
+    /* O `alunaId` VAI NO CONTEXTO (18/11/2026): é ele que distingue duas pessoas de mesmo
+     * apelido, e é por ele que `vigenteDoSujeito` acha o retrato atual. Sem ele a prova media o
+     * caminho antigo — «não há vigente» —, e a anamnese nascia sem elo. Os ids são os dos
+     * envelopes da `breu`: a Aluna A é `aluna-a-3`, a Aluna B é `aluna-b-2`. */
     const simular = async (aluna, carimbo) => porta.elicitar(arm, {
       fonte: 'anamnese',
       respostas: {},
       simular: true,
-      contexto: { escola: 'batata', professor: 'dedao-aberto', ciclo: '01', aluna },
+      contexto: { escola: 'breu', professor: 'demi-plie', ciclo: '01', aluna,
+        alunaId: aluna === 'Aluna B' ? 'aluna-b-2' : 'aluna-a-3' },
     }, {
       conteudo: ler('conteudo/anamnese.json'),
       esquema: ler('envelope/elicitacao-schema.json'),
@@ -273,14 +293,16 @@ const resposta = (v) => ({ valor: v, origem: 'perguntado', respondente: 'profess
 
     const daB = await simular('Aluna B', '2026-11-08T02:00');
     provar('uma anamnese nova da Aluna B nasce como ELO NOVO',
-      String(daB.documento.ajuste_de || '') === CARIMBO_B, daB.documento.ajuste_de);
+      String(daB.documento.ajuste_de || '') === CARIMBO_B,
+      { ajuste_de: daB.documento.ajuste_de, id: daB.documento.id });
     provar('…e com carimbo próprio, e não o dela',
       daB.documento.id !== CARIMBO_B, daB.documento.id);
 
     /* O A/B: sem o elenco, o sistema SUBSTITUÍA o registo da Aluna B — o modo de falha que apaga. */
     const semElenco = await porta.elicitar(arm, {
       fonte: 'anamnese', respostas: {}, simular: true,
-      contexto: { escola: 'batata', professor: 'dedao-aberto', ciclo: '01', aluna: 'Aluna B' },
+      contexto: { escola: 'breu', professor: 'demi-plie', ciclo: '01', aluna: 'Aluna B',
+        alunaId: 'aluna-b-2' },
     }, {
       conteudo: ler('conteudo/anamnese.json'),
       esquema: ler('envelope/elicitacao-schema.json'),

@@ -37,7 +37,9 @@ const path = require('node:path');
 const { JSDOM, VirtualConsole } = require('jsdom');
 
 const RAIZ = path.join(__dirname, '..');
-const PACOTE = path.join(RAIZ, 'professores/perna-boa/ciclos/ciclo-01-batata-bale-nivel-1-teste-2');
+/* O PACOTE É O DA ESCOLA VIVA (20/11/2026) — a `batata` foi expurgada com a escola, e o pacote
+ * que esta prova abre é o do ciclo publicado da `breu`. */
+const PACOTE = path.join(RAIZ, 'professores/demi-plie/ciclos/ciclo-01-breu-rosa');
 const AULA = '01';
 
 let total = 0;

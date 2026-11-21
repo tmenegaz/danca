@@ -122,7 +122,12 @@ const producao = require(path.join(raiz, 'motor/servidor/producao.js'));
 
 /* ------------------------------------------------------------------ a bancada */
 
-const ESCOLA = 'batata';
+/* A ESCOLA MUDOU DE `batata` PARA `breu` (20/11/2026). Os envelopes já eram DECLARADOS aqui — o
+ * que faltava era a publicação no disco, e a `batata` não a tem (foi expurgada). A `breu` tem
+ * `publicacao/breu/`, que é o que o `ASSETS` desta bancada serve. O slug do professor acompanha,
+ * porque é ele que aparece no contexto dos envelopes e no nome do dono. */
+const ESCOLA = 'breu';
+const PROF = 'demi-plie';
 const TIPOS = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.js': 'application/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json',
@@ -176,7 +181,7 @@ const envelope = ({ id, professor, aluna, respostas, geradoEm }) => ({
   }
 
   const env = {
-    ESCOLA_SLUG: ESCOLA, ESCOLA_HABILITADA: 'sim', PROFESSOR_NOME: 'Perna Boa',
+    ESCOLA_SLUG: ESCOLA, ESCOLA_HABILITADA: 'sim', PROFESSOR_NOME: 'Demi Plié',
     SENHA_ADMIN: 's', SENHA_PROFESSOR: 'p',
     PADD_KV: kv(), ASSETS: assets(dirDaPublicacao),
   };
@@ -186,17 +191,17 @@ const envelope = ({ id, professor, aluna, respostas, geradoEm }) => ({
      documento. */
   const arm = producao.__armazenamento(env);
   const docs = [
-    envelope({ id: 'anamnese-20261027-0939', professor: 'perna-boa', aluna: 'Aluna A',
+    envelope({ id: 'anamnese-20261027-0939', professor: PROF, aluna: 'Aluna A',
       respostas: { idade: resposta('12'), 'contexto-aluna': resposta('Aluna A') },
       geradoEm: '2026-10-27T09:39' }),
-    envelope({ id: 'anamnese-20261027-0943', professor: 'perna-boa', aluna: 'Aluna B',
+    envelope({ id: 'anamnese-20261027-0943', professor: PROF, aluna: 'Aluna B',
       respostas: { idade: resposta('14'), 'contexto-aluna': resposta('Aluna B') },
       geradoEm: '2026-10-27T09:43' }),
-    envelope({ id: 'plano-20261027-1000', professor: 'perna-boa',
+    envelope({ id: 'plano-20261027-1000', professor: PROF,
       respostas: { 'objetivo-geral': resposta('consolidar o alinhamento'),
         'contexto-turma': resposta('Balé Nível 2') },
       geradoEm: '2026-10-27T10:00' }),
-    envelope({ id: 'po-20261027-1010', professor: 'perna-boa',
+    envelope({ id: 'po-20261027-1010', professor: PROF,
       respostas: { sujeitos: resposta(['Aluna A']),
         'plano-de-ensino': resposta(['plano-20261027-1000']) },
       geradoEm: '2026-10-27T10:10' }),
