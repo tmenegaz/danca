@@ -3634,7 +3634,7 @@ recorta» como «a rota está fechada».
 | `node tools/check-identidade.js` · `check-sem-destruicao` · `check-indices` · `check-pacote` · `hash-ciclo --check` | **0 reprovações (22 ok)** · **ok** · **16/16** · **0 erros, 1 aviso** (o PDF, por desenho) · **cadeia intacta** |
 | O pacote da `breu-rosa` | regerado; o botão diz «Criar» na página publicada |
 | `provar-producao` | **142 de 159** — **anterior** a esta entrega, e medido no `HEAD` num worktree à parte com o mesmo resultado. As 17 asserções fixam a página de bastidores com 8 secções (hoje 10) e com a palavra «curadoria» (hoje «turma») |
-| Ao vivo | **Não executado** — a correção é do motor e do guionista; a conferência é depois do deploy, e o gesto dela (criar a aula 02) tem de ser **repetido**, porque o clique de 21/11/2026 gravou um plano **sem** a aula |
+| Ao vivo | **CONFIRMADO, e sem escrever nada**: `POST /plano-ensino/api/elicitar` com `simular: true` (a rota não grava nem dispara nesse modo) e as respostas da Aula 02 sobre o envelope real `plano-20261121-0933` → **200**, `idsDesconhecidos: []`, e o documento devolvido **tem** `aula-2-sequencia`. É o mesmo caminho que falhava, medido no servidor que está no ar. E a página publicada, `https://breu.padd.com.br/rosa/plano`, já serve o botão **«Criar»**. **O gesto dela tem de ser repetido**: o clique de 21/11/2026 gravou um plano sem a aula, e reescrever o envelope à mão seria inventar o elo que a proveniência não viu |
 
 ### Executado na fotografia anterior (21/11/2026 — os cinco defeitos que ela viu na tela)
 
