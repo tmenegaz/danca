@@ -79,6 +79,29 @@ function podeRegenerar(nn, lancadas) {
   return !(lancadas.has ? lancadas.has(numero) : false);
 }
 
+/**
+ * A CHAVE DE UMA RESPOSTA DA AULA NO ENVELOPE DO PLANO (21/11/2026).
+ *
+ * As respostas que são DE UMA AULA vivem no plano com o número no nome: `aula-1-sequencia`,
+ * `aula-1-parametro`. O número vai **sem zero à frente** — é a forma que o envelope tem, e a
+ * primeira aula foi elicitada assim quando ela era a única. Mudá-la agora renomearia a resposta
+ * de todos os planos gravados; a chave fica, e o que se generaliza é a leitura.
+ *
+ * `chaveDaAula('01', 'sequencia')` → `aula-1-sequencia` (a chave que já existe), e
+ * `chaveDaAula('2', 'parametro')` → `aula-2-parametro`.
+ */
+function chaveDaAula(nn, campo) {
+  const numero = numeroDaAula(nn);
+  if (!numero) return '';
+  return 'aula-' + Number(numero) + '-' + String(campo || '').trim();
+}
+
+/** A aula SEGUINTE, com dois dígitos. É a que a §8 de cada aula nomeia. */
+function aulaSeguinte(nn) {
+  const numero = numeroDaAula(nn);
+  return numero ? String(Number(numero) + 1).padStart(2, '0') : '';
+}
+
 /** As que podem — na ordem em que foram declaradas, sem repetir. */
 function aulasRegeneraveis(declaradas, lancadas) {
   const vistas = new Set();
@@ -92,4 +115,4 @@ function aulasRegeneraveis(declaradas, lancadas) {
   return saida;
 }
 
-module.exports = { numeroDaAula, aulasLancadas, podeRegenerar, aulasRegeneraveis };
+module.exports = { numeroDaAula, aulasLancadas, podeRegenerar, aulasRegeneraveis, chaveDaAula, aulaSeguinte };

@@ -57205,3 +57205,70 @@ nome.
 precisa de respeitar, não o botão: hoje só a aula 01 tem derivador, e a lista de fontes do escritor
 continua a nomear `01` como a aula a derivar. É o `derivador da aula NN` que falta, e é o próximo
 passo.
+
+## 21/11/2026 — O derivador escreve a aula que lhe pedem, e não sempre a primeira
+
+**O que motivou.** A regra da entrada anterior («regenerar não reescreve a aula dada») protege uma
+aula que já aconteceu — mas não havia como a segunda aula existir. O derivador chamava-se
+`derivarAula01` e o nome era literal: escrevia `aula: "01"` e «Plano para a Aula 01», lia
+`aula-1-sequencia` e `aula-1-parametro` escritos à mão, e a §8 mandava sempre para a **Aula 02**.
+Na Aula 03 isso manda o professor **para trás**, para um marco que já foi dado. E o escritor tinha
+o par da Aula 01 escrito à mão na lista de fontes: um ciclo que ganhasse a Aula 02 não a punha em
+dia por ali — a aula estava no `DOCS`, o gerador ia buscá-la, e não a encontrava.
+
+**O que foi decidido.** `derivarAula({ nn, … })`, e `derivarAula01` passa a ser o caso `nn = '01'`
+— um derivador só, porque duas derivações da mesma regra divergem ao primeiro caso novo (é a lição
+que a `eixos.js` já tinha pago). O número decide cinco coisas: o `aula:` do cabeçalho e o título,
+o objetivo específico (o **marco NN**, Regra 2), o parâmetro, a sequência e o «próximo passo».
+
+O que **não** entra no número, de propósito: duração, volume, blocos, condições do espaço, guia de
+observação, proveniência e auditoria são do **ciclo** — a mesma turma, o mesmo plano, a mesma
+régua. Repeti-los por aula daria a cada documento uma cópia da resposta com a possibilidade de
+divergirem.
+
+**A chave leva o número sem zero à frente** — `aula-2-sequencia`, e `aula-1-parametro` para a
+primeira, que é a forma que o envelope já tem. Renomeá-la para `aula-01-parametro` renomearia a
+resposta de todos os planos gravados; a chave fica, e o que se generaliza é a leitura. A regra vive
+em `motor/nucleo/aulas-do-ciclo.js`, junto da que tranca a aula dada, e é a mesma função que dá o
+número nos dois sítios.
+
+**A lacuna não se herda.** Pedida a Aula 04 de um plano de três marcos, o documento declara
+`[Preencher: marco da Aula 04]` e nomeia a chave que falta (`aula-4-parametro`) — e **não** copia a
+sequência nem a matriz da Aula 01. Herdar atribuiria a esta aula o que foi respondido para outra, e
+o diff de proveniência diria que o professor escreveu ali o que ele nunca escreveu. Quem reusa é o
+**formulário**, com a pessoa a confirmar (é a decisão dela: «reusa a matriz da aula anterior»); o
+derivador lê a resposta, e não a inventa.
+
+**Os dois caminhos escrevem todas as aulas que o ciclo declara.** A lista de fontes do
+`escrever-ciclo.js` e a do `tools/regerar-derivados.js` passam a sair do `DOCS` do manifesto, mais
+a Aula 01, que todo o ciclo tem. A regra da entrada anterior continua a valer por fonte, dentro do
+laço: a aula já lançada fica travada, e o relatório nomeia qual.
+
+**A §8 conta os marcos que o plano TEM.** A frase do caso vazio era «o plano declarou apenas um
+marco», escrita quando o caso era esse; num plano de três marcos, a Aula 03 tem de dizer «apenas
+três», senão o documento afirma que o plano declarou o que ele não declarou.
+
+**Motivo declarado — `tools/` é congelado.** `tools/regerar-derivados.js` mudou pela mesma razão da
+entrada anterior: é um dos dois caminhos que regeram um ciclo, e deixá-lo a escrever só a Aula 01
+enquanto o Worker escreve todas deixaria os dois a discordar sobre o mesmo ciclo. A alteração é a
+lista das aulas (do `DOCS`) e o número passado ao derivador; o resto do comando não mudou, e
+`--escrever` continua a ser necessário para gravar.
+
+**Onde entrou.** `motor/nucleo/derivar-ciclo.js` (`derivarAula`, `derivarAula01` como alias,
+`derivarCaptura` com `nn`, §8 pelo número, `sequenciaComoObjetos` com a chave da aula);
+`motor/nucleo/derivar-plano-ciclo.js` (`objetivoDaAula`); `motor/nucleo/aulas-do-ciclo.js`
+(`chaveDaAula`, `aulaSeguinte`); `motor/servidor/escrever-ciclo.js` e `tools/regerar-derivados.js`
+(uma fonte por aula); `ARQUITETURA-AULA.md` §4.3 (novo); `experimentos/provar-derivador-da-aula.js`
+(novo — **35/35**).
+
+**A aula publicada não mudou.** Medido por comparação byte a byte: o derivador do `HEAD` e o de
+agora, com os **mesmos** argumentos, produzem a `-aula-01.md` e a `-captura-aula-01.md` da
+`breu-rosa` **idênticas**. É a prova de que a generalização não mexeu no que está no ar.
+
+**Prova, e a mutação.** Com o derivador a escrever sempre a primeira — o defeito que ele tinha —
+caem **14 das 35** asserções, e o dano fica escrito: o título da Aula 02 a dizer «Plano para a Aula
+01», o objetivo a ser o marco 1, a §8 a apontar para a Aula 02 em vez da 03.
+
+**O que continua por fazer.** O botão de criar a aula seguinte — o gesto que acrescenta a aula ao
+`DOCS` e recolhe as respostas dela (`aula-N-sequencia`, `aula-N-parametro`, o marco quando o plano
+não o declara). O derivador já sabe escrever o documento que ele produzir; o que falta é o gesto.

@@ -42,7 +42,7 @@ const path = require('path');
 const RAIZ = path.resolve(__dirname, '..');
 const { derivarPlano } = require(path.join(RAIZ, 'motor/nucleo/derivar-plano-ciclo.js'));
 const {
-  derivarAula01,
+  derivarAula,
   derivarReferencias,
   derivarNotacao,
   derivarGlossario,
@@ -54,7 +54,7 @@ const {
 const { varianteDoContexto } = require(path.join(RAIZ, 'motor/servidor/escrever-po.js'));
 const { linhaDeBaseDaTurma } = require(path.join(RAIZ, 'motor/nucleo/linha-de-base.js'));
 const { calibracaoDoConf } = require(path.join(RAIZ, 'motor/servidor/escrever-ciclo.js'));
-const { aulasLancadas, podeRegenerar } = require(path.join(RAIZ, 'motor/nucleo/aulas-do-ciclo.js'));
+const { aulasLancadas, podeRegenerar, numeroDaAula } = require(path.join(RAIZ, 'motor/nucleo/aulas-do-ciclo.js'));
 
 const argv = process.argv.slice(2);
 const ESCREVER = argv.includes('--escrever');
@@ -131,6 +131,15 @@ const contexto = {
 const plano = doPlano.envelope;
 const po = doPo.envelope;
 const aulas = (pegarDoConf('DOCS').match(/aula-\d+/g) || []).map((d) => d.slice(5));
+/* TODAS AS AULAS DO CICLO, COM A 01 SEMPRE (21/11/2026) — ver a lista `fontes`, mais abaixo. */
+const aulasParaDerivar = (() => {
+  const vistos = new Set(['01']);
+  for (const a of aulas) {
+    const n = numeroDaAula(a);
+    if (n) vistos.add(n);
+  }
+  return [...vistos].sort((a, b) => Number(a) - Number(b));
+})();
 
 /*
  * QUAIS AULAS JÁ ACONTECERAM (21/11/2026) — lido do `-dados.json`, e só LIDO.
@@ -243,12 +252,22 @@ const fontes = [
    * secção do plano muda no DERIVADOR, e sem esta linha o ciclo já gerado continuaria com o
    * título antigo enquanto o formulário mostrava o novo. */
   { sufixo: '-plano.md', texto: derivarPlano(plano, { linhaDeBase }).markdown },
-  { sufixo: '-aula-01.md', deAula: '01', texto: derivarAula01({ plano, po, contexto: Object.assign({}, contexto, { aulas }), calibracao: cal, linhaDeBase, anamneses }) },
+  /* UMA FONTE POR AULA QUE O MANIFESTO DECLARA (21/11/2026) — era o par da Aula 01 escrito à
+   * mão, e um ciclo com a Aula 02 não a punha em dia por aqui. `aulas` sai do `DOCS`; a Aula 01
+   * entra sempre, porque todo o ciclo a tem. */
+  ...aulasParaDerivar.map((nn) => ({
+    sufixo: '-aula-' + nn + '.md', deAula: nn,
+    texto: derivarAula({ nn, plano, po, contexto: Object.assign({}, contexto, { aulas }),
+      calibracao: cal, linhaDeBase, anamneses }),
+  })),
   { sufixo: '-referencias.md', texto: derivarReferencias({ plano, contexto }) },
   /* A LINHA DE BASE VAI À FOLHA (06/11/2026) — é dela que saem as LINHAS das tabelas, e sem
    * ela a folha regerada voltaria a listar o elenco do PO (com a aluna a mais). Ver
    * `elencoDoCiclo` em `derivar-ciclo.js`. */
-  { sufixo: '-captura-aula-01.md', deAula: '01', texto: derivarCaptura({ po, plano, contexto, linhaDeBase }) },
+  ...aulasParaDerivar.map((nn) => ({
+    sufixo: '-captura-aula-' + nn + '.md', deAula: nn,
+    texto: derivarCaptura({ nn, po, plano, contexto, linhaDeBase, anamneses }),
+  })),
   { sufixo: '-harmonizacao.md', texto: derivarHarmonizacao({ plano, po, contexto }) },
 ];
 const notacao = notacaoEscolhida(plano);

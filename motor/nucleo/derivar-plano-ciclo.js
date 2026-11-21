@@ -296,9 +296,27 @@ function linhasDaEstrutura(valor, marcos, ordem) {
 // que já foi declarado não se perde, e o marco, quando existe, manda. Proveniência
 // acrescenta, não edita.
 function objetivoDaAula1(envelope) {
+  return objetivoDaAula(envelope, '01');
+}
+
+/**
+ * O OBJETIVO ESPECÍFICO DE UMA AULA QUALQUER (21/11/2026) — o marco da POSIÇÃO dela.
+ *
+ * É a generalização do `objetivoDaAula1`, e a regra é a mesma: **o marco N é o objetivo da Aula
+ * N** (Regra 2). A diferença é só qual dos marcos se lê — e, quando o plano declarou menos
+ * marcos do que aulas, a resposta é `null`: um ciclo de quinze aulas com três marcos não tem
+ * objetivo para a décima, e dizer que tem seria inventar. Quem preenche é a elicitação da aula
+ * (o botão pergunta), e a lacuna fica declarada no documento até lá.
+ *
+ * O campo antigo (`aula-N-objetivo`) continua a ser a reserva, pela mesma razão de antes: um
+ * envelope que o traga não perde o que declarou.
+ */
+function objetivoDaAula(envelope, nn) {
+  const numero = Number(String(nn == null ? '' : nn).replace(/^(?:aula-?)?0*/, '') || 0);
   const marcos = marcosEmTexto(respostaDo(envelope, 'marcos-por-aula'));
-  if (marcos[0]) return marcos[0];
-  const declarado = String(respostaDo(envelope, 'aula-1-objetivo') || '').trim();
+  if (numero >= 1 && marcos[numero - 1]) return marcos[numero - 1];
+  const chave = 'aula-' + (numero || 1) + '-objetivo';
+  const declarado = String(respostaDo(envelope, chave) || '').trim();
   return declarado || null;
 }
 
@@ -851,4 +869,5 @@ module.exports = {
   linhasDaEstrutura,
   linhasDaTabela,
   objetivoDaAula1,
+  objetivoDaAula,
 };

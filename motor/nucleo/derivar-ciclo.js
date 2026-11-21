@@ -26,7 +26,9 @@ const { respostaDo, emLista, itensDaDimensao, itensComObjetivos, turmaDoDocument
 // O MOTOR DO REGISTRO DE NOTAÇÃO — o alfabeto é dado, e é ele que compõe a grade (20/10/2026).
 const moduloNotacao = require('./notacao.js');
 const sequenciaDoPlano = require('./sequencia.js');
-const { marcosEmTexto, parametroEmLinhas, blocosDaEstrutura, objetivoDaAula1, BLOCOS_DA_AULA, sequenciaEmLinhas, linhasDaTabela } = require('./derivar-plano-ciclo.js');
+const { marcosEmTexto, parametroEmLinhas, blocosDaEstrutura, objetivoDaAula1, objetivoDaAula, BLOCOS_DA_AULA, sequenciaEmLinhas, linhasDaTabela } = require('./derivar-plano-ciclo.js');
+/* O NÚMERO DA AULA E AS CHAVES DELA (21/11/2026) — a mesma regra que tranca a aula dada. */
+const { numeroDaAula, aulaSeguinte, chaveDaAula } = require('./aulas-do-ciclo.js');
 
 // ---------------------------------------------------------------------------
 // Ajudantes
@@ -583,13 +585,30 @@ function notacaoEscolhida(plano) { // eslint-disable-line no-unused-vars
 // ---------------------------------------------------------------------------
 
 /**
- * A fonte da Aula 01, derivada do plano e calibrada pelo `.conf`. A calibração
+ * A fonte de UMA AULA, derivada do plano e calibrada pelo `.conf`. A calibração
  * (`{ duracaoMinutos, volumeMin, volumeMax }`) vem do manifesto da variante: o envelope do
  * plano declara a duração como objeto (`contexto-duracao`) e o volume como séries
  * (`contexto-volume`), mas o contrato da aula pede «duração em minutos» e «volume em tempos»
  * (Regra 9) — e quem tem essas duas faixas é o `.conf`.
+ *
+ * `nn` É O NÚMERO DA AULA, E ELE NÃO É DECORAÇÃO (21/11/2026). Até aqui esta função escrevia
+ * `aula-01` no papel, no cabeçalho, no título e nas chaves que lia — porque só a Aula 01 existia.
+ * Um documento que diga «Aula 01» e imprima o marco da Aula 02 é a mesma família de defeito que
+ * o `estrutura-de-cada-aula` a dizer quais blocos a aula tem: o dado de um lugar a responder por
+ * outro. O número passa a ser um parâmetro, e o que depende dele — o marco, as chaves
+ * `aula-<N>-sequencia`/`aula-<N>-parametro`, o título, o `aula:` do cabeçalho e o «próximo
+ * passo» — sai dele.
+ *
+ * O QUE **NÃO** ENTRA NO PARÂMETRO, de propósito: a duração, o volume, os blocos, as condições
+ * do espaço, o guia de observação, a proveniência e a auditoria. São do CICLO — a mesma turma, o
+ * mesmo plano, a mesma régua —, e repeti-los por aula seria dar a cada documento uma cópia da
+ * resposta com a possibilidade de divergirem.
+ *
+ * `derivarAula01` continua a existir como o caso `nn = '01'`, e é o que os chamadores antigos
+ * usam: um derivador só, e nenhum sítio a derivar duas vezes a mesma regra.
  */
-function derivarAula01({ plano, po, contexto, calibracao, linhaDeBase, anamneses }) {
+function derivarAula({ nn = '01', plano, po, contexto, calibracao, linhaDeBase, anamneses } = {}) {
+  const numero = numeroDaAula(nn) || '01';
   const cal = calibracao || {};
   const duracaoMin = Number(cal.duracaoMinutos) || 60;
   const volMin = Number(cal.volumeMin) || 0;
@@ -597,14 +616,22 @@ function derivarAula01({ plano, po, contexto, calibracao, linhaDeBase, anamneses
   // O volume-alvo declarado é o ponto médio da faixa; a §8 audita contra a faixa.
   const volumeTotal = volMin && volMax ? Math.round((volMin + volMax) / 2) : 0;
 
-  const objetivo = prosa(objetivoDaAula1(plano), 'objetivo específico da Aula 01');
+  /* A LACUNA DO OBJETIVO DIZ ONDE A RESPOSTA SE ESCREVE (21/11/2026). Antes era «objetivo
+   * específico da Aula 01»; com o número como parâmetro, o motivo passa a nomear a fonte e a
+   * dizer quantos marcos o plano tem — porque a causa é sempre a mesma, e é verificável: o plano
+   * declarou menos marcos do que aulas, e esta aula não tem marco. */
+  const marcosDoPlano = marcosEmTexto(resp(plano, 'marcos-por-aula')).filter((v) => !GABARITO_VAZADO.test(v));
+  const objetivo = prosa(objetivoDaAula(plano, numero), 'o plano declarou '
+    + (marcosDoPlano.length === 1 ? 'apenas um marco' : 'apenas ' + marcosDoPlano.length + ' marcos')
+    + ', e a Aula ' + numero + ' não tem');
   // O PARÂMETRO DE MEDIÇÃO vem da matriz objetivo × o que se observa (a forma que o formulário
   // grava: `{marco, marcados}`), e a prosa antiga segue valendo. Sem a composição, a matriz
   // chegava ao documento como `[object Object]`.
   /* A régua é a do repertório ACORDADO do envelope — a mesma da sequência (04/11/2026). Sem
    * ela, a matriz do parâmetro publicava «observa: … · Port de bras» numa aula cuja curadoria
    * tem dois verbetes (ver `motor/nucleo/sequencia.js`). */
-  const parametroLinhas = parametroEmLinhas(resp(plano, 'aula-1-parametro'),
+  const chaveDoParametro = chaveDaAula(numero, 'parametro');
+  const parametroLinhas = parametroEmLinhas(resp(plano, chaveDoParametro),
     marcosEmTexto(resp(plano, 'marcos-por-aula')), resp(plano, 'repertorio'));
   /*
    * UMA LINHA, NÃO VÁRIAS (20/10/2026). O parâmetro vira uma CÉLULA de tabela, e uma célula de
@@ -614,10 +641,17 @@ function derivarAula01({ plano, po, contexto, calibracao, linhaDeBase, anamneses
    * seguinte, que o contrato descarta. Medido na aula 01 da `batata`: `identificacao` saía sem
    * `duracao` nem `volumeAtivo`, com o aviso «as 1 linha(s) de uma SEGUNDA tabela ficaram de
    * fora». O separador é o mesmo que o resto do documento usa entre itens.
+   *
+   * A LACUNA NOMEIA A CHAVE QUE FALTA (21/11/2026), e não só o campo: quem lê «parâmetro de
+   * medição da Aula 02» num documento gerado precisa de saber onde a resposta se escreve. E ela
+   * NÃO se herda da aula anterior — herdar a matriz de outra aula atribuiria a esta um parâmetro
+   * que ninguém declarou para esta. Quem reusa é o formulário, com a pessoa a confirmar; o
+   * derivador lê a resposta, e não a inventa.
    */
   const parametro = parametroLinhas.length
     ? parametroLinhas.join(' · ')
-    : '[Preencher: parâmetro de medição da Aula 01]';
+    : '[Preencher: parâmetro de medição da Aula ' + numero + ' — o plano não respondeu «'
+      + chaveDoParametro + '»]';
   /* OS BLOCOS DA AULA VÊM DA ESTRUTURA, NÃO DOS OBJETIVOS (26/10/2026).
    *
    * Aqui lia-se `estrutura-de-cada-aula` — a relação objetivo × bloco —, e os blocos da aula
@@ -656,7 +690,7 @@ function derivarAula01({ plano, po, contexto, calibracao, linhaDeBase, anamneses
   saida.push('projeto: Formação em Balé Clássico');
   saida.push('frente: Aula');
   saida.push('ciclo: "' + ciclo + '"');
-  saida.push('aula: "01"');
+  saida.push('aula: "' + numero + '"');
   // O título é o próprio objetivo específico — sem truncar com reticências: o
   // `check-pacote.js` compara o <h1> da página com o texto do PDF, e o «…» não
   // atravessa o pandoc→LaTeX como um único caractere (quebrava a conferência).
@@ -673,7 +707,7 @@ function derivarAula01({ plano, po, contexto, calibracao, linhaDeBase, anamneses
   // O NÚMERO FICA COM DOIS DÍGITOS, e é a convenção do pacote inteiro (`aula-01`, «Ciclo 01»);
   // o exemplo do pesquisador («Aula 1») é a forma falada, não a do arquivo.
   const tituloDaAula = objetivo && !objetivo.startsWith('[Preencher') ? objetivo : '';
-  saida.push('title: "Plano para a Aula 01' + (tituloDaAula ? ' — ' + tituloDaAula : '') + '"');
+  saida.push('title: "Plano para a Aula ' + numero + (tituloDaAula ? ' — ' + tituloDaAula : '') + '"');
   /* A TURMA TAMBÉM AQUI (06/11/2026) — e pelo mesmo motivo do plano de ensino.
    *
    * A pesquisadora: «do lado de fora, nas aulas, a gente já diz qual é a turma, mas vamos dizer
@@ -684,7 +718,7 @@ function derivarAula01({ plano, po, contexto, calibracao, linhaDeBase, anamneses
    * herda-a. Ler os dois seria escolher entre duas respostas possíveis para a mesma pergunta. */
   const turmaDaAula = turmaDoDocumento(plano);
   if (turmaDaAula) saida.push('subtitle: "Turma: ' + turmaDaAula + '"');
-  saida.push('objetivo-especifico: "' + (objetivoDaAula1(plano) || '[Preencher]') + '"');
+  saida.push('objetivo-especifico: "' + (objetivoDaAula(plano, numero) || '[' + 'Preencher: marco da Aula ' + numero + ']') + '"');
   saida.push('duracao: "' + duracaoMin + ' minutos"');
   /* A CHAVE DO VOLUME LEVA A DURAÇÃO ACIMA DOS 60 MINUTOS (20/11/2026).
    *
@@ -874,7 +908,7 @@ function derivarAula01({ plano, po, contexto, calibracao, linhaDeBase, anamneses
    * da sequência, ou a contagem, que vem do verbete. Nunca se pede a ninguém que escreva. */
   {
     const corpo = [];
-    const sequencia = sequenciaComoObjetos(plano);
+    const sequencia = sequenciaComoObjetos(plano, numero);
     const notacao = notacaoEscolhida(plano);
     const alfabeto = notacao ? moduloNotacao.paraNotacao(notacao) : null;
     const composicoes = sequencia && alfabeto
@@ -1337,22 +1371,34 @@ function derivarAula01({ plano, po, contexto, calibracao, linhaDeBase, anamneses
    * ciclo. Ele chega em `contexto.aulas` (as que o `DOCS` declara), posto por quem escreve as
    * fontes. Sem o dado, o pior que sai é um link a menos — nunca um link para uma aula que não
    * existe, que é o defeito que se estava a evitar. */
+  /* O «PRÓXIMO PASSO» É DA AULA QUE VEM DEPOIS DESTA (21/11/2026). Era `marcos[1]` e «Aula 02»
+   * escritos à mão: na Aula 03 o documento mandava o professor para a 02 — para trás, e a
+   * apontar para um marco que já foi dado. O que se lê é o marco da aula seguinte, e o número
+   * sai do `nn` que a derivação recebeu.
+   *
+   * A FRASE DO CASO VAZIO TAMBÉM CONTA OS MARCOS: «apenas um marco» era o caso da Aula 01 de um
+   * plano de um marco só; num plano de três, a Aula 03 tem de dizer «apenas três», senão o
+   * documento afirma que o plano declarou o que ele não declarou. */
   {
     const marcos = marcosEmTexto(resp(plano, 'marcos-por-aula')).filter((v) => !GABARITO_VAZADO.test(v));
-    const seguinte = marcos.length > 1 ? marcos[1] : '';
+    const proxima = aulaSeguinte(numero);
+    const seguinte = marcos[Number(numero)] || '';
     const aulas = Array.isArray(contexto && contexto.aulas)
       ? (contexto.aulas || []).map((a) => String(a).replace(/^aula-?/, '').replace(/^0+(?=\d)/, ''))
       : null;
-    const haAula02 = aulas ? aulas.indexOf('2') !== -1 || aulas.indexOf('02') !== -1 : false;
-    const linkAula02 = 'aula-02.html';
+    const haSeguinte = aulas ? aulas.indexOf(proxima) !== -1 || aulas.indexOf(String(Number(proxima))) !== -1 : false;
+    const linkSeguinte = 'aula-' + proxima + '.html';
 
     const valor = !seguinte
-      ? '— o plano declarou ' + (marcos.length ? 'apenas um marco' : 'nenhum marco')
-        + '; aguarda-se o desenvolvimento do próximo marco para a elaboração da Aula 02'
-      : haAula02
-        ? '[' + seguinte + '](' + linkAula02 + ')'
-        : seguinte + ' — a Aula 02 ainda não foi elaborada';
-    const titulo = haAula02 && seguinte ? '**[Marco da Aula 02](' + linkAula02 + ')**' : '**Marco da Aula 02**';
+      ? '— o plano declarou ' + (marcos.length === 1 ? 'apenas um marco'
+          : marcos.length ? 'apenas ' + marcos.length + ' marcos' : 'nenhum marco')
+        + '; aguarda-se o desenvolvimento do próximo marco para a elaboração da Aula ' + proxima
+      : haSeguinte
+        ? '[' + seguinte + '](' + linkSeguinte + ')'
+        : seguinte + ' — a Aula ' + proxima + ' ainda não foi elaborada';
+    const titulo = haSeguinte && seguinte
+      ? '**[Marco da Aula ' + proxima + '](' + linkSeguinte + ')**'
+      : '**Marco da Aula ' + proxima + '**';
     secao('8. Próximo passo', ['| Item | Proposta |', '|:--|:--|', '| ' + titulo + ' | ' + valor + ' |']);
   }
 
@@ -1361,6 +1407,16 @@ function derivarAula01({ plano, po, contexto, calibracao, linhaDeBase, anamneses
    * A normalização é no FIM, e não em cada chamada: assim um corpo novo não tem de saber a
    * convenção, e o documento sai igual seja qual for o caminho. */
   return saida.join('\n').replace(/\n{3,}/g, '\n\n').trimEnd() + '\n';
+}
+
+/**
+ * A AULA 01 — o caso `nn = '01'` do derivador, e o nome que os chamadores antigos usam.
+ *
+ * Existe para não haver duas derivações da mesma regra: quando a Aula 01 mudar, muda no
+ * `derivarAula` e o alias segue. O que ele NÃO é: um caminho à parte, com regras próprias.
+ */
+function derivarAula01(args) {
+  return derivarAula(Object.assign({}, args, { nn: '01' }));
 }
 
 // ---------------------------------------------------------------------------
@@ -1518,8 +1574,14 @@ function derivarReferencias({ plano, contexto }) {
  * compositor precisa. A forma LEGADA (prosa) não tem como alimentar uma grade de compassos, e
  * devolve `null`: o documento sai então pela via antiga, com a lacuna declarada em cada linha.
  */
-function sequenciaComoObjetos(plano) {
-  const valor = resp(plano, 'aula-1-sequencia');
+function sequenciaComoObjetos(plano, nn) {
+  /* AS RESPOSTAS DE UMA AULA TÊM O NÚMERO DELA NO NOME (21/11/2026). O `nn` é opcional porque
+   * dois dos três chamadores — a Notação e o Glossário — compõem a partir da sequência do
+   * CICLO, e é a Aula 01 que hoje a guarda: `aula-1-sequencia` é a chave que todos os planos
+   * gravados têm, e mudá-la renomearia a resposta de todos eles. Quando o envelope de uma aula
+   * trouxer a sequência própria (`aula-2-sequencia`), ela é a lida — e, sem ela, NÃO se herda a
+   * da Aula 01: a lacuna declara-se, e é o formulário que a preenche com a pessoa a confirmar. */
+  const valor = resp(plano, chaveDaAula(nn || '01', 'sequencia'));
   if (!Array.isArray(valor) || !valor.some((l) => l && typeof l === 'object' && !Array.isArray(l))) {
     return null;
   }
@@ -2172,8 +2234,15 @@ function precisaGravar(anterior, nova) {
   return canonico(anterior) !== canonico(nova);
 }
 
-/** A folha de captura da Aula 01 — para impressão — derivada do PO. */
-function derivarCaptura({ po, plano, contexto, linhaDeBase, anamneses }) {
+/**
+ * A folha de captura de UMA AULA — para impressão — derivada do PO.
+ *
+ * `nn` PELO MESMO MOTIVO DO `derivarAula` (21/11/2026): a folha da Aula 02 que dissesse «Aula 01»
+ * no cabeçalho e no título era a folha errada na mão do professor — e é ela que vai para a sala.
+ * O conteúdo é o do ciclo (o elenco, as dimensões do PO, a régua); o que muda é de quem é o papel.
+ */
+function derivarCaptura({ nn = '01', po, plano, contexto, linhaDeBase, anamneses } = {}) {
+  const numero = numeroDaAula(nn) || '01';
   /* AS LINHAS DAS TABELAS SÃO O ELENCO — e o elenco é o da linha de base (06/11/2026). Era o mesmo
    * `resp(po,'sujeitos')`, e por isso a folha impressa e o `captura-XX.json` extraído dela também
    * traziam a aluna de fora. A folha é a fonte do config: o que ela imprime, o formulário lê. */
@@ -2191,9 +2260,9 @@ function derivarCaptura({ po, plano, contexto, linhaDeBase, anamneses }) {
   saida.push('projeto: Formação em Balé Clássico');
   saida.push('frente: Captura');
   saida.push('ciclo: "' + ciclo + '"');
-  saida.push('aula: "01"');
+  saida.push('aula: "' + numero + '"');
   saida.push('escola: "' + escola + '"');
-  saida.push('title: "Captura em aula — Aula 01 — para impressão"');
+  saida.push('title: "Captura em aula — Aula ' + numero + ' — para impressão"');
   saida.push('subtitle: "Folha de marcação para uso durante a aula"');
   saida.push('---');
   saida.push('');
@@ -2444,6 +2513,7 @@ function derivarHarmonizacao({ plano, po, contexto }) {
 module.exports = {
   slugDe,
   nomeDaEscola,
+  derivarAula,
   derivarAula01,
   derivarDados,
   derivarReferencias,

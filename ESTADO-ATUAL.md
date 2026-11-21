@@ -4,9 +4,34 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 21/11/2026 (commit `76ec0674`). Nesta entrega, **a aula que já foi dada
-> deixou de poder ser reescrita por uma regeneração**. A regra é dela, e a letra é esta: «regenerar o
-> ciclo afecta só a aula que ainda não foi dada; as outras ficam e não se apagam». **CONFIRMADO** que
+> **Última fotografia:** 21/11/2026 (commit `3c7de1d0`). Nesta entrega, **o derivador passou a
+> escrever a aula que lhe pedem**, e não sempre a primeira. `derivarAula01` chamava-se assim e o
+> nome era literal: escrevia `aula: "01"`, «Plano para a Aula 01», lia `aula-1-sequencia` e
+> `aula-1-parametro` à mão, e a §8 mandava sempre para a **Aula 02** — na Aula 03, **para trás**,
+> para um marco que já foi dado. **CONFIRMADO**: o par da Aula 01 estava escrito à mão nas duas
+> listas de fontes (o Worker e o `regerar-derivados.js`), e um ciclo que ganhasse a Aula 02 não a
+> punha em dia por ali — a aula estava no `DOCS`, o gerador ia buscá-la, e não a encontrava.
+> **DECIDIDO**: `derivarAula({ nn, … })`, com `derivarAula01` como o caso `nn = '01'` — um
+> derivador só, porque duas derivações da mesma regra divergem ao primeiro caso novo; o número
+> decide o `aula:`, o título, o objetivo (o marco NN, Regra 2), o parâmetro, a sequência e o
+> «próximo passo»; o que **não** entra no número é o que é do ciclo (duração, volume, blocos,
+> condições, guia, proveniência, auditoria); a chave leva o número **sem zero à frente**
+> (`aula-2-sequencia`, e `aula-1-parametro` para a primeira — renomeá-la renomearia a resposta de
+> todos os planos gravados); e a **lacuna não se herda** — a Aula 04 de um plano de três marcos
+> declara a lacuna e **nomeia a chave que falta**, sem copiar a sequência da Aula 01, porque herdar
+> atribuiria a esta aula o que foi respondido para outra (quem reusa é o formulário, com a pessoa a
+> confirmar). **CONFIRMADO** em 21/11/2026: `provar-derivador-da-aula` **35/35**, e com o derivador a
+> escrever sempre a primeira caem **14** das asserções; e a `-aula-01.md` e a `-captura-aula-01.md`
+> da `breu-rosa`, derivadas pelo código do `HEAD` e pelo de agora **com os mesmos argumentos**, saem
+> **idênticas** byte a byte — a generalização não mexeu no que está no ar. Ver
+> `ARQUITETURA-AULA.md` §4.3 e a entrada de 21/11/2026 no `REGISTRO.md`. **O que continua por
+> fazer**: o botão de criar a aula seguinte — o gesto que acrescenta a aula ao `DOCS` e recolhe as
+> respostas dela.
+>
+> **Fotografia anterior (21/11/2026 — a aula que já foi dada não se reescreve).** Nesta entrega, **a
+> aula que já foi dada deixou de poder ser reescrita por uma regeneração**. A regra é dela, e a
+> letra é esta: «regenerar o ciclo afecta só a aula que ainda não foi dada; as outras ficam e não se
+> apagam». **CONFIRMADO** que
 > a regra não existia em lado nenhum: o `-aula-01.md` e a `-captura-aula-01.md` estavam escritos à mão
 > na lista do `escrever-ciclo.js`, **sem condição** — e o «Guardar» do PO, que é o gesto da cascata do
 > elenco, regera o ciclo inteiro. Corrigir o elenco hoje reescrevia o plano de uma aula que já tinha
@@ -22,8 +47,7 @@
 > **10** asserções e o dano escrito no relatório (o plano e a folha a ir para `historico/`); e a
 > `provar-um-commit-por-guardar`, que estava **5/21** já no `HEAD` por medir contagens escritas à mão,
 > foi consertada pela **relação** e por **nome** — **22/22**. Ver `ARQUITETURA-AULA.md` §1.3 e a
-> entrada de 21/11/2026 no `REGISTRO.md`. **O que continua por fazer**: o botão de criar a aula
-> seguinte — esta entrega dá a regra que ele tem de respeitar, não o botão.
+> entrada de 21/11/2026 no `REGISTRO.md`.
 >
 > **Fotografia anterior (15/11/2026 — as saídas do pacote deixaram de se carimbar).** Ela: «não tem
 > sentido ficar carimbando toda hora. […] Se já foi comitado,
@@ -2727,6 +2751,25 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      é uma reparação: fonte ausente de aula lançada reconstrói-se, e o relatório diz `reparadas`.
      Prova: `provar-aula-dada` **34/34**; com a regra desligada caem **10**. Ver `ARQUITETURA-AULA.md`
      §1.3 e a entrada de 21/11/2026 no `REGISTRO.md`.
+124. **O DERIVADOR ESCREVE A AULA QUE LHE PEDEM — E A LACUNA DE UMA AULA NÃO SE HERDA DA OUTRA.**
+     `derivarAula01` escrevia `aula: "01"`, «Plano para a Aula 01», lia as chaves `aula-1-*` à mão
+     e a §8 mandava sempre para a Aula 02 — na Aula 03, para trás. **DECIDIDO**: `derivarAula({nn})`,
+     com `derivarAula01` como o caso `nn = '01'` (um derivador só: duas derivações da mesma regra
+     divergem ao primeiro caso novo); o número decide o cabeçalho, o título, o objetivo (o **marco
+     NN**, Regra 2), o parâmetro (`aula-<N>-parametro`), a sequência (`aula-<N>-sequencia`) e o
+     «próximo passo»; o que é do **ciclo** — duração, volume, blocos, condições do espaço, guia de
+     observação, proveniência, auditoria — **não** entra no número, porque repeti-lo por aula daria a
+     cada documento uma cópia da resposta com a possibilidade de divergirem; a chave leva o número
+     **sem zero à frente**, que é a forma que o envelope já tem (renomeá-la renomearia a resposta de
+     todos os planos gravados); e a **lacuna não se herda** — pedida a Aula 04 de um plano de três
+     marcos, o documento declara a lacuna e **nomeia a chave que falta**, sem copiar a sequência nem
+     a matriz da Aula 01, porque herdar atribuiria a esta aula o que foi respondido para outra (quem
+     reusa é o formulário, com a pessoa a confirmar). Os dois caminhos — o Worker e o
+     `regerar-derivados.js` — passam a escrever **todas** as aulas que o `DOCS` declara, e não o par
+     escrito à mão da Aula 01. Prova: `provar-derivador-da-aula` **35/35** (mutação: **21/35**), e a
+     `-aula-01.md`/`-captura-aula-01.md` da `breu-rosa` derivadas pelo código do `HEAD` e pelo de
+     agora, com os mesmos argumentos, saem **idênticas**. Ver `ARQUITETURA-AULA.md` §4.3 e a entrada
+     de 21/11/2026 no `REGISTRO.md`.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
@@ -3452,7 +3495,21 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (21/11/2026 — a aula dada não se reescreve)
+### Executado nesta fotografia (21/11/2026 — o derivador por aula)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-derivador-da-aula` (**nova**) | **35/35**. (A) `aula-1-parametro` continua a ser a chave da Aula 01, e o número aceita as três formas; (B) `derivarAula01` e `derivarAula({nn:'01'})` dão o **mesmo texto**, e a Aula 01 declara o marco 1 e as chaves dela; (C) a Aula 02, com dados próprios: título, **marco 2**, matriz e sequência **dela** — e o exercício da Aula 01 não aparece; a §8 aponta e liga a Aula 03; a folha também diz Aula 02; (D) a Aula 04 de um plano de três marcos: lacuna que **nomeia** `aula-4-parametro`, **nenhuma herança** da 01, «apenas 3 marcos», e nenhum link para uma aula que o ciclo não declara; (E) o escritor grava `-aula-02.md` e `-captura-aula-02.md` a partir do `DOCS`, e — com a Aula 02 lançada — **não a reescreve**, dizendo qual travou. **Mutação medida**: com o derivador a escrever sempre a primeira, caem **14 das 35** |
+| byte a byte, `HEAD` × agora | a `-aula-01.md` e a `-captura-aula-01.md` da `breu-rosa`, derivadas com **os mesmos argumentos** pelos dois códigos, saem **idênticas** — a generalização não mexeu no que está no ar |
+| `provar-aula-dada` · `provar-aula-prosa` · `provar-formulario-da-aula` | **34/34** · **19** · **53** — verdes |
+| `provar-geracao` · `provar-eixos-do-po` · `provar-objetivos-por-aula` | **54 · 42 · 51** — verdes |
+| `provar-derivados-do-po` · `provar-um-commit-por-guardar` · `provar-remocao-do-elenco` · `provar-o-commit-do-po` · `provar-orcamento-do-guardar` | **16 · 22 · 26 · 14 · 16** — verdes |
+| `provar-colunas-da-aula` · `provar-janela-do-lancamento` · `provar-novo-registo-e-ciclo` · `provar-menu-do-formulario` · `provar-declaracao-da-captura` | **23 · 11 · 27 · 40 · 12** — verdes |
+| `node tools/check-identidade.js` · `check-sem-destruicao` · `check-indices` · `check-pacote` · `hash-ciclo --check` | **0 erros** · **ok** · **16/16** · **0 erros, 1 aviso** · **cadeia intacta** |
+| `tools/regerar-derivados.js` (em seco) | mostra o diff e **não grava**; a diferença que ele mostra na `-aula-01.md` é a da **linha de base ausente** no caminho local, e é **a mesma** com o código do `HEAD` — não é desta entrega |
+| Deploy / ao ar | **Não executado** — o derivador corre no Worker e no gerador; a conferência em produção é o passo seguinte ao push |
+
+### Executado na fotografia anterior (21/11/2026 — a aula dada não se reescreve)
 
 | Verificação | Resultado |
 |:--|:--|

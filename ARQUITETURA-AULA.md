@@ -2,8 +2,8 @@
 
 > **Resumo (para o HANDOFF):** o ciclo de vida da aula (planejada → dada → lançada, mais a
 > **não dada**), a regra CRUD × ajuste, o prazo dinâmico por turma, o índice e a âncora por
-> aula. O **estado derivado** (`B6`) e o **ajuste no plano** (`B8`) estão implementados; o
-> resto, não.
+> aula. O **estado derivado** (`B6`), o **ajuste no plano** (`B8`), a **derivação por aula**
+> (§4.3) e a **regra que tranca a aula dada** (§1.3) estão implementados; o resto, não.
 
 > **Documento de desenho, com o que já foi implementado marcado.** Escrito em 23/09/2026, ao
 > fim da conversa que definiu as regras. O que existe hoje está descrito em cada seção como
@@ -406,6 +406,55 @@ plano, do calendário e do `.conf`.
 >
 > **`ancora` ainda sai `null`** nos três ciclos — o `.fipp` por aula existe (§5, `B5`), mas o
 > gerador não o consulta. A coluna é a promessa, não o estado.
+
+### 4.3 A derivação por aula — implementada a 21/11/2026
+
+A §4.2 descreve o índice a declarar uma entrada por aula; o que faltava era o **documento** de
+cada aula saber que é dela. Havia um derivador chamado `derivarAula01`, e o nome era literal:
+escrevia `aula: "01"`, «Plano para a Aula 01», lia `aula-1-sequencia` e `aula-1-parametro`
+escritos à mão, e o «próximo passo» da §8 mandava sempre para a **Aula 02**. Enquanto só a Aula
+01 existiu, nada disso se notava.
+
+**O que mudou.** `derivarAula({ nn, … })` — e `derivarAula01` passa a ser o caso `nn = '01'`, não
+um caminho à parte. Uma função só, porque duas derivações da mesma regra divergem ao primeiro
+caso novo. Cinco coisas passam a sair do número:
+
+| o quê | de onde vem |
+|:--|:--|
+| `aula:` do cabeçalho e «Plano para a Aula NN» | `nn` |
+| o objetivo específico | o **marco NN** do plano (Regra 2) |
+| o parâmetro de medição | a chave `aula-<N>-parametro` |
+| a sequência de exercícios | a chave `aula-<N>-sequencia` |
+| o «próximo passo» da §8 | o marco da aula **seguinte**, e o link para ela |
+
+**O que NÃO entra no número, de propósito.** A duração, o volume, os blocos, as condições do
+espaço, o guia de observação, a proveniência e a auditoria são do **ciclo** — a mesma turma, o
+mesmo plano, a mesma régua. Repeti-los por aula seria dar a cada documento uma cópia da resposta
+com a possibilidade de divergirem.
+
+**A chave leva o número SEM zero à frente** (`aula-2-sequencia`, não `aula-02-sequencia`): é a
+forma que o envelope já tem, e renomeá-la renomearia a resposta de todos os planos gravados. A
+regra vive em `motor/nucleo/aulas-do-ciclo.js`, junto da que tranca a aula dada (§1.3) — as duas
+falam do mesmo número.
+
+**A lacuna não se herda.** Pedida a Aula 04 de um plano de três marcos, o documento declara
+`[Preencher: marco da Aula 04]` e `[Preencher: parâmetro de medição da Aula 04 — o plano não
+respondeu «aula-4-parametro»]`, e **não** copia a sequência nem a matriz da Aula 01. Herdar
+atribuiria a esta aula o que foi respondido para outra — e o diff de proveniência diria que o
+professor escreveu ali o que ele nunca escreveu. Quem reusa é o **formulário**, com a pessoa a
+confirmar; o derivador lê a resposta, e não a inventa.
+
+**Os dois caminhos escrevem todas as aulas que o ciclo declara.** A lista de fontes do
+`escrever-ciclo.js` e a do `tools/regerar-derivados.js` tinham o par da Aula 01 escrito à mão: um
+ciclo que ganhasse a Aula 02 não a punha em dia por ali — a aula estava no `DOCS`, o gerador ia
+buscá-la, e não a encontrava. Agora saem do `DOCS` do manifesto, mais a Aula 01, que todo o ciclo
+tem; e a regra do §1.3 continua a valer por fonte, dentro do laço.
+
+> **Prova:** `experimentos/provar-derivador-da-aula.js` — **35 asserções**. A secção B mede que a
+> Aula 01 **não mudou** (o alias e o `nn = '01'` dão o mesmo texto, e o documento declara o marco 1
+> e as chaves da 01); a C, a Aula 02 com dados próprios; a D, a aula sem dados; a E, o escritor a
+> gravar uma fonte por aula — e a **não** gravar a que já foi lançada. Com o derivador a escrever
+> sempre a primeira — o defeito que ele tinha — caem **14 das 35**.
 
 ## 5. A âncora por aula
 

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-21T00:49:10-0300`
-Commit atual: `76ec0674` — chore(estrutura): fechar os derivados — âncoras e índices
+Gerado em: `2026-11-21T06:35:39-0300`
+Commit atual: `3c7de1d0` — fix(estrutura): a aula que já foi dada não se reescreve por uma regeneração
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -71,7 +71,7 @@ sapatilha-de-ponta (15)
 
 - **`ARQUITETURA-AGENTE.md`** — Especificação do **copiloto pedagógico** do Sistema Lastro: um agente que lê os índices e os envelopes **por chave**, através de ferramentas com contrato explícito (MCP), e **propõe** texto ao professor — nunca grava. Modelo: Llama da Cloudflare (Workers AI), **`@cf/meta/llama-3.1-8b-instruct-awq`**. **Sem RAG**, por decisão: 100 % do que o agente consulta é chave-valor. **Quatro superfícies** (decidido a 12/11/2026): plano de ensino, PO, Estilo **e a elaboração da aula N** — esta última **espera uma tela que não existe**.
 - **`ARQUITETURA-ANAMNESE.md`** — Desenho da malha de anamnese de balé clássico como **conteúdo do PO** — a **observação inicial** dos seis elementos basilares, os **nove blocos fixos** da ficha, os **dois módulos condicionais** (validação de nível prévio e contexto de origem) e as **três dimensões** da linha de base (Técnica, Funcional, Musicalidade) —, seguida da **malha de domínios declarados** (alinhamento ósseo, flexibilidade passiva, força ativa e potência, sistema vestibular, orientação espacial e lateralidade), com **ramificação condicional** pelo nível declarado (Básico, Intermediário, Avançado) e **soberania de CRUD autoral** do professor, fechando na **conclusão** — o campo **«Resultado da avaliação»** (apta/não apta + nível, sem turma/horário/frequência) — o **recipiente** é do PE, o **conteúdo** é do PO.
-- **`ARQUITETURA-AULA.md`** — o ciclo de vida da aula (planejada → dada → lançada, mais a **não dada**), a regra CRUD × ajuste, o prazo dinâmico por turma, o índice e a âncora por aula. O **estado derivado** (`B6`) e o **ajuste no plano** (`B8`) estão implementados; o resto, não.
+- **`ARQUITETURA-AULA.md`** — o ciclo de vida da aula (planejada → dada → lançada, mais a **não dada**), a regra CRUD × ajuste, o prazo dinâmico por turma, o índice e a âncora por aula. O **estado derivado** (`B6`), o **ajuste no plano** (`B8`), a **derivação por aula** (§4.3) e a **regra que tranca a aula dada** (§1.3) estão implementados; o resto, não.
 - **`ARQUITETURA-CAPTURA.md`** — arquitetura técnica do formulário dinâmico com JSON por ciclo — modelo de dados, schema, fluxo, segurança e perguntas em aberto.
 - **`ARQUITETURA-GERAL.md`** — Arquitetura geral — por que sistema de arquivos, e não um backend com banco
 - **`ARQUITETURA-PE.md`** — Especificação da arquitetura de integração entre o repositório atual (implementação do PO) e o repositório separado **"dança e elicitação"** (módulo PE), utilizando descoberta por variável de ambiente (`.env`) e degradação graciosa.
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+3c7de1d0 fix(estrutura): a aula que já foi dada não se reescreve por uma regeneração
 76ec0674 chore(estrutura): fechar os derivados — âncoras e índices
 bc8e88fd fix(estrutura): a folha impressa deixa de perguntar duas vezes o mesmo item
 ef747d64 fix(estrutura): a matriz do formulário pergunta uma vez por par, com uma regra só
@@ -101,7 +102,6 @@ b78ef89c feat(ciclo): o «Guardar» do PO grava as fontes de breu-rosa num commi
 d7ebcfd0 feat(acervo): envelope/po-20261120-2052.json
 cee9970a feat(acervo): envelope/.indice.json
 c8c9c75a feat(plano): o elo da cadeia automática
-283eabae feat(acervo): envelope/plano-20261120-2052.json
 ```
 
 ## Por professor
@@ -195,63 +195,72 @@ c8c9c75a feat(plano): o elo da cadeia automática
 
 ## Última entrada do REGISTRO
 
-## 21/11/2026 — A aula que já foi dada não se reescreve por uma regeneração
+## 21/11/2026 — O derivador escreve a aula que lhe pedem, e não sempre a primeira
 
-**O que motivou.** A regra, na letra da pesquisadora: «regenerar o ciclo afecta só a aula que já não
-foi dada; as outras ficam e não se apagam». A medição mostrou que a regra **não existia em lado
-nenhum**: as duas fontes da aula (`-aula-01.md` e `-captura-aula-01.md`) estavam escritas à mão na
-lista do `escrever-ciclo.js`, e sem condição. O «Guardar» do PO é o gesto da cascata do elenco —
-tirar uma aluna e gravar —, e ele regera o ciclo inteiro: corrigir o elenco de hoje reescrevia o
-plano de uma aula que já tinha acontecido, mandava a versão verdadeira para `historico/` como elo,
-e o diff de proveniência passava a apresentar como **mudança do professor** uma mudança que ele não
-fez. O mesmo no `tools/regerar-derivados.js`, cuja razão de existir é pôr os derivados em dia.
+**O que motivou.** A regra da entrada anterior («regenerar não reescreve a aula dada») protege uma
+aula que já aconteceu — mas não havia como a segunda aula existir. O derivador chamava-se
+`derivarAula01` e o nome era literal: escrevia `aula: "01"` e «Plano para a Aula 01», lia
+`aula-1-sequencia` e `aula-1-parametro` escritos à mão, e a §8 mandava sempre para a **Aula 02**.
+Na Aula 03 isso manda o professor **para trás**, para um marco que já foi dado. E o escritor tinha
+o par da Aula 01 escrito à mão na lista de fontes: um ciclo que ganhasse a Aula 02 não a punha em
+dia por ali — a aula estava no `DOCS`, o gerador ia buscá-la, e não a encontrava.
 
-**O que foi decidido.** O facto que tranca uma aula é o **registro do lançamento** (`aulas[NN]` no
-`-dados.json`), e não o juízo `planejada`/`dada`/`lancada`/`nao_dada` — esse depende de um relógio,
-e um derivador não tem relógio nem deve ter. É o mesmo critério que o índice já usa desde 15/11
-(guarda «o facto, não o juízo»). A janela que sobra — aula acontecida, dentro do prazo, ainda sem
-lançamento — é exactamente a janela em que o plano ainda é ajustável: enquanto é intenção, pode ser
-derivado.
+**O que foi decidido.** `derivarAula({ nn, … })`, e `derivarAula01` passa a ser o caso `nn = '01'`
+— um derivador só, porque duas derivações da mesma regra divergem ao primeiro caso novo (é a lição
+que a `eixos.js` já tinha pago). O número decide cinco coisas: o `aula:` do cabeçalho e o título,
+o objetivo específico (o **marco NN**, Regra 2), o parâmetro, a sequência e o «próximo passo».
 
-A regra vive **num sítio só**: `motor/nucleo/aulas-do-ciclo.js`. Duas cópias de uma regra divergem
-ao primeiro caso novo — é o que a `eixos.js` já tinha ensinado —, e aqui a segunda cópia seria entre
-o Worker e a linha de comando. Os dois caminhos usam a mesma função, e ela faz três coisas: **não
-reescreve** a fonte da aula lançada; **não inventa elo** em `historico/` (não houve substituição);
-e **não apaga** nenhuma aula do ciclo — o `DOCS` passou a **só crescer** (`docsGerados` preserva as
-famílias `aula-NN`/`captura-aula-NN` já declaradas, em vez de as substituir por uma lista fixa).
+O que **não** entra no número, de propósito: duração, volume, blocos, condições do espaço, guia de
+observação, proveniência e auditoria são do **ciclo** — a mesma turma, o mesmo plano, a mesma
+régua. Repeti-los por aula daria a cada documento uma cópia da resposta com a possibilidade de
+divergirem.
 
-**A excepção, e porque não é licença.** Se a fonte da aula lançada **não existe**, não há facto a
-preservar: reconstrói-se, e o relatório diz `reparadas`. Um buraco no pacote não é prova de nada.
+**A chave leva o número sem zero à frente** — `aula-2-sequencia`, e `aula-1-parametro` para a
+primeira, que é a forma que o envelope já tem. Renomeá-la para `aula-01-parametro` renomearia a
+resposta de todos os planos gravados; a chave fica, e o que se generaliza é a leitura. A regra vive
+em `motor/nucleo/aulas-do-ciclo.js`, junto da que tranca a aula dada, e é a mesma função que dá o
+número nos dois sítios.
 
-**Motivo declarado — `tools/` é congelado.** `tools/regerar-derivados.js` mudou porque é um dos dois
-caminhos que regeram um ciclo, e deixá-lo de fora deixaria a regra a valer para o Worker e a não
-valer para o comando que existe precisamente para reescrever derivados — o pior dos dois mundos.
-A alteração é a leitura do `-dados.json` (só leitura, com a precedência da `fonte_dados()` do
-`lib-fontes.sh:52`) e a marcação das duas fontes da aula; a lista do que ele escreve não mudou, e
-`--escrever` continua a ser necessário para gravar. Não foi junto com conteúdo pedagógico.
+**A lacuna não se herda.** Pedida a Aula 04 de um plano de três marcos, o documento declara
+`[Preencher: marco da Aula 04]` e nomeia a chave que falta (`aula-4-parametro`) — e **não** copia a
+sequência nem a matriz da Aula 01. Herdar atribuiria a esta aula o que foi respondido para outra, e
+o diff de proveniência diria que o professor escreveu ali o que ele nunca escreveu. Quem reusa é o
+**formulário**, com a pessoa a confirmar (é a decisão dela: «reusa a matriz da aula anterior»); o
+derivador lê a resposta, e não a inventa.
 
-**Onde entrou.** `motor/nucleo/aulas-do-ciclo.js` (novo — a regra); `motor/servidor/escrever-ciclo.js`
-(a guarda no passo 3, os relatórios `travadas`/`reparadas`, a derivação preguiçosa das fontes da aula
-e o `docsGerados` que só cresce); `tools/regerar-derivados.js`; `ARQUITETURA-AULA.md` §1.3 (novo);
-`experimentos/provar-aula-dada.js` (novo — **34/34**).
+**Os dois caminhos escrevem todas as aulas que o ciclo declara.** A lista de fontes do
+`escrever-ciclo.js` e a do `tools/regerar-derivados.js` passam a sair do `DOCS` do manifesto, mais
+a Aula 01, que todo o ciclo tem. A regra da entrada anterior continua a valer por fonte, dentro do
+laço: a aula já lançada fica travada, e o relatório nomeia qual.
 
-**Prova, e a mutação.** Com a regra desligada caem **10 das 34** asserções, e o dano fica escrito no
-relatório: o plano e a folha vão para `historico/` como elos. A secção C é o controlo negativo — sem
-lançamento, a aula **é** escrita —, porque sem ela uma prova verde poderia estar a medir um escritor
-que não escreve nada.
+**A §8 conta os marcos que o plano TEM.** A frase do caso vazio era «o plano declarou apenas um
+marco», escrita quando o caso era esse; num plano de três marcos, a Aula 03 tem de dizer «apenas
+três», senão o documento afirma que o plano declarou o que ele não declarou.
 
-**Uma prova vermelha antiga, consertada no caminho.** `provar-um-commit-por-guardar` estava em
-**5 de 21** já no `HEAD` (conferido em worktree): media «oito caminhos» e «seis escritas», números
-escritos à mão que envelheceram quando a notação e o glossário entraram no escritor. O invariante
-que ela existe para medir — *todo o lote num commit só* — passou a ser medido pela **relação**
-(árvore = escritas + o `.conf` + a declaração da variante) e por **nome** (as oito fontes de um ciclo
-«do zero» estão todas lá). **22/22**, e a mutação que tira a notação do lote faz cair a asserção por
-nome.
+**Motivo declarado — `tools/` é congelado.** `tools/regerar-derivados.js` mudou pela mesma razão da
+entrada anterior: é um dos dois caminhos que regeram um ciclo, e deixá-lo a escrever só a Aula 01
+enquanto o Worker escreve todas deixaria os dois a discordar sobre o mesmo ciclo. A alteração é a
+lista das aulas (do `DOCS`) e o número passado ao derivador; o resto do comando não mudou, e
+`--escrever` continua a ser necessário para gravar.
 
-**O que continua por fazer.** O botão de criar a aula seguinte. Esta entrada entrega a regra que ele
-precisa de respeitar, não o botão: hoje só a aula 01 tem derivador, e a lista de fontes do escritor
-continua a nomear `01` como a aula a derivar. É o `derivador da aula NN` que falta, e é o próximo
-passo.
+**Onde entrou.** `motor/nucleo/derivar-ciclo.js` (`derivarAula`, `derivarAula01` como alias,
+`derivarCaptura` com `nn`, §8 pelo número, `sequenciaComoObjetos` com a chave da aula);
+`motor/nucleo/derivar-plano-ciclo.js` (`objetivoDaAula`); `motor/nucleo/aulas-do-ciclo.js`
+(`chaveDaAula`, `aulaSeguinte`); `motor/servidor/escrever-ciclo.js` e `tools/regerar-derivados.js`
+(uma fonte por aula); `ARQUITETURA-AULA.md` §4.3 (novo); `experimentos/provar-derivador-da-aula.js`
+(novo — **35/35**).
+
+**A aula publicada não mudou.** Medido por comparação byte a byte: o derivador do `HEAD` e o de
+agora, com os **mesmos** argumentos, produzem a `-aula-01.md` e a `-captura-aula-01.md` da
+`breu-rosa` **idênticas**. É a prova de que a generalização não mexeu no que está no ar.
+
+**Prova, e a mutação.** Com o derivador a escrever sempre a primeira — o defeito que ele tinha —
+caem **14 das 35** asserções, e o dano fica escrito: o título da Aula 02 a dizer «Plano para a Aula
+01», o objetivo a ser o marco 1, a §8 a apontar para a Aula 02 em vez da 03.
+
+**O que continua por fazer.** O botão de criar a aula seguinte — o gesto que acrescenta a aula ao
+`DOCS` e recolhe as respostas dela (`aula-N-sequencia`, `aula-N-parametro`, o marco quando o plano
+não o declara). O derivador já sabe escrever o documento que ele produzir; o que falta é o gesto.
 
 ## O que está pendente
 

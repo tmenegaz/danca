@@ -36,6 +36,7 @@ const { respostaDo } = require('../nucleo/derivar-po.js');
 const volume = require('../nucleo/volume.js');
 const {
   slugDe,
+  derivarAula,
   derivarAula01,
   derivarDados,
   derivarReferencias,
@@ -49,7 +50,7 @@ const {
   notacaoEscolhida,
 } = require('../nucleo/derivar-ciclo.js');
 /* QUE AULAS UMA REGENERAÇÃO PODE ESCREVER (21/11/2026) — a regra é UMA e vive lá. */
-const { aulasLancadas, podeRegenerar } = require('../nucleo/aulas-do-ciclo.js');
+const { aulasLancadas, podeRegenerar, numeroDaAula } = require('../nucleo/aulas-do-ciclo.js');
 
 // O caminho de uma fonte derivada, a partir do contexto — a MESMA regra dos `-po.md`/`-plano.md`.
 // A variante é o `<escola>-<turma>` desde 16/10/2026 (o ciclo passou a ser DA TURMA): a
@@ -670,6 +671,23 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
     const lancadas = aulasLancadas(dadosAnteriores);
     const daAula = (nn, derivar) => ({ deAula: nn, md: derivar });
 
+    /* TODAS AS AULAS QUE O CICLO DECLARA, E NÃO SÓ A PRIMEIRA (21/11/2026).
+     *
+     * Era um par escrito à mão — `-aula-01.md` e `-captura-aula-01.md` —, e um ciclo que passasse
+     * a ter a Aula 02 não ganhava o documento dela por aqui: a aula existia no `DOCS`, o gerador
+     * ia buscá-la, e não a encontrava. A lista passa a sair do `DOCS` do manifesto (é ele que diz
+     * que aulas o ciclo tem) mais a Aula 01, que todo o ciclo tem; cada uma deriva com o seu
+     * número, e a regra do commit anterior — a aula já dada não se reescreve — continua a valer
+     * por fonte, dentro do laço do passo 3. */
+    const aulasParaDerivar = (() => {
+      const vistos = new Set(['01']);
+      for (const a of aulasDoCiclo) {
+        const n = numeroDaAula(a);
+        if (n) vistos.add(n);
+      }
+      return [...vistos].sort((a, b) => Number(a) - Number(b));
+    })();
+
     const fontes = [
       /* A LINHA DE BASE DA TURMA VAI AO GUIA (06/11/2026). O eixo do Corpo da Aula 01 é o
        * recorte do passo 4 e a leitura do passo 3, e este escritor não os passava: o guia só
@@ -686,9 +704,13 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
        * medido: a partir da primeira aula dada, cada «Guardar» do PO passaria a compor o texto
        * inteiro da aula — dezenas de KB de markdown — para o deitar fora no passo 3. É CPU do
        * Worker gasta a construir o que a regra proíbe gravar. */
-      { sufixo: '-aula-01.md', ...daAula('01', () => derivarAula01({
+      /* UMA FONTE POR AULA, derivada com o NÚMERO dela (21/11/2026) — ver `aulasParaDerivar`. */
+      ...aulasParaDerivar.map((nn) => ({
+        sufixo: '-aula-' + nn + '.md',
+        ...daAula(nn, () => derivarAula({ nn,
           plano, po, contexto: Object.assign({}, ctx, { aulas: aulasDoCiclo }),
-          calibracao: cal, linhaDeBase, anamneses })) },
+          calibracao: cal, linhaDeBase, anamneses })),
+      })),
       { sufixo: '-referencias.md', md: derivarReferencias({ plano, contexto: ctx }) },
       /* O `plano` VAI (06/11/2026) — e faltava aqui. A declaração `porVariante` passou a recebê-lo
        * (é dela que saem as colunas do schema), e a FOLHA não o recebia: o schema declarava as
@@ -698,8 +720,13 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
       /* A LINHA DE BASE VAI TAMBÉM À FOLHA E AO JSON DE DADOS (06/11/2026). Sem ela, os dois
        * liam o `sujeitos` do PO e a turma saía com uma aluna a mais — a que o PO herdou de um
        * envelope anterior à regra. Ver `elencoDoCiclo` em `derivar-ciclo.js`. */
-      { sufixo: '-captura-aula-01.md', ...daAula('01', () => derivarCaptura({
-          po, plano, contexto: ctx, linhaDeBase, anamneses })) },
+      /* A FOLHA DE CADA AULA TAMBÉM (21/11/2026): é ela que vai para a sala, e a da Aula 02 a
+       * dizer «Aula 01» no título seria a folha errada na mão do professor. */
+      ...aulasParaDerivar.map((nn) => ({
+        sufixo: '-captura-aula-' + nn + '.md',
+        ...daAula(nn, () => derivarCaptura({ nn,
+          po, plano, contexto: ctx, linhaDeBase, anamneses })),
+      })),
       { sufixo: '-harmonizacao.md', md: derivarHarmonizacao({ plano, po, contexto: ctx }) },
       { sufixo: '-dados.json', md: dadosDerivados },
     ];

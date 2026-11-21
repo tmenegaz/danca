@@ -1767,3 +1767,11 @@ experimentos/modelo-formulario/*
 # 34 asserções, e o dano fica escrito: o plano e a folha vão para `historico/` como elos. É citada
 # no REGISTRO, no ESTADO-ATUAL e no rodapé `Auditoria:` do commit.
 !experimentos/provar-aula-dada.js
+# O DERIVADOR ESCREVE A AULA QUE LHE PEDEM (21/11/2026). O `derivarAula01` escrevia `aula: "01"`,
+# «Plano para a Aula 01» e lia as chaves da 01 à mão — enquanto só havia uma aula, nada disso se
+# notava. A prova mede a Aula 02 com dados próprios (título, marco, matriz e sequência dela), a
+# aula SEM dados (lacuna que nomeia a chave, e nenhuma herança da 01) e o escritor a gravar uma
+# fonte por aula que o `DOCS` declara. Com o derivador a escrever sempre a primeira — o defeito
+# que ele tinha — caem 14 das 35 asserções. É citada no REGISTRO, no ESTADO-ATUAL e no rodapé
+# `Auditoria:` do commit.
+!experimentos/provar-derivador-da-aula.js
