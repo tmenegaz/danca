@@ -311,10 +311,10 @@
   "contagens": {
     "arestas": 50,
     "marcas": 0,
-    "nos": 50,
+    "nos": 51,
     "porTipo": {
       "ancora": 3,
-      "aspecto": 13,
+      "aspecto": 14,
       "aula": 15,
       "captura": 2,
       "ciclo": 1,
@@ -410,6 +410,12 @@
       "eixo": "Técnica",
       "id": "aspecto:reconhecer_o_apoio_e_alinhar_o_eixo_vertical",
       "rotulo": "reconhecer o apoio e alinhar o eixo vertical",
+      "tipo": "aspecto"
+    },
+    {
+      "eixo": "Corpo",
+      "id": "aspecto:sustentacao_ativa_de_mmii_forca_de_adagio",
+      "rotulo": "Sustentação ativa de MMII (força de adágio)",
       "tipo": "aspecto"
     },
     {

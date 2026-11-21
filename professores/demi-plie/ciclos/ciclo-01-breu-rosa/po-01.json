@@ -1,5 +1,5 @@
 {
-  "planoDeEnsino": "plano-20261121-1508",
+  "planoDeEnsino": "plano-20261121-1531",
   "horizonte": "Ao fim do ano, a turma do Nível 1 deve sustentar o en dehors a partir do quadril e responder ao pulso sem contar a música em voz alta.",
   "question": "O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?",
   "phenomenon": [
@@ -43,6 +43,11 @@
       "eixo": "Corpo",
       "dimensao": "Força Ativa, Potência e Controle Dinâmico",
       "itens": "Força excêntrica / recuo na flexão de tronco"
+    },
+    {
+      "eixo": "Corpo",
+      "dimensao": "Equilíbrio, Sustentação e Força de MMSS/Core",
+      "itens": "Sustentação ativa de MMII (força de adágio)"
     },
     {
       "eixo": "Corpo",
@@ -107,6 +112,10 @@
       "aspectosObservados": "Força excêntrica / recuo na flexão de tronco"
     },
     {
+      "grupo": "Equilíbrio, Sustentação e Força de MMSS/Core",
+      "aspectosObservados": "Sustentação ativa de MMII (força de adágio)"
+    },
+    {
       "grupo": "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal",
       "aspectosObservados": "Estabilidade vestibular e deslocamento; Espiral / rotação de tronco"
     }
@@ -121,6 +130,7 @@
     "Morfologia e Funcionalidade dos Pés e Tornozelos: Mobilidade de flexão/extensão do tornozelo",
     "Aptidões Coordenadas e Cognitivo-Musicais: Musicalidade e pulsação rítmica",
     "Força Ativa, Potência e Controle Dinâmico: Força excêntrica / recuo na flexão de tronco",
+    "Equilíbrio, Sustentação e Força de MMSS/Core: Sustentação ativa de MMII (força de adágio)",
     "Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal: Estabilidade vestibular e deslocamento; Espiral / rotação de tronco"
   ],
   "exclusionCriteria": [
