@@ -3,7 +3,7 @@ projeto: Formação em Balé Clássico
 frente: Captura
 ciclo: "01"
 aula: "01"
-escola: "breu"
+escola: "Breu"
 title: "Captura em aula — Aula 01 — para impressão"
 subtitle: "Folha de marcação para uso durante a aula"
 ---
@@ -15,7 +15,7 @@ subtitle: "Folha de marcação para uso durante a aula"
 
 **Data:** `___/___/____` · **Presentes:** ☐ Aluna A ☐ Aluna B · **Início:** `__:__` · **Fim:** `__:__` · **Duração efetiva:** `___ min`
 
-**Origem metodológica (anamnese):** Aluna A — não declarada · Aluna B — não declarada
+**Origem metodológica (anamnese):** Aluna A — Cubana · Aluna B — Escola livre
 
 ## Condições de contorno
 
