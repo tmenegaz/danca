@@ -48,13 +48,24 @@ function provar(rotulo, condicao, detalhe) {
   console.log('  FALHA ' + rotulo + (detalhe === undefined ? '' : '  → ' + JSON.stringify(detalhe)));
 }
 
-/* O CICLO REAL: a folha, o PO e o índice dele. Se for expurgado, o script diz NÃO FEITO — o que
- * ele guarda é a regra, e a regra prova-se com o que estiver no disco. */
-const PROF = 'rabo-gramde';
-const VARIANTE = 'ciclo-01-calango-bale-nivel-1-teste-1';
+/* O CICLO REAL: a folha, o PO e a DECLARAÇÃO. Se for expurgado, o script diz NÃO FEITO — o que ele
+ * guarda é a regra, e a regra prova-se com o que estiver no disco.
+ *
+ * A ESCOLA MUDOU DE `calango` PARA `breu` (20/11/2026), e não é cosmética: o `calango` foi
+ * expurgado, e a prova respondia «NÃO FEITO» — o que, na prática, é uma prova que não corre. Uma
+ * regra sem fixture viva é uma regra que ninguém confere.
+ *
+ * E A DECLARAÇÃO MUDOU DE CASA, o que a prova ainda não sabia. A tabela `_declaracao.porVariante`
+ * do schema foi RETIRADA a 07/11/2026 — o arquivo da variante é que é a fonte
+ * (`<ciclo>-<variante>-captura-declaracao.json`), e o schema é limpo no mesmo commit («migração que
+ * não deixa duas verdades»). A secção A comparava a função com uma tabela que já não existe; passa a
+ * compará-la com a declaração VERDADEIRA, e são 25 colunas em vez de 11 — a asserção ficou maior,
+ * não menor. */
+const PROF = 'demi-plie';
+const VARIANTE = 'ciclo-01-breu-rosa';
 const BASE = path.join(RAIZ, 'professores', PROF, 'ciclos');
-const CFG = path.join(BASE, `${VARIANTE}/captura-01.json`);
-const SCHEMA = path.join(BASE, 'ciclo-01-captura-schema.json');
+const CFG = path.join(BASE, `${VARIANTE}/captura-aula-01.json`);
+const DECL = path.join(BASE, `${VARIANTE}-captura-declaracao.json`);
 const PO = path.join(BASE, `${VARIANTE}/po-01.json`);
 
 const lerJson = (p) => JSON.parse(fs.readFileSync(p, 'utf8'));
@@ -116,23 +127,17 @@ function aulasDeFixture(cfg, corpo) {
 }
 
 (async () => {
-  if (!fs.existsSync(CFG) || !fs.existsSync(SCHEMA) || !fs.existsSync(PO)) {
-    console.error('provar-indice-de-lancamentos: o ciclo da calango não está no disco — NÃO FEITO.');
+  if (!fs.existsSync(CFG) || !fs.existsSync(DECL) || !fs.existsSync(PO)) {
+    console.error('provar-indice-de-lancamentos: o ciclo da breu não está no disco — NÃO FEITO.');
     process.exit(1);
   }
 
   // ---------------------------------------------------------------------------------------------
   console.log('A. A chave não é uma regra nova — reproduz a que o projecto já declara');
   {
-    // A CHAVE da declaração é o VARIANTE do `.conf`, e não o nome do pacote: o pacote chama-se
-    // `ciclo-01-<variante>`, a declaração chama-se `<variante>`. Confundir os dois foi o que o run
-    // 48 fez com a escola — é a mesma classe de erro, e por isso se lê do `.conf`.
-    const dec = lerJson(SCHEMA)._declaracao.porVariante[VARIANTE.replace(/^ciclo-\d+-/, '')];
-    if (!dec) {
-      console.error('provar-indice-de-lancamentos: a declaração do schema não tem a variante —'
-        + ' NÃO FEITO.');
-      process.exit(1);
-    }
+    /* A DECLARAÇÃO É O ARQUIVO DA VARIANTE — ver o cabeçalho. O nome é o do `.conf` VARIANTE, sem o
+     * prefixo `ciclo-NN-` que o pacote leva. */
+    const dec = lerJson(DECL);
     let iguais = 0; const div = [];
     for (const b of Object.values(dec.blocos)) {
       for (const [rotulo, c] of Object.entries(b.colunas || {})) {
@@ -140,8 +145,12 @@ function aulasDeFixture(cfg, corpo) {
         else div.push({ rotulo, calculada: Vistas.helpers.chaveDoItem(rotulo), declarada: c.chave });
       }
     }
-    provar('as 11 chaves DECLARADAS à mão são reproduzidas pela função (11 de 11)',
-      iguais === 11 && div.length === 0, { iguais, div });
+    /* 25, e não 11: é o número de colunas que a declaração desta variante tem. Se a declaração
+     * crescer, a asserção cresce com ela — a conta é feita, não escrita à mão. */
+    const declaradas = Object.values(dec.blocos || {})
+      .reduce((soma, b) => soma + Object.keys((b && b.colunas) || {}).length, 0);
+    provar('as ' + declaradas + ' chaves DECLARADAS são reproduzidas pela função',
+      declaradas > 0 && iguais === declaradas && div.length === 0, { iguais, declaradas, div });
     provar('o acento e o travessão não sobrevivem: «1ª posição — braços» → 1_posicao_bracos',
       Vistas.helpers.chaveDoItem('1ª posição — braços') === '1_posicao_bracos',
       Vistas.helpers.chaveDoItem('1ª posição — braços'));
@@ -153,7 +162,7 @@ function aulasDeFixture(cfg, corpo) {
   const cfg = lerJson(CFG);
   const corpo = itensDoCorpo(lerJson(PO));
   const dados = {
-    ciclo: '01', escola: 'calango', professor: PROF, criado_em: '2026-11-01T10:00',
+    ciclo: '01', escola: 'breu', professor: PROF, criado_em: '2026-11-01T10:00',
     apelidos: { aluna_a: 'Aluna A', aluna_b: 'Aluna B' },
     aulas: aulasDeFixture(cfg, corpo),
     _nota: 'fixture da prova',
@@ -178,8 +187,11 @@ function aulasDeFixture(cfg, corpo) {
         typeof m.aula === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(m.data)
         && typeof m.aluna === 'string' && typeof m.coluna === 'string'
         && typeof m.bloco === 'string' && typeof m.marca === 'string'), indice.marcas[0]);
+    /* O ASPECTO É UM DESTA TURMA — «1ª posição — pés» —, e não um do catálogo antigo: a fixture
+     * mudou de escola, e uma chave que não existe na folha faria esta asserção falhar por ausência
+     * do dado, não por defeito da função. */
     provar('…e a coluna dos itens do corpo é a CHAVE, não o texto',
-      indice.marcas.some((m) => m.coluna === 'sustentacao_ativa_de_mmii_forca_de_adagio')
+      indice.marcas.some((m) => m.coluna === '1_posicao_pes')
         && !indice.marcas.some((m) => /[ÁÉÍÓÚçãõ ]/.test(m.coluna)),
       [...new Set(indice.marcas.map((m) => m.coluna))]);
     provar('a rubrica sai como NÍVEL, por critério',
@@ -257,7 +269,7 @@ function aulasDeFixture(cfg, corpo) {
   // ---------------------------------------------------------------------------------------------
   console.log('\nF. O caderno lê o que o formulário grava');
   {
-    const meta = { id: '01', escola: 'calango', duracao_min: 60 };
+    const meta = { id: '01', escola: 'breu', duracao_min: 60 };
     // A VISTA PÚBLICA, e não a função interna: é o `caderno` que o gerador chama, e medir a
     // interna deixaria o caminho de fora sem ninguém notar.
     const caderno = Vistas.caderno({ meta, dados, aulas: ['06', '07'], captura: cfg });
@@ -285,8 +297,8 @@ function aulasDeFixture(cfg, corpo) {
     console.log('FALHOU — ' + falhas + ' de ' + total + ' asserção(ões).');
     process.exit(1);
   }
-  console.log('TUDO CERTO — ' + total + ' asserções: a chave reproduz as 11 chaves que o schema'
-    + ' declara à mão, as cinco famílias do §4.9 saem sem uma linha de prosa, a mesma coluna'
+  console.log('TUDO CERTO — ' + total + ' asserções: a chave reproduz TODAS as chaves que a'
+    + ' declaração da variante tem, as cinco famílias do §4.9 saem sem uma linha de prosa, a mesma coluna'
     + ' encadeia entre aulas, o `AL03` responde «em que aulas, desde quando», duas corridas dão o'
     + ' mesmo texto, e o caderno imprime as marcas e o ajuste que o professor escreveu.');
 })().catch((erro) => {

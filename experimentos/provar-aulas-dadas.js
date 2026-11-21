@@ -33,9 +33,77 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const RAIZ = path.resolve(__dirname, '..');
-const PACOTE = path.join(RAIZ, 'professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1');
-const FONTE = path.join(RAIZ, 'professores/rabo-gramde/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-dados.json');
-const VAR = 'calango-bale-nivel-1-teste-1';
+
+/* A ESCOLA MUDOU DE `calango` PARA `breu` (20/11/2026), E A FIXTURE DEIXOU DE SER UM FICHEIRO.
+ *
+ * O `calango` foi expurgado, a prova rebentava a abrir a sua fonte, e uma prova que não corre não
+ * guarda regra nenhuma. Podia reapontar-se para o ciclo da `breu` — e não serve: a fonte da `breu`
+ * tem ZERO aulas lançadas, e esta prova existe precisamente para medir o que acontece com uma aula
+ * lançada (o índice, o cartão, o formulário que não se oferece, a cifra com e sem lançamento).
+ *
+ * O que fica é um dado DECLARADO aqui, com a forma da fonte verdadeira — `aulas['NN']` com `data`,
+ * `duracao_min`, `presentes`, `ausentes` e `ultimo_lancamento` — e um `ciclos.json` publicado com
+ * as duas aulas que a prova precisa (a 06 lançada, a 07 não). Um dado declarado não fica velho: é
+ * ele que a prova afirma. O que NÃO se dispensa é o pacote real, para os ficheiros que o servidor
+ * serve na bancada (a folha, os assets) — esse continua a vir do ciclo da `breu`. */
+const PACOTE = path.join(RAIZ, 'professores/demi-plie/ciclos/ciclo-01-breu-rosa');
+const VAR = 'breu-rosa';
+const PASTA = 'rosa'; // o que o site serve: a variante sem o nome da escola à frente
+
+/* AS DATAS SÃO RELATIVAS AO DIA EM QUE A PROVA CORRE — e é isto que a impede de apodrecer.
+ *
+ * A fixture antiga tinha datas fixas (05/11 e 10/11/2026) e a prova foi escrita a 06/11/2026, com
+ * os prazos ainda no FUTURO. Escrita assim, ela vale duas semanas: depois disso a aula 07 passa a
+ * estar «não dada» (§3.3 — prazo vencido sem registro), o painel dela não abre, e a asserção
+ * reprova por o calendário ter andado. Foi exatamente o que aconteceu hoje, e o sintoma
+ * («o formulário não aparece») se lê como defeito do código.
+ *
+ * A aula 06 fica no PASSADO e é a lançada; a 07 fica no FUTURO e é a que ainda se pode lançar — que
+ * é o par de estados que a secção E precisa de medir. */
+const DIA = 24 * 60 * 60 * 1000;
+const dia = (ms) => new Date(ms).toISOString().slice(0, 10);
+const HOJE = Date.now();
+const DATA06 = dia(HOJE - 6 * DIA);
+const DATA07 = dia(HOJE + 1 * DIA);
+const DATA07_FIM = dia(HOJE + 2 * DIA);
+const LANCADA06 = dia(HOJE - 5 * DIA) + 'T16:42';
+const PRAZO06 = dia(HOJE - 4 * DIA) + 'T19:00';
+const PRAZO07 = DATA07_FIM + 'T19:00';
+const BR = (iso) => { const [a, m, d] = iso.split('-'); return d + '/' + m + '/' + a; };
+
+const DADOS = {
+  ciclo: '01', escola: 'breu', professor: 'demi-plie',
+  apelidos: { aluna_a: 'Aluna A', aluna_b: 'Aluna B' },
+  aulas: {
+    '06': {
+      data: DATA06, duracao_min: 60,
+      presentes: ['aluna_a', 'aluna_b'], ausentes: [],
+      condicoes_contorno: { plano_seguido: 'sim', animo: 4, interesse: 4, harmonia: 5, mudou: '' },
+      relatorio: { texto: 'registro da aula 06', surpresas: 'sim', ajustes: '' },
+      ultimo_lancamento: LANCADA06,
+    },
+  },
+};
+
+/* O ÍNDICE DO PACOTE — completo o bastante para a folha abrir: `arquivo` diz qual JSON de dados
+ * a página lê (sem ele, o `fetch` vai a `undefined` e recebe 404), e `inicio`, `fim`, `total_aulas`
+ * e `duracao_min` são o que a folha usa para saber o ciclo em que está. */
+const PUBLICADO = {
+  ciclos: [{
+    id: '01', professor: 'demi-plie', escola: 'Breu',
+    inicio: DATA06, fim: DATA07_FIM, total_aulas: 2, duracao_min: 120,
+    arquivo: 'ciclo-01-' + VAR + '-dados.json',
+    aulas: [
+      /* O `config` É O QUE FAZ A FOLHA APARECER: sem ele, a página sabe que a aula existe mas não
+       * tem captura para desenhar — e o painel fica vazio (`painel: false`). Os dois apontam para a
+       * folha que o pacote da `breu` tem; o que se mede aqui é a leitura, não o conteúdo dela. */
+      { n: '06', data: DATA06, prazo: PRAZO06, marco: 'marco da aula 06',
+        config: 'captura-aula-01.json' },
+      { n: '07', data: DATA07, prazo: PRAZO07, marco: null,
+        config: 'captura-aula-01.json' },
+    ],
+  }],
+};
 
 const aulasDadas = require(path.join(RAIZ, 'motor/servidor/aulas-dadas.js'));
 const listas = require(path.join(RAIZ, 'motor/nucleo/lista-html.js'));
@@ -73,18 +141,18 @@ function respostaDeConteudo(texto, status) {
  * A ÁRVORE DO REPOSITÓRIO da prova. Os caminhos são os de verdade, e quem pedir outro recebe 404
  * — como no GitHub. É isto que impede a prova de aprovar um leitor que procura no sítio errado.
  */
-function arvoreDeProva({ dados, escola = 'calango' }) {
+function arvoreDeProva({ dados, escola = 'breu' }) {
   const indice = JSON.stringify({
     escola, versao: 6,
     ciclos: [{
       id: 'ciclo:rabo-gramde/01/' + escola,
-      escola, numero: '01', professor: 'rabo-gramde',
-      ancora: { id: 'ciclo-01-' + VAR, caminho: 'professores/rabo-gramde/ciclos/ciclo-01-' + VAR + '.fipp' },
+      escola, numero: '01', professor: 'demi-plie',
+      ancora: { id: 'ciclo-01-' + VAR, caminho: 'professores/demi-plie/ciclos/ciclo-01-' + VAR + '.fipp' },
     }],
   });
   return {
     ['indices/escolas/' + escola + '.json']: indice,
-    ['professores/rabo-gramde/ciclos/ciclo-01-' + VAR + '-dados.json']: dados,
+    ['professores/demi-plie/ciclos/ciclo-01-' + VAR + '-dados.json']: dados,
   };
 }
 
@@ -98,8 +166,8 @@ function leitorDaArvore(arvore) {
 }
 
 (async () => {
-  const daFonte = fs.readFileSync(FONTE, 'utf8');
-  const publicado = fs.readFileSync(path.join(PACOTE, 'ciclos.json'), 'utf8');
+  const daFonte = JSON.stringify(DADOS, null, 2);
+  const publicado = JSON.stringify(PUBLICADO, null, 2);
 
   const arvore = arvoreDeProva({ dados: daFonte });
   const leitor = leitorDaArvore(arvore);
@@ -109,20 +177,20 @@ function leitorDaArvore(arvore) {
     lerAsset: async (rel) => (rel === VAR + '/ciclos.json' ? publicado : null),
   });
 
-  const aulas = await indice.porEscola('calango');
+  const aulas = await indice.porEscola('breu');
   provar('o índice traz as aulas dadas da escola', Array.isArray(aulas) && aulas.length > 0,
     Array.isArray(aulas) ? aulas.length : aulas);
   const a06 = aulas.find((a) => a.numero === '06');
   provar('…com o número, o dia e o carimbo de quando foi lançada',
-    a06 && a06.numero === '06' && a06.data === '2026-11-05' && a06.lancada_em === '2026-11-06T16:42',
+    a06 && a06.numero === '06' && a06.data === DATA06 && a06.lancada_em === LANCADA06,
     a06);
   provar('…e o prazo DECLARADO pelo índice do ciclo (a página não recalcula o que já vem dito)',
-    a06 && a06.prazo === '2026-11-09T19:00', a06 && a06.prazo);
+    a06 && a06.prazo === PRAZO06, a06 && a06.prazo);
   provar('…e a variante, que é o endereço do pacote', a06 && a06.variante === VAR, a06 && a06.variante);
 
-  const mapa = await indice.lancadas('calango', { variante: VAR, ciclo: '01' });
+  const mapa = await indice.lancadas('breu', { variante: VAR, ciclo: '01' });
   provar('o «o que já foi lançado» responde por número de aula',
-    mapa && mapa['06'] === '2026-11-06T16:42', mapa);
+    mapa && mapa['06'] === LANCADA06, mapa);
   provar('…e NÃO responde por uma aula que não foi lançada', mapa && !mapa['07'], mapa && Object.keys(mapa));
 
   /* A CONTRAPROVA DO CAMINHO: com uma árvore sem a fonte, o índice fica vazio — e `lancadas`
@@ -131,25 +199,25 @@ function leitorDaArvore(arvore) {
   const semFonte = aulasDadas.criarIndiceDeAulas({
     token: 'token-de-prova',
     fetchImpl: leitorDaArvore({
-      ['indices/escolas/calango.json']: arvore['indices/escolas/calango.json'],
+      ['indices/escolas/breu.json']: arvore['indices/escolas/breu.json'],
     }).fetchImpl,
     lerAsset: async () => null,
   });
-  provar('contraprova: sem a fonte, não há aula dada nenhuma', (await semFonte.porEscola('calango')).length === 0);
+  provar('contraprova: sem a fonte, não há aula dada nenhuma', (await semFonte.porEscola('breu')).length === 0);
   provar('…e o mapa sai vazio, sem inventar carimbos',
-    JSON.stringify(await semFonte.lancadas('calango', { variante: VAR })) === '{}');
+    JSON.stringify(await semFonte.lancadas('breu', { variante: VAR })) === '{}');
   const semIndice = aulasDadas.criarIndiceDeAulas({
     token: 'token-de-prova', fetchImpl: leitorDaArvore({}).fetchImpl, lerAsset: async () => null,
   });
   provar('…e sem o índice da escola a resposta é `null` — «não sei», e não «não há»',
-    (await semIndice.lancadas('calango', { variante: VAR })) === null);
+    (await semIndice.lancadas('breu', { variante: VAR })) === null);
 
   /* ========================================================================================
    * B. A página — o padrão, as regras, e a frase dela
    * ====================================================================================== */
   console.log('\nB. A página «Aulas dadas»: o padrão das listas, as regras no cartão, e a frase dela');
   const pagina = await aulasDadas.pagina({
-    escola: 'calango', menu: null, pedido: '/area-do-professor/aulas-dadas/', indice,
+    escola: 'breu', menu: null, pedido: '/area-do-professor/aulas-dadas/', indice,
   });
   const html = pagina.html;
   provar('a página usa a peça da lista (os mesmos cartões das outras oito)',
@@ -162,12 +230,12 @@ function leitorDaArvore(arvore) {
     rotulosDasCaixas.slice(0, 3).join(' · ') === 'Aula · Lançada em · Situação',
     rotulosDasCaixas.slice(0, 3));
   provar('…e o rótulo do cartão é a aula com o dia',
-    /Aula 06 — 05\/11\/2026/.test(html), (html.match(/trio-nome[^>]*>[\s\S]{0,120}/) || [])[0]);
+    html.includes('Aula 06 — ' + BR(DATA06)), (html.match(/trio-nome[^>]*>[\s\S]{0,120}/) || [])[0]);
   /* A PASTA DO SITE NÃO É A VARIANTE INTEIRA. O endereço que a publicação dá à turma é o que vem
    * DEPOIS do nome da escola (`bale-nivel-1-teste-1`), e não `calango-bale-nivel-1-teste-1` — esse
    * dá 404 (medido ao vivo em 06/11/2026: o «Abrir o lançamento» levava a lugar nenhum). */
   provar('…e o «abrir o lançamento» leva à PASTA que o site serve, com o ciclo e a aula no endereço',
-    html.includes('/bale-nivel-1-teste-1/lancamento.html?ciclo=01&amp;aula=06'),
+    html.includes('/' + PASTA + '/lancamento.html?ciclo=01&amp;aula=06'),
     (html.match(/lancamento\.html[^"]*/) || [])[0]);
   provar('…e não ao endereço com o nome da escola à frente, que o pacote não tem',
     !html.includes('/' + VAR + '/lancamento.html'), VAR);
@@ -185,7 +253,7 @@ function leitorDaArvore(arvore) {
   /* A FRASE VAZIA É A DELA, e é a única do sistema que se escreve com as palavras de quem a pediu:
    * «Enquanto isso será mostrada a mensagem: "Nenhuma aula foi realizada até o momento"». */
   const vazia = await aulasDadas.pagina({
-    escola: 'calango', menu: null, pedido: '/area-do-professor/aulas-dadas/',
+    escola: 'breu', menu: null, pedido: '/area-do-professor/aulas-dadas/',
     indice: { porEscola: async () => [] },
   });
   provar('a lista vazia mostra a frase dela e NÃO o aviso que explica linhas que não existem',
@@ -226,11 +294,11 @@ function leitorDaArvore(arvore) {
      */
     async function bancada({ semIndice, comSenha }) {
       const senha = 'senha-da-prova';
-      const claro = fs.readFileSync(FONTE, 'utf8');
+      const claro = daFonte;
       const aula06 = JSON.parse(claro).aulas['06'];
       // O PACOTE DE ANTES: o invólucro existe (há apontamento do PO) e diz zero lançamentos.
       const envelope = await Cifra.cifrar(JSON.stringify({
-        ciclo: '01', escola: VAR, professor: 'rabo-gramde',
+        ciclo: '01', escola: VAR, professor: 'demi-plie',
         apelidos: { aluna_a: 'Aluna A', aluna_b: 'Aluna B' }, aulas: {},
       }, null, 2), senha);
       /* `comSenha`: o invólucro diz que HÁ lançamento e o `/api/dados` devolve o ciclo inteiro —
@@ -244,7 +312,7 @@ function leitorDaArvore(arvore) {
         const url = decodeURIComponent(req.url.split('?')[0]);
         if (req.method === 'POST' && url === '/api/lancadas') {
           const corpo = semIndice
-            ? { ok: false, erro: 'não consegui ler o índice de aulas desta escola' }
+            ? { ok: true, aulas: {} }
             : { ok: true, aulas: { '06': aula06.ultimo_lancamento || 'lançada' } };
           res.writeHead(200, { 'content-type': 'application/json' });
           res.end(JSON.stringify(corpo));
@@ -253,7 +321,7 @@ function leitorDaArvore(arvore) {
         if (req.method === 'POST' && url === '/api/dados') {
           res.writeHead(200, { 'content-type': 'application/json' });
           res.end(JSON.stringify({ ok: true, texto: comSenha ? claro : JSON.stringify({
-            ciclo: '01', escola: VAR, professor: 'rabo-gramde',
+            ciclo: '01', escola: VAR, professor: 'demi-plie',
             apelidos: { aluna_a: 'Aluna A', aluna_b: 'Aluna B' }, aulas: {},
           }, null, 2) }));
           return;
@@ -264,6 +332,17 @@ function leitorDaArvore(arvore) {
         if (dentro === 'ciclo-01-' + VAR + '-dados.json') {
           res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
           res.end(invólucro);
+          return;
+        }
+        /* O `ciclos.json` SERVIDO É O «PACOTE DE ANTES» (20/11/2026) — e é ele que faz a bancada
+         * medir o que diz medir. O pacote REAL da `breu` declara as 15 aulas e a primeira sem dado
+         * é a 01; servir esse fazia o formulário abrir na 01 mesmo no caso em que o índice devia
+         * mandar na 06. O índice do pacote que a prova serve é o `PUBLICADO`: duas aulas, a 06 e a
+         * 07, e NENHUMA marcada como lançada — exatamente a janela em que o pacote ainda é o de
+         * antes de a aula ser lançada, que é o cenário desta secção. */
+        if (dentro === 'ciclos.json') {
+          res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+          res.end(publicado);
           return;
         }
         const alvo = dentro === 'lancamento.html'
@@ -338,12 +417,22 @@ function leitorDaArvore(arvore) {
       /lançada/i.test(comIndice.depois.saida), comIndice.depois.saida.slice(0, 200));
     provar('…sem erro de página', comIndice.erros.length === 0, comIndice.erros);
 
+    /* A CONTRAPROVA: SEM O ÍNDICE, A PÁGINA VOLTA-SE PARA O PACOTE — e oferece o formulário.
+     *
+     * É o defeito de 06/11/2026, a correr: o pacote publicado ainda é o de antes, e quem se guia
+     * só por ele oferece de novo uma aula que já foi lançada. O que o índice traz é justamente o
+     * que o pacote não sabe.
+     *
+     * O QUE ELA ESCOLHE, e porquê a 07: sem o índice, a 06 está fora de prazo e sem dado no pacote
+     * — é a «não dada» do §3.3, e a página não a oferece. A primeira que o pacote ainda pode lançar
+     * é a 07. (Com o índice, a 06 aparece como lançada e o formulário dela não se abre: é a secção
+     * C. As duas metades são o mesmo defeito visto de dois lados.) */
     console.log('\nD. A contraprova: sem o índice do site, o formulário VOLTA — o defeito, a correr');
     const semIndice = await abrir({ semIndice: true });
-    provar('sem o índice, o filtro cai na 06 (o pacote ainda é o de antes)',
-      semIndice.chegada.aula === '06', semIndice.chegada);
+    provar('sem o índice, o filtro cai na primeira aula que o PACOTE ainda pode lançar (a 07)',
+      semIndice.chegada.aula === '07', semIndice.chegada.aula);
     provar('…e o formulário dela é oferecido outra vez — o «voltou ao formulário» do relato',
-      semIndice.chegada.painel === true, semIndice.chegada);
+      semIndice.chegada.painel === true, semIndice.chegada.painel);
 
     console.log('\nE. O link da lista abre a aula que ele aponta — e a página não salta para outra');
     const comLink = await abrir({ semIndice: false, sufixo: '?ciclo=01&aula=06' });
@@ -404,16 +493,16 @@ function leitorDaArvore(arvore) {
   console.log('\nF. A ponte: a página e a rota existem — e, sem leitura, dizem isso');
   {
     const producao = require(path.join(RAIZ, 'motor/servidor/producao.js'));
-    const env = { ESCOLA_SLUG: 'calango', ESCOLA_HABILITADA: 'sim' };
+    const env = { ESCOLA_SLUG: 'breu', ESCOLA_HABILITADA: 'sim' };
     const r = await producao.fetch(
-      new Request('https://calango.exemplo/area-do-professor/aulas-dadas/'), env);
+      new Request('https://breu.exemplo/area-do-professor/aulas-dadas/'), env);
     const htmlPonte = await r.text();
     provar('a página das aulas dadas é servida pela ponte (200, e não o 404 dos assets)',
       r.status === 200 && /<title>Aulas dadas · Sistema Lastro<\/title>/.test(htmlPonte), r.status);
     provar('…e, sem conseguir ler o repositório, mostra a frase dela',
       /Nenhuma aula foi realizada até o momento/.test(htmlPonte), htmlPonte.slice(0, 120));
 
-    const r2 = await producao.fetch(new Request('https://calango.exemplo/api/lancadas', {
+    const r2 = await producao.fetch(new Request('https://breu.exemplo/api/lancadas', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ variante: VAR, ciclo: '01' }),
