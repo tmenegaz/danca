@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-21T11:38:49-0300`
-Commit atual: `ceeddca5` — chore(estrutura): fechar os derivados — âncoras e índices
+Gerado em: `2026-11-21T11:42:18-0300`
+Commit atual: `26de0e7f` — fix(estrutura): a Aula 02 passa a existir — a regra do manifesto era três, e uma não crescia
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+26de0e7f fix(estrutura): a Aula 02 passa a existir — a regra do manifesto era três, e uma não crescia
 ceeddca5 chore(estrutura): fechar os derivados — âncoras e índices
 4600c998 feat(acervo): envelope/po-20261121-1120.json
 ac7f39c2 feat(acervo): envelope/.indice.json
@@ -101,7 +102,6 @@ ee0c4f1a feat(acervo): envelope/.indice.json
 e02b9430 feat(acervo): envelope/.indice.json
 8d27c001 chore(estrutura): o HANDOFF aponta para o commit de hoje
 1a9baf5b docs(estrutura): a conferência ao vivo do caminho da porta, medida
-3d11d8e7 fix(estrutura): a coluna nomeia o que entrega, e a janela usa as peças da folha
 ```
 
 ## Por professor

@@ -3674,7 +3674,7 @@ recorta» como «a rota está fechada».
 | `provar-geracao` · `provar-aula-dada` · `provar-derivador-da-aula` · `provar-objetivos-por-aula` · `provar-aula-prosa` · `provar-indices` | **54 · 34/34 · 35/35 · 55/55 · 19 · 64/64** — verdes |
 | `node tools/check-identidade.js` · `check-sem-destruicao` · `check-indices` · `check-pacote` · `hash-ciclo --check` | **0 reprovações (22 ok)** · **ok** · **16/16** · **0 erros, 1 aviso** · **cadeia intacta** |
 | Falhas que **já existiam**, medidas na linha de base | `provar-manifesto-do-plano` **3** e `provar-manifesto-sem-base` **1** — iguais antes e depois desta entrega; `provar-navegacao` não corre (a `calango` não tem pacote-zero); `provar-celular` **14 de 15** e `provar-producao` **142 de 159** — idem |
-| Ao vivo | **Não executado** — o deploy leva o pacote e o manifesto; a conferência é depois do push |
+| Ao vivo, medido depois do deploy (26de0e7f) | `/aulas/` lista **`rosa/aula-02.html`**; `/rosa/plano` mostra a coluna «Ação» com **Abrir** na 01 **e** na 02, e «Criar aula» a partir da **03**; `/rosa/aula-02.html` responde **200** (23 KB) com o título «Plano para a Aula 02 — transferir o peso entre os pés sem perder o alinhamento»; `/ciclos/planos/` e `/area-do-professor/anamnese/` servem `data-paginar data-por-pagina="25"` com o rodapé `hidden` — a peça está lá, e com 2 e 1 registos não aparece, que é a regra |
 
 ### Executado na fotografia anterior (21/11/2026 — a aula 02 que ela criou e não existia)
 
