@@ -8,11 +8,20 @@
  * É o que fecha o ciclo «do zero»: o envelope do PO (que referencia a anamnese e o plano) é
  * tudo o que o gerador precisa — desde que as fontes derivadas existam no repositório.
  *
- * POLÍTICA DE SEGURANÇA (proveniência acrescenta, não edita): cada fonte só é ESCRITA se ainda
- * não existir. Um arquivo que já existe (o ciclo Diaghilev original tem fontes escritas à mão)
- * NUNCA é sobrescrito pelo derivador — o que o derivador gera é o esqueleto do ciclo que nasce
- * do zero, não uma reescrita do que já foi lançado. O `DOCS` e o schema também só são tocados
- * quando o ciclo ainda está incompleto.
+ * POLÍTICA DE SEGURANÇA (proveniência acrescenta, não edita) — e ela tem DUAS metades, porque o
+ * 22/10/2026 mostrou que a primeira, sozinha, estava aplicada ao alvo errado:
+ *
+ *   · **o DERIVADO muda com o que o deriva.** Um ciclo cujo PO foi eliciado duas vezes tinha o
+ *     `-po.md` novo e a `-aula-01.md` a descrever o PO anterior, com um `.fipp` a certificar o
+ *     conjunto. A versão substituída não se perde: fica em `historico/` como elo;
+ *   · **o MATERIAL não se reescreve.** E a aula que já foi dada é material: o `-aula-NN.md` e o
+ *     `-captura-aula-NN.md` descrevem o que se planeou e o que se observou numa aula que
+ *     aconteceu. Reescrevê-los é reescrever a intenção por baixo do facto — o que o
+ *     `ARQUITETURA-AULA.md` §1.1 proíbe a todo o sistema. A regra inteira está em
+ *     `motor/nucleo/aulas-do-ciclo.js`, e é a MESMA que o `regerar-derivados.js` usa.
+ *
+ * O `DOCS` só é tocado quando o ciclo ainda está incompleto, e nunca para tirar uma aula: a lista
+ * de documentos de um ciclo só cresce.
  *
  * É infraestrutura (HTTP de saída), não lógica: vive em `servidor/`. Só usa `fetch` (Web
  * Standard). O token chega por parâmetro (injeção).
@@ -39,6 +48,8 @@ const {
   derivarHarmonizacao,
   notacaoEscolhida,
 } = require('../nucleo/derivar-ciclo.js');
+/* QUE AULAS UMA REGENERAÇÃO PODE ESCREVER (21/11/2026) — a regra é UMA e vive lá. */
+const { aulasLancadas, podeRegenerar } = require('../nucleo/aulas-do-ciclo.js');
 
 // O caminho de uma fonte derivada, a partir do contexto — a MESMA regra dos `-po.md`/`-plano.md`.
 // A variante é o `<escola>-<turma>` desde 16/10/2026 (o ciclo passou a ser DA TURMA): a
@@ -500,10 +511,28 @@ function docsAtuais(texto) {
 /**
  * A lista completa de `DOCS` do ciclo «do zero»: o que o derivador gera, na ordem do manifesto
  * de referência (plano, harmonização, aulas, captura, notação+glossário, referências).
+ *
+ * AS AULAS QUE JÁ ESTÃO DECLARADAS SOBREVIVEM (21/11/2026). Antes, esta função devolvia sempre
+ * `aula-01`/`captura-aula-01`, e a lista substituía a linha inteira do `.conf`: um ciclo que já
+ * tivesse a aula 02 — criada pelo botão de criar a aula, quando ele existir — perdia-a do `DOCS`
+ * na primeira gravação que passasse por aqui, e a fonte deixava de compor o pacote sem que
+ * ninguém a tivesse apagado. «As outras ficam e não se apagam» é a regra; a lista só CRESCE.
  */
-function docsGerados({ plano }) {
+function docsGerados({ plano, atuais }) {
   const notacao = notacaoEscolhida(plano);
-  const docs = ['plano', 'harmonizacao', 'aula-01', 'captura-aula-01'];
+  /* Toda a família de aula já declarada, na ordem em que estava. `aula-01`/`captura-aula-01` é
+   * o mínimo de um ciclo que nasce; o resto vem do que o manifesto já tinha. */
+  const declaradas = (Array.isArray(atuais) ? atuais : [])
+    .filter((d) => /^(captura-)?aula-\d+$/.test(d));
+  const aulas = ['01'];
+  for (const d of declaradas) {
+    const m = /^(captura-)?aula-(\d+)$/.exec(d);
+    if (!m) continue;
+    if (!m[1] && aulas.indexOf(m[2]) === -1) aulas.push(m[2]);
+  }
+  aulas.sort((a, b) => Number(a) - Number(b));
+  const docs = ['plano', 'harmonizacao'];
+  for (const nn of aulas) docs.push('aula-' + nn, 'captura-aula-' + nn);
   if (notacao) docs.push('notacao', 'glossario-' + slugDe(notacao));
   docs.push('referencias');
   return docs;
@@ -542,7 +571,8 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
   const escrever = async ({ plano, po, contexto, linhaDeBase, anamneses, poMarkdown }) => {
     const ctx = contexto || {};
     const escolaNome = ctx.escolaNome || ctx.escola;
-    const relatorio = { conf: null, escritas: [], puladas: [], elos: [], docs: null, schema: null };
+    const relatorio = { conf: null, escritas: [], puladas: [], elos: [], travadas: [], reparadas: [],
+      docs: null, schema: null };
     /*
      * AS GRAVAÇÕES DESTE «GUARDAR» ACUMULAM AQUI E SAEM NUM COMMIT SÓ (22/10/2026).
      *
@@ -635,6 +665,11 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
       po, contexto: ctx, linhaDeBase, anteriores: dadosAnteriores, anamneses,
     });
 
+    /* QUAIS AULAS JÁ ACONTECERAM (21/11/2026). O facto é o registo do lançamento, em `aulas` —
+     * ver `motor/nucleo/aulas-do-ciclo.js` para a regra e para a janela que ela deixa. */
+    const lancadas = aulasLancadas(dadosAnteriores);
+    const daAula = (nn, derivar) => ({ deAula: nn, md: derivar });
+
     const fontes = [
       /* A LINHA DE BASE DA TURMA VAI AO GUIA (06/11/2026). O eixo do Corpo da Aula 01 é o
        * recorte do passo 4 e a leitura do passo 3, e este escritor não os passava: o guia só
@@ -647,9 +682,13 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
        * `anamneses` é `{aluna: carimbo}`, resolvido por quem chama (`rotas.js`), porque o
        * derivador é puro e não lê o acervo. Opcional: sem ele, a linha de cada aluna sai com o
        * único link que não precisa de carimbo — o de fazer a anamnese. */
-      { sufixo: '-aula-01.md',
-        md: derivarAula01({ plano, po, contexto: Object.assign({}, ctx, { aulas: aulasDoCiclo }),
-          calibracao: cal, linhaDeBase, anamneses }) },
+      /* A DERIVAÇÃO É PREGUIÇOSA (`md` pode ser uma função) desde 21/11/2026, e por um motivo
+       * medido: a partir da primeira aula dada, cada «Guardar» do PO passaria a compor o texto
+       * inteiro da aula — dezenas de KB de markdown — para o deitar fora no passo 3. É CPU do
+       * Worker gasta a construir o que a regra proíbe gravar. */
+      { sufixo: '-aula-01.md', ...daAula('01', () => derivarAula01({
+          plano, po, contexto: Object.assign({}, ctx, { aulas: aulasDoCiclo }),
+          calibracao: cal, linhaDeBase, anamneses })) },
       { sufixo: '-referencias.md', md: derivarReferencias({ plano, contexto: ctx }) },
       /* O `plano` VAI (06/11/2026) — e faltava aqui. A declaração `porVariante` passou a recebê-lo
        * (é dela que saem as colunas do schema), e a FOLHA não o recebia: o schema declarava as
@@ -659,8 +698,8 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
       /* A LINHA DE BASE VAI TAMBÉM À FOLHA E AO JSON DE DADOS (06/11/2026). Sem ela, os dois
        * liam o `sujeitos` do PO e a turma saía com uma aluna a mais — a que o PO herdou de um
        * envelope anterior à regra. Ver `elencoDoCiclo` em `derivar-ciclo.js`. */
-      { sufixo: '-captura-aula-01.md',
-        md: derivarCaptura({ po, plano, contexto: ctx, linhaDeBase, anamneses }) },
+      { sufixo: '-captura-aula-01.md', ...daAula('01', () => derivarCaptura({
+          po, plano, contexto: ctx, linhaDeBase, anamneses })) },
       { sufixo: '-harmonizacao.md', md: derivarHarmonizacao({ plano, po, contexto: ctx }) },
       { sufixo: '-dados.json', md: dadosDerivados },
     ];
@@ -782,7 +821,35 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
         relatorio.escritas.push({ caminho, ok: false, erro: atual.erro });
         continue;
       }
-      if (atual.existe && atual.texto === fonte.md) {
+      /*
+       * A AULA QUE JÁ FOI DADA NÃO SE REESCREVE (21/11/2026).
+       *
+       * A REGRA DA PESQUISADORA: «regenerar o ciclo afecta só a aula que ainda não foi dada; as
+       * outras ficam e não se apagam.» O `-aula-NN.md` e o `-captura-aula-NN.md` são o plano e a
+       * folha de observação DAQUELA aula; depois de ela acontecer, a mesma fonte é facto
+       * (`ARQUITETURA-AULA.md` §1.1). O «Guardar» do PO é o gesto da cascata do elenco e regera o
+       * ciclo inteiro: sem esta guarda, corrigir o elenco hoje reescrevia o plano de uma aula
+       * dada, e o diff de proveniência passaria a mostrar como mudança do professor uma mudança
+       * que ele não fez.
+       *
+       * A EXCEPÇÃO NÃO É UMA LICENÇA, é uma reparação: se a fonte da aula dada NÃO EXISTE, não há
+       * facto a preservar — reconstrói-se, e o relatório diz que foi reconstruída. Um buraco no
+       * pacote não é prova de nada.
+       */
+      if (fonte.deAula && !podeRegenerar(fonte.deAula, lancadas)) {
+        if (atual.existe) {
+          relatorio.travadas.push({
+            caminho, aula: fonte.deAula,
+            motivo: 'a aula ' + fonte.deAula + ' já foi lançada — a fonte é facto, e uma derivação '
+              + 'não a reescreve nem a apaga',
+          });
+          relatorio.puladas.push(caminho);
+          continue;
+        }
+        relatorio.reparadas.push({ caminho, aula: fonte.deAula, motivo: 'a fonte da aula lançada faltava no repositório' });
+      }
+      const texto = typeof fonte.md === 'function' ? fonte.md() : fonte.md;
+      if (atual.existe && atual.texto === texto) {
         relatorio.puladas.push(caminho);
         continue;
       }
@@ -791,7 +858,7 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
         juntar(elo, atual.texto);
         relatorio.elos.push({ de: caminho, para: elo });
       }
-      juntar(caminho, fonte.md);
+      juntar(caminho, texto);
       relatorio.escritas.push({ caminho });
     }
 
@@ -856,7 +923,8 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
 
     const atuais = docsAtuais(confTexto);
     if (!atuais.includes('aula-01')) {
-      const novoDocs = docsGerados({ plano });
+      /* AS AULAS JÁ DECLARADAS SOBREVIVEM À LISTA NOVA (21/11/2026) — ver `docsGerados`. */
+      const novoDocs = docsGerados({ plano, atuais });
       confTexto = confTexto.replace(/^DOCS="[^"]*"/m, 'DOCS="' + novoDocs.join(' ') + '"');
       relatorio.docs = { ok: true, docs: novoDocs };
     } else {

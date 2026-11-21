@@ -153,6 +153,51 @@ mudar. O diff responde isso sem que ninguém precise justificar por escrito: a m
 > momento. Ver o `REGISTRO.md`, 30/09/2026, *"Os pontos 2, 3 e 4 fechados: a grafia, o campo
 > `professor` e duas pendências que a medição derrubou"*.
 
+### 1.3 A regeneração derivada não reescreve a aula dada
+
+> **Regra declarada pela pesquisadora, 21/11/2026:** *«regenerar o ciclo afecta só a aula que
+> ainda não foi dada; as outras ficam e não se apagam.»*
+
+A §1.1 vale para os dois sentidos: o professor ajusta o plano até a aula acontecer, e **o
+derivador também não pode reescrevê-lo depois**. O artigo que faltava dizer é este: o
+`-aula-NN.md` e o `-captura-aula-NN.md` são o plano e a folha de observação **daquela aula**, e
+uma vez que a aula aconteceu eles são facto — pela mesma razão que fecha a autonomia do professor.
+
+**O caminho que tornava isso um defeito era o mais banal do sistema.** O «Guardar» do PO é o gesto
+da cascata do elenco: tira-se uma aluna, grava-se, e o `escrever-ciclo.js` regera o ciclo
+inteiro. A lista de fontes tinha a aula escritas à mão, e sem condição: corrigir o elenco hoje
+reescrevia o plano de uma aula que já tinha acontecido, arquivava a versão verdadeira em
+`historico/`, e o diff de proveniência passava a mostrar como **mudança do professor** uma
+mudança que ele não fez. A `P-03` é violada no ponto exacto em que a cadeia de custódia é lida.
+
+**O que decide, e o que não decide.** O facto é o **registro do lançamento** — `aulas[NN]` no
+`-dados.json` —, e não o juízo `planejada`/`dada`/`lancada`/`nao_dada`: esse depende de um relógio,
+e um derivador não tem relógio nem deve ter. É o mesmo critério do índice (§4.2), que guarda o
+facto (`lancada`) e deixa o juízo para quem tem um *agora*. A janela que sobra — aula já
+acontecida, dentro do prazo, ainda sem lançamento — é exactamente a janela em que o plano ainda é
+ajustável: enquanto o plano é intenção, ele continua a poder ser derivado.
+
+**A regra é uma só, e vive num sítio só:** `motor/nucleo/aulas-do-ciclo.js`. Os dois caminhos que
+regeram um ciclo usam-na — o escritor do Worker (`escrever-ciclo.js`, no «Guardar» do PO) e o
+comando local (`tools/regerar-derivados.js`). Ela faz três coisas, e a terceira é um compromisso
+com o pacote:
+
+| o que | onde |
+|:--|:--|
+| não **reescreve** a fonte da aula lançada | os dois caminhos, e o relatório diz `travadas` com o motivo |
+| não **arquiva elo** dela em `historico/` | não houve substituição, logo não há elo a inventar |
+| não **apaga** nenhuma aula do ciclo | `DOCS` só cresce: a lista de documentos nunca tira uma aula |
+
+**A excepção é uma reparação, e está medida.** Se a fonte da aula lançada **não existe** — alguém
+apagou o ficheiro —, não há facto a preservar: reconstrói-se, e o relatório diz `reparadas`. Um
+buraco no pacote não é prova de nada.
+
+> **Prova:** `experimentos/provar-aula-dada.js` — **34 asserções**. Com a regra desligada caem
+> **10** delas (duas na secção A, seis na B, duas na D), e o dano fica escrito no relatório: o plano
+> e a folha vão para `historico/` como elos. A secção C — o controlo negativo — é a que impede o
+> pior modo de passar: sem ela, uma prova verde poderia estar a medir um escritor que **não escreve
+> nada**.
+
 ## 2. A linha de corte
 
 > **A linha de corte de uma aula é o registro da última aula que teve dado — por ORDEM DE

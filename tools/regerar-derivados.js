@@ -23,6 +23,14 @@
  *     tem `aulas` dentro. Regerá-lo a partir de `derivarDados` escreveria `aulas: {}` por cima
  *     dos lançamentos, que é a única perda irreversível que este comando poderia causar.
  *
+ * E ELE NÃO REESCREVE A AULA QUE JÁ FOI DADA (21/11/2026). A regra é a mesma do Worker — «regenerar
+ * o ciclo afecta só a aula que ainda não foi dada», em `motor/nucleo/aulas-do-ciclo.js` —, e ela
+ * lê-se do `-dados.json`, que é só LIDO aqui: tem `aulas[NN]` quem já foi lançada, e o
+ * `-aula-NN.md`/`-captura-aula-NN.md` dessa aula sai da lista antes de qualquer comparação. Sem
+ * isto, este comando — que existe justamente para pôr os derivados em dia quando o derivador muda —
+ * passaria por cima do plano de uma aula que já aconteceu, e a mudança apareceria no diff de
+ * proveniência como se fosse do professor.
+ *
  * E ele NÃO GRAVA por omissão. Sem `--escrever` mostra o que mudaria, ficheiro a ficheiro, com
  * as linhas que entram e as que saem — porque a pergunta «o derivador novo muda o meu ciclo?» se
  * responde lendo, e a gravação responde-se depois de ler.
@@ -46,6 +54,7 @@ const {
 const { varianteDoContexto } = require(path.join(RAIZ, 'motor/servidor/escrever-po.js'));
 const { linhaDeBaseDaTurma } = require(path.join(RAIZ, 'motor/nucleo/linha-de-base.js'));
 const { calibracaoDoConf } = require(path.join(RAIZ, 'motor/servidor/escrever-ciclo.js'));
+const { aulasLancadas, podeRegenerar } = require(path.join(RAIZ, 'motor/nucleo/aulas-do-ciclo.js'));
 
 const argv = process.argv.slice(2);
 const ESCREVER = argv.includes('--escrever');
@@ -122,6 +131,35 @@ const contexto = {
 const plano = doPlano.envelope;
 const po = doPo.envelope;
 const aulas = (pegarDoConf('DOCS').match(/aula-\d+/g) || []).map((d) => d.slice(5));
+
+/*
+ * QUAIS AULAS JÁ ACONTECERAM (21/11/2026) — lido do `-dados.json`, e só LIDO.
+ *
+ * O ficheiro não é derivado por este comando (ver o cabeçalho), mas é a única fonte do facto: tem
+ * `aulas[NN]` quem já foi lançada, e a aula lançada não se reescreve. Sem `-dados.json` — um ciclo
+ * que nunca foi lançado — o conjunto sai vazio, e todas as aulas continuam a poder ser regeradas.
+ *
+ * A PRECEDÊNCIA É A DA `fonte_dados()` (`tools/lib-fontes.sh:52`): a fonte da variante quando
+ * existe, senão a compartilhada. Não é zelo: um ciclo cujo `-dados.json` é o `ciclo-01-dados.json`
+ * partilhado tem os lançamentos LÁ, e ler só o caminho da variante daria «nenhuma aula lançada» —
+ * o silêncio que faz a regra não fazer nada.
+ */
+function fonteDosDados() {
+  const daVariante = path.join(pastaDoCiclo, 'ciclo-' + ciclo + '-' + variante + '-dados.json');
+  if (fs.existsSync(daVariante)) return daVariante;
+  const compartilhado = path.join(pastaDoCiclo, 'ciclo-' + ciclo + '-dados.json');
+  return fs.existsSync(compartilhado) ? compartilhado : null;
+}
+let dadosDoCiclo = null;
+const caminhoDosDados = fonteDosDados();
+if (caminhoDosDados) {
+  try { dadosDoCiclo = JSON.parse(fs.readFileSync(caminhoDosDados, 'utf8')); } catch { dadosDoCiclo = null; }
+}
+const lancadas = aulasLancadas(dadosDoCiclo);
+if (lancadas.size) {
+  console.log('aulas lançadas: ' + [...lancadas].sort().join(', ')
+    + ' — a fonte destas não é reescrita (o plano de uma aula dada é facto)');
+}
 
 /*
  * A LINHA DE BASE DA TURMA — a mesma escolha que o Worker faz (06/11/2026).
@@ -205,12 +243,12 @@ const fontes = [
    * secção do plano muda no DERIVADOR, e sem esta linha o ciclo já gerado continuaria com o
    * título antigo enquanto o formulário mostrava o novo. */
   { sufixo: '-plano.md', texto: derivarPlano(plano, { linhaDeBase }).markdown },
-  { sufixo: '-aula-01.md', texto: derivarAula01({ plano, po, contexto: Object.assign({}, contexto, { aulas }), calibracao: cal, linhaDeBase, anamneses }) },
+  { sufixo: '-aula-01.md', deAula: '01', texto: derivarAula01({ plano, po, contexto: Object.assign({}, contexto, { aulas }), calibracao: cal, linhaDeBase, anamneses }) },
   { sufixo: '-referencias.md', texto: derivarReferencias({ plano, contexto }) },
   /* A LINHA DE BASE VAI À FOLHA (06/11/2026) — é dela que saem as LINHAS das tabelas, e sem
    * ela a folha regerada voltaria a listar o elenco do PO (com a aluna a mais). Ver
    * `elencoDoCiclo` em `derivar-ciclo.js`. */
-  { sufixo: '-captura-aula-01.md', texto: derivarCaptura({ po, plano, contexto, linhaDeBase }) },
+  { sufixo: '-captura-aula-01.md', deAula: '01', texto: derivarCaptura({ po, plano, contexto, linhaDeBase }) },
   { sufixo: '-harmonizacao.md', texto: derivarHarmonizacao({ plano, po, contexto }) },
 ];
 const notacao = notacaoEscolhida(plano);
@@ -220,10 +258,21 @@ if (notacao) {
 }
 
 let mudaram = 0;
+let travadas = 0;
 for (const fonte of fontes) {
   const destino = path.join(pastaDoCiclo, 'ciclo-' + ciclo + '-' + variante + fonte.sufixo);
   const antes = fs.existsSync(destino) ? fs.readFileSync(destino, 'utf8') : null;
   const relativo = path.relative(RAIZ, destino);
+  /* A AULA JÁ DADA NÃO SE REGERA (21/11/2026) — a regra está em `aulas-do-ciclo.js`. Ausente, a
+   * fonte reconstrói-se: não há facto a preservar, e um buraco no pacote não é prova de nada. */
+  if (fonte.deAula && !podeRegenerar(fonte.deAula, lancadas)) {
+    if (antes !== null) {
+      travadas += 1;
+      console.log('travada    ' + relativo + '  (aula ' + fonte.deAula + ' já lançada)');
+      continue;
+    }
+    console.log('reparada   ' + relativo + '  (a fonte da aula lançada faltava)');
+  }
   if (antes === fonte.texto) {
     console.log('igual      ' + relativo);
     continue;
@@ -251,4 +300,8 @@ if (!mudaram) {
     + professor + ' ' + ciclo + ' ' + variante + '` e regenere o pacote.');
 } else {
   console.log('\n' + mudaram + ' fonte(s) mudariam. Nada foi gravado — `--escrever` grava.');
+}
+if (travadas) {
+  console.log(travadas + ' fonte(s) da aula já lançada ficaram como estavam: o plano de uma aula '
+    + 'dada é facto, e este comando não o reescreve.');
 }

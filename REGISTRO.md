@@ -57147,3 +57147,61 @@ do espaço passa a contar as do config; 53/53).
 
 **O que ainda não está feito.** A `-aula-01.md` continua com as linhas de técnica repetidas na §5 —
 ela melhora com a mesma fusão, mas só quando for re-derivada com o elenco certo (ver acima).
+
+## 21/11/2026 — A aula que já foi dada não se reescreve por uma regeneração
+
+**O que motivou.** A regra, na letra da pesquisadora: «regenerar o ciclo afecta só a aula que já não
+foi dada; as outras ficam e não se apagam». A medição mostrou que a regra **não existia em lado
+nenhum**: as duas fontes da aula (`-aula-01.md` e `-captura-aula-01.md`) estavam escritas à mão na
+lista do `escrever-ciclo.js`, e sem condição. O «Guardar» do PO é o gesto da cascata do elenco —
+tirar uma aluna e gravar —, e ele regera o ciclo inteiro: corrigir o elenco de hoje reescrevia o
+plano de uma aula que já tinha acontecido, mandava a versão verdadeira para `historico/` como elo,
+e o diff de proveniência passava a apresentar como **mudança do professor** uma mudança que ele não
+fez. O mesmo no `tools/regerar-derivados.js`, cuja razão de existir é pôr os derivados em dia.
+
+**O que foi decidido.** O facto que tranca uma aula é o **registro do lançamento** (`aulas[NN]` no
+`-dados.json`), e não o juízo `planejada`/`dada`/`lancada`/`nao_dada` — esse depende de um relógio,
+e um derivador não tem relógio nem deve ter. É o mesmo critério que o índice já usa desde 15/11
+(guarda «o facto, não o juízo»). A janela que sobra — aula acontecida, dentro do prazo, ainda sem
+lançamento — é exactamente a janela em que o plano ainda é ajustável: enquanto é intenção, pode ser
+derivado.
+
+A regra vive **num sítio só**: `motor/nucleo/aulas-do-ciclo.js`. Duas cópias de uma regra divergem
+ao primeiro caso novo — é o que a `eixos.js` já tinha ensinado —, e aqui a segunda cópia seria entre
+o Worker e a linha de comando. Os dois caminhos usam a mesma função, e ela faz três coisas: **não
+reescreve** a fonte da aula lançada; **não inventa elo** em `historico/` (não houve substituição);
+e **não apaga** nenhuma aula do ciclo — o `DOCS` passou a **só crescer** (`docsGerados` preserva as
+famílias `aula-NN`/`captura-aula-NN` já declaradas, em vez de as substituir por uma lista fixa).
+
+**A excepção, e porque não é licença.** Se a fonte da aula lançada **não existe**, não há facto a
+preservar: reconstrói-se, e o relatório diz `reparadas`. Um buraco no pacote não é prova de nada.
+
+**Motivo declarado — `tools/` é congelado.** `tools/regerar-derivados.js` mudou porque é um dos dois
+caminhos que regeram um ciclo, e deixá-lo de fora deixaria a regra a valer para o Worker e a não
+valer para o comando que existe precisamente para reescrever derivados — o pior dos dois mundos.
+A alteração é a leitura do `-dados.json` (só leitura, com a precedência da `fonte_dados()` do
+`lib-fontes.sh:52`) e a marcação das duas fontes da aula; a lista do que ele escreve não mudou, e
+`--escrever` continua a ser necessário para gravar. Não foi junto com conteúdo pedagógico.
+
+**Onde entrou.** `motor/nucleo/aulas-do-ciclo.js` (novo — a regra); `motor/servidor/escrever-ciclo.js`
+(a guarda no passo 3, os relatórios `travadas`/`reparadas`, a derivação preguiçosa das fontes da aula
+e o `docsGerados` que só cresce); `tools/regerar-derivados.js`; `ARQUITETURA-AULA.md` §1.3 (novo);
+`experimentos/provar-aula-dada.js` (novo — **34/34**).
+
+**Prova, e a mutação.** Com a regra desligada caem **10 das 34** asserções, e o dano fica escrito no
+relatório: o plano e a folha vão para `historico/` como elos. A secção C é o controlo negativo — sem
+lançamento, a aula **é** escrita —, porque sem ela uma prova verde poderia estar a medir um escritor
+que não escreve nada.
+
+**Uma prova vermelha antiga, consertada no caminho.** `provar-um-commit-por-guardar` estava em
+**5 de 21** já no `HEAD` (conferido em worktree): media «oito caminhos» e «seis escritas», números
+escritos à mão que envelheceram quando a notação e o glossário entraram no escritor. O invariante
+que ela existe para medir — *todo o lote num commit só* — passou a ser medido pela **relação**
+(árvore = escritas + o `.conf` + a declaração da variante) e por **nome** (as oito fontes de um ciclo
+«do zero» estão todas lá). **22/22**, e a mutação que tira a notação do lote faz cair a asserção por
+nome.
+
+**O que continua por fazer.** O botão de criar a aula seguinte. Esta entrada entrega a regra que ele
+precisa de respeitar, não o botão: hoje só a aula 01 tem derivador, e a lista de fontes do escritor
+continua a nomear `01` como a aula a derivar. É o `derivador da aula NN` que falta, e é o próximo
+passo.

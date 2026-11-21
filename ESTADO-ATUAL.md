@@ -4,8 +4,29 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 15/11/2026 (commit `72f87eb7`). Nesta entrega, **as saídas do pacote
-> deixaram de se carimbar**. Ela: «não tem sentido ficar carimbando toda hora. […] Se já foi comitado,
+> **Última fotografia:** 21/11/2026 (commit `76ec0674`). Nesta entrega, **a aula que já foi dada
+> deixou de poder ser reescrita por uma regeneração**. A regra é dela, e a letra é esta: «regenerar o
+> ciclo afecta só a aula que ainda não foi dada; as outras ficam e não se apagam». **CONFIRMADO** que
+> a regra não existia em lado nenhum: o `-aula-01.md` e a `-captura-aula-01.md` estavam escritos à mão
+> na lista do `escrever-ciclo.js`, **sem condição** — e o «Guardar» do PO, que é o gesto da cascata do
+> elenco, regera o ciclo inteiro. Corrigir o elenco hoje reescrevia o plano de uma aula que já tinha
+> acontecido, mandava a versão verdadeira para `historico/` como elo, e o diff de proveniência passava
+> a apresentar como **mudança do professor** uma mudança que ele não fez — que é a `P-03` violada no
+> ponto exacto em que a cadeia de custódia é lida. **DECIDIDO**: o facto que tranca uma aula é o
+> **registro do lançamento** (`aulas[NN]` no `-dados.json`), e não o juízo
+> `planejada`/`dada`/`lancada`/`nao_dada` — esse depende de um relógio, e um derivador não tem relógio
+> nem deve ter (é o mesmo critério que o índice já usa desde 15/11: guarda «o facto, não o juízo»). A
+> regra vive **num sítio só** (`motor/nucleo/aulas-do-ciclo.js`) e serve os **dois** caminhos que
+> regeram um ciclo: o Worker e o `tools/regerar-derivados.js` — duas cópias divergem ao primeiro caso
+> novo. **CONFIRMADO** em 21/11/2026: `provar-aula-dada` **34/34**, com a regra desligada a cair em
+> **10** asserções e o dano escrito no relatório (o plano e a folha a ir para `historico/`); e a
+> `provar-um-commit-por-guardar`, que estava **5/21** já no `HEAD` por medir contagens escritas à mão,
+> foi consertada pela **relação** e por **nome** — **22/22**. Ver `ARQUITETURA-AULA.md` §1.3 e a
+> entrada de 21/11/2026 no `REGISTRO.md`. **O que continua por fazer**: o botão de criar a aula
+> seguinte — esta entrega dá a regra que ele tem de respeitar, não o botão.
+>
+> **Fotografia anterior (15/11/2026 — as saídas do pacote deixaram de se carimbar).** Ela: «não tem
+> sentido ficar carimbando toda hora. […] Se já foi comitado,
 > se já subiu, não tem por que fazer de novo se não teve modificação». **CONFIRMADO**: o que havia era
 > um laço sem ponto fixo, e não um carimbo lento — a data que o pdfTeX grava vinha de `git log` sobre a
 > **pasta** do ciclo, e essa pasta contém as saídas que o gerador escreve: gravar o `ciclos.json` movia
@@ -2692,6 +2713,20 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      `batata-sala-rosa` foi destravado re-derivando a fonte do PO 0956 com o elenco **em vigor
      quando ele foi gravado** (A,B) — a cópia cifrada só o Worker a refaz, e a Aluna C entra nos
      documentos no próximo «Guardar», que é o que a revalidação pendente já pede.
+123. **A AULA QUE JÁ FOI DADA NÃO SE REESCREVE POR UMA REGENERAÇÃO.** Ela: «regenerar o ciclo afecta
+     só a aula que ainda não foi dada; as outras ficam e não se apagam». **CONFIRMADO** que a regra não
+     existia: o `-aula-01.md` e a `-captura-aula-01.md` estavam escritos à mão na lista do
+     `escrever-ciclo.js`, sem condição — e o «Guardar» do PO, que é o gesto da cascata do elenco,
+     regera o ciclo inteiro. Corrigir o elenco hoje reescrevia o plano de uma aula que já aconteceu,
+     mandava a versão verdadeira para `historico/` e fazia o diff de proveniência apresentar como
+     mudança do professor uma mudança que ele não fez. **DECIDIDO**: o facto que tranca uma aula é o
+     **registro do lançamento** (`aulas[NN]` no `-dados.json`), e não o juízo `planejada`/`dada` — um
+     derivador não tem relógio; a regra vive num sítio só (`motor/nucleo/aulas-do-ciclo.js`) e serve
+     os dois caminhos que regeram um ciclo (o Worker e `tools/regerar-derivados.js`); ela faz três
+     coisas — não reescreve, não inventa elo, não apaga (o `DOCS` passou a só crescer) —, e a excepção
+     é uma reparação: fonte ausente de aula lançada reconstrói-se, e o relatório diz `reparadas`.
+     Prova: `provar-aula-dada` **34/34**; com a regra desligada caem **10**. Ver `ARQUITETURA-AULA.md`
+     §1.3 e a entrada de 21/11/2026 no `REGISTRO.md`.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
@@ -3417,7 +3452,21 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (13/11/2026 — uma linha por professor, dentro da cadeia)
+### Executado nesta fotografia (21/11/2026 — a aula dada não se reescreve)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-aula-dada` (**nova**) | **34/34**. (A) a regra: `01`/`1`/`aula-01` normalizam para o mesmo, o registo é a chave de `aulas`, e a cópia cifrada (sem `aulas`) não tranca nada por engano; (B) com a aula 01 lançada, o «Guardar» do PO **não** escreve a aula nem a folha, diz `travadas` com o motivo, não inventa elo em `historico/` — e **continua** a corrigir o presente (harmonização, dados, cópia cifrada); (C) **controlo negativo**: sem lançamento, a aula **é** escrita e a versão anterior fica como elo; (D) a reparação: fonte ausente de aula lançada reconstrói-se, e o relatório diz `reparadas`; (E) `docsGerados` só cresce — a aula 02 já declarada sobrevive à lista nova. **Mutação medida**: com `podeRegenerar` a devolver sempre `true`, caem **10 das 34** — duas em A, seis na B, duas em D —, e o dano fica escrito: o plano e a folha vão para `historico/` como elos |
+| `provar-um-commit-por-guardar` | **22/22** — estava **5/21 no `HEAD`**. Media «oito caminhos» e «seis escritas», contagens escritas à mão que envelheceram quando a notação e o glossário entraram no escritor; passou a medir a **relação** (árvore = escritas + `.conf` + declaração) e as fontes por **nome**. A mutação que tira a notação do lote faz cair a asserção por nome |
+| `provar-derivados-do-po` · `provar-orcamento-do-guardar` · `provar-remocao-do-elenco` · `provar-o-commit-do-po` | **16 · 16 · 26 · 14** — verdes, sem tocar: a guarda nova não mexeu no que eles medem (o derivado muda com o PO; o elenco encolhe e as aulas ficam; o lote é um commit só) |
+| `provar-geracao` · `provar-formulario-da-aula` · `provar-eixos-do-po` | **54 · 53 · 42** — verdes |
+| `provar-novo-registo-e-ciclo` · `provar-declaracao-da-captura` · `provar-aula-prosa` · `provar-conteudos-e-estado-da-turma` | **27 · 12 · 19 · ok** — verdes |
+| `node tools/check-identidade.js` · `node tools/check-sem-destruicao.js` | **0 erros** · **ok** (nenhum verbo destrutivo no endereço do repositório) |
+| `node tools/check-indices.js` · `check-pacote` · `hash-ciclo.sh --check` | **16/16** · **0 erros, 1 aviso** (o PDF ausente, que é o desenho desde 20/11) · **cadeia intacta** na `breu-rosa` |
+| `tools/regerar-derivados.js` (em seco) | mostra o diff e **não grava**; com as fontes da aula travadas pelo registo, diz `travada` e continua |
+| Deploy / ao ar | **Não executado** — a regra é do motor; a conferência em produção é o passo seguinte ao push |
+
+### Executado na fotografia anterior (13/11/2026 — uma linha por professor, dentro da cadeia)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -3818,7 +3867,7 @@ recorta» como «a rota está fechada».
 | **a correção do cabeçalho** | a fotografia anterior citava a base `ddcd92a`, que **não é ancestral** de `main` (sobra de um rebase). A base correta é `622071b` |
 | **o que NÃO foi medido** | a página **ao vivo** (o deploy corre depois do push) · **nenhuma curadoria real tem `repertorio`** hoje, e nenhuma modalidade tem lista própria de tradições — os dois caminhos medem-se com registos de ensaio |
 
-### Executado nesta fotografia (03/11/2026 — a turma é o ritmo, a curadoria é o ensino)
+### Executado na fotografia de 03/11/2026 — a turma é o ritmo, a curadoria é o ensino)
 
 | Verificação | Resultado |
 |:--|:--|

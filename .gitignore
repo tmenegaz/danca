@@ -1759,3 +1759,11 @@ experimentos/modelo-formulario/*
 # mede os três lados da regra: sem mudança o elo fica, com mudança passa a ser o estado anterior, e
 # depois de mudar não volta a mover-se. É citada no REGISTRO e no rodapé `Auditoria:` do commit.
 !experimentos/provar-o-elo-da-aula.js
+# A AULA QUE JÁ FOI DADA NÃO SE REESCREVE (21/11/2026). A regra, na letra dela: «regenerar o ciclo
+# afecta só a aula que ainda não foi dada; as outras ficam e não se apagam». Mede o núcleo (o que
+# conta como facto e as três formas do número da aula), os dois caminhos que regeram um ciclo (o
+# Worker no «Guardar» do PO e o `tools/regerar-derivados.js`), e — o que impede o pior modo de
+# passar — o CONTROLO NEGATIVO: sem lançamento, a aula é escrita. Com a regra desligada caem 10 das
+# 34 asserções, e o dano fica escrito: o plano e a folha vão para `historico/` como elos. É citada
+# no REGISTRO, no ESTADO-ATUAL e no rodapé `Auditoria:` do commit.
+!experimentos/provar-aula-dada.js

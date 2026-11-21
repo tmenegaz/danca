@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-15T17:27:06-0300`
-Commit atual: `27cea88d` — chore(estrutura): regerar os índices derivados
+Gerado em: `2026-11-21T00:49:10-0300`
+Commit atual: `76ec0674` — chore(estrutura): fechar os derivados — âncoras e índices
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -49,9 +49,13 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 
 - **Regras:** 17 em `REGRAS.md`
   + **22 pétreas** em `PROTOCOLO.md`
-- **Professores:** colo-de-pe
+- **Professores:** bom-bom
+brise-volet
+colo-de-pe
 coqui-de-redinha
 dedao-aberto
+demi-plie
+fernando-franciose
 grand-plie
 lapis-rosa
 pe-pequeno
@@ -59,9 +63,8 @@ pe-torto
 rabo-gramde
 redinha-rosa
 rimel-preto
-sapatilha-de-ponta (11)
-- **Ciclos com manifesto:** 0
-0 variante(s)
+sapatilha-de-ponta (15)
+- **Ciclos com manifesto:** 2 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -79,35 +82,55 @@ sapatilha-de-ponta (11)
 ## Últimos commits
 
 ```
-27cea88d chore(estrutura): regerar os índices derivados
-bfb05b8b chore(estrutura): expurgar a escola calango
-650acc89 chore(estrutura): regerar os índices derivados
-ba2032b0 chore(estrutura): expurgar a escola breu
-6deab512 chore(estrutura): regerar os índices derivados
-6d684156 chore(estrutura): expurgar a escola batata
-fdf5e7c6 chore(estrutura): regerar os índices derivados
-495f56ad feat(estrutura): as três escolas nasceram dentro do shard, e a criação regera os dois índices
-80070aee fix(tools): a cobertura recusava a escola de shard que está viva — a metade que faltava
-79836e9f feat(acervo): envelope/.indice.json
-479692bc feat(acervo): envelope/.indice.json
-cbf62542 feat(escola): a escola breu declara o professor prova-do-shard
-6f446b51 feat(acervo): envelope/.indice.json
-ec9aaa75 feat(estrutura): criar a escola breu (motor completo)
-bd6f7bfb feat(estrutura): criar a escola calango (motor completo)
-9dbfbb7f feat(estrutura): criar a escola batata (motor completo)
-3bb14ca7 fix(estrutura): «expurgada» era «não tem config», e a escola de shard nasce assim
-b3f92cab fix(tools): a verificação 12 acusava de expurgada a escola de shard que está viva
-8ae5dff4 fix(experimentos): a recriação no shard passa a ser medida, nos três caminhos
-b86c58f0 fix(tools): a escola recriada dentro do shard ficava sem o campo `shard` no elo
+76ec0674 chore(estrutura): fechar os derivados — âncoras e índices
+bc8e88fd fix(estrutura): a folha impressa deixa de perguntar duas vezes o mesmo item
+ef747d64 fix(estrutura): a matriz do formulário pergunta uma vez por par, com uma regra só
+4a38efc2 fix(estrutura): «curadoria» sai de toda a tela, tooltips incluídos
+f84d0e92 fix(estrutura): «curadoria» sai da tela, e a prova mede o caso que existe
+e2c6098a chore(estrutura): apagar as duas provas que mediam um mundo expurgado
+39f86a6c fix(estrutura): a janela do lançamento conta os critérios do pacote
+dd54a025 fix(estrutura): repor as provas mortas contra o que existe hoje
+b4983579 fix(tools): as duas provas da linha de corte voltam a correr — na breu, e com datas que não apodrecem
+c1ab223d fix(estrutura): a geração apagava o elo da aula — e o elo é a justificativa do ajuste
+eb510bf9 docs(estrutura): o §1 dizia que o índice declara o estado — e o §4 do mesmo documento já dizia que não
+fad5bc77 fix(tools): as duas provas antigas voltam a medir — e o que elas mediam já não existe
+bf3ffef9 fix(estrutura): as tabelas dentro da moldura, a habilidade só-leitura, e o «Adicionar» que só acende com escolha
+106de79d chore(estrutura): fechar os derivados — âncoras e índices
+06ea6e5b chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
+b78ef89c feat(ciclo): o «Guardar» do PO grava as fontes de breu-rosa num commit só
+d7ebcfd0 feat(acervo): envelope/po-20261120-2052.json
+cee9970a feat(acervo): envelope/.indice.json
+c8c9c75a feat(plano): o elo da cadeia automática
+283eabae feat(acervo): envelope/plano-20261120-2052.json
 ```
 
 ## Por professor
+
+### bom-bom — 0 ciclo(s)
+
+### brise-volet — 0 ciclo(s)
 
 ### colo-de-pe — 0 ciclo(s)
 
 ### coqui-de-redinha — 0 ciclo(s)
 
 ### dedao-aberto — 0 ciclo(s)
+
+### demi-plie — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): breu, breu-rosa
+
+| Escola | PO | state | Marcadores [Preencher] |
+|:--|:--|:--|--:|
+| breu | (sem PO) | — | — |
+| breu | ciclo-01-breu-rosa-po.md | Input_PO_Validado | 1 |
+
+| Variante | .fipp | hash (12) | parentHash | po_state |
+|:--|:--|:--|:--|:--|
+| breu | ciclo-01-breu.fipp | `59b86b60252a` | (vazio) | — |
+| breu-rosa | ciclo-01-breu-rosa.fipp | `c4800f97983b` | (vazio) | Input_PO_Validado |
+
+### fernando-franciose — 0 ciclo(s)
 
 ### grand-plie — 0 ciclo(s)
 
@@ -172,99 +195,95 @@ b86c58f0 fix(tools): a escola recriada dentro do shard ficava sem o campo `shard
 
 ## Última entrada do REGISTRO
 
-## 15/11/2026 — O expurgo das três, e a sujeira que era minha
+## 21/11/2026 — A aula que já foi dada não se reescreve por uma regeneração
 
-**O que aconteceu.** Ela expurgou `batata`, `breu` e `calango` pela página, e os três expurgos
-correram **até ao fim** — o primeiro conjunto de expurgos que não encontrou nenhum dos defeitos
-desta série. Medido depois:
+**O que motivou.** A regra, na letra da pesquisadora: «regenerar o ciclo afecta só a aula que já não
+foi dada; as outras ficam e não se apagam». A medição mostrou que a regra **não existia em lado
+nenhum**: as duas fontes da aula (`-aula-01.md` e `-captura-aula-01.md`) estavam escritas à mão na
+lista do `escrever-ciclo.js`, e sem condição. O «Guardar» do PO é o gesto da cascata do elenco —
+tirar uma aluna e gravar —, e ele regera o ciclo inteiro: corrigir o elenco de hoje reescrevia o
+plano de uma aula que já tinha acontecido, mandava a versão verdadeira para `historico/` como elo,
+e o diff de proveniência passava a apresentar como **mudança do professor** uma mudança que ele não
+fez. O mesmo no `tools/regerar-derivados.js`, cuja razão de existir é pôr os derivados em dia.
 
-| | |
-|:--|:--|
-| os três hosts | `530` (a rota saiu; o DNS aponta ao place-holder e nada responde) |
-| `indices/acervo.json` | as três com `expurgada: true`, `expurgos` 12/10/12 |
-| os três elos | `expurgo[]` com o motivo da página; `shard: lastro-teste` preservado |
-| pacotes e fontes | removidos |
-| **o script `lastro-teste`** | **de pé** — é o que a guarda `ehOShard` protege |
-| `lastro-teste.tmenegaz77.workers.dev` | `500` **declarado**: «este host não está no mapa de escolas, e não há ESCOLA_SLUG — nenhuma escola reivindica este Worker». É o comportamento certo: o subdomínio técnico do shard não é uma escola, e ele diz isso em vez de inventar uma |
-| `danca.padd.com.br/escolas-apagadas` | `200`, com as três listadas |
+**O que foi decidido.** O facto que tranca uma aula é o **registro do lançamento** (`aulas[NN]` no
+`-dados.json`), e não o juízo `planejada`/`dada`/`lancada`/`nao_dada` — esse depende de um relógio,
+e um derivador não tem relógio nem deve ter. É o mesmo critério que o índice já usa desde 15/11
+(guarda «o facto, não o juízo»). A janela que sobra — aula acontecida, dentro do prazo, ainda sem
+lançamento — é exactamente a janela em que o plano ainda é ajustável: enquanto é intenção, pode ser
+derivado.
 
-**A sujeira, e é minha.** A bateria do shard correu contra **produção** e registou o professor
-`prova-do-shard` na `breu` — o gesto 9 cadastra, desliga, e a exclusão é recusada por desenho
-(409: «a proveniência fica»). A escola foi expurgada e o professor ficou: uma pasta em
-`professores/prova-do-shard/` com **cinco cópias reformatadas dos schemas do modelo** e nenhum
-`perfil.json` — nenhum dado de pessoa, nenhum ciclo, nada que a escola servisse.
+A regra vive **num sítio só**: `motor/nucleo/aulas-do-ciclo.js`. Duas cópias de uma regra divergem
+ao primeiro caso novo — é o que a `eixos.js` já tinha ensinado —, e aqui a segunda cópia seria entre
+o Worker e a linha de comando. Os dois caminhos usam a mesma função, e ela faz três coisas: **não
+reescreve** a fonte da aula lançada; **não inventa elo** em `historico/` (não houve substituição);
+e **não apaga** nenhuma aula do ciclo — o `DOCS` passou a **só crescer** (`docsGerados` preserva as
+famílias `aula-NN`/`captura-aula-NN` já declaradas, em vez de as substituir por uma lista fixa).
 
-**O que foi decidido.**
-- **A pasta sai.** Não tem pessoa, nem ciclo, nem pacote: é resíduo de execução de bateria, e o
-  `criar-escola.sh` escreve os schemas na pasta do professor de cada escola que nasce — é por isso
-  que eles lá estavam.
-- **A ligação sai de `professores[]`** do elo da `breu`. Essa lista é a DECLARAÇÃO DE QUEM TRABALHA
-  HOJE — é o `repo-escola.js` que a escreve no dia a dia —, e não o elo. Ter lá um professor de
-  prova é dizer que ele trabalha naquela escola.
-- **A história fica.** `recriacao[].professores_anteriores` continua a nomear o `prova-do-shard`
-  (entrou a 14/11). É elo, e proveniência acrescenta, não edita: um nome que esteve ligado a uma
-  escola não se apaga da memória dela só porque a ligação foi um teste. Fica declarado aqui em vez
-  de reescrito lá.
-- **A bateria deixou de reportar o vazio como falha.** Com as três escolas expurgadas, ela corria e
-  dava **34 falhas** — todas «responde 530», que se lê como «o shard partiu». Não partiu: não há
-  escolas. Sonda o `/api/saude` de cada host antes de começar, e sem nenhuma a responder sai com
-  **0** e um recado que diz o que fazer. É a disciplina do `provar-navegacao` («Chrome não
-  encontrado — conferência NÃO FEITA»): a ausência diz-se pelo estado, não por um número vermelho.
+**A excepção, e porque não é licença.** Se a fonte da aula lançada **não existe**, não há facto a
+preservar: reconstrói-se, e o relatório diz `reparadas`. Um buraco no pacote não é prova de nada.
 
-**Onde entrou.** `professores/prova-do-shard/` (removido) · `escola/breu/indice.json`
-(`professores[]` vazio) · `indices/**` (regerados) ·
-`experimentos/provar-bateria-do-shard.js` (a sonda das vivas).
+**Motivo declarado — `tools/` é congelado.** `tools/regerar-derivados.js` mudou porque é um dos dois
+caminhos que regeram um ciclo, e deixá-lo de fora deixaria a regra a valer para o Worker e a não
+valer para o comando que existe precisamente para reescrever derivados — o pior dos dois mundos.
+A alteração é a leitura do `-dados.json` (só leitura, com a precedência da `fonte_dados()` do
+`lib-fontes.sh:52`) e a marcação das duas fontes da aula; a lista do que ele escreve não mudou, e
+`--escrever` continua a ser necessário para gravar. Não foi junto com conteúdo pedagógico.
 
-**Com o quê.** `check-indices` 16/16 · `gerar-indices --check` em dia · `gerar-relacoes` sem ciclo
-com pacote (nada a fazer — é o estado, e ele diz-se) · `check-identidade` 0 erros ·
-`provar-cofre-e-shard` **101/101** · o acervo já não nomeia o `prova-do-shard`.
+**Onde entrou.** `motor/nucleo/aulas-do-ciclo.js` (novo — a regra); `motor/servidor/escrever-ciclo.js`
+(a guarda no passo 3, os relatórios `travadas`/`reparadas`, a derivação preguiçosa das fontes da aula
+e o `docsGerados` que só cresce); `tools/regerar-derivados.js`; `ARQUITETURA-AULA.md` §1.3 (novo);
+`experimentos/provar-aula-dada.js` (novo — **34/34**).
 
-**O que ainda não está feito.** (1) **Nenhuma escola existe agora** — o passo seguinte é dela: criar
-pela página e correr a bateria. (2) Os `LOGIN_BATATA`, `LOGIN_BREU` e `LOGIN_CALANGO` continuam em
-`tools/.senhas-locais` (ficheiro local, fora do Git, nunca versionado). O expurgo pela PÁGINA não os
-pode tocar — quem os remove é o `escola/expurgar.js` local, que ela não correu. Não é sujeira no
-repositório; é estado do disco desta máquina, e a criação seguinte reescreve-os.
+**Prova, e a mutação.** Com a regra desligada caem **10 das 34** asserções, e o dano fica escrito no
+relatório: o plano e a folha vão para `historico/` como elos. A secção C é o controlo negativo — sem
+lançamento, a aula **é** escrita —, porque sem ela uma prova verde poderia estar a medir um escritor
+que não escreve nada.
+
+**Uma prova vermelha antiga, consertada no caminho.** `provar-um-commit-por-guardar` estava em
+**5 de 21** já no `HEAD` (conferido em worktree): media «oito caminhos» e «seis escritas», números
+escritos à mão que envelheceram quando a notação e o glossário entraram no escritor. O invariante
+que ela existe para medir — *todo o lote num commit só* — passou a ser medido pela **relação**
+(árvore = escritas + o `.conf` + a declaração da variante) e por **nome** (as oito fontes de um ciclo
+«do zero» estão todas lá). **22/22**, e a mutação que tira a notação do lote faz cair a asserção por
+nome.
+
+**O que continua por fazer.** O botão de criar a aula seguinte. Esta entrada entrega a regra que ele
+precisa de respeitar, não o botão: hoje só a aula 01 tem derivador, e a lista de fontes do escritor
+continua a nomear `01` como a aula a derivar. É o `derivador da aula NN` que falta, e é o próximo
+passo.
 
 ## O que está pendente
 
-## 15/11/2026 — Quatro provas que mediam o desenho de ontem
+## 20/11/2026 — O estudo do modal do Estilo, corrigido por ela: é na INCLUSÃO, e a pergunta é o objectivo
 
-(1) O `provar-listas-sem-repeticao` passou a medir que o plano é
-aberto **pelo nome** (`/api/envelope/plano-…`), mas não mede que a estante das fichas continue a
-carregar quando a pessoa a abre — a carga da página deixou de a incluir, e esse caminho tem prova
-própria noutro lugar. (2) O `N` da busca é o número de cartões, e numa escola com uma turma só a
-secção degrada para «não esconde nada» — é o ramo antigo, e continua sem medir a redução.
+O modal não foi construído: primeiro decide-se onde a declaração é
+escrita, porque as duas opções têm consequências diferentes na proveniência.
 
-## 15/11/2026 — O shard não é uma escola, e a lista dizia que era
+## 20/11/2026 — Duas provas apagadas: as que mediam um mundo que já não existe
 
-(1) A raiz em produção continua a listar o shard até ser
-republicada — o código está commitado, o deploy é o do push. (2) O `indices/` é derivado e o
-`regerar-indices.yml` volta a escrevê-lo; os dois sítios que o leem (a página e o `check`) passam a
-estar de acordo a partir deste commit.
+Nada pendente destas duas. O que **continua** por tratar são os
+fixtures das provas que ainda leem a `breu` por caminhos que mudam (o `provar-turmas-do-professor`
+está em 16/17 por um achado de produto — com um professor que tem curadoria e nenhuma turma, o
+cabeçalho não desenha aviso nenhum; a decisão é de produto, não de prova).
 
-## 15/11/2026 — O mapa de escolas não conhecia a escola de shard
+## 20/11/2026 — «Curadoria» saiu da tela, e a prova que media uma Turma sem Sala
 
-(1) **As duas escolas não foram criadas de novo** — o pedido é dela,
-pela página: o mapa já as tem, o `bastidores/<escola>/dono` já foi escrito, e o scaffold é o que
-falta. (2) O `namespaceDasConfiguracoes` do mapa continua a ler só os configs; num repositório sem
-NENHUM config de escola (o de hoje, com tudo expurgado) ele acha o `PADD_KV` no config do shard, e é
-suficiente — mas não foi exercitado num repositório sem shard nenhum, que é um estado que não existe.
+A palavra «curadoria» continua em **`title`s** de selos e botões
+dos Bastidores («Editar a curadoria», «esta aluna ainda não está em nenhuma curadoria com plano de
+ensino», «sem isto a turma não pode ser atribuída na curadoria»). São texto de tooltip, não de
+frase lida; ficam para uma passagem própria, e não se corrigem a meio de outra coisa.
 
-## 15/11/2026 — As três escolas nasceram dentro do shard, e a bateria passou
+## 20/11/2026 — A matriz do formulário pergunta uma vez por par, e o eixo vem de uma regra só
 
-(1) **Nenhum ciclo foi gerado nestas três escolas** — é o próximo
-passo dela: preencher o PO e concluí-lo. Só então nascem os documentos e os PDF, e só então a
-bateria pode correr os gestos 4, 5 e 6 ao vivo. (2) Os gestos de documento ao vivo continuam
-pendentes por decisão: cada um é um commit no `main` e acorda os workflows — é o recurso dela, e a
-bancada local (`provar-gestos-do-shard`) prova o caminho sem o gastar.
+Duas provas da família do lançamento continuam vermelhas e **já
+estavam antes desta mudança** (conferido em worktree): `provar-lancamento` e
+`provar-eixos-e-tempo-da-aula`.
 
-## 15/11/2026 — O expurgo das três, e a sujeira que era minha
+## 20/11/2026 — A folha impressa deixou de perguntar duas vezes
 
-(1) **Nenhuma escola existe agora** — o passo seguinte é dela: criar
-pela página e correr a bateria. (2) Os `LOGIN_BATATA`, `LOGIN_BREU` e `LOGIN_CALANGO` continuam em
-`tools/.senhas-locais` (ficheiro local, fora do Git, nunca versionado). O expurgo pela PÁGINA não os
-pode tocar — quem os remove é o `escola/expurgar.js` local, que ela não correu. Não é sujeira no
-repositório; é estado do disco desta máquina, e a criação seguinte reescreve-os.
+A `-aula-01.md` continua com as linhas de técnica repetidas na §5 —
+ela melhora com a mesma fusão, mas só quando for re-derivada com o elenco certo (ver acima).
 
 ## Pendências anteriores (índice)
 
@@ -714,6 +733,45 @@ repositório; é estado do disco desta máquina, e a criação seguinte reescrev
 - **15/11/2026** — A chave mestra, o expurgo que a conhece, e o cofre → `REGISTRO.md` L45447
 - **15/11/2026** — A publicação do shard: uma árvore partilhada monta-se… → `REGISTRO.md` L45556
 - **15/11/2026** — A chave que não abre tem nome → `REGISTRO.md` L45623
+- **15/11/2026** — Quatro provas que mediam o desenho de ontem → `REGISTRO.md` L45662
+- **15/11/2026** — O shard não é uma escola, e a lista dizia que era → `REGISTRO.md` L45729
+- **15/11/2026** — O mapa de escolas não conhecia a escola de shard → `REGISTRO.md` L45780
+- **15/11/2026** — As três escolas nasceram dentro do shard, e a bateria passou → `REGISTRO.md` L45883
+- **15/11/2026** — O expurgo das três, e a sujeira que era minha → `REGISTRO.md` L45935
+- **24/11/2026** — a escola recém-criada volta a dizer que está a ser criada,… → `REGISTRO.md` L45988
+- **24/11/2026** — «usar este professor» existia e estava desabilitado → `REGISTRO.md` L46041
+- **16/11/2026** — o relógio não mente, a caixa não explica, e a etiqueta… → `REGISTRO.md` L47294
+- **16/11/2026** — os dois botões da coluna «Acesso» empilhados, com o ar da… → `REGISTRO.md` L47365
+- **16/11/2026** — a escola que nasceu hoje não podia ser apagada nunca → `REGISTRO.md` L47415
+- **16/11/2026** — a escola apagada volta a nascer, e o ciclo comercial fecha → `REGISTRO.md` L47487
+- **17/11/2026** — O elenco não se perdeu: a leitura falhou, e o ecrã disse… → `REGISTRO.md` L49528
+- **17/11/2026** — O ar entre a aba e o bloco que ela abre → `REGISTRO.md` L49605
+- **17/11/2026** — A escola como listagem: a proposta, para ela ver antes de… → `REGISTRO.md` L49661
+- **17/11/2026** — As bancadas de layout não atravessavam o shard → `REGISTRO.md` L49725
+- **17/11/2026** — «A escola» vira listagem: três caixas, o mês a mês noutra… → `REGISTRO.md` L49762
+- **17/11/2026** — O «Pagar» só quando se deve, o mês a mês vira tabela… → `REGISTRO.md` L49836
+- **17/11/2026** — O plano contratado dito por palavras, o mês a mês dentro da… → `REGISTRO.md` L49909
+- **17/11/2026** — A conciliação que faltava no painel: o mesmo mês dos dois… → `REGISTRO.md` L50005
+- **17/11/2026** — O login do professor volta a existir, e o ensaio passa a… → `REGISTRO.md` L50067
+- **17/11/2026** — O ensaio começa no mês que NÃO está pago, senão não há o… → `REGISTRO.md` L50144
+- **18/11/2026** — «O e-mail aparece na ficha e a rota diz que ele não existe» → `REGISTRO.md` L51623
+- **18/11/2026** — No professor vinculado, o botão diz «Derivar» (e abre a… → `REGISTRO.md` L51672
+- **18/11/2026** — «Pedi a anamnese da aluna C e abriu na aluna A» → `REGISTRO.md` L51706
+- **18/11/2026** — «Tá salvando isso aonde?» — a caixa de entrada do Fale… → `REGISTRO.md` L51762
+- **18/11/2026** — «Tem mais uma opção que tem que existir: a metodologia… → `REGISTRO.md` L51824
+- **18/11/2026** — «O formulário é para enviar direto» — e o canal em todas as… → `REGISTRO.md` L51896
+- **18/11/2026** — «Francesa e Cecchetti são coisas diferentes» — a matriz de… → `REGISTRO.md` L51995
+- **18/11/2026** — «Se é assim, apaga» — o campo `arquivos` do índice, e o que… → `REGISTRO.md` L52057
+- **18/11/2026** — «Eles não são derivar, eles são editar» — e a etiqueta que… → `REGISTRO.md` L52120
+- **20/11/2026** — «A gente pode tirar do modal essa parte» — a dose sai, e a… → `REGISTRO.md` L55352
+- **20/11/2026** — A caixinha da Produção: a marca e o menu a 10px do canto → `REGISTRO.md` L55405
+- **20/11/2026** — «O total é uma soma» — o modal da duração vira formulário,… → `REGISTRO.md` L55452
+- **20/11/2026** — «O professor cancela se quiser» — o «Cancelar» do modal faz… → `REGISTRO.md` L55513
+- **20/11/2026** — «Houve redução de custo?» — sim, mas é a fusão que a fez, e… → `REGISTRO.md` L55549
+- **20/11/2026** — «Recorte» e «Transferência» fecham enquanto há um elenco em… → `REGISTRO.md` L55582
+- **20/11/2026** — O «Professor responsável» sai da Audição, e a anamnese leva… → `REGISTRO.md` L55629
+- **20/11/2026** — O PDF sai do fluxo: quem imprime é o navegador → `REGISTRO.md` L55683
+- **demi-plie · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
 

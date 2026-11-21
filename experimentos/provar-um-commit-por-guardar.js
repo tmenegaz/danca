@@ -134,7 +134,22 @@ async function principais() {
     conferir('o «Guardar» faz ZERO escritas por `contents` (nenhum commit por arquivo)',
       porContents.length === 0, porContents.map((c) => c.url));
     conferir('…e UM único commit', commits.length === 1, commits.length);
-    conferir('…com as OITO gravações na mesma árvore', inventario.arquivos.length === 8, inventario.arquivos);
+    /* A CONTAGEM É UMA RELAÇÃO, E NÃO UM NÚMERO (21/11/2026).
+     *
+     * Era `=== 8`, e o oito envelheceu: quando a notação e o glossário entraram no escritor, a
+     * árvore passou a ter dez e esta prova ficou vermelha a dizer uma verdade de ontem — cinco
+     * falhas que ninguém viu, porque uma prova vermelha por contagem desactualizada ensina a
+     * ignorar o vermelho. O que se mede é o que a prova existe para medir: TODO o lote viaja na
+     * mesma árvore, e o relatório conta o que a árvore leva menos as duas gravações que não são
+     * «escritas» (o `.conf` e a declaração da variante). Se uma fonte deixar de ser escrita, quem
+     * o diz são as asserções por NOME, abaixo. */
+    const naArvore = inventario.arquivos || [];
+    conferir('…com TODAS as gravações na mesma árvore (nenhuma ficou de fora do commit)',
+      naArvore.length === relatorio.escritas.length + 2, { arvore: naArvore.length, escritas: relatorio.escritas.length });
+    conferir('…e as fontes que um ciclo «do zero» tem estão todas lá, por nome',
+      ['-aula-01.md', '-captura-aula-01.md', '-harmonizacao.md', '-referencias.md', '-dados.json',
+        '-dados.cifrado.json', '-notacao.md', '-glossario-'].every((s) => naArvore.some((p) => p.indexOf(s) !== -1)),
+      naArvore);
     conferir('…incluindo o `.conf` e a declaração da variante',
       inventario.arquivos.some((p) => /\.conf$/.test(p))
         && inventario.arquivos.some((p) => /-captura-declaracao\.json$/.test(p)), inventario.arquivos);
@@ -147,12 +162,15 @@ async function principais() {
 
     // ── 2. o relatório continua a dizer arquivo por arquivo ────────────────
     conferir('o relatório traz o commit', relatorio.commit && relatorio.commit.ok === true, relatorio.commit);
-    conferir('…com o número de arquivos', relatorio.commit && relatorio.commit.arquivos === 8, relatorio.commit);
-    // SEIS no relatório (as cinco fontes derivadas + a cópia cifrada) e OITO no commit (mais o
-    // `.conf` e a declaração da variante, que não são «escritas» para o relatório mas são
-    // gravações).
-    conferir('…e as seis escritas do relatório com `ok` (dito só depois de o repositório aceitar)',
-      relatorio.escritas.length === 6 && relatorio.escritas.every((e) => e.ok === true),
+    conferir('…com o número de arquivos igual ao da árvore',
+      relatorio.commit && relatorio.commit.arquivos === relatorio.escritas.length + 2, relatorio.commit);
+    // As «escritas» do relatório são as FONTES (as derivadas e a cópia cifrada). O `.conf` e a
+    // declaração da variante também são gravados, mas não são fontes do ciclo — é por isso que a
+    // árvore tem dois a mais. A relação está medida acima; aqui mede-se que TODAS dizem `ok`, e
+    // só depois de o repositório aceitar: uma gravação que mente sobre ter entrado é pior do que
+    // uma que falha.
+    conferir('…e todas as escritas do relatório com `ok` (dito só depois de o repositório aceitar)',
+      relatorio.escritas.length > 0 && relatorio.escritas.every((e) => e.ok === true),
       relatorio.escritas.map((e) => e.ok));
     conferir('o `.conf` foi composto e gravado', relatorio.docs && relatorio.docs.ok === true, relatorio.docs);
     conferir('a cópia cifrada foi gravada', relatorio.cifrado && relatorio.cifrado.ok === true, relatorio.cifrado);
@@ -165,7 +183,7 @@ async function principais() {
     const { fetch } = githubFalso({ falharCommit: true });
     const relatorio = await guardar(fetch);
     conferir('commit recusado → nenhuma escrita se diz gravada',
-      relatorio.escritas.length === 6 && relatorio.escritas.every((e) => e.ok === false),
+      relatorio.escritas.length > 0 && relatorio.escritas.every((e) => e.ok === false),
       relatorio.escritas.map((e) => e.ok));
     conferir('…e o relatório reprova (é o que impede disparar o gerador)',
       relatorio.ok === false || (relatorio.commit && relatorio.commit.ok === false), relatorio.commit);
@@ -182,7 +200,10 @@ async function principais() {
     const primeira = githubFalso();
     await guardar(primeira.fetch);
     const noRepo = primeira.inventario.porCaminho || {};
-    conferir('a primeira passagem grava oito caminhos', Object.keys(noRepo).length === 8,
+    conferir('a primeira passagem grava o ciclo inteiro no repositório',
+      Object.keys(noRepo).length > 0
+        && ['-aula-01.md', '-dados.json', '-harmonizacao.md', '.conf'].every(
+          (s) => Object.keys(noRepo).some((p) => p.indexOf(s) !== -1)),
       Object.keys(noRepo));
 
     const chamadas = [];
