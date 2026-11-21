@@ -71,6 +71,17 @@ function criarElemento(id, tag) {
     _handlers: {},
     addEventListener(tipo, fn) { (el._handlers[tipo] = el._handlers[tipo] || []).push(fn); },
     appendChild(filho) { el.children.push(filho); el.opcoes.push(filho); return filho; },
+    /* O DOM tem `remove()` e a página usa-o (`marcarProfessorSemOPlanoDaTurma` tira a linha
+     * antiga antes de escrever a nova). Sem ele a bancada rebentava a montar a página — e uma
+     * bancada que rebenta não mede nada, o que é pior do que medir mal. */
+    remove() {
+      const pai = el._pai;
+      if (pai) {
+        pai.children = pai.children.filter((c) => c !== el);
+        pai.opcoes = pai.opcoes.filter((c) => c !== el);
+      }
+      el._pai = null;
+    },
     closest(sel) { return sel === '.campo' ? el._pai : null; },
     _controles: [],
     _filhos: {},
@@ -81,6 +92,22 @@ function criarElemento(id, tag) {
       if (!el._filhos[sel]) el._filhos[sel] = criarElemento('q', 'div');
       return el._filhos[sel];
     },
+    /* OS ATRIBUTOS TAMBÉM EXISTEM. A página cresceu desde que esta bancada nasceu, e cada método
+     * que ela usa e aqui não existe é uma bancada que rebenta em vez de medir. */
+    _atributos: {},
+    setAttribute(n, v) { el._atributos[n] = String(v); },
+    getAttribute(n) { return n in el._atributos ? el._atributos[n] : null; },
+    removeAttribute(n) { delete el._atributos[n]; },
+    hasAttribute(n) { return n in el._atributos; },
+    insertBefore(novo, ref) {
+      const i = ref ? el.children.indexOf(ref) : -1;
+      if (i === -1) el.children.push(novo); else el.children.splice(i, 0, novo);
+      novo._pai = el;
+      return novo;
+    },
+    insertAdjacentHTML() {},
+    replaceChildren() { el.children = []; el.opcoes = []; },
+    getBoundingClientRect() { return { top: 0, left: 0, width: 0, height: 0, bottom: 0, right: 0 }; },
     scrollIntoView() { el._rolou = true; },
     focus() { el._focado = true; },
   };
