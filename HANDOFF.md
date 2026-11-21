@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-21T14:54:17-0300`
-Commit atual: `75b91620` — docs(estrutura): «a página não responde» não era a página — era o perfil do navegador
+Gerado em: `2026-11-21T14:57:22-0300`
+Commit atual: `6ba3b387` — feat(po): «o que se observa» é o que a anamnese registou — nível, apoio e a nota
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+6ba3b387 feat(po): «o que se observa» é o que a anamnese registou — nível, apoio e a nota
 75b91620 docs(estrutura): «a página não responde» não era a página — era o perfil do navegador
 aeb80aa7 fix(po): «Ajustar» abre o registo, e não um nó que não se preenche
 9be50a2d fix(po): o atalho que falha deixa de devolver à lista sem dizer porquê
@@ -101,7 +102,6 @@ f23ac5c9 feat(plano): o plano elicitado vira a fonte do ciclo
 a4c004d7 fix(estrutura): a aula que se cria passa a existir — e o gesto deixa de mentir
 54be1100 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
 ca7c8aba chore(estrutura): fechar os derivados — âncoras e índices
-25db5666 feat(ciclo): o «Guardar» do PO grava as fontes de breu-rosa num commit só
 ```
 
 ## Por professor
@@ -242,12 +242,13 @@ defeito não se via; mas um documento a assinar um recorte que o professor já s
 espécie de erro deste sistema. O critério passa a ser o mesmo de `vigentes()` e de
 `linhaDeBaseDaTurma`: entre as versões do mesmo id, vale o **carimbo maior**.
 
-**PROVA.** `experimentos/provar-o-que-se-observa.js` (novo) — **33/33**, com Chrome sobre o acervo
+**PROVA.** `experimentos/provar-o-que-se-observa.js` (novo) — **34/34**, com Chrome sobre o acervo
 real servido em `127.0.0.1`: a nota atravessa as três camadas com o apelido; uma nota sem nível não
 cai em «sem registo»; `mostra` é o recorte e `mostraCompleta` os 45 campos; o Corpo leva nível,
 apoio e nota; a Poiesis leva aspectos de musicalidade **fora** do recorte, com a nota; a rota
-devolve as duas listas; o painel desenha o valor ao lado do nome; e a versão vigente do elenco é a
-do carimbo maior (medido com a lista dada ao contrário). **CONTROLE NEGATIVO** contra o `HEAD`:
+devolve as duas listas; o painel desenha o valor ao lado do nome **e, quando o elenco não tem leitura** —
+que é o estado ao vivo de hoje —, diz que falta o passo 3 em vez de deixar os nomes sozinhos; e a
+versão vigente do elenco é a do carimbo maior (medido com a lista dada ao contrário). **CONTROLE NEGATIVO** contra o `HEAD`:
 caem **6** asserções, e são todas as das notas e da nota-sem-nível.
 
 `provar-corpo-da-linha-de-base` 30/30, `provar-leituras-do-po` 27/27, `provar-o-registo-abre` 10/10,

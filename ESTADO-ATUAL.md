@@ -3750,7 +3750,19 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (21/11/2026 — a fonte é Open Sans, e é entregue)
+### Executado nesta fotografia (21/11/2026 — «o que se observa» tem o valor, o apoio e a nota)
+
+| Verificação | Resultado |
+|:--|:--|
+| o estado antes, medido no acervo | as cinco anamneses de `escola/breu/envelopes/` têm **2** respostas cada e **nenhuma nota**; o acto real do elenco (`tami--20261120-2146`) tem `respostas: 0` e **não tem `leitura`**, e o mesmo acontece às **doze** versões de `tami` no disco — só as de 17 e 18/11 têm `leitura`, e as duas que a turma lê por data não têm. É a explicação inteira do «sem registo na anamnese» que ela viu, e **não** é o que ele dizia: o que falta é o passo 3, não o registo dela |
+| `provar-o-que-se-observa` (**nova**) | **34/34**, com Chrome sobre o acervo real em `127.0.0.1`. (A) a nota atravessa `classificar` → `mostra` → o painel → o documento, com o apelido da aluna; (B) uma nota **sem nível** não cai em «sem registo» — foi observada, e entra em «o que precisa de ser trabalhado» (é o caso que a primeira versão desta correção perdia); (C) `mostra` é o **recorte** (10 aspectos) e `mostraCompleta` são os **45** campos, e é dela que a poiesis lê a musicalidade que o recorte do corpo deixa de fora; (D) o derivador imprime «1 de 1 em «Bom» (por consciência própria)» e «nota do professor: «…»» no Corpo, e as linhas de poiesis levam a nota; (D2) a **versão vigente** do elenco é a do carimbo maior — medido com a lista dada ao contrário, porque o `find` que lá estava devolvia a de 17/11 (3 aspectos) em vez da de 20/11 (10); (E) a rota serve `mostra`/`mostraCompleta`/`leitura`, o painel desenha o valor ao lado do nome, **e — sem leitura no elenco, que é o estado de hoje ao vivo — diz que falta o passo 3** em vez de deixar os nomes sozinhos |
+| controle negativo contra o `HEAD` | **caem 6** asserções: todas as das notas e a da nota-sem-nível. As outras 28 passam nas duas versões, o que é o esperado — o que muda é o valor ao lado do nome, não a página |
+| as que atravessam o mesmo caminho | `provar-corpo-da-linha-de-base` **30/30**, `provar-leituras-do-po` **27/27**, `provar-o-registo-abre` **10/10**, `provar-ajustes-anamnese` **126/126**, `provar-listas-do-acervo` **113/113**, `provar-curadoria-ilegivel` **19/19** — verdes |
+| `node tools/check-identidade.js` · `check-sem-destruicao` · `check-indices` · `check-pacote` · `hash-ciclo --check` | **0 reprovações (22 ok)** · **ok** · **16/16** · **0 erros, 1 aviso** (o PDF, por desenho) · **cadeia intacta** |
+| Falhas que **já existiam**, medidas na linha de base | `provar-linha-de-base` **9**, iguais antes e depois (medido com o worktree em `stash`); `provar-plano-preenchido` **16 de 21**, idem |
+| Ao vivo, **uma** carga (a regra) | `/api/bastidores/alunas-da-turma?turma=Rosa` → **200** em 1,9 s, e a resposta já traz `mostra`, `mostraCompleta` e `leitura`. `leitura` é **`null`** e `mostra` vem **vazia** — o servidor novo a ler o dado que existe, e a dizer a verdade sobre ele. **Só ela pode fechar isto**: as anamneses são cifradas; o passo 3 (Bastidores → Produção → Audição → elenco da turma Rosa) é dela |
+
+### Executado na fotografia anterior (21/11/2026 — a fonte é Open Sans, e é entregue)
 
 | Verificação | Resultado |
 |:--|:--|

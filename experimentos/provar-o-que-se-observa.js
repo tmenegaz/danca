@@ -361,6 +361,32 @@ console.log('\nE. Na página: o painel do Corpo mostra o valor, e não só o nom
       Boolean(tela) && /em «/.test(tela), tela);
     provar('…ou diz que o elenco não tem leitura, em vez de deixar o nome sozinho',
       Boolean(tela) && (/em «/.test(tela) || /não foi feita|não têm leitura/.test(tela)), tela);
+
+    /* O ESTADO QUE ESTÁ AO VIVO HOJE. O acto real do elenco (`tami--20261120-2146`) não tem
+     * `leitura`: o passo 3 nunca foi refeito depois de o elenco ser esvaziado a 18/11. É preciso
+     * medir que, nesse estado, o painel NOMEIA a falta do passo — e não que se limita a desenhar
+     * nomes, que é o que ela viu e leu como «não é verdade que não há registo». */
+    const camposDoElenco = [
+      { id: CAMPO, nome: '1ª posição — pés', grupo: 'as cinco posições: uma visão geral' },
+      { id: 'passe', nome: 'o passé', grupo: 'Os elementos basilares' },
+    ];
+    await env.PADD_KV.put('bastidores/' + ESP + '/linhas-de-base', JSON.stringify([{
+      id: 'tami', nome: 'Tami', alunas: ['Aluna A', 'Aluna B'], campos: camposDoElenco,
+      enviada_em: '2026-11-21T10:00:00.000Z', carimbo: '20261121-1000', turma: 'Rosa',
+    }]));
+    await pg.reload({ waitUntil: 'networkidle2', timeout: 60000 });
+    await pg.evaluate(() => {
+      const li = [...document.querySelectorAll('#roteiro li')].find((x) => /Dimensões observadas/.test(x.textContent));
+      if (li) (li.querySelector('a, button') || li).click();
+    });
+    await new Promise((ok) => setTimeout(ok, 4000));
+    const semLeitura = await pg.evaluate(() => {
+      const p = document.querySelector('.corpo-do-sujeito');
+      return p ? p.innerText.replace(/\s+/g, ' ').trim() : null;
+    });
+    provar('sem leitura no elenco, o painel diz que falta um passo (o estado de hoje ao vivo)',
+      Boolean(semLeitura) && /ainda não foi feita/.test(semLeitura),
+      semLeitura && semLeitura.slice(0, 300));
     await pg.close();
     await br.close();
     srv.close();

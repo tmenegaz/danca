@@ -57722,12 +57722,13 @@ defeito não se via; mas um documento a assinar um recorte que o professor já s
 espécie de erro deste sistema. O critério passa a ser o mesmo de `vigentes()` e de
 `linhaDeBaseDaTurma`: entre as versões do mesmo id, vale o **carimbo maior**.
 
-**PROVA.** `experimentos/provar-o-que-se-observa.js` (novo) — **33/33**, com Chrome sobre o acervo
+**PROVA.** `experimentos/provar-o-que-se-observa.js` (novo) — **34/34**, com Chrome sobre o acervo
 real servido em `127.0.0.1`: a nota atravessa as três camadas com o apelido; uma nota sem nível não
 cai em «sem registo»; `mostra` é o recorte e `mostraCompleta` os 45 campos; o Corpo leva nível,
 apoio e nota; a Poiesis leva aspectos de musicalidade **fora** do recorte, com a nota; a rota
-devolve as duas listas; o painel desenha o valor ao lado do nome; e a versão vigente do elenco é a
-do carimbo maior (medido com a lista dada ao contrário). **CONTROLE NEGATIVO** contra o `HEAD`:
+devolve as duas listas; o painel desenha o valor ao lado do nome **e, quando o elenco não tem leitura** —
+que é o estado ao vivo de hoje —, diz que falta o passo 3 em vez de deixar os nomes sozinhos; e a
+versão vigente do elenco é a do carimbo maior (medido com a lista dada ao contrário). **CONTROLE NEGATIVO** contra o `HEAD`:
 caem **6** asserções, e são todas as das notas e da nota-sem-nível.
 
 `provar-corpo-da-linha-de-base` 30/30, `provar-leituras-do-po` 27/27, `provar-o-registo-abre` 10/10,
