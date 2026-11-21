@@ -151,8 +151,8 @@
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md"
         ],
-        "hash": "4c54660dd6b51b7810853bf97f245a45fb3ff6ab624a38678b5f1dc35aa2a741",
-        "hash_conteudo": "ea5c86c36b66e8c2d5096fcb28b916ae6ac13f793bc77c3b1c7aa34d484898d5",
+        "hash": "6ebead5543799844676da57baf39b0d4f2f227146555fa4e0cb0043cfa99d604",
+        "hash_conteudo": "a429d8af5850e63c072e639ec5620b32d066dd9c9fef557af2445fa9e276cbcf",
         "id": "ciclo-01-breu-rosa-aula-01",
         "lida": true,
         "parent_hash": ""
@@ -183,8 +183,8 @@
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
           "professores/demi-plie/ciclos/ciclo-01.conf"
         ],
-        "hash": "af1a7fd1da00791998a9989fd7ae5139d7d4ea1f19912e6a215eb58a8e1f4d28",
-        "hash_conteudo": "94ba748e093528d42f3f89e20450603019fdaca148cfca08b57a029d2897f0f3",
+        "hash": "93a939a57a048eb98d92d3020c4bfeda7269a17e23982d8d1cffb99f8f8af184",
+        "hash_conteudo": "e665f662ae4eee0779c1a17731fb2fc9032702f5d5c6d26eda92d3e2564491ac",
         "id": "ciclo-01-breu-rosa",
         "lida": true,
         "parent_hash": ""
@@ -199,8 +199,8 @@
               "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
               "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md"
             ],
-            "hash": "4c54660dd6b51b7810853bf97f245a45fb3ff6ab624a38678b5f1dc35aa2a741",
-            "hash_conteudo": "ea5c86c36b66e8c2d5096fcb28b916ae6ac13f793bc77c3b1c7aa34d484898d5",
+            "hash": "6ebead5543799844676da57baf39b0d4f2f227146555fa4e0cb0043cfa99d604",
+            "hash_conteudo": "a429d8af5850e63c072e639ec5620b32d066dd9c9fef557af2445fa9e276cbcf",
             "id": "ciclo-01-breu-rosa-aula-01",
             "lida": true,
             "parent_hash": ""
@@ -437,10 +437,10 @@
       "aulas": 1,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
-      "planos": 30,
-      "pos": 30,
+      "planos": 31,
+      "pos": 31,
       "recortes": 1,
-      "registros": 64
+      "registros": 66
     },
     "criada_em": "2026-11-17T00:41:45.598067+00:00",
     "expurgada": false,
@@ -489,6 +489,7 @@
       "plano:plano-20261120-2004",
       "plano:plano-20261120-2012",
       "plano:plano-20261120-2052",
+      "plano:plano-20261121-0933",
       "po:po-20261119-1233",
       "po:po-20261119-2144",
       "po:po-20261119-2350",
@@ -518,14 +519,15 @@
       "po:po-20261120-1939",
       "po:po-20261120-2004",
       "po:po-20261120-2013",
-      "po:po-20261120-2052"
+      "po:po-20261120-2052",
+      "po:po-20261121-0933"
     ],
     "slug": "breu"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 64,
+        "contagem": 66,
         "ids": [
           "anamnese:anamnese-20261116-2201",
           "anamnese:anamnese-20261117-1407",
@@ -561,6 +563,7 @@
           "plano:plano-20261120-2004",
           "plano:plano-20261120-2012",
           "plano:plano-20261120-2052",
+          "plano:plano-20261121-0933",
           "po:po-20261119-1233",
           "po:po-20261119-2144",
           "po:po-20261119-2350",
@@ -590,7 +593,8 @@
           "po:po-20261120-1939",
           "po:po-20261120-2004",
           "po:po-20261120-2013",
-          "po:po-20261120-2052"
+          "po:po-20261120-2052",
+          "po:po-20261121-0933"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -698,7 +702,7 @@
         "valor": "bom-bom"
       },
       {
-        "contagem": 64,
+        "contagem": 66,
         "ids": [
           "anamnese:anamnese-20261116-2201",
           "anamnese:anamnese-20261117-1407",
@@ -734,6 +738,7 @@
           "plano:plano-20261120-2004",
           "plano:plano-20261120-2012",
           "plano:plano-20261120-2052",
+          "plano:plano-20261121-0933",
           "po:po-20261119-1233",
           "po:po-20261119-2144",
           "po:po-20261119-2350",
@@ -763,7 +768,8 @@
           "po:po-20261120-1939",
           "po:po-20261120-2004",
           "po:po-20261120-2013",
-          "po:po-20261120-2052"
+          "po:po-20261120-2052",
+          "po:po-20261121-0933"
         ],
         "rotulo": "demi-plie",
         "valor": "demi-plie"
@@ -790,7 +796,7 @@
         "valor": "ciclo"
       },
       {
-        "contagem": 30,
+        "contagem": 31,
         "ids": [
           "plano:plano-20261119-1143",
           "plano:plano-20261119-2144",
@@ -821,13 +827,14 @@
           "plano:plano-20261120-1939",
           "plano:plano-20261120-2004",
           "plano:plano-20261120-2012",
-          "plano:plano-20261120-2052"
+          "plano:plano-20261120-2052",
+          "plano:plano-20261121-0933"
         ],
         "rotulo": "Plano de ensino",
         "valor": "plano"
       },
       {
-        "contagem": 30,
+        "contagem": 31,
         "ids": [
           "po:po-20261119-1233",
           "po:po-20261119-2144",
@@ -858,7 +865,8 @@
           "po:po-20261120-1939",
           "po:po-20261120-2004",
           "po:po-20261120-2013",
-          "po:po-20261120-2052"
+          "po:po-20261120-2052",
+          "po:po-20261121-0933"
         ],
         "rotulo": "Plano de observação",
         "valor": "po"
@@ -867,9 +875,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "030ef48c"
+    "commit": "25db566"
   },
-  "gerado_em": "2026-11-21T12:21",
+  "gerado_em": "2026-11-21T12:33",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -1534,6 +1542,18 @@
       "turma": "Rosa"
     },
     {
+      "ajuste_de": "plano-20261120-2052",
+      "ano": "2026",
+      "carimbo": "plano-20261121-0933",
+      "ciclo": "01",
+      "data": "2026-11-21T09:33",
+      "id": "plano:plano-20261121-0933",
+      "objetivo": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
+      "professor": "demi-plie",
+      "tipo": "plano",
+      "turma": "Rosa"
+    },
+    {
       "ajuste_de": null,
       "ano": "2026",
       "carimbo": "po-20261119-1233",
@@ -1830,6 +1850,16 @@
       "ciclo": "01",
       "data": "2026-11-20T20:52",
       "id": "po:po-20261120-2052",
+      "professor": "demi-plie",
+      "tipo": "po"
+    },
+    {
+      "ajuste_de": "po-20261120-2052",
+      "ano": "2026",
+      "carimbo": "po-20261121-0933",
+      "ciclo": "01",
+      "data": "2026-11-21T09:33",
+      "id": "po:po-20261121-0933",
       "professor": "demi-plie",
       "tipo": "po"
     }
