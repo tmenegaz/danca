@@ -140,7 +140,7 @@ Plano derivado da metodologia RAD, adaptado ao âmbito da turma; Plano derivado 
 </div>
 </div>
 </div>
-<script type="application/json" id="dados-criar-aula">{"id":"plano-20261121-1508","ciclo":"01","professor":"demi-plie","escola":"breu","turma":"Rosa","marcos":["reconhecer o apoio e alinhar o eixo vertical","transferir o peso entre os pés sem perder o alinhamento","sustentar a transferência com musicalidade e controle do movimento"],"repertorio":["Battement tendu","Plié","Relevé","Battement jeté"],"blocos":["Solo","Barra","Centro","Musicalidade"],"temRepertorio":true}</script>
+<script type="application/json" id="dados-criar-aula">{"id":"plano-20261121-1531","ciclo":"01","professor":"demi-plie","escola":"breu","turma":"Rosa","marcos":["reconhecer o apoio e alinhar o eixo vertical","transferir o peso entre os pés sem perder o alinhamento","sustentar a transferência com musicalidade e controle do movimento"],"repertorio":["Battement tendu","Plié","Relevé","Battement jeté"],"blocos":["Solo","Barra","Centro","Musicalidade"],"temRepertorio":true}</script>
 <script>
   var PORTA = "/plano-ensino/";
   function pedir(caminho, init) {
