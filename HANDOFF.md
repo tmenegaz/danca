@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-21T15:02:16-0300`
-Commit atual: `e214985e` — audit(experimentos): o estado de hoje ao vivo — sem leitura no elenco, o painel diz que falta o passo 3
+Gerado em: `2026-11-21T15:24:56-0300`
+Commit atual: `e7f27197` — chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,19 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+e7f27197 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
+2798a370 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
+6af0dc2b chore(estrutura): fechar os derivados — âncoras e índices
+eb1cd59d feat(ciclo): o «Guardar» do PO grava as fontes de breu-rosa num commit só
+9653853a chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
+366f0a59 feat(acervo): envelope/po-20261121-1508.json
+7a191831 feat(acervo): envelope/.indice.json
+597eed05 feat(plano): o elo da cadeia automática
+f09b028b feat(acervo): envelope/plano-20261121-1508.json
+6d428b22 feat(acervo): envelope/.indice.json
+a7f137b9 feat(linha de base): índice — tami 20261121-1808
+4bfb5942 feat(elenco): tami — concluído
+d9e32c35 docs(estrutura): as quatro falhas de `provar-eixos-e-tempo-da-aula` já existiam
 e214985e audit(experimentos): o estado de hoje ao vivo — sem leitura no elenco, o painel diz que falta o passo 3
 6ba3b387 feat(po): «o que se observa» é o que a anamnese registou — nível, apoio e a nota
 75b91620 docs(estrutura): «a página não responde» não era a página — era o perfil do navegador
@@ -89,19 +102,6 @@ aeb80aa7 fix(po): «Ajustar» abre o registo, e não um nó que não se preenche
 9be50a2d fix(po): o atalho que falha deixa de devolver à lista sem dizer porquê
 5b439822 feat(estrutura): a fonte é Open Sans, e passa a ser entregue pelo pacote
 4809fb09 fix(estrutura): a bancada do ajuste de anamnese volta a montar a página
-562fa739 fix(po): o formulário não se fecha por não se ter podido olhar
-e73bdb2a docs(estrutura): a conferência ao vivo da Aula 02, medida
-26de0e7f fix(estrutura): a Aula 02 passa a existir — a regra do manifesto era três, e uma não crescia
-ceeddca5 chore(estrutura): fechar os derivados — âncoras e índices
-4600c998 feat(acervo): envelope/po-20261121-1120.json
-ac7f39c2 feat(acervo): envelope/.indice.json
-f23ac5c9 feat(plano): o plano elicitado vira a fonte do ciclo
-734b29bb feat(acervo): envelope/plano-20261121-1120.json
-47f2b63d feat(acervo): envelope/.indice.json
-4ab69c7b chore(estrutura): o HANDOFF aponta para o commit de hoje
-31648367 docs(estrutura): a sonda ao vivo que confirma a aula, sem escrever nada
-a4c004d7 fix(estrutura): a aula que se cria passa a existir — e o gesto deixa de mentir
-54be1100 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
 ```
 
 ## Por professor
@@ -128,7 +128,7 @@ a4c004d7 fix(estrutura): a aula que se cria passa a existir — e o gesto deixa 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `59b86b60252a` | (vazio) | — |
-| breu-rosa | ciclo-01-breu-rosa.fipp | `5b119028504e` | (vazio) | Input_PO_Validado |
+| breu-rosa | ciclo-01-breu-rosa.fipp | `3e0a5cb9e2e9` | (vazio) | Input_PO_Validado |
 
 ### fernando-franciose — 0 ciclo(s)
 
@@ -195,72 +195,60 @@ a4c004d7 fix(estrutura): a aula que se cria passa a existir — e o gesto deixa 
 
 ## Última entrada do REGISTRO
 
-## 21/11/2026 — «O que se observa» é o que a anamnese registou: nível, apoio e a nota do professor
+## 21/11/2026 — a leitura das anamneses é um botão, e o elenco por ler passa a dizê-lo
 
-**O que motivou.** Ela, a olhar o Bloco 2 do Plano de Observação: «o painel do corpo ele mostra os
-aspectos agrupados, só os nomes. […] Não mostra os valores lidos de cada um, e é exatamente isso
-que a gente tem que ter lá.» E foi precisa sobre a segunda etapa: «tem algumas medições que têm
-duas etapas, tem que pegar as duas etapas quando elas existirem — primeira posição dos pés, a gente
-vê se foi bom e também ver se fez por consciência própria ou precisou de ajuda ou do auxílio da
-barra.» E, na mesma mensagem, o requisito que quase passava: «na poiesis também tem observações que
-o professor pode ter feito […] se ele tomou nota de alguma coisa, essa anotação dele também tem que
-aparecer […] são todos os campos da anamnese que o professor usou.»
+**O que ela fez, e o que aconteceu.** Leu no painel «faça o passo 3 da linha de base do Corpo e
+conclua o elenco outra vez», entendeu «ir em Bastidores, Pedagogia, Audição, derivar o elenco e
+mandar gravar de novo», **fez isso** — derivou o elenco, derivou a turma, gerou o plano de novo — e
+o item 6 continuou a dizer «sem leitura neste elenco». A resposta dela: «seu texto não é claro
+pensando no ponto de vista de um professor», e «o fato de eu ter mexido lá em elenco não gerou os
+valores que você disse que ia gerar».
 
-**O DADO SEMPRE EXISTIU — era a LIGAÇÃO que faltava, em três pontos.**
+**Ela tinha razão nas duas coisas, e o acervo mostra-o.** A série do elenco `tami` tem treze
+versões:
 
-| o quê | onde estava | o que acontecia |
-|:--|:--|:--|
-| o **nível** e o **apoio** (as duas etapas) | na frase que o passo 3 grava — «1 de 1 em «Bom» (por consciência própria)» | chegava ao documento, e **não** à tela |
-| a **nota** do professor | no registo da resposta, `{valor, origem, respondente, nota}` | era **lida e deitada fora** por `nivelDaResposta`, que só olhava o `valor` |
-| os aspectos de **musicalidade** | na leitura do passo 3, sobre os 45 campos | ficavam fora do **recorte** (que é do corpo), e o eixo Poiesis não os podia ler |
+| quando | `alunas` | `lida` | `leitura` |
+|:--|:--|:--|:--|
+| 17/11 e 18/11 (até `--1807`) | Aluna A | sim | **sim** |
+| 18/11 `--1908`, `--1911` | `[]` — o elenco esvaziado | sim | **não** |
+| 18/11 `--2039` a 21/11 `--1808` | Aluna A, depois A e B | sim | **não** |
 
-**A rota também não os servia.** `/api/bastidores/alunas-da-turma` devolvia `alunas`, `linhaDeBase`
-e `recorte` — os **nomes**. Sem `mostra`, o painel do Corpo só tinha nomes para desenhar. Não era
-falta de dado; era falta de o servir. A mesma rota tem dois ramos (a Turma a escolher o elenco, e o
-vínculo antigo), e **os dois** passam a devolver o mesmo.
+A leitura caiu quando o elenco ficou sem alunas (regra certa: a leitura descreve corpos), e nunca
+voltou — porque **derivar e gravar não lêem nada**. Quem lê é o botão **«Ler as anamneses»**, no
+passo 3 «Anamneses» da aba «Escolha de elenco» (Bastidores → Pedagogia → Audição). O `lida`, esse,
+sobrevive a tudo — é proveniência, e é por isso que o elenco parecia lido.
 
-**O que entra.**
+**O que se corrigiu, e são quatro coisas.**
 
-1. `nivelDaResposta` devolve `nota`, e ela **não depende do valor** — a primeira versão desta
-   correção exigia `valor` e perdia exactamente o caso «escreveu e não marcou».
-2. `classificar` recolhe `notas: [{aluna, texto}]` por aspecto; um aspecto **com nota e sem nível**
-   deixa de cair em `semRegisto` (foi observado) e entra em «o que precisa de ser trabalhado».
-3. `mostraDaLeitura` propaga as notas e **não as duplica** quando o aspecto aparece em duas listas.
-4. `formaDaLinhaDeBase` ganha `mostraCompleta` — a leitura dos 45 campos, ao lado de `mostra`, que
-   continua a ser só o recorte. Duas perguntas diferentes sobre o mesmo acto.
-5. O painel do Corpo mostra, por aspecto, o **valor** («1 de 1 em «Bom» (por consciência própria)»)
-   e a **nota** entre aspas, com o apelido quando há mais de uma; e diz o estado da leitura quando
-   ela falta, em vez de deixar o nome sozinho.
-6. O derivador da aula imprime as três coisas no Corpo, e o eixo **Poiesis** passa a levar os
-   aspectos de musicalidade da anamnese — que não estão no recorte do corpo.
+1. **A frase do painel** deixa o jargão e passa a nomear o botão, a aba, o passo e o menu — e diz
+   explicitamente que derivar o elenco ou gerar o plano **não** fazem a leitura. Um recado que não
+   se pode cumprir é pior do que nenhum: manda a pessoa repetir o que já fez.
+2. **O cartão do elenco, na lista da Audição**, leva o mesmo «!» da revisão pendente quando tem
+   alunas, tem recorte e não tem leitura (ou a leitura é de outra composição de alunas), com a dica
+   a dizer o caminho. Um rascunho sem recorte **não** o leva: um aviso que aparece quando não é
+   preciso deixa de se ler quando é.
+3. **O «Concluir elenco» passa a dizer o que falta.** Não se recusa — gravar a meio é legítimo —,
+   mas a resposta leva `avisoLeitura`, e a tela acrescenta «FALTA UM PASSO: …» à frase de
+   conclusão. Antes, o elenco entrava na cadeia como se os corpos tivessem sido lidos.
+4. **«Não há anamnese registada» deixa de poder ser dito quando o que há é uma chave que não abre.**
+   O `catch` que separa uma anamnese ilegível das outras é justo, mas engolia a causa: agora a
+   falha é recolhida e a resposta é **409** com a frase da chave, não um 200 a negar o dado.
 
-**E UM DEFEITO ENCONTRADO DE CAMINHO, que não é desta entrega.** `linhaDeBaseDoElenco` procurava o
-elenco com um `find` pela `id` — e a `id` **não muda entre versões** (cada acto é um ficheiro com o
-carimbo no nome). No disco do `breu`, o elenco `tami` tem **doze** versões: o `find` devolvia a de
-**17/11** (3 aspectos) em vez da de **20/11** (10). Em produção a lista fundida colapsa por id e o
-defeito não se via; mas um documento a assinar um recorte que o professor já substituiu é a pior
-espécie de erro deste sistema. O critério passa a ser o mesmo de `vigentes()` e de
-`linhaDeBaseDaTurma`: entre as versões do mesmo id, vale o **carimbo maior**.
-
-**PROVA.** `experimentos/provar-o-que-se-observa.js` (novo) — **34/34**, com Chrome sobre o acervo
-real servido em `127.0.0.1`: a nota atravessa as três camadas com o apelido; uma nota sem nível não
-cai em «sem registo»; `mostra` é o recorte e `mostraCompleta` os 45 campos; o Corpo leva nível,
-apoio e nota; a Poiesis leva aspectos de musicalidade **fora** do recorte, com a nota; a rota
-devolve as duas listas; o painel desenha o valor ao lado do nome **e, quando o elenco não tem leitura** —
-que é o estado ao vivo de hoje —, diz que falta o passo 3 em vez de deixar os nomes sozinhos; e a
-versão vigente do elenco é a do carimbo maior (medido com a lista dada ao contrário). **CONTROLE NEGATIVO** contra o `HEAD`:
-caem **6** asserções, e são todas as das notas e da nota-sem-nível.
+**PROVA.** `provar-o-que-se-observa` — **43/43** (§E e §F novas): a frase do painel no estado ao
+vivo, o `POST` da conclusão a devolver `avisoLeitura`, o cartão com o «!» e o seu `title`, o rascunho
+**sem** ele (medido no DOM), e o 409 da chave errada. **CONTROLE NEGATIVO**: 14 de 43 caem contra o
+`75b91620` — e ficou escrito no ficheiro que o `HEAD` deixou de servir de linha de base no dia em que
+o trabalho foi commitado: passou a comparar o novo com o novo e dava 43/43. É a mesma armadilha de
+sempre, agora dentro de uma prova.
 
 `provar-corpo-da-linha-de-base` 30/30, `provar-leituras-do-po` 27/27, `provar-o-registo-abre` 10/10,
-`provar-ajustes-anamnese` 126/126, `provar-listas-do-acervo` 113/113,
-`provar-curadoria-ilegivel` 19/19; `check-identidade` 22 ok / 0 reprovações, `check-indices` 16/16,
-`check-pacote` 0 erros (1 aviso: o PDF, por desenho), `hash-ciclo --check` cadeia intacta.
+`provar-curadoria-ilegivel` 19/19; `check-identidade` 22 ok / 0 reprovações (a marca reusa
+`.selo.alerta`), `check-indices` 16/16, `check-pacote` 0 erros (1 aviso: o PDF, por desenho),
+`hash-ciclo --check` cadeia intacta.
 
-**O que fica declarado.** `provar-linha-de-base` tem **9** falhas — medidas antes e depois com o
-worktree em stash, iguais. E o acto real do elenco (`tami--20261120-2146`) continua **sem
-`leitura`**: o passo 3 nunca foi refeito depois de o elenco ser esvaziado a 18/11, e é por isso que
-o painel de hoje diz «a leitura deste elenco ainda não foi feita» — que é a verdade. O que o
-conserto faz é que, quando ele a refizer, os valores e as notas aparecem sem mais nada.
+**O que continua pendente, e depende dela.** O acto vigente do elenco (`tami--20261121-1808`) não
+tem leitura, e nenhum código pode fazê-la: as anamneses são cifradas com a chave da escola, que vive
+só nos segredos do Worker. O botão está lá; o passo é dela.
 
 ## O que está pendente
 

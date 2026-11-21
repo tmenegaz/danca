@@ -2225,13 +2225,27 @@ async function pintarCorpoDoSujeito() {
     ? ' A leitura é de ' + leitura.alunas.length + (leitura.alunas.length === 1 ? ' aluna' : ' alunas')
       + (leitura.em ? ', feita em ' + dataEmPortugues(leitura.em) : '') + '.'
     : '';
+  /* O CAMINHO DITO PELO NOME DAS COISAS DELA (21/11/2026).
+   *
+   * A frase anterior mandava «fazer o passo 3 da linha de base do Corpo e concluir o elenco», e ela
+   * respondeu com a pergunta certa: «o que que é passo três na linha de base do corpo?». Fez o que
+   * aquilo parecia dizer — derivou o elenco e o plano —, nada apareceu, e a frase continuou a
+   * mandá-la ao mesmo sítio. Um recado que não se pode cumprir é pior do que nenhum.
+   *
+   * Agora diz o caminho pelos nomes do ecrã (o menu, a aba, o passo, o botão) e diz também o que
+   * NÃO faz a leitura: derivar o elenco e gerar o plano não a fazem — é por isso que se pode
+   * derivar tudo e o painel continuar sem valores. */
+  const ondeSeLe = 'Em <b>Bastidores → Pedagogia → Audição</b>, na aba «Escolha de elenco», abra o '
+    + 'elenco «' + escapar(linha.nome || linha.id || '') + '», vá ao passo <b>3 «Anamneses»</b>, '
+    + 'marque as alunas e carregue em <b>«Ler as anamneses»</b>. Depois grave o elenco outra vez. '
+    + 'Derivar o elenco ou gerar o plano <b>não</b> fazem esta leitura.';
   const estadoDaLeitura = lidos === 0
     ? '<p class="aviso">A leitura das anamneses deste elenco ainda não foi feita — é ela que diz o '
-      + 'nível e o apoio de cada aspecto. Faça o passo 3 da linha de base do <b>Corpo</b> e '
-      + 'conclua o elenco outra vez; os valores aparecem aqui, sem nada a preencher à mão.</p>'
+      + 'nível e o apoio de cada aspecto. ' + ondeSeLe
+      + ' Os valores aparecem aqui sozinhos, sem nada a preencher à mão.</p>'
     : (lidos < quantos
       ? '<p class="aviso">' + (quantos - lidos) + ' de ' + quantos + ' aspectos do recorte não têm '
-        + 'leitura neste elenco.' + deQuem + '</p>'
+        + 'leitura neste elenco.' + deQuem + ' ' + ondeSeLe + '</p>'
       : (deQuem ? '<p class="sub">' + deQuem.trim() + '</p>' : ''));
   alvo.innerHTML = '<p class="sub">O eixo do <b>Corpo</b> é o recorte que você escolheu no passo 4 '
     + 'da linha de base «' + escapar(linha.nome || linha.id || '') + '» — ' + quantos

@@ -57741,3 +57741,58 @@ worktree em stash, iguais. E o acto real do elenco (`tami--20261120-2146`) conti
 `leitura`**: o passo 3 nunca foi refeito depois de o elenco ser esvaziado a 18/11, e é por isso que
 o painel de hoje diz «a leitura deste elenco ainda não foi feita» — que é a verdade. O que o
 conserto faz é que, quando ele a refizer, os valores e as notas aparecem sem mais nada.
+
+## 21/11/2026 — a leitura das anamneses é um botão, e o elenco por ler passa a dizê-lo
+
+**O que ela fez, e o que aconteceu.** Leu no painel «faça o passo 3 da linha de base do Corpo e
+conclua o elenco outra vez», entendeu «ir em Bastidores, Pedagogia, Audição, derivar o elenco e
+mandar gravar de novo», **fez isso** — derivou o elenco, derivou a turma, gerou o plano de novo — e
+o item 6 continuou a dizer «sem leitura neste elenco». A resposta dela: «seu texto não é claro
+pensando no ponto de vista de um professor», e «o fato de eu ter mexido lá em elenco não gerou os
+valores que você disse que ia gerar».
+
+**Ela tinha razão nas duas coisas, e o acervo mostra-o.** A série do elenco `tami` tem treze
+versões:
+
+| quando | `alunas` | `lida` | `leitura` |
+|:--|:--|:--|:--|
+| 17/11 e 18/11 (até `--1807`) | Aluna A | sim | **sim** |
+| 18/11 `--1908`, `--1911` | `[]` — o elenco esvaziado | sim | **não** |
+| 18/11 `--2039` a 21/11 `--1808` | Aluna A, depois A e B | sim | **não** |
+
+A leitura caiu quando o elenco ficou sem alunas (regra certa: a leitura descreve corpos), e nunca
+voltou — porque **derivar e gravar não lêem nada**. Quem lê é o botão **«Ler as anamneses»**, no
+passo 3 «Anamneses» da aba «Escolha de elenco» (Bastidores → Pedagogia → Audição). O `lida`, esse,
+sobrevive a tudo — é proveniência, e é por isso que o elenco parecia lido.
+
+**O que se corrigiu, e são quatro coisas.**
+
+1. **A frase do painel** deixa o jargão e passa a nomear o botão, a aba, o passo e o menu — e diz
+   explicitamente que derivar o elenco ou gerar o plano **não** fazem a leitura. Um recado que não
+   se pode cumprir é pior do que nenhum: manda a pessoa repetir o que já fez.
+2. **O cartão do elenco, na lista da Audição**, leva o mesmo «!» da revisão pendente quando tem
+   alunas, tem recorte e não tem leitura (ou a leitura é de outra composição de alunas), com a dica
+   a dizer o caminho. Um rascunho sem recorte **não** o leva: um aviso que aparece quando não é
+   preciso deixa de se ler quando é.
+3. **O «Concluir elenco» passa a dizer o que falta.** Não se recusa — gravar a meio é legítimo —,
+   mas a resposta leva `avisoLeitura`, e a tela acrescenta «FALTA UM PASSO: …» à frase de
+   conclusão. Antes, o elenco entrava na cadeia como se os corpos tivessem sido lidos.
+4. **«Não há anamnese registada» deixa de poder ser dito quando o que há é uma chave que não abre.**
+   O `catch` que separa uma anamnese ilegível das outras é justo, mas engolia a causa: agora a
+   falha é recolhida e a resposta é **409** com a frase da chave, não um 200 a negar o dado.
+
+**PROVA.** `provar-o-que-se-observa` — **43/43** (§E e §F novas): a frase do painel no estado ao
+vivo, o `POST` da conclusão a devolver `avisoLeitura`, o cartão com o «!» e o seu `title`, o rascunho
+**sem** ele (medido no DOM), e o 409 da chave errada. **CONTROLE NEGATIVO**: 14 de 43 caem contra o
+`75b91620` — e ficou escrito no ficheiro que o `HEAD` deixou de servir de linha de base no dia em que
+o trabalho foi commitado: passou a comparar o novo com o novo e dava 43/43. É a mesma armadilha de
+sempre, agora dentro de uma prova.
+
+`provar-corpo-da-linha-de-base` 30/30, `provar-leituras-do-po` 27/27, `provar-o-registo-abre` 10/10,
+`provar-curadoria-ilegivel` 19/19; `check-identidade` 22 ok / 0 reprovações (a marca reusa
+`.selo.alerta`), `check-indices` 16/16, `check-pacote` 0 erros (1 aviso: o PDF, por desenho),
+`hash-ciclo --check` cadeia intacta.
+
+**O que continua pendente, e depende dela.** O acto vigente do elenco (`tami--20261121-1808`) não
+tem leitura, e nenhum código pode fazê-la: as anamneses são cifradas com a chave da escola, que vive
+só nos segredos do Worker. O botão está lá; o passo é dela.

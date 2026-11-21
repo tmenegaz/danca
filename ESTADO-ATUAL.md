@@ -2975,6 +2975,23 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      `--serif` fica (nomeia o papel, e não o desenho) e a `--ui` não muda. **O PDF do ciclo não
      segue** — um `.woff2` não serve ao `pdflatex`. **DECIDIDO** 21/11/2026.
 
+134. **A LEITURA DAS ANAMNESES É UM BOTÃO, E O ELENCO POR LER DIZ-SE EM TRÊS SÍTIOS.** Palavras
+     dela: «eu entendi que eu tenho que ir em bastidores, pedagogia, audição, derivar o elenco e
+     mandar gravar de novo […] o fato de eu ter mexido lá em elenco não gerou os valores que você
+     disse que ia gerar […] seu texto não é claro pensando no ponto de vista de um professor.» Ela
+     tinha razão nas duas coisas: a frase do painel mandava-a «fazer o passo 3 da linha de base do
+     Corpo», que não é um sítio que se possa procurar, e **derivar o elenco e gerar o plano não
+     fazem a leitura** — quem a faz é o botão **«Ler as anamneses»**, no passo 3 «Anamneses» da aba
+     «Escolha de elenco» (Bastidores → Pedagogia → Audição). O acto do elenco confirma-o: o
+     `tami--20261118-1807` é o último com `leitura`; no `--1908` o elenco ficou com `alunas: []` e a
+     leitura caiu — e as nove versões seguintes, incluindo a de 21/11 que ela acabou de gravar,
+     levaram `lida` (a proveniência dos carimbos, que sobrevive a tudo) e **nenhuma** `leitura`.
+     Daí o «sem registo na anamnese» no meio do plano de observação, que ela leu — e leu bem — como
+     mentira sobre o dado dela. **DECIDIDO** 21/11/2026: a falta da leitura passa a ser dita nos
+     três sítios onde ela a pode encontrar (a frase do painel, com o nome do botão; o «!» do cartão
+     do elenco, com a dica do caminho; a resposta do «Concluir»), e uma anamnese que a chave não
+     abre deixa de se chamar «não há anamnese registada».
+
 133. **«O QUE SE OBSERVA» É O QUE A ANAMNESE REGISTOU — NÍVEL, APOIO E NOTA.** Palavras dela: «não
      mostra os valores lidos de cada um, e é exatamente isso que a gente tem que ter lá […] tem
      algumas medições que têm duas etapas, tem que pegar as duas etapas quando elas existirem» e,
@@ -3750,7 +3767,18 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (21/11/2026 — «o que se observa» tem o valor, o apoio e a nota)
+### Executado nesta fotografia (21/11/2026 — o elenco por ler diz-se, e diz o botão)
+
+| Verificação | Resultado |
+|:--|:--|
+| o estado, medido no acervo | a série do elenco `tami` tem **treze** versões: as quatro primeiras (17 e 18/11, até ao `--1807`) têm `leitura`; a partir do `--1908`, em que `alunas` passou a `[]`, **todas** trazem `lida` e **nenhuma** `leitura`. As duas que a turma lê por data estão nesse grupo. É a explicação inteira do «sem registo na anamnese» — e não é o registo dela que falta |
+| `provar-o-que-se-observa` (§E nova, §F nova) | **43/43** com Chrome sobre o pacote real em `127.0.0.1`. A §E mede a frase do painel no estado ao vivo: nomeia «Ler as anamneses», «Audição» e «Anamneses», e diz que derivar o elenco ou gerar o plano **não** fazem a leitura. A §F mede o caminho inteiro: a direção entra, o `POST /api/bastidores/linha-de-base` com `concluir: true` devolve `avisoLeitura` quando há alunas e não há leitura, o cartão do elenco na lista leva o «!» com a dica do caminho, **um rascunho sem recorte não o leva** (medido no DOM, depois de gravar um), e `abrirArquivoCifrado` com a chave errada responde **409** com a frase da chave — e não «não há anamnese» |
+| controle negativo | `--controle-negativo --contra=75b91620` → **caem 14 de 43**. Ficou escrito no ficheiro por que o `HEAD` deixou de servir de linha de base: depois do commit, `HEAD` **é** a versão nova, e o controle comparava o novo com o novo (deu 41/41 e não provava nada) |
+| as que atravessam o mesmo caminho | `provar-corpo-da-linha-de-base` **30/30**, `provar-leituras-do-po` **27/27**, `provar-o-registo-abre` **10/10**, `provar-curadoria-ilegivel` **19/19** |
+| `node tools/check-identidade.js` · `check-sem-destruicao` · `check-indices` · `check-pacote` · `hash-ciclo --check` | **0 reprovações (22 ok)** — a marca reusa o `.selo.alerta` que já existia · **ok** · **16/16** · **0 erros, 1 aviso** (o PDF, por desenho) · **cadeia intacta** |
+| o pacote da `breu-rosa` | `porta/index.html` re-sincronizado nas **duas** cópias do PO (a do ciclo sem escola e a da `rosa`, cada uma com a sua navegação) e a publicação remontada — sem isso a bancada mede a página de ontem, e foi o que aconteceu à primeira passagem: duas asserções da §E caíam contra o texto antigo |
+
+### Executado na fotografia anterior (21/11/2026 — «o que se observa» tem o valor, o apoio e a nota)
 
 | Verificação | Resultado |
 |:--|:--|

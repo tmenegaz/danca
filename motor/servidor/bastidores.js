@@ -2913,6 +2913,27 @@ function revisoesDosElencos(linhas) {
   return mapa;
 }
 
+/* AS FRASES DO ELENCO POR LER (21/11/2026) — e porque vivem aqui, e não no script do cliente.
+ *
+ * Elas são lidas em DOIS sítios (a lista dos elencos e a resposta do «Concluir»), e dizem o mesmo
+ * caminho: o menu, a aba, o passo e o botão. Escritas no meio de uma string do cliente, cada acento
+ * exigiria um `\\u00e7` — e a primeira correção de uma delas erraria o escape e partiria o script,
+ * que nesta página falha em silêncio (a lista fica em «carregando…»). Aqui são texto; o cliente
+ * recebe-as como DADO, com `JSON.stringify`.
+ *
+ * A FRASE NOMEIA O GESTO QUE FALTA E O QUE NÃO O FAZ. Ela pediu «o que que é passo três na linha de
+ * base do corpo?» depois de derivar o elenco e o plano e de nada aparecer — a frase antiga mandava-a
+ * a um sítio que ela não sabia nomear, e não dizia que derivar não é ler. */
+const FRASES_DO_ELENCO_POR_LER = {
+  nunca: 'as anamneses das alunas deste elenco nunca foram lidas aqui',
+  outras: 'a leitura deste elenco foi feita sobre outra composição de alunas — não descreve as que '
+    + 'estão agora',
+  onde: 'Em Bastidores → Pedagogia → Audição, aba «Escolha de elenco», abra o elenco, vá ao passo 3 '
+    + '«Anamneses», marque as alunas e carregue em «Ler as anamneses»; depois grave o elenco outra '
+    + 'vez. Derivar o elenco ou gerar o plano não fazem esta leitura. Sem ela, os documentos do '
+    + 'ciclo dizem «sem registo na anamnese».',
+};
+
 /** As duas opções vazias do `<select>` da Turma. Constantes para o cliente dizer o mesmo. */
 const ROTULO_ESCOLHER_ELENCO = '— escolher —';
 const ROTULO_NENHUM_ELENCO = '— nenhum elenco —';
@@ -20730,6 +20751,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * núcleo e a frase é composta de lá para cá. O cliente não recalcula nada: duas contas da
      * mesma regra divergem ao primeiro caso novo, e esta é uma marca que só existe se for exacta
      * (uma que fica acesa depois de o trabalho estar feito ensina a ignorá-la). */
+    'var FRASES_DO_ELENCO_POR_LER = ' + JSON.stringify(FRASES_DO_ELENCO_POR_LER) + ';' +
     'var REVISOES_DOS_ELENCOS = ' + JSON.stringify(revisoesDosElencosDaEscola) + ';' +
     'var ALUNAS_COM_ANAMNESE = [];' +
     /* QUANTAS ALUNAS EXISTEM NA ESCOLA (15/11/2026). Vem do servidor, na mesma resposta que traz
@@ -21565,6 +21587,38 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        escHtml(revisao.texto) + "\\" aria-label=\\"" + escHtml(revisao.texto) +' +
     '        "\\">!</span>"' +
     '      : "";' +
+    /* O ELENCO COM ALUNAS E SEM LEITURA TAMBÉM É UM DEFEITO, E DIZ-SE (21/11/2026).
+     *
+     * A marca acima só existe depois de uma TRANSFERÊNCIA (`revisaoPendente`). Escapava-lhe o caso
+     * que ela viveu: o elenco ficou sem leitura quando as alunas mudaram a 18/11, e daí em diante
+     * todas as versões levaram `lida` (a proveniência dos carimbos, que sobrevive a tudo) e nenhuma
+     * levou `leitura`. Na lista, esse elenco parecia inteiro — e os documentos do ciclo diziam
+     * «sem registo na anamnese» sobre corpos que ela tinha observado. Ela leu isso como mentira
+     * sobre o dado dela, e era: o dado existe; o que falta é a leitura.
+     *
+     * É a MESMA PEÇA do `!` acima (`.selo alerta`), e não uma etiqueta nova — e as DUAS não se
+     * desenham juntas: quando há revisão pendente, o texto dela já nomeia a leitura que falta, e um
+     * segundo «!» ao lado do primeiro era o mesmo aviso dito duas vezes.
+     *
+     * AS FRASES VÊM DO SERVIDOR como dado (`FRASES_DO_ELENCO_POR_LER`), e não escritas aqui: no meio
+     * de uma string do cliente, um acento obriga a `\u00e7`, e quem for corrigir a frase daqui a um
+     * mês erra o escape e parte o script — que é o modo de falha silencioso desta página. */
+    /* SÓ O ELENCO COM RECORTE: um rascunho a meio da composição ainda não devia ter lido nada, e o
+     * «por completar» acima já diz o que lhe falta. Marcar os dois seria avisar sobre um trabalho
+     * em curso — e um aviso que aparece quando não é preciso deixa de se ler quando é. */
+    '    var semLeitura = m > 0 && n > 0 && !l.leitura;' +
+    '    var lidasDe = (l.leitura && Array.isArray(l.leitura.alunas))' +
+    '      ? l.leitura.alunas.map(String).sort().join("|")' +
+    '      : ((l.leitura && l.leitura.classificacao) ? "" : null);' +
+    '    var leituraDeOutras = m > 0 && n > 0 && lidasDe !== null &&' +
+    '      lidasDe !== (l.alunas || []).map(String).sort().join("|");' +
+    '    var textoDaLeitura = semLeitura ? FRASES_DO_ELENCO_POR_LER.nunca' +
+    '      : (leituraDeOutras ? FRASES_DO_ELENCO_POR_LER.outras : "");' +
+    '    var marcaLeitura = textoDaLeitura' +
+    '      ? " <span class=\\"selo alerta\\" role=\\"img\\" title=\\"" +' +
+    '        escHtml(textoDaLeitura + " " + FRASES_DO_ELENCO_POR_LER.onde) +' +
+    '        "\\" aria-label=\\"" + escHtml(textoDaLeitura) + "\\">!</span>"' +
+    '      : "";' +
     '    var id = String(indice + 1);' +
     /* A ETIQUETA DO AJUSTE, que aqui faltava (18/11/2026).
      *
@@ -21592,7 +21646,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * identidade no DOM — a sala já tinha `data-turma`, o verbete `data-verbete`. */
     '    return "<li class=\\\"trio-plano\\\" data-elenco=\\\"" + escHtml(l.id) + "\\\">" +' +
     '      "<div class=\\"trio-linha\\">" +' +
-    '      "<span class=\\"trio-nome\\"><b>" + escHtml(l.nome) + "</b> " + selo + ajuste + marca + "</span>" +' +
+    '      "<span class=\\"trio-nome\\"><b>" + escHtml(l.nome) + "</b> " + selo + ajuste +' +
+    '      (marca || marcaLeitura) + "</span>" +' +
     /* OS DOIS GESTOS SÃO OS DA SALA, E A REGRA É A MESMA (18/11/2026).
      *
      * «Aqui eu tenho um elenco que está vinculado a uma turma e aí tem o botão de editar e de
@@ -22021,7 +22076,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * dado. NÃO se navega por ele: quem decide se o ajuste é pertinente é o professor. */
     '      if (d.linha && d.linha.turma) avisarCascata(d.linha.turma);' +
     '      ULTIMO_DISPARO = { disparos: (d && d.disparos) || [], aviso: (d && d.aviso) || "",' +
-    '        cadeia: (d && d.cadeia) || null };' +
+    '        avisoLeitura: (d && d.avisoLeitura) || "", cadeia: (d && d.cadeia) || null };' +
     '      return true;' +
     '    })' +
     '    .catch(function(err){ liberarBotao(antes); corpoRes("erro", "Erro: " + err.message); return false; });' +
@@ -22101,6 +22156,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      return x.variante + (x.erro ? " (" + x.erro + ")" : ""); }).join(", ")' +
     '      + " — o elenco está gravado; regere pelo «Guardar» do plano ou do PO.";' +
     '    if (!feitos && !falhos.length && g.aviso) frase += " " + g.aviso;' +
+    /* A LEITURA EM FALTA DIZ-SE MESMO QUANDO A GERAÇÃO PARTIU (21/11/2026).
+     *
+     * A frase acima só mostra o `aviso` quando não houve geração nenhuma — e o caso que interessa é
+     * o contrário: o elenco é gravado, o ciclo é regenerado, tudo diz «concluído» e os documentos
+     * saem com «sem registo na anamnese». O aviso da leitura vai SEMPRE, e depois dos outros: é o
+     * que ela tem de fazer a seguir. */
+    '    if (g.avisoLeitura) frase += " FALTA UM PASSO: " + g.avisoLeitura;' +
     /* O QUE A CADEIA FEZ — E O QUE FALTA, COM O CAMINHO (09/11/2026). A frase acima diz o que
      * aconteceu à GERAÇÃO; esta diz o que aconteceu à travessia: os vínculos, o plano de ensino
      * e a observação. Quando ela fechou, uma linha; quando não, cada etapa em falta com o
@@ -25615,6 +25677,26 @@ function parDaSalaNoCorpo(corpo, registo) {
         });
       }
       const quando = new Date().toISOString();
+      /* CONCLUIR UM ELENCO SEM A LEITURA NÃO É PROIBIDO — é DITO (21/11/2026).
+       *
+       * A tela já não deixa chegar ao passo 4 sem ler (`faltasDoPassoLb(3)`), mas o recorte pode
+       * vir de outro caminho — a derivação que a ela levou a compor o elenco —, e a conclusão
+       * aceitava-o sem uma palavra. O resultado: o elenco entrava na cadeia como se os corpos
+       * tivessem sido lidos, e todos os documentos do ciclo saíam com «sem registo na anamnese»,
+       * que se lê como «o professor não registou nada». É a mentira por omissão desta família.
+       *
+       * Não se recusa: um elenco pode ser gravado a meio, e bloquear aqui pararia o trabalho dela
+       * por causa de um passo que só depende dela. Acrescenta-se a frase que diz o que falta e
+       * onde se faz — e ela viaja com o acto para a lista, no `!` do cartão. */
+      const semLeituraDoElenco = (() => {
+        const alunas = Array.isArray(decidido.linha.alunas) ? decidido.linha.alunas.map(String) : [];
+        if (!alunas.length) return false;
+        const l = decidido.linha.leitura;
+        if (!l) return true;
+        const lidas = Array.isArray(l.alunas) ? l.alunas.map(String) : null;
+        if (!lidas) return true;
+        return JSON.stringify(lidas.slice().sort()) !== JSON.stringify(alunas.slice().sort());
+      })();
       const fechar = async (linha, gravado, extra) => {
         // O RASCUNHO SAI DO KV quando o acto ficou escrito no repositório. Sem isto, a mesma
         // linha viveria nos dois sítios e o da tela seria o que fica para trás.
@@ -25640,6 +25722,7 @@ function parDaSalaNoCorpo(corpo, registo) {
         });
         return json(idx === -1 ? 201 : 200, Object.assign({
           ok: true, linha, criada: idx === -1, gravado,
+          ...(semLeituraDoElenco ? { avisoLeitura: FRASES_DO_ELENCO_POR_LER.onde } : {}),
         }, extra || {}, geracao, { cadeia: cadeiaDoElenco }));
       };
       if (!repoLinhas.activo) {
@@ -26069,6 +26152,15 @@ function parDaSalaNoCorpo(corpo, registo) {
     const estados = await porta.estadosDasAnamneses(armazenamento);
     const anamneses = [];
     const lida = {};
+    /* O QUE NÃO SE CONSEGUIU ABRIR, SEPARADO DO QUE NÃO EXISTE (21/11/2026).
+     *
+     * O `catch` mudo abaixo é justo — uma anamnese ilegível não impede a leitura das outras —, mas
+     * ele deitava fora a única coisa que explicava o resultado vazio: a CHAVE. Uma anamnese cifrada
+     * com outra chave (as anteriores à chave derivada da mestra) faz `lerEnvelope` responder 409, e
+     * a resposta dizia «Nenhuma das alunas escolhidas tem anamnese registada» — que é falso, e
+     * manda o professor refazer anamneses que existem. A família de erro desta entrega inteira:
+     * a ausência de um resultado a fazer-se passar pela ausência do dado. */
+    const naoAbri = [];
     for (const [carimbo, estado] of Object.entries(estados || {})) {
       if (!estado || !estado.vigente || !estado.apelido) continue;
       if (alunas.indexOf(estado.apelido) === -1) continue;
@@ -26077,13 +26169,24 @@ function parDaSalaNoCorpo(corpo, registo) {
         anamneses.push({ aluna: estado.apelido, respostas: (envelope && envelope.respostas) || {} });
         lida[estado.apelido] = String(estado.carimbo || carimbo);
       } catch (erro) {
-        /* Uma anamnese ilegível não impede a leitura das outras — e o resumo diz com quantas se
-         * contou. Deter tudo por causa de uma seria perder o que existe. */
+        naoAbri.push({ aluna: estado.apelido, carimbo: String(estado.carimbo || carimbo),
+          erro: (erro && erro.message) || String(erro) });
       }
     }
     /* NENHUMA ANAMNESE NÃO É UM RESULTADO VAZIO: é um estado que se DIZ — «não há retratos» e «o
-     * recorte não casou» são coisas diferentes, e a tela tem de as distinguir. */
+     * recorte não casou» são coisas diferentes, e a tela tem de as distinguir. E «não consegui
+     * abrir» é uma terceira coisa, com o seu próprio remédio (a chave, não a anamnese). */
     if (!anamneses.length) {
+      if (naoAbri.length) {
+        return json(409, {
+          ok: false,
+          leitura: null, naoAbri,
+          erro: 'não consegui abrir a anamnese de ' + naoAbri.map((n) => n.aluna).join(', ')
+            + ': a chave desta escola não abre o registo. O registo está intacto — o que falta é '
+            + 'a chave com que ele foi escrito (provavelmente anterior a esta escola passar a ter '
+            + 'chave derivada da mestra).',
+        });
+      }
       return json(200, {
         ok: true, linha: lista[idx], leitura: null, semAnamneses: true,
         erro: 'Nenhuma das alunas escolhidas tem anamnese registada.',

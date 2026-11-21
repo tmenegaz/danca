@@ -35,12 +35,21 @@
  *   D. o derivador da aula: o Corpo leva nível + apoio + nota; a Poiesis leva os aspectos de
  *      musicalidade da anamnese, com a nota;
  *   E. na página (Chrome, acervo real servido em 127.0.0.1): o painel do Corpo mostra o valor ao
- *      lado de cada aspecto, e não só o nome.
+ *      lado de cada aspecto, e não só o nome — e, quando o elenco NÃO tem leitura, diz que falta um
+ *      passo e nomeia o botão («Ler as anamneses»), em vez de a mandar a um «passo 3» sem endereço;
+ *   F. o elenco por ler é dito nos três sítios onde ela pode encontrá-lo: a conclusão (a resposta
+ *      leva o aviso), o cartão da lista (o «!» com a dica do caminho) e a frase do painel; e uma
+ *      anamnese que a chave não abre é um 409 com a sua frase — não um 200 «não há anamnese».
  *
- * CONTROLE NEGATIVO (`--controle-negativo`): o `motor/nucleo/linha-de-base.js` de `HEAD` e o
- * `derivar-ciclo.js` de `HEAD`. Espera-se que A, B, C e D caiam.
+ * CONTROLE NEGATIVO (`--controle-negativo`): o `motor/nucleo/linha-de-base.js` e o
+ * `derivar-ciclo.js` de `--contra=<rev>` (padrão `HEAD`). Espera-se que A, B, C, D e D2 caiam.
+ * E, DEPOIS DA ENTREGA, o `HEAD` já é a versão nova: o controle só mede com a linha de base
+ * fixada no commit anterior — `--contra=75b91620`, no caso desta.
  *
- *   node experimentos/provar-o-que-se-observa.js [--controle-negativo]
+ * O QUE O CONTROLE NÃO ALCANÇA, e é dito: as secções E e F medem a PÁGINA e as ROTAS
+ * (`bastidores.js`, `porta/index.html`), que ele não reverte — elas passariam nas duas versões.
+ *
+ *   node experimentos/provar-o-que-se-observa.js [--controle-negativo [--contra=<rev>]]
  */
 
 const fs = require('fs');
@@ -51,11 +60,16 @@ const { execSync, execFileSync } = require('child_process');
 
 const RAIZ = path.resolve(__dirname, '..');
 const NEGATIVO = process.argv.indexOf('--controle-negativo') !== -1;
+/* CONTRA QUE VERSÃO SE COMPARA. O padrão é `HEAD`, e ele serviu enquanto o trabalho estava por
+ * commitar. Depois do commit, `HEAD` É a versão nova — e o controle negativo passa a comparar o
+ * novo com o novo, que dá 41/41 e não prova nada. `--contra=<rev>` fixa a linha de base no commit
+ * anterior à entrega: é a única forma de a prova continuar a valer depois de publicada. */
+const CONTRA = ((process.argv.find((a) => a.indexOf('--contra=') === 0) || '').split('=')[1] || 'HEAD');
 
-/** O módulo de hoje — ou o de `HEAD`, no controle negativo. */
+/** O módulo de hoje — ou o de `CONTRA`, no controle negativo. */
 function carregarDe(modulo) {
   if (!NEGATIVO) return require(path.join(RAIZ, modulo));
-  const fonte = execFileSync('git', ['show', 'HEAD:' + modulo], { cwd: RAIZ, encoding: 'utf8' });
+  const fonte = execFileSync('git', ['show', CONTRA + ':' + modulo], { cwd: RAIZ, encoding: 'utf8' });
   const sandbox = {
     module: {}, require: (p) => require(p.startsWith('.') ? path.join(RAIZ, path.dirname(modulo), p) : p),
     console, process, Buffer, URL, URLSearchParams, Set, Map, Array, Object, String, Number, JSON,
@@ -156,15 +170,21 @@ console.log('\nC. O recorte é do corpo; a leitura inteira é de todos os campos
   provar('há um acto com leitura para medir', Boolean(acto));
   if (acto) {
     const forma = lb.formaDaLinhaDeBase(acto, 'Rosa');
+    /* `|| []` em tudo: no controle negativo `mostraCompleta` NÃO EXISTE, e sem a guarda o processo
+     * morria aqui com um `TypeError` — a prova dizia «6 falhas» e mais nada, quando a falha que
+     * interessa (a leitura inteira não existir) não chegava a ser contada. */
+    const mostra = forma.mostra || [];
+    const completa = forma.mostraCompleta || [];
+    const recorte = forma.recorte || [];
     provar('`mostra` é SÓ o recorte',
-      forma.mostra.length === forma.recorte.length && forma.mostra.length > 0,
-      { mostra: forma.mostra.length, recorte: forma.recorte.length });
+      mostra.length === recorte.length && mostra.length > 0,
+      { mostra: mostra.length, recorte: recorte.length });
     provar('`mostraCompleta` é a leitura inteira (mais do que o recorte)',
-      forma.mostraCompleta.length > forma.recorte.length,
-      { completa: forma.mostraCompleta.length, recorte: forma.recorte.length });
+      completa.length > recorte.length,
+      { completa: completa.length, recorte: recorte.length });
     provar('…e inclui os aspectos de musicalidade',
-      forma.mostraCompleta.some((m) => m.eixo === 'Musicalidade'),
-      forma.mostraCompleta.filter((m) => m.eixo === 'Musicalidade').map((m) => m.nome).slice(0, 3));
+      completa.some((m) => m.eixo === 'Musicalidade'),
+      completa.filter((m) => m.eixo === 'Musicalidade').map((m) => m.nome).slice(0, 3));
   }
 }
 
@@ -328,6 +348,7 @@ console.log('\nE. Na página: o painel do Corpo mostra o valor, e não só o nom
     });
     const URL0 = await new Promise((ok) => srv.listen(0, '127.0.0.1',
       () => ok('http://127.0.0.1:' + srv.address().port)));
+    const BASE = URL0;
 
     /* A ROTA, antes da página: ela é a que faltava devolver a mostra. */
     const r = await producao.fetch(new Request('https://breu.tmenegaz77.workers.dev/api/bastidores/alunas-da-turma?turma=Rosa'), env);
@@ -387,6 +408,106 @@ console.log('\nE. Na página: o painel do Corpo mostra o valor, e não só o nom
     provar('sem leitura no elenco, o painel diz que falta um passo (o estado de hoje ao vivo)',
       Boolean(semLeitura) && /ainda não foi feita/.test(semLeitura),
       semLeitura && semLeitura.slice(0, 300));
+    /* A FRASE TEM DE NOMEAR O GESTO. Ela respondeu à frase anterior com a pergunta certa — «o que
+     * que é passo três na linha de base do corpo?» —, depois de ter derivado o elenco e o plano e de
+     * nada aparecer. Um recado que não se pode cumprir é pior do que nenhum: manda a pessoa fazer
+     * outra vez o que já fez. O caminho passa a ser o NOME DO BOTÃO e o do sítio. */
+    provar('…e nomeia o botão («Ler as anamneses») e o sítio (Audição, passo 3 «Anamneses»)',
+      Boolean(semLeitura) && /Ler as anamneses/.test(semLeitura) && /Audição/.test(semLeitura)
+        && /Anamneses/.test(semLeitura), semLeitura && semLeitura.slice(0, 400));
+    provar('…e diz que derivar o elenco ou gerar o plano NÃO fazem a leitura',
+      Boolean(semLeitura) && /não fazem esta leitura/.test(semLeitura),
+      semLeitura && semLeitura.slice(0, 400));
+
+    /* --------------------------------------------------------------------------------------- */
+    console.log('\nF. O elenco por ler: dito na conclusão e na lista (o caminho inteiro)');
+    /* --------------------------------------------------------------------------------------- */
+    /* A ORIGEM DA API É A DAS OUTRAS BANCADAS (`https://breu.exemplo`), e não a do anfitrião
+     * `…workers.dev` que as páginas usam: um POST nesse anfitrião cai na guarda de identidade do
+     * Worker («Configuração incorreta») antes de chegar a rota nenhuma — medido, com o 500 dela.
+     * O subdomínio `breu` bate com o `ESCOLA_SLUG` desta bancada, e é assim que as provas que
+     * escrevem o fazem desde a primeira. */
+    const ORIGEM = 'https://breu.exemplo';
+    const pedir = (caminho, corpo) => producao.fetch(new Request(ORIGEM + caminho,
+      corpo ? { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(corpo) } : undefined), env);
+    const rl = await pedir('/api/bastidores/validar-producao', { senha: 'd' });
+    const textoDoLogin = await rl.text();
+    let dl = {};
+    try { dl = JSON.parse(textoDoLogin); } catch (e) { dl = {}; }
+    const TOKEN = dl.token;
+    provar('a direção entra (sem isto a conclusão não se prova)',
+      Boolean(TOKEN), { status: rl.status, corpo: textoDoLogin.slice(0, 300) });
+
+    /* CONCLUIR SEM A LEITURA. O recorte pode vir da derivação — foi o que ela fez —, e a conclusão
+     * aceitava-o calada: o elenco entrava na cadeia como se os corpos tivessem sido lidos. */
+    const rc = await pedir('/api/bastidores/linha-de-base', {
+      nome: 'Tami', alunas: ['Aluna A', 'Aluna B'], campos: camposDoElenco,
+      rascunho: false, concluir: true, token: TOKEN });
+    const textoDaConclusao = await rc.text();
+    let dc = {};
+    try { dc = JSON.parse(textoDaConclusao); } catch (e) { dc = {}; }
+    provar('concluir um elenco por ler diz o que falta, em vez de calar',
+      rc.status < 300 && /Ler as anamneses/.test(String(dc.avisoLeitura || '')),
+      { status: rc.status, avisoLeitura: dc.avisoLeitura || null, erro: dc.erro || null,
+        corpo: textoDaConclusao.slice(0, 300) });
+
+    /* A LISTA — o segundo sítio onde a falta tem de ser visível, porque é por onde ela passou. */
+    const pb = await br.newPage();
+    await pb.goto(BASE + '/bastidores/producao', { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await pb.evaluate((t) => { try { sessionStorage.setItem('producao:token', t); } catch (e) {} }, TOKEN);
+    await pb.goto(BASE + '/bastidores/producao', { waitUntil: 'networkidle2', timeout: 60000 });
+    await new Promise((ok) => setTimeout(ok, 3000));
+    const cartao = await pb.evaluate(() => {
+      const li = document.querySelector('[data-elenco]');
+      if (!li) return null;
+      const nome = li.querySelector('.trio-nome');
+      if (!nome) return null;
+      const alerta = nome.querySelector('.selo.alerta');
+      return { texto: nome.textContent.replace(/\s+/g, ' ').trim(),
+        dica: alerta ? String(alerta.getAttribute('title') || '') : null };
+    });
+    provar('o cartão do elenco por ler leva a marca (o mesmo «!» da revisão pendente)',
+      Boolean(cartao) && cartao.dica !== null, cartao);
+    /* E UM RASCUNHO NÃO A LEVA: um elenco a meio da composição ainda não devia ter lido nada, e o
+     * «por completar» já diz o que lhe falta. Um aviso que aparece quando não é preciso deixa de se
+     * ler quando é. */
+    const rascunho = await pedir('/api/bastidores/linha-de-base', {
+      nome: 'Rascunho', alunas: ['Aluna A'], campos: [], rascunho: true, token: TOKEN });
+    provar('…e gravar um rascunho (sem recorte) continua a ser possível',
+      rascunho.status < 300, { status: rascunho.status });
+    await pb.reload({ waitUntil: 'networkidle2', timeout: 60000 });
+    await new Promise((ok) => setTimeout(ok, 2500));
+    const doRascunho = await pb.evaluate(() => {
+      const li = [...document.querySelectorAll('[data-elenco]')]
+        .find((x) => /Rascunho/.test(x.textContent));
+      if (!li) return { achou: false };
+      const alerta = li.querySelector('.trio-nome .selo.alerta');
+      return { achou: true, dica: alerta ? String(alerta.getAttribute('title') || '') : null,
+        selo: alerta ? alerta.textContent.trim() : null };
+    });
+    provar('…e o cartão do rascunho NÃO leva o aviso da leitura (só o «por completar»)',
+      doRascunho.achou && !/Ler as anamneses/.test(String(doRascunho.dica)), doRascunho);
+    provar('…e a dica da marca diz o caminho: Audição, passo 3, «Ler as anamneses»',
+      Boolean(cartao) && /Ler as anamneses/.test(String(cartao.dica)) && /Audição/.test(String(cartao.dica)),
+      cartao && cartao.dica);
+
+    /* A TERCEIRA MENTIRA: «não há anamnese» quando o que há é uma chave que não abre. O `catch` do
+     * laço é justo (uma ilegível não impede ler as outras), mas ele engolia a causa. A frase e o
+     * estado vivem no acervo, e é lá que se medem. */
+    const acervoDeEnvelopes = require(path.join(RAIZ, 'motor/servidor/acervo-envelopes.js'));
+    const Cifra = require(path.join(RAIZ, 'tools/lib-cifra.js'));
+    const cifrado = await Cifra.cifrar(JSON.stringify({ respostas: { [CAMPO]: { valor: ['Bom'] } } }),
+      'chave-certa', { iteracoes: 1000 });
+    let erroDeChave = null;
+    try {
+      await acervoDeEnvelopes.abrirArquivoCifrado({ respostas: { _cifrado: cifrado } }, 'chave-errada');
+    } catch (e) { erroDeChave = e; }
+    provar('uma anamnese que a chave não abre é um 409 com a sua frase, e não um 200 «não há»',
+      Boolean(erroDeChave) && erroDeChave.status === 409
+        && /chave desta escola não abre/.test(String(erroDeChave.message)),
+      erroDeChave && { status: erroDeChave.status, message: erroDeChave.message });
+    await pb.close();
     await pg.close();
     await br.close();
     srv.close();
@@ -399,5 +520,7 @@ console.log('\nE. Na página: o painel do Corpo mostra o valor, e não só o nom
   }
   console.log('TUDO CERTO — ' + provas + ' asserções: «o que se observa» é o que a anamnese registou — '
     + 'o nível, o apoio da segunda etapa e a nota escrita pelo professor —, o recorte é do Corpo e a '
-    + 'leitura inteira serve a Poiesis, e o painel mostra o valor ao lado do aspecto em vez de só o nome.');
+    + 'leitura inteira serve a Poiesis, o painel mostra o valor ao lado do aspecto em vez de só o nome, '
+    + 'e o elenco que não foi lido diz que falta um passo com o nome do botão — na página, na '
+    + 'conclusão e no cartão da lista.');
 })();
