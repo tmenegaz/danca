@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-21T14:28:08-0300`
-Commit atual: `aeb80aa7` — fix(po): «Ajustar» abre o registo, e não um nó que não se preenche
+Gerado em: `2026-11-21T14:54:17-0300`
+Commit atual: `75b91620` — docs(estrutura): «a página não responde» não era a página — era o perfil do navegador
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+75b91620 docs(estrutura): «a página não responde» não era a página — era o perfil do navegador
 aeb80aa7 fix(po): «Ajustar» abre o registo, e não um nó que não se preenche
 9be50a2d fix(po): o atalho que falha deixa de devolver à lista sem dizer porquê
 5b439822 feat(estrutura): a fonte é Open Sans, e passa a ser entregue pelo pacote
@@ -101,7 +102,6 @@ a4c004d7 fix(estrutura): a aula que se cria passa a existir — e o gesto deixa 
 54be1100 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
 ca7c8aba chore(estrutura): fechar os derivados — âncoras e índices
 25db5666 feat(ciclo): o «Guardar» do PO grava as fontes de breu-rosa num commit só
-f8a4a51b feat(acervo): envelope/po-20261121-0933.json
 ```
 
 ## Por professor
@@ -195,43 +195,71 @@ f8a4a51b feat(acervo): envelope/po-20261121-0933.json
 
 ## Última entrada do REGISTRO
 
-## 21/11/2026 — «A página não responde» não era a página: era o perfil do navegador
+## 21/11/2026 — «O que se observa» é o que a anamnese registou: nível, apoio e a nota do professor
 
-**O que motivou.** O `plano-observacao` abria no Chrome do computador uma aba com «página sem
-resposta — aguarde ou saia da página», e depois «algo deu errado». No telemóvel abria. Ela
-apontou a URL onde a aba empacava: `/api/bastidores/alunas-da-turma?turma=Rosa`.
+**O que motivou.** Ela, a olhar o Bloco 2 do Plano de Observação: «o painel do corpo ele mostra os
+aspectos agrupados, só os nomes. […] Não mostra os valores lidos de cada um, e é exatamente isso
+que a gente tem que ter lá.» E foi precisa sobre a segunda etapa: «tem algumas medições que têm
+duas etapas, tem que pegar as duas etapas quando elas existirem — primeira posição dos pés, a gente
+vê se foi bom e também ver se fez por consciência própria ou precisou de ajuda ou do auxílio da
+barra.» E, na mesma mensagem, o requisito que quase passava: «na poiesis também tem observações que
+o professor pode ter feito […] se ele tomou nota de alguma coisa, essa anotação dele também tem que
+aparecer […] são todos os campos da anamnese que o professor usou.»
 
-**O que a medição mostrou, e o que ela descartou.** A URL responde **200** em 0,55 / 0,76 / 0,81 s
-(três tentativas), 2 KB. A timeline do Chrome não tem **um único pedido pendente** (24 pedidos, 0
-pendentes, 0 falhados); 350 nós no DOM, 2–3 MB de heap, **sem crescimento** em 60 s; zero mutações
-de DOM, zero long tasks; e com a CPU estrangulada a **40×** a página responde em **45 ms**. Em
-1360×768 e em 390×844 o comportamento é o mesmo.
+**O DADO SEMPRE EXISTIU — era a LIGAÇÃO que faltava, em três pontos.**
 
-**E as duas frases não são do sistema.** `grep` em `motor/`, `porta/` e `tools/` por «algo deu
-errado» → **nada**. «Página sem resposta» e «Algo deu errado ao exibir esta página» são as telas
-do **Chrome** para o fio principal bloqueado e para o separador que caiu.
+| o quê | onde estava | o que acontecia |
+|:--|:--|:--|
+| o **nível** e o **apoio** (as duas etapas) | na frase que o passo 3 grava — «1 de 1 em «Bom» (por consciência própria)» | chegava ao documento, e **não** à tela |
+| a **nota** do professor | no registo da resposta, `{valor, origem, respondente, nota}` | era **lida e deitada fora** por `nivelDaResposta`, que só olhava o `valor` |
+| os aspectos de **musicalidade** | na leitura do passo 3, sobre os 45 campos | ficavam fora do **recorte** (que é do corpo), e o eixo Poiesis não os podia ler |
 
-**O que resolveu.** `Ctrl+Shift+Delete` → «Todo o período» → *Cookies e outros dados do site* +
-*Imagens e ficheiros em cache*. **Confirmado por ela:** «deu certo». O diagnóstico fechou-se com o
-teste que separa as causas: em **janela anónima abriu** — o anónimo corre sem extensões e sem o
-estado do perfil.
+**A rota também não os servia.** `/api/bastidores/alunas-da-turma` devolvia `alunas`, `linhaDeBase`
+e `recorte` — os **nomes**. Sem `mostra`, o painel do Corpo só tinha nomes para desenhar. Não era
+falta de dado; era falta de o servir. A mesma rota tem dois ramos (a Turma a escolher o elenco, e o
+vínculo antigo), e **os dois** passam a devolver o mesmo.
 
-**E os cabeçalhos do sistema estão certos**, medido: o HTML da porta e a lista da Área do Professor
-respondem `cache-control: no-store, max-age=0`; o `assets/style.css` responde `must-revalidate`
-com ETag; o 302 de `/plano-observacao/` para `/area-do-professor/plano-observacao/` também vai com
-`no-store`. O que estava velho era o **estado do perfil** — armazenamento local e cookies de meses
-de teste —, não a página servida. Não há correção a fazer no código por isto, e é importante que
-não se invente uma: um `no-store` já lá está.
+**O que entra.**
 
-**O que fica escrito.** A §8 do `ESTADO-ATUAL.md` ganha a receita, e a primeira pergunta a fazer
-passa a ser **«abre em anónimo?»** — vinte segundos, e separa «o sistema» de «o perfil». As
-suspeitas de extensão ficam por ordem: o tradutor do Google (traduzir reescreve o DOM inteiro), os
-modos escuros forçados e os bloqueadores.
+1. `nivelDaResposta` devolve `nota`, e ela **não depende do valor** — a primeira versão desta
+   correção exigia `valor` e perdia exactamente o caso «escreveu e não marcou».
+2. `classificar` recolhe `notas: [{aluna, texto}]` por aspecto; um aspecto **com nota e sem nível**
+   deixa de cair em `semRegisto` (foi observado) e entra em «o que precisa de ser trabalhado».
+3. `mostraDaLeitura` propaga as notas e **não as duplica** quando o aspecto aparece em duas listas.
+4. `formaDaLinhaDeBase` ganha `mostraCompleta` — a leitura dos 45 campos, ao lado de `mostra`, que
+   continua a ser só o recorte. Duas perguntas diferentes sobre o mesmo acto.
+5. O painel do Corpo mostra, por aspecto, o **valor** («1 de 1 em «Bom» (por consciência própria)»)
+   e a **nota** entre aspas, com o apelido quando há mais de uma; e diz o estado da leitura quando
+   ela falta, em vez de deixar o nome sozinho.
+6. O derivador da aula imprime as três coisas no Corpo, e o eixo **Poiesis** passa a levar os
+   aspectos de musicalidade da anamnese — que não estão no recorte do corpo.
 
-**O erro de método, que é o que se regista.** Duas explicações minhas anteriores estavam erradas: a
-primeira atribuía o sintoma a uma cota do KV, e a segunda, ao «fio bloqueado» como se fosse do
-sistema. A cota foi descartada pelo cabeçalho e pela resposta 200; o fio bloqueado é do Chrome. Foi
-o dado dela — «no celular funciona» — que abriu o caminho, e não mais análise minha.
+**E UM DEFEITO ENCONTRADO DE CAMINHO, que não é desta entrega.** `linhaDeBaseDoElenco` procurava o
+elenco com um `find` pela `id` — e a `id` **não muda entre versões** (cada acto é um ficheiro com o
+carimbo no nome). No disco do `breu`, o elenco `tami` tem **doze** versões: o `find` devolvia a de
+**17/11** (3 aspectos) em vez da de **20/11** (10). Em produção a lista fundida colapsa por id e o
+defeito não se via; mas um documento a assinar um recorte que o professor já substituiu é a pior
+espécie de erro deste sistema. O critério passa a ser o mesmo de `vigentes()` e de
+`linhaDeBaseDaTurma`: entre as versões do mesmo id, vale o **carimbo maior**.
+
+**PROVA.** `experimentos/provar-o-que-se-observa.js` (novo) — **33/33**, com Chrome sobre o acervo
+real servido em `127.0.0.1`: a nota atravessa as três camadas com o apelido; uma nota sem nível não
+cai em «sem registo»; `mostra` é o recorte e `mostraCompleta` os 45 campos; o Corpo leva nível,
+apoio e nota; a Poiesis leva aspectos de musicalidade **fora** do recorte, com a nota; a rota
+devolve as duas listas; o painel desenha o valor ao lado do nome; e a versão vigente do elenco é a
+do carimbo maior (medido com a lista dada ao contrário). **CONTROLE NEGATIVO** contra o `HEAD`:
+caem **6** asserções, e são todas as das notas e da nota-sem-nível.
+
+`provar-corpo-da-linha-de-base` 30/30, `provar-leituras-do-po` 27/27, `provar-o-registo-abre` 10/10,
+`provar-ajustes-anamnese` 126/126, `provar-listas-do-acervo` 113/113,
+`provar-curadoria-ilegivel` 19/19; `check-identidade` 22 ok / 0 reprovações, `check-indices` 16/16,
+`check-pacote` 0 erros (1 aviso: o PDF, por desenho), `hash-ciclo --check` cadeia intacta.
+
+**O que fica declarado.** `provar-linha-de-base` tem **9** falhas — medidas antes e depois com o
+worktree em stash, iguais. E o acto real do elenco (`tami--20261120-2146`) continua **sem
+`leitura`**: o passo 3 nunca foi refeito depois de o elenco ser esvaziado a 18/11, e é por isso que
+o painel de hoje diz «a leitura deste elenco ainda não foi feita» — que é a verdade. O que o
+conserto faz é que, quando ele a refizer, os valores e as notas aparecem sem mais nada.
 
 ## O que está pendente
 

@@ -26297,6 +26297,39 @@ function parDaSalaNoCorpo(corpo, registo) {
     if (escolhido) {
       const alunas = (Array.isArray(escolhido.alunas) ? escolhido.alunas : [])
         .map((a) => String(a || '').trim()).filter(Boolean);
+      /* O QUE A TURMA MOSTRA EM CADA ASPECTO — ELE VIAGEM JUNTO (21/11/2026).
+       *
+       * O pedido dela: «aqui chega quais são os grupos que foram observados, então também deve
+       * ter como a gente pegar os valores de cada um desses aspectos dentro desses grupos […]
+       * não diz se foi bom, regular, não diz como é que é o resultado». E foi precisa sobre a
+       * segunda etapa: «tem algumas medições que têm duas etapas, tem que pegar as duas etapas
+       * quando elas existirem — primeira posição dos pés, a gente vê se foi bom e também ver se
+       * fez por consciência própria ou precisou de ajuda ou do auxílio da barra».
+       *
+       * AS DUAS ETAPAS JÁ ESTÃO GRAVADAS. O passo 3 escreve, por aspecto, a frase inteira —
+       * «1 de 1 em «precisa desenvolver» (por consciência própria)» —, com o nível e o apoio, e
+       * `mostraDaLeitura` lê-a tal como foi gravada. Nada aqui se inventa nem se conta outra vez:
+       * é o mesmo dado que a Aula já imprime, e que a tela do passo 3 já mostrava.
+       *
+       * O que faltava era só ISTO: a rota devolvia o recorte (os nomes) e não devolvia a mostra
+       * (os valores), e por isso o painel do Corpo desenhava uma lista de nomes. Não era falta de
+       * dado — era falta de o servir.
+       *
+       * `leitura` vai na forma mínima `{em, alunas}`: a tela precisa de DIZER de quando é a
+       * leitura e de que elenco, porque uma leitura de outra composição de turma descreve outros
+       * corpos. Sem isso, um valor antigo apareceria como se fosse do elenco de hoje. */
+      const forma = typeof porta.linhaDeBaseDoElenco === 'function'
+        ? porta.linhaDeBaseDoElenco(todasAsLinhas, escolhido.id) : null;
+      const mostra = forma && Array.isArray(forma.mostra) ? forma.mostra : [];
+      /* A LEITURA INTEIRA — os 45 campos (21/11/2026). «Na poiesis também tem observações que o
+       * professor pode ter feito […] são todos os campos da anamnese que o professor usou.» O
+       * recorte é do CORPO; o eixo Poiesis da aula lê daqui os aspectos de musicalidade que
+       * ficaram fora dele. Vai em paralelo, e não no lugar: são duas perguntas diferentes. */
+      const mostraCompleta = forma && Array.isArray(forma.mostraCompleta) ? forma.mostraCompleta : [];
+      const leitura = escolhido.leitura && typeof escolhido.leitura === 'object'
+        ? { em: escolhido.leitura.em || null,
+          alunas: Array.isArray(escolhido.leitura.alunas) ? escolhido.leitura.alunas : [] }
+        : null;
       return json(200, {
         ok: true, escola, turma, alunas,
         linhaDeBase: {
@@ -26305,6 +26338,9 @@ function parDaSalaNoCorpo(corpo, registo) {
           em: escolhido.enviada_em || escolhido.atualizada_em || null,
         },
         recorte: Array.isArray(escolhido.campos) ? escolhido.campos : [],
+        mostra,
+        mostraCompleta,
+        leitura,
         fonte: 'turma',
       });
     }
@@ -26328,10 +26364,22 @@ function parDaSalaNoCorpo(corpo, registo) {
      * lista saiu das linhas concluídas), portanto isto não custa leitura nenhuma: é o mesmo dado
      * que a tela da Produção mostra, servido a quem precisa dele. */
     const recorte = vigente && Array.isArray(vigente.campos) ? vigente.campos : [];
+    /* O RAMO ANTIGO DEVOLVE O MESMO QUE O NOVO (21/11/2026) — e é a segunda vez que esta rota
+     * responde a mesma pergunta por dois caminhos. Uma escola cujo vínculo é anterior à Turma
+     * escolher o elenco lê por aqui, e ficava sem `mostra`: a tela mostraria nomes e mais nada,
+     * exactamente o defeito que se está a corrigir, só para quem tem o vínculo antigo. */
+    const forma = vigente && vigente.leitura
+      ? linhaDeBaseNucleo.formaDaLinhaDeBase(vigente, turma) : null;
     return json(200, {
       ok: true, escola, turma, alunas: vistas,
       linhaDeBase: vigente ? { id: vigente.id, nome: vigente.nome, em: vigente.enviada_em } : null,
       recorte,
+      mostra: forma && Array.isArray(forma.mostra) ? forma.mostra : [],
+      mostraCompleta: forma && Array.isArray(forma.mostraCompleta) ? forma.mostraCompleta : [],
+      leitura: vigente && vigente.leitura
+        ? { em: vigente.leitura.em || null,
+          alunas: Array.isArray(vigente.leitura.alunas) ? vigente.leitura.alunas : [] }
+        : null,
     });
   }
 

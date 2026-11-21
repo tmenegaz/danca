@@ -57674,3 +57674,69 @@ modos escuros forçados e os bloqueadores.
 primeira atribuía o sintoma a uma cota do KV, e a segunda, ao «fio bloqueado» como se fosse do
 sistema. A cota foi descartada pelo cabeçalho e pela resposta 200; o fio bloqueado é do Chrome. Foi
 o dado dela — «no celular funciona» — que abriu o caminho, e não mais análise minha.
+
+## 21/11/2026 — «O que se observa» é o que a anamnese registou: nível, apoio e a nota do professor
+
+**O que motivou.** Ela, a olhar o Bloco 2 do Plano de Observação: «o painel do corpo ele mostra os
+aspectos agrupados, só os nomes. […] Não mostra os valores lidos de cada um, e é exatamente isso
+que a gente tem que ter lá.» E foi precisa sobre a segunda etapa: «tem algumas medições que têm
+duas etapas, tem que pegar as duas etapas quando elas existirem — primeira posição dos pés, a gente
+vê se foi bom e também ver se fez por consciência própria ou precisou de ajuda ou do auxílio da
+barra.» E, na mesma mensagem, o requisito que quase passava: «na poiesis também tem observações que
+o professor pode ter feito […] se ele tomou nota de alguma coisa, essa anotação dele também tem que
+aparecer […] são todos os campos da anamnese que o professor usou.»
+
+**O DADO SEMPRE EXISTIU — era a LIGAÇÃO que faltava, em três pontos.**
+
+| o quê | onde estava | o que acontecia |
+|:--|:--|:--|
+| o **nível** e o **apoio** (as duas etapas) | na frase que o passo 3 grava — «1 de 1 em «Bom» (por consciência própria)» | chegava ao documento, e **não** à tela |
+| a **nota** do professor | no registo da resposta, `{valor, origem, respondente, nota}` | era **lida e deitada fora** por `nivelDaResposta`, que só olhava o `valor` |
+| os aspectos de **musicalidade** | na leitura do passo 3, sobre os 45 campos | ficavam fora do **recorte** (que é do corpo), e o eixo Poiesis não os podia ler |
+
+**A rota também não os servia.** `/api/bastidores/alunas-da-turma` devolvia `alunas`, `linhaDeBase`
+e `recorte` — os **nomes**. Sem `mostra`, o painel do Corpo só tinha nomes para desenhar. Não era
+falta de dado; era falta de o servir. A mesma rota tem dois ramos (a Turma a escolher o elenco, e o
+vínculo antigo), e **os dois** passam a devolver o mesmo.
+
+**O que entra.**
+
+1. `nivelDaResposta` devolve `nota`, e ela **não depende do valor** — a primeira versão desta
+   correção exigia `valor` e perdia exactamente o caso «escreveu e não marcou».
+2. `classificar` recolhe `notas: [{aluna, texto}]` por aspecto; um aspecto **com nota e sem nível**
+   deixa de cair em `semRegisto` (foi observado) e entra em «o que precisa de ser trabalhado».
+3. `mostraDaLeitura` propaga as notas e **não as duplica** quando o aspecto aparece em duas listas.
+4. `formaDaLinhaDeBase` ganha `mostraCompleta` — a leitura dos 45 campos, ao lado de `mostra`, que
+   continua a ser só o recorte. Duas perguntas diferentes sobre o mesmo acto.
+5. O painel do Corpo mostra, por aspecto, o **valor** («1 de 1 em «Bom» (por consciência própria)»)
+   e a **nota** entre aspas, com o apelido quando há mais de uma; e diz o estado da leitura quando
+   ela falta, em vez de deixar o nome sozinho.
+6. O derivador da aula imprime as três coisas no Corpo, e o eixo **Poiesis** passa a levar os
+   aspectos de musicalidade da anamnese — que não estão no recorte do corpo.
+
+**E UM DEFEITO ENCONTRADO DE CAMINHO, que não é desta entrega.** `linhaDeBaseDoElenco` procurava o
+elenco com um `find` pela `id` — e a `id` **não muda entre versões** (cada acto é um ficheiro com o
+carimbo no nome). No disco do `breu`, o elenco `tami` tem **doze** versões: o `find` devolvia a de
+**17/11** (3 aspectos) em vez da de **20/11** (10). Em produção a lista fundida colapsa por id e o
+defeito não se via; mas um documento a assinar um recorte que o professor já substituiu é a pior
+espécie de erro deste sistema. O critério passa a ser o mesmo de `vigentes()` e de
+`linhaDeBaseDaTurma`: entre as versões do mesmo id, vale o **carimbo maior**.
+
+**PROVA.** `experimentos/provar-o-que-se-observa.js` (novo) — **33/33**, com Chrome sobre o acervo
+real servido em `127.0.0.1`: a nota atravessa as três camadas com o apelido; uma nota sem nível não
+cai em «sem registo»; `mostra` é o recorte e `mostraCompleta` os 45 campos; o Corpo leva nível,
+apoio e nota; a Poiesis leva aspectos de musicalidade **fora** do recorte, com a nota; a rota
+devolve as duas listas; o painel desenha o valor ao lado do nome; e a versão vigente do elenco é a
+do carimbo maior (medido com a lista dada ao contrário). **CONTROLE NEGATIVO** contra o `HEAD`:
+caem **6** asserções, e são todas as das notas e da nota-sem-nível.
+
+`provar-corpo-da-linha-de-base` 30/30, `provar-leituras-do-po` 27/27, `provar-o-registo-abre` 10/10,
+`provar-ajustes-anamnese` 126/126, `provar-listas-do-acervo` 113/113,
+`provar-curadoria-ilegivel` 19/19; `check-identidade` 22 ok / 0 reprovações, `check-indices` 16/16,
+`check-pacote` 0 erros (1 aviso: o PDF, por desenho), `hash-ciclo --check` cadeia intacta.
+
+**O que fica declarado.** `provar-linha-de-base` tem **9** falhas — medidas antes e depois com o
+worktree em stash, iguais. E o acto real do elenco (`tami--20261120-2146`) continua **sem
+`leitura`**: o passo 3 nunca foi refeito depois de o elenco ser esvaziado a 18/11, e é por isso que
+o painel de hoje diz «a leitura deste elenco ainda não foi feita» — que é a verdade. O que o
+conserto faz é que, quando ele a refizer, os valores e as notas aparecem sem mais nada.

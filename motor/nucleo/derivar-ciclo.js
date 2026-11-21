@@ -399,9 +399,25 @@ function eixosDaObservacao(dims, plano, po, linhaDeBase) {
      * imprime é uma instrução para dentro de outra tela. */
     const doRecorte = recorte.map((aspecto) => {
       const lido = mostra.get(String(aspecto.id || ''));
-      const texto = lido && lido.texto
-        ? lido.texto + (lido.atencao ? ' — ponto de atenção' : '')
-        : 'sem registo na anamnese';
+      /* O QUE SE OBSERVA É O QUE A ANAMNESE REGISTOU — nível, apoio E a nota do professor
+       * (21/11/2026). Ela: «o que se observa para o critério 1ª posição dos pés é bom […]
+       * precisou de ajuda ou foi bom e por consciência própria» e «se ele tomou nota de alguma
+       * coisa, essa anotação dele também tem que aparecer». O nível e o apoio já vinham na frase
+       * do passo 3 («1 de 1 em «Bom» (por consciência própria)»); a nota é acrescentada aqui,
+       * entre aspas e como texto dele, porque num documento impresso tem de se distinguir o que
+       * foi marcado do que foi escrito.
+       *
+       * SEM NADA DEIXA DE DIZER «sem registo na anamnese» quando há nota: um aspecto com nota e
+       * sem nível foi observado, e a frase antiga negava isso. */
+      const notas = (lido && Array.isArray(lido.notas) ? lido.notas : [])
+        .map((n) => String((n && n.texto) || '').trim()).filter(Boolean);
+      const partes = [];
+      if (lido && lido.texto) partes.push(lido.texto);
+      if (notas.length) {
+        partes.push('nota do professor: ' + notas.map((t) => '«' + t + '»').join(' · '));
+      }
+      if (!partes.length) partes.push('sem registo na anamnese');
+      const texto = partes.join(' — ') + (lido && lido.atencao ? ' — ponto de atenção' : '');
       return { nome: String(aspecto.nome).trim(), texto, atencao: Boolean(lido && lido.atencao) };
     });
     // OS PONTOS DE ATENÇÃO PRIMEIRO — a ordem da sugestão da tela, e a que o plano também dá à
@@ -455,10 +471,40 @@ function eixosDaObservacao(dims, plano, po, linhaDeBase) {
    * documento que o professor imprime e leva para a sala não pode omitir isto — e é uma linha só,
    * escrita por ele, não uma enumeração da máquina: o que saiu foi a tabela por aluna, não a
    * palavra dele. */
+  /* AS OBSERVAÇÕES DA ANAMNESE ENTRAM NA POIESIS (21/11/2026). Ela: «na poiesis também tem
+   * observações que o professor pode ter feito. Então, o que se observa ali também é o que ele
+   * anotou dessas observações […] são todos os campos da anamnese que o professor usou.»
+   *
+   * O RECORTE É DO CORPO, e não da poiesis: os aspectos de musicalidade que o professor mediu na
+   * anamnese vivem na LEITURA INTEIRA, e não em `recorte`. Sem esta passagem, o eixo Poiesis da
+   * aula só tinha os itens que o PO declara — e tudo o que a anamnese registou sobre musicalidade
+   * (o nível, o apoio e a nota) ficava de fora, apesar de ter sido medido.
+   *
+   * A LINHA É `[aspecto, o que se observa]`, como as do Corpo, e a fonte é a mesma: a leitura do
+   * passo 3. Um aspecto de musicalidade que esteja no recorte do corpo aparece nos DOIS eixos, e
+   * isso é de propósito — o mesmo corpo, duas perguntas: «como está o corpo?» e «o que ele mostra
+   * de musicalidade?». */
+  const musicais = Array.isArray(linhaDeBase && linhaDeBase.mostraCompleta)
+    ? linhaDeBase.mostraCompleta.filter((m) => m && m.eixo === 'Musicalidade')
+    : [];
+  const linhasDaPoiesis = musicais.map((m) => {
+    const notas = (Array.isArray(m.notas) ? m.notas : [])
+      .map((n) => String((n && n.texto) || '').trim()).filter(Boolean);
+    const partes = [];
+    if (m.texto) partes.push(String(m.texto));
+    if (notas.length) partes.push('nota do professor: ' + notas.map((t) => '«' + t + '»').join(' · '));
+    return [String(m.nome || '').trim(), partes.join(' — ')
+      + (m.atencao ? ' — ponto de atenção' : '')];
+  }).filter((l) => l[0] && l[1]);
+
   const eixos = [
     eixo('corpo', 'Corpo', porEixo.corpo, resumoDoCorpo, linhasDoCorpo),
     eixo('tecnica', 'Técnica', porEixo.tecnica, resumoDoEixo(porEixo.tecnica)),
-    eixo('poiesis', 'Poiesis', porEixo.poiesis, resumoDoEixo(porEixo.poiesis)),
+    eixo('poiesis', 'Poiesis', porEixo.poiesis,
+      resumoDoEixo(porEixo.poiesis) + (linhasDaPoiesis.length
+        ? ' · ' + linhasDaPoiesis.length
+          + (linhasDaPoiesis.length === 1 ? ' aspecto da anamnese' : ' aspectos da anamnese') : ''),
+      linhasDaPoiesis),
   ];
   eixos[0].restricoes = restricoes;
   return eixos;

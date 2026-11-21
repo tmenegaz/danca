@@ -1807,3 +1807,10 @@ experimentos/modelo-formulario/*
 # confere que o endereço do «Ajustar» leva a escola (a chave do depósito). Com o
 # `--controle-negativo` caem 4 das 10 asserções. É citada no REGISTRO e no rodapé `Auditoria:`.
 !experimentos/provar-o-registo-abre.js
+# «O QUE SE OBSERVA» É O QUE A ANAMNESE REGISTOU (21/11/2026). Décima segunda vez que a armadilha do
+# `experimentos/*` aparece. Ela mede as três coisas que o professor registou — nível, apoio da
+# segunda etapa e a nota escrita — a atravessarem `classificar` → `mostra` → painel → documento; que
+# o recorte é do Corpo e a leitura inteira serve a Poiesis; que a rota serve as duas listas; e que o
+# elenco vigente é o do carimbo maior. Com o `--controle-negativo` caem 6 asserções, todas as das
+# notas. É citada no REGISTRO e no rodapé `Auditoria:` do commit.
+!experimentos/provar-o-que-se-observa.js

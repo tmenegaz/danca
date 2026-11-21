@@ -288,20 +288,34 @@ const NAO_MEDIDO = 'não foi medido';
 function nivelDaResposta(registo, campo) {
   const cru = (registo && typeof registo === 'object' && !Array.isArray(registo) && 'valor' in registo)
     ? registo.valor : registo;
-  if (cru === undefined || cru === null) return { nivel: null, apoios: [], naoMedido: false };
+  /* A NOTA DO PROFESSOR VIAJA COM A LEITURA (21/11/2026). Ela: «Se ele tomou nota de alguma coisa,
+   * essa anotação dele também tem que aparecer […] Não esqueça que são todos os campos da anamnese
+   * que o professor usou.»
+   *
+   * A nota é um campo do REGISTO da resposta (`{valor, origem, respondente, nota}`), e existia
+   * desde a primeira elicitação. Estava a ser lida e deitada fora aqui: a classificação só olhava
+   * para o `valor`, e o que o professor ESCREVEU sobre o aspecto não chegava a documento nenhum —
+   * nem ao painel, nem à aula. */
+  /* A NOTA NÃO DEPENDE DO VALOR — e é essa a diferença entre «escreveu e não marcou» e «não
+   * fez nada». A primeira versão desta linha exigia `cru !== null`, e com isso a anamnese em que o
+   * professor só escreveu («o arco cede quando sobe a meia ponta», sem escolher nível) perdia
+   * exactamente a parte que ele tinha escrito. Medido: a nota da Aluna C desaparecia. */
+  const escrita = registo !== null && typeof registo === 'object' && !Array.isArray(registo)
+    && typeof registo.nota === 'string' && registo.nota.trim() ? registo.nota.trim() : '';
+  if (cru === undefined || cru === null) return { nivel: null, apoios: [], naoMedido: false, nota: escrita };
   const lista = Array.isArray(cru) ? cru : [cru];
   const textos = lista
     .map((v) => (v == null ? '' : String(v).trim()))
     .filter(Boolean);
-  if (!textos.length) return { nivel: null, apoios: [], naoMedido: false };
-  if (textos.indexOf(NAO_MEDIDO) !== -1) return { nivel: null, apoios: [], naoMedido: true };
+  if (!textos.length) return { nivel: null, apoios: [], naoMedido: false, nota: escrita };
+  if (textos.indexOf(NAO_MEDIDO) !== -1) return { nivel: null, apoios: [], naoMedido: true, nota: escrita };
 
   const pool = new Map(((campo && campo.apoios) || []).map((a) => [String(a.id), String(a.rotulo)]));
   const apoios = textos.filter((t) => pool.has(t));
   // A escala é o que NÃO é apoio. Um registo sem escala (só apoio, ou texto livre) não tem nível:
   // quem o lê não pode classificá-lo, e inventar «o primeiro que aparecer» seria adivinhar.
   const nivel = textos.find((t) => !pool.has(t)) || null;
-  return { nivel, apoios, naoMedido: false };
+  return { nivel, apoios, naoMedido: false, nota: escrita };
 }
 
 /** O rótulo de um apoio, para a tela não mostrar o slug (`com-barra` → «com a barra como apoio»). */
@@ -647,10 +661,15 @@ function classificar(disponiveis, anamneses) {
     const melhor = campo.referencia ? String(campo.referencia).trim()
       : (opcoes.length ? String(opcoes[0]).trim() : null);
     const niveis = new Map();
+    /* AS NOTAS DO PROFESSOR, por aspecto (21/11/2026). Elas são TEXTO dele, não um valor de escala:
+     * não se agregam nem se contam — guardam-se como foram escritas, com o apelido de quem as
+     * originou. É o que ele anotou ao lado do nível, e é tão observável quanto o nível. */
+    const notas = [];
     let quantas = 0;
     let naoMedidos = 0;
     for (const aluno of alunos) {
       const lido = nivelDaResposta(aluno.respostas[campo.id], campo);
+      if (lido.nota) notas.push({ aluna: String(aluno.aluna || ''), texto: lido.nota });
       if (lido.naoMedido) { naoMedidos += 1; continue; }
       if (lido.nivel === null) continue;
       const atual = niveis.get(lido.nivel) || { quantas: 0, apoios: new Set() };
@@ -659,7 +678,11 @@ function classificar(disponiveis, anamneses) {
       niveis.set(lido.nivel, atual);
       quantas += 1;
     }
-    if (!quantas) { semRegisto.push({ id: campo.id, nome: campo.nome }); continue; }
+    /* UM ASPECTO COM NOTA E SEM NÍVEL NÃO É UM ASPECTO SEM REGISTO. Antes desta linha, uma anamnese
+     * em que o professor escreveu «joelho roda para dentro quando passa de 2ª» e não escolheu nível
+     * caía em `semRegisto` — e o que ele escreveu desaparecia. O que a anamnese sabe sobre o
+     * aspecto é o que ele lá pôs: o nível, o apoio, e a nota. */
+    if (!quantas && !notas.length) { semRegisto.push({ id: campo.id, nome: campo.nome }); continue; }
 
     // A ORDEM DAS ENTRADAS É A DAS OPÇÕES (melhor primeiro), e não a da contagem: a leitura corre
     // de cima para baixo como a régua.
@@ -706,6 +729,9 @@ function classificar(disponiveis, anamneses) {
       noMelhor: alunos
         .filter((al) => nivelDaResposta(al.respostas[campo.id], campo).nivel === melhor)
         .map((al) => String(al.aluna || '')),
+      /* O QUE O PROFESSOR ESCREVEU sobre este aspecto — a frase dele, não um valor de escala.
+       * Fica ao lado do nível e do apoio porque é a mesma observação, escrita em vez de marcada. */
+      notas,
     };
 
     // Um campo pode estar em MAIS de um eixo, e isso é de propósito: «todos com o arco do pé igual»
@@ -715,6 +741,12 @@ function classificar(disponiveis, anamneses) {
     if (item.algumNoMelhor) excelencia.push(item);
     if (item.dimensao === 'musicalidade') musicalidade.push(item);
     if (item.unanimidade) comuns.push(item);
+    /* UM ASPECTO QUE SÓ TEM NOTA ENTRA ONDE SE OLHA (21/11/2026). Ele não tem nível nem apoio, e
+     * por isso não casa com nenhuma das quatro condições acima — e ficava no vazio, apesar de o
+     * professor ter escrito sobre ele. `atencao` é a lista certa: não se sabe que está bem (não há
+     * nível), e há uma observação a ler. O contrário — deixá-lo de fora — é o silêncio que este
+     * projecto persegue. */
+    if (notas.length && !atencao.includes(item) && !excelencia.includes(item)) atencao.push(item);
   }
 
   // OS PONTOS DE ATENÇÃO PRIMEIRO DENTRO DE CADA LISTA — é o que se lê para decidir.
@@ -805,6 +837,14 @@ function mostraDaLeitura(leitura) {
       if (anterior) {
         if (!anterior.texto && texto) anterior.texto = texto;
         if (chave === 'atencao') anterior.atencao = true;
+        /* A NOTA SOMA-SE ENTRE AS LISTAS — e sem repetir (21/11/2026). O `continue` daqui deixava
+         * de fora tudo o que só a segunda lista trazia, e as notas são o caso novo. */
+        for (const n of (Array.isArray(it.notas) ? it.notas : [])) {
+          const t = String((n && n.texto) || '').trim();
+          if (t && !anterior.notas.some((x) => x.texto === t)) {
+            anterior.notas.push({ aluna: String((n && n.aluna) || ''), texto: t });
+          }
+        }
         continue;
       }
       vistos.set(id, {
@@ -816,6 +856,12 @@ function mostraDaLeitura(leitura) {
         atencao: chave === 'atencao' || it.temAbaixoDoMelhor === true,
         quantas: Number(it.quantas) || 0,
         naoMedidos: Number(it.naoMedidos) || 0,
+        /* AS NOTAS DO PROFESSOR ATRAVESSAM A LEITURA (21/11/2026). O mesmo aspecto aparece em mais
+         * de uma lista (`atencao` e `comuns`, por exemplo), e a nota é a mesma: junta-se uma vez
+         * só, pela chave do texto, para não sair repetida no documento. */
+        notas: Array.isArray(it.notas) ? it.notas
+          .filter((n) => n && String(n.texto || '').trim())
+          .map((n) => ({ aluna: String(n.aluna || ''), texto: String(n.texto).trim() })) : [],
       });
     }
   }
@@ -858,6 +904,7 @@ function formaDaLinhaDeBase(linha, turma) {
       grupo: String(c.grupo || ''),
     }))
     .filter((c) => c.id || c.nome);
+  const toda = mostraDaLeitura(linha.leitura);
   return {
     id: linha.id || null,
     nome: linha.nome || linha.id || null,
@@ -869,8 +916,18 @@ function formaDaLinhaDeBase(linha, turma) {
     /* SÓ OS ASPECTOS DO RECORTE, e não os quarenta e nove da anamnese: o documento imprime os que
      * o professor escolheu olhar, e carregar os outros seria transportar para o derivador um dado
      * que ele não usa. */
-    mostra: mostraDaLeitura(linha.leitura)
-      .filter((m) => recorte_.some((c) => c.id === m.id)),
+    mostra: toda.filter((m) => recorte_.some((c) => c.id === m.id)),
+    /* A LEITURA INTEIRA — os 45 campos, e não só o recorte (21/11/2026).
+     *
+     * O RECORTE É DO CORPO. A anamnese mede mais do que o corpo do recorte: mede a musicalidade, a
+     * coordenação, a expressão. E ela foi explícita: «na poiesis também tem observações que o
+     * professor pode ter feito […] não esqueça que são todos os campos da anamnese que o professor
+     * usou». Um aspecto de musicalidade que não entrou no recorte do corpo continua a ter o seu
+     * nível, o seu apoio e a sua nota — e o eixo Poiesis da aula tem de os poder ler.
+     *
+     * Vai a par de `mostra`, e não no lugar dela: quem desenha o Corpo usa o recorte, quem desenha
+     * a poiesis usa esta. Duas perguntas diferentes sobre o mesmo acto. */
+    mostraCompleta: toda,
   };
 }
 
@@ -903,9 +960,27 @@ function linhaDeBaseDaTurma(linhas, turma) {
 function linhaDeBaseDoElenco(linhas, id) {
   const alvo = String(id == null ? '' : id).trim();
   if (!alvo) return null;
-  const linha = (Array.isArray(linhas) ? linhas : [])
-    .find((l) => l && String(l.id == null ? '' : l.id).trim() === alvo && !l.apagada_em);
-  return linha ? formaDaLinhaDeBase(linha, linha.turma || '') : null;
+  /* A VIGENTE, E NÃO A PRIMEIRA DA LISTA (21/11/2026) — e a diferença aparece quando a lista tem
+   * mais do que uma versão do mesmo elenco.
+   *
+   * O `id` do elenco NÃO muda entre versões: é ele que o plano guarda, e cada acto é um FICHEIRO
+   * com o carimbo no nome (`tami--20261117-0102.json`, `tami--20261120-2146.json`). Um `find`
+   * devolve a primeira que aparecer — e medido no disco: o elenco `tami` tem doze versões, e o
+   * `find` devolvia a de 17/11, com 3 aspectos e a leitura dessa altura, em vez da de 20/11 com 10.
+   * Num documento isso não falha: sai um recorte que o professor já substituiu, assinado como o
+   * actual.
+   *
+   * Em produção a lista fundida (`linhasDeBase`) já colapsa rascunho e acto por id, e por isso o
+   * defeito não se via lá. Ele existe para quem lê os ficheiros soltos — e o critério tem de ser o
+   * MESMO em qualquer sítio: entre as versões do mesmo id, vale a do carimbo maior, que é a regra
+   * do `vigentes()` e a mesma de `linhaDeBaseDaTurma`. */
+  const candidatas = (Array.isArray(linhas) ? linhas : [])
+    .filter((l) => l && String(l.id == null ? '' : l.id).trim() === alvo && !l.apagada_em);
+  if (!candidatas.length) return null;
+  const carimboDe = (l) => String(l.carimbo || '').trim()
+    || String(l.enviada_em || '').replace(/[^0-9]/g, '').slice(0, 12);
+  const linha = candidatas.reduce((a, b) => (carimboDe(b) > carimboDe(a) ? b : a));
+  return formaDaLinhaDeBase(linha, linha.turma || '');
 }
 
 function elencoDaTurma(linhas, turma) {

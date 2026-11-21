@@ -2975,6 +2975,19 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      `--serif` fica (nomeia o papel, e não o desenho) e a `--ui` não muda. **O PDF do ciclo não
      segue** — um `.woff2` não serve ao `pdflatex`. **DECIDIDO** 21/11/2026.
 
+133. **«O QUE SE OBSERVA» É O QUE A ANAMNESE REGISTOU — NÍVEL, APOIO E NOTA.** Palavras dela: «não
+     mostra os valores lidos de cada um, e é exatamente isso que a gente tem que ter lá […] tem
+     algumas medições que têm duas etapas, tem que pegar as duas etapas quando elas existirem» e,
+     na mesma mensagem, «se ele tomou nota de alguma coisa, essa anotação dele também tem que
+     aparecer […] são todos os campos da anamnese que o professor usou». O NÍVEL e o APOIO são as
+     duas etapas, e já vinham na frase que o passo 3 grava («1 de 1 em «Bom» (por consciência
+     própria)»); a NOTA existe no registo da resposta desde a primeira elicitação e era **lida e
+     deitada fora**. As três coisas passam a atravessar a leitura (`classificar` → `mostra`), o
+     painel do Corpo e o documento da aula. O RECORTE É DO CORPO: os aspectos de musicalidade que
+     o professor mediu e que ficaram fora do recorte viajam em `mostraCompleta`, e é dela que o
+     eixo **Poiesis** da aula os lê. Um aspecto com nota e sem nível **não** é «sem registo» — foi
+     observado, e entra em «o que precisa de ser trabalhado». **DECIDIDO** 21/11/2026.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
