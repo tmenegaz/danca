@@ -7,8 +7,8 @@
         "recorte:tami"
       ],
       "primeira": "20261117-1709",
-      "ultima": "20261120-2146",
-      "versoes": 9
+      "ultima": "20261121-1808",
+      "versoes": 10
     },
     {
       "aspecto": "cinco-posicoes-1a-bracos",
@@ -17,8 +17,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261120-2146",
-      "versoes": 6
+      "ultima": "20261121-1808",
+      "versoes": 7
     },
     {
       "aspecto": "cinco-posicoes-1a-pes",
@@ -27,8 +27,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261120-2146",
-      "versoes": 6
+      "ultima": "20261121-1808",
+      "versoes": 7
     },
     {
       "aspecto": "forca-excentrica-recuo-na-flexao-de-tronco",
@@ -37,8 +37,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261120-2146",
-      "versoes": 6
+      "ultima": "20261121-1808",
+      "versoes": 7
     },
     {
       "aspecto": "mobilidade-de-flexao-extensao-do-tornozelo",
@@ -47,8 +47,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261120-2146",
-      "versoes": 6
+      "ultima": "20261121-1808",
+      "versoes": 7
     },
     {
       "aspecto": "musicalidade-e-pulsacao-ritmica",
@@ -57,8 +57,8 @@
         "recorte:tami"
       ],
       "primeira": "20261120-1626",
-      "ultima": "20261120-2146",
-      "versoes": 3
+      "ultima": "20261121-1808",
+      "versoes": 4
     },
     {
       "aspecto": "espiral-rotacao-de-tronco",
@@ -67,8 +67,8 @@
         "recorte:tami"
       ],
       "primeira": "20261120-1711",
-      "ultima": "20261120-2146",
-      "versoes": 2
+      "ultima": "20261121-1808",
+      "versoes": 3
     },
     {
       "aspecto": "estabilidade-vestibular-e-deslocamento",
@@ -77,8 +77,8 @@
         "recorte:tami"
       ],
       "primeira": "20261120-1711",
-      "ultima": "20261120-2146",
-      "versoes": 2
+      "ultima": "20261121-1808",
+      "versoes": 3
     },
     {
       "aspecto": "passe",
@@ -87,8 +87,8 @@
         "recorte:tami"
       ],
       "primeira": "20261120-1711",
-      "ultima": "20261120-2146",
-      "versoes": 2
+      "ultima": "20261121-1808",
+      "versoes": 3
     },
     {
       "aspecto": "formato-anatomico-dos-joelhos",
@@ -97,8 +97,8 @@
         "recorte:tami"
       ],
       "primeira": "20261120-2146",
-      "ultima": "20261120-2146",
-      "versoes": 1
+      "ultima": "20261121-1808",
+      "versoes": 2
     },
     {
       "aspecto": "meia-ponta",
@@ -956,9 +956,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "ceeddca5"
+    "commit": "a7f137b"
   },
-  "gerado_em": "2026-11-21T14:33",
+  "gerado_em": "2026-11-21T18:08",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -1054,14 +1054,32 @@
         "musicalidade-e-pulsacao-ritmica",
         "passe"
       ],
-      "atualizada_em": "2026-11-20T21:46:33.470Z",
-      "enviada_em": "2026-11-20T21:46:33.875Z",
+      "atualizada_em": "2026-11-21T18:08:17.785Z",
+      "enviada_em": "2026-11-21T18:08:18.196Z",
       "id": "recorte:tami",
       "linha": "tami",
       "nome": "Tami",
       "professor": null,
       "turma": null,
       "versoes": [
+        {
+          "alunas": 2,
+          "arquivo": "escola/breu/linhas-de-base/tami--20261121-1808.json",
+          "aspectos": [
+            "cinco-posicoes-1a-pes",
+            "cinco-posicoes-1a-bracos",
+            "passe",
+            "formato-anatomico-dos-joelhos",
+            "mobilidade-de-quadril-en-dehors-de-origem",
+            "mobilidade-de-flexao-extensao-do-tornozelo",
+            "musicalidade-e-pulsacao-ritmica",
+            "forca-excentrica-recuo-na-flexao-de-tronco",
+            "estabilidade-vestibular-e-deslocamento",
+            "espiral-rotacao-de-tronco"
+          ],
+          "enviada_em": "2026-11-21T18:08:18.196Z",
+          "versao": "20261121-1808"
+        },
         {
           "alunas": 2,
           "arquivo": "escola/breu/linhas-de-base/tami--20261120-2146.json",
