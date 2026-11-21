@@ -1,0 +1,334 @@
+#!/usr/bin/env node
+'use strict';
+
+/**
+ * provar-criar-aula.js — o botão do calendário, e o que ele faz de facto.
+ *
+ * O PEDIDO DELA (21/11/2026): «a gente vai acrescentar aqui uma quinta coluna, que é a coluna do
+ * criar aula». O calendário dizia QUANDO cada aula acontece; não dizia o que fazer com isso. E a
+ * pergunta que veio com ele é a que esta prova tem de responder, e não uma versão bonita dela:
+ * **clicar no botão faz a aula existir?**
+ *
+ * «Existir» tem três metades, e as três se medem:
+ *
+ *   1. o DOCUMENTO — `-aula-02.md` escrito no repositório (o derivador, com o número dela);
+ *   2. a LISTA — `aula-02` no `DOCS` do manifesto, sem a qual o gerador não publica nada;
+ *   3. a PÁGINA — «Aula 02» na tabela dos objetivos deixa de ser «(a criar)» e passa a ligação.
+ *
+ * O QUE ESTA PROVA MEDE:
+ *
+ *   A. A COLUNA: botão para a aula que não tem documento, ligação para a que tem, e nenhuma
+ *      coluna quando o gerador não a pede (o modo que as provas antigas usam).
+ *   B. A PÁGINA DO PLANO: o diálogo existe, e o dado que ele precisa — os marcos, o repertório, os
+ *      blocos, o carimbo do plano — está lá. Um botão sem dados abre uma caixa vazia.
+ *   C. A REGRA: a aula existe quando o plano declara a sequência dela — e uma sequência VAZIA não
+ *      a declara (um campo que a pessoa limpou não pode criar uma aula).
+ *   D. O ESCRITOR: com o plano a declarar `aula-2-sequencia`, o ciclo ganha `aula-02` e
+ *      `captura-aula-02` no `DOCS` e o `-aula-02.md` no repositório — e a Aula 01 continua lá.
+ *   E. A TABELA: «Aula 02» vira ligação quando o documento existe, e diz «(a criar)» quando não.
+ *
+ *   node experimentos/provar-criar-aula.js
+ */
+
+const fs = require('node:fs');
+const path = require('node:path');
+const { execFileSync } = require('node:child_process');
+
+const RAIZ = path.resolve(__dirname, '..');
+const { derivarPlano } = require(path.join(RAIZ, 'motor/nucleo/derivar-plano-ciclo.js'));
+const { aulasDeclaradasPeloPlano, numeroDaAula } =
+  require(path.join(RAIZ, 'motor/nucleo/aulas-do-ciclo.js'));
+const tabelaObjetivos = require(path.join(RAIZ, 'tools/tabela-objetivos.js'));
+const { criarEscritorDeCiclo } = require(path.join(RAIZ, 'motor/servidor/escrever-ciclo.js'));
+
+let total = 0;
+let falhas = 0;
+function provar(rotulo, condicao, detalhe) {
+  total += 1;
+  if (condicao) { console.log('  ok    ' + rotulo); return; }
+  falhas += 1;
+  console.log('  FALHA ' + rotulo + (detalhe === undefined ? '' : '  → ' + JSON.stringify(detalhe)));
+}
+
+/* ---------------------------------------------------------------------------------------- */
+/* O PLANO — construído aqui, sem ler escola nenhuma. Uma prova presa a uma escola morre no dia
+ * em que a escola é expurgada; esta mede o MECANISMO. */
+/* ---------------------------------------------------------------------------------------- */
+const resp = (v) => ({ valor: v });
+const MARCO_1 = 'reconhecer o apoio e alinhar o eixo vertical';
+
+function planoDe(extras) {
+  return {
+    id: 'plano-20261121-0900',
+    ciclo: '01', escola: 'x',
+    contexto: { professor: 'p', ciclo: '01', escola: 'x', turma: 'sala rosa' },
+    respostas: Object.assign({
+      'contexto-turma': resp('sala rosa'),
+      'objetivo-geral': resp('o ciclo'),
+      'marcos-por-aula': resp([MARCO_1]),
+      'estrutura-de-cada-aula': resp([{ marco: 1, marcados: ['Barra'] }]),
+      'distribuicao-de-volume': resp([{ Bloco: 'Barra', 'Proporção': '100%' }]),
+      'condicoes-preliminares': resp(['sala com barra']),
+      'repertorio': resp(['Plié', 'Relevé', 'Battement tendu']),
+      'referencias': resp('RAD (2015)'),
+      'aula-1-parametro': resp([{ marco: 1, marcados: ['Plié'] }]),
+      'aula-1-sequencia': resp([{ Bloco: 'Barra', 'Objetivo específico': '1 — ' + MARCO_1,
+        'Conteúdo do nível': 'Plié', Tempos: '8', Compasso: '2/4' }]),
+    }, extras || {}),
+  };
+}
+
+/* ========================================================================================== */
+console.log('\nA · A COLUNA «CRIAR A AULA» — botão, ligação, e nada quando não é pedida');
+/* ========================================================================================== */
+{
+  const calendario = (...args) => execFileSync('python3', [
+    path.join(RAIZ, 'tools/calendario.py'),
+    '--escola', 'X', '--frequencia', '1x/semana', '--dias', '1@10:30',
+    '--inicio', '14/12/2026', '--total', '3',
+    '--duracao-curta', '120', '--volume-curto', '175', ...args,
+  ], { encoding: 'utf8' });
+
+  const comColuna = calendario('--criar-aula', '--aulas-prontas', '01');
+  provar('a coluna existe quando o gerador a pede',
+    /\| Aula \| Data \| Dia \| Duração \| Criar a aula \|/.test(comColuna),
+    comColuna.split('\n').filter((l) => /\| Aula \|/.test(l)));
+  provar('a aula que JÁ tem documento ganha ligação, e não botão',
+    /\| 01 \|.*\[abrir\]\(aula-01\.html\) \|/.test(comColuna),
+    comColuna.split('\n').filter((l) => /^\| 01 /.test(l)));
+  provar('a aula que NÃO tem ganha o botão, com o número DELA',
+    /data-criar-aula="02">Criar aula<\/button>/.test(comColuna),
+    comColuna.split('\n').filter((l) => /^\| 02 /.test(l)));
+  provar('…e o mesmo para a 03', /data-criar-aula="03"/.test(comColuna),
+    comColuna.split('\n').filter((l) => /^\| 03 /.test(l)));
+  provar('o número sai com DOIS dígitos («02», e não «2»)',
+    !/data-criar-aula="2"/.test(comColuna) && !/data-criar-aula="3"/.test(comColuna), comColuna);
+
+  const semColuna = calendario();
+  provar('sem `--criar-aula` a tabela fica como era — quatro colunas e nenhum botão',
+    /\| Aula \| Data \| Dia \| Duração \|/.test(semColuna)
+    && !/data-criar-aula/.test(semColuna), semColuna.split('\n').filter((l) => /\| Aula \|/.test(l)));
+
+  const todas = calendario('--criar-aula', '--aulas-prontas', '01 02 03');
+  provar('um ciclo com todas as aulas criadas não tem botão nenhum',
+    !/data-criar-aula/.test(todas), todas.split('\n').filter((l) => /data-criar-aula/.test(l)));
+}
+
+/* ========================================================================================== */
+console.log('\nB · A PÁGINA DO PLANO — o diálogo, e o dado que ele precisa');
+/* ========================================================================================== */
+{
+  const plano = planoDe();
+  const { markdown } = derivarPlano(plano, {});
+  provar('a página do plano traz o diálogo', /<dialog[^>]*id="criar-aula"/.test(markdown));
+  provar('…com o botão de cancelar à esquerda e o de guardar à direita (a ordem do padrão)',
+    markdown.indexOf('criar-aula-cancelar') < markdown.indexOf('criar-aula-guardar'));
+  provar('…e o campo do objetivo', /id="criar-aula-marco"/.test(markdown));
+
+  const m = /<script type="application\/json" id="dados-criar-aula">([\s\S]*?)<\/script>/.exec(markdown);
+  let dados = null;
+  try { dados = JSON.parse(m[1]); } catch { dados = null; }
+  provar('o dado do diálogo está na página e é JSON válido', Boolean(dados), m && m[1].slice(0, 80));
+  provar('…com o carimbo do plano (sem ele não há elo a criar)', Boolean(dados && dados.id), dados && dados.id);
+  provar('…com o repertório da turma', Boolean(dados && (dados.repertorio || []).length === 3), dados && dados.repertorio);
+  provar('…com os marcos que o plano já declara', Boolean(dados && (dados.marcos || []).length === 1), dados && dados.marcos);
+  provar('…com os blocos da aula', Boolean(dados && (dados.blocos || [])[0] === 'Barra'), dados && dados.blocos);
+  provar('…e o contexto que a gravação precisa (professor, ciclo, escola, turma)',
+    Boolean(dados && dados.professor === 'p' && dados.ciclo === '01'
+      && dados.escola === 'x' && dados.turma === 'sala rosa'), dados);
+
+  const semRepertorio = planoDe({ 'repertorio': resp([]) });
+  const semDados = JSON.parse(/<script type="application\/json" id="dados-criar-aula">([\s\S]*?)<\/script>/
+    .exec(derivarPlano(semRepertorio, {}).markdown)[1]);
+  provar('um ciclo sem repertório DIZ isso ao diálogo (e não mostra uma lista vazia)',
+    semDados.temRepertorio === false, semDados.temRepertorio);
+}
+
+/* ========================================================================================== */
+console.log('\nC · A REGRA — a aula existe quando o plano declara a sequência dela');
+/* ========================================================================================== */
+{
+  provar('o plano de uma aula só declara a 01',
+    aulasDeclaradasPeloPlano(planoDe()).join(',') === '01', aulasDeclaradasPeloPlano(planoDe()));
+
+  const comAula2 = planoDe({
+    'aula-2-sequencia': resp([{ Bloco: 'Barra', 'Conteúdo do nível': 'Relevé' }]),
+  });
+  provar('com `aula-2-sequencia`, o plano declara a 01 e a 02',
+    aulasDeclaradasPeloPlano(comAula2).join(',') === '01,02', aulasDeclaradasPeloPlano(comAula2));
+
+  const vazia = planoDe({ 'aula-2-sequencia': resp([]) });
+  provar('uma sequência VAZIA não cria aula (um campo limpo não é uma aula)',
+    aulasDeclaradasPeloPlano(vazia).join(',') === '01', aulasDeclaradasPeloPlano(vazia));
+
+  const comZero = planoDe({ 'aula-02-sequencia': resp([{ Bloco: 'Barra' }]) });
+  provar('a forma com zero à frente é lida (a leitura é generosa, a escrita é que tem uma forma)',
+    aulasDeclaradasPeloPlano(comZero).join(',') === '01,02', aulasDeclaradasPeloPlano(comZero));
+
+  provar('o número sai em dois dígitos de `numeroDaAula`', numeroDaAula('2') === '02');
+}
+
+/* ========================================================================================== */
+console.log('\nD · O ESCRITOR — o ciclo ganha a aula, e a 01 não se perde');
+/* ========================================================================================== */
+
+const CONF = [
+  'CICLO="01"', 'ESCOLA="x"', 'NOME="Ciclo"', 'DURACOES="60"',
+  'VOLUME_MIN="30"', 'VOLUME_MAX="50"',
+  'DOCS="plano harmonizacao aula-01 captura-aula-01 referencias"',
+  'DIAS="segunda 18:00"',
+].join('\n') + '\n';
+const SCHEMA = JSON.stringify({ _declaracao: { porVariante: {} } }, null, 2);
+
+function githubFalso(inicial) {
+  const arquivos = Object.assign({}, inicial || {});
+  const f = async (url, init) => {
+    const metodo = (init && init.method) || 'GET';
+    const u = String(url);
+    const corpo = init && init.body ? JSON.parse(init.body) : null;
+    if (metodo === 'GET' && /\/contents\//.test(u)) {
+      const caminho = decodeURIComponent(u.split('/contents/')[1].split('?')[0]);
+      if (/\.conf$/.test(caminho)) {
+        return { status: 200, ok: true, json: async () => ({ sha: 's1', content: Buffer.from(CONF).toString('base64') }) };
+      }
+      if (/captura-schema\.json$/.test(caminho)) {
+        return { status: 200, ok: true, json: async () => ({ sha: 's2', content: Buffer.from(SCHEMA).toString('base64') }) };
+      }
+      if (Object.prototype.hasOwnProperty.call(arquivos, caminho)) {
+        return { status: 200, ok: true, json: async () => ({ sha: 'x' + caminho, content: Buffer.from(arquivos[caminho]).toString('base64') }) };
+      }
+      return { status: 404, ok: false, json: async () => ({}) };
+    }
+    if (metodo === 'GET' && /\/git\/ref\/heads\//.test(u)) return { status: 200, ok: true, json: async () => ({ object: { sha: 'c0' } }) };
+    if (metodo === 'GET' && /\/git\/commits\//.test(u)) return { status: 200, ok: true, json: async () => ({ tree: { sha: 't0' } }) };
+    if (metodo === 'POST' && /\/git\/trees$/.test(u)) {
+      arquivos.__tree = {};
+      for (const t of corpo.tree || []) arquivos.__tree[t.path] = t.content !== undefined ? String(t.content) : null;
+      return { status: 201, ok: true, json: async () => ({ sha: 't1' }) };
+    }
+    if (metodo === 'POST' && /\/git\/commits$/.test(u)) return { status: 201, ok: true, json: async () => ({ sha: 'c1' }) };
+    if (metodo === 'PATCH' && /\/git\/refs\/heads\//.test(u)) {
+      Object.assign(arquivos, arquivos.__tree || {}); delete arquivos.__tree;
+      return { status: 200, ok: true, json: async () => ({}) };
+    }
+    return { status: 200, ok: true, json: async () => ({}) };
+  };
+  return { fetch: f, arquivos };
+}
+
+const CTX = { escola: 'x', professor: 'p', ciclo: '01', turma: 'sala-rosa', variante: 'x-sala-rosa' };
+const BASE = 'professores/p/ciclos';
+const PO = {
+  id: 'po-1', ciclo: '01', escola: 'x',
+  contexto: CTX,
+  respostas: { question: resp('q'), 'o-que-fica-de-fora': resp('o allegro'),
+    sujeitos: resp(['Aluna A']), 'itens-por-dimensao': resp({ Barra: ['o apoio'] }) },
+};
+
+(async () => {
+  {
+    const plano = planoDe({
+      'aula-2-sequencia': resp([{ Bloco: 'Barra', 'Objetivo específico': '2 — transferir o peso',
+        'Conteúdo do nível': 'Relevé', Tempos: '8', Compasso: '2/4' }]),
+      'aula-2-parametro': resp([{ marco: 2, marcados: ['Relevé'] }]),
+      'marcos-por-aula': resp([MARCO_1, 'transferir o peso entre os pés']),
+    });
+    const gh = githubFalso();
+    const escrever = criarEscritorDeCiclo({
+      token: 'gh', dono: 'tmenegaz', repo: 'danca', ref: 'main', senhaCripto: 'segredo', fetchImpl: gh.fetch,
+    });
+    const r = await escrever({ plano, po: PO, contexto: CTX,
+      calibracao: { duracaoMinutos: 60, volumeMin: 30, volumeMax: 50 } });
+
+    const conf = gh.arquivos[BASE + '/ciclo-01-x-sala-rosa.conf'] || '';
+    const docs = (/^DOCS="([^"]*)"/m.exec(conf) || [, ''])[1].split(/\s+/).filter(Boolean);
+    provar('o `DOCS` ganhou `aula-02`', docs.indexOf('aula-02') !== -1, docs);
+    provar('…e a folha dela, `captura-aula-02`', docs.indexOf('captura-aula-02') !== -1, docs);
+    provar('…e a Aula 01 continua declarada (a lista só cresce)',
+      docs.indexOf('aula-01') !== -1 && docs.indexOf('captura-aula-01') !== -1, docs);
+    provar('o `-aula-02.md` foi escrito', (r.escritas || []).some((e) => /-aula-02\.md$/.test(e.caminho)),
+      (r.escritas || []).map((e) => e.caminho));
+    const aula2 = gh.arquivos[BASE + '/ciclo-01-x-sala-rosa-aula-02.md'] || '';
+    provar('…e é a Aula 02, com o marco dela', /^aula: "02"$/m.test(aula2)
+      && /transferir o peso/.test(aula2), aula2.slice(0, 200));
+    provar('…e a `-captura-aula-02.md` também', (r.escritas || []).some((e) => /-captura-aula-02\.md$/.test(e.caminho)),
+      (r.escritas || []).map((e) => e.caminho));
+    provar('a Aula 01 também foi escrita (o ciclo continua inteiro)',
+      (r.escritas || []).some((e) => /-aula-01\.md$/.test(e.caminho)),
+      (r.escritas || []).map((e) => e.caminho));
+  }
+
+  /* ======================================================================================== */
+  console.log('\nE · A TABELA DOS OBJETIVOS — «Aula 02» vira ligação quando o documento existe');
+  /* ======================================================================================== */
+  {
+    const planoExtraido = {
+      marcosPorAula: [
+        { n: '01', objetivos: '01', marco: MARCO_1 },
+        { n: '02', objetivos: '02', marco: 'transferir o peso entre os pés' },
+      ],
+      objetivosEspecificos: [
+        { n: '01', objetivo: MARCO_1, blocos: 'Barra' },
+        { n: '02', objetivo: 'transferir o peso entre os pés', blocos: 'Barra' },
+      ],
+    };
+    const semAula2 = tabelaObjetivos.tabela(planoExtraido, ['aula-01']).join('\n');
+    const comAula2 = tabelaObjetivos.tabela(planoExtraido, ['aula-01', 'aula-02']).join('\n');
+
+    provar('sem o documento, a Aula 02 diz «(a criar)»', /Aula 02 \*\(a criar\)\*/.test(semAula2), semAula2);
+    provar('com o documento, vira ligação', /\[Aula 02\]\(aula-02\.html#exercicios-da-aula-02\)/.test(comAula2),
+      comAula2.split('\n').filter((l) => /Aula 02/.test(l)));
+    provar('…e a Aula 01 continua ligada nas duas', /\[Aula 01\]/.test(semAula2) && /\[Aula 01\]/.test(comAula2));
+  }
+
+  /* ======================================================================================== */
+  console.log('\nF · NUM CHROME — o botão abre a caixa, com o marco e a data da linha');
+  /* ======================================================================================== */
+  {
+    const CHROME = ['/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser']
+      .find((c) => fs.existsSync(c));
+    if (!CHROME) {
+      console.log('  (sem Chrome nesta máquina — esta secção não corre, e não se declara passada)');
+    } else {
+      /* A PÁGINA É SERVIDA POR UM PROCESSO À PARTE, e não pelo `http.createServer` desta prova:
+       * `execFileSync` bloqueia o ciclo de eventos, e um servidor no mesmo processo nunca
+       * responde — a prova ficaria pendurada à espera de si mesma. Foi assim que se descobriu. */
+      const PASTA = path.join(RAIZ, 'professores/demi-plie/ciclos/ciclo-01-breu-rosa');
+      const porta = 8793;
+      const servidor = require('node:child_process').spawn('python3',
+        ['-m', 'http.server', String(porta), '--bind', '127.0.0.1'], { cwd: PASTA, stdio: 'ignore' });
+      try {
+        require('node:child_process').execFileSync('sleep', ['2']);
+        const dom = execFileSync(CHROME, ['--headless=new', '--disable-gpu', '--no-sandbox',
+          '--no-first-run', '--disable-dev-shm-usage', '--virtual-time-budget=3000', '--dump-dom',
+          'http://127.0.0.1:' + porta + '/plano.html?criar-aula=02'],
+        { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, timeout: 90000 });
+
+        const etiqueta = /<dialog[^>]*>/.exec(dom);
+        provar('o diálogo ABRE com `?criar-aula=02` (o botão não é uma promessa)',
+          Boolean(etiqueta && /open/.test(etiqueta[0])), etiqueta && etiqueta[0]);
+        provar('…e o título diz a aula que se está a criar',
+          /<h3 id="criar-aula-titulo">Criar a aula 02<\/h3>/.test(dom),
+          (/<h3 id="criar-aula-titulo">([^<]*)/.exec(dom) || [])[1]);
+        provar('…com o marco da aula já preenchido (o plano já o declara)',
+          /transferir o peso entre os pés sem perder o alinhamento/.test(dom));
+        provar('…e a data, o dia e a duração da LINHA do calendário, na caixa',
+          /02 · 16\/12\/2026 · quarta · 120 min/.test(dom),
+          (/id="criar-aula-quando">([^<]*)/.exec(dom) || [])[1]);
+        provar('…e os exercícios do repertório e os blocos da aula, para marcar',
+          (dom.match(/id="criar-aula-exercicios-\d+"/g) || []).length === 4
+          && (dom.match(/id="criar-aula-blocos-\d+"/g) || []).length === 4,
+          [(dom.match(/id="criar-aula-exercicios-\d+"/g) || []).length,
+            (dom.match(/id="criar-aula-blocos-\d+"/g) || []).length]);
+        provar('…e o botão de guardar começa habilitado (há repertório)',
+          !/id="criar-aula-guardar"[^>]*disabled/.test(dom));
+      } finally {
+        try { servidor.kill('SIGKILL'); } catch { /* já morreu */ }
+      }
+    }
+  }
+
+  console.log('\n' + (total - falhas) + '/' + total + ' asserções'
+    + (falhas ? ' — ' + falhas + ' FALHA(S)' : ' — verde'));
+  process.exit(falhas ? 1 : 0);
+})();

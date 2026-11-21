@@ -244,6 +244,17 @@ VOL_LONGO=""
 
 EXTRA=()
 [ -n "$DUR_LONGA" ] && EXTRA=(--duracao-longa "$DUR_LONGA" --volume-longo "$VOL_LONGO")
+# AS AULAS QUE JÁ TÊM DOCUMENTO (21/11/2026) — a quinta coluna do calendário, «Criar a aula»,
+# precisa de saber quais são para mostrar a ligação em vez do botão. Quem o diz é o `DOCS` do
+# manifesto, que é a lista de documentos que o ciclo declara: a mesma fonte de que a tabela dos
+# objetivos já lê a coluna «Aula». Lida por NOME e não por glob, para não colher o elo de
+# `historico/` — a armadilha que a `caminhoDoElo` documenta.
+AULAS_PRONTA=""
+for _doc in ${DOCS:-}; do
+  case "$_doc" in
+    aula-[0-9]*) AULAS_PRONTA="$AULAS_PRONTA ${_doc#aula-}" ;;
+  esac
+done
 python3 "$RAIZ/tools/calendario.py" \
   --escola "$ESCOLA" \
   --responsavel "${RESPONSAVEL:-}" \
@@ -254,6 +265,8 @@ python3 "$RAIZ/tools/calendario.py" \
   --duracao-curta "$DUR_CURTA" \
   --volume-curto "$VOL_CURTO" \
   ${EXTRA[@]+"${EXTRA[@]}"} \
+  --criar-aula \
+  --aulas-prontas "$AULAS_PRONTA" \
   --saida "$TMP/calendario.md" \
   --vars-arquivo "$TMP/calendario.vars" \
   --aulas-arquivo "$TMP/aulas.tsv"

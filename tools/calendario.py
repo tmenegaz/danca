@@ -46,6 +46,7 @@ aulas do sábado.
 
 import argparse
 import datetime as dt
+import re
 import sys
 
 DIAS_SEMANA = {1: 'segunda', 2: 'terça', 3: 'quarta', 4: 'quinta',
@@ -121,6 +122,34 @@ def br(d: dt.date) -> str:
     return d.strftime('%d/%m/%Y')
 
 
+def celula_da_coluna_criar(nn: int, prontas: set, criar: bool) -> str:
+    """A quinta coluna: o botão que CRIA a aula, ou a ligação para a que já existe.
+
+    AS DUAS FORMAS, e porquê:
+
+      · a aula que já tem documento → uma LIGAÇÃO para ele. O botão não faz sentido numa aula
+        que existe, e escondê-lo sem dizer nada faria a coluna parecer quebrada naquela linha;
+      · a aula que ainda não tem → um BOTÃO, com o número DELA (`02`) e nada mais. Quem sabe o
+        resto — a data, o dia, a duração — é a linha da tabela em que ele está, e o script da
+        página lê-a daí. Não se copia o dado para o atributo: uma segunda cópia é uma segunda
+        verdade, e a data que o calendário calcula é a única.
+
+    A CLASSE É A MESMA DAS OUTRAS ACÇÕES (`.acao secundario pequena`), que é a peça do botão na
+    folha — nenhuma classe nova nasce aqui. `data-criar-aula` é GANCHO de JavaScript: não pinta
+    nada, existe para o script achar o botão, e está declarado em `tools/check-identidade.js`.
+
+    Sem `--criar-aula`, a coluna não existe — é o modo que as provas usam, e o que mantém o
+    bloco do calendário igual ao que era para quem só quer as datas.
+    """
+    if not criar:
+        return ''
+    dois = f'{nn:02d}'
+    if dois in prontas:
+        return f'[abrir](aula-{dois}.html)'
+    return (f'<button type="button" class="acao secundario pequena" '
+            f'data-criar-aula="{dois}">Criar aula</button>')
+
+
 def hhmm(minutos: int) -> str:
     return f'{minutos // 60:02d}:{minutos % 60:02d}'
 
@@ -149,7 +178,17 @@ def main() -> int:
     p.add_argument('--aulas-arquivo', default='',
                    help='escreve uma linha por aula (NN\\tdata ISO\\tinício\\tfim) — é o que o '
                         'índice por aula e o prazo (ARQUITETURA-AULA.md §3 e §4.2) consomem')
+    # A COLUNA «CRIAR A AULA» (21/11/2026) — ver `celula_da_coluna_criar`.
+    p.add_argument('--criar-aula', action='store_true',
+                   help='acrescenta a coluna «Criar a aula»: botão para a aula que ainda não tem '
+                        'documento, ligação para a que já tem')
+    p.add_argument('--aulas-prontas', default='',
+                   help='as aulas que JÁ têm documento, separadas por espaço ou vírgula (ex.: '
+                        '"01 02"); só é lida com --criar-aula')
     a = p.parse_args()
+
+    prontas = {n for n in re.split(r'[^0-9]+', a.aulas_prontas or '') if n}
+    prontas = {f'{int(n):02d}' for n in prontas if int(n) > 0}
 
     try:
         dias = parse_dias(a.dias)
@@ -259,7 +298,14 @@ def main() -> int:
     # do ciclo (a formativa e a somativa) eram só uma etiqueta no meio das linhas. Cada
     # parte agora começa pelo seu marco, e a segunda retoma o cabeçalho — sem ele, no
     # telefone a tabela de baixo chega sem dizer de que coluna é cada número.
-    cabecalho_da_tabela = ['| Aula | Data | Dia | Duração |', '|:---:|:---|:---|:---:|']
+    #
+    # A QUINTA COLUNA — «CRIAR A AULA» (21/11/2026). O calendário já dizia QUANDO cada aula
+    # acontece; o que ele não dizia era o que fazer com isso. A coluna fecha o circuito: a aula
+    # que ainda não tem documento ganha o botão que a cria (e que sabe o número dela, `02`, e a
+    # data), e a que já tem ganha a ligação para o documento. A célula não é escrita à mão em
+    # nenhum sítio — sai da lista de aulas que o ciclo declara, que é o `DOCS` do manifesto.
+    cabecalho_da_tabela = ['| Aula | Data | Dia | Duração | Criar a aula |',
+                           '|:---:|:---|:---|:---:|:---|']
 
     def inicio_de_tabela(titulo, id_ascii):
         # A ÂNCORA VAI ESCRITA (28/10/2026). O título tem acentos («avaliação»), e o `id`
@@ -296,7 +342,8 @@ def main() -> int:
             inicio_de_tabela(f'Aulas {formativa + 1:02d}–{a.total:02d} · até a avaliação somativa',
                              f'aulas-{formativa + 1:02d}-{a.total:02d}')
         marco = ' *(formativa)*' if i == formativa else (' *(somativa)*' if i == a.total else '')
-        L.append(f'| {i:02d}{marco} | {br(d)} | {rotulo_do_dia(d)} | {dur} min |')
+        L.append(f'| {i:02d}{marco} | {br(d)} | {rotulo_do_dia(d)} | {dur} min | '
+                 f'{celula_da_coluna_criar(i, prontas, a.criar_aula)} |')
     L.append('')
     L.append('> O volume de trabalho ativo de cada aula está na própria aula; o volume '
              'semanal acima é calculado sobre o volume declarado na Aula 01 (Regra 9).')

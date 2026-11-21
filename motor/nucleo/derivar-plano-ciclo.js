@@ -547,6 +547,244 @@ function tabelaDeContexto(envelope) {
 }
 
 /**
+ * O DIÁLOGO QUE CRIA A AULA SEGUINTE (21/11/2026).
+ *
+ * O PEDIDO. Ela abriu o plano do ciclo e viu o calendário com quatro colunas — aula, data, dia,
+ * duração — e disse: «a gente vai acrescentar aqui uma quinta coluna, que é a coluna do criar
+ * aula». O calendário dizia QUANDO cada aula acontece; o que ele não dizia era o que fazer com
+ * isso.
+ *
+ * O QUE O DIÁLOGO FAZ, e o que ele NÃO faz. Ele recolhe o que o plano ainda não declara para
+ * aquela aula — o objetivo (o marco), os exercícios que trabalham esse objetivo e os blocos onde
+ * ele é trabalhado —, e manda gravar pelo caminho que já existe: `POST /api/elicitar`, com o
+ * plano anterior como `ajuste_de`. A partir daí é a cadeia de sempre: elo novo do plano, o PO que
+ * o observa acompanha, as fontes do ciclo são derivadas (e é o derivador novo que escreve
+ * `-aula-NN.md` com o número DELA) e a geração é disparada.
+ *
+ * QUEM SABE O NÚMERO É A LINHA DO CALENDÁRIO, e não o diálogo: o botão traz `data-criar-aula="02"`
+ * e o resto — a data, o dia, a duração — fica onde está, na tabela. Copiar a data para um atributo
+ * seria uma segunda cópia da mesma verdade.
+ *
+ * A SEQUÊNCIA É O CRUZAMENTO, e não uma tabela a preencher. O modelo do plano já é este: o
+ * objetivo é trabalhado em BLOCOS (`estrutura-de-cada-aula`) e medido por EXERCÍCIOS
+ * (`aula-N-parametro`), e a sequência é o par. Marcar o exercício e o bloco em duas listas dá a
+ * mesma tabela que o professor preencheria linha a linha — com menos dedos e sem contradição
+ * possível entre as três coisas.
+ *
+ * O QUE ELE NÃO PEDE: a duração, o volume, o bloco da aula, a régua. São do CICLO — a mesma turma,
+ * o mesmo plano —, e já estão no plano que este diálogo está a acrescentar.
+ */
+function dialogoDaAula(envelope, contexto) {
+  const marcos = marcosEmTexto(respostaDo(envelope, 'marcos-por-aula'));
+  const repertorio = emLista(respostaDo(envelope, 'repertorio'))
+    .map((t) => String(t == null ? '' : t).trim()).filter(Boolean);
+  const blocos = blocosDoVolume(respostaDo(envelope, 'distribuicao-de-volume'));
+  const blocosDaAula = blocos.length ? blocos : BLOCOS_DA_AULA.slice();
+  const id = String((envelope && envelope.id) || '').trim();
+
+  /* SEM REPERTÓRIO NÃO HÁ O QUE MARCAR, e o diálogo diz isso em vez de mostrar uma lista vazia:
+   * «o repertório da turma está no plano, e é dele que saem os exercícios». Um botão que abre uma
+   * caixa sem opções ensina que o sistema está quebrado. */
+  const dados = {
+    id,
+    ciclo: String(contexto.ciclo || ''),
+    professor: String(contexto.professor || ''),
+    escola: String(contexto.escola || ''),
+    turma: String(contexto.turma || turmaDoDocumento(envelope) || ''),
+    marcos,
+    repertorio,
+    blocos: blocosDaAula,
+    temRepertorio: repertorio.length > 0,
+  };
+
+  const esc = (s) => String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+  const linhas = [];
+  linhas.push('```{=html}');
+  /* A FOLHA DO DIÁLOGO É DECLARADA AQUI, e não na `ciclo.css`: são cinco regras que só esta
+   * caixa usa, e a folha é das páginas — a página que declara o que usa está no regime da
+   * checagem 4 do `check-identidade`. As peças são as da casa (`.caixa`, `.acao`, `.campo-rotulo`),
+   * e o que se acrescenta é só a arrumação delas dentro do `dialog`. */
+  linhas.push('<style>');
+  linhas.push('dialog.caixa { max-width: min(46rem, 92vw); border: 1px solid var(--borda-campo); }');
+  linhas.push('dialog.caixa::backdrop { background: rgba(0,0,0,.45); }');
+  linhas.push('#criar-aula fieldset { border: 0; padding: 0; margin: 0 0 var(--esp-3); }');
+  linhas.push('#criar-aula fieldset .campo-rotulo { display: block; margin: var(--esp-1) 0; }');
+  linhas.push('#criar-aula textarea { width: 100%; font: inherit; padding: var(--esp-1) var(--esp-2); border: 1px solid var(--borda-campo); border-radius: var(--raio-1); background: var(--superficie); color: inherit; }');
+  linhas.push('#criar-aula .acoes { display: flex; gap: var(--esp-2); flex-wrap: wrap; margin: var(--esp-3) 0 0; }');
+  linhas.push('#criar-aula .fraco { color: var(--texto-fraco); font-size: .92em; margin: var(--esp-1) 0; }');
+  linhas.push('</style>');
+  linhas.push('<dialog class="caixa" id="criar-aula" aria-labelledby="criar-aula-titulo">');
+  linhas.push('<form method="dialog">');
+  linhas.push('<h3 id="criar-aula-titulo">Criar a aula</h3>');
+  linhas.push('<p class="fraco" id="criar-aula-quando"></p>');
+  // O objetivo (o marco). Preenchido quando o plano já o declara para aquela aula.
+  linhas.push('<label class="campo-rotulo" for="criar-aula-marco">Objetivo específico (o marco desta aula)</label>');
+  linhas.push('<textarea id="criar-aula-marco" name="marco" rows="2" required></textarea>');
+  // Os exercícios: a relação do objetivo com o que se propõe.
+  linhas.push('<fieldset id="criar-aula-exercicios"><legend class="campo-rotulo">Exercícios que trabalham este objetivo</legend></fieldset>');
+  // Os blocos.
+  linhas.push('<fieldset id="criar-aula-blocos"><legend class="campo-rotulo">Blocos onde ele é trabalhado</legend></fieldset>');
+  linhas.push('<p class="fraco" id="criar-aula-aviso" role="status"></p>');
+  linhas.push('<div class="acoes">');
+  linhas.push('<button type="button" class="acao secundario" id="criar-aula-cancelar">Cancelar</button>');
+  linhas.push('<button type="button" class="acao" id="criar-aula-guardar">Guardar e gerar</button>');
+  linhas.push('</div>');
+  linhas.push('</form>');
+  linhas.push('</dialog>');
+  linhas.push('<script type="application/json" id="dados-criar-aula">'
+    + JSON.stringify(dados).replace(/</g, '\\u003c') + '</script>');
+  linhas.push('<script>');
+  linhas.push(...DIALOGO_DA_AULA_JS());
+  linhas.push('</script>');
+  linhas.push('```');
+  linhas.push('');
+  return linhas;
+}
+
+/**
+ * O GUIONISTA. Escrito em linhas soltas de propósito: ele é TEXTO dentro de uma string, e não há
+ * verificador que o leia — mantê-lo curto e partido torna o erro visível na revisão. A única
+ * regra de estilo que ele segue é a do resto do projeto: ES5 compatível, sem dependências.
+ */
+function DIALOGO_DA_AULA_JS() {
+  return [
+    '(function () {',
+    '  var fonte = document.getElementById("dados-criar-aula");',
+    '  if (!fonte) return;',
+    '  var dados = JSON.parse(fonte.textContent);',
+    '  var caixa = document.getElementById("criar-aula");',
+    '  if (!caixa) return;',
+    '  var campoMarco = document.getElementById("criar-aula-marco");',
+    '  var exercicios = document.getElementById("criar-aula-exercicios");',
+    '  var blocos = document.getElementById("criar-aula-blocos");',
+    '  var aviso = document.getElementById("criar-aula-aviso");',
+    '  var quando = document.getElementById("criar-aula-quando");',
+    '  var titulo = document.getElementById("criar-aula-titulo");',
+    '  var btnGuardar = document.getElementById("criar-aula-guardar");',
+    '  var alvo = "";',
+    '  function dizer(t) { if (aviso) aviso.textContent = t || ""; }',
+    '  function marcar(conjunto, valor) {',
+    '    var itens = conjunto.querySelectorAll("input[type=checkbox]");',
+    '    for (var i = 0; i < itens.length; i++) itens[i].checked = itens[i].value === valor;',
+    '    return itens;',
+    '  }',
+    '  function listar(conjunto, valores, prefixo) {',
+    '    conjunto.innerHTML = "<legend class=\\"campo-rotulo\\">" + prefixo + "</legend>";',
+    '    for (var i = 0; i < valores.length; i++) {',
+    '      var id = conjunto.id + "-" + i;',
+    '      var lab = document.createElement("label");',
+    '      lab.className = "campo-rotulo em-linha";',
+    '      lab.setAttribute("for", id);',
+    '      var cx = document.createElement("input");',
+    '      cx.type = "checkbox"; cx.id = id; cx.value = valores[i];',
+    '      lab.appendChild(cx);',
+    '      lab.appendChild(document.createTextNode(" " + valores[i]));',
+    '      conjunto.appendChild(lab);',
+    '    }',
+    '  }',
+    '  function abrir(nn, linha) {',
+    '    alvo = nn;',
+    '    titulo.textContent = "Criar a aula " + nn;',
+    '    var d = linha ? linha.querySelectorAll("td") : [];',
+    '    var quandoTexto = [];',
+    '    for (var k = 0; k < d.length && k < 4; k++) quandoTexto.push(String(d[k].textContent || "").trim());',
+    '    quando.textContent = "Data, dia e duração vêm do calendário: " +',
+    '      (quandoTexto.length ? quandoTexto.join(" · ") : "veja a linha da aula na tabela") +',
+    '      ". O que falta decidir é o que esta aula persegue — e com o quê.";',
+    '    var marco = dados.marcos[Number(nn) - 1] || "";',
+    /* As duas escritas, e a razão: `.value` é o que a pessoa vê, `.textContent` é o que a página
+     * declara. Só a primeira deixa o `<textarea>` vazio no HTML servido — e um campo que se lê
+     * vazio no código-fonte faz duvidar de que ele foi preenchido. */
+    '    campoMarco.textContent = marco;',
+    '    campoMarco.value = marco;',
+    '    listar(exercicios, dados.repertorio, "Exercícios que trabalham este objetivo");',
+    '    listar(blocos, dados.blocos, "Blocos onde ele é trabalhado");',
+    '    dizer(dados.temRepertorio ? "" : "O repertório da turma está vazio: declare-o no plano antes de criar a aula.");',
+    '    btnGuardar.disabled = !dados.temRepertorio;',
+    '    if (caixa.showModal) caixa.showModal(); else caixa.setAttribute("open", "open");',
+    '  }',
+    '  function escolhidos(conjunto) {',
+    '    var saida = [], itens = conjunto.querySelectorAll("input[type=checkbox]");',
+    '    for (var i = 0; i < itens.length; i++) if (itens[i].checked) saida.push(itens[i].value);',
+    '    return saida;',
+    '  }',
+    '  document.addEventListener("click", function (e) {',
+    '    var b = e.target.closest ? e.target.closest("[data-criar-aula]") : null;',
+    '    if (!b) return;',
+    '    e.preventDefault();',
+    '    abrir(b.getAttribute("data-criar-aula"), b.closest("tr"));',
+    '  });',
+    /* O ENDEREÇO ABRE O DIÁLOGO (21/11/2026) — `?criar-aula=02`. Serve a quem quer mandar a
+     * ligação a alguém («cria a aula 2»), e serve à prova, que precisa de abrir a caixa sem um
+     * rato: um botão que nunca foi clicado por ninguém é a única coisa que esta página não pode
+     * afirmar que funciona. */
+    '  try {',
+    '    var pedida = new URLSearchParams(window.location.search).get("criar-aula");',
+    '    if (pedida) {',
+    '      var nn = String(Number(pedida));',
+    '      if (nn.length === 1) nn = "0" + nn;',
+    '      var botao = document.querySelector("[data-criar-aula=\\"" + nn + "\\"]");',
+    '      abrir(nn, botao ? botao.closest("tr") : null);',
+    '    }',
+    '  } catch (e) { /* endereço sem `URLSearchParams`: fica o clique */ }',
+    '  document.getElementById("criar-aula-cancelar").addEventListener("click", function () {',
+    '    if (caixa.close) caixa.close(); else caixa.removeAttribute("open");',
+    '  });',
+    '  btnGuardar.addEventListener("click", function () {',
+    '    var marco = String(campoMarco.value || "").trim();',
+    '    var ex = escolhidos(exercicios), bl = escolhidos(blocos);',
+    '    if (!marco) { dizer("O objetivo específico desta aula é o que a torna observável — escreva-o."); return; }',
+    '    if (!ex.length) { dizer("Marque ao menos um exercício: é ele que dá o que observar."); return; }',
+    '    if (!bl.length) { dizer("Marque ao menos um bloco: é onde o objetivo acontece."); return; }',
+    '    if (!dados.id) { dizer("Este plano ainda não tem carimbo: grave-o primeiro, e a aula nasce dele."); return; }',
+    '    btnGuardar.disabled = true; dizer("a gravar…");',
+    '    fetch("/api/envelope/" + encodeURIComponent(dados.id))',
+    '      .then(function (r) { return r.json(); })',
+    '      .then(function (env) { return gravar(env, marco, ex, bl); })',
+    '      .catch(function (erro) { btnGuardar.disabled = false; dizer("não deu: " + (erro && erro.message || erro)); });',
+    '  });',
+    '  function gravar(env, marco, ex, bl) {',
+    '    var r = Object.assign({}, (env && env.respostas) || {});',
+    '    var n = Number(alvo);',
+    '    var marcos = (r["marcos-por-aula"] && r["marcos-por-aula"].valor) || [];',
+    '    if (Array.isArray(marcos)) { while (marcos.length < n) marcos.push(""); marcos[n - 1] = marco; }',
+    '    var mapa = (r["aula-de-cada-objetivo"] && r["aula-de-cada-objetivo"].valor) || [];',
+    '    if (Array.isArray(mapa) && !mapa.some(function (m) { return Number(m.objetivo) === n; })) {',
+    '      mapa.push({ objetivo: n, aulas: [alvo] });',
+    '      r["aula-de-cada-objetivo"] = { valor: mapa, origem: "perguntado", respondente: "professor", nota: null };',
+    '    }',
+    '    r["aula-" + n + "-parametro"] = { valor: [{ marco: n, marcados: ex }], origem: "perguntado", respondente: "professor", nota: null };',
+    '    var alvoObj = n + " — " + marco;',
+    '    var seq = [];',
+    '    for (var i = 0; i < bl.length; i++) {',
+    '      for (var j = 0; j < ex.length; j++) {',
+    '        seq.push({ "Bloco": bl[i], "Objetivo específico": alvoObj, "Conteúdo do nível": ex[j], "Tempos": "", "Compasso": "" });',
+    '      }',
+    '    }',
+    '    r["aula-" + n + "-sequencia"] = { valor: seq, origem: "perguntado", respondente: "professor", nota: null };',
+    '    return fetch("/api/elicitar", {',
+    '      method: "POST",',
+    '      headers: { "Content-Type": "application/json" },',
+    '      body: JSON.stringify({ respostas: r, contexto: env.contexto, fonte: "plano",',
+    '        ajuste_de: dados.id, base: env,',
+    '        motivo: "a aula " + alvo + " foi criada a partir do calendário do plano" }),',
+    '    }).then(function (resp) { return resp.json().then(function (d) { return { ok: resp.ok, d: d }; }); })',
+    '      .then(function (x) {',
+    '        if (!x.ok) throw new Error((x.d && x.d.erro) || "gravação recusada");',
+    '        dizer("gravado. A aula " + alvo + " está a ser gerada — esta página fica em dia quando o ciclo fechar.");',
+    '        btnGuardar.disabled = true;',
+    '        if (x.d && x.d.disparo && x.d.disparo.ok === false) dizer("gravado, mas o gerador não partiu: " + (x.d.disparo.erro || ""));',
+    '      })',
+    '      .catch(function (erro) { btnGuardar.disabled = false; dizer("não deu: " + (erro && erro.message || erro)); });',
+    '  }',
+    '})();',
+  ];
+}
+
+/**
  * A derivação: o envelope elicitado do plano vira o Markdown da fonte.
  * Devolve `{ markdown, meta }` — `meta` é o cabeçalho YAML.
  */
@@ -837,6 +1075,11 @@ function derivarPlano(envelope, opcoes) {
   // que o documento declara. Uma origem escrita à mão (plano antigo ou a linha do fim) passa
   // como veio: proveniência não reescreve.
   prosa('Registro de proveniência', provenienciaEmTexto(respostaDo(envelope, 'proveniencia')));
+
+  /* O DIÁLOGO QUE CRIA A AULA SEGUINTE (21/11/2026) — ver `dialogoDaAula`. Ele fica no FIM da
+   * página e não é visto: quem o abre é o botão da quinta coluna do calendário, que o gerador
+   * injeta no marcador `<!-- CALENDARIO -->`. Sem o diálogo, o botão seria uma promessa. */
+  saida.push(...dialogoDaAula(envelope, contexto));
 
   return {
     markdown: saida.join('\n') + '\n',

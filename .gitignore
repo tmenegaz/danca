@@ -1775,3 +1775,11 @@ experimentos/modelo-formulario/*
 # que ele tinha — caem 14 das 35 asserções. É citada no REGISTRO, no ESTADO-ATUAL e no rodapé
 # `Auditoria:` do commit.
 !experimentos/provar-derivador-da-aula.js
+# A AULA NASCE DO CALENDÁRIO (21/11/2026). Palavras dela: «a gente vai acrescentar aqui uma quinta
+# coluna, que é a coluna do criar aula». A prova mede as três metades de «o botão faz a aula
+# existir»: a coluna (botão para a que falta, ligação para a que existe, nenhuma quando o gerador
+# não a pede), a regra (a aula existe quando o plano declara a sequência dela — e uma sequência
+# vazia não a declara), e o escritor (o `DOCS` cresce, o `-aula-02.md` é escrito com o número dela,
+# e a Aula 01 não se perde). Um Chrome abre a página de verdade com `?criar-aula=02` e confere
+# que a caixa abre com o marco e a data da linha. Com a regra desligada caem 8 das 38 asserções.
+!experimentos/provar-criar-aula.js

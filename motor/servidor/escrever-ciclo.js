@@ -50,7 +50,8 @@ const {
   notacaoEscolhida,
 } = require('../nucleo/derivar-ciclo.js');
 /* QUE AULAS UMA REGENERAÇÃO PODE ESCREVER (21/11/2026) — a regra é UMA e vive lá. */
-const { aulasLancadas, podeRegenerar, numeroDaAula } = require('../nucleo/aulas-do-ciclo.js');
+const { aulasLancadas, podeRegenerar, numeroDaAula, aulasDeclaradasPeloPlano } =
+  require('../nucleo/aulas-do-ciclo.js');
 
 // O caminho de uma fonte derivada, a partir do contexto — a MESMA regra dos `-po.md`/`-plano.md`.
 // A variante é o `<escola>-<turma>` desde 16/10/2026 (o ciclo passou a ser DA TURMA): a
@@ -685,6 +686,12 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
         const n = numeroDaAula(a);
         if (n) vistos.add(n);
       }
+      /* E AS QUE O PLANO DECLARA (21/11/2026). O `DOCS` só é actualizado no passo 4 desta função,
+       * DEPOIS de as fontes estarem escolhidas — e por isso uma aula criada agora (o plano passou
+       * a declarar `aula-2-sequencia` no mesmo acto que chega aqui) ficaria fora da lista: o
+       * manifesto diria `aula-02` e o ficheiro não existiria, que é o pior dos dois mundos. A
+       * regra é a mesma dos dois escritores, e vive numa função só. */
+      for (const n of aulasDeclaradasPeloPlano(plano)) vistos.add(n);
       return [...vistos].sort((a, b) => Number(a) - Number(b));
     })();
 
@@ -955,7 +962,29 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
       confTexto = confTexto.replace(/^DOCS="[^"]*"/m, 'DOCS="' + novoDocs.join(' ') + '"');
       relatorio.docs = { ok: true, docs: novoDocs };
     } else {
-      relatorio.docs = { ok: true, nota: 'DOCS já completo (aula-01 presente)' };
+      /* A LISTA CRESCE COM AS AULAS QUE O PLANO DECLARA (21/11/2026) — e é aqui que o ciclo ganha
+       * a Aula 02. A regra é a mesma do `escrever-plano.js`: a aula existe quando o plano declara
+       * a sequência dela. Se só o manifesto do plano crescesse, o `DOCS` diria `aula-02` e o
+       * ficheiro não existiria — o gerador falharia a procurá-lo; se só este crescesse, o
+       * documento nunca seria derivado. Os dois crescem pela MESMA função.
+       *
+       * SÓ ACRESCENTA. A lista que está é a do manifesto, com o que alguém lá pôs; reescrevê-la
+       * por `docsGerados` apagaria uma entrada que não é deste derivador (um documento extra de
+       * uma variante antiga), e apagar é a única coisa que este caminho nunca faz. */
+      const faltam = [];
+      for (const nn of aulasDeclaradasPeloPlano(plano)) {
+        if (atuais.indexOf('aula-' + nn) === -1) faltam.push('aula-' + nn);
+        if (atuais.indexOf('captura-aula-' + nn) === -1) faltam.push('captura-aula-' + nn);
+      }
+      if (faltam.length) {
+        const indice = atuais.findIndex((d) => /^captura-aula-\d+$/.test(d));
+        const onde = indice === -1 ? atuais.length : indice;
+        const lista = atuais.slice(0, onde).concat(faltam, atuais.slice(onde));
+        confTexto = confTexto.replace(/^DOCS="[^"]*"/m, 'DOCS="' + lista.join(' ') + '"');
+        relatorio.docs = { ok: true, docs: lista, acrescentadas: faltam };
+      } else {
+        relatorio.docs = { ok: true, nota: 'DOCS já declara as aulas do plano' };
+      }
     }
 
     if (confTexto !== conf.texto) {

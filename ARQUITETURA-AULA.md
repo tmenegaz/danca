@@ -3,7 +3,8 @@
 > **Resumo (para o HANDOFF):** o ciclo de vida da aula (planejada → dada → lançada, mais a
 > **não dada**), a regra CRUD × ajuste, o prazo dinâmico por turma, o índice e a âncora por
 > aula. O **estado derivado** (`B6`), o **ajuste no plano** (`B8`), a **derivação por aula**
-> (§4.3) e a **regra que tranca a aula dada** (§1.3) estão implementados; o resto, não.
+> (§4.3), a **regra que tranca a aula dada** (§1.3) e o **nascimento da aula pelo calendário**
+> (§4.4) estão implementados; o resto, não.
 
 > **Documento de desenho, com o que já foi implementado marcado.** Escrito em 23/09/2026, ao
 > fim da conversa que definiu as regras. O que existe hoje está descrito em cada seção como
@@ -455,6 +456,61 @@ tem; e a regra do §1.3 continua a valer por fonte, dentro do laço.
 > e as chaves da 01); a C, a Aula 02 com dados próprios; a D, a aula sem dados; a E, o escritor a
 > gravar uma fonte por aula — e a **não** gravar a que já foi lançada. Com o derivador a escrever
 > sempre a primeira — o defeito que ele tinha — caem **14 das 35**.
+
+### 4.4 A aula nasce do calendário — implementada a 21/11/2026
+
+O §4.3 deu à segunda aula o seu documento. Faltava o **gesto** que a faz existir, e o lugar dele é
+o calendário do plano: ele já diz **quando** cada aula acontece, e é ali que se decide fazê-la.
+
+**A quinta coluna.** `Aula · Data · Dia · Duração · Criar a aula`. A aula que ainda não tem
+documento ganha um botão; a que já tem, a ligação para ele. A lista das que existem vem do `DOCS`
+do manifesto — a mesma fonte de que a tabela dos objetivos já lê a coluna «Aula». O número vai em
+**dois dígitos** (`02`), como ela pediu: é a forma do pacote inteiro.
+
+**A regra que faz a aula existir, e ela é derivada.** A aula existe **quando o plano declara a
+sequência dela** — `aula-N-sequencia` no envelope. Não é pedida a ninguém, e não é uma lista à mão:
+um clique que criasse a aula e esquecesse o manifesto deixaria o documento por publicar **sem erro
+nenhum**, que é o pior modo de falhar deste sistema. A função é uma só
+(`aulasDeclaradasPeloPlano`, em `motor/nucleo/aulas-do-ciclo.js`) e serve os três sítios que
+precisam dela:
+
+| sítio | o que faz |
+|:--|:--|
+| `escrever-plano.js` → `atualizarManifesto` | o `DOCS` do `.conf` ganha `aula-NN` e `captura-aula-NN` |
+| `escrever-ciclo.js` → `aulasParaDerivar` | a fonte da aula é derivada **neste** acto, não no seguinte |
+| `escrever-ciclo.js` → passo 4 | o `DOCS` do ciclo cresce pela mesma lista |
+
+**O gesto, e o que ele reusa.** O botão abre um `<dialog>` na própria página do plano que recolhe o
+que falta para **aquela** aula:
+
+| pergunta | porquê |
+|:--|:--|
+| o **objetivo** (o marco) — preenchido quando o plano já o declara | é o que a torna observável |
+| os **exercícios** que o trabalham | é o que dá o que observar |
+| os **blocos** onde ele acontece | é onde a aula tem tempo para ele |
+
+…e manda gravar por **`POST /api/elicitar`** com o plano anterior como `ajuste_de`. Não há rota nova,
+nem escritor novo, nem segunda cópia da cadeia: a partir dali corre o caminho de sempre — elo novo do
+plano, o PO que o observa acompanha, as fontes do ciclo são derivadas e a geração é disparada.
+
+**A sequência é o cruzamento, e não uma tabela a preencher.** O modelo do plano já é este: o
+objetivo é trabalhado em **blocos** (`estrutura-de-cada-aula`) e medido por **exercícios**
+(`aula-N-parametro`), e a sequência é o par. Marcar o exercício e o bloco dá a mesma tabela que o
+professor preencheria linha a linha — com menos dedos, e sem contradição possível entre as três.
+
+**O que o diálogo não pede**, e é a mesma fronteira do §4.3: duração, volume, bloco da aula, régua.
+São do **ciclo**, e já estão no plano que ele está a acrescentar.
+
+**A data não é copiada.** O botão traz só `data-criar-aula="02"`; a data, o dia e a duração ficam na
+linha da tabela, e o script lê-os de lá. Uma segunda cópia seria uma segunda verdade — e a data que
+o calendário calcula é a única.
+
+> **Prova:** `experimentos/provar-criar-aula.js` — **38 asserções**, com um Chrome na secção F a
+> abrir a página de verdade (`?criar-aula=02`) e a conferir a caixa aberta, o marco preenchido, a
+> data da linha e as duas listas. Com a regra a devolver só a 01 caem **8**.
+>
+> **O que falta:** `Tempos` e `Compasso` nascem vazios no documento da aula nova. O lugar deles é o
+> verbete do exercício — é de lá que a música vem —, e é a peça seguinte.
 
 ## 5. A âncora por aula
 

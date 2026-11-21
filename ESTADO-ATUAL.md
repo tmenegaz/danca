@@ -4,7 +4,30 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 21/11/2026 (commit `3c7de1d0`). Nesta entrega, **o derivador passou a
+> **Última fotografia:** 21/11/2026 (commit `a37d426a`). Nesta entrega, **a aula nasce do
+> calendário**. Palavras dela: «a gente vai acrescentar aqui uma quinta coluna, que é a coluna do
+> criar aula. […] É a coluna que vai criar o botão.» O calendário dizia **quando** cada aula
+> acontece; o que não dizia era o que fazer com isso. **DECIDIDO**, e cada peça no sítio onde já era
+> a verdade: (1) **a coluna** — `tools/calendario.py --criar-aula --aulas-prontas`, com o botão para
+> a aula que não tem documento e a ligação para a que tem, o número em **dois dígitos** (`02`, como
+> ela pediu) e a lista das aulas vinda do `DOCS` do manifesto; (2) **a regra que faz a aula existir**
+> — a aula existe **quando o plano declara a sequência dela** (`aula-N-sequencia`), derivada do dado
+> e não pedida a ninguém, numa função só (`aulasDeclaradasPeloPlano`) que serve os três sítios que
+> precisam dela (o manifesto do plano, a lista de fontes a derivar e o `DOCS` do ciclo); (3) **o
+> gesto** — o botão abre um diálogo na página do plano que recolhe o que falta para aquela aula (o
+> objetivo/marco, os **exercícios** que o trabalham e os **blocos** onde acontece) e manda gravar por
+> `POST /api/elicitar` com o plano anterior como `ajuste_de`, pelo caminho que já existia — **sem
+> rota nova, sem escritor novo, sem segunda cópia da cadeia**; a sequência é o **cruzamento** entre
+> blocos e exercícios, que é o modelo que o plano já tem. O diálogo **não** pede duração, volume,
+> bloco da aula nem régua: são do ciclo. A data **não é copiada** — o botão traz só o número, e o
+> script lê a data da linha da tabela. `?criar-aula=02` abre a caixa pelo endereço. **CONFIRMADO** em
+> 21/11/2026: `provar-criar-aula` **38/38**, com a regra desligada a cair em **8**; e a secção F abre
+> a página num Chrome de verdade e confere a caixa aberta, o marco preenchido, a data · dia ·
+> duração da linha, os quatro exercícios e os quatro blocos. Ver `REGISTRO.md` (21/11/2026) e
+> `ARQUITETURA-AULA.md` §4.4. **O que continua por fazer**: `Tempos` e `Compasso` nascem **vazios**
+> no documento da aula nova — o lugar deles é o verbete do exercício, e é a próxima peça.
+>
+> **Fotografia anterior (21/11/2026 — o derivador por aula).** Nesta entrega, **o derivador passou a
 > escrever a aula que lhe pedem**, e não sempre a primeira. `derivarAula01` chamava-se assim e o
 > nome era literal: escrevia `aula: "01"`, «Plano para a Aula 01», lia `aula-1-sequencia` e
 > `aula-1-parametro` à mão, e a §8 mandava sempre para a **Aula 02** — na Aula 03, **para trás**,
@@ -2770,6 +2793,21 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      `-aula-01.md`/`-captura-aula-01.md` da `breu-rosa` derivadas pelo código do `HEAD` e pelo de
      agora, com os mesmos argumentos, saem **idênticas**. Ver `ARQUITETURA-AULA.md` §4.3 e a entrada
      de 21/11/2026 no `REGISTRO.md`.
+125. **A AULA NASCE DO CALENDÁRIO, E A REGRA QUE A FAZ EXISTIR É DERIVADA DO PLANO.** A quinta coluna
+     do calendário do plano («Criar a aula») tem o botão para a aula que ainda não tem documento e a
+     ligação para a que tem; o número vai em **dois dígitos** (`02`), e a lista das aulas vem do
+     `DOCS` do manifesto. **DECIDIDO**: a aula existe **quando o plano declara a sequência dela**
+     (`aula-N-sequencia`) — derivada do dado, e não pedida a ninguém, porque um clique que criasse a
+     aula e esquecesse a lista deixaria o documento por publicar sem erro nenhum; a regra vive numa
+     função só (`aulasDeclaradasPeloPlano`) e serve o manifesto do plano, a lista de fontes a derivar
+     e o `DOCS` do ciclo; e o gesto manda gravar por `POST /api/elicitar` com o plano anterior como
+     `ajuste_de`, sem rota nova, sem escritor novo e sem segunda cópia da cadeia. A **sequência é o
+     cruzamento** entre os blocos onde o objetivo acontece e os exercícios que o trabalham — o modelo
+     que o plano já tem —, e o diálogo **não** pede duração, volume, bloco da aula nem régua: são do
+     ciclo. A data **não é copiada** para o botão: o script lê-a da linha da tabela, que é a única
+     que a calcula. `?criar-aula=02` abre a caixa pelo endereço. Prova: `provar-criar-aula`
+     **38/38** (mutação: **30/38**), com a secção F a abrir a página num Chrome. Ver
+     `ARQUITETURA-AULA.md` §4.4 e a entrada de 21/11/2026 no `REGISTRO.md`.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
@@ -3495,7 +3533,20 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (21/11/2026 — o derivador por aula)
+### Executado nesta fotografia (21/11/2026 — a aula nasce do calendário)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-criar-aula` (**nova**) | **38/38**. (A) a coluna: botão para a aula sem documento, ligação para a que tem, **nenhuma** coluna quando o gerador não a pede, e nenhum botão quando todas existem; o número em dois dígitos; (B) o diálogo na página do plano, com o carimbo, o repertório, os marcos, os blocos e o contexto — e o ciclo sem repertório a **dizer** isso; (C) a regra: `aula-2-sequencia` declara a 02, uma sequência **vazia** não declara nada, e a forma com zero à frente é lida; (D) o escritor: o `DOCS` ganha `aula-02` e `captura-aula-02`, o `-aula-02.md` é escrito **com o número dela**, e a Aula 01 continua declarada e escrita; (E) a tabela dos objetivos: «Aula 02» vira ligação quando o documento existe; (F) **num Chrome**: a página abre com `?criar-aula=02`, a caixa fica aberta, o título diz «Criar a aula 02», o marco vem preenchido do plano, a data · dia · duração vêm **da linha**, e há 4 exercícios e 4 blocos para marcar. **Mutação**: com `aulasDeclaradasPeloPlano` a devolver só a 01, caem **8 das 38** |
+| `provar-derivador-da-aula` · `provar-aula-dada` | **35/35** · **34/34** — verdes |
+| `provar-formulario-da-aula` · `provar-geracao` · `provar-objetivos-por-aula` | **53 · 54 · 51** — verdes |
+| `provar-aula-prosa` · `provar-colunas-da-aula` · `provar-eixos-do-po` · `provar-declaracao-da-captura` | **19 · 23 · 42 · 12** — verdes |
+| `provar-derivados-do-po` · `provar-um-commit-por-guardar` · `provar-remocao-do-elenco` · `provar-orcamento-do-guardar` · `provar-o-commit-do-po` | **16 · 22 · 26 · 16 · 14** — verdes |
+| `node tools/check-identidade.js` · `check-sem-destruicao` · `check-indices` · `check-pacote` · `hash-ciclo --check` | **0 erros (22 ok)** · **ok** · **16/16** (índices regerados) · **0 erros, 1 aviso** · **cadeia intacta** |
+| O pacote da `breu-rosa` | regerado com o gerador: **9 páginas**, 238 links internos conferidos, 0 erros. A quinta coluna aparece no `plano.html` com o botão na 02 e a ligação na 01 |
+| Deploy / ao ar | **Não executado** — a coluna e o diálogo são da página gerada; a conferência em produção é o passo seguinte ao push |
+
+### Executado na fotografia anterior (21/11/2026 — o derivador por aula)
 
 | Verificação | Resultado |
 |:--|:--|

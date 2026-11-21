@@ -102,6 +102,37 @@ function aulaSeguinte(nn) {
   return numero ? String(Number(numero) + 1).padStart(2, '0') : '';
 }
 
+/**
+ * AS AULAS QUE O PLANO DECLARA — as que têm sequência escrita no envelope (21/11/2026).
+ *
+ * É esta a regra que faz a aula existir no ciclo: `aula-1-sequencia` sempre existiu, e por isso a
+ * Aula 01 é de todos os ciclos; a partir do dia em que o plano declara `aula-2-sequencia`, o ciclo
+ * TEM a Aula 02 — e o `DOCS` do manifesto tem de a declarar, ou o gerador não a publica e o
+ * derivador não a escreve. A regra é DERIVADA do dado, e não pedida a ninguém: um clique que
+ * criasse a aula e esquecesse a lista deixaria o documento por publicar sem erro nenhum.
+ *
+ * A chave leva o número sem zero à frente — é a forma que os envelopes gravados têm. A reserva
+ * aceita a forma com zero (`aula-02-sequencia`), para não perder uma resposta que alguém grave
+ * assim: a leitura é generosa, a escrita é que tem uma forma só.
+ */
+function aulasDeclaradasPeloPlano(plano) {
+  const respostas = (plano && plano.respostas) || {};
+  const temValor = (chave) => {
+    const cru = respostas[chave];
+    const valor = cru && typeof cru === 'object' && !Array.isArray(cru) ? cru.valor : cru;
+    if (Array.isArray(valor)) return valor.length > 0;
+    return String(valor == null ? '' : valor).trim() !== '';
+  };
+  const aulas = new Set(['01']);
+  for (const chave of Object.keys(respostas)) {
+    const m = /^aula-0*(\d+)-sequencia$/.exec(chave);
+    if (!m) continue;
+    const numero = numeroDaAula(m[1]);
+    if (numero && temValor(chave)) aulas.add(numero);
+  }
+  return [...aulas].sort((a, b) => Number(a) - Number(b));
+}
+
 /** As que podem — na ordem em que foram declaradas, sem repetir. */
 function aulasRegeneraveis(declaradas, lancadas) {
   const vistas = new Set();
@@ -115,4 +146,7 @@ function aulasRegeneraveis(declaradas, lancadas) {
   return saida;
 }
 
-module.exports = { numeroDaAula, aulasLancadas, podeRegenerar, aulasRegeneraveis, chaveDaAula, aulaSeguinte };
+module.exports = {
+  numeroDaAula, aulasLancadas, podeRegenerar, aulasRegeneraveis,
+  chaveDaAula, aulaSeguinte, aulasDeclaradasPeloPlano,
+};

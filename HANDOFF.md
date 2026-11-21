@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-21T06:35:39-0300`
-Commit atual: `3c7de1d0` — fix(estrutura): a aula que já foi dada não se reescreve por uma regeneração
+Gerado em: `2026-11-21T08:48:35-0300`
+Commit atual: `a37d426a` — feat(estrutura): o derivador escreve a aula que lhe pedem, e não sempre a primeira
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -71,7 +71,7 @@ sapatilha-de-ponta (15)
 
 - **`ARQUITETURA-AGENTE.md`** — Especificação do **copiloto pedagógico** do Sistema Lastro: um agente que lê os índices e os envelopes **por chave**, através de ferramentas com contrato explícito (MCP), e **propõe** texto ao professor — nunca grava. Modelo: Llama da Cloudflare (Workers AI), **`@cf/meta/llama-3.1-8b-instruct-awq`**. **Sem RAG**, por decisão: 100 % do que o agente consulta é chave-valor. **Quatro superfícies** (decidido a 12/11/2026): plano de ensino, PO, Estilo **e a elaboração da aula N** — esta última **espera uma tela que não existe**.
 - **`ARQUITETURA-ANAMNESE.md`** — Desenho da malha de anamnese de balé clássico como **conteúdo do PO** — a **observação inicial** dos seis elementos basilares, os **nove blocos fixos** da ficha, os **dois módulos condicionais** (validação de nível prévio e contexto de origem) e as **três dimensões** da linha de base (Técnica, Funcional, Musicalidade) —, seguida da **malha de domínios declarados** (alinhamento ósseo, flexibilidade passiva, força ativa e potência, sistema vestibular, orientação espacial e lateralidade), com **ramificação condicional** pelo nível declarado (Básico, Intermediário, Avançado) e **soberania de CRUD autoral** do professor, fechando na **conclusão** — o campo **«Resultado da avaliação»** (apta/não apta + nível, sem turma/horário/frequência) — o **recipiente** é do PE, o **conteúdo** é do PO.
-- **`ARQUITETURA-AULA.md`** — o ciclo de vida da aula (planejada → dada → lançada, mais a **não dada**), a regra CRUD × ajuste, o prazo dinâmico por turma, o índice e a âncora por aula. O **estado derivado** (`B6`), o **ajuste no plano** (`B8`), a **derivação por aula** (§4.3) e a **regra que tranca a aula dada** (§1.3) estão implementados; o resto, não.
+- **`ARQUITETURA-AULA.md`** — o ciclo de vida da aula (planejada → dada → lançada, mais a **não dada**), a regra CRUD × ajuste, o prazo dinâmico por turma, o índice e a âncora por aula. O **estado derivado** (`B6`), o **ajuste no plano** (`B8`), a **derivação por aula** (§4.3), a **regra que tranca a aula dada** (§1.3) e o **nascimento da aula pelo calendário** (§4.4) estão implementados; o resto, não.
 - **`ARQUITETURA-CAPTURA.md`** — arquitetura técnica do formulário dinâmico com JSON por ciclo — modelo de dados, schema, fluxo, segurança e perguntas em aberto.
 - **`ARQUITETURA-GERAL.md`** — Arquitetura geral — por que sistema de arquivos, e não um backend com banco
 - **`ARQUITETURA-PE.md`** — Especificação da arquitetura de integração entre o repositório atual (implementação do PO) e o repositório separado **"dança e elicitação"** (módulo PE), utilizando descoberta por variável de ambiente (`.env`) e degradação graciosa.
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+a37d426a feat(estrutura): o derivador escreve a aula que lhe pedem, e não sempre a primeira
 3c7de1d0 fix(estrutura): a aula que já foi dada não se reescreve por uma regeneração
 76ec0674 chore(estrutura): fechar os derivados — âncoras e índices
 bc8e88fd fix(estrutura): a folha impressa deixa de perguntar duas vezes o mesmo item
@@ -101,7 +102,6 @@ bf3ffef9 fix(estrutura): as tabelas dentro da moldura, a habilidade só-leitura,
 b78ef89c feat(ciclo): o «Guardar» do PO grava as fontes de breu-rosa num commit só
 d7ebcfd0 feat(acervo): envelope/po-20261120-2052.json
 cee9970a feat(acervo): envelope/.indice.json
-c8c9c75a feat(plano): o elo da cadeia automática
 ```
 
 ## Por professor
@@ -128,7 +128,7 @@ c8c9c75a feat(plano): o elo da cadeia automática
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `59b86b60252a` | (vazio) | — |
-| breu-rosa | ciclo-01-breu-rosa.fipp | `c4800f97983b` | (vazio) | Input_PO_Validado |
+| breu-rosa | ciclo-01-breu-rosa.fipp | `cabd79d02662` | (vazio) | Input_PO_Validado |
 
 ### fernando-franciose — 0 ciclo(s)
 
@@ -195,72 +195,75 @@ c8c9c75a feat(plano): o elo da cadeia automática
 
 ## Última entrada do REGISTRO
 
-## 21/11/2026 — O derivador escreve a aula que lhe pedem, e não sempre a primeira
+## 21/11/2026 — A aula nasce do calendário
 
-**O que motivou.** A regra da entrada anterior («regenerar não reescreve a aula dada») protege uma
-aula que já aconteceu — mas não havia como a segunda aula existir. O derivador chamava-se
-`derivarAula01` e o nome era literal: escrevia `aula: "01"` e «Plano para a Aula 01», lia
-`aula-1-sequencia` e `aula-1-parametro` escritos à mão, e a §8 mandava sempre para a **Aula 02**.
-Na Aula 03 isso manda o professor **para trás**, para um marco que já foi dado. E o escritor tinha
-o par da Aula 01 escrito à mão na lista de fontes: um ciclo que ganhasse a Aula 02 não a punha em
-dia por ali — a aula estava no `DOCS`, o gerador ia buscá-la, e não a encontrava.
+**O que motivou.** Ela estava no plano do ciclo e viu o calendário com quatro colunas — aula, data,
+dia, duração. Palavras dela: «a gente vai acrescentar aqui uma quinta coluna, que é a coluna do
+criar aula. […] É a coluna que vai criar o botão.» O calendário dizia **quando** cada aula acontece;
+o que ele não dizia era o que fazer com isso. E o resto do pedido é a cadeia inteira: «vai perguntar
+qual é o objetivo da aula, o marco, se ele não existir. Vai falar a respeito da relação que tem esse
+objetivo com os exercícios propostos e, enfim, vai mandar gerar todos os documentos».
 
-**O que foi decidido.** `derivarAula({ nn, … })`, e `derivarAula01` passa a ser o caso `nn = '01'`
-— um derivador só, porque duas derivações da mesma regra divergem ao primeiro caso novo (é a lição
-que a `eixos.js` já tinha pago). O número decide cinco coisas: o `aula:` do cabeçalho e o título,
-o objetivo específico (o **marco NN**, Regra 2), o parâmetro, a sequência e o «próximo passo».
+**O que foi decidido.** Três coisas, e cada uma no sítio onde já era a verdade:
 
-O que **não** entra no número, de propósito: duração, volume, blocos, condições do espaço, guia de
-observação, proveniência e auditoria são do **ciclo** — a mesma turma, o mesmo plano, a mesma
-régua. Repeti-los por aula daria a cada documento uma cópia da resposta com a possibilidade de
-divergirem.
+1. **A coluna.** `tools/calendario.py` ganhou `--criar-aula` e `--aulas-prontas`: a aula que ainda
+   não tem documento ganha o botão, com o número dela (`02`, dois dígitos, como ela pediu — «eu acho
+   que tem que usar a 02»); a que já tem ganha a ligação para o documento. Quem sabe que aulas
+   existem é o `DOCS` do manifesto, e o gerador passa-o — a mesma fonte de que a tabela dos
+   objetivos já lê a coluna «Aula».
+2. **A regra que faz a aula existir.** A aula existe **quando o plano declara a sequência dela**
+   (`aula-N-sequencia`). É derivada do dado, e não pedida a ninguém: um clique que criasse a aula e
+   esquecesse a lista deixaria o documento por publicar sem erro nenhum. Vive numa função só
+   (`aulasDeclaradasPeloPlano`, em `motor/nucleo/aulas-do-ciclo.js`) e serve os **três** sítios que
+   precisam dela — o manifesto do plano (`escrever-plano.js`), a lista de fontes a derivar e o
+   `DOCS` do ciclo (`escrever-ciclo.js`).
+3. **O gesto.** O botão abre um diálogo na própria página do plano que recolhe o que falta para
+   aquela aula — o objetivo (o marco), os **exercícios** que o trabalham e os **blocos** onde ele
+   acontece — e manda gravar pelo caminho que já existia: `POST /api/elicitar` com o plano anterior
+   como `ajuste_de`. A partir daí é a cadeia de sempre: elo novo do plano, o PO que o observa
+   acompanha, as fontes do ciclo são derivadas (e é o derivador da entrada anterior que escreve
+   `-aula-NN.md` com o número dela) e a geração é disparada. **Não há rota nova, nem escritor novo,
+   nem segunda cópia da cadeia.**
 
-**A chave leva o número sem zero à frente** — `aula-2-sequencia`, e `aula-1-parametro` para a
-primeira, que é a forma que o envelope já tem. Renomeá-la para `aula-01-parametro` renomearia a
-resposta de todos os planos gravados; a chave fica, e o que se generaliza é a leitura. A regra vive
-em `motor/nucleo/aulas-do-ciclo.js`, junto da que tranca a aula dada, e é a mesma função que dá o
-número nos dois sítios.
+**A sequência é o cruzamento, e não uma tabela a preencher.** O modelo do plano já é este: o
+objetivo é trabalhado em **blocos** (`estrutura-de-cada-aula`) e medido por **exercícios**
+(`aula-N-parametro`), e a sequência é o par. Marcar o exercício e o bloco em duas listas dá a mesma
+tabela que o professor preencheria linha a linha — com menos dedos e sem contradição possível entre
+as três coisas.
 
-**A lacuna não se herda.** Pedida a Aula 04 de um plano de três marcos, o documento declara
-`[Preencher: marco da Aula 04]` e nomeia a chave que falta (`aula-4-parametro`) — e **não** copia a
-sequência nem a matriz da Aula 01. Herdar atribuiria a esta aula o que foi respondido para outra, e
-o diff de proveniência diria que o professor escreveu ali o que ele nunca escreveu. Quem reusa é o
-**formulário**, com a pessoa a confirmar (é a decisão dela: «reusa a matriz da aula anterior»); o
-derivador lê a resposta, e não a inventa.
+**O que o diálogo NÃO pede** — e é a mesma fronteira do derivador: duração, volume, bloco da aula,
+régua. São do **ciclo**, e já estão no plano que ele está a acrescentar.
 
-**Os dois caminhos escrevem todas as aulas que o ciclo declara.** A lista de fontes do
-`escrever-ciclo.js` e a do `tools/regerar-derivados.js` passam a sair do `DOCS` do manifesto, mais
-a Aula 01, que todo o ciclo tem. A regra da entrada anterior continua a valer por fonte, dentro do
-laço: a aula já lançada fica travada, e o relatório nomeia qual.
+**A data não é copiada.** O botão traz `data-criar-aula="02"` e mais nada; a data, o dia e a
+duração ficam onde estão — na linha da tabela — e o script lê-os de lá. Copiar a data para um
+atributo seria uma segunda cópia da mesma verdade, e a data que o calendário calcula é a única.
 
-**A §8 conta os marcos que o plano TEM.** A frase do caso vazio era «o plano declarou apenas um
-marco», escrita quando o caso era esse; num plano de três marcos, a Aula 03 tem de dizer «apenas
-três», senão o documento afirma que o plano declarou o que ele não declarou.
+**O endereço abre a caixa.** `?criar-aula=02` abre o diálogo: serve a quem manda a ligação a alguém,
+e serve à prova, que precisa de abrir a caixa sem um rato — um botão que nunca foi clicado por
+ninguém é a única coisa que esta página não pode afirmar que funciona.
 
-**Motivo declarado — `tools/` é congelado.** `tools/regerar-derivados.js` mudou pela mesma razão da
-entrada anterior: é um dos dois caminhos que regeram um ciclo, e deixá-lo a escrever só a Aula 01
-enquanto o Worker escreve todas deixaria os dois a discordar sobre o mesmo ciclo. A alteração é a
-lista das aulas (do `DOCS`) e o número passado ao derivador; o resto do comando não mudou, e
-`--escrever` continua a ser necessário para gravar.
+**Motivo declarado — `tools/` é congelado.** `tools/calendario.py` e `tools/gerar-ciclo.sh` mudaram
+porque a coluna nasce no bloco do calendário, que é gerado ali. A alteração é **aditiva e opcional**:
+sem `--criar-aula` o bloco sai exactamente como saía (a prova mede as duas formas), e o gerador é o
+único chamador que a pede. Não foi junto com conteúdo pedagógico — o `plano.md` da `breu-rosa` foi
+regerado pela mesma ferramenta de sempre e vai no mesmo commit porque é a saída dessa mudança.
 
-**Onde entrou.** `motor/nucleo/derivar-ciclo.js` (`derivarAula`, `derivarAula01` como alias,
-`derivarCaptura` com `nn`, §8 pelo número, `sequenciaComoObjetos` com a chave da aula);
-`motor/nucleo/derivar-plano-ciclo.js` (`objetivoDaAula`); `motor/nucleo/aulas-do-ciclo.js`
-(`chaveDaAula`, `aulaSeguinte`); `motor/servidor/escrever-ciclo.js` e `tools/regerar-derivados.js`
-(uma fonte por aula); `ARQUITETURA-AULA.md` §4.3 (novo); `experimentos/provar-derivador-da-aula.js`
-(novo — **35/35**).
+**Onde entrou.** `tools/calendario.py` (a coluna e a célula), `tools/gerar-ciclo.sh` (as aulas que
+o `DOCS` declara), `motor/nucleo/derivar-plano-ciclo.js` (o diálogo e o guionista, no fim da página),
+`motor/nucleo/aulas-do-ciclo.js` (`aulasDeclaradasPeloPlano`), `motor/servidor/escrever-plano.js` e
+`motor/servidor/escrever-ciclo.js` (o `DOCS` cresce com as aulas do plano),
+`experimentos/provar-criar-aula.js` (novo — **38/38**).
 
-**A aula publicada não mudou.** Medido por comparação byte a byte: o derivador do `HEAD` e o de
-agora, com os **mesmos** argumentos, produzem a `-aula-01.md` e a `-captura-aula-01.md` da
-`breu-rosa` **idênticas**. É a prova de que a generalização não mexeu no que está no ar.
+**Prova, e a mutação.** Com `aulasDeclaradasPeloPlano` a devolver só a 01 — o estado de ontem —
+caem **8 das 38**: o `DOCS` não cresce, o `-aula-02.md` não é escrito, e a tabela continua a dizer
+«(a criar)». A secção F abre a página num Chrome de verdade e confere a caixa aberta, o marco
+preenchido, a data da linha, os quatro exercícios e os quatro blocos.
 
-**Prova, e a mutação.** Com o derivador a escrever sempre a primeira — o defeito que ele tinha —
-caem **14 das 35** asserções, e o dano fica escrito: o título da Aula 02 a dizer «Plano para a Aula
-01», o objetivo a ser o marco 1, a §8 a apontar para a Aula 02 em vez da 03.
-
-**O que continua por fazer.** O botão de criar a aula seguinte — o gesto que acrescenta a aula ao
-`DOCS` e recolhe as respostas dela (`aula-N-sequencia`, `aula-N-parametro`, o marco quando o plano
-não o declara). O derivador já sabe escrever o documento que ele produzir; o que falta é o gesto.
+**O que continua por fazer, e é o passo seguinte.** A sequência nasce com `Tempos` e `Compasso`
+**vazios** — o diálogo não os pergunta ainda, e o documento da aula nova declara a lacuna onde eles
+faltam. O lugar deles é o verbete do exercício (é de lá que a música vem), e é a próxima peça.
+E a `-aula-01.md` da `breu-rosa` continua por re-derivar com a linha de base do elenco — a pendência
+que a entrada de 20/11 já declarou.
 
 ## O que está pendente
 

@@ -290,7 +290,45 @@ async function atualizarManifesto({ token, dono, repo, ref, contexto, plano, fet
 
   const linhas = plano ? linhasDeContexto(plano, texto) : [];
   const comContexto = aplicarLinhas(texto, linhas);
-  const novo = comContexto.replace(/^DOCS=""[ \t]*$/m, 'DOCS="plano"');
+  let novo = comContexto.replace(/^DOCS=""[ \t]*$/m, 'DOCS="plano"');
+
+  /* O `DOCS` CRESCE COM AS AULAS QUE O PLANO DECLARA (21/11/2026).
+   *
+   * O DEFEITO, medido: o `DOCS` só era ligado quando estava VAZIO. Criada a Aula 02 — o plano
+   * passa a declarar `aula-2-sequencia`, o envelope é gravado —, a lista de documentos do ciclo
+   * continuava a dizer `aula-01`, e o gerador publicava o ciclo de uma aula só. O documento da
+   * Aula 02 existia no acervo, e nada o levava ao pacote.
+   *
+   * A REGRA É DERIVADA, e não pedida: a aula existe quando o plano declara a sequência dela. Quem
+   * a cria (o diálogo do calendário) não tem de se lembrar de mexer no manifesto — e é bom que não
+   * tenha, porque uma lista à mão diverge em silêncio.
+   *
+   * A LISTA SÓ CRESCE: o que o manifesto já declara fica onde está, e a aula nova entra na posição
+   * da família (depois da última aula, antes da captura dela). Nenhuma aula sai por esta via.
+   */
+  if (plano) {
+    const { aulasDeclaradasPeloPlano } = require('../nucleo/aulas-do-ciclo.js');
+    const declaradas = aulasDeclaradasPeloPlano(plano);
+    const atuais = (/^DOCS="([^"]*)"/m.exec(novo) || [, ''])[1].trim().split(/\s+/).filter(Boolean);
+    if (atuais.length) {
+      const faltam = [];
+      for (const nn of declaradas) {
+        if (atuais.indexOf('aula-' + nn) === -1) faltam.push('aula-' + nn);
+        if (atuais.indexOf('captura-aula-' + nn) === -1) faltam.push('captura-aula-' + nn);
+      }
+      if (faltam.length) {
+        /* A ORDEM DO MANIFESTO é a do `docsGerados` — plano, harmonização, as aulas com as suas
+         * capturas, notação, glossário, referências. Reconstruí-la aqui garantiria a mesma ordem;
+         * inserir a aula nova ANTES da primeira `captura-aula-*` que já exista chega para o caso
+         * que existe (uma família só, a crescer), e não reescreve o que já está.
+         */
+        const indice = atuais.findIndex((d) => /^captura-aula-\d+$/.test(d));
+        const onde = indice === -1 ? atuais.length : indice;
+        const lista = atuais.slice(0, onde).concat(faltam, atuais.slice(onde));
+        novo = novo.replace(/^DOCS="[^"]*"/m, 'DOCS="' + lista.join(' ') + '"');
+      }
+    }
+  }
 
   if (novo === texto) {
     return { ok: true, caminho, atualizado: false, nota: 'manifesto já estava completo' };

@@ -57272,3 +57272,73 @@ caem **14 das 35** asserções, e o dano fica escrito: o título da Aula 02 a di
 **O que continua por fazer.** O botão de criar a aula seguinte — o gesto que acrescenta a aula ao
 `DOCS` e recolhe as respostas dela (`aula-N-sequencia`, `aula-N-parametro`, o marco quando o plano
 não o declara). O derivador já sabe escrever o documento que ele produzir; o que falta é o gesto.
+
+## 21/11/2026 — A aula nasce do calendário
+
+**O que motivou.** Ela estava no plano do ciclo e viu o calendário com quatro colunas — aula, data,
+dia, duração. Palavras dela: «a gente vai acrescentar aqui uma quinta coluna, que é a coluna do
+criar aula. […] É a coluna que vai criar o botão.» O calendário dizia **quando** cada aula acontece;
+o que ele não dizia era o que fazer com isso. E o resto do pedido é a cadeia inteira: «vai perguntar
+qual é o objetivo da aula, o marco, se ele não existir. Vai falar a respeito da relação que tem esse
+objetivo com os exercícios propostos e, enfim, vai mandar gerar todos os documentos».
+
+**O que foi decidido.** Três coisas, e cada uma no sítio onde já era a verdade:
+
+1. **A coluna.** `tools/calendario.py` ganhou `--criar-aula` e `--aulas-prontas`: a aula que ainda
+   não tem documento ganha o botão, com o número dela (`02`, dois dígitos, como ela pediu — «eu acho
+   que tem que usar a 02»); a que já tem ganha a ligação para o documento. Quem sabe que aulas
+   existem é o `DOCS` do manifesto, e o gerador passa-o — a mesma fonte de que a tabela dos
+   objetivos já lê a coluna «Aula».
+2. **A regra que faz a aula existir.** A aula existe **quando o plano declara a sequência dela**
+   (`aula-N-sequencia`). É derivada do dado, e não pedida a ninguém: um clique que criasse a aula e
+   esquecesse a lista deixaria o documento por publicar sem erro nenhum. Vive numa função só
+   (`aulasDeclaradasPeloPlano`, em `motor/nucleo/aulas-do-ciclo.js`) e serve os **três** sítios que
+   precisam dela — o manifesto do plano (`escrever-plano.js`), a lista de fontes a derivar e o
+   `DOCS` do ciclo (`escrever-ciclo.js`).
+3. **O gesto.** O botão abre um diálogo na própria página do plano que recolhe o que falta para
+   aquela aula — o objetivo (o marco), os **exercícios** que o trabalham e os **blocos** onde ele
+   acontece — e manda gravar pelo caminho que já existia: `POST /api/elicitar` com o plano anterior
+   como `ajuste_de`. A partir daí é a cadeia de sempre: elo novo do plano, o PO que o observa
+   acompanha, as fontes do ciclo são derivadas (e é o derivador da entrada anterior que escreve
+   `-aula-NN.md` com o número dela) e a geração é disparada. **Não há rota nova, nem escritor novo,
+   nem segunda cópia da cadeia.**
+
+**A sequência é o cruzamento, e não uma tabela a preencher.** O modelo do plano já é este: o
+objetivo é trabalhado em **blocos** (`estrutura-de-cada-aula`) e medido por **exercícios**
+(`aula-N-parametro`), e a sequência é o par. Marcar o exercício e o bloco em duas listas dá a mesma
+tabela que o professor preencheria linha a linha — com menos dedos e sem contradição possível entre
+as três coisas.
+
+**O que o diálogo NÃO pede** — e é a mesma fronteira do derivador: duração, volume, bloco da aula,
+régua. São do **ciclo**, e já estão no plano que ele está a acrescentar.
+
+**A data não é copiada.** O botão traz `data-criar-aula="02"` e mais nada; a data, o dia e a
+duração ficam onde estão — na linha da tabela — e o script lê-os de lá. Copiar a data para um
+atributo seria uma segunda cópia da mesma verdade, e a data que o calendário calcula é a única.
+
+**O endereço abre a caixa.** `?criar-aula=02` abre o diálogo: serve a quem manda a ligação a alguém,
+e serve à prova, que precisa de abrir a caixa sem um rato — um botão que nunca foi clicado por
+ninguém é a única coisa que esta página não pode afirmar que funciona.
+
+**Motivo declarado — `tools/` é congelado.** `tools/calendario.py` e `tools/gerar-ciclo.sh` mudaram
+porque a coluna nasce no bloco do calendário, que é gerado ali. A alteração é **aditiva e opcional**:
+sem `--criar-aula` o bloco sai exactamente como saía (a prova mede as duas formas), e o gerador é o
+único chamador que a pede. Não foi junto com conteúdo pedagógico — o `plano.md` da `breu-rosa` foi
+regerado pela mesma ferramenta de sempre e vai no mesmo commit porque é a saída dessa mudança.
+
+**Onde entrou.** `tools/calendario.py` (a coluna e a célula), `tools/gerar-ciclo.sh` (as aulas que
+o `DOCS` declara), `motor/nucleo/derivar-plano-ciclo.js` (o diálogo e o guionista, no fim da página),
+`motor/nucleo/aulas-do-ciclo.js` (`aulasDeclaradasPeloPlano`), `motor/servidor/escrever-plano.js` e
+`motor/servidor/escrever-ciclo.js` (o `DOCS` cresce com as aulas do plano),
+`experimentos/provar-criar-aula.js` (novo — **38/38**).
+
+**Prova, e a mutação.** Com `aulasDeclaradasPeloPlano` a devolver só a 01 — o estado de ontem —
+caem **8 das 38**: o `DOCS` não cresce, o `-aula-02.md` não é escrito, e a tabela continua a dizer
+«(a criar)». A secção F abre a página num Chrome de verdade e confere a caixa aberta, o marco
+preenchido, a data da linha, os quatro exercícios e os quatro blocos.
+
+**O que continua por fazer, e é o passo seguinte.** A sequência nasce com `Tempos` e `Compasso`
+**vazios** — o diálogo não os pergunta ainda, e o documento da aula nova declara a lacuna onde eles
+faltam. O lugar deles é o verbete do exercício (é de lá que a música vem), e é a próxima peça.
+E a `-aula-01.md` da `breu-rosa` continua por re-derivar com a linha de base do elenco — a pendência
+que a entrada de 20/11 já declarou.
