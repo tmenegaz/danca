@@ -7,8 +7,8 @@
         "recorte:tami"
       ],
       "primeira": "20261117-1709",
-      "ultima": "20261121-1808",
-      "versoes": 10
+      "ultima": "20261121-1831",
+      "versoes": 11
     },
     {
       "aspecto": "cinco-posicoes-1a-bracos",
@@ -17,8 +17,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261121-1808",
-      "versoes": 7
+      "ultima": "20261121-1831",
+      "versoes": 8
     },
     {
       "aspecto": "cinco-posicoes-1a-pes",
@@ -27,8 +27,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261121-1808",
-      "versoes": 7
+      "ultima": "20261121-1831",
+      "versoes": 8
     },
     {
       "aspecto": "forca-excentrica-recuo-na-flexao-de-tronco",
@@ -37,8 +37,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261121-1808",
-      "versoes": 7
+      "ultima": "20261121-1831",
+      "versoes": 8
     },
     {
       "aspecto": "mobilidade-de-flexao-extensao-do-tornozelo",
@@ -47,8 +47,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261121-1808",
-      "versoes": 7
+      "ultima": "20261121-1831",
+      "versoes": 8
     },
     {
       "aspecto": "musicalidade-e-pulsacao-ritmica",
@@ -57,8 +57,8 @@
         "recorte:tami"
       ],
       "primeira": "20261120-1626",
-      "ultima": "20261121-1808",
-      "versoes": 4
+      "ultima": "20261121-1831",
+      "versoes": 5
     },
     {
       "aspecto": "espiral-rotacao-de-tronco",
@@ -67,8 +67,8 @@
         "recorte:tami"
       ],
       "primeira": "20261120-1711",
-      "ultima": "20261121-1808",
-      "versoes": 3
+      "ultima": "20261121-1831",
+      "versoes": 4
     },
     {
       "aspecto": "estabilidade-vestibular-e-deslocamento",
@@ -77,8 +77,8 @@
         "recorte:tami"
       ],
       "primeira": "20261120-1711",
-      "ultima": "20261121-1808",
-      "versoes": 3
+      "ultima": "20261121-1831",
+      "versoes": 4
     },
     {
       "aspecto": "passe",
@@ -87,8 +87,8 @@
         "recorte:tami"
       ],
       "primeira": "20261120-1711",
-      "ultima": "20261121-1808",
-      "versoes": 3
+      "ultima": "20261121-1831",
+      "versoes": 4
     },
     {
       "aspecto": "formato-anatomico-dos-joelhos",
@@ -97,8 +97,18 @@
         "recorte:tami"
       ],
       "primeira": "20261120-2146",
-      "ultima": "20261121-1808",
-      "versoes": 2
+      "ultima": "20261121-1831",
+      "versoes": 3
+    },
+    {
+      "aspecto": "sustentacao-ativa-de-mmii-forca-de-adagio",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261121-1831",
+      "ultima": "20261121-1831",
+      "versoes": 1
     },
     {
       "aspecto": "meia-ponta",
@@ -761,6 +771,14 @@
         ],
         "rotulo": "passe",
         "valor": "passe"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "sustentacao-ativa-de-mmii-forca-de-adagio",
+        "valor": "sustentacao-ativa-de-mmii-forca-de-adagio"
       }
     ],
     "estados": [
@@ -964,9 +982,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "2798a37"
+    "commit": "579df62"
   },
-  "gerado_em": "2026-11-21T18:12",
+  "gerado_em": "2026-11-21T18:31",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -1060,16 +1078,36 @@
         "mobilidade-de-flexao-extensao-do-tornozelo",
         "mobilidade-de-quadril-en-dehors-de-origem",
         "musicalidade-e-pulsacao-ritmica",
-        "passe"
+        "passe",
+        "sustentacao-ativa-de-mmii-forca-de-adagio"
       ],
-      "atualizada_em": "2026-11-21T18:08:17.785Z",
-      "enviada_em": "2026-11-21T18:08:18.196Z",
+      "atualizada_em": "2026-11-21T18:31:05.410Z",
+      "enviada_em": "2026-11-21T18:31:05.825Z",
       "id": "recorte:tami",
       "linha": "tami",
       "nome": "Tami",
       "professor": null,
       "turma": null,
       "versoes": [
+        {
+          "alunas": 2,
+          "arquivo": "escola/breu/linhas-de-base/tami--20261121-1831.json",
+          "aspectos": [
+            "cinco-posicoes-1a-pes",
+            "cinco-posicoes-1a-bracos",
+            "passe",
+            "formato-anatomico-dos-joelhos",
+            "mobilidade-de-quadril-en-dehors-de-origem",
+            "mobilidade-de-flexao-extensao-do-tornozelo",
+            "musicalidade-e-pulsacao-ritmica",
+            "forca-excentrica-recuo-na-flexao-de-tronco",
+            "sustentacao-ativa-de-mmii-forca-de-adagio",
+            "estabilidade-vestibular-e-deslocamento",
+            "espiral-rotacao-de-tronco"
+          ],
+          "enviada_em": "2026-11-21T18:31:05.825Z",
+          "versao": "20261121-1831"
+        },
         {
           "alunas": 2,
           "arquivo": "escola/breu/linhas-de-base/tami--20261121-1808.json",
