@@ -57636,3 +57636,41 @@ desenhada). `provar-celular` 14 de 15, `provar-saidas-estaveis` não corre (prec
 **O que fica declarado por fazer.** O **PDF do ciclo** não lê estes ficheiros: um `.woff2` não
 serve ao `pdflatex`, que compõe com as fontes clássicas do LaTeX. Papel e tela estão, hoje, em
 fontes diferentes — e essa é a próxima peça desta frente.
+
+## 21/11/2026 — «A página não responde» não era a página: era o perfil do navegador
+
+**O que motivou.** O `plano-observacao` abria no Chrome do computador uma aba com «página sem
+resposta — aguarde ou saia da página», e depois «algo deu errado». No telemóvel abria. Ela
+apontou a URL onde a aba empacava: `/api/bastidores/alunas-da-turma?turma=Rosa`.
+
+**O que a medição mostrou, e o que ela descartou.** A URL responde **200** em 0,55 / 0,76 / 0,81 s
+(três tentativas), 2 KB. A timeline do Chrome não tem **um único pedido pendente** (24 pedidos, 0
+pendentes, 0 falhados); 350 nós no DOM, 2–3 MB de heap, **sem crescimento** em 60 s; zero mutações
+de DOM, zero long tasks; e com a CPU estrangulada a **40×** a página responde em **45 ms**. Em
+1360×768 e em 390×844 o comportamento é o mesmo.
+
+**E as duas frases não são do sistema.** `grep` em `motor/`, `porta/` e `tools/` por «algo deu
+errado» → **nada**. «Página sem resposta» e «Algo deu errado ao exibir esta página» são as telas
+do **Chrome** para o fio principal bloqueado e para o separador que caiu.
+
+**O que resolveu.** `Ctrl+Shift+Delete` → «Todo o período» → *Cookies e outros dados do site* +
+*Imagens e ficheiros em cache*. **Confirmado por ela:** «deu certo». O diagnóstico fechou-se com o
+teste que separa as causas: em **janela anónima abriu** — o anónimo corre sem extensões e sem o
+estado do perfil.
+
+**E os cabeçalhos do sistema estão certos**, medido: o HTML da porta e a lista da Área do Professor
+respondem `cache-control: no-store, max-age=0`; o `assets/style.css` responde `must-revalidate`
+com ETag; o 302 de `/plano-observacao/` para `/area-do-professor/plano-observacao/` também vai com
+`no-store`. O que estava velho era o **estado do perfil** — armazenamento local e cookies de meses
+de teste —, não a página servida. Não há correção a fazer no código por isto, e é importante que
+não se invente uma: um `no-store` já lá está.
+
+**O que fica escrito.** A §8 do `ESTADO-ATUAL.md` ganha a receita, e a primeira pergunta a fazer
+passa a ser **«abre em anónimo?»** — vinte segundos, e separa «o sistema» de «o perfil». As
+suspeitas de extensão ficam por ordem: o tradutor do Google (traduzir reescreve o DOM inteiro), os
+modos escuros forçados e os bloqueadores.
+
+**O erro de método, que é o que se regista.** Duas explicações minhas anteriores estavam erradas: a
+primeira atribuía o sintoma a uma cota do KV, e a segunda, ao «fio bloqueado» como se fosse do
+sistema. A cota foi descartada pelo cabeçalho e pela resposta 200; o fio bloqueado é do Chrome. Foi
+o dado dela — «no celular funciona» — que abriu o caminho, e não mais análise minha.

@@ -3311,6 +3311,44 @@ repositório; o vocabulário do repositório tem hoje **93 termos**, e o ar só 
 
 ## 8. Pendências e dúvidas
 
+### «A página não responde» no computador, e abre no telemóvel e em anónimo (21/11/2026)
+
+**O SINTOMA, e ele custou uma manhã de investigação errada.** No Chrome do computador, o
+`plano-observacao` abria uma aba que ficava «página sem resposta — aguarde ou saia da página»,
+seguida de «algo deu errado»; no telemóvel abria normalmente. **Não era o sistema:** nenhum
+ficheiro deste repositório escreve essas duas frases (`grep` em `motor/`, `porta/`, `tools/` →
+nada) — são as telas do Chrome para o fio principal bloqueado e para o separador que caiu.
+
+**O QUE MEDIU, E O QUE ISSO DESCARTOU.** Ao vivo: o documento responde **200** (570 KB), o
+formulário abre em «respondidos 18/23», o roteiro tem 23 degraus; a timeline do Chrome não tem um
+único pedido pendente (24 pedidos, 0 pendentes, 0 falhados) — **incluindo**
+`/api/bastidores/alunas-da-turma?turma=Rosa`, que responde 200 em 0,55–1,11 s; 350 nós no DOM,
+2–3 MB de heap, **sem crescimento** em 60 s; zero mutações de DOM e zero long tasks; e com a CPU
+estrangulada a **40×** a página ainda responde em 45 ms. Em 1360×768 e em 390×844 o comportamento
+é o mesmo.
+
+**O QUE RESOLVEU.** `Ctrl+Shift+Delete` → «Todo o período» → *Cookies e outros dados do site* +
+*Imagens e ficheiros em cache*. **Confirmado por ela:** «deu certo». E o diagnóstico fechou-se
+com o teste que separa as duas causas: em **janela anónima abriu** — o anónimo corre sem
+extensões e sem o estado do perfil.
+
+**OS CABEÇALHOS DO SISTEMA ESTÃO CERTOS, e é isso que impede a cura de ser «limpar o cache de
+vez em quando».** Medido: o HTML da porta e a lista da Área do Professor respondem
+`cache-control: no-store, max-age=0`; o `assets/style.css` responde `must-revalidate` com ETag;
+e o 302 de `/plano-observacao/` → `/area-do-professor/plano-de-observacao/` também vai com
+`no-store`. O que estava velho era o **estado do perfil** (armazenamento local e cookies de
+meses de teste), não a página servida.
+
+**A RECEITA, para a próxima vez — e é para não repetir a investigação.** Se a página funcionar
+em anónimo e no telemóvel e falhar no perfil normal: limpar os dados do site (ou o cadeado →
+*Dados do site* → *Excluir*); se persistir, `chrome://extensions` e desligar tudo, religando por
+metades — as suspeitas, por ordem, são o tradutor do Google (traduzir reescreve o DOM inteiro),
+os modos escuros forçados e os bloqueadores. E a primeira pergunta a fazer é sempre **«abre em
+anónimo?»**: são vinte segundos e separa «o sistema» de «o perfil».
+
+**O QUE NÃO SE PERDE ao limpar.** O rascunho local (o «retomar de onde parei») desaparece; o que
+está gravado no acervo não é tocado — vem do servidor.
+
 ### A modalidade mora no professor — IMPLEMENTADO a 03/11/2026, e o que resta
 
 **As três perguntas que estavam abertas foram respondidas por ela no mesmo dia, e estão

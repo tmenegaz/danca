@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-21T12:44:56-0300`
-Commit atual: `4809fb09` — fix(estrutura): a bancada do ajuste de anamnese volta a montar a página
+Gerado em: `2026-11-21T14:28:08-0300`
+Commit atual: `aeb80aa7` — fix(po): «Ajustar» abre o registo, e não um nó que não se preenche
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,9 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+aeb80aa7 fix(po): «Ajustar» abre o registo, e não um nó que não se preenche
+9be50a2d fix(po): o atalho que falha deixa de devolver à lista sem dizer porquê
+5b439822 feat(estrutura): a fonte é Open Sans, e passa a ser entregue pelo pacote
 4809fb09 fix(estrutura): a bancada do ajuste de anamnese volta a montar a página
 562fa739 fix(po): o formulário não se fecha por não se ter podido olhar
 e73bdb2a docs(estrutura): a conferência ao vivo da Aula 02, medida
@@ -99,9 +102,6 @@ a4c004d7 fix(estrutura): a aula que se cria passa a existir — e o gesto deixa 
 ca7c8aba chore(estrutura): fechar os derivados — âncoras e índices
 25db5666 feat(ciclo): o «Guardar» do PO grava as fontes de breu-rosa num commit só
 f8a4a51b feat(acervo): envelope/po-20261121-0933.json
-ee0c4f1a feat(acervo): envelope/.indice.json
-3cdf7f55 feat(plano): o plano elicitado vira a fonte do ciclo
-85b855a2 feat(acervo): envelope/plano-20261121-0933.json
 ```
 
 ## Por professor
@@ -195,79 +195,43 @@ ee0c4f1a feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 21/11/2026 — A fonte é Open Sans, e passa a ser entregue pelo pacote
+## 21/11/2026 — «A página não responde» não era a página: era o perfil do navegador
 
-**O que motivou.** Palavras dela: «A gente não vai usar a Georgia […] A nossa fonte ela é a Open
-Sans. Essa fonte que é para usar como padrão no site todo. […] Eu incluí em `--serif: Georgia,` a
-'Open Sans'. Acho que deu certo mas preciso testar.» Ela fez a alteração, e pediu commit e push
-para testar.
+**O que motivou.** O `plano-observacao` abria no Chrome do computador uma aba com «página sem
+resposta — aguarde ou saia da página», e depois «algo deu errado». No telemóvel abria. Ela
+apontou a URL onde a aba empacava: `/api/bastidores/alunas-da-turma?turma=Rosa`.
 
-**A alteração estava certa e não era verdadeira.** A folha passou a dizer `'Open Sans'` e não
-havia — medido, não estimado — **nenhum `@font-face`, nenhum `.woff2` no repositório e nenhum
-`<link>` para uma CDN**. A pilha era só nomes. Numa máquina com a fonte instalada (`fc-list` → 13
-cortes) o site desenhava-se em Open Sans e a mudança parecia feita; num telemóvel, num Windows de
-fábrica, ou no navegador que imprime, caía para o fallback — e o **mesmo documento** saía em duas
-fontes sem nada avisar. Foi por isso que ela disse «acho que deu certo, mas preciso testar»: no
-computador dela, deu.
+**O que a medição mostrou, e o que ela descartou.** A URL responde **200** em 0,55 / 0,76 / 0,81 s
+(três tentativas), 2 KB. A timeline do Chrome não tem **um único pedido pendente** (24 pedidos, 0
+pendentes, 0 falhados); 350 nós no DOM, 2–3 MB de heap, **sem crescimento** em 60 s; zero mutações
+de DOM, zero long tasks; e com a CPU estrangulada a **40×** a página responde em **45 ms**. Em
+1360×768 e em 390×844 o comportamento é o mesmo.
 
-**E a Georgia nunca chegou a ser desenhada.** `fc-match Georgia` responde `Noto Serif`: a pilha
-antiga já era uma promessa que esta máquina não cumpria. Não é o motivo da mudança — o motivo é a
-identidade ser Open Sans —, e é a razão de a mudança ter de ser entregue para ser verdadeira.
+**E as duas frases não são do sistema.** `grep` em `motor/`, `porta/` e `tools/` por «algo deu
+errado» → **nada**. «Página sem resposta» e «Algo deu errado ao exibir esta página» são as telas
+do **Chrome** para o fio principal bloqueado e para o separador que caiu.
 
-**O que entra.**
+**O que resolveu.** `Ctrl+Shift+Delete` → «Todo o período» → *Cookies e outros dados do site* +
+*Imagens e ficheiros em cache*. **Confirmado por ela:** «deu certo». O diagnóstico fechou-se com o
+teste que separa as causas: em **janela anónima abriu** — o anónimo corre sem extensões e sem o
+estado do perfil.
 
-| onde | o quê |
-|:--|:--|
-| `tools/templates/fontes/` | os dois `.woff2` (redondo e itálico, **variáveis**: um ficheiro desenha do 300 ao 800), a licença `OFL.txt` e o `LEIA-ME.md` com origem, sha256 e como refazer |
-| `tools/templates/ciclo.css` | dois `@font-face` com `url('fontes/…')` relativo à folha; `--serif` passa a `'Open Sans', system-ui, …` |
-| `tools/gerar-ciclo.sh`, `tools/gerar-raiz.sh`, `tools/criar-escola.sh` | `cp -R` das fontes para `assets/fontes/` — as três superfícies que a folha veste |
-| `motor/nucleo/ficha-html.js` | o mesmo `@font-face` com o caminho **absoluto** `/assets/fontes/…`, porque a ficha é servida sozinha em `/anamnese/api/…` e um `fontes/…` relativo resolveria para dentro da rota |
-| `indices/esquema/tipos.json` | `ativo-do-pacote` passa a `/assets/.+$` — o `assets/fontes/` é a mesma pele, numa pasta a mais |
+**E os cabeçalhos do sistema estão certos**, medido: o HTML da porta e a lista da Área do Professor
+respondem `cache-control: no-store, max-age=0`; o `assets/style.css` responde `must-revalidate`
+com ETag; o 302 de `/plano-observacao/` para `/area-do-professor/plano-observacao/` também vai com
+`no-store`. O que estava velho era o **estado do perfil** — armazenamento local e cookies de meses
+de teste —, não a página servida. Não há correção a fazer no código por isto, e é importante que
+não se invente uma: um `no-store` já lá está.
 
-**O fallback mudou de lado, e é decisão.** Se o ficheiro faltar, a pilha cai numa **sans do
-sistema**, e não em Georgia. Cair para uma serifa seria trocar a fonte por outra sem avisar; assim
-erra a favor de não parecer a fonte que não é.
+**O que fica escrito.** A §8 do `ESTADO-ATUAL.md` ganha a receita, e a primeira pergunta a fazer
+passa a ser **«abre em anónimo?»** — vinte segundos, e separa «o sistema» de «o perfil». As
+suspeitas de extensão ficam por ordem: o tradutor do Google (traduzir reescreve o DOM inteiro), os
+modos escuros forçados e os bloqueadores.
 
-**O nome `--serif` fica.** Ele nomeia o **papel** (a voz do documento, por oposição ao
-maquinário), não o desenho. Renomeá-lo obrigaria a tocar as três folhas, a ficha e o
-`IDENTIDADE-VISUAL.md` para dizer a mesma coisa — e o que faltava não era o nome, era o
-significado declarado.
-
-**A `--ui` não muda.** O maquinário do formulário continua na fonte do sistema. «Padrão no site
-todo» é a prosa, e a exceção dos controles está declarada e é restrita.
-
-**Limpeza no mesmo passo.** O worktree trazia **~16 mil linhas** de reformatação em quatro folhas
-e num HTML de estudo — um formatador que passou os comentários alinhados para linhas próprias. Não
-é a alteração dela, não foi pedida, e destruiria o alinhamento dos comentários que a folha usa para
-explicar cada valor. Foi revertido; o que ficou é a alteração, e só ela.
-
-**MOTIVO DECLARADO (`tools/` é congelado).** A folha é a fonte de verdade da identidade, e a
-identidade mudou por decisão dela: a fonte do projeto é Open Sans. As fontes entram em
-`tools/templates/fontes/` porque é ao lado da folha que o `@font-face` as procura, e os três
-geradores — `gerar-ciclo.sh`, `gerar-raiz.sh`, `criar-escola.sh` — passam a copiá-las, porque uma
-fonte que não viaja com o pacote é uma fonte que não existe fora desta máquina. A alteração é
-aditiva nos três geradores (uma linha de cópia em cada) e não desfaz nenhuma regra anterior.
-
-**Prova.** `experimentos/provar-a-fonte-do-site.js` (nova) — **27/27**, com Chrome sobre o pacote
-real em `127.0.0.1`: o `.woff2` é pedido e chega com **200**; o `@font-face` está `loaded` com peso
-`300 800`; e a **largura da mesma frase** (3022px em Open Sans contra 2544px numa serifa, a 100px)
-atesta que é a fonte que chegou que desenha — e não a que a máquina já tinha, que é o que
-distinguiria «carregou» de «usou». Com o `.woff2` **recusado**, a página cai numa sans e não numa
-serifa. `check-identidade` 22 ok / 0 reprovações, `check-pacote` 0 erros, `check-indices` 16/16,
-`hash-ciclo --check` com a cadeia intacta (as fontes são saída, não fonte — P-04).
-`provar-criar-aula` 53/53, `provar-formulario-da-aula` 53, `provar-paginacao` 129/129,
-`provar-curadoria-ilegivel` 15/15, `provar-a-moldura-em-todas-as-telas` 111,
-`provar-ar-das-paginas` verde, `provar-assets-sem-worker` 36, `provar-fecho-do-pacote` 57.
-
-**O que já falhava, medido antes e depois.** `provar-largura-da-lista` **45 de 56** — medido com a
-folha de `HEAD` no lugar, dá exactamente os mesmos 45 (todas as falhas em E/F e no controlo
-negativo N, com a coluna do formulário a medir `0` na bancada: a secção que ela mede já não é
-desenhada). `provar-celular` 14 de 15, `provar-saidas-estaveis` não corre (precisa da escola
-`calango-piano`, expurgada), `provar-navegacao` não corre (a `calango` não tem pacote-zero).
-
-**O que fica declarado por fazer.** O **PDF do ciclo** não lê estes ficheiros: um `.woff2` não
-serve ao `pdflatex`, que compõe com as fontes clássicas do LaTeX. Papel e tela estão, hoje, em
-fontes diferentes — e essa é a próxima peça desta frente.
+**O erro de método, que é o que se regista.** Duas explicações minhas anteriores estavam erradas: a
+primeira atribuía o sintoma a uma cota do KV, e a segunda, ao «fio bloqueado» como se fosse do
+sistema. A cota foi descartada pelo cabeçalho e pela resposta 200; o fio bloqueado é do Chrome. Foi
+o dado dela — «no celular funciona» — que abriu o caminho, e não mais análise minha.
 
 ## O que está pendente
 
