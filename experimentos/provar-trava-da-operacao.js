@@ -41,7 +41,7 @@ const raiz = path.resolve(__dirname, '..');
 let puppeteer = null;
 try {
   // O `puppeteer-core` vem DENTRO do `marp-cli` global — é o caminho que as outras provas de tela
-  // usam (`provar-abrir-o-ciclo`), e não um segundo navegador instalado só para provar.
+  // usam (`provar-menu-do-formulario`), e não um segundo navegador instalado só para provar.
   const MARP = path.join(execSync('npm root -g').toString().trim(), '@marp-team/marp-cli');
   puppeteer = require(path.join(MARP, 'node_modules', 'puppeteer-core'));
 } catch (e) { puppeteer = null; }

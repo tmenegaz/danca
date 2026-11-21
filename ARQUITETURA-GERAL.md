@@ -3317,8 +3317,14 @@ Três coisas a reter do que o gerador obrigou a separar:
   cifradas na fonte, e o mapa nem o bloco cifrado leva — a lista de chaves de cada nó é fechada, e a
   prova recusa uma chave a mais.
 
-A prova é `experimentos/provar-relacoes.js` (**34 asserções**), com contraprova: inventar a turma
-quando ela falta, e deixar de nomear a chave de cada aresta, reprovam **4 de 34**. A integração não é
+A prova era `experimentos/provar-relacoes.js` (**34 asserções**), com contraprova: inventar a turma
+quando ela falta, e deixar de nomear a chave de cada aresta, reprovam **4 de 34**. **Foi apagada a
+20/11/2026** por decisão da proprietária — media um ciclo da escola `calango`, expurgada e que não
+será regenerada. O que **não** fica sem guarda: a regra «nenhum nome de aluna e nenhuma chave a
+mais» é a verificação 7 do `check-indices`, que continua a correr no `pre-commit`, e o
+`provar-recriacao-da-escola` continua a exigir que `gerar-relacoes.js` corra na reconstrução do
+acervo. O que se perdeu foi a medição das arestas de um ciclo concreto — e essa, sem o ciclo, não
+tinha onde ser medida. A integração não é
 um serviço nem um passo novo de operação: o mapa entra no mesmo commit dos índices, nos dois sítios
 onde eles já entram (`regerar-indices.yml` e o commit do `gerar-ciclo.yml`), porque ambos são
 derivados das mesmas fontes e um mapa atrasado aponta para um acervo que já mudou.

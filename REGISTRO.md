@@ -56917,3 +56917,47 @@ sem turmas, fila acabada, `cadeia-pacote` sem resposta, `fetch` rebentado). É n
 
 **Com o quê.** `motor/servidor/bastidores.js` (`atualizarOCiclo`, `pintarCadeia` com `aoTerminar`);
 `provar-o-represado.js` (secção E, 6 asserções novas).
+
+## 20/11/2026 — Duas provas apagadas: as que mediam um mundo que já não existe
+
+**O que motivou.** `provar-abrir-o-ciclo.js` e `provar-relacoes.js` estavam a meio: a primeira
+media o fluxo de 06/11/2026, em que o leitor de `-dados.json` falhava **sempre** e por isso o botão
+de senha «Abrir» aparecia sempre; a segunda media as secções A–F contra um ciclo da escola
+`calango`. Os três mundos que essas provas pressupunham — a `batata`, o `calango`, o `perna-boa` —
+foram expurgados, e **não serão regenerados**. O resultado era o pior dos dois estados: a prova não
+media, mas continuava a correr, e cada sessão redescobria o mesmo «está a meio».
+
+As palavras dela, que decidem: «*não dá mais para regenerar e eu não vou regenerar. Eu vou seguir
+com o teste aqui na escola Breu e tudo já mudou […] apaga completamente isso, destrói completamente
+isso, porque não tem sentido nenhum essa conversa ficar dando volta.*»
+
+**O que foi decidido.**
+- **As duas provas foram apagadas**, e não reapontadas. Reapontar já se tinha tentado nesta mesma
+  ronda, e o que sobrava era uma prova a medir a bancada em vez do sistema — `abrir-o-ciclo` a
+  procurar «Aula 06» e um `<dl>` da `batata` num pacote cujo `-dados.json` é hoje cifrado e abre a
+  leitura sem pedir senha.
+- **O que fica sem prova fica dito, e não fingido.** O mapa de relações (`tools/gerar-relacoes.js`)
+  perde a medição das suas arestas; a regra «nenhum nome de aluna e nenhuma chave a mais» continua
+  coberta pela verificação 7 do `check-indices`, e a reconstrução do acervo continua a exigir o
+  gerador no `provar-recriacao-da-escola`. O que se perdeu foi a medição de um ciclo concreto — e
+  sem o ciclo não havia onde medir.
+- **As provas apagadas não se reescrevem no passado.** As entradas deste REGISTRO que as citam
+  ficam como estão: a proveniência acrescenta. O que se acrescenta é o que se segue.
+
+**Onde entrou.**
+- `experimentos/provar-abrir-o-ciclo.js` — apagado.
+- `experimentos/provar-relacoes.js` — apagado.
+- `ESTADO-ATUAL.md` — §117: a confirmação passa a citar o `check-indices` (16 verificações), com a
+  nota datada do apagamento; deixa de citar «35 asserções» de uma prova que já não existe.
+- `ARQUITETURA-GERAL.md` — a secção do mapa de relações diz que a prova foi apagada, o que fica
+  coberto e o que não fica.
+- `experimentos/provar-trava-da-operacao.js` — um comentário que citava a prova apagada como
+  exemplo do caminho do `puppeteer-core`; passa a citar `provar-menu-do-formulario`.
+
+**Com o quê.** Os dois ficheiros apagados; `ESTADO-ATUAL.md`; `ARQUITETURA-GERAL.md`;
+`experimentos/provar-trava-da-operacao.js`; este registo.
+
+**O que ainda não está feito.** Nada pendente destas duas. O que **continua** por tratar são os
+fixtures das provas que ainda leem a `breu` por caminhos que mudam (o `provar-turmas-do-professor`
+está em 16/17 por um achado de produto — com um professor que tem curadoria e nenhuma turma, o
+cabeçalho não desenha aviso nenhum; a decisão é de produto, não de prova).

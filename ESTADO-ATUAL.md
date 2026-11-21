@@ -2581,7 +2581,11 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      elenco não é uma relação, é conteúdo da linha de base, e a pessoa entra na cadeia pela anamnese
      (carimbo `anamnese-AAAAMMDD-HHMM`), que não diz de quem é. A regra (c) não é preferência: é a
      verificação 7 do `check-indices`, e a primeira versão do gerador reprovou-a. **CONFIRMADO**
-     pela prova `experimentos/provar-relacoes.js` (**35 asserções**, contraprova **2 de 35**).
+     pelo `check-indices` — as 16 verificações passam. *(A prova `experimentos/provar-relacoes.js`,
+     que aqui se citava com **35 asserções**, foi **apagada a 20/11/2026** por decisão da
+     proprietária: as secções A–F mediam um ciclo da escola `calango`, expurgada e que **não será
+     regenerada**. A funcionalidade não ficou sem guarda — o `check-indices` continua a correr no
+     `pre-commit` e a regra (c) é uma das suas verificações.)*
 
 118. **O LANÇAMENTO DA AULA GRAVA NA FONTE, E A FONTE VAI EM CLARO.** A chave é
      `lancamento/<escola>/<professor>/<ciclo>-<carimbo>/<nome>` e o destino é o `-dados.json`
