@@ -7,14 +7,14 @@ responsavel: demi-plie
 professor: demi-plie
 title: "Plano de Observação do Ciclo 01 — breu"
 state: Input_PO_Validado
-envelope: po-20261121-1508
+envelope: po-20261121-1531
 ---
 
 **Fenómeno.** A rotação externa visível na 1ª posição e no en dehors: o joelho acompanha o pé sem forçar, e o quadril não sobe quando a perna roda.
 
 ## Plano de ensino
 
-plano-20261121-1508
+plano-20261121-1531
 
 ## Horizonte
 
@@ -53,6 +53,7 @@ Calendário: 2026-12-14 → 2027-01-15 · Volume de trabalho: 3–6 séries · C
 | Corpo | **Morfologia e Funcionalidade dos Pés e Tornozelos** | Mobilidade de flexão/extensão do tornozelo |
 | Corpo | **Aptidões Coordenadas e Cognitivo-Musicais** | Musicalidade e pulsação rítmica |
 | Corpo | **Força Ativa, Potência e Controle Dinâmico** | Força excêntrica / recuo na flexão de tronco |
+| Corpo | **Equilíbrio, Sustentação e Força de MMSS/Core** | Sustentação ativa de MMII (força de adágio) |
 | Corpo | **Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal** | Estabilidade vestibular e deslocamento; Espiral / rotação de tronco |
 | Corpo | **Restrições** | sem restrições declaradas |
 | Técnica | **Solo** | reconhecer o apoio e alinhar o eixo vertical; sustentar a transferência com musicalidade e controle do movimento |
@@ -83,6 +84,7 @@ Metodologia de referência: Vaganova · Notação de dança: Código de dança
 | **Morfologia e Funcionalidade dos Pés e Tornozelos** | Mobilidade de flexão/extensão do tornozelo |
 | **Aptidões Coordenadas e Cognitivo-Musicais** | Musicalidade e pulsação rítmica |
 | **Força Ativa, Potência e Controle Dinâmico** | Força excêntrica / recuo na flexão de tronco |
+| **Equilíbrio, Sustentação e Força de MMSS/Core** | Sustentação ativa de MMII (força de adágio) |
 | **Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal** | Estabilidade vestibular e deslocamento; Espiral / rotação de tronco |
 
 ## Restrições físicas declaradas
@@ -97,6 +99,7 @@ Metodologia de referência: Vaganova · Notação de dança: Código de dança
 - Morfologia e Funcionalidade dos Pés e Tornozelos: Mobilidade de flexão/extensão do tornozelo
 - Aptidões Coordenadas e Cognitivo-Musicais: Musicalidade e pulsação rítmica
 - Força Ativa, Potência e Controle Dinâmico: Força excêntrica / recuo na flexão de tronco
+- Equilíbrio, Sustentação e Força de MMSS/Core: Sustentação ativa de MMII (força de adágio)
 - Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal: Estabilidade vestibular e deslocamento; Espiral / rotação de tronco
 
 ## Critérios de exclusão

@@ -67,6 +67,7 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 | Mobilidade de flexão/extensão do tornozelo | sem registo na anamnese |
 | Musicalidade e pulsação rítmica | sem registo na anamnese |
 | Força excêntrica / recuo na flexão de tronco | sem registo na anamnese |
+| Sustentação ativa de MMII (força de adágio) | sem registo na anamnese |
 | Estabilidade vestibular e deslocamento | sem registo na anamnese |
 | Espiral / rotação de tronco | sem registo na anamnese |
 
@@ -101,8 +102,8 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 ## 6. Proveniência consolidada
 
-- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261121-1508?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
-- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261121-1508?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.
+- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261121-1531?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
+- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261121-1531?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.
 
 **Anamnese de cada aluna**
 
