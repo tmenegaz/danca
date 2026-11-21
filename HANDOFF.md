@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-21T09:53:58-0300`
-Commit atual: `54be1100` — chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
+Gerado em: `2026-11-21T09:57:35-0300`
+Commit atual: `31648367` — docs(estrutura): a sonda ao vivo que confirma a aula, sem escrever nada
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,8 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+31648367 docs(estrutura): a sonda ao vivo que confirma a aula, sem escrever nada
+a4c004d7 fix(estrutura): a aula que se cria passa a existir — e o gesto deixa de mentir
 54be1100 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
 ca7c8aba chore(estrutura): fechar os derivados — âncoras e índices
 25db5666 feat(ciclo): o «Guardar» do PO grava as fontes de breu-rosa num commit só
@@ -100,8 +102,6 @@ a37d426a feat(estrutura): o derivador escreve a aula que lhe pedem, e não sempr
 bc8e88fd fix(estrutura): a folha impressa deixa de perguntar duas vezes o mesmo item
 ef747d64 fix(estrutura): a matriz do formulário pergunta uma vez por par, com uma regra só
 4a38efc2 fix(estrutura): «curadoria» sai de toda a tela, tooltips incluídos
-f84d0e92 fix(estrutura): «curadoria» sai da tela, e a prova mede o caso que existe
-e2c6098a chore(estrutura): apagar as duas provas que mediam um mundo expurgado
 ```
 
 ## Por professor
