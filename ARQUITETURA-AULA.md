@@ -519,7 +519,27 @@ debaixo dos prefixos dela (`/plano-ensino/`, `/plano-observacao/`, `/anamnese/`)
 `unexpected end of JSON input`, porque é isso que dá `JSON.parse` de um corpo vazio. O caminho é
 `/plano-ensino/api/envelope/…`.
 
-> **Prova:** `experimentos/provar-criar-aula.js` — **39 asserções**, com um Chrome na secção F a
+**O elo que faltava, e a aula que não existia (21/11/2026).** A janela gravou, a tela disse
+«gravado — a aula 02 está a ser gerada», e a aula nunca foi criada: o envelope
+`plano-20261121-0933` tem `aula-de-cada-objetivo` com o objetivo 2 e **nem** `aula-2-parametro`
+**nem** `aula-2-sequencia`. A causa é o filtro da elicitação — ela guarda as respostas cujo `id` o
+**conteúdo** declara, e o conteúdo do plano declara **uma** aula («A Aula 1»). A resposta da Aula
+02 chegava e era descartada em silêncio.
+
+**A regra que fecha isso: o conteúdo declara a família, o número é dado.** `lerChaveDaAula`
+(`motor/nucleo/aulas-do-ciclo.js`) lê de volta `aula-N-<parametro|sequencia|objetivo>`;
+`prepararRespostas` aceita o id quando ele é da família **e** o número cabe no
+`contexto-total-aulas` do plano. O que fica de fora continua a ser **relatado**, e a página passou
+a ler esse relato (`idsDesconhecidos`) antes de dizer «criada» — o servidor já o dizia, e ninguém o
+lia.
+
+| o gesto, e o que ele diz | |
+|:--|:--|
+| o botão | **«Criar»** — «gerar» é o que o sistema faz a seguir, e não uma escolha do professor |
+| enquanto grava | o **véu da casa** (`.veu-de-operacao`, `LastroDaOperacao.ocupar`), com o texto do processo |
+| depois de mandar | o botão de criar fica desabilitado e o outro passa a **«Fechar»**; a janela fecha-se sozinha quando a resposta chega, e o desfecho fica no véu uns segundos |
+
+> **Prova:** `experimentos/provar-criar-aula.js` — **52 asserções**, com um Chrome na secção F a
 > abrir a página de verdade (`?criar-aula=02`) e a conferir a janela aberta (`hidden` fora), o
 > título, o marco preenchido, a data da linha e as duas listas. Com a regra a devolver só a 01 caem
 > **8**. O `provar-objetivos-por-aula` (**55**) mede o outro lado: as duas linhas do objetivo 01

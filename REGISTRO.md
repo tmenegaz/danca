@@ -57409,3 +57409,69 @@ dados do formulário recolhidos — ela pediu para tomar nota e **não** constru
 `provar-producao` está em **142 de 159**, e é **anterior** a esta entrada: medido no `HEAD`
 (`030ef48c`) num worktree à parte, dá o mesmo 142/159 — as 17 asserções fixam a página de bastidores
 com 8 secções (hoje tem 10) e com a palavra «curadoria» (hoje «turma»), e são provas mortas.
+
+## 21/11/2026 — A aula 02 que ela criou e não existia
+
+**O que motivou.** Ela usou a janela de criar a aula. Leitor da tela: «Eu usei o modal para criar
+a aula e aí eu não sei se criou porque apareceu uma mensagem que diz que só vai estar disponível
+quando o ciclo se completar.» Depois foi à lista de Aulas: «procurei ali o acesso para a aula dois
+e não encontrei, não está disponível. […] eu não sei se deu certo.» E pediu a explicação: «me
+explica para onde foi a aula dois porque eu não a encontrei.»
+
+**A aula não foi para lado nenhum: ela nunca foi criada.** O carimbo do clique é o envelope
+`plano-20261121-0933`, e ele tem `aula-de-cada-objetivo` a apontar o objetivo 2 — e **nem**
+`aula-2-parametro` **nem** `aula-2-sequencia`. O `motivo` dele é o certo («a aula 02 foi criada a
+partir do calendário do plano»), o `ajuste_de` também. Ou seja: o pedido chegou inteiro e foi o
+**motor** que o esvaziou.
+
+**A causa, e é de desenho.** A elicitação guarda as respostas cujo `id` o **conteúdo** declara
+(`prepararRespostas`, em `motor/nucleo/elicitar.js`), e o conteúdo do plano declara **uma** aula —
+o bloco «A Aula 1», com `aula-1-parametro` e `aula-1-sequencia` (`porta/plano/conteudo/plano.json`,
+bloco 5). As respostas da Aula 02 chegavam, não estavam na lista, e eram DESCARTADAS. O descarte
+era relatado (`idsDesconhecidos`) e ninguém o lia. Sem `aula-2-sequencia`, a regra que faz a aula
+existir (`aulasDeclaradasPeloPlano`) diz que a aula não existe; o `DOCS` do manifesto não cresce;
+o derivador não escreve `-aula-02.md`; o gerador não publica `aula-02.html`; a lista de Aulas não a
+mostra. **Cinco passos a jusante a comportarem-se corretamente perante um dado que faltava** — e a
+tela a dizer «gravado, está a ser gerada».
+
+**O que foi decidido.**
+
+1. **O conteúdo declara a FAMÍLIA; o número é dado.** `lerChaveDaAula` lê de volta
+   `aula-N-<parametro|sequencia|objetivo>`, e `prepararRespostas` aceita o id quando ele pertence à
+   família **e** o número cabe no `contexto-total-aulas` do próprio plano. O tecto não é zelo: sem
+   ele, `aula-99-sequencia` entraria num ciclo de quinze. E o que fica de fora continua a ser
+   RELATADO — o silêncio é que não pode voltar. A família só abre para o `plano`, que é o único
+   documento com aulas por número.
+2. **A tela passou a conferir.** O servidor já devolvia `idsDesconhecidos`; a página ignorava-o e
+   dizia «gravada». Agora, se a chave da aula estiver entre os descartados, ela diz o contrário:
+   que a aula NÃO foi criada, que nada foi gerado, e que o defeito é do sistema.
+3. **O botão diz o gesto.** «Criar e gerar» — «confuso esses dois nomes para um usuário comum que
+   não é de tecnologia. Então coloca apenas criar aula, o botão se chama criar, só isso». Passou a
+   **«Criar»**.
+4. **O véu.** «E aí eu senti falta do véu. Aí no véu você pode colocar criar aula, gerar aula,
+   enfim, o texto do processo que está acontecendo.» Usa-se o véu **da casa**
+   (`.veu-de-operacao`, montado pelo `nav.js` em todas as páginas, acendido por
+   `LastroDaOperacao.ocupar`) — o mesmo de todos os gestos, e não um segundo.
+5. **O «Cancelar» vira «Fechar».** «Não dá para ser cancelar porque parece que vai cancelar o
+   processo, então fica confuso para o professor.» Depois de o pedido partir, o botão de criar fica
+   desabilitado e o outro muda de nome; a janela fecha-se sozinha quando a resposta chega, e o
+   desfecho fica no véu uns segundos.
+
+**Onde entrou.** `motor/nucleo/aulas-do-ciclo.js` (`lerChaveDaAula`, `CAMPOS_DA_AULA`),
+`motor/nucleo/elicitar.js` (`prepararRespostas` com a família, `aulasDoCiclo`, o `familiaDaAula`
+só para o plano), `motor/nucleo/derivar-plano-ciclo.js` (o guionista: «Criar», o véu, `mandado()`,
+o «Fechar», a leitura de `idsDesconhecidos`), `experimentos/provar-criar-aula.js` (a secção B2 e as
+asserções do gesto).
+
+**Prova.** `provar-criar-aula` **52/52**, e a mutação é medida dentro da própria prova: com a
+família desligada — o estado de ontem — a resposta cai, a aula 02 deixa de existir e o id aparece
+na lista de desconhecidos; **3 das 52** caem. `provar-formulario-da-aula` 53, `provar-geracao` 54,
+`provar-aula-dada` 34/34, `provar-derivador-da-aula` 35/35, `provar-objetivos-por-aula` 55/55,
+`provar-salas-e-elencos` 240/240, `provar-indices` 64/64; `check-identidade` sem reprovação,
+`check-pacote` 0 erros, `hash-ciclo --check` com a cadeia intacta.
+
+**O que fica declarado, e é a parte que dói.** O clique dela **não se recupera**: o plano
+`plano-20261121-0933` está gravado sem a aula 02, e a aula tem de ser criada outra vez — depois do
+deploy. Não se "conserta" o envelope à mão: reescrever uma resposta que o motor descartou seria
+inventar o elo que a proveniência não viu. E `provar-producao` continua em **142 de 159** — anterior
+a esta entrega, medido no `HEAD` com o mesmo resultado.

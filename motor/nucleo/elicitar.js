@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 
+const { lerChaveDaAula } = require('./aulas-do-ciclo.js');
+
 /**
  * elicitar.js — o runtime mínimo do PE.
  *
@@ -513,21 +515,47 @@ function temResposta(respostas, id) {
  * As respostas declaradas, normalizadas e filtradas pelos nós que o conteúdo
  * declara. Um `id` desconhecido NÃO entra e NÃO desaparece: ele é relatado —
  * um id a mais na contagem inflaria a decisão do corte em silêncio.
+ *
+ * A FAMÍLIA DA AULA É CONHECIDA SEM ESTAR INSTANCIADA (21/11/2026). O conteúdo do plano declara
+ * **uma** aula — o bloco «A Aula 1», com `aula-1-parametro` e `aula-1-sequencia` —, e o este
+ * filtro, ao levar a lista à letra, descartava em silêncio as respostas da Aula 02: o envelope era
+ * gravado sem elas, a tela dizia «gravado — a aula 02 está a ser gerada», e a aula 02 nunca
+ * existia. Medido no envelope `plano-20261121-0933`, que tem `aula-de-cada-objetivo` a apontar o
+ * objetivo 2 e **nenhuma** `aula-2-sequencia`.
+ *
+ * A correção NÃO é aceitar tudo: o conteúdo declara a FAMÍLIA (`aula-N-<campo>`, ver
+ * `lerChaveDaAula`), e o número é dado. O tecto é o `contexto-total-aulas` do próprio plano — uma
+ * aula fora do ciclo declarado continua a ser um id desconhecido, e continua a ser relatada.
  */
-function prepararRespostas(nos, respostasCruas) {
+function prepararRespostas(nos, respostasCruas, opcoes) {
+  const ajustes = opcoes || {};
+  const familia = ajustes.familiaDaAula || null;   // { ate: <nº de aulas do ciclo> } | null
   const conhecidos = new Set(nos.map((no) => no.id));
   const respostas = {};
   const desconhecidos = [];
 
   for (const chave of Object.keys(respostasCruas || {})) {
     if (!conhecidos.has(chave)) {
-      desconhecidos.push(chave);
-      continue;
+      const daAula = familia ? lerChaveDaAula(chave) : null;
+      const cabe = Boolean(daAula) && daAula.numero >= 1
+        && (!familia.ate || daAula.numero <= familia.ate);
+      if (!cabe) {
+        desconhecidos.push(chave);
+        continue;
+      }
     }
     respostas[chave] = normalizarResposta(respostasCruas[chave]);
   }
 
   return { respostas, desconhecidos };
+}
+
+/** O NÚMERO de aulas que o plano declara (`contexto-total-aulas`), ou 0 quando o plano não o diz. */
+function aulasDoCiclo(respostasCruas) {
+  const cru = (respostasCruas || {})['contexto-total-aulas'];
+  const valor = cru && typeof cru === 'object' && !Array.isArray(cru) ? cru.valor : cru;
+  const numero = Number(String(valor == null ? '' : valor).replace(/\D/g, ''));
+  return Number.isFinite(numero) && numero > 0 ? numero : 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -736,7 +764,12 @@ function elicitar(conteudo, respostasCruas, opcoes) {
   const ajustes = opcoes || {};
   const nos = nosRespondiveis(conteudo);
   const obrigatorios = nos.filter((no) => no.obrigatorio);
-  const { respostas, desconhecidos } = prepararRespostas(nos, respostasCruas);
+  /* A FAMÍLIA DA AULA SÓ ABRE PARA O PLANO — é o único documento que tem aulas por número, e é o
+   * único em que o número é dado e não instância declarada. A anamnese e o PO não ganham nada
+   * com isso, e aceitar a família nos três seria alargar a regra para onde ela não é verdade. */
+  const familiaDaAula = conteudo && conteudo.documento === 'plano'
+    ? { ate: aulasDoCiclo(respostasCruas) } : null;
+  const { respostas, desconhecidos } = prepararRespostas(nos, respostasCruas, { familiaDaAula });
 
   const respondidos = obrigatorios.filter((no) => temResposta(respostas, no.id));
   const pendentes = obrigatorios.filter((no) => !temResposta(respostas, no.id));

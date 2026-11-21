@@ -36,8 +36,9 @@ const { execFileSync } = require('node:child_process');
 
 const RAIZ = path.resolve(__dirname, '..');
 const { derivarPlano } = require(path.join(RAIZ, 'motor/nucleo/derivar-plano-ciclo.js'));
-const { aulasDeclaradasPeloPlano, numeroDaAula } =
+const { aulasDeclaradasPeloPlano, numeroDaAula, lerChaveDaAula } =
   require(path.join(RAIZ, 'motor/nucleo/aulas-do-ciclo.js'));
+const nucleo = require(path.join(RAIZ, 'motor/nucleo/elicitar.js'));
 const tabelaObjetivos = require(path.join(RAIZ, 'tools/tabela-objetivos.js'));
 const { criarEscritorDeCiclo } = require(path.join(RAIZ, 'motor/servidor/escrever-ciclo.js'));
 
@@ -137,9 +138,29 @@ console.log('\nB · A PÁGINA DO PLANO — o diálogo, e o dado que ele precisa'
     (/<div class="modal[^>]*>/.exec(markdown) || [])[0]);
   provar('…e nenhuma peça inventada (nada de `<style>` nem de classe fora da folha)',
     !/<style/.test(markdown) && !/class="fraco"/.test(markdown));
-  provar('…com o «Cancelar» à DIREITA do «Criar e gerar» (a ordem do padrão)',
+  provar('…com o «Cancelar» à DIREITA do botão de criar (a ordem do padrão)',
     markdown.indexOf('criar-aula-guardar') < markdown.indexOf('criar-aula-cancelar'));
+  /* «CRIAR», E SÓ (21/11/2026) — «Confuso esses dois nomes para um usuário comum que não é de
+     tecnologia. Então coloca apenas criar aula, o botão se chama criar, só isso.» */
+  provar('o botão diz «Criar», e não «Criar e gerar»',
+    /id="criar-aula-guardar">Criar</.test(markdown) && !/Criar e gerar/.test(markdown),
+    (/id="criar-aula-guardar">([^<]*)/.exec(markdown) || [])[1]);
   provar('…e o campo do objetivo', /id="criar-aula-marco"/.test(markdown));
+
+  /* O VÉU E O «FECHAR» (21/11/2026). «E aí eu senti falta do véu. Aí no véu você pode colocar
+     criar aula, gerar aula, enfim, o texto do processo que está acontecendo.» E: «não dá para ser
+     cancelar porque parece que vai cancelar o processo. Então muda para fechar.» O véu é o da
+     casa (`LastroDaOperacao`, montado pelo `nav.js` em todas as páginas), e não um segundo. */
+  provar('o guionista acende o véu da casa enquanto grava',
+    /LastroDaOperacao/.test(markdown) && /op\.ocupar\(/.test(markdown));
+  provar('…e diz o processo no véu, e não só «a gravar…»',
+    /A criar a aula " \+ alvo/.test(markdown));
+  provar('…o «Cancelar» vira «Fechar» quando o pedido parte',
+    /btnCancelar\.textContent = sim \? "Fechar" : "Cancelar"/.test(markdown));
+  /* A GUARDA QUE FALTAVA: a página lê o que o servidor relatou como descartado. Sem esta leitura,
+     o «gravado» de 21/11/2026 voltava a ser dito sobre uma aula que não nasceu. */
+  provar('…e a página CONFERE o que o servidor descartou antes de dizer «criada»',
+    /idsDesconhecidos/.test(markdown) && /perdidas\.length/.test(markdown));
 
   const m = /<script type="application\/json" id="dados-criar-aula">([\s\S]*?)<\/script>/.exec(markdown);
   let dados = null;
@@ -159,6 +180,75 @@ console.log('\nB · A PÁGINA DO PLANO — o diálogo, e o dado que ele precisa'
     .exec(derivarPlano(semRepertorio, {}).markdown)[1]);
   provar('um ciclo sem repertório DIZ isso ao diálogo (e não mostra uma lista vazia)',
     semDados.temRepertorio === false, semDados.temRepertorio);
+}
+
+/* ========================================================================================== */
+console.log('\nB2 · A AULA ATRAVESSA A GRAVAÇÃO — o defeito de 21/11/2026, medido');
+/* ========================================================================================== */
+/* O QUE ACONTECEU, e é o pior modo de falhar deste sistema: ela clicou em «Criar e gerar»,
+ * apareceu «gravado. A aula 02 está a ser gerada», e a aula 02 NUNCA EXISTIU.
+ *
+ * A CAUSA, medida no envelope `plano-20261121-0933`: a elicitação guarda as respostas cujo `id` o
+ * CONTEÚDO declara (`prepararRespostas`), e o conteúdo do plano declara UMA aula — o bloco «A
+ * Aula 1», com `aula-1-parametro` e `aula-1-sequencia`. `aula-2-parametro` e `aula-2-sequencia`
+ * chegavam, não estavam na lista, e eram DESCARTADAS em silêncio. O envelope ficou com
+ * `aula-de-cada-objetivo` a apontar o objetivo 2 e sem a sequência da aula — e sem
+ * `aula-2-sequencia` a regra diz que a aula não existe, o `DOCS` não cresce, o gerador não a
+ * escreve e a lista de Aulas não a mostra.
+ *
+ * ESTA SECÇÃO É A QUE FALTAVA: as outras provavam a coluna, a regra e o escritor, cada uma com as
+ * respostas já no envelope. Nenhuma atravessava a GRAVAÇÃO — que é onde a resposta se perdia. */
+{
+  const CONTEUDO = JSON.parse(fs.readFileSync(
+    path.join(RAIZ, 'porta/plano/conteudo/plano.json'), 'utf8'));
+  const ESQUEMA = JSON.parse(fs.readFileSync(
+    path.join(RAIZ, 'porta/envelope/elicitacao-schema.json'), 'utf8'));
+  const comAula2 = (extras) => planoDe(Object.assign({
+    'contexto-total-aulas': resp('15'),
+    'aula-2-parametro': resp([{ marco: 2, marcados: ['Plié'] }]),
+    'aula-2-sequencia': resp([{ Bloco: 'Barra', 'Objetivo específico': '2 — o marco',
+      'Conteúdo do nível': 'Plié', Tempos: '', Compasso: '' }]),
+  }, extras || {}));
+  const gravar = (plano) => nucleo.elicitar(CONTEUDO, plano.respostas,
+    { id: plano.id, geradoEm: '2026-11-21T09:00', esquema: ESQUEMA });
+
+  const saida = gravar(comAula2());
+  provar('a resposta da aula 02 ATRAVESSA a elicitação (era aqui que ela morria)',
+    Boolean(saida.documento.respostas['aula-2-sequencia'])
+    && Boolean(saida.documento.respostas['aula-2-parametro']),
+    Object.keys(saida.documento.respostas).filter((k) => /^aula-/.test(k)));
+  provar('…e nada é relatado como desconhecido',
+    saida.relatorio.idsDesconhecidos.length === 0, saida.relatorio.idsDesconhecidos);
+  provar('…e o plano gravado declara as duas aulas',
+    aulasDeclaradasPeloPlano(saida.documento).join(',') === '01,02',
+    aulasDeclaradasPeloPlano(saida.documento));
+
+  /* A FAMÍLIA É DECLARADA, O NÚMERO É DADO — e a leitura de volta prova-o nas três formas. */
+  provar('a família é lida de volta: `aula-2-sequencia` → 2/sequencia',
+    JSON.stringify(lerChaveDaAula('aula-2-sequencia')) === JSON.stringify({ numero: 2, campo: 'sequencia' }));
+  provar('…a forma com zero à frente também', Boolean(lerChaveDaAula('aula-02-parametro')));
+  provar('…e o que NÃO é da família continua de fora',
+    lerChaveDaAula('marcos-por-aula') === null && lerChaveDaAula('aula-2-inventado') === null
+    && lerChaveDaAula('aula-x-sequencia') === null);
+
+  /* O TECTO: a família não é um passe livre. Uma aula que o ciclo não declara continua a ser um
+   * id desconhecido — e continua a ser RELATADA, que é o que impede o silêncio de voltar. */
+  const foraDoCiclo = gravar(comAula2({ 'aula-99-sequencia': resp([{ Bloco: 'Barra' }]) }));
+  provar('uma aula ACIMA do total do ciclo não entra, e é relatada',
+    !foraDoCiclo.documento.respostas['aula-99-sequencia']
+    && foraDoCiclo.relatorio.idsDesconhecidos.indexOf('aula-99-sequencia') !== -1,
+    foraDoCiclo.relatorio.idsDesconhecidos);
+
+  /* A MUTAÇÃO — o estado de ontem: sem a família, a resposta é descartada e a aula não existe. É
+   * esta a queda que se exige, e é ela que diz que a prova mede o defeito e não a si mesma. */
+  const conteudoFechado = Object.assign({}, CONTEUDO, { documento: 'outro' });
+  const deOntem = nucleo.elicitar(conteudoFechado, comAula2().respostas,
+    { id: 'plano-de-ontem', geradoEm: '2026-11-21T09:00', esquema: ESQUEMA });
+  provar('MUTAÇÃO: sem a família da aula, a resposta cai e a aula 02 deixa de existir',
+    !deOntem.documento.respostas['aula-2-sequencia']
+    && aulasDeclaradasPeloPlano(deOntem.documento).join(',') === '01'
+    && deOntem.relatorio.idsDesconhecidos.indexOf('aula-2-sequencia') !== -1,
+    deOntem.relatorio.idsDesconhecidos);
 }
 
 /* ========================================================================================== */

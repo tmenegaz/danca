@@ -96,6 +96,32 @@ function chaveDaAula(nn, campo) {
   return 'aula-' + Number(numero) + '-' + String(campo || '').trim();
 }
 
+/**
+ * A FAMÍLIA DA CHAVE DA AULA, LIDA DE VOLTA (21/11/2026).
+ *
+ * `aula-2-sequencia` → `{ numero: 2, campo: 'sequencia' }`; qualquer outra coisa → `null`.
+ *
+ * PORQUE ISTO EXISTE, e a história é o defeito: a elicitação guarda as respostas cujo `id` o
+ * CONTEÚDO declara (`prepararRespostas`, em `motor/nucleo/elicitar.js`), e o conteúdo do plano
+ * declara **uma** aula — o bloco «A Aula 1», com `aula-1-parametro` e `aula-1-sequencia`. As
+ * respostas da Aula 02 chegavam, não estavam na lista, e eram DESCARTADAS em silêncio: o
+ * envelope era gravado, a tela dizia «gravado — a aula 02 está a ser gerada», e a aula 02 nunca
+ * existia. Medido em 21/11/2026 no envelope `plano-20261121-0933`: `aula-de-cada-objetivo` com o
+ * objetivo 2, e nem `aula-2-parametro` nem `aula-2-sequencia`.
+ *
+ * A FAMÍLIA é declarada — é a mesma das outras funções deste ficheiro; o NÚMERO é dado. É essa a
+ * distinção que faltava: o conteúdo declara a família, não cada instância.
+ */
+const CAMPOS_DA_AULA = ['parametro', 'sequencia', 'objetivo'];
+function lerChaveDaAula(id) {
+  const m = /^aula-0*(\d+)-([a-z]+)$/.exec(String(id == null ? '' : id).trim());
+  if (!m) return null;
+  const campo = m[2];
+  if (CAMPOS_DA_AULA.indexOf(campo) === -1) return null;
+  const numero = numeroDaAula(m[1]);
+  return numero ? { numero: Number(numero), campo } : null;
+}
+
 /** A aula SEGUINTE, com dois dígitos. É a que a §8 de cada aula nomeia. */
 function aulaSeguinte(nn) {
   const numero = numeroDaAula(nn);
@@ -149,4 +175,5 @@ function aulasRegeneraveis(declaradas, lancadas) {
 module.exports = {
   numeroDaAula, aulasLancadas, podeRegenerar, aulasRegeneraveis,
   chaveDaAula, aulaSeguinte, aulasDeclaradasPeloPlano,
+  lerChaveDaAula, CAMPOS_DA_AULA,
 };

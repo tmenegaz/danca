@@ -636,7 +636,15 @@ function dialogoDaAula(envelope, contexto) {
    * cancelar ele fica do lado direito.» A ordem é a mesma dos formulários dos Bastidores: a acção
    * que conclui vem primeiro, e o recuo ao lado dela. */
   linhas.push('<div class="modal-acoes">');
-  linhas.push('<button type="button" class="acao" id="criar-aula-guardar">Criar e gerar</button>');
+  /* «CRIAR», E SÓ (21/11/2026) — palavras dela: «Confuso esses dois nomes para um usuário comum
+   * que não é de tecnologia. Então coloca apenas criar aula, o botão se chama criar, só isso.»
+   * «Criar e gerar» dizia duas coisas ao professor e nenhuma delas era uma escolha dele: gerar é
+   * o que o sistema faz a seguir. O botão diz o gesto, e o véu diz o processo.
+   *
+   * E O «CANCELAR» MUDA DE NOME QUANDO JÁ NÃO HÁ O QUE CANCELAR. Depois de mandar criar, o que o
+   * botão faz é FECHAR a janela — «não dá para ser cancelar porque parece que vai cancelar o
+   * processo». Ele nasce «Cancelar» e vira «Fechar» no instante em que o pedido parte. */
+  linhas.push('<button type="button" class="acao" id="criar-aula-guardar">Criar</button>');
   linhas.push('<button type="button" class="acao secundario" id="criar-aula-cancelar">Cancelar</button>');
   linhas.push('</div>');
   linhas.push('</div>');
@@ -672,7 +680,24 @@ function DIALOGO_DA_AULA_JS() {
     '  var quando = document.getElementById("criar-aula-quando");',
     '  var titulo = document.getElementById("criar-aula-titulo");',
     '  var btnGuardar = document.getElementById("criar-aula-guardar");',
+    '  var btnCancelar = document.getElementById("criar-aula-cancelar");',
     '  var alvo = "";',
+    /* O VÉU É O DA CASA (`.veu-de-operacao`, montado pelo `nav.js` em todas as páginas). Ele
+     * cobre, diz e tranca — é a peça que o produto já usa para toda a escrita que trava a página,
+     * e ela sentiu a falta dele: «E aí eu senti falta do véu. Aí no véu você pode colocar criar
+     * aula, gerar aula, enfim, o texto do processo que está acontecendo.» */
+    '  function comVeu(frase, rotulo) {',
+    '    var op = window.LastroDaOperacao;',
+    '    if (op && op.ocupar) op.ocupar(frase, rotulo);',
+    '  }',
+    '  function noVeu(frase) {',
+    '    var op = window.LastroDaOperacao;',
+    '    if (op && op.dizer) op.dizer(frase);',
+    '  }',
+    '  function liberarVeu() {',
+    '    var op = window.LastroDaOperacao;',
+    '    if (op && op.liberar) op.liberar();',
+    '  }',
     '  function dizer(t) { if (aviso) aviso.textContent = t || ""; }',
     '  function listar(conjunto, valores, legenda) {',
     '    while (conjunto.firstChild) conjunto.removeChild(conjunto.firstChild);',
@@ -700,6 +725,13 @@ function DIALOGO_DA_AULA_JS() {
     '    caixa.hidden = true;',
     '    document.removeEventListener("keydown", aoTeclar);',
     '  }',
+    /* O ESTADO DEPOIS DE MANDAR. Uma função só o decide, para os dois botões não poderem contar
+     * histórias diferentes: `mandado` desabilita o «Criar» (não se cria a mesma aula duas vezes) e
+     * troca o rótulo do outro. Ao voltar atrás — uma falha antes de gravar —, os dois voltam. */
+    '  function mandado(sim) {',
+    '    btnGuardar.disabled = sim || !dados.temRepertorio;',
+    '    btnCancelar.textContent = sim ? "Fechar" : "Cancelar";',
+    '  }',
     '  function aoTeclar(e) { if (e.key === "Escape") fechar(); }',
     '  function abrir(nn, linha) {',
     '    alvo = nn;',
@@ -719,7 +751,7 @@ function DIALOGO_DA_AULA_JS() {
     '    listar(exercicios, dados.repertorio, "Exercícios que trabalham este objetivo");',
     '    listar(blocos, dados.blocos, "Blocos onde ele é trabalhado");',
     '    dizer(dados.temRepertorio ? "" : "O repertório da turma está vazio: declare-o no plano antes de criar a aula.");',
-    '    btnGuardar.disabled = !dados.temRepertorio;',
+    '    mandado(false);',
     '    caixa.hidden = false;',
     '    document.addEventListener("keydown", aoTeclar);',
     '  }',
@@ -754,10 +786,14 @@ function DIALOGO_DA_AULA_JS() {
     '    if (!ex.length) { dizer("Marque ao menos um exercício: é ele que dá o que observar."); return; }',
     '    if (!bl.length) { dizer("Marque ao menos um bloco: é onde o objetivo acontece."); return; }',
     '    if (!dados.id) { dizer("Este plano ainda não tem carimbo: grave-o primeiro, e a aula nasce dele."); return; }',
-    '    btnGuardar.disabled = true; dizer("a gravar…");',
+    '    mandado(true); dizer("");',
+    '    comVeu("A criar a aula " + alvo + ": o objetivo, os exercícios e a sequência vão para o plano, e o ciclo é gerado a seguir. Não feche esta aba.", "Criar a aula");',
     '    pedir(PORTA + "api/envelope/" + encodeURIComponent(dados.id))',
     '      .then(function (env) { return gravar(env, marco, ex, bl); })',
-    '      .catch(function (erro) { btnGuardar.disabled = false; dizer("não deu: " + (erro && erro.message || erro)); });',
+    '      .catch(function (erro) {',
+    '        liberarVeu(); mandado(false);',
+    '        dizer("não deu: " + (erro && erro.message || erro));',
+    '      });',
     '  });',
     '  function gravar(env, marco, ex, bl) {',
     '    var r = Object.assign({}, (env && env.respostas) || {});',
@@ -785,11 +821,32 @@ function DIALOGO_DA_AULA_JS() {
     '        ajuste_de: dados.id, base: env,',
     '        motivo: "a aula " + alvo + " foi criada a partir do calendário do plano" }),',
     '    }).then(function (x) {',
-    '      dizer("gravado. A aula " + alvo + " está a ser gerada — esta página fica em dia quando o ciclo fechar.");',
-    '      btnGuardar.disabled = true;',
-    '      if (x && x.disparo && x.disparo.ok === false) dizer("gravado, mas o gerador não partiu: " + (x.disparo.erro || ""));',
+    '      var n = Number(alvo);',
+    /* A PERGUNTA QUE FALTAVA, E É A QUE FEZ O DEFEITO DE 21/11/2026 (ver a nota grande abaixo):
+     * a resposta desta aula foi GUARDADA ou foi DESCARTADA? O servidor já dizia quais os ids que
+     * não entraram (`idsDesconhecidos`), e a página não os lia — dizia «gravado, está a ser
+     * gerada» sobre uma aula que nunca existiu. */
+    '      var fora = (x && x.idsDesconhecidos) || [];',
+    '      var chaves = ["aula-" + n + "-sequencia", "aula-" + n + "-parametro"];',
+    '      var perdidas = [];',
+    '      for (var q = 0; q < chaves.length; q++) if (fora.indexOf(chaves[q]) !== -1) perdidas.push(chaves[q]);',
+    '      if (perdidas.length) {',
+    '        liberarVeu(); mandado(false);',
+    '        dizer("O plano foi gravado, mas a aula " + alvo + " NÃO foi criada: o plano recusou a resposta dela (" + perdidas.join(", ") + "). Nada foi gerado — e clicar outra vez daria o mesmo. O defeito é do sistema, não seu.");',
+    '        return;',
+    '      }',
+    '      noVeu("Aula " + alvo + " criada. O ciclo está a ser gerado — ela aparece em Aulas quando a geração fechar, e esta página fica em dia sozinha.");',
+    '      fechar();',
+    '      setTimeout(liberarVeu, 5000);',
+    '      if (x && x.disparo && x.disparo.ok === false) {',
+    '        noVeu("Aula " + alvo + " criada e gravada, mas o gerador não partiu: " + (x.disparo.erro || "motivo não informado") + ". O documento não vai sair sozinho.");',
+    '        setTimeout(liberarVeu, 9000);',
+    '      }',
     '    })',
-    '    .catch(function (erro) { btnGuardar.disabled = false; dizer("não deu: " + (erro && erro.message || erro)); });',
+    '    .catch(function (erro) {',
+    '      liberarVeu(); mandado(false);',
+    '      dizer("não deu: " + (erro && erro.message || erro));',
+    '    });',
     '  }',
     '})();',
   ];

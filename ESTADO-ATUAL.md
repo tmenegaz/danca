@@ -4,8 +4,31 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 21/11/2026 (commit `030ef48c`). Nesta entrega, **o que ela viu na tela
-> depois de testar** — cinco defeitos, e nenhum deles era de gosto. **CONFIRMADO** em
+> **Última fotografia:** 21/11/2026 (commit `54be1100`). Nesta entrega, **a aula 02 que ela criou
+> e não existia**. Ela clicou em «Criar e gerar», leu «gravado. A aula 02 está a ser gerada», foi
+> à lista de Aulas e **não encontrou nada**. E estava certo que não encontrasse: **a aula nunca foi
+> criada**. **CONFIRMADO** no envelope `plano-20261121-0933` — o carimbo daquele clique —, que tem
+> `aula-de-cada-objetivo` a apontar o objetivo 2 e **nem** `aula-2-parametro` **nem**
+> `aula-2-sequencia`. **A CAUSA, e é de desenho, não de digitação:** a elicitação guarda as
+> respostas cujo `id` o **conteúdo** declara (`prepararRespostas`, em `motor/nucleo/elicitar.js`),
+> e o conteúdo do plano declara **uma** aula — o bloco «A Aula 1», com `aula-1-parametro` e
+> `aula-1-sequencia`. As respostas da Aula 02 chegavam, não estavam na lista, e eram **descartadas
+> em silêncio** — e sem `aula-2-sequencia` a regra que faz a aula existir diz que ela não existe, o
+> `DOCS` não cresce, o gerador não a escreve e a lista não a mostra. **DECIDIDO**: o conteúdo
+> declara a **família** (`aula-N-<campo>`, lida de volta por `lerChaveDaAula`), e o **número** é
+> dado; o tecto é o `contexto-total-aulas` do próprio plano, e uma aula fora do ciclo continua a
+> ser relatada como desconhecida. **E o gesto deixou de mentir** — três coisas que ela pediu,
+> todas no mesmo sítio: o botão passou a dizer **«Criar»** («é confuso esses dois nomes para um
+> usuário comum que não é de tecnologia»); **o véu** da casa (`LastroDaOperacao`) acende-se com o
+> texto do processo, que é o que ela sentiu falta; e depois de mandar, o «Cancelar» vira
+> **«Fechar»** e a janela fecha-se sozinha quando a resposta chega («não dá para ser cancelar
+> porque parece que vai cancelar o processo»). A página **confere** o que o servidor relatou como
+> descartado (`idsDesconhecidos`) antes de dizer «criada» — era a leitura que faltava, e é a guarda
+> que teria apanhado isto no dia. **CONFIRMADO** em `provar-criar-aula` **52/52**, com a família
+> desligada a cair em **3**.
+>
+> **Fotografia anterior (21/11/2026 — o que ela viu na tela).** Cinco defeitos, e nenhum deles era
+> de gosto. **CONFIRMADO** em
 > `provar-criar-aula` **39/39** e `provar-objetivos-por-aula` **55/55**. (1) **A coluna chama-se
 > «Ação»**, e o «Abrir» passou a **botão**, com a estética do «Criar aula» ao lado — era um link
 > cru: «Coloca como botão esse abrir para a gente manter a mesma estética». (2) **A coluna da
@@ -2857,6 +2880,25 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      ordem errada: corrigiu-se a folha (com nota de correção datada), as duas janelas do painel
      (`bastidores.js`, `painel-html.js`) e a asserção, porque **uma prova que congela a ordem errada
      guarda o erro em vez de o apanhar**. Ver `REGISTRO.md` (21/11/2026).
+128. **O CONTEÚDO DECLARA A FAMÍLIA DA AULA; O NÚMERO É DADO.** A elicitação só guarda as respostas
+     cujo `id` o **conteúdo** declara, e o conteúdo do plano declara **uma** aula — o bloco «A Aula
+     1». Por isso `aula-2-parametro` e `aula-2-sequencia` eram **descartadas em silêncio**: o
+     envelope era gravado, a tela dizia «gravado — a aula 02 está a ser gerada», e a aula não
+     existia em lugar nenhum (medido: `plano-20261121-0933`). **DECIDIDO**: o `id` de uma resposta
+     da aula casa a **família** `aula-N-<parametro|sequencia|objetivo>` (`lerChaveDaAula`), e o
+     número é dado; o tecto é o `contexto-total-aulas` do próprio plano, e o que ficar de fora
+     continua a ser **relatado** como desconhecido — o silêncio é que não pode voltar. A família só
+     abre para o **plano**: é o único documento com aulas por número. **E a tela passou a
+     conferir**: ela lê `idsDesconhecidos` antes de dizer «criada», porque o servidor já o dizia e
+     ninguém o lia.
+129. **O BOTÃO DIZ O GESTO, O VÉU DIZ O PROCESSO, E O «CANCELAR» VIRA «FECHAR».** «Criar e gerar»
+     dizia duas coisas e nenhuma delas era uma escolha do professor: gerar é o que o sistema faz a
+     seguir. O botão passou a **«Criar»**. Enquanto a escrita corre, acende-se o **véu da casa**
+     (`.veu-de-operacao` + `LastroDaOperacao.ocupar`), com o texto do processo — «é o mesmo véu em
+     todos os gestos», e não um segundo. Depois de o pedido partir, o botão de criar fica
+     desabilitado e o outro muda de nome para **«Fechar»**: «não dá para ser cancelar porque parece
+     que vai cancelar o processo». A janela fecha-se sozinha quando a resposta chega, e o desfecho
+     fica no véu uns segundos.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
@@ -3582,7 +3624,19 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (21/11/2026 — os cinco defeitos que ela viu na tela)
+### Executado nesta fotografia (21/11/2026 — a aula 02 que ela criou e não existia)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-criar-aula` | **52/52**. A secção **B2 é a que faltava**, e é a que mede o defeito: com o conteúdo de verdade (`porta/plano/conteudo/plano.json`) e as respostas da Aula 02, a `aula-2-sequencia` **atravessa** a elicitação, nada é relatado como desconhecido, e `aulasDeclaradasPeloPlano` devolve `01,02`. A família é lida de volta nas três formas e recusa o que não é dela (`aula-2-inventado`, `aula-x-sequencia`); uma aula **acima do total do ciclo** não entra e é **relatada**. **Mutação medida**: com a família desligada — o estado de ontem — a resposta cai, a aula 02 deixa de existir e o id aparece na lista de desconhecidos — **3 das 52** caem. E o desenho do gesto: o botão diz «Criar» (e não «Criar e gerar»), o guionista acende o véu da casa, o «Cancelar» vira «Fechar», e a página confere `idsDesconhecidos` antes de dizer «criada» |
+| `provar-formulario-da-aula` · `provar-geracao` · `provar-aula-dada` · `provar-derivador-da-aula` | **53 · 54 · 34/34 · 35/35** — verdes, e são as que atravessam a elicitação que mudou |
+| `provar-objetivos-por-aula` · `provar-salas-e-elencos` · `provar-aula-prosa` · `provar-indices` | **55/55 · 240/240 · 19 · 64/64** — verdes |
+| `node tools/check-identidade.js` · `check-sem-destruicao` · `check-indices` · `check-pacote` · `hash-ciclo --check` | **0 reprovações (22 ok)** · **ok** · **16/16** · **0 erros, 1 aviso** (o PDF, por desenho) · **cadeia intacta** |
+| O pacote da `breu-rosa` | regerado; o botão diz «Criar» na página publicada |
+| `provar-producao` | **142 de 159** — **anterior** a esta entrega, e medido no `HEAD` num worktree à parte com o mesmo resultado. As 17 asserções fixam a página de bastidores com 8 secções (hoje 10) e com a palavra «curadoria» (hoje «turma») |
+| Ao vivo | **Não executado** — a correção é do motor e do guionista; a conferência é depois do deploy, e o gesto dela (criar a aula 02) tem de ser **repetido**, porque o clique de 21/11/2026 gravou um plano **sem** a aula |
+
+### Executado na fotografia anterior (21/11/2026 — os cinco defeitos que ela viu na tela)
 
 | Verificação | Resultado |
 |:--|:--|

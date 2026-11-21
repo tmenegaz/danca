@@ -642,7 +642,7 @@ derivado de literatura de apoio sobre corpo e aula</p>
 <fieldset class="escolhas" id="criar-aula-blocos"><legend>Blocos onde ele é trabalhado</legend></fieldset>
 <p id="criar-aula-aviso" role="status"></p>
 <div class="modal-acoes">
-<button type="button" class="acao" id="criar-aula-guardar">Criar e gerar</button>
+<button type="button" class="acao" id="criar-aula-guardar">Criar</button>
 <button type="button" class="acao secundario" id="criar-aula-cancelar">Cancelar</button>
 </div>
 </div>
@@ -681,7 +681,20 @@ derivado de literatura de apoio sobre corpo e aula</p>
   var quando = document.getElementById("criar-aula-quando");
   var titulo = document.getElementById("criar-aula-titulo");
   var btnGuardar = document.getElementById("criar-aula-guardar");
+  var btnCancelar = document.getElementById("criar-aula-cancelar");
   var alvo = "";
+  function comVeu(frase, rotulo) {
+    var op = window.LastroDaOperacao;
+    if (op && op.ocupar) op.ocupar(frase, rotulo);
+  }
+  function noVeu(frase) {
+    var op = window.LastroDaOperacao;
+    if (op && op.dizer) op.dizer(frase);
+  }
+  function liberarVeu() {
+    var op = window.LastroDaOperacao;
+    if (op && op.liberar) op.liberar();
+  }
   function dizer(t) { if (aviso) aviso.textContent = t || ""; }
   function listar(conjunto, valores, legenda) {
     while (conjunto.firstChild) conjunto.removeChild(conjunto.firstChild);
@@ -706,6 +719,10 @@ derivado de literatura de apoio sobre corpo e aula</p>
     caixa.hidden = true;
     document.removeEventListener("keydown", aoTeclar);
   }
+  function mandado(sim) {
+    btnGuardar.disabled = sim || !dados.temRepertorio;
+    btnCancelar.textContent = sim ? "Fechar" : "Cancelar";
+  }
   function aoTeclar(e) { if (e.key === "Escape") fechar(); }
   function abrir(nn, linha) {
     alvo = nn;
@@ -722,7 +739,7 @@ derivado de literatura de apoio sobre corpo e aula</p>
     listar(exercicios, dados.repertorio, "Exercícios que trabalham este objetivo");
     listar(blocos, dados.blocos, "Blocos onde ele é trabalhado");
     dizer(dados.temRepertorio ? "" : "O repertório da turma está vazio: declare-o no plano antes de criar a aula.");
-    btnGuardar.disabled = !dados.temRepertorio;
+    mandado(false);
     caixa.hidden = false;
     document.addEventListener("keydown", aoTeclar);
   }
@@ -753,10 +770,14 @@ derivado de literatura de apoio sobre corpo e aula</p>
     if (!ex.length) { dizer("Marque ao menos um exercício: é ele que dá o que observar."); return; }
     if (!bl.length) { dizer("Marque ao menos um bloco: é onde o objetivo acontece."); return; }
     if (!dados.id) { dizer("Este plano ainda não tem carimbo: grave-o primeiro, e a aula nasce dele."); return; }
-    btnGuardar.disabled = true; dizer("a gravar…");
+    mandado(true); dizer("");
+    comVeu("A criar a aula " + alvo + ": o objetivo, os exercícios e a sequência vão para o plano, e o ciclo é gerado a seguir. Não feche esta aba.", "Criar a aula");
     pedir(PORTA + "api/envelope/" + encodeURIComponent(dados.id))
       .then(function (env) { return gravar(env, marco, ex, bl); })
-      .catch(function (erro) { btnGuardar.disabled = false; dizer("não deu: " + (erro && erro.message || erro)); });
+      .catch(function (erro) {
+        liberarVeu(); mandado(false);
+        dizer("não deu: " + (erro && erro.message || erro));
+      });
   });
   function gravar(env, marco, ex, bl) {
     var r = Object.assign({}, (env && env.respostas) || {});
@@ -784,11 +805,28 @@ derivado de literatura de apoio sobre corpo e aula</p>
         ajuste_de: dados.id, base: env,
         motivo: "a aula " + alvo + " foi criada a partir do calendário do plano" }),
     }).then(function (x) {
-      dizer("gravado. A aula " + alvo + " está a ser gerada — esta página fica em dia quando o ciclo fechar.");
-      btnGuardar.disabled = true;
-      if (x && x.disparo && x.disparo.ok === false) dizer("gravado, mas o gerador não partiu: " + (x.disparo.erro || ""));
+      var n = Number(alvo);
+      var fora = (x && x.idsDesconhecidos) || [];
+      var chaves = ["aula-" + n + "-sequencia", "aula-" + n + "-parametro"];
+      var perdidas = [];
+      for (var q = 0; q < chaves.length; q++) if (fora.indexOf(chaves[q]) !== -1) perdidas.push(chaves[q]);
+      if (perdidas.length) {
+        liberarVeu(); mandado(false);
+        dizer("O plano foi gravado, mas a aula " + alvo + " NÃO foi criada: o plano recusou a resposta dela (" + perdidas.join(", ") + "). Nada foi gerado — e clicar outra vez daria o mesmo. O defeito é do sistema, não seu.");
+        return;
+      }
+      noVeu("Aula " + alvo + " criada. O ciclo está a ser gerado — ela aparece em Aulas quando a geração fechar, e esta página fica em dia sozinha.");
+      fechar();
+      setTimeout(liberarVeu, 5000);
+      if (x && x.disparo && x.disparo.ok === false) {
+        noVeu("Aula " + alvo + " criada e gravada, mas o gerador não partiu: " + (x.disparo.erro || "motivo não informado") + ". O documento não vai sair sozinho.");
+        setTimeout(liberarVeu, 9000);
+      }
     })
-    .catch(function (erro) { btnGuardar.disabled = false; dizer("não deu: " + (erro && erro.message || erro)); });
+    .catch(function (erro) {
+      liberarVeu(); mandado(false);
+      dizer("não deu: " + (erro && erro.message || erro));
+    });
   }
 })();
 </script>

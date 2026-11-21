@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-21T09:28:24-0300`
-Commit atual: `1a9baf5b` — docs(estrutura): a conferência ao vivo do caminho da porta, medida
+Gerado em: `2026-11-21T09:53:58-0300`
+Commit atual: `54be1100` — chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,15 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+54be1100 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
+ca7c8aba chore(estrutura): fechar os derivados — âncoras e índices
+25db5666 feat(ciclo): o «Guardar» do PO grava as fontes de breu-rosa num commit só
+f8a4a51b feat(acervo): envelope/po-20261121-0933.json
+ee0c4f1a feat(acervo): envelope/.indice.json
+3cdf7f55 feat(plano): o plano elicitado vira a fonte do ciclo
+85b855a2 feat(acervo): envelope/plano-20261121-0933.json
+e02b9430 feat(acervo): envelope/.indice.json
+8d27c001 chore(estrutura): o HANDOFF aponta para o commit de hoje
 1a9baf5b docs(estrutura): a conferência ao vivo do caminho da porta, medida
 3d11d8e7 fix(estrutura): a coluna nomeia o que entrega, e a janela usa as peças da folha
 030ef48c feat(estrutura): a aula nasce do calendário do plano
@@ -93,15 +102,6 @@ ef747d64 fix(estrutura): a matriz do formulário pergunta uma vez por par, com u
 4a38efc2 fix(estrutura): «curadoria» sai de toda a tela, tooltips incluídos
 f84d0e92 fix(estrutura): «curadoria» sai da tela, e a prova mede o caso que existe
 e2c6098a chore(estrutura): apagar as duas provas que mediam um mundo expurgado
-39f86a6c fix(estrutura): a janela do lançamento conta os critérios do pacote
-dd54a025 fix(estrutura): repor as provas mortas contra o que existe hoje
-b4983579 fix(tools): as duas provas da linha de corte voltam a correr — na breu, e com datas que não apodrecem
-c1ab223d fix(estrutura): a geração apagava o elo da aula — e o elo é a justificativa do ajuste
-eb510bf9 docs(estrutura): o §1 dizia que o índice declara o estado — e o §4 do mesmo documento já dizia que não
-fad5bc77 fix(tools): as duas provas antigas voltam a medir — e o que elas mediam já não existe
-bf3ffef9 fix(estrutura): as tabelas dentro da moldura, a habilidade só-leitura, e o «Adicionar» que só acende com escolha
-106de79d chore(estrutura): fechar os derivados — âncoras e índices
-06ea6e5b chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
 ```
 
 ## Por professor
@@ -128,7 +128,7 @@ bf3ffef9 fix(estrutura): as tabelas dentro da moldura, a habilidade só-leitura,
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `59b86b60252a` | (vazio) | — |
-| breu-rosa | ciclo-01-breu-rosa.fipp | `af1a7fd1da00` | (vazio) | Input_PO_Validado |
+| breu-rosa | ciclo-01-breu-rosa.fipp | `a35f32541b99` | (vazio) | Input_PO_Validado |
 
 ### fernando-franciose — 0 ciclo(s)
 
@@ -195,72 +195,71 @@ bf3ffef9 fix(estrutura): as tabelas dentro da moldura, a habilidade só-leitura,
 
 ## Última entrada do REGISTRO
 
-## 21/11/2026 — As cinco coisas que ela viu na tela depois de testar
+## 21/11/2026 — A aula 02 que ela criou e não existia
 
-**O que motivou.** Ela testou ao vivo a coluna nova e a janela do «Criar aula», e devolveu cinco
-defeitos. Nenhum era de gosto: todos eram o sistema a entregar uma coisa e a dizer outra. Palavras
-dela: «a coluna que a gente tem que chamamos de criar aula, vamos chamar essa coluna de ação»;
-«Esse link aqui ele não é o link para a aula, ele é o link para o exercício. Então o nome da coluna
-não é aula, é exercício»; «só abre o modal centralizado e alinhado ao que a gente já usa nos outros
-modais. A gente já tem isso na identidade visual, você precisa usar»; «o botão cancelar ele fica do
-lado direito»; e o `404`: «ele dá um unexpected end of JSON input».
+**O que motivou.** Ela usou a janela de criar a aula. Leitor da tela: «Eu usei o modal para criar
+a aula e aí eu não sei se criou porque apareceu uma mensagem que diz que só vai estar disponível
+quando o ciclo se completar.» Depois foi à lista de Aulas: «procurei ali o acesso para a aula dois
+e não encontrei, não está disponível. […] eu não sei se deu certo.» E pediu a explicação: «me
+explica para onde foi a aula dois porque eu não a encontrei.»
 
-**O que foi decidido.** Cinco coisas.
+**A aula não foi para lado nenhum: ela nunca foi criada.** O carimbo do clique é o envelope
+`plano-20261121-0933`, e ele tem `aula-de-cada-objetivo` a apontar o objetivo 2 — e **nem**
+`aula-2-parametro` **nem** `aula-2-sequencia`. O `motivo` dele é o certo («a aula 02 foi criada a
+partir do calendário do plano»), o `ajuste_de` também. Ou seja: o pedido chegou inteiro e foi o
+**motor** que o esvaziou.
 
-1. **A coluna chama-se «Ação»**, e o «Abrir» passou a **botão** — «Coloca como botão esse abrir para
-   a gente manter a mesma estética». Um link em texto ao lado de um botão na mesma célula não é a
-   mesma estética; é o defeito que ela nomeou.
-2. **A coluna da tabela dos objetivos chama-se «Exercício», e a célula nomeia o exercício e liga à
-   âncora dele.** O defeito era de leitura, e foi medido: as duas linhas do objetivo 01 — Solo e
-   Barra — levavam ao **mesmo** `#exercicios-da-aula-01`, e quem queria o de Barra procurava sozinho.
-   A âncora passa a ser **declarada no título do exercício** por `idDoExercicio` e **lida da fonte**:
-   não há segunda cópia da regra do slug. Ela leva o **número do objetivo** (`solo-plie-ob1`,
-   `solo-plie-ob3`) porque o mesmo exercício serve os dois — sem ele, `normalizar-ids.py` deduplicava
-   por posição (`solo-battement-tendu-1`), e a posição ninguém prevê de fora.
-3. **O `404` do «Guardar e gerar», e a causa não era a rota.** Em produção só uma **lista explícita**
-   de `/api/*` é encaminhada para o motor (`motor/servidor/producao.js`), e as rotas da porta vivem
-   debaixo dos prefixos dela (`/plano-ensino/`, `/plano-observacao/`, `/anamnese/`). A página pedia
-   `api/envelope/…` na raiz. Corrigido para `/plano-ensino/api/envelope/…`. O sintoma que ela viu —
-   `unexpected end of JSON input` — era a página a fazer `JSON.parse` do corpo vazio de um 404, e por
-   isso o aviso passou a nomear o estado e o caminho em vez de deixar o `SyntaxError` falar.
-4. **A janela passou a usar as peças da folha**, e deixou de ter `<style>` inventado dentro da página
-   gerada. Era um `<dialog>` próprio com CSS próprio; passou a `.modal` / `.modal-fundo` /
-   `.modal-caixa` / `.modal-acoes` / `.modal-x` e às pílulas `.escolhas` / `.escolha`.
-5. **A ordem dos botões estava escrita ao contrário — na folha, no painel e numa prova.** A regra
-   dizia «Cancelar antes do Gravar»; ela diz «o botão cancelar ele fica do lado direito». Corrigiu-se
-   `IDENTIDADE-VISUAL.md` (com nota de correção datada, porque documento congelado que muda sem a
-   nota reescreve o passado), as duas janelas do painel (`bastidores.js`, `painel-html.js`) e a
-   asserção de `provar-salas-e-elencos` que fixava a ordem errada. **Uma prova que congela a ordem
-   errada guarda o erro em vez de o apanhar** — foi o que aconteceu, e é a razão de a asserção
-   corrigida citar a decisão no próprio texto.
+**A causa, e é de desenho.** A elicitação guarda as respostas cujo `id` o **conteúdo** declara
+(`prepararRespostas`, em `motor/nucleo/elicitar.js`), e o conteúdo do plano declara **uma** aula —
+o bloco «A Aula 1», com `aula-1-parametro` e `aula-1-sequencia` (`porta/plano/conteudo/plano.json`,
+bloco 5). As respostas da Aula 02 chegavam, não estavam na lista, e eram DESCARTADAS. O descarte
+era relatado (`idsDesconhecidos`) e ninguém o lia. Sem `aula-2-sequencia`, a regra que faz a aula
+existir (`aulasDeclaradasPeloPlano`) diz que a aula não existe; o `DOCS` do manifesto não cresce;
+o derivador não escreve `-aula-02.md`; o gerador não publica `aula-02.html`; a lista de Aulas não a
+mostra. **Cinco passos a jusante a comportarem-se corretamente perante um dado que faltava** — e a
+tela a dizer «gravado, está a ser gerada».
 
-**Motivo declarado — `tools/` é congelado.** `tools/tabela-objetivos.js`, `tools/calendario.py` e
-`tools/gerar-ciclo.sh` mudaram porque é ali que a coluna e a tabela nascem. As alterações são
-**opcionais e aditivas**: sem `--criar-aula` o calendário sai como saía, e sem `--exercicios` a
-tabela degrada para «—» em vez de inventar um nome (as duas formas são medidas na prova). O
-`plano.md`, o `notacao.md` e o pacote da `breu-rosa` foram regerados pela ferramenta de sempre e vão
-no mesmo commit porque são a **saída** dessa mudança.
+**O que foi decidido.**
 
-**Onde entrou.** `tools/calendario.py` (a coluna «Ação», o «Abrir» como botão),
-`tools/tabela-objetivos.js` (a coluna «Exercício», `exerciciosDaFonte`, `--exercicios`),
-`tools/gerar-ciclo.sh` (passa o índice da notação), `motor/nucleo/derivar-ciclo.js`
-(`idDoExercicio` com o objetivo, âncoras declaradas nos títulos), `motor/nucleo/derivar-plano-ciclo.js`
-(a janela com as peças da folha e o `PORTA` do caminho), `motor/servidor/bastidores.js` e
-`motor/servidor/painel-html.js` (a ordem dos botões), `IDENTIDADE-VISUAL.md` (a regra corrigida),
-`experimentos/provar-criar-aula.js` e `experimentos/provar-objetivos-por-aula.js` (as asserções).
+1. **O conteúdo declara a FAMÍLIA; o número é dado.** `lerChaveDaAula` lê de volta
+   `aula-N-<parametro|sequencia|objetivo>`, e `prepararRespostas` aceita o id quando ele pertence à
+   família **e** o número cabe no `contexto-total-aulas` do próprio plano. O tecto não é zelo: sem
+   ele, `aula-99-sequencia` entraria num ciclo de quinze. E o que fica de fora continua a ser
+   RELATADO — o silêncio é que não pode voltar. A família só abre para o `plano`, que é o único
+   documento com aulas por número.
+2. **A tela passou a conferir.** O servidor já devolvia `idsDesconhecidos`; a página ignorava-o e
+   dizia «gravada». Agora, se a chave da aula estiver entre os descartados, ela diz o contrário:
+   que a aula NÃO foi criada, que nada foi gerado, e que o defeito é do sistema.
+3. **O botão diz o gesto.** «Criar e gerar» — «confuso esses dois nomes para um usuário comum que
+   não é de tecnologia. Então coloca apenas criar aula, o botão se chama criar, só isso». Passou a
+   **«Criar»**.
+4. **O véu.** «E aí eu senti falta do véu. Aí no véu você pode colocar criar aula, gerar aula,
+   enfim, o texto do processo que está acontecendo.» Usa-se o véu **da casa**
+   (`.veu-de-operacao`, montado pelo `nav.js` em todas as páginas, acendido por
+   `LastroDaOperacao.ocupar`) — o mesmo de todos os gestos, e não um segundo.
+5. **O «Cancelar» vira «Fechar».** «Não dá para ser cancelar porque parece que vai cancelar o
+   processo, então fica confuso para o professor.» Depois de o pedido partir, o botão de criar fica
+   desabilitado e o outro muda de nome; a janela fecha-se sozinha quando a resposta chega, e o
+   desfecho fica no véu uns segundos.
 
-**Prova.** `provar-criar-aula` **39/39**, `provar-objetivos-por-aula` **55/55**,
-`provar-salas-e-elencos` **240/240**, `provar-geracao` **54**, `provar-derivador-da-aula` **35/35**,
-`provar-aula-dada` **34/34**, `provar-indices` **64/64**, `check-identidade` sem reprovação,
-`check-pacote` **0 erros** e `hash-ciclo --check` com a **cadeia intacta**. O pacote da `breu-rosa`
-publica as seis ligações de exercício (`#solo-battement-tendu-ob1` … `#barra-releve-ob1`), conferidas
-na página.
+**Onde entrou.** `motor/nucleo/aulas-do-ciclo.js` (`lerChaveDaAula`, `CAMPOS_DA_AULA`),
+`motor/nucleo/elicitar.js` (`prepararRespostas` com a família, `aulasDoCiclo`, o `familiaDaAula`
+só para o plano), `motor/nucleo/derivar-plano-ciclo.js` (o guionista: «Criar», o véu, `mandado()`,
+o «Fechar», a leitura de `idsDesconhecidos`), `experimentos/provar-criar-aula.js` (a secção B2 e as
+asserções do gesto).
 
-**O que fica declarado, e não feito.** (a) Nenhuma aula pode ser criada antes de a **anterior** ter os
-dados do formulário recolhidos — ela pediu para tomar nota e **não** construir agora; (b)
-`provar-producao` está em **142 de 159**, e é **anterior** a esta entrada: medido no `HEAD`
-(`030ef48c`) num worktree à parte, dá o mesmo 142/159 — as 17 asserções fixam a página de bastidores
-com 8 secções (hoje tem 10) e com a palavra «curadoria» (hoje «turma»), e são provas mortas.
+**Prova.** `provar-criar-aula` **52/52**, e a mutação é medida dentro da própria prova: com a
+família desligada — o estado de ontem — a resposta cai, a aula 02 deixa de existir e o id aparece
+na lista de desconhecidos; **3 das 52** caem. `provar-formulario-da-aula` 53, `provar-geracao` 54,
+`provar-aula-dada` 34/34, `provar-derivador-da-aula` 35/35, `provar-objetivos-por-aula` 55/55,
+`provar-salas-e-elencos` 240/240, `provar-indices` 64/64; `check-identidade` sem reprovação,
+`check-pacote` 0 erros, `hash-ciclo --check` com a cadeia intacta.
+
+**O que fica declarado, e é a parte que dói.** O clique dela **não se recupera**: o plano
+`plano-20261121-0933` está gravado sem a aula 02, e a aula tem de ser criada outra vez — depois do
+deploy. Não se "conserta" o envelope à mão: reescrever uma resposta que o motor descartou seria
+inventar o elo que a proveniência não viu. E `provar-producao` continua em **142 de 159** — anterior
+a esta entrega, medido no `HEAD` com o mesmo resultado.
 
 ## O que está pendente
 
