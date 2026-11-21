@@ -1,0 +1,111 @@
+{
+  "identificacao": {
+    "objetivoEspecifico": "transferir o peso entre os pés sem perder o alinhamento",
+    "parametroDeMedicao": "2 transferir o peso entre os pés sem perder o alinhamento — observa: Battement tendu · Battement jeté",
+    "duracao": "120 minutos (Pré-requisito 4)",
+    "volumeAtivo": "175 tempos (faixa 150–200 da duração de 120 min — Regra 9, etapa 1)",
+    "dataEHorarioDestaAula": "[Preencher: a data desta aula não está na fonte — os dialetos B/C remetem a `plano.html#calendario-do-ciclo`, e quem a sabe é o .conf da variante (Regra 10, camada 2: frequência, dias, duração, datas reais)]"
+  },
+  "condicoesPreliminares": "Sala com barra, espelho e aparelho de som; piso adequado.",
+  "sequenciaDaAula": "Bloco · Tempos · Fatia Solo · 29,17 · 20 min Barra · 65,63 · 45 min Centro · 65,63 · 45 min Musicalidade · 14,58 · 10 min **Total** · **175** · **100%**",
+  "blocoDeMusicalidade": [
+    "Nenhum exercício desta aula tem tempos e compasso declarados na sequência — sem eles não há música a consolidar.",
+    "Sem música declarada na sequência: Barra — Battement tendu · Barra — Battement jeté · Centro — Battement tendu · Centro — Battement jeté."
+  ],
+  "guiaDeObservacao": {
+    "Corpo": [
+      {
+        "criterio": "Aspecto físico — o que a turma mostra",
+        "oQueSeObserva": "[A decidir: esta turma ainda não tem aspectos do corpo escolhidos. A escolha faz-se na linha de base do Corpo, e o que se observa em cada aspecto aparece aqui.]"
+      }
+    ],
+    "Técnica": [
+      {
+        "bloco": "Solo",
+        "oQueSeObserva": "reconhecer o apoio e alinhar o eixo vertical"
+      },
+      {
+        "bloco": "Solo",
+        "oQueSeObserva": "sustentar a transferência com musicalidade e controle do movimento"
+      },
+      {
+        "bloco": "Solo",
+        "oQueSeObserva": "alinhamento do pé de apoio"
+      },
+      {
+        "bloco": "Solo",
+        "oQueSeObserva": "eixo do corpo na preparação"
+      },
+      {
+        "bloco": "Barra",
+        "oQueSeObserva": "reconhecer o apoio e alinhar o eixo vertical"
+      },
+      {
+        "bloco": "Barra",
+        "oQueSeObserva": "transferir o peso entre os pés sem perder o alinhamento"
+      },
+      {
+        "bloco": "Barra",
+        "oQueSeObserva": "saída do calcanhar no tendu"
+      },
+      {
+        "bloco": "Barra",
+        "oQueSeObserva": "quadril sem subir no en dehors"
+      },
+      {
+        "bloco": "Centro",
+        "oQueSeObserva": "transferir o peso entre os pés sem perder o alinhamento"
+      },
+      {
+        "bloco": "Centro",
+        "oQueSeObserva": "sustentar a transferência com musicalidade e controle do movimento"
+      },
+      {
+        "bloco": "Centro",
+        "oQueSeObserva": "transferência de peso sem perder a verticalidade"
+      },
+      {
+        "bloco": "Centro",
+        "oQueSeObserva": "braço junto do movimento"
+      }
+    ],
+    "Poiesis": [
+      {
+        "bloco": "Musicalidade",
+        "oQueSeObserva": "sustentar a transferência com musicalidade e controle do movimento"
+      },
+      {
+        "bloco": "Musicalidade",
+        "oQueSeObserva": "resposta ao pulso na marcação"
+      },
+      {
+        "bloco": "Musicalidade",
+        "oQueSeObserva": "frase até o fim da música"
+      },
+      {
+        "bloco": "Expressão",
+        "oQueSeObserva": "olhar acompanha o braço"
+      },
+      {
+        "bloco": "Expressão",
+        "oQueSeObserva": "presença sem rigidez de rosto"
+      }
+    ]
+  },
+  "proveniencia": "**[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261121-1120?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho? **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261121-1120?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento. **Anamnese de cada aluna** A anamnese de cada aluna do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.",
+  "auditoria": [
+    {
+      "verificacao": "Objetivo específico declarado",
+      "resultado": "ok"
+    },
+    {
+      "verificacao": "Duração declarada (Pré-requisito 4)",
+      "resultado": "ok — 120 minutos"
+    },
+    {
+      "verificacao": "Volume dentro da faixa (Regra 9)",
+      "resultado": "ok — 175 tempos em 150–200"
+    }
+  ],
+  "proximoPasso": "Item · Proposta **Marco da Aula 03** · sustentar a transferência com musicalidade e controle do movimento — a Aula 03 ainda não foi elaborada"
+}

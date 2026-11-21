@@ -146,7 +146,7 @@
       }
     ]
   },
-  "proveniencia": "**[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261121-0933?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho? **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261121-0933?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento. **Anamnese de cada aluna** A anamnese de cada uma das 2 alunas do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.",
+  "proveniencia": "**[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261121-1508?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho? **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261121-1508?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento. **Anamnese de cada aluna** A anamnese de cada uma das 2 alunas do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.",
   "auditoria": [
     {
       "verificacao": "Objetivo específico declarado",
@@ -161,5 +161,5 @@
       "resultado": "ok — 175 tempos em 150–200"
     }
   ],
-  "proximoPasso": "Item · Proposta **Marco da Aula 02** · transferir o peso entre os pés sem perder o alinhamento — a Aula 02 ainda não foi elaborada"
+  "proximoPasso": "Item · Proposta **[Marco da Aula 02](aula-02.html)** · [transferir o peso entre os pés sem perder o alinhamento](aula-02.html)"
 }
