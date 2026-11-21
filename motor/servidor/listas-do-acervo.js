@@ -120,7 +120,7 @@ const FAMILIAS = {
     subtitulo: 'O plano da turma, elicitado com o professor',
     padrao: /^plano-.*\.json$/,
     vazio: 'Ainda não há plano de ensino nesta escola. Ele nasce quando o professor preenche o '
-      + 'plano de uma turma curada.',
+      + 'plano de uma turma atribuída.',
     singular: 'plano', plural: 'planos',
     porta: '/plano-ensino/',
     acaoDeCriar: 'Fazer plano de ensino',

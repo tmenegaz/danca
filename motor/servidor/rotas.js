@@ -1326,7 +1326,7 @@ async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola, doPlano })
               + 'plano de ensino de uma turma é de quem a direção curou para ela. '
               + (autorizadas.size
                 ? 'As turmas deste professor são: ' + [...autorizadas].join(', ') + '.'
-                : 'Este professor não tem turma atribuída — é a curadoria que autoriza o plano.'),
+                : 'Este professor não tem turma atribuída — é a turma que autoriza o plano.'),
               403);
           }
         } catch (erro) { /* sem leitor de curadorias, a rota segue: ver o comentário acima */ }

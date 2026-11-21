@@ -101,11 +101,14 @@ function motivoDaRecusa(estado, nome) {
       + 'versão nova, que passa a valer a partir de uma data e deixa a anterior como referência do '
       + 'passado.';
   }
+  /* «CURADA» É O NOME DO ESTADO NO NÚCLEO, E FICA — é o que `podeEditarNoLugar` recebe, e mudá-lo
+   * obrigaria a mexer nas três rotas que o consultam. O que a frase NÃO pode é dizer «curadoria» a
+   * quem lê: no vocabulário do produto, o que existe é a TURMA (20/11/2026). */
   if (estado === 'curada') {
-    return 'a turma «' + t + '» já está numa curadoria activa — ela não se edita no lugar, porque a '
-      + 'curadoria guarda o NOME dela e a ligação partir-se-ia em silêncio. Derive uma versão nova '
+    return 'a turma «' + t + '» já compõe uma turma — ela não se edita no lugar, porque a '
+      + 'turma guarda o NOME dela e a ligação partir-se-ia em silêncio. Derive uma versão nova '
       + '(o nome fica, o ritmo passa a valer a partir de uma data). Para corrigir o nome, remova '
-      + 'primeiro a curadoria — enquanto não houver plano de ensino, isso é permitido.';
+      + 'primeiro a turma — enquanto não houver plano de ensino, isso é permitido.';
   }
   return '';
 }

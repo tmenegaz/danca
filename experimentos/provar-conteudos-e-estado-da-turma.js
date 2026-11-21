@@ -193,7 +193,7 @@ function oNucleoDoEstado() {
   const semPlano = new Set();
   checar('turma sem plano e sem curadoria é LIVRE',
     estado.estadoDaTurma({ nome: 'Contemporâneo' }, { turmasComPlano: semPlano, curadorias: curs }) === 'livre');
-  checar('turma numa curadoria activa é CURADA',
+  checar('turma que compõe uma Turma activa é CURADA',
     estado.estadoDaTurma({ nome: 'Balé Nível 1' }, { turmasComPlano: semPlano, curadorias: curs }) === 'curada');
   checar('turma com plano é VINCULADA',
     estado.estadoDaTurma({ nome: 'Contemporâneo' },
@@ -218,10 +218,16 @@ function oNucleoDoEstado() {
    * removida»). A mesma frase nos dois casos mandaria a escola procurar um plano que não existe. */
   const motivoCurada = estado.motivoDaRecusa('curada', 'Balé Nível 1');
   const motivoVinculada = estado.motivoDaRecusa('vinculada', 'Balé Nível 1');
-  checar('o motivo da CURADA nomeia a curadoria e diz como resolver',
-    /curadoria activa/.test(motivoCurada) && /remova\s+primeiro a curadoria/.test(motivoCurada), motivoCurada);
+  /* O MOTIVO NOMEIA A TURMA, E NÃO «A CURADORIA» (20/11/2026). O estado continua a chamar-se
+   * `curada` no núcleo — é o que `podeEditarNoLugar` recebe —, mas a frase é lida pela escola, e
+   * no vocabulário do produto o que existe é a TURMA. A asserção guarda o que sempre guardou: o
+   * motivo diz QUAL das duas coisas trava, e diz como resolver. */
+  checar('o motivo da CURADA nomeia a turma e diz como resolver',
+    /compõe uma turma|numa turma activa/i.test(motivoCurada)
+    && /remova\s+primeiro a turma/i.test(motivoCurada), motivoCurada);
   checar('o motivo da VINCULADA nomeia o plano de ensino',
-    /plano de ensino/.test(motivoVinculada) && !/curadoria activa/.test(motivoVinculada), motivoVinculada);
+    /plano de ensino/.test(motivoVinculada) && !/compõe uma turma|numa turma activa/i.test(motivoVinculada),
+    motivoVinculada);
   checar('…e os dois mandam DERIVAR (é a saída, e é a mesma)',
     /derive/i.test(motivoCurada) && /derive/i.test(motivoVinculada));
 }
@@ -232,7 +238,7 @@ function oNucleoDoEstado() {
 async function aRota() {
   console.log('\nC. A ROTA — o que a tela mostra é comodidade; a regra é a linha do servidor');
 
-  // 1) Com uma curadoria activa: editar é RECUSADO, e a recusa diz porquê.
+  // 1) Com uma Turma activa: editar é RECUSADO, e a recusa diz porquê.
   {
     const { kv, env } = ambiente({
       'bastidores/breu/curadorias': JSON.stringify([
@@ -245,8 +251,8 @@ async function aRota() {
     }));
     const d = await r.json();
     checar('renomear uma turma CURADA é recusado', r.status === 409, { status: r.status, d });
-    checar('…e a recusa diz que é por causa da curadoria, não de um plano',
-      /curadoria activa/.test(String(d.erro)) && /plano/.test(String(d.erro)), d.erro);
+    checar('…e a recusa diz que é por causa da turma, não de um plano',
+      /compõe uma turma|numa turma activa/i.test(String(d.erro)) && /plano/.test(String(d.erro)), d.erro);
     checar('…e o estado vem no corpo (a tela não tem de o adivinhar)', d.estado === 'curada', d.estado);
     const lista = JSON.parse(kv.mapa.get('bastidores/breu/turmas'));
     checar('…e a turma NÃO foi tocada — o nome é o mesmo',

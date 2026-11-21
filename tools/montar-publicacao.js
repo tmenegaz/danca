@@ -638,11 +638,11 @@ function itemDoPlano(t) {
       { rotulo: 'Turma', valor: turmaCurta,
         painel: listas.painelDoCartao([
           ['Turma', p.turma], ['Ciclo', p.ciclo], ['Aulas previstas', p.aulas]],
-          'Modalidade e tradição são decididas na curadoria, com o professor.') },
+          'Modalidade e tradição vêm da sala, com o professor.') },
       { rotulo: 'Professor', valor: p.professor,
         painel: listas.painelDoCartao([
-          ['Professor curado', p.professor], ['Turma', p.turma]],
-          'É a curadoria que liga professor e turma. Sem ela, este plano não existe.') },
+          ['Professor', p.professor], ['Turma', p.turma]],
+          'É a turma que liga professor e sala. Sem ela, este plano não existe.') },
       { rotulo: 'Período', valor: periodoCurto(t),
         painel: listas.painelDoCartao([
           ['Começa', data(r.inicio) || 'a preencher'],

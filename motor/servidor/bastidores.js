@@ -2994,8 +2994,8 @@ function declaracoesDaTurma(anterior, corpo, repertorioFinal) {
  */
 function seloDaCuradoria(vinculada) {
   return vinculada
-    ? '<span class="selo vinculada" title="já nasceu o plano de ensino desta curadoria; mexer-lhe mudaria o passado">vinculada</span>'
-    : '<span class="selo livre" title="ainda não nasceu o plano de ensino desta curadoria; pode ser corrigida">livre</span>';
+    ? '<span class="selo vinculada" title="já nasceu o plano de ensino desta turma; mexer-lhe mudaria o passado">vinculada</span>'
+    : '<span class="selo livre" title="ainda não nasceu o plano de ensino desta turma; pode ser corrigida">livre</span>';
 }
 
 function acoesDaCuradoria(c, vinculada, estado) {
@@ -3003,7 +3003,7 @@ function acoesDaCuradoria(c, vinculada, estado) {
     ? '<button class="ajustar acao pequena" data-curadoria-ajustar="' + esc(c.id) + '" data-modo="derivar" ' +
       'title="Derivar: passa a valer a partir de uma data, e a anterior fica no histórico">Derivar</button>'
     : '<button class="ajustar acao pequena" data-curadoria-ajustar="' + esc(c.id) + '" data-modo="editar" ' +
-      'title="Editar a curadoria (ainda não nasceu o plano de ensino dela)">Editar</button>';
+      'title="Editar a turma (ainda não nasceu o plano de ensino dela)">Editar</button>';
   const excluir = vinculada
     ? '<button class="acao secundario pequena" disabled title="Vinculada a um plano de ensino: não se apaga">Excluir</button>'
     : '<button class="apagar acao perigo pequena" data-tipo="curadoria" data-alvo="' + esc(c.id) +
@@ -6312,7 +6312,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       : noPlano
         ? '<span class="selo vinculada" title="este professor já está num plano de ensino; apagá-lo romperia a proveniência">vinculado</span>'
         : curado
-          ? '<span class="selo vinculada" title="este professor já está numa curadoria; enquanto a curadoria não gerar plano de ensino, remova a curadoria para poder mexer nele">curado</span>'
+          ? '<span class="selo vinculada" title="este professor já tem uma turma; enquanto a turma não gerar plano de ensino, remova-a para poder mexer nele">com turma</span>'
           : semTurmaAgora.semTurma
             ? '<span class="selo legado" title="este professor já dirigiu uma turma nesta escola e hoje não '
               + 'dirige nenhuma'
@@ -6320,7 +6320,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
                 + esc(semTurmaAgora.em || '—') + ')' : '')
               + '; o registo fica porque o nome dele vai nos documentos que assinou — e ele continua '
               + 'disponível para assumir outra turma">sem turma</span>'
-            : '<span class="selo livre" title="este professor ainda está livre: não está em curadoria nem em plano de ensino">livre</span>';
+            : '<span class="selo livre" title="este professor ainda está livre: não tem turma nem plano de ensino">livre</span>';
     // AS TURMAS DO PROFESSOR: pelo slug do cadastro e, como o plano pode ter gravado o nome
     // em vez do slug, também pelo slug do nome. As duas chaves descrevem a mesma pessoa.
     const turmasDele = turmasDoProfessor.get(slug) || turmasDoProfessor.get(slugificar(p.nome)) || [];
@@ -6487,13 +6487,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
          * não é uma palavra. */
         const selos = [];
         selos.push(presa
-          ? '<span class="selo vinculada" title="esta aluna está numa curadoria que já tem plano de ensino; apagá-la romperia a proveniência">vinculada</span>'
+          ? '<span class="selo vinculada" title="esta aluna está numa turma que já tem plano de ensino; apagá-la romperia a proveniência">vinculada</span>'
           : desligada.desligada
             ? '<span class="selo legado" title="esta aluna já fez parte de um elenco e já não está em nenhum'
               + (desligada.sala ? ' (esteve na turma «' + esc(desligada.sala) + '»)' : '')
               + '; o registo fica como proveniência, e apagá-lo é limpeza do cadastro — não apaga '
               + 'o que ficou dela nos elencos e nos planos">desligada</span>'
-            : '<span class="selo livre" title="esta aluna ainda não está em nenhuma curadoria com plano de ensino">livre</span>');
+            : '<span class="selo livre" title="esta aluna ainda não está em nenhuma turma com plano de ensino">livre</span>');
 
         const ultimo = meus.length ? meus[meus.length - 1] : null;
 
@@ -6780,7 +6780,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         // com o nome; aqui ele se lê depois do nome, e a frase inteira cabe porque o texto
         // encurta em vez de empurrar.
         const avisoDeRitmo = falta.length
-          ? '<div class="nota-falta" title="sem isto a turma não pode ser atribuída na curadoria">' +
+          ? '<div class="nota-falta" title="sem isto a sala não pode ser atribuída a uma turma">' +
             '<b>falta</b> <span>' + esc(fraseDaFalta(falta)) + '</span></div>'
           : '';
         // A ESCALA DO CARTÃO USA A RÉGUA RESOLVIDA (18/10/2026). Antes chamava
@@ -6891,7 +6891,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
               + 'cita; pode ser corrigida">livre</span>';
         const botaoAjuste = livre
           ? '<button class="ajustar acao pequena" data-turma-ajustar="' + esc(t.id) + '" data-modo="editar" ' +
-            'title="Editar a turma (ela ainda não tem plano de ensino nem curadoria)">Editar</button>'
+            'title="Editar a turma (ela ainda não tem plano de ensino)">Editar</button>'
           : '<button class="ajustar acao pequena" data-turma-ajustar="' + esc(t.id) + '" data-modo="derivar" ' +
             'title="Derivar: passa a valer a partir de uma data, e a anterior fica no histórico' +
             (citacoes ? ' — ' + citacoes + (citacoes === 1 ? ' plano de ensino cita' : ' planos de ensino citam')
@@ -6916,7 +6916,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         const camposDoRitmo = camposDoRitmoDaSala(t);
         const painelRitmo = falta.length
           ? '<div class="trio-frase">Esta turma ainda não tem ritmo — e é o ritmo que o plano lê. ' +
-            '<b>Sem ele, a turma não pode ser atribuída na curadoria.</b></div>' +
+            '<b>Sem ele, a sala não pode ser atribuída a uma turma.</b></div>' +
             '<ul class="trio-falta">' + falta.map((f) => '<li>' + esc(f) + '</li>').join('') + '</ul>' +
             '<p class="trio-nota">Assim que o ritmo estiver completo, a turma passa a poder ser atribuída.</p>'
           : '<div class="trio-grade">' + camposDoRitmo.map(([k, v]) =>
@@ -7025,7 +7025,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           (!livre
             ? '<button class="acao secundario pequena" disabled title="' +
               (estado === 'curada'
-                ? 'Numa curadoria activa: remova primeiro a curadoria para poder apagar'
+                ? 'Numa turma activa: remova primeiro a turma para poder apagar'
                 : 'Vinculada a um plano de ensino: não se apaga') + '">Excluir</button>'
             : '<button class="apagar acao perigo pequena" data-tipo="turma" data-alvo="' + esc(t.id) + '" data-nome="' + esc(t.nome) + '" title="Excluir turma">Excluir</button>') +
           '</span></div>' +

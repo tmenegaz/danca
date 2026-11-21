@@ -344,7 +344,7 @@ const SCRIPT = String.raw`(function () {
       return;
     }
     if (!sel || !opcoes.filter(Boolean).length) {
-      dizer('O seletor de turma está vazio — a curadoria ainda não atribuiu turmas a este '
+      dizer('O seletor de turma está vazio — a direção ainda não atribuiu turmas a este '
         + 'professor. Sem turma não há plano a preencher.');
       return;
     }
