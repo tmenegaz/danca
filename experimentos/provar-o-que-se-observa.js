@@ -46,8 +46,11 @@
  * E, DEPOIS DA ENTREGA, o `HEAD` já é a versão nova: o controle só mede com a linha de base
  * fixada no commit anterior — `--contra=75b91620`, no caso desta.
  *
- * O QUE O CONTROLE NÃO ALCANÇA, e é dito: as secções E e F medem a PÁGINA e as ROTAS
- * (`bastidores.js`, `porta/index.html`), que ele não reverte — elas passariam nas duas versões.
+ * O QUE O CONTROLE NÃO ALCANÇA, e é dito: as secções E, F e G medem a PÁGINA e as ROTAS
+ * (`bastidores.js`, `porta/index.html`), que ele NÃO reverte — elas passam nas duas versões. Medido:
+ * com `--contra=7839fed0` caiem 0; com `--contra=75b91620` caiem as 14 do núcleo. Uma prova cujo
+ * controle negativo nunca falha não é um controle: o número certo a citar é o da base do núcleo,
+ * e o âmbito tem de estar escrito.
  *
  *   node experimentos/provar-o-que-se-observa.js [--controle-negativo [--contra=<rev>]]
  */
@@ -267,7 +270,7 @@ console.log('\nD2. Entre as versões do mesmo elenco, vale a do carimbo maior');
 }
 
 /* ------------------------------------------------------------------------------------------- */
-console.log('\nE. Na página: o painel do Corpo mostra o valor, e não só o nome');
+console.log('\nE. Na página: o painel do Corpo mostra as DIMENSÕES, e só elas');
 /* ------------------------------------------------------------------------------------------- */
 (async () => {
   const executavel = process.env.CHROME_PATH ||
@@ -376,17 +379,26 @@ console.log('\nE. Na página: o painel do Corpo mostra o valor, e não só o nom
       return p ? p.innerText.replace(/\s+/g, ' ').trim().slice(0, 900) : null;
     });
     provar('o painel do Corpo foi desenhado', Boolean(tela), tela);
-    provar('o painel nomeia os aspectos (o que já fazia)', Boolean(tela) && /1ª posição/.test(tela), tela);
-    /* O DEFEITO: só nomes. O CONSERTO: o valor ao lado. */
-    provar('…e mostra o VALOR lido ao lado do aspecto — «em «nível»»',
-      Boolean(tela) && /em «/.test(tela), tela);
-    provar('…ou diz que o elenco não tem leitura, em vez de deixar o nome sozinho',
-      Boolean(tela) && (/em «/.test(tela) || /não foi feita|não têm leitura/.test(tela)), tela);
+    provar('o painel nomeia os aspectos', Boolean(tela) && /1ª posição/.test(tela), tela);
+    /* A DECISÃO DELA, 21/11/2026, e é uma REVERSÃO do que esta prova media antes:
+     *
+     *   «Eu não espero que os resultados estejam aqui no plano de observação, tá? O plano de
+     *    observação é exatamente o que está aqui. Não precisa ter isso. E essa parte que você pôs,
+     *    "sem leitura neste elenco", esses elementos aqui você tem que tirar. Esse monte de texto
+     *    que você incluiu aqui também você tem que tirar.»
+     *
+     * O PO mostra as DIMENSÕES — os aspectos, agrupados. O valor lido vai para a coluna «o que se
+     * observa» da AULA, que é o documento que se leva para a sala. Três asserções o medem, e são
+     * negativas de propósito: uma peça a mais volta a entrar sem ninguém dar por isso. */
+    provar('…e NÃO mostra o valor lido («em «nível»») — o valor é da aula, não do PO',
+      Boolean(tela) && !/em «/.test(tela), tela);
+    provar('…e NÃO diz «sem leitura neste elenco»',
+      Boolean(tela) && !/sem leitura neste elenco|sem leitura registada/i.test(tela), tela);
+    provar('…e NÃO traz instruções de outro ecrã («Ler as anamneses», «Bastidores →»)',
+      Boolean(tela) && !/Ler as anamneses|Bastidores →|passo 3 «Anamneses»/.test(tela), tela);
 
-    /* O ESTADO QUE ESTÁ AO VIVO HOJE. O acto real do elenco (`tami--20261120-2146`) não tem
-     * `leitura`: o passo 3 nunca foi refeito depois de o elenco ser esvaziado a 18/11. É preciso
-     * medir que, nesse estado, o painel NOMEIA a falta do passo — e não que se limita a desenhar
-     * nomes, que é o que ela viu e leu como «não é verdade que não há registo». */
+    /* O MESMO PAINEL, COM O ELENCO POR LER — e ele fica IGUAL. É o que a decisão dela pede: a
+     * leitura em falta não se explica no PO, porque o PO não é o sítio onde os valores aparecem. */
     const camposDoElenco = [
       { id: CAMPO, nome: '1ª posição — pés', grupo: 'as cinco posições: uma visão geral' },
       { id: 'passe', nome: 'o passé', grupo: 'Os elementos basilares' },
@@ -405,19 +417,11 @@ console.log('\nE. Na página: o painel do Corpo mostra o valor, e não só o nom
       const p = document.querySelector('.corpo-do-sujeito');
       return p ? p.innerText.replace(/\s+/g, ' ').trim() : null;
     });
-    provar('sem leitura no elenco, o painel diz que falta um passo (o estado de hoje ao vivo)',
-      Boolean(semLeitura) && /ainda não foi feita/.test(semLeitura),
+    provar('sem leitura no elenco, o painel é o MESMO — não acrescenta um recado',
+      Boolean(semLeitura) && !/ainda não foi feita|sem leitura/i.test(semLeitura),
       semLeitura && semLeitura.slice(0, 300));
-    /* A FRASE TEM DE NOMEAR O GESTO. Ela respondeu à frase anterior com a pergunta certa — «o que
-     * que é passo três na linha de base do corpo?» —, depois de ter derivado o elenco e o plano e de
-     * nada aparecer. Um recado que não se pode cumprir é pior do que nenhum: manda a pessoa fazer
-     * outra vez o que já fez. O caminho passa a ser o NOME DO BOTÃO e o do sítio. */
-    provar('…e nomeia o botão («Ler as anamneses») e o sítio (Audição, passo 3 «Anamneses»)',
-      Boolean(semLeitura) && /Ler as anamneses/.test(semLeitura) && /Audição/.test(semLeitura)
-        && /Anamneses/.test(semLeitura), semLeitura && semLeitura.slice(0, 400));
-    provar('…e diz que derivar o elenco ou gerar o plano NÃO fazem a leitura',
-      Boolean(semLeitura) && /não fazem esta leitura/.test(semLeitura),
-      semLeitura && semLeitura.slice(0, 400));
+    provar('…e continua a nomear os aspectos',
+      Boolean(semLeitura) && /1ª posição/.test(semLeitura), semLeitura && semLeitura.slice(0, 200));
 
     /* --------------------------------------------------------------------------------------- */
     console.log('\nF. O elenco por ler: dito na conclusão e na lista (o caminho inteiro)');
@@ -507,6 +511,94 @@ console.log('\nE. Na página: o painel do Corpo mostra o valor, e não só o nom
       Boolean(erroDeChave) && erroDeChave.status === 409
         && /chave desta escola não abre/.test(String(erroDeChave.message)),
       erroDeChave && { status: erroDeChave.status, message: erroDeChave.message });
+
+    /* --------------------------------------------------------------------------------------- */
+    console.log('\nG. Porque é que a leitura dela não aparecia: duas pessoas com o mesmo apelido');
+    /* --------------------------------------------------------------------------------------- */
+    /* O DEFEITO MEDIDO AO VIVO, e é a resposta à pergunta dela («fiz exatamente o que você
+     * descreve ali, mas não surtiu efeito»).
+     *
+     * O `vigente` de uma anamnese é por PESSOA (`alunaId`). Um envelope antigo não declara
+     * `alunaId`, e a identidade dele cai no apelido derivado — que não é o id da pessoa nova. Com
+     * dois envelopes do mesmo apelido, um com id e outro sem, a leitura de «Aluna A, Aluna B»
+     * devolvia QUATRO nomes. Os valores não se corrompiam (o envelope antigo quase não tem
+     * respostas), mas a lista de alunas ficava com repetições — e o «Gravar» compara essa lista
+     * com a do elenco. Não batia, e a leitura era deitada fora em silêncio. Era este o fio.
+     *
+     * Aqui as duas coisas ficam medidas: uma anamnese por apelido (a mais recente), e o «Gravar»
+     * que já não perde a leitura quando a lista traz um nome repetido. */
+    /* O ENVELOPE VAI EM CLARO, e de propósito: sem `GITHUB_TOKEN` o acervo cai no KV, e o caminho
+     * do KV devolve o arquivo como está — a decifra vive no acervo do REPOSITÓRIO (medido: com o
+     * envelope cifrado, os 45 aspectos saíam em «sem registo»). O que esta secção mede é a CONTAGEM
+     * das pessoas, não a cifra: essa já está medida na §F, com a chave errada. */
+    const TOKEN2 = TOKEN;
+    const respostas = { [CAMPO]: { valor: ['Bom', 'consciencia-propria'], nota: 'o arco cede' } };
+    const selar = async (id, aluna, alunaId, quando) => {
+      const arq = { id, documento: 'anamnese',
+        contexto: { escola: ESP, professor: 'demi-plie', aluna, ...(alunaId ? { alunaId } : {}) },
+        respostas };
+      await env.PADD_KV.put(ESP + '/envelope/' + id + '.json', JSON.stringify(arq));
+      return { nome: id + '.json', id, documento: 'anamnese',
+        resumo: { id, fonte: 'anamnese', escola: ESP, professor: 'demi-plie', aluna,
+          ...(alunaId ? { alunaId } : {}), gerado_em: quando } };
+    };
+    /* A «Aluna A» ANTIGA (sem id) e a NOVA (com id) — o caso que duplicava. E a «Aluna B» só uma. */
+    const seladas = [];
+    seladas.push(await selar('anamnese-20261116-2201', 'Aluna A', null, '2026-11-16T22:01'));
+    seladas.push(await selar('anamnese-20261118-1737', 'Aluna A', 'aluna-a-3', '2026-11-18T17:37'));
+    seladas.push(await selar('anamnese-20261119-1145', 'Aluna B', 'aluna-b-2', '2026-11-19T11:45'));
+    await env.PADD_KV.put(ESP + '/envelope/.indice.json', JSON.stringify({
+      versao: 2,
+      nomes: seladas.map((x) => x.nome),
+      resumos: Object.fromEntries(seladas.map((x) => [x.nome, x.resumo])),
+    }));
+    /* O elenco de novo na lista, agora sem leitura, para a rota a ir buscar. */
+    await env.PADD_KV.put('bastidores/' + ESP + '/linhas-de-base', JSON.stringify([{
+      id: 'tami', nome: 'Tami', alunas: ['Aluna A', 'Aluna B'], campos: camposDoElenco,
+      enviada_em: '2026-11-21T10:00:00.000Z', carimbo: '20261121-1000', turma: 'Rosa',
+    }]));
+
+    const rl2 = await pedir('/api/bastidores/linha-de-base/leitura?id=tami&alunas='
+      + encodeURIComponent('Aluna A,Aluna B'));
+    const dl2 = await rl2.json().catch(() => ({}));
+    const nomesLidos = (dl2.leitura && Array.isArray(dl2.leitura.alunas)) ? dl2.leitura.alunas : [];
+    provar('a leitura lê as anamneses e devolve o resultado',
+      rl2.status === 200 && dl2.ok === true && Boolean(dl2.classificacao),
+      { status: rl2.status, erro: dl2.erro || null });
+    provar('…e conta cada apelido UMA vez (dois envelopes da «Aluna A», um sem `alunaId`)',
+      nomesLidos.length === 2, { alunas: nomesLidos });
+    /* Um aspecto pode estar em mais de uma lista — procura-se em todas as que o classificam. */
+    const lidoDoCampo = ['atencao', 'excelencia', 'comuns', 'musicalidade']
+      .flatMap((k) => (dl2.classificacao && dl2.classificacao[k]) || [])
+      .find((x) => x && x.id === CAMPO);
+    provar('…e a frase é de DUAS alunas, não de três ou quatro',
+      Boolean(lidoDoCampo) && /de 2 em /.test(String(lidoDoCampo.texto))
+        && !/de [34] em /.test(String(lidoDoCampo.texto)),
+      lidoDoCampo && lidoDoCampo.texto
+        || { achou: Boolean(lidoDoCampo), contagens: Object.fromEntries(['atencao', 'excelencia',
+          'comuns', 'musicalidade', 'semRegisto'].map((k) => [k,
+          ((dl2.classificacao && dl2.classificacao[k]) || []).length])) });
+    provar('…e a nota que o professor escreveu atravessa',
+      Boolean(lidoDoCampo) && (lidoDoCampo.notas || []).some((n) => /arco cede/.test(n.texto)),
+      lidoDoCampo && lidoDoCampo.notas);
+
+    /* O «GRAVAR» QUE DEITAVA A LEITURA FORA. A lista de alunas da leitura traz um nome repetido —
+     * o rascunho antigo, gravado antes do conserto —, e o elenco declara os dois uma vez. Com a
+     * comparação antiga (lista ordenada) não batia e a leitura era descartada; com o conjunto
+     * (sem repetições) bate, e a leitura vai para o acto. */
+    const rascunhoComLeitura = JSON.parse(await env.PADD_KV.get('bastidores/' + ESP + '/linhas-de-base'));
+    rascunhoComLeitura[0].leitura = Object.assign({}, dl2.leitura,
+      { alunas: ['Aluna A', 'Aluna B', 'Aluna A', 'Aluna B'] });
+    await env.PADD_KV.put('bastidores/' + ESP + '/linhas-de-base', JSON.stringify(rascunhoComLeitura));
+    const rc2 = await pedir('/api/bastidores/linha-de-base', {
+      nome: 'Tami', alunas: ['Aluna A', 'Aluna B'], campos: camposDoElenco,
+      rascunho: false, concluir: true, token: TOKEN2 });
+    const dc2 = await rc2.json().catch(() => ({}));
+    provar('concluir o elenco LEVA a leitura, mesmo com a lista repetida no rascunho',
+      rc2.status < 300 && Boolean(dc2.linha && dc2.linha.leitura),
+      { status: rc2.status, temLeitura: Boolean(dc2.linha && dc2.linha.leitura), erro: dc2.erro || null });
+    provar('…e por isso o «Concluir» já não avisa que falta um passo',
+      !dc2.avisoLeitura, dc2.avisoLeitura || null);
     await pb.close();
     await pg.close();
     await br.close();
@@ -519,8 +611,7 @@ console.log('\nE. Na página: o painel do Corpo mostra o valor, e não só o nom
     process.exit(1);
   }
   console.log('TUDO CERTO — ' + provas + ' asserções: «o que se observa» é o que a anamnese registou — '
-    + 'o nível, o apoio da segunda etapa e a nota escrita pelo professor —, o recorte é do Corpo e a '
-    + 'leitura inteira serve a Poiesis, o painel mostra o valor ao lado do aspecto em vez de só o nome, '
-    + 'e o elenco que não foi lido diz que falta um passo com o nome do botão — na página, na '
-    + 'conclusão e no cartão da lista.');
+    + 'o nível, o apoio da segunda etapa e a nota escrita pelo professor —, e é a AULA que o imprime; '
+    + 'o recorte é do Corpo e a leitura inteira serve a Poiesis; o painel do PO mostra as dimensões e '
+    + 'só elas; a leitura conta cada apelido uma vez, e o «Gravar» deixa de a deitar fora.');
 })();

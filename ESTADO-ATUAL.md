@@ -2975,6 +2975,26 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      `--serif` fica (nomeia o papel, e não o desenho) e a `--ui` não muda. **O PDF do ciclo não
      segue** — um `.woff2` não serve ao `pdflatex`. **DECIDIDO** 21/11/2026.
 
+135. **O PLANO DE OBSERVAÇÃO MOSTRA AS DIMENSÕES, E SÓ ELAS; O VALOR LIDO É DA AULA.** Palavras
+     dela: «Eu não espero que os resultados estejam aqui no plano de observação, tá? O plano de
+     observação é exatamente o que está aqui. Não precisa ter isso. E essa parte que você colocou,
+     "sem leitura neste elenco", esses elementos aqui você tem que tirar. Esse monte de texto que
+     você incluiu aqui também você tem que tirar.» O painel do Corpo volta a desenhar os grupos e os
+     aspectos, sem valor, sem nota e sem recado — o que eu tinha posto ali (nível, apoio, nota e o
+     caminho de outro ecrã) sai. **O que se observa é a coluna da AULA**: é lá que a frase «1 de 2
+     em «Bom» (com toque) · 1 de 2 em «precisa desenvolver» (por consciência própria)» tem de
+     aparecer, e o PO é o CAMINHO que diz quais aspectos observar. **DECIDIDO** 21/11/2026.
+
+136. **E A LEITURA NÃO APARECIA POR UM DEFEITO MEDIDO, NÃO POR FALTA DE GESTO.** Ela fez o passo
+     («fiz exatamente o que você descreve ali, mas não surtiu efeito») e o acto do elenco continuou
+     sem `leitura`. A causa são duas linhas que se somavam: (a) `estadosDasAnamneses` marca como
+     vigente UMA anamnese por PESSOA (`alunaId`), e o envelope antigo, sem id, conta como outra
+     pessoa — no `breu`, «Aluna A» tem dois envelopes, um de 16/11 sem id e um de 18/11 com
+     `aluna-a-3`. A leitura de «Aluna A, Aluna B» devolvia `alunas: [A, B, A, B]`, medido ao vivo;
+     (b) o «Gravar/Concluir» compara essa lista com a do elenco por `map(String).sort()` — ordenada,
+     não um conjunto —, não batia, e **deitava a leitura fora em silêncio**. Consertado: uma
+     anamnese por apelido (a mais recente) e comparação por conjunto. **DECIDIDO** 21/11/2026.
+
 134. **A LEITURA DAS ANAMNESES É UM BOTÃO, E O ELENCO POR LER DIZ-SE EM TRÊS SÍTIOS.** Palavras
      dela: «eu entendi que eu tenho que ir em bastidores, pedagogia, audição, derivar o elenco e
      mandar gravar de novo […] o fato de eu ter mexido lá em elenco não gerou os valores que você
@@ -3793,7 +3813,21 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (21/11/2026 — o elenco por ler diz-se, e diz o botão)
+### Executado nesta fotografia (21/11/2026 — o PO mostra as dimensões; o valor é da aula)
+
+| Verificação | Resultado |
+|:--|:--|
+| o estado, medido ao vivo | `GET /api/bastidores/linha-de-base/leitura?id=tami&alunas=Aluna A,Aluna B` → **200**, e devolveu `alunas: ['Aluna A','Aluna B','Aluna A','Aluna B']` — **quatro** nomes para **duas** pessoas. O índice do acervo explica-o: `anamnese-20261116-2201` (Aluna A, **sem** `alunaId`) e `anamnese-20261118-1737` (Aluna A, `aluna-a-3`) são, pela regra do `vigente`, duas identidades. O mesmo para a Aluna B |
+| o fio que faltava | o `POST /api/bastidores/linha-de-base` com `concluir` compara `leitura.alunas` com `linhas.alunas` por `map(String).sort()` — **ordenada, não um conjunto**. Com quatro nomes de um lado e dois do outro, não batia: a leitura era descartada e o acto saía sem ela. É a explicação inteira do «fiz o passo e nada apareceu», e o acto de 22:55 (que ela gravou) confirma-a: tem `lida` e não tem `leitura` |
+| `provar-o-que-se-observa` | **49/49** (§E revista, §G nova). A §E passou a medir o CONTRÁRIO do que media: o painel do PO **não** mostra «em «nível»», **não** diz «sem leitura neste elenco», **não** traz instruções de outro ecrã — e fica igual com o elenco por ler. A §G mede a raiz: dois envelopes do mesmo apelido contam **uma** vez, a frase é «de 2» e não «de 4», a nota atravessa, e o «Concluir» leva a leitura mesmo com a lista repetida no rascunho |
+| controle negativo | `--contra=75b91620` → caem **14 de 49**; `--contra=7839fed0` → caem **0**, e isso está agora escrito no ficheiro: as secções E, F e G medem a PÁGINA e as ROTAS, que o controle não reverte. Uma prova cujo controle nunca falha não é um controle — o número a citar é o da base do núcleo |
+| a aula, derivada com a leitura real | o Corpo da Aula 01 passa a imprimir os **11** aspectos do recorte com a frase do passo 3: «1ª posição — pés — 1 de 2 em «Bom» (com toque) · 1 de 2 em «precisa desenvolver» (por consciência própria) — ponto de atenção», e assim por diante nos onze. É o que ela pediu («é lá nos resultados da aula que eu espero encontrar») e o que o PO deixa de repetir |
+| `experimentos/mostrar-o-que-se-observa.js` (**novo**) | lê ao vivo e imprime, aspecto a aspecto, o que cada aluna registou e a frase que a aula vai imprimir. É o «mostra para mim lá no experimento» dela. Só `GET`; nada é escrito, e a saída não fica em ficheiro |
+| as que atravessam o mesmo caminho | `provar-corpo-da-linha-de-base` **30/30**, `provar-leituras-do-po` **27/27**, `provar-derivador-da-aula` **35/35**, `provar-eixos-do-po` **42/42** |
+| `node tools/check-identidade.js` · `check-sem-destruicao` · `check-indices` · `check-pacote` · `hash-ciclo --check` | **0 reprovações (22 ok)** · **ok** · **16/16** · **0 erros, 1 aviso** (o PDF, por desenho) · **cadeia intacta** |
+| o pacote da `breu-rosa` | `porta/index.html` e as **duas** cópias do PO re-sincronizadas, publicação remontada — a primeira passagem da §E falhou porque servia o HTML de ontem |
+
+### Executado na fotografia anterior (21/11/2026 — o elenco por ler diz-se, e diz o botão)
 
 | Verificação | Resultado |
 |:--|:--|

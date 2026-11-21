@@ -25629,7 +25629,11 @@ function parDaSalaNoCorpo(corpo, registo) {
        * linha de base leu —, e é dela que a etiqueta «novo» de cada aluna se deriva. Sobrevive a
        * tudo: mudar o nome, mudar o recorte, mudar as alunas. */
       if (antes.lida) decidido.linha.lida = Object.assign({}, antes.lida, decidido.linha.lida || {});
-      const conjunto = (v) => (Array.isArray(v) ? v.map(String).sort() : []);
+      /* CONJUNTO É SEM REPETIÇÕES (21/11/2026). Era `map(String).sort()` — uma lista ordenada, não
+       * um conjunto —, e uma leitura cuja lista de alunas tivesse um nome repetido deixava de
+       * «bater» com o elenco e era descartada em silêncio no «Gravar». Foi assim que a leitura que
+       * ela fez se perdeu entre o passo 3 e a conclusão do elenco. */
+      const conjunto = (v) => (Array.isArray(v) ? [...new Set(v.map(String))].sort() : []);
       /* COMPARA-SE COM O QUE A LEITURA DIZ TER LIDO, e não com a lista antiga. Numa edição, o
        * elenco novo só chega ao registo neste «Gravar»; a leitura do passo 3, essa, já foi feita
        * sobre ele e diz de quem é (`leitura.alunas`). Comparar com `antes.alunas` apagaria a
@@ -25689,13 +25693,17 @@ function parDaSalaNoCorpo(corpo, registo) {
        * por causa de um passo que só depende dela. Acrescenta-se a frase que diz o que falta e
        * onde se faz — e ela viaja com o acto para a lista, no `!` do cartão. */
       const semLeituraDoElenco = (() => {
-        const alunas = Array.isArray(decidido.linha.alunas) ? decidido.linha.alunas.map(String) : [];
+        /* CONJUNTO, SEM REPETIÇÕES — a mesma regra da comparação do «Gravar» (21/11/2026). Uma
+         * leitura cuja lista de alunas traz um nome repetido existe e descreve este elenco; contá-la
+         * como falta era repetir, noutro sítio, o defeito que fazia a leitura desaparecer. */
+        const unicos = (v) => [...new Set((Array.isArray(v) ? v : []).map(String))].sort();
+        const alunas = unicos(decidido.linha.alunas);
         if (!alunas.length) return false;
         const l = decidido.linha.leitura;
         if (!l) return true;
-        const lidas = Array.isArray(l.alunas) ? l.alunas.map(String) : null;
+        const lidas = Array.isArray(l.alunas) ? unicos(l.alunas) : null;
         if (!lidas) return true;
-        return JSON.stringify(lidas.slice().sort()) !== JSON.stringify(alunas.slice().sort());
+        return JSON.stringify(lidas) !== JSON.stringify(alunas);
       })();
       const fechar = async (linha, gravado, extra) => {
         // O RASCUNHO SAI DO KV quando o acto ficou escrito no repositório. Sem isto, a mesma
@@ -26161,16 +26169,35 @@ function parDaSalaNoCorpo(corpo, registo) {
      * manda o professor refazer anamneses que existem. A família de erro desta entrega inteira:
      * a ausência de um resultado a fazer-se passar pela ausência do dado. */
     const naoAbri = [];
+    /* UMA ANAMNESE POR APELIDO — A MAIS RECENTE (21/11/2026). Defeito medido ao vivo.
+     *
+     * O `vigente` de `estadosDasAnamneses` é por PESSOA (`alunaId`), e é a regra certa para a
+     * estante. Mas um envelope antigo não declara `alunaId`, e a identidade dele cai no apelido
+     * derivado — que não é o id da pessoa nova. Resultado, medido no `breu` em 21/11/2026: a
+     * leitura de «Aluna A, Aluna B» devolveu `alunas: [A, B, A, B]`, porque dois envelopes de cada
+     * apelido eram «vigentes» de duas identidades diferentes. Os valores não se corromperam (o
+     * envelope antigo quase não tem respostas), mas a LISTA de alunas ficou com quatro nomes — e é
+     * ela que o «Gravar» compara, por isso a leitura era DEITADA FORA ao concluir o elenco. Era
+     * este o fio que faltava do «fiz o passo e nada apareceu».
+     *
+     * Quem lê o corpo de UMA turma quer um retrato por apelido, e o retrato é o mais recente. Os
+     * dois passam a ser a mesma coisa. */
+    const porApelido = new Map();
     for (const [carimbo, estado] of Object.entries(estados || {})) {
       if (!estado || !estado.vigente || !estado.apelido) continue;
       if (alunas.indexOf(estado.apelido) === -1) continue;
+      const chave = String(estado.carimbo || carimbo);
+      const antes = porApelido.get(estado.apelido);
+      if (antes && String(antes.carimbo) >= chave) continue;
+      porApelido.set(estado.apelido, { apelido: estado.apelido, carimbo: chave });
+    }
+    for (const { apelido, carimbo } of porApelido.values()) {
       try {
         const envelope = await porta.lerEnvelope(armazenamento, carimbo);
-        anamneses.push({ aluna: estado.apelido, respostas: (envelope && envelope.respostas) || {} });
-        lida[estado.apelido] = String(estado.carimbo || carimbo);
+        anamneses.push({ aluna: apelido, respostas: (envelope && envelope.respostas) || {} });
+        lida[apelido] = String(carimbo);
       } catch (erro) {
-        naoAbri.push({ aluna: estado.apelido, carimbo: String(estado.carimbo || carimbo),
-          erro: (erro && erro.message) || String(erro) });
+        naoAbri.push({ aluna: apelido, carimbo, erro: (erro && erro.message) || String(erro) });
       }
     }
     /* NENHUMA ANAMNESE NÃO É UM RESULTADO VAZIO: é um estado que se DIZ — «não há retratos» e «o

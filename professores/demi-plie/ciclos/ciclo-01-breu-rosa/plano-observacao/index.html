@@ -2185,26 +2185,6 @@ async function pintarCorpoDoSujeito() {
   const dados = await carregarLinhaDeBaseDaTurma(turma);
   const linha = dados && dados.linhaDeBase ? dados.linhaDeBase : null;
   const recorte = dados && Array.isArray(dados.recorte) ? dados.recorte : [];
-  /* O QUE A TURMA MOSTRA EM CADA ASPECTO (21/11/2026).
-   *
-   * O painel desenhava o recorte — os NOMES dos aspectos — e nada mais. Ela: «aqui chega quais
-   * são os grupos que foram observados, então também deve ter como a gente pegar os valores de
-   * cada um desses aspectos dentro desses grupos […] não diz se foi bom, regular, não diz como é
-   * que é o resultado».
-   *
-   * O VALOR EXISTE, e tem as DUAS ETAPAS que ela descreveu: o passo 3 grava, por aspecto, «1 de 1
-   * em «precisa desenvolver» (por consciência própria)» — nível e apoio na mesma frase, porque é
-   * assim que a anamnese pergunta (o nível, e com que apoio ele aconteceu). Não se conta nada
-   * aqui: lê-se o que está gravado, e a frase vai inteira para a tela.
-   *
-   * `mostra` vem indexado por id do aspecto; o recorte traz `id` e `nome`. Um aspecto do recorte
-   * que a leitura não cobriu fica sem valor — e isso DIZ-SE, em vez de sumir: um aspecto que a
-   * turma nunca leu não é um aspecto bem. */
-  const mostra = new Map();
-  for (const m of (dados && Array.isArray(dados.mostra) ? dados.mostra : [])) {
-    if (m && m.id) mostra.set(String(m.id), m);
-  }
-  const leitura = dados && dados.leitura ? dados.leitura : null;
   if (!linha) {
     alvo.innerHTML = '<p class="sub">A turma «' + escapar(turma) + '» ainda não recebeu nenhuma '
       + 'linha de base — e é ela que declara o recorte do corpo. Faça a linha de base em '
@@ -2221,7 +2201,7 @@ async function pintarCorpoDoSujeito() {
     if (!nome) continue;
     const grupo = String(campo.grupo || '').trim() || 'Corpo';
     if (!porNome.has(grupo)) { porNome.set(grupo, []); grupos.push(grupo); }
-    porNome.get(grupo).push({ nome, id: String(campo.id || ''), lido: mostra.get(String(campo.id || '')) || null });
+    porNome.get(grupo).push(nome);
   }
   if (!grupos.length) {
     alvo.innerHTML = '<p class="sub">A linha de base «' + escapar(linha.nome || linha.id || '')
@@ -2229,72 +2209,15 @@ async function pintarCorpoDoSujeito() {
       + 'observar. Sem recorte, este eixo fica sem o que dizer.</p>';
     return;
   }
-  /* UMA LINHA POR ASPECTO, COM O NÍVEL E O APOIO. A frase é a do passo 3, tal como está gravada;
-   * o «— ponto de atenção» é a mesma marca que a Aula imprime, e vem do mesmo campo. */
-  const linhaDoAspecto = (a) => {
-    const notas = (a.lido && Array.isArray(a.lido.notas) ? a.lido.notas : [])
-      .filter((n) => n && String(n.texto || '').trim());
-    /* AS NOTAS DO PROFESSOR APARECEM (21/11/2026). Ele: «Se ele tomou nota de alguma coisa, essa
-     * anotação dele também tem que aparecer […] são todos os campos da anamnese que o professor
-     * usou.» A nota é texto dele, e vai como texto — com o apelido à frente quando há mais de uma,
-     * para se saber de quem é sem abrir a anamnese. */
-    const blocoDeNotas = notas.length
-      ? '<ul class="notas-do-aspecto">' + notas.map((n) => '<li>'
-        + (notas.length > 1 && n.aluna ? '<b>' + escapar(n.aluna) + '</b> — ' : '')
-        + '<i>' + escapar(String(n.texto).trim()) + '</i></li>').join('') + '</ul>'
-      : '';
-    if (!a.lido) {
-      return '<li>' + md(a.nome) + ' — <span class="sub">sem leitura neste elenco</span></li>';
-    }
-    const texto = String(a.lido.texto || '').trim();
-    /* Uma nota sem nível é um registo legítimo: o professor escreveu e não marcou. A linha diz o
-     * que há, e não «sem leitura» sobre um aspecto que ele observou. */
-    const valor = texto || (notas.length ? '' : 'sem leitura registada');
-    return '<li>' + md(a.nome) + (valor ? ' — ' + escapar(valor) : '')
-      + (a.lido.atencao ? ' — <b>ponto de atenção</b>' : '') + blocoDeNotas + '</li>';
-  };
   const itens = grupos.map((grupo) => '<li><b>' + md(grupo) + '</b> — ' + porNome.get(grupo).length
     + (porNome.get(grupo).length === 1 ? ' aspecto' : ' aspectos')
-    + '<ul>' + porNome.get(grupo).map(linhaDoAspecto).join('') + '</ul></li>');
+    + '<ul>' + porNome.get(grupo).map((n) => '<li>' + md(n) + '</li>').join('') + '</ul></li>');
   const quantos = grupos.reduce((soma, g) => soma + porNome.get(g).length, 0);
-  const lidos = [...mostra.values()].filter((m) => recorte.some((c) => String((c && c.id) || '') === String(m.id))).length;
-  /* O ESTADO DA LEITURA DIZ-SE, porque metade dos valores pode faltar por uma razão que o
-   * professor tem de conhecer: a leitura das anamneses é um passo, e este elenco pode não a ter
-   * feito (ou tê-la feito sobre outra composição de turma). Sem esta frase, a lista sai com nomes
-   * e ninguém sabe se é falta de dado ou falta de leitura. */
-  const deQuem = leitura && Array.isArray(leitura.alunas) && leitura.alunas.length
-    ? ' A leitura é de ' + leitura.alunas.length + (leitura.alunas.length === 1 ? ' aluna' : ' alunas')
-      + (leitura.em ? ', feita em ' + dataEmPortugues(leitura.em) : '') + '.'
-    : '';
-  /* O CAMINHO DITO PELO NOME DAS COISAS DELA (21/11/2026).
-   *
-   * A frase anterior mandava «fazer o passo 3 da linha de base do Corpo e concluir o elenco», e ela
-   * respondeu com a pergunta certa: «o que que é passo três na linha de base do corpo?». Fez o que
-   * aquilo parecia dizer — derivou o elenco e o plano —, nada apareceu, e a frase continuou a
-   * mandá-la ao mesmo sítio. Um recado que não se pode cumprir é pior do que nenhum.
-   *
-   * Agora diz o caminho pelos nomes do ecrã (o menu, a aba, o passo, o botão) e diz também o que
-   * NÃO faz a leitura: derivar o elenco e gerar o plano não a fazem — é por isso que se pode
-   * derivar tudo e o painel continuar sem valores. */
-  const ondeSeLe = 'Em <b>Bastidores → Pedagogia → Audição</b>, na aba «Escolha de elenco», abra o '
-    + 'elenco «' + escapar(linha.nome || linha.id || '') + '», vá ao passo <b>3 «Anamneses»</b>, '
-    + 'marque as alunas e carregue em <b>«Ler as anamneses»</b>. Depois grave o elenco outra vez. '
-    + 'Derivar o elenco ou gerar o plano <b>não</b> fazem esta leitura.';
-  const estadoDaLeitura = lidos === 0
-    ? '<p class="aviso">A leitura das anamneses deste elenco ainda não foi feita — é ela que diz o '
-      + 'nível e o apoio de cada aspecto. ' + ondeSeLe
-      + ' Os valores aparecem aqui sozinhos, sem nada a preencher à mão.</p>'
-    : (lidos < quantos
-      ? '<p class="aviso">' + (quantos - lidos) + ' de ' + quantos + ' aspectos do recorte não têm '
-        + 'leitura neste elenco.' + deQuem + ' ' + ondeSeLe + '</p>'
-      : (deQuem ? '<p class="sub">' + deQuem.trim() + '</p>' : ''));
   alvo.innerHTML = '<p class="sub">O eixo do <b>Corpo</b> é o recorte que você escolheu no passo 4 '
     + 'da linha de base «' + escapar(linha.nome || linha.id || '') + '» — ' + quantos
     + (quantos === 1 ? ' aspecto' : ' aspectos') + ' em ' + grupos.length
-    + (grupos.length === 1 ? ' bloco' : ' blocos') + '. O valor ao lado de cada um é o que a '
-    + 'leitura das anamneses registou: o nível e o apoio. Não se escolhe aqui: para mudar o '
-    + 'recorte, volte à linha de base.</p>' + estadoDaLeitura
-    + '<ul class="derivadas">' + itens.join('') + '</ul>';
+    + (grupos.length === 1 ? ' bloco' : ' blocos') + '. Não se escolhe aqui: para mudar o recorte, '
+    + 'volte à linha de base.</p><ul class="derivadas">' + itens.join('') + '</ul>';
 }
 
 /* A turma escolhida no plano. Um professor pode observar mais de uma turma, mas o

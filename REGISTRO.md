@@ -57796,3 +57796,69 @@ sempre, agora dentro de uma prova.
 **O que continua pendente, e depende dela.** O acto vigente do elenco (`tami--20261121-1808`) não
 tem leitura, e nenhum código pode fazê-la: as anamneses são cifradas com a chave da escola, que vive
 só nos segredos do Worker. O botão está lá; o passo é dela.
+
+## 21/11/2026 — o PO mostra as dimensões, o valor é da aula, e a leitura não aparecia por um defeito
+
+**A decisão dela, que reverte a minha.** A 21/11 eu tinha posto no Bloco 2 do Plano de Observação o
+valor lido de cada aspecto, a nota do professor e — pior — uma frase a explicar onde se fazia a
+leitura. Ela leu e respondeu:
+
+> «Eu não espero que os resultados estejam aqui no plano de observação, tá? O plano de observação é
+> exatamente o que está aqui. Não precisa ter isso. E essa parte que você colocou, "sem leitura neste
+> elenco", esses elementos aqui você tem que tirar. Esse monte de texto que você incluiu aqui também
+> você tem que tirar. […] Eu espero é que lá nos resultados da aula, na coluna o que se observa, é
+> que tenha o resultado da primeira posição de pés, primeira posição de braços, que são obtidos lá na
+> anamnese. E o caminho para se chegar até esses resultados é pelo plano de observação.»
+
+O painel volta a desenhar os grupos e os aspectos — e só isso. O PO é o **caminho**: diz QUAIS
+aspectos se observam. O valor é da **aula**, que é o documento que se leva para a sala.
+
+**E ela tinha razão sobre o resto: não aparecia por um defeito, e o defeito era duplo.** Fez o passo
+e o acto do elenco continuou sem `leitura`. Medido ao vivo:
+
+| o que se mediu | o que se viu |
+|:--|:--|
+| `GET …/linha-de-base/leitura?id=tami&alunas=Aluna A,Aluna B` | **200** — a leitura funciona — e devolveu `alunas: ['Aluna A','Aluna B','Aluna A','Aluna B']`: **quatro nomes para duas pessoas** |
+| o índice do acervo | `anamnese-20261116-2201` (Aluna A, **sem** `alunaId`) e `anamnese-20261118-1737` (Aluna A, `aluna-a-3`). Pela regra do `vigente` — que é por PESSOA —, são duas identidades, e as duas contam |
+| o `POST` do «Concluir elenco» | compara `leitura.alunas` com as alunas do elenco por `map(String).sort()` — uma lista **ordenada**, não um conjunto. Quatro contra dois não bate, e a leitura é **descartada em silêncio** |
+
+O acto que ela gravou às 22:55 confirma-o: tem `lida` (a proveniência dos carimbos, que sobrevive a
+tudo) e não tem `leitura`. E é por isso que o painel dizia «sem leitura neste elenco» sobre corpos que
+ela tinha observado.
+
+**O que se consertou.**
+
+1. **Uma anamnese por apelido, a mais recente.** A leitura de uma turma quer um retrato por apelido; o
+   `vigente` por pessoa continua a ser a regra da estante, que é outro sítio e outra pergunta.
+2. **Conjunto é sem repetições.** A comparação do «Gravar» — e a do aviso `avisoLeitura` — passam a
+   comparar `[...new Set(...)].sort()`. Uma leitura legítima deixa de poder ser deitada fora por causa
+   de um nome repetido.
+3. **O painel do PO volta a mostrar só as dimensões.** Sai o valor, sai a nota, sai o «sem leitura
+   neste elenco», sai o parágrafo de instruções.
+4. **O valor aparece na AULA**, e é a mesma frase do passo 3 que o derivador imprime no Corpo.
+
+**MEDIDO, e é o que ele pediu para ver.** `experimentos/mostrar-o-que-se-observa.js` (novo) lê o
+acervo ao vivo — o recorte do elenco, as anamneses das duas alunas, o conteúdo da anamnese — e
+imprime, aspecto a aspecto, o que cada uma registou e a frase que a aula vai dizer. Os onze aspectos
+têm resposta das duas. E a Aula 01, derivada com essa leitura, imprime as onze linhas, por exemplo:
+
+> `1ª posição — pés` — 1 de 2 em «Bom» (com toque) · 1 de 2 em «precisa desenvolver» (por
+> consciência própria) — ponto de atenção
+
+**PROVA.** `provar-o-que-se-observa` — **49/49**, com a §E revista (passa a medir o CONTRÁRIO: o
+painel não mostra valor, não diz «sem leitura», não traz instruções) e a §G nova, que mede a raiz do
+defeito: dois envelopes do mesmo apelido contam **uma** vez, a frase sai «de 2» e não «de 4», a nota
+atravessa, e o «Concluir» leva a leitura mesmo com a lista repetida no rascunho. **CONTROLE
+NEGATIVO**: 14 de 49 caem contra o `75b91620`; **0** contra o `7839fed0` — e isso passou a estar
+escrito no ficheiro, porque as secções E, F e G medem a página e as rotas, que o controle não
+reverte. Uma prova cujo controle nunca falha não é um controle.
+
+`provar-corpo-da-linha-de-base` 30/30, `provar-leituras-do-po` 27/27, `provar-derivador-da-aula`
+35/35, `provar-eixos-do-po` 42/42; `check-identidade` 22 ok / 0 reprovações, `check-indices` 16/16,
+`check-pacote` 0 erros (1 aviso: o PDF, por desenho), `hash-ciclo --check` cadeia intacta.
+
+**E fica dito o que eu fiz ao vivo, porque um agente não escreve na escola sem o dizer.** Chamei a
+rota `…/linha-de-base/leitura` duas vezes para medir o defeito — é o mesmo gesto que o botão
+«Ler as anamneses» faz, e deixou no KV um rascunho do elenco «Tami» com a leitura (a segunda chamada,
+já com as duas alunas). Nada foi concluído: o acto é dela. O rascunho aparece na lista como «em
+edição», e o «Concluir elenco» seguinte leva a leitura — que é o que ela queria desde o princípio.

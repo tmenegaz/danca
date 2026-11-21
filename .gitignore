@@ -1814,3 +1814,9 @@ experimentos/modelo-formulario/*
 # elenco vigente é o do carimbo maior. Com o `--controle-negativo` caem 6 asserções, todas as das
 # notas. É citada no REGISTRO e no rodapé `Auditoria:` do commit.
 !experimentos/provar-o-que-se-observa.js
+# MOSTRAR O QUE SE OBSERVA (21/11/2026). Décima terceira vez que a armadilha do `experimentos/*`
+# aparece: um ficheiro novo nasce ignorado. Este lê o acervo ao vivo — o recorte do elenco que a
+# turma lê, as anamneses das alunas e o conteúdo da anamnese — e imprime, aspecto a aspecto, o que
+# cada aluna registou e a frase que a AULA vai imprimir na coluna «o que se observa». Só faz `GET`;
+# não escreve nada e não deixa saída em ficheiro.
+!experimentos/mostrar-o-que-se-observa.js
