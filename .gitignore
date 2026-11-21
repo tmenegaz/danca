@@ -1799,3 +1799,11 @@ experimentos/modelo-formulario/*
 # numa serifa, e que a ficha da anamnese aponta para o caminho absoluto. É citada no REGISTRO e
 # no rodapé `Auditoria:` do commit.
 !experimentos/provar-a-fonte-do-site.js
+# «AJUSTAR» ABRE O REGISTO, E NÃO UM NÓ QUE NÃO SE PREENCHE (21/11/2026). Décima primeira vez que
+# a armadilha do `experimentos/*` aparece: a prova nasceu ignorada. Ela mede o que ela viu — a aba
+# abria na moldura do formulário com «Professor responsável … não se preenche aqui» dentro, e a
+# caixa «Retomando um preenchimento interrompido: 5 de 23» a contradizer os contadores do registo
+# («18 de 23»). Percorre o roteiro inteiro a confirmar que nenhum degrau abre um nó de cabeçalho, e
+# confere que o endereço do «Ajustar» leva a escola (a chave do depósito). Com o
+# `--controle-negativo` caem 4 das 10 asserções. É citada no REGISTRO e no rodapé `Auditoria:`.
+!experimentos/provar-o-registo-abre.js

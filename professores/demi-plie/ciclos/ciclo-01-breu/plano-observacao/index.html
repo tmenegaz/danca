@@ -7968,10 +7968,30 @@ function irPara(i, guardar) {
   // cabeçalho continuam no mapa — `irPara` pode ser chamado com o índice deles —, mas um
   // degrau que só se lê não é um degrau: salta-se para o seguinte que se responde. Se não
   // houver nenhum à frente, fica o último.
+  //
+  // A BUSCA PARA TRÁS DESISTIA NO ZERO, E ERA O FORMULÁRIO INTEIRO (21/11/2026). Medido com
+  // um rascunho local: «Ajustar» abria a página no nó «Professor responsável» — um nó de
+  // CABEÇALHO, que só se lê («Não se preenche aqui: vem do contexto do ato») —, e a pessoa
+  // via a moldura do formulário sem uma única pergunta dentro. A conta, e é só esta: o
+  // `?ajustar=` chama `abrirFormulario(0)`; com um depósito restaurado o `INDICE` vale 6, e
+  // por isso `i < INDICE` e a busca segue para trás; a partir do 0 ela sai do mapa (n = -1),
+  // desiste, e devolve o 0 — que é cabeçalho. Sem depósito, o `INDICE` também é 0, a busca
+  // segue para a FRENTE, encontra o primeiro degrau, e funciona. Era a diferença entre quem
+  // já tinha preenchido e quem nunca tinha.
+  //
+  // A regra que fica: se a busca na direcção pedida sai do mapa, procura-se na outra. O alvo
+  // desta função é sempre o degrau mais PRÓXIMO do índice pedido — e o vizinho de baixo do
+  // primeiro degrau é o primeiro degrau, não o cabeçalho.
+  const salta = (d, dir) => {
+    let n = d;
+    while (n >= 0 && n < MAPA.nos.length && MAPA.nos[n] && MAPA.nos[n].noCabecalho) n += dir;
+    return (n >= 0 && n < MAPA.nos.length) ? n : -1;
+  };
   const passo = (de, para) => {
-    let n = de;
-    while (n >= 0 && n < MAPA.nos.length && MAPA.nos[n] && MAPA.nos[n].noCabecalho) n += para;
-    return (n >= 0 && n < MAPA.nos.length) ? n : de;
+    const naDirecao = salta(de, para);
+    if (naDirecao !== -1) return naDirecao;
+    const naOutra = salta(de, -para);
+    return naOutra !== -1 ? naOutra : de;
   };
   const alvo = passo(Math.max(0, Math.min(i, MAPA.nos.length - 1)), i >= INDICE ? 1 : -1);
   INDICE = Math.max(0, Math.min(alvo, MAPA.nos.length - 1));
@@ -9023,6 +9043,15 @@ function carregarPlanoNaConducao(envelope) {
   NOTAS.clear();
   SUGERIDAS.clear();
   SOCRATICA_VISTA.clear();
+  /* O REGISTO ABERTO APAGA O RECADO DA RETOMADA (21/11/2026). O `lerMemoria` corre ANTES do
+   * atalho (`?ajustar=`/`?editar=`), porque o depósito tem de ser lido antes de a barra ser
+   * semeada — e é por isso que ele deixa escrito «Retomando um preenchimento interrompido: 5 de
+   * 23». Quando o atalho abre um REGISTO, esse recado passa a ser falso: já não se está a retomar
+   * o rascunho, está-se a abrir o envelope, e ele acabou de substituir as respostas. Deixá-lo à
+   * vista fazia a pessoa esperar o preenchimento interrompido e ver outro — e a contagem da
+   * caixa («5 de 23») contradizia os contadores («18 de 23»), os dois na mesma tela. */
+  esconderAvisoDoAto();
+  AVISO_DO_ATALHO = '';
   for (const [k, v] of Object.entries(envelope.respostas || {})) {
     const valor = v && v.valor !== undefined ? v.valor : v;
     RESPOSTAS.set(k, valor);

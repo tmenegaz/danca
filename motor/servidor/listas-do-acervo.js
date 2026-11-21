@@ -342,8 +342,21 @@ function acoesDaLinha(chave, registo, estado) {
    * inteiro — e é isso que faz o campo chegar preenchido com a turma que se vai ajustar. */
   const doPlano = chave === 'plano-de-observacao' && Array.isArray(registo.plano) && registo.plano.length
     ? registo.plano[0] : '';
+  /* A ESCOLA VAI NO ENDEREÇO, E É ELA QUE FIXA A CHAVE DO RASCUNHO (21/11/2026).
+   *
+   * O DEFEITO, medido com um depósito local: `chaveDaMemoria()` monta
+   * `porta-<fonte>-<escola>-<professor>-<ciclo>-1` e lê-a ANTES de a barra ser semeada — por
+   * desenho, porque o depósito tem de ser lido antes de a sugestão gravar por cima. Sem a escola
+   * no endereço, e com o campo ainda vazio, a chave saía `porta-po-demi-plie-01-1`; e como o
+   * `salvar()` seguinte corria com o campo já preenchido, gravava em
+   * `porta-po-breu-demi-plie-01-1`. DUAS chaves para o mesmo ato — o depósito ficava meio num
+   * lado, meio no outro, e «retomar» encontrava um deles de cada vez.
+   *
+   * O `escola` do registo é o MESMO valor que o campo `ctx-escola` da porta recebe (o slug da
+   * escola, não o da variante) — é isso que faz as duas pontas produzirem a mesma string. */
   const contexto = consulta({
     fonte: f.fonte,
+    escola: registo.escola || '',
     ajustar: registo.id,
     professor: registo.professor,
     ciclo: registo.ciclo,
