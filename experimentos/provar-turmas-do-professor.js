@@ -71,8 +71,18 @@ const CURADORIAS = [
     turmas: [TURMAS[1]], alunas: ['Aluna B'] },
   { id: 'sp2', professor: 'so-para-direita', modalidade: 'Balé clássico', tradicao: 'Vaganova',
     turmas: [TURMAS[2]], alunas: ['Aluna C'] },
-  { id: 'sm1', professor: 'sem-turma', modalidade: 'Balé clássico', tradicao: 'Vaganova',
-    turmas: [], alunas: ['Aluna D'] },
+  /* A TURMA SEM SALA SAIU DAQUI (20/11/2026) — ela não existe no produto.
+   *
+   * A fixture tinha `turmas: []`, e a asserção que dependia dela procurava um aviso no cabeçalho
+   * do formulário. Mas `faltaNaCuradoria` (`bastidores.js`) exige a SALA — `if (!t.length)
+   * falta.push(['turma', 'a sala'])` —, e a rota responde 400 sem ela: uma Turma sem Sala não se
+   * grava pela tela, e só existiria por escrita directa no KV. A prova estava a medir um estado
+   * que o produto não produz.
+   *
+   * O CASO REAL é outro, e é o que a secção 4 passa a medir: um professor **cadastrado e ainda
+   * sem Turma nenhuma** — a direção não lhe atribuiu nada. Não há aqui registo nenhum: o que
+   * existe é o cadastro do professor (`bastidores/<escola>/professores`).
+   */
 ];
 
 /* A PÁGINA SERVIDA. No controle negativo, a de antes — do commit que introduziu a regra dos
@@ -321,12 +331,23 @@ function servir(env) {
   provar('o campo fica desabilitado', e.desabilitado === true, e.desabilitado);
   provar('e o aviso manda escolher o professor primeiro', /professor/i.test(e.aviso), e.aviso);
 
-  console.log('\n4. Professor com curadoria mas SEM turma: também nenhuma');
+  console.log('\n4. Professor SEM Turma nenhuma: volta à lista — e a lista diz porquê');
+  /* O QUE ACONTECE, e é o comportamento certo: sem Turma não há o que planejar, e o formulário
+   * devolve a pessoa à LISTA — que é onde se escolhe o ato. O que não pode acontecer é a volta ser
+   * MUDA: a frase que explica tem de estar lá, e com a palavra do vocabulário de hoje («Turma»,
+   * e não «curadoria», que é o nome do registo no armazenamento, não da tela). */
   await abrir('sem-turma');
-  e = await estadoDaTurma();
-  provar('a lista fica vazia', e.opcoes.length === 0, e.opcoes);
-  provar('e o aviso diz que a direção não atribuiu turma', /curadoria|atribuiu|turma/i.test(e.aviso),
-    { existe: e.existe, aviso: e.aviso, caixa: e.textoDaCaixa, opcao: e.textoDaOpcaoVazia });
+  const semTurma = await pagina.evaluate(() => ({
+    caminho: location.pathname,
+    texto: document.body.textContent.replace(/\s+/g, ' ').trim(),
+  }));
+  provar('o formulário não abre — a pessoa fica na LISTA, que é onde se escolhe o ato',
+    semTurma.caminho === '/area-do-professor/plano-de-ensino/', semTurma.caminho);
+  provar('…e a lista DIZ o motivo, sem deixar a volta muda',
+    /ainda não atribuiu nenhuma Turma a este professor/i.test(semTurma.texto),
+    semTurma.texto.slice(0, 260));
+  provar('…e diz com a palavra do vocabulário de hoje, não com «curadoria»',
+    !/atribuiu curadoria/i.test(semTurma.texto), semTurma.texto.slice(0, 260));
 
   console.log('\n5. O SERVIDOR recusa a turma não atribuída — a tela não é a regra');
   /* O PORQUÊ: um filtro de tela é contornável por qualquer `POST` à mão. A regra que a
@@ -355,7 +376,7 @@ function servir(env) {
   provar('o plano do demi-plie com a turma do so-para-direita é RECUSADO',
     cruzado.status === 403, cruzado);
   provar('…e a recusa nomeia a turma e diz de quem ela é',
-    /Balé Nível 2/.test(cruzado.erro) && /professor|curadoria/i.test(cruzado.erro), cruzado.erro);
+    /Balé Nível 2/.test(cruzado.erro) && /professor|turma/i.test(cruzado.erro), cruzado.erro);
 
   const alheia = await pedirPlano('sem-turma', TURMAS[0]);
   provar('um professor sem turma nenhuma não escreve plano de turma alguma',

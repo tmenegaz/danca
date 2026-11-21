@@ -619,8 +619,11 @@ let ESCOLA = 'escola';
        porque a regra dela é a aluna e não a turma. Medir a frase media a partilha do código, e
        a asserção anterior acusava a anamnese de uma regra que ela não aplica. */
     const planoHtml = (await pedir('/area-do-professor/plano-de-ensino/')).html;
+    /* A FRASE MUDOU DE VOCABULÁRIO A 20/11/2026 — «curadoria» é o nome do registo no
+     * armazenamento, e quem lê a lista é a direção: o que ela tem para atribuir é uma TURMA. O que
+     * a asserção guarda é a mesma coisa de antes: o plano CONSULTA a curadoria e trava sem ela. */
     provar('o plano consulta a curadoria, e trava sem ela',
-      /A direção ainda não atribuiu curadoria/.test(planoHtml)
+      /A direção ainda não atribuiu nenhuma Turma/.test(planoHtml)
       && /curadoria-professor\?professor=/.test(planoHtml), null);
     /* A ANAMNESE SAI DA CURADORIA PELA PORTA DA FRENTE: `carregarCuradoria` devolve vazio sem
        pedir nada, e `semCuradoria()` é falso para ela por construção (`!CFG.ehAnamnese`). O

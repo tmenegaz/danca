@@ -4593,10 +4593,10 @@ function avisoDaTurma() {
     return 'Escolha primeiro o professor: as turmas que aparecem aqui são as que a direção '
       + 'atribuiu a ele.';
   }
-  if (!CURADORIA_CARREGADA) return 'A carregar a curadoria deste professor…';
+  if (!CURADORIA_CARREGADA) return 'A carregar as Turmas deste professor…';
   const vistas = daCuradoria('turmas');
   if (!vistas.length) {
-    return 'A direção ainda não atribuiu nenhuma turma a este professor — é a curadoria que '
+    return 'A direção ainda não atribuiu nenhuma Turma a este professor — é a Turma que '
       + 'autoriza o plano de ensino, e sem ela não há turma a planear.';
   }
   return 'As turmas atribuídas a este professor não estão no cadastro de turmas da escola — '

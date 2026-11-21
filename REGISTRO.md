@@ -56961,3 +56961,48 @@ isso, porque não tem sentido nenhum essa conversa ficar dando volta.*»
 fixtures das provas que ainda leem a `breu` por caminhos que mudam (o `provar-turmas-do-professor`
 está em 16/17 por um achado de produto — com um professor que tem curadoria e nenhuma turma, o
 cabeçalho não desenha aviso nenhum; a decisão é de produto, não de prova).
+
+## 20/11/2026 — «Curadoria» saiu da tela, e a prova que media uma Turma sem Sala
+
+**O que motivou.** A pesquisadora leu o meu resumo e travou na palavra: «*você tá chamando de
+curadoria o que hoje a gente chama de turma, né? Não existe mais curadoria, é turma*» — e depois,
+sobre a asserção que falhava: «*eu acho que é porque não existe mais esse aviso da turma. Eu acho
+que tá desatualizado isso aqui que você tá verificando.*» Estava certa nas duas.
+
+**O que se apurou, e é o que fecha a confusão de nomes.** O vocabulário do produto hoje é:
+**Sala** é o ritmo (dias, duração, período); **Elenco** é o corpo de alunas (a linha de base);
+**Turma** é a relação que junta os dois ao professor, e é o que se «atribui». «Curadoria» ficou
+como nome de **armazenamento** — a chave do KV (`bastidores/<escola>/curadorias`), a rota
+(`/api/bastidores/curadoria`) e a variável do cliente (`CURADORIAS`) —, e nesse papel não se mexe:
+mudar a chave obrigaria a migrar o acervo. O que não podia continuar é ela a aparecer **na tela**.
+
+**O achado sobre a prova.** A secção 4 do `provar-turmas-do-professor` media «professor com
+curadoria mas sem turma», com uma fixture de `turmas: []`. Esse estado **não existe no produto**:
+`faltaNaCuradoria` (`bastidores.js`) exige a SALA — `if (!t.length) falta.push(['turma', 'a
+sala'])` — e a rota responde 400 sem ela. A prova media um estado que só existiria por escrita
+directa no KV, e procurava no cabeçalho do formulário um aviso que nesse estado nunca se vê.
+
+**O caso real, que substituiu o impossível.** Um professor **cadastrado e ainda sem Turma
+nenhuma**. Nele, o formulário devolve a pessoa à LISTA — o que é o comportamento certo, porque é na
+lista que se escolhe o ato —, e a lista **diz o motivo**. A asserção passou a medir as três coisas:
+a volta à lista, a frase que explica, e a palavra do vocabulário de hoje.
+
+**O que foi decidido.**
+- **Cinco frases visíveis perderam a palavra «curadoria»**: as duas da lista (`listas-do-acervo.js`,
+  o `title` do botão e a linha de estado) e as duas do aviso do formulário (`porta/index.html`).
+  «sem curadoria não há turma» passou a «sem Turma não há o que planejar».
+- **A fixture impossível saiu**, com o motivo escrito no sítio dela — e o comentário explica a
+  regra que a torna impossível, para que ninguém a reponha.
+- **A cópia da porta nos pacotes foi regenerada** (`ciclo-01-breu-rosa`, e a do resíduo
+  `ciclo-01-breu`, que não tem fontes): o `check-identidade` exige que a cópia seja a fonte, byte a
+  byte, e ele reprovava nas duas.
+
+**Onde entrou.** `motor/servidor/listas-do-acervo.js`, `porta/index.html`,
+`experimentos/provar-turmas-do-professor.js` (secção 4 reescrita, 18/18),
+`experimentos/provar-listas-do-acervo.js` (a frase mudou de palavra, a asserção continua a medir a
+mesma regra — 113/113), e as duas cópias da porta nos pacotes.
+
+**O que ainda não está feito.** A palavra «curadoria» continua em **`title`s** de selos e botões
+dos Bastidores («Editar a curadoria», «esta aluna ainda não está em nenhuma curadoria com plano de
+ensino», «sem isto a turma não pode ser atribuída na curadoria»). São texto de tooltip, não de
+frase lida; ficam para uma passagem própria, e não se corrigem a meio de outra coisa.

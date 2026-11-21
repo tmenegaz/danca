@@ -870,7 +870,7 @@ function scriptDoPainel(chave, escola) {
     if (nova) {
       nova.hidden = !!mem;
       nova.disabled = trava;
-      nova.title = semCuradoria() ? 'A direção ainda não atribuiu curadoria a este professor'
+      nova.title = semCuradoria() ? 'A direção ainda não atribuiu nenhuma Turma a este professor'
         : (falta.length ? 'Falta o contexto do ato: ' + falta.join(', ') : '');
     }
     if (continuar) continuar.hidden = !mem;
@@ -900,8 +900,11 @@ function scriptDoPainel(chave, escola) {
       } else if (semCuradoria()) {
         estado.hidden = false;
         estado.setAttribute('data-falta', 'sim');
-        estado.textContent = 'A direção ainda não atribuiu curadoria a este professor — sem '
-          + 'curadoria não há turma, e sem turma não há o que planejar.';
+        /* O VOCABULÁRIO É «TURMA» (20/11/2026): a SALA é o ritmo, o ELENCO é o corpo, e a TURMA
+         * é a relação que junta os dois ao professor. «curadoria» é o nome do registo no
+         * armazenamento (a chave do KV e a rota), não uma palavra que a direção veja. */
+        estado.textContent = 'A direção ainda não atribuiu nenhuma Turma a este professor — sem '
+          + 'Turma não há o que planejar.';
       } else if (CFG.ehPo && PLANOS.length === 0 && valor('professor')) {
         /* A REGRA DO PO, DITA. «O Plano de Observacao observa uma aula que tem plano» — e uma
          * regra que so se le numa lista vazia nao chega a quem esta a tentar criar. */
@@ -1098,12 +1101,12 @@ function scriptDoPainel(chave, escola) {
         + 'a ele.');
     }
     if (!CURADORIA_CARREGADA) {
-      return limparPorque('A carregar a curadoria deste professor…');
+      return limparPorque('A carregar as Turmas deste professor…');
     }
     var autorizadas = turmasDaCuradoria();
     if (!autorizadas || !Object.keys(autorizadas).length) {
       return limparPorque('A direção ainda não atribuiu nenhuma turma a este professor — é a '
-        + 'curadoria que autoriza o plano de ensino.');
+        + 'Turma que autoriza o plano de ensino.');
     }
     return pedir('/api/bastidores/turmas').then(function (r) {
       var lista = (r.dados && (r.dados.turmas || r.dados.lista)) || [];
@@ -1768,7 +1771,7 @@ function linhasDe(familia, registos, estados, turmasDaAluna, turmaDoPlano, deriv
                   : 'desligada — fora de todos os elencos')
                 : (estado.vinculada ? 'vinculada — um PO já a usa' : (estado.legado ? 'legado' : 'solta'))]],
               turma
-                ? 'A turma vem da linha de base enviada (Corpo → passo 5); sem ela, da curadoria.'
+                ? 'A turma vem da linha de base enviada (Corpo → passo 5); sem ela, da Turma.'
                 : (temLinhaDeBase
                   ? 'A linha de base existe e ainda não foi enviada para uma turma — é o passo 5 '
                     + 'que declara o elenco.'
