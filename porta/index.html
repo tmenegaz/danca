@@ -944,6 +944,17 @@ try{if(new URLSearchParams(location.search).get('abrir')==='1')document.document
        não se pode perder: «este navegador não está guardando» e «retomou um preenchimento
        de tal data». Nasce vazio e escondido: só aparece quando há o que dizer. -->
   <div id="aviso-do-ato" class="caixa nota oculto"></div>
+  <!-- O RECADO DA CURADORIA — e ele existia só no CÓDIGO (21/11/2026).
+   *
+   * `aplicarCuradoria` escreve aqui três frases diferentes desde 23/10/2026: «a direção ainda não
+   * curou», «a direção precisa curar antes de preencher o plano» e — desde hoje — «não consegui
+   * conferir». E o ELEMENTO NÃO EXISTIA na marcação: `getElementById` devolvia `null` nos três
+   * sítios, e o recado ia para o vazio em silêncio. Era por isso que a página travava o formulário
+   * sem dizer nada: o professor via-se devolvido à lista e sem uma palavra de explicação.
+   *
+   * A peça é a da casa (`.caixa.nota`), a mesma do `#aviso-do-ato` ao lado, e nasce escondida: só
+   * aparece quando há o que dizer. -->
+  <div id="aviso-curadoria" class="caixa nota oculto"></div>
   <!-- O RITMO DA CONDUÇÃO, dito UMA vez (18/10/2026). Ele estava por cima de todas as
        perguntas, a repetir a mesma frase trinta vezes: a regra do ato não muda de cartão
        para cartão, e a repetição era só altura a rolar. Aparece na primeira, onde se
@@ -1517,7 +1528,11 @@ async function carregarProfessores() {
  * curadas. A busca é por professor (slug) — e refaz quando o professor muda.
  */
 let CURADORIAS = [];            // as curadorias do professor selecionado ([] = nenhuma)
-let CURADORIA_CARREGADA = false; // a busca terminou (evita travar antes de carregar)
+let CURADORIA_CARREGADA = false; // a busca TERMINOU com resposta (evita travar antes de carregar)
+/* A LEITURA FALHOU — e é outra coisa que «não há» (21/11/2026). Guarda o motivo, e é `null`
+ * quando a resposta chegou. Sem esta distinção, uma falha de rede virava uma afirmação sobre a
+ * direção e trancava o formulário. */
+let CURADORIA_FALHOU = null;
 /* OS RÓTULOS DAS TRADIÇÕES (03/11/2026). O registo da curadoria guarda a CHAVE (`francesa`); o
  * ecrã mostra o rótulo que `tradicoes.json` declara (`Francesa`). O mapa vem na MESMA resposta da
  * curadoria — uma segunda rota para o mesmo ficheiro seria uma leitura a mais e uma cópia a
@@ -2492,19 +2507,40 @@ async function atualizarCuradoria() {
     aplicarCuradoria();
     return;
   }
+  /* «NÃO CONSEGUI OLHAR» NÃO É «NÃO HÁ» (21/11/2026) — e a diferença custava o formulário.
+   *
+   * O DEFEITO, medido na bancada. Uma leitura da curadoria que FALHA (rede, um 500, a cota do KV
+   * do dia, um prazo) caía no `catch`, deixava `CURADORIAS = []` e — a linha seguinte, sem
+   * condição — punha `CURADORIA_CARREGADA = true`. A partir dali a página afirmava duas coisas
+   * falsas de uma vez: «este professor ainda não tem curadoria atribuída pela direção», e, pela
+   * `podePreencher`, o formulário NÃO ABRIA — o arranque devolvia a pessoa à lista. Ela descreveu
+   * exactamente isto: «vim olhar o plano de observação e não abre o formulário».
+   *
+   * A REGRA É A QUE O SERVIDOR JÁ USA (`POST /api/elicitar`: «DEGRADA, NÃO REBENTA»): sem leitor,
+   * ou com o leitor a falhar, a rota segue — e o que não se faz é RECUSAR por não se ter podido
+   * olhar. A falha fica DECLARADA (`CURADORIA_FALHOU`) e dita em palavras: uma frase que diz que
+   * não foi possível conferir, com o gesto de tentar outra vez — e não uma frase que afirma um
+   * facto sobre a direção.
+   *
+   * `CURADORIA_CARREGADA` continua a significar UMA coisa só: «a resposta chegou». */
   try {
     const resposta = await fetch('/api/bastidores/curadoria-professor?professor=' + encodeURIComponent(slug));
+    if (!resposta.ok) throw new Error('o servidor respondeu ' + resposta.status);
     const dados = await resposta.json();
-    CURADORIAS = (resposta.ok && Array.isArray(dados.curadorias)) ? dados.curadorias : [];
+    if (!dados || !Array.isArray(dados.curadorias)) throw new Error('a resposta não traz a lista');
+    CURADORIAS = dados.curadorias;
+    CURADORIA_FALHOU = false;
     // OS RÓTULOS VÊM NA MESMA RESPOSTA (03/11/2026): o registo guarda a chave, o ecrã mostra o
     // rótulo do catálogo. Uma rota própria para o mesmo ficheiro seria uma leitura a mais.
-    ROTULOS_DE_TRADICAO = (resposta.ok && dados.rotulos && typeof dados.rotulos === 'object')
-      ? dados.rotulos : {};
+    ROTULOS_DE_TRADICAO = (dados.rotulos && typeof dados.rotulos === 'object') ? dados.rotulos : {};
+    CURADORIA_CARREGADA = true;
   } catch (erro) {
-    CURADORIAS = [];
-    ROTULOS_DE_TRADICAO = {};
+    /* A LISTA NÃO SE APAGA: se já havia uma lida nesta sessão, ela continua a valer — uma falha
+       de rede não é uma revogação de curadoria. O que fica é a MARCA de que esta tentativa falhou,
+       e é ela que a tela diz. */
+    CURADORIA_FALHOU = String((erro && erro.message) || erro || 'falha na leitura');
+    CURADORIA_CARREGADA = CURADORIAS.length > 0;
   }
-  CURADORIA_CARREGADA = true;
   aplicarCuradoria();
 }
 
@@ -2527,7 +2563,16 @@ function aplicarCuradoria() {
   // Quem recalcula a habilitação é `atualizarComecar` — inclusive no caso de o professor
   // TROCAR para alguém com curadoria, em que a trava precisa sair (antes ela ficava presa).
   if (FONTE === 'plano' || FONTE === 'po') {
-    if (semCuradoria) {
+    /* A FRASE DA FALHA VEM PRIMEIRO, e ela é diferente da frase da ausência (21/11/2026): uma
+     * diz «não consegui conferir, tente outra vez», a outra diz «a direção ainda não curou». Dizer
+     * a segunda quando aconteceu a primeira é atribuir à direção um problema da rede — e era isso
+     * que ela lia. */
+    if (CURADORIA_FALHOU && aviso) {
+      aviso.textContent = 'Não consegui conferir a curadoria deste professor agora (' +
+        CURADORIA_FALHOU + '). O que está na tela pode estar incompleto — recarregue a página ' +
+        'para tentar outra vez.';
+      aviso.classList.remove('oculto');
+    } else if (semCuradoria) {
       if (aviso) {
         aviso.textContent = 'Este professor ainda não tem curadoria atribuída pela direção — ' +
           'a direção precisa curar (modalidade, tradição, turma, repertório, alunas) antes de ' +

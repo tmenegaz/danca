@@ -1783,3 +1783,11 @@ experimentos/modelo-formulario/*
 # e a Aula 01 não se perde). Um Chrome abre a página de verdade com `?criar-aula=02` e confere
 # que a caixa abre com o marco e a data da linha. Com a regra desligada caem 8 das 38 asserções.
 !experimentos/provar-criar-aula.js
+# «NÃO CONSEGUI OLHAR» NÃO É «NÃO HÁ» (21/11/2026). Nona vez que a armadilha do `experimentos/*`
+# aparece: a prova nasceu ignorada, e este `!` é o que a traz para o repositório. Ela mede o
+# caminho pelo qual uma leitura da curadoria que FALHA fechava o formulário do Plano de Observação
+# — «vim olhar e não abre o formulário» — e a frase falsa sobre a direção que ela lia no lugar do
+# motivo. As três montagens (falha, ausência, sucesso) correm com o `<script>` real da porta num
+# DOM mínimo; o `--controle-negativo` corre as mesmas asserções contra a porta de `HEAD`, onde 6
+# de 15 caem. É citada no REGISTRO e no rodapé `Auditoria:` do commit.
+!experimentos/provar-curadoria-ilegivel.js
