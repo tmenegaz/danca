@@ -145,14 +145,14 @@
     {
       "ancora": {
         "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-20",
+        "ancorado_em": "2026-11-21",
         "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.fipp",
         "cobertura": [
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md"
         ],
-        "hash": "096c5617269940454a975879ad625e1ef3de8a30d8bccd890a157810df2fee8d",
-        "hash_conteudo": "f324599bad09d852287b3b9484fef7e0f9b2db1fee3e1df397a30270d1b730c9",
+        "hash": "4c54660dd6b51b7810853bf97f245a45fb3ff6ab624a38678b5f1dc35aa2a741",
+        "hash_conteudo": "ea5c86c36b66e8c2d5096fcb28b916ae6ac13f793bc77c3b1c7aa34d484898d5",
         "id": "ciclo-01-breu-rosa-aula-01",
         "lida": true,
         "parent_hash": ""
@@ -168,7 +168,7 @@
     {
       "ancora": {
         "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-20",
+        "ancorado_em": "2026-11-21",
         "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa.fipp",
         "cobertura": [
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
@@ -183,8 +183,8 @@
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
           "professores/demi-plie/ciclos/ciclo-01.conf"
         ],
-        "hash": "413ef2f069f3ef403f953a83323129dfc28ea7ad0ac95f6760f75b792c70b10c",
-        "hash_conteudo": "4ab3c992fd90397431ff5f885854bc0388b580478aaa14105b3e05ca887992d0",
+        "hash": "c4800f97983bbb699b6797337584a1d564009b605e2905c9535eaa8049ccd461",
+        "hash_conteudo": "76a0228a0e0faf8f624bed790e2c8abf9737d0a95b104dce25dfaea708be224e",
         "id": "ciclo-01-breu-rosa",
         "lida": true,
         "parent_hash": ""
@@ -193,14 +193,14 @@
         {
           "ancora": {
             "algoritmo": "SHA-256",
-            "ancorado_em": "2026-11-20",
+            "ancorado_em": "2026-11-21",
             "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.fipp",
             "cobertura": [
               "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
               "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md"
             ],
-            "hash": "096c5617269940454a975879ad625e1ef3de8a30d8bccd890a157810df2fee8d",
-            "hash_conteudo": "f324599bad09d852287b3b9484fef7e0f9b2db1fee3e1df397a30270d1b730c9",
+            "hash": "4c54660dd6b51b7810853bf97f245a45fb3ff6ab624a38678b5f1dc35aa2a741",
+            "hash_conteudo": "ea5c86c36b66e8c2d5096fcb28b916ae6ac13f793bc77c3b1c7aa34d484898d5",
             "id": "ciclo-01-breu-rosa-aula-01",
             "lida": true,
             "parent_hash": ""
@@ -867,9 +867,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "06ea6e5"
+    "commit": "bc8e88f"
   },
-  "gerado_em": "2026-11-20T23:52",
+  "gerado_em": "2026-11-21T03:34",
   "nao_indexado": [
     {
       "familia": "conteudo",
