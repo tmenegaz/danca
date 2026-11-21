@@ -29,15 +29,20 @@
  *      motivo), em vez de afirmar um facto sobre a direção;
  *   B. a leitura a responder «nenhuma curadoria» → a trava declarada continua a valer: o
  *      formulário não abre e a pessoa é devolvida à lista. A regra de 23/10 não se perdeu;
- *   C. a leitura a responder bem → nada é dito (o aviso fica escondido).
+ *   C. a leitura a responder bem → nada é dito (o aviso fica escondido);
+ *   D. o ATALHO que falha não devolve à lista em silêncio — a mensagem do `?ajustar=` vai para
+ *      o recado da página quando não há linha de estante para a receber, e a trava da entrada
+ *      deixa de mandar a pessoa embora sem uma palavra («eu clico em ajustar, ele não abre»).
  *
  * COMO É MEDIDO. O `<script>` REAL de `porta/index.html` (extraído na hora, como em
  * `provar-ajustes-anamnese.js`), num DOM mínimo que responde por qualquer id, com o `fetch`
  * roteirizado por caso. Sem rede, sem Chrome, sem KV.
  *
- * CONTROLE NEGATIVO (`--controle-negativo`): o `porta/index.html` de `HEAD`, com as mesmas três
- * montagens. Espera-se que REPROVE a A — é isso que diz que a prova mede o defeito e não a si
- * mesma.
+ * CONTROLE NEGATIVO (`--controle-negativo`): o `porta/index.html` de `HEAD`, com as mesmas
+ * montagens. Ele separa o que a entrega de hoje acrescenta: contra o `HEAD` de 21/11/2026 (que já
+ * traz a cura da curadoria, commitada antes) caem as DUAS asserções da secção D; a secção A foi
+ * medida contra o commit anterior a essa cura, onde caíam 6 de 15. Um controle que não separa
+ * nada não é um controle.
  *
  *   node experimentos/provar-curadoria-ilegivel.js [--controle-negativo]
  */
@@ -107,6 +112,11 @@ function montar(curadoria) {
   js += `
 globalThis.__porta = {
   atualizarCuradoria,
+  /* Os nomes que só existem na porta de hoje: no controle negativo, contra o HEAD, eles
+   * têm de faltar em vez de rebentar a montagem — é a asserção que os procura que cai. */
+  avisarNaFicha: typeof avisarNaFicha === 'undefined' ? undefined : avisarNaFicha,
+  avisarNaPagina: typeof avisarNaPagina === 'undefined' ? undefined : avisarNaPagina,
+  atalhoFalhado: () => (typeof AVISO_DO_ATALHO === 'undefined' ? '' : AVISO_DO_ATALHO),
   setCuradorias: (l) => { CURADORIAS = l; },
   curadorias: () => CURADORIAS.slice(),
   carregada: () => CURADORIA_CARREGADA,
@@ -151,7 +161,12 @@ globalThis.__porta = {
     },
     document: {
       getElementById: porId,
-      querySelector: (sel) => porId('sel:' + sel),
+      /* A ESTANTE NÃO EXISTE NESTA PÁGINA (26/10/2026) — e a bancada tem de o dizer.
+       * `[data-aviso="<id>"]` é uma LINHA da estante de fichas, que vivia nesta página e
+       * saiu; o formulário não tem nenhuma. Um `querySelector` que respondesse com um
+       * elemento falso mediria o caminho da estante em vez do caminho real — e foi
+       * exactamente esse `null` que matou as mensagens do `?ajustar=` em produção. */
+      querySelector: (sel) => (/^\[data-aviso=/.test(String(sel)) ? null : porId('sel:' + sel)),
       querySelectorAll: () => [],
       createElement: (tag) => criarElemento('novo', tag),
       addEventListener() {},
@@ -194,7 +209,8 @@ globalThis.__porta = {
   } catch (e) {
     return { erroDeSintaxe: String(e && e.message), porta: null, sandbox, destinos, pedidos };
   }
-  return { porta: sandbox.__porta, sandbox, destinos, pedidos, aviso: porId('aviso-curadoria') };
+  return { porta: sandbox.__porta, sandbox, destinos, pedidos, aviso: porId('aviso-curadoria'),
+    avisoDoAto: porId('aviso-do-ato') };
 }
 
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -274,6 +290,30 @@ const espera = (ms) => new Promise((r) => setTimeout(r, ms));
       provar('…e o aviso fica escondido',
         !m.aviso || m.aviso.classList.contains('oculto') || !String(m.aviso.textContent).trim(),
         m.aviso && m.aviso.textContent);
+    }
+  }
+
+  /* ----------------------------------------------------------------------------------------- */
+  console.log('\nD. O atalho que falha não devolve à lista em silêncio');
+  /* ----------------------------------------------------------------------------------------- */
+  {
+    /* O DEFEITO, na forma em que ela o descreveu: «eu clico em ajustar, ele não abre para mim».
+     * O `avisarNaFicha` escreve numa linha da ESTANTE (`[data-aviso="<id>"]`), que saiu desta
+     * página a 26/10 — no formulário o `querySelector` devolvia `null` e o `return` matava a
+     * mensagem. Sem mensagem, a trava da entrada encontrava o contexto vazio (o envelope não
+     * chegou) e chamava `voltarParaALista()`: a página ia embora sem uma palavra. */
+    const m = montar({ curadorias: [{ turmas: ['Rosa'] }] });
+    if (m.porta) {
+      const temRecado = typeof m.porta.avisarNaFicha === 'function';
+      provar('a página expõe o recado do atalho', temRecado);
+      if (temRecado) m.porta.avisarNaFicha('po-20261121-1120', 'Não consegui abrir — HTTP 404', 'erro');
+      provar('sem a linha da estante, a mensagem NÃO se perde — vai para o recado da página',
+        Boolean(m.avisoDoAto) && /HTTP 404/.test(String(m.avisoDoAto.textContent)),
+        m.avisoDoAto && m.avisoDoAto.textContent);
+      provar('…e a página fica sabendo que houve um atalho falhado',
+        /HTTP 404/.test(String(m.porta.atalhoFalhado())), m.porta.atalhoFalhado());
+      provar('…e o recado tem uma caixa visível na marcação', Boolean(m.avisoDoAto)
+        && !m.avisoDoAto.classList.contains('oculto'));
     }
   }
 

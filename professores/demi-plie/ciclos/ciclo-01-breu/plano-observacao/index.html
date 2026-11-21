@@ -8794,7 +8794,19 @@ function filtrarFichas() {
 /* O aviso por anamnese, na própria linha (a lista é o lugar do gesto). */
 function avisarNaFicha(id, texto, tipo) {
   const alvo = document.querySelector('[data-aviso="' + CSS.escape(id) + '"]');
-  if (!alvo) return;
+  /* A MENSAGEM NÃO PODE MORRER COM O ELEMENTO QUE A RECEBIA (21/11/2026).
+   *
+   * Este `return` é o silêncio que ela descreveu: «eu clico em ajustar, ele não abre para
+   * mim». O aviso por ficha nasceu para a ESTANTE, que tinha uma linha por registo — e a
+   * estante saiu desta página a 26/10, quando a lista passou a ser a Área do Professor. No
+   * formulário não existe `[data-aviso="<id>"]`, portanto `querySelector` devolvia `null`,
+   * o `return` saía, e TUDO o que o `?ajustar=` tinha para dizer — «HTTP 404», «o servidor
+   * recusou», «não encontrado» — ia para o vazio. A pessoa era devolvida à lista sem uma
+   * palavra, e o gesto parecia avariado sem dizer porquê.
+   *
+   * Agora a mensagem tem sempre um destino: a ficha quando ela existe; senão o recado da
+   * página (`#aviso-do-ato`), que é o único sítio de aviso que sobrou. */
+  if (!alvo) { avisarNaPagina(texto); return; }
   alvo.className = 'aviso-ficha ' + (tipo || '');
   // `escapar`, não `escap`: a função do arquivo chama-se `escapar`, e aqui estava o nome
   // de OUTRA casa — `escap` não existe em lado nenhum. Toda a chamada lançava
@@ -8802,6 +8814,30 @@ function avisarNaFicha(id, texto, tipo) {
   // da estante (a exclusão sem senha, o ajuste recusado, o erro do servidor) NÃO
   // apareciam, e a linha ficava muda a olhar para o professor. O erro só se via no console.
   alvo.innerHTML = escapar(texto);
+}
+
+/**
+ * O RECADO DO ATALHO QUE FALHOU (21/11/2026) — e é ele que impede a página de se ir embora.
+ *
+ * Quando o `?ajustar=` não consegue ler o envelope, o contexto do ato (escola, professor,
+ * ciclo) não chega a ser preenchido — e a trava da entrada, que corre DEPOIS do atalho,
+ * encontra a barra vazia e chama `voltarParaALista()`. O resultado é o pior possível: uma
+ * página que pisca, devolve a pessoa à lista e não diz nada. Duas causas diferentes («o
+ * ficheiro não veio» e «falta contexto») davam o mesmo sintoma mudo.
+ *
+ * A regra que fica: SE O ATALHO FOI PEDIDO E FALHOU, A PÁGINA FICA E DIZ PORQUÊ. Voltar à
+ * lista continua a ser o caminho certo quando o que falta é contexto que ninguém pediu —
+ * mas não quando o pedido trouxe a intenção e o que se perdeu foi a resposta.
+ */
+let AVISO_DO_ATALHO = '';
+
+function avisarNaPagina(texto) {
+  AVISO_DO_ATALHO = String(texto == null ? '' : texto);
+  const caixa = document.getElementById('aviso-do-ato');
+  if (!caixa) return;
+  caixa.textContent = AVISO_DO_ATALHO;
+  caixa.classList.remove('oculto');
+  if (typeof caixa.scrollIntoView === 'function') caixa.scrollIntoView({ block: 'nearest' });
 }
 
 /*
@@ -9026,7 +9062,8 @@ async function editarPlano(id) {
     // entrada — não no fim, depois de responder tudo.
     if (!SENHA_VALIDA) apontarSenhaFaltando();
   } catch (erro) {
-    avisarNaFicha(id, erro.message, 'erro');
+    avisarNaFicha(id, 'Não consegui abrir «' + id + '» para editar — ' + erro.message
+      + '. A página ficou aberta de propósito, para não devolver você à lista sem explicação.', 'erro');
   }
 }
 
@@ -9046,7 +9083,8 @@ async function derivarPlano(id) {
     ajustarSenhaDoPlano();   // derivar mostra a senha (ela decide a escrita)
     if (!SENHA_VALIDA) apontarSenhaFaltando();
   } catch (erro) {
-    avisarNaFicha(id, erro.message, 'erro');
+    avisarNaFicha(id, 'Não consegui abrir «' + id + '» para derivar — ' + erro.message
+      + '. A página ficou aberta de propósito, para não devolver você à lista sem explicação.', 'erro');
   }
 }
 
@@ -9083,7 +9121,8 @@ async function ajustarRegisto(id) {
     carregarPlanoNaConducao(envelope);
     ajustarSenhaDoPlano();   // ajustar escreve: a senha decide a gravação
   } catch (erro) {
-    avisarNaFicha(id, erro.message, 'erro');
+    avisarNaFicha(id, 'Não consegui abrir «' + id + '» para ajustar — ' + erro.message
+      + '. A página ficou aberta de propósito, para não devolver você à lista sem explicação.', 'erro');
   }
 }
 
@@ -9097,7 +9136,8 @@ async function editarPO(id) {
     MOTIVO_DERIVACAO = null;
     carregarPlanoNaConducao(envelope);
   } catch (erro) {
-    avisarNaFicha(id, erro.message, 'erro');
+    avisarNaFicha(id, 'Não consegui abrir «' + id + '» — ' + erro.message
+      + '. A página ficou aberta de propósito, para não devolver você à lista sem explicação.', 'erro');
   }
 }
 
@@ -9111,7 +9151,8 @@ async function derivarPO(id) {
     MOTIVO_DERIVACAO = null;
     carregarPlanoNaConducao(envelope);
   } catch (erro) {
-    avisarNaFicha(id, erro.message, 'erro');
+    avisarNaFicha(id, 'Não consegui abrir «' + id + '» — ' + erro.message
+      + '. A página ficou aberta de propósito, para não devolver você à lista sem explicação.', 'erro');
   }
 }
 
@@ -10286,6 +10327,12 @@ async function iniciar() {
    * abriu o formulário, não se abre outra vez — o `abrirFormulario` daqui reporia o nó 0 e
    * perderia o registo que se estava a editar. */
   if (!podePreencher(respostaPropria(guardado))) {
+    /* O ATALHO PEDIDO E FALHADO NÃO SE DEVOLVE À LISTA EM SILÊNCIO (21/11/2026). Se o
+     * `?ajustar=` trouxe a intenção e não trouxe a resposta, o contexto fica vazio e esta
+     * trava dispara — e a página ia embora sem dizer nada. Fica, e o recado já está escrito
+     * em `#aviso-do-ato` por `avisarNaFicha`. Voltar à lista continua a ser o certo quando
+     * não havia atalho nenhum: aí o que falta é contexto que ninguém pediu. */
+    if (AVISO_DO_ATALHO) return;
     voltarParaALista();
     return;
   }
