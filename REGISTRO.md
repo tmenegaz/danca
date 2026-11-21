@@ -57104,3 +57104,46 @@ agrupar por espaço. A estrutura de dados NÃO muda — cada célula continua a 
 **O que ainda não está feito.** Duas provas da família do lançamento continuam vermelhas e **já
 estavam antes desta mudança** (conferido em worktree): `provar-lancamento` e
 `provar-eixos-e-tempo-da-aula`.
+
+## 20/11/2026 — A folha impressa deixou de perguntar duas vezes
+
+**O que motivou.** A entrada anterior declarou o que faltava: «o formulário absorve a repetição; o
+papel não». A pesquisadora decidiu, e a resposta foi a mais forte das três: **juntar**.
+
+**O que foi decidido.** A fusão passou a ser feita **na fonte**, em `dimensoesEItens`
+(`motor/nucleo/derivar-ciclo.js`), e não só no formulário: `blocoDaDimensao` — a mesma função de
+`motor/nucleo/eixos.js` que o guia e a página já usam — reconhece que «Solo» e «Técnica — Solo» são
+o mesmo espaço, e as dimensões fundem-se pela ordem em que aparecem, somando os itens sem repetir.
+O rótulo que fica é o **do espaço, sem o prefixo do eixo**: «Barra», e não «Técnica — Barra». Não é
+cosmética — o prefixo é uma afirmação sobre o eixo, e a taxonomia diz que musicalidade e expressão
+**nunca** são técnica; um bloco que nascesse só do `itens-por-dimensao` ficaria a imprimir
+«Técnica — Expressão», que é falso e é o oposto do que o guia já corrigiu.
+
+O efeito, no ciclo da `breu`: a folha passou de **nove blocos para cinco** (Solo, Barra, Centro,
+Musicalidade, Expressão), e o formulário desenha exactamente a mesma coisa — o agrupamento que ele
+faz por espaço deixou de ter o que agrupar, e fica como rede de segurança.
+
+**O que foi preciso mexer, e porquê.** A declaração da captura
+(`ciclo-01-breu-rosa-captura-declaracao.json`) indexa as colunas **pelo título do bloco**, e os
+títulos mudaram. Ela foi fundida pela mesma regra — sem inventar chave nem tipo: cada coluna levou a
+chave e o tipo que já estavam declarados no bloco de onde veio. As cinco chaves dos critérios
+(`alinhamento_do_pe_de_apoio`, `saida_do_calcanhar_no_tendu`, …) continuam as mesmas, e é por isso
+que nada do que estava lançado se perde.
+
+**A folha foi re-derivada, e não reescrita à mão.** `tools/regerar-derivados.js` mostrou o que
+mudaria antes de gravar; a gravação foi feita só no ficheiro da captura, porque a `-aula-01.md`
+também mudaria — e mudaria por um motivo que **não** é este: o comando local não lê a curadoria (que
+vive no KV do Worker), e por isso não encontra a linha de base «enviada para esta turma». Regravá-la
+apagaria o guia de observação do corpo, que é conteúdo real. Fica dito: **a aula 01 precisa de ser
+re-derivada quando o caminho local souber ler o vínculo do elenco.**
+
+**A âncora foi regerada** (`hash-ciclo.sh demi-plie 01 breu-rosa`), como manda a regra: a folha é
+fonte coberta pelo `.fipp`. `--check` confirma a cadeia íntegra, e o pacote foi regerado depois.
+
+**Onde entrou.** `motor/nucleo/derivar-ciclo.js` (`dimensoesEItens`), a declaração da captura, a
+folha `-captura-aula-01.md`, as duas âncoras (`-aula-01.fipp` e `-breu-rosa.fipp`), o pacote
+regerado e `experimentos/provar-formulario-da-aula.js` (uma asserção que fixava «2 colunas» no bloco
+do espaço passa a contar as do config; 53/53).
+
+**O que ainda não está feito.** A `-aula-01.md` continua com as linhas de técnica repetidas na §5 —
+ela melhora com a mesma fusão, mas só quando for re-derivada com o elenco certo (ver acima).

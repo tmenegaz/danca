@@ -2002,10 +2002,48 @@ function dimensoesEItens(po, plano) {
   for (const d of porDimensao.keys()) {
     if (!vistas.has(d)) { vistas.add(d); todas.push(d); }
   }
+
+  /* UM BLOCO POR ESPAÇO — A FOLHA DEIXA DE PERGUNTAR DUAS VEZES (20/11/2026).
+   *
+   * O DEFEITO, medido na `breu`. O PO grava dois recortes que descrevem o MESMO espaço: as
+   * dimensões que o professor declarou (`dimensoes-de-observacao` → «Solo», «Barra»…) e os itens
+   * que ele escreveu, com o eixo colado ao nome (`itens-por-dimensao` → «Técnica — Solo»,
+   * «Técnica — Barra»…). A união dava NOVE blocos para CINCO espaços, e `itensComObjetivos` põe os
+   * objetivos do plano à frente de cada um: a folha impressa pedia ao professor que marcasse o
+   * mesmo objetivo em «Bloco 1 — Solo» e outra vez em «Bloco 5 — Técnica — Solo».
+   *
+   * `blocoDaDimensao` (motor/nucleo/eixos.js) é quem sabe que os dois nomes são o mesmo espaço —
+   * é a mesma regra que o guia de observação e o formulário já usam. Fundir aqui, na FONTE, faz a
+   * correcção valer para os três de uma vez: a folha impressa, o config da captura e o formulário.
+   *
+   * O NOME QUE FICA é o do primeiro que aparece — e o primeiro é o das dimensões declaradas, que é
+   * o nome sem prefixo («Solo», e não «Técnica — Solo»): é o que o professor escolheu no recorte.
+   * Os itens somam-se sem repetir, comparados pela mesma chave de `itensComObjetivos`. */
+  const chaveDoItem = (t) => String(t || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  const porBloco = new Map();
+  const fundidas = [];
+  for (const nome of todas) {
+    /* O RÓTULO É O DO ESPAÇO, SEM O PREFIXO DO EIXO — «Barra», e não «Técnica — Barra».
+     *
+     * Não é cosmética: o prefixo é uma afirmação sobre o eixo, e a taxonomia diz que musicalidade
+     * e expressão NUNCA são técnica. Um bloco que nasceu só do `itens-por-dimensao` (sem a
+     * dimensão declarada) ficaria a imprimir «Técnica — Expressão» — falso, e o oposto do que o
+     * guia de observação já corrigiu. O nome do espaço é o que os dois recortes têm em comum. */
+    const espaco = eixosDaDanca.blocoDaDimensao(nome) || nome;
+    const chave = eixosDaDanca.semAcento(espaco);
+    if (!porBloco.has(chave)) {
+      porBloco.set(chave, fundidas.length);
+      fundidas.push({ dimensao: espaco, itens: [] });
+    }
+    const alvo = fundidas[porBloco.get(chave)];
+    for (const item of (porDimensao.get(nome) || [])) {
+      if (!alvo.itens.some((x) => chaveDoItem(x) === chaveDoItem(item))) alvo.itens.push(item);
+    }
+  }
   /* OS OBJETIVOS DO PLANO SÃO CRITÉRIOS (06/11/2026) — o híbrido da §5.15. Entram à frente do
    * que o professor escreveu, e não se duplicam. Sem plano (uma bancada, uma chamada antiga), a
    * lista é a que o PO tem: a função não inventa e não parte. */
-  return itensComObjetivos(todas.map((d) => ({ dimensao: d, itens: porDimensao.get(d) || [] })), plano);
+  return itensComObjetivos(fundidas, plano);
 }
 
 /**

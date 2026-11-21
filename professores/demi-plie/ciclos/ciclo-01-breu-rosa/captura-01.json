@@ -1,5 +1,5 @@
 {
-  "escola": "Breu",
+  "escola": "breu",
   "ciclo": "01",
   "aula": "01",
   "folha": "ciclo-01-breu-rosa-captura-aula-01.md",
@@ -45,93 +45,6 @@
           "rotulo": "sustentar a transferência com musicalidade e controle do movimento",
           "chave": "sustentar_a_transferencia_com_musicalidade_e_controle_do_movimento",
           "tipo": "rubrica"
-        }
-      ],
-      "linhas": [
-        "Aluna A",
-        "Aluna B"
-      ]
-    },
-    {
-      "titulo": "Bloco 2 — Barra",
-      "tipo": "tabela",
-      "chave": "barra",
-      "rotulo": "Barra",
-      "grao": "aluna",
-      "colunas": [
-        {
-          "rotulo": "reconhecer o apoio e alinhar o eixo vertical",
-          "chave": "reconhecer_o_apoio_e_alinhar_o_eixo_vertical",
-          "tipo": "rubrica"
-        },
-        {
-          "rotulo": "transferir o peso entre os pés sem perder o alinhamento",
-          "chave": "transferir_o_peso_entre_os_pes_sem_perder_o_alinhamento",
-          "tipo": "rubrica"
-        }
-      ],
-      "linhas": [
-        "Aluna A",
-        "Aluna B"
-      ]
-    },
-    {
-      "titulo": "Bloco 3 — Centro",
-      "tipo": "tabela",
-      "chave": "centro",
-      "rotulo": "Centro",
-      "grao": "aluna",
-      "colunas": [
-        {
-          "rotulo": "transferir o peso entre os pés sem perder o alinhamento",
-          "chave": "transferir_o_peso_entre_os_pes_sem_perder_o_alinhamento",
-          "tipo": "rubrica"
-        },
-        {
-          "rotulo": "sustentar a transferência com musicalidade e controle do movimento",
-          "chave": "sustentar_a_transferencia_com_musicalidade_e_controle_do_movimento",
-          "tipo": "rubrica"
-        }
-      ],
-      "linhas": [
-        "Aluna A",
-        "Aluna B"
-      ]
-    },
-    {
-      "titulo": "Bloco 4 — Musicalidade",
-      "tipo": "tabela",
-      "chave": "musicalidade",
-      "rotulo": "Musicalidade",
-      "grao": "aluna",
-      "colunas": [
-        {
-          "rotulo": "sustentar a transferência com musicalidade e controle do movimento",
-          "chave": "sustentar_a_transferencia_com_musicalidade_e_controle_do_movimento",
-          "tipo": "rubrica"
-        }
-      ],
-      "linhas": [
-        "Aluna A",
-        "Aluna B"
-      ]
-    },
-    {
-      "titulo": "Bloco 5 — Técnica — Solo",
-      "tipo": "tabela",
-      "chave": "tecnica_solo",
-      "rotulo": "Técnica — Solo",
-      "grao": "aluna",
-      "colunas": [
-        {
-          "rotulo": "reconhecer o apoio e alinhar o eixo vertical",
-          "chave": "reconhecer_o_apoio_e_alinhar_o_eixo_vertical",
-          "tipo": "rubrica"
-        },
-        {
-          "rotulo": "sustentar a transferência com musicalidade e controle do movimento",
-          "chave": "sustentar_a_transferencia_com_musicalidade_e_controle_do_movimento",
-          "tipo": "rubrica"
         },
         {
           "rotulo": "alinhamento do pé de apoio",
@@ -150,10 +63,10 @@
       ]
     },
     {
-      "titulo": "Bloco 6 — Técnica — Barra",
+      "titulo": "Bloco 2 — Barra",
       "tipo": "tabela",
-      "chave": "tecnica_barra",
-      "rotulo": "Técnica — Barra",
+      "chave": "barra",
+      "rotulo": "Barra",
       "grao": "aluna",
       "colunas": [
         {
@@ -183,10 +96,10 @@
       ]
     },
     {
-      "titulo": "Bloco 7 — Técnica — Centro",
+      "titulo": "Bloco 3 — Centro",
       "tipo": "tabela",
-      "chave": "tecnica_centro",
-      "rotulo": "Técnica — Centro",
+      "chave": "centro",
+      "rotulo": "Centro",
       "grao": "aluna",
       "colunas": [
         {
@@ -216,10 +129,10 @@
       ]
     },
     {
-      "titulo": "Bloco 8 — Técnica — Musicalidade",
+      "titulo": "Bloco 4 — Musicalidade",
       "tipo": "tabela",
-      "chave": "tecnica_musicalidade",
-      "rotulo": "Técnica — Musicalidade",
+      "chave": "musicalidade",
+      "rotulo": "Musicalidade",
       "grao": "aluna",
       "colunas": [
         {
@@ -244,10 +157,10 @@
       ]
     },
     {
-      "titulo": "Bloco 9 — Técnica — Expressão",
+      "titulo": "Bloco 5 — Expressão",
       "tipo": "tabela",
-      "chave": "tecnica_expressao",
-      "rotulo": "Técnica — Expressão",
+      "chave": "expressao",
+      "rotulo": "Expressão",
       "grao": "aluna",
       "colunas": [
         {

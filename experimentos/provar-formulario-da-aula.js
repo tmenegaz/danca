@@ -196,6 +196,9 @@ function servir() {
 (async () => {
   /* Os números que o fecho imprime — medidos, não escritos. */
   const medido = {};
+  /* O config da aula da prova: o que o índice do ciclo nomeia (`aulas[].config`), o MESMO arquivo
+   * que a página carrega. Preenchido na secção A e usado também na D. */
+  const CONFIG = {};
   const { srv, base } = await servir();
   const navegador = await puppeteer.launch({
     executablePath: executavel,
@@ -286,7 +289,7 @@ function servir() {
        * (`motor/nucleo/eixos.js`, o módulo que a página também usa), e cada coluna é um item. */
       const configNome = ((ciclo.aulas || []).find((a) => String(a.n) === String(aulaDaProva.n)) || {}).config
         || ('captura-aula-' + aulaDaProva.n + '.json');
-      const CONFIG = JSON.parse(fs.readFileSync(path.join(ABS, configNome), 'utf8'));
+      Object.assign(CONFIG, JSON.parse(fs.readFileSync(path.join(ABS, configNome), 'utf8')));
       /* OS ITENS DO CORPO, que vêm do PO e não da folha (ver o `continue` dos `secoes`, abaixo). */
       const doPo = corpoItens.map(chaveDoItem);
 
@@ -538,10 +541,15 @@ function servir() {
         !!(base && base.aluna_a[0] && base.aluna_a[0].marca === 'ok'
           && base.aluna_a[1] && base.aluna_a[1].marca === 'parcial'),
         base && base.aluna_a && base.aluna_a.slice(0, 2));
-      provar('os blocos da técnica continuam por aluna e por espaço',
+      /* O BLOCO DO ESPAÇO GRAVA TODAS AS COLUNAS DELE — e o número sai do config, não de um
+       * literal. Era `=== 2`, a conta de quando o espaço tinha só os dois objetivos do plano; a
+       * folha fundida põe também os critérios que o professor escreveu (4 em Solo, na `breu`). */
+      const colunasDoSolo = ((CONFIG.blocos || []).find((b) => b.chave === 'solo') || { colunas: [] }).colunas;
+      provar('os blocos do espaço continuam por aluna, com uma marca por coluna',
         !!(payload.aula.solo && payload.aula.solo.aluna_a
-          && Object.keys(payload.aula.solo.aluna_a).length === 2),
-        payload.aula.solo && Object.keys(payload.aula.solo.aluna_a || {}));
+          && Object.keys(payload.aula.solo.aluna_a).length === colunasDoSolo.length),
+        { gravadas: payload.aula.solo && Object.keys(payload.aula.solo.aluna_a || {}),
+          noConfig: colunasDoSolo.length });
       provar('o bloco `observado` (sem aluna) deixou de ser escrito',
         payload.aula.observado === undefined, Object.keys(payload.aula));
       provar('o plano seguido saiu do rádio, e o texto foi para `mudou`',

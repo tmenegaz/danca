@@ -3,7 +3,7 @@ projeto: Formação em Balé Clássico
 frente: Captura
 ciclo: "01"
 aula: "01"
-escola: "Breu"
+escola: "breu"
 title: "Captura em aula — Aula 01 — para impressão"
 subtitle: "Folha de marcação para uso durante a aula"
 ---
@@ -25,34 +25,6 @@ subtitle: "Folha de marcação para uso durante a aula"
 
 ## Bloco 1 — Solo
 
-| Aluna(o) | reconhecer o apoio e alinhar o eixo vertical | sustentar a transferência com musicalidade e controle do movimento |
-|:--|:--:|:--:|
-| Aluna A |   |   |
-| Aluna B |   |   |
-
-## Bloco 2 — Barra
-
-| Aluna(o) | reconhecer o apoio e alinhar o eixo vertical | transferir o peso entre os pés sem perder o alinhamento |
-|:--|:--:|:--:|
-| Aluna A |   |   |
-| Aluna B |   |   |
-
-## Bloco 3 — Centro
-
-| Aluna(o) | transferir o peso entre os pés sem perder o alinhamento | sustentar a transferência com musicalidade e controle do movimento |
-|:--|:--:|:--:|
-| Aluna A |   |   |
-| Aluna B |   |   |
-
-## Bloco 4 — Musicalidade
-
-| Aluna(o) | sustentar a transferência com musicalidade e controle do movimento |
-|:--|:--:|
-| Aluna A |   |
-| Aluna B |   |
-
-## Bloco 5 — Técnica — Solo
-
 | Critério | Aluna A | Aluna B |
 |:--|:--:|:--:|
 | reconhecer o apoio e alinhar o eixo vertical |   |   |
@@ -60,7 +32,7 @@ subtitle: "Folha de marcação para uso durante a aula"
 | alinhamento do pé de apoio |   |   |
 | eixo do corpo na preparação |   |   |
 
-## Bloco 6 — Técnica — Barra
+## Bloco 2 — Barra
 
 | Critério | Aluna A | Aluna B |
 |:--|:--:|:--:|
@@ -69,7 +41,7 @@ subtitle: "Folha de marcação para uso durante a aula"
 | saída do calcanhar no tendu |   |   |
 | quadril sem subir no en dehors |   |   |
 
-## Bloco 7 — Técnica — Centro
+## Bloco 3 — Centro
 
 | Critério | Aluna A | Aluna B |
 |:--|:--:|:--:|
@@ -78,7 +50,7 @@ subtitle: "Folha de marcação para uso durante a aula"
 | transferência de peso sem perder a verticalidade |   |   |
 | braço junto do movimento |   |   |
 
-## Bloco 8 — Técnica — Musicalidade
+## Bloco 4 — Musicalidade
 
 | Critério | Aluna A | Aluna B |
 |:--|:--:|:--:|
@@ -86,7 +58,7 @@ subtitle: "Folha de marcação para uso durante a aula"
 | resposta ao pulso na marcação |   |   |
 | frase até o fim da música |   |   |
 
-## Bloco 9 — Técnica — Expressão
+## Bloco 5 — Expressão
 
 | Aluna(o) | olhar acompanha o braço | presença sem rigidez de rosto |
 |:--|:--:|:--:|

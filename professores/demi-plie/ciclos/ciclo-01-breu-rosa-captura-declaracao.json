@@ -13,62 +13,6 @@
         "sustentar a transferência com musicalidade e controle do movimento": {
           "chave": "sustentar_a_transferencia_com_musicalidade_e_controle_do_movimento",
           "tipo": "rubrica"
-        }
-      }
-    },
-    "Bloco 2 — Barra": {
-      "chave": "barra",
-      "rotulo": "Barra",
-      "grao": "aluna",
-      "colunas": {
-        "reconhecer o apoio e alinhar o eixo vertical": {
-          "chave": "reconhecer_o_apoio_e_alinhar_o_eixo_vertical",
-          "tipo": "rubrica"
-        },
-        "transferir o peso entre os pés sem perder o alinhamento": {
-          "chave": "transferir_o_peso_entre_os_pes_sem_perder_o_alinhamento",
-          "tipo": "rubrica"
-        }
-      }
-    },
-    "Bloco 3 — Centro": {
-      "chave": "centro",
-      "rotulo": "Centro",
-      "grao": "aluna",
-      "colunas": {
-        "transferir o peso entre os pés sem perder o alinhamento": {
-          "chave": "transferir_o_peso_entre_os_pes_sem_perder_o_alinhamento",
-          "tipo": "rubrica"
-        },
-        "sustentar a transferência com musicalidade e controle do movimento": {
-          "chave": "sustentar_a_transferencia_com_musicalidade_e_controle_do_movimento",
-          "tipo": "rubrica"
-        }
-      }
-    },
-    "Bloco 4 — Musicalidade": {
-      "chave": "musicalidade",
-      "rotulo": "Musicalidade",
-      "grao": "aluna",
-      "colunas": {
-        "sustentar a transferência com musicalidade e controle do movimento": {
-          "chave": "sustentar_a_transferencia_com_musicalidade_e_controle_do_movimento",
-          "tipo": "rubrica"
-        }
-      }
-    },
-    "Bloco 5 — Técnica — Solo": {
-      "chave": "tecnica_solo",
-      "rotulo": "Técnica — Solo",
-      "grao": "aluna",
-      "colunas": {
-        "reconhecer o apoio e alinhar o eixo vertical": {
-          "chave": "reconhecer_o_apoio_e_alinhar_o_eixo_vertical",
-          "tipo": "rubrica"
-        },
-        "sustentar a transferência com musicalidade e controle do movimento": {
-          "chave": "sustentar_a_transferencia_com_musicalidade_e_controle_do_movimento",
-          "tipo": "rubrica"
         },
         "alinhamento do pé de apoio": {
           "chave": "alinhamento_do_pe_de_apoio",
@@ -80,9 +24,9 @@
         }
       }
     },
-    "Bloco 6 — Técnica — Barra": {
-      "chave": "tecnica_barra",
-      "rotulo": "Técnica — Barra",
+    "Bloco 2 — Barra": {
+      "chave": "barra",
+      "rotulo": "Barra",
       "grao": "aluna",
       "colunas": {
         "reconhecer o apoio e alinhar o eixo vertical": {
@@ -103,9 +47,9 @@
         }
       }
     },
-    "Bloco 7 — Técnica — Centro": {
-      "chave": "tecnica_centro",
-      "rotulo": "Técnica — Centro",
+    "Bloco 3 — Centro": {
+      "chave": "centro",
+      "rotulo": "Centro",
       "grao": "aluna",
       "colunas": {
         "transferir o peso entre os pés sem perder o alinhamento": {
@@ -126,9 +70,9 @@
         }
       }
     },
-    "Bloco 8 — Técnica — Musicalidade": {
-      "chave": "tecnica_musicalidade",
-      "rotulo": "Técnica — Musicalidade",
+    "Bloco 4 — Musicalidade": {
+      "chave": "musicalidade",
+      "rotulo": "Musicalidade",
       "grao": "aluna",
       "colunas": {
         "sustentar a transferência com musicalidade e controle do movimento": {
@@ -145,9 +89,9 @@
         }
       }
     },
-    "Bloco 9 — Técnica — Expressão": {
-      "chave": "tecnica_expressao",
-      "rotulo": "Técnica — Expressão",
+    "Bloco 5 — Expressão": {
+      "chave": "expressao",
+      "rotulo": "Expressão",
       "grao": "aluna",
       "colunas": {
         "olhar acompanha o braço": {
