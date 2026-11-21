@@ -10,9 +10,9 @@ type: Ciclo
 professor: demi-plie
 ciclo: 01
 variante: breu-rosa
-hash_conteudo: 20d7552d94eaabd18505e3b9306fbe80fe6f102a3a3fb3d82035b4d6caf3e9b8
+hash_conteudo: ec4263645d58331dd18a4de04982e6d797dc47e6ea062c238800f35045cd160d
 parentHash: 
-hash: b1202f11ec4f5025efbe1708ce6a1b031b210bdb9933eb46c6b05b5a1539b53c
+hash: 5b119028504e5781d49433d6b283b8c6efe27563129605a65093f83ad6e0c2aa
 algoritmo: SHA-256
 po: professores/demi-plie/ciclos/ciclo-01-breu-rosa-po.md
 po_state: Input_PO_Validado
@@ -25,7 +25,9 @@ notacao_sha: 7f2f0c56435f5ed22c568fc5f88ae88ce9a3d2b9d158b9ed04f4b6c1d944b5f0
 notacao_vocabulario_sha: e061d8d48f595ca5c2d714cf948af9d11b02ab7f245394b15129fd8c865e8d0c
 cobertura:
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md
+  - professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-02.md
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md
+  - professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-02.md
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa-dados.json
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa-glossario-codigo_de_danca.md
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa-harmonizacao.md

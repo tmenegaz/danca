@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-21T09:57:35-0300`
-Commit atual: `31648367` — docs(estrutura): a sonda ao vivo que confirma a aula, sem escrever nada
+Gerado em: `2026-11-21T11:38:49-0300`
+Commit atual: `ceeddca5` — chore(estrutura): fechar os derivados — âncoras e índices
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,13 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+ceeddca5 chore(estrutura): fechar os derivados — âncoras e índices
+4600c998 feat(acervo): envelope/po-20261121-1120.json
+ac7f39c2 feat(acervo): envelope/.indice.json
+f23ac5c9 feat(plano): o plano elicitado vira a fonte do ciclo
+734b29bb feat(acervo): envelope/plano-20261121-1120.json
+47f2b63d feat(acervo): envelope/.indice.json
+4ab69c7b chore(estrutura): o HANDOFF aponta para o commit de hoje
 31648367 docs(estrutura): a sonda ao vivo que confirma a aula, sem escrever nada
 a4c004d7 fix(estrutura): a aula que se cria passa a existir — e o gesto deixa de mentir
 54be1100 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
@@ -95,13 +102,6 @@ e02b9430 feat(acervo): envelope/.indice.json
 8d27c001 chore(estrutura): o HANDOFF aponta para o commit de hoje
 1a9baf5b docs(estrutura): a conferência ao vivo do caminho da porta, medida
 3d11d8e7 fix(estrutura): a coluna nomeia o que entrega, e a janela usa as peças da folha
-030ef48c feat(estrutura): a aula nasce do calendário do plano
-a37d426a feat(estrutura): o derivador escreve a aula que lhe pedem, e não sempre a primeira
-3c7de1d0 fix(estrutura): a aula que já foi dada não se reescreve por uma regeneração
-76ec0674 chore(estrutura): fechar os derivados — âncoras e índices
-bc8e88fd fix(estrutura): a folha impressa deixa de perguntar duas vezes o mesmo item
-ef747d64 fix(estrutura): a matriz do formulário pergunta uma vez por par, com uma regra só
-4a38efc2 fix(estrutura): «curadoria» sai de toda a tela, tooltips incluídos
 ```
 
 ## Por professor
@@ -128,7 +128,7 @@ ef747d64 fix(estrutura): a matriz do formulário pergunta uma vez por par, com u
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `59b86b60252a` | (vazio) | — |
-| breu-rosa | ciclo-01-breu-rosa.fipp | `a35f32541b99` | (vazio) | Input_PO_Validado |
+| breu-rosa | ciclo-01-breu-rosa.fipp | `5b119028504e` | (vazio) | Input_PO_Validado |
 
 ### fernando-franciose — 0 ciclo(s)
 
@@ -195,71 +195,92 @@ ef747d64 fix(estrutura): a matriz do formulário pergunta uma vez por par, com u
 
 ## Última entrada do REGISTRO
 
-## 21/11/2026 — A aula 02 que ela criou e não existia
+## 21/11/2026 — A Aula 02 existe de facto: a regra que cresce o manifesto era três, e uma não crescia
 
-**O que motivou.** Ela usou a janela de criar a aula. Leitor da tela: «Eu usei o modal para criar
-a aula e aí eu não sei se criou porque apareceu uma mensagem que diz que só vai estar disponível
-quando o ciclo se completar.» Depois foi à lista de Aulas: «procurei ali o acesso para a aula dois
-e não encontrei, não está disponível. […] eu não sei se deu certo.» E pediu a explicação: «me
-explica para onde foi a aula dois porque eu não a encontrei.»
+**O que motivou.** Ela clicou no botão, o modal e o véu funcionaram, ela viu o workflow correr —
+«eu vi no workflow que rodou o PO» — e a Aula 02 não apareceu: «na coluna de ação das aulas, a
+aula dois ainda está com o botão criar aula, ele não se transformou em abrir. E lá em aulas também
+eu não tenho como acessar a aula dois.» E: «me explica para onde foi a aula dois porque eu não a
+encontrei.»
 
-**A aula não foi para lado nenhum: ela nunca foi criada.** O carimbo do clique é o envelope
-`plano-20261121-0933`, e ele tem `aula-de-cada-objetivo` a apontar o objetivo 2 — e **nem**
-`aula-2-parametro` **nem** `aula-2-sequencia`. O `motivo` dele é o certo («a aula 02 foi criada a
-partir do calendário do plano»), o `ajuste_de` também. Ou seja: o pedido chegou inteiro e foi o
-**motor** que o esvaziou.
+**A aula tinha sido criada, e desta vez o motor gravou-a.** O envelope `plano-20261121-1120` — o
+carimbo daquele clique — tem `ajuste_de` a apontar o anterior, o `motivo` certo e, dentro das
+respostas, **`aula-2-parametro` e `aula-2-sequencia`**. A correção da véspera (a família da chave)
+funcionou. O que faltava era **três passos à frente**.
 
-**A causa, e é de desenho.** A elicitação guarda as respostas cujo `id` o **conteúdo** declara
-(`prepararRespostas`, em `motor/nucleo/elicitar.js`), e o conteúdo do plano declara **uma** aula —
-o bloco «A Aula 1», com `aula-1-parametro` e `aula-1-sequencia` (`porta/plano/conteudo/plano.json`,
-bloco 5). As respostas da Aula 02 chegavam, não estavam na lista, e eram DESCARTADAS. O descarte
-era relatado (`idsDesconhecidos`) e ninguém o lia. Sem `aula-2-sequencia`, a regra que faz a aula
-existir (`aulasDeclaradasPeloPlano`) diz que a aula não existe; o `DOCS` do manifesto não cresce;
-o derivador não escreve `-aula-02.md`; o gerador não publica `aula-02.html`; a lista de Aulas não a
-mostra. **Cinco passos a jusante a comportarem-se corretamente perante um dado que faltava** — e a
-tela a dizer «gravado, está a ser gerada».
+**A causa, e é a terceira cópia da mesma regra.** O `DOCS` do manifesto — a lista de documentos que
+o gerador publica — cresce com as aulas que o plano declara, e essa conta estava escrita **três
+vezes**:
+
+| caminho | crescia? |
+|:--|:--|
+| `escrever-plano.js` → `atualizarManifesto` (sem turma) | sim |
+| `escrever-ciclo.js` → passo 4 | sim, com a conta à mão |
+| `compor-conf.js` → `comporManifestoDaTurma` (**com** turma) | **não** — preservava o `DOCS` como estava |
+
+O terceiro é o caminho **normal** de uma escola com a turma cadastrada, e foi o que correu. Sem
+`aula-02` no `DOCS`: o derivador não escreve `-aula-02.md`, o gerador não publica `aula-02.html`, a
+lista de Aulas não a mostra, e a coluna «Ação» continua a oferecer «Criar aula» para uma aula que
+existe no acervo. **Cinco passos a jusante outra vez, e outra vez a comportarem-se bem perante um
+dado que faltava.**
 
 **O que foi decidido.**
 
-1. **O conteúdo declara a FAMÍLIA; o número é dado.** `lerChaveDaAula` lê de volta
-   `aula-N-<parametro|sequencia|objetivo>`, e `prepararRespostas` aceita o id quando ele pertence à
-   família **e** o número cabe no `contexto-total-aulas` do próprio plano. O tecto não é zelo: sem
-   ele, `aula-99-sequencia` entraria num ciclo de quinze. E o que fica de fora continua a ser
-   RELATADO — o silêncio é que não pode voltar. A família só abre para o `plano`, que é o único
-   documento com aulas por número.
-2. **A tela passou a conferir.** O servidor já devolvia `idsDesconhecidos`; a página ignorava-o e
-   dizia «gravada». Agora, se a chave da aula estiver entre os descartados, ela diz o contrário:
-   que a aula NÃO foi criada, que nada foi gerado, e que o defeito é do sistema.
-3. **O botão diz o gesto.** «Criar e gerar» — «confuso esses dois nomes para um usuário comum que
-   não é de tecnologia. Então coloca apenas criar aula, o botão se chama criar, só isso». Passou a
-   **«Criar»**.
-4. **O véu.** «E aí eu senti falta do véu. Aí no véu você pode colocar criar aula, gerar aula,
-   enfim, o texto do processo que está acontecendo.» Usa-se o véu **da casa**
-   (`.veu-de-operacao`, montado pelo `nav.js` em todas as páginas, acendido por
-   `LastroDaOperacao.ocupar`) — o mesmo de todos os gestos, e não um segundo.
-5. **O «Cancelar» vira «Fechar».** «Não dá para ser cancelar porque parece que vai cancelar o
-   processo, então fica confuso para o professor.» Depois de o pedido partir, o botão de criar fica
-   desabilitado e o outro muda de nome; a janela fecha-se sozinha quando a resposta chega, e o
-   desfecho fica no véu uns segundos.
+1. **A regra é uma só** — `docsComAsAulas(docs, plano)` em `motor/nucleo/aulas-do-ciclo.js` — e os
+   **três** caminhos chamam-na. Três cópias divergem na primeira correção; foi o que aconteceu.
+2. **A lista só cresce**, nunca perde uma entrada que alguém lá pôs.
+3. **A família é reposta em ordem numérica**: `aula-01, captura-aula-01, aula-02, captura-aula-02`.
+   Inserir «antes da primeira captura que já exista» dava `aula-01 aula-02 captura-aula-02
+   captura-aula-01` — funcional e ilegível, com a captura da 01 a fechar a família da 02.
+4. **Uma aula acima do `contexto-total-aulas` não entra.** A família não é um passe livre.
+5. **O manifesto dela foi regerado pela mesma regra**, a partir do envelope vigente — não editado à
+   mão —, e as fontes `-aula-02.md` e `-captura-aula-02.md` foram derivadas por
+   `tools/regerar-derivados.js`.
 
-**Onde entrou.** `motor/nucleo/aulas-do-ciclo.js` (`lerChaveDaAula`, `CAMPOS_DA_AULA`),
-`motor/nucleo/elicitar.js` (`prepararRespostas` com a família, `aulasDoCiclo`, o `familiaDaAula`
-só para o plano), `motor/nucleo/derivar-plano-ciclo.js` (o guionista: «Criar», o véu, `mandado()`,
-o «Fechar», a leitura de `idsDesconhecidos`), `experimentos/provar-criar-aula.js` (a secção B2 e as
-asserções do gesto).
+**A paginação, no mesmo dia, e é outro pedido.** «Aqui a gente tem 15 aulas, né? E não colocamos
+aqui o que está no nossa identidade visual, que é a paginação. […] o ciclo e os planos já nascem com
+a paginação. A anamnese também tem que nascer com paginação, plano de ensino também, plano de
+observação também, as aulas também e as aulas dadas também têm que nascer com paginação. Eu acho que
+tem uma regra que a paginação só vai aparecer a partir de uma determinada pilha.»
 
-**Prova.** `provar-criar-aula` **52/52**, e a mutação é medida dentro da própria prova: com a
-família desligada — o estado de ontem — a resposta cai, a aula 02 deixa de existir e o id aparece
-na lista de desconhecidos; **3 das 52** caem. `provar-formulario-da-aula` 53, `provar-geracao` 54,
-`provar-aula-dada` 34/34, `provar-derivador-da-aula` 35/35, `provar-objetivos-por-aula` 55/55,
-`provar-salas-e-elencos` 240/240, `provar-indices` 64/64; `check-identidade` sem reprovação,
+**A regra existe, está medida, e é esta:** `.paginas` nasce `hidden` e o cliente (`paginar()`) só a
+acende **a partir de duas páginas** (`IDENTIDADE-VISUAL.md`, «à vista a partir de duas»). Com 25 por
+página — o número das listas longas deste produto —, uma escola com 15 aulas **não chega a duas
+páginas**, e o rodapé não aparece. É o desenho, não a falha.
+
+O que **faltava** era a peça, e ela faltava em quatro sítios: `/ciclos/planos/` (que dizia, num
+comentário, «não há paginação… quando passar de ~200, a paginação da Produção entra — e não antes»,
+um número que nunca foi medido, enquanto a lista de aulas do mesmo pacote já paginava a 25) e as
+**três** listas da Área do Professor, que passam todas por **um** chamador só. Os quatro passaram a
+pedi-la, pela peça da casa.
+
+**O calendário do plano não pagina** — e é uma decisão, não um esquecimento: é uma tabela de
+**documento**, e o documento imprime-se inteiro. Uma paginação ali esconderia dez das quinze aulas
+na folha que a professora leva para a sala.
+
+**Motivo declarado — `tools/` é congelado.** `tools/montar-publicacao.js` mudou porque é ali que a
+lista dos planos nasce. A alteração é **aditiva**: a lista passa a receber `porPagina` e `campos`,
+como a lista de aulas do mesmo ficheiro já recebia. Nenhum documento foi reescrito por causa disto.
+
+**Onde entrou.** `motor/nucleo/aulas-do-ciclo.js` (`docsComAsAulas`, `lerChaveDaAula`),
+`motor/servidor/compor-conf.js`, `motor/servidor/escrever-plano.js` e
+`motor/servidor/escrever-ciclo.js` (os três caminhos, uma regra), `motor/servidor/listas-do-acervo.js`
+(`porPagina` nas três listas), `tools/montar-publicacao.js` (`porPagina` na lista dos planos),
+`experimentos/provar-manifesto-da-turma.js` (§9.1) e `experimentos/provar-paginacao.js` (§8 e §9).
+
+**Prova.** `provar-criar-aula` **53/53** (a secção F deixou de estar presa ao número `02` — a `02`
+existe, e a prova passou a **ler** qual é a primeira aula por criar); `provar-paginacao` **129/129**
+(§8 monta a publicação e mede o artefacto; §9 mede as três listas da Área do Professor);
+`provar-manifesto-da-turma` §9.1 nova, com **8** asserções a caírem com a regra desligada.
+`provar-geracao` 54, `provar-aula-dada` 34/34, `provar-derivador-da-aula` 35/35,
+`provar-objetivos-por-aula` 55/55, `provar-indices` 64/64, `check-identidade` sem reprovação,
 `check-pacote` 0 erros, `hash-ciclo --check` com a cadeia intacta.
 
-**O que fica declarado, e é a parte que dói.** O clique dela **não se recupera**: o plano
-`plano-20261121-0933` está gravado sem a aula 02, e a aula tem de ser criada outra vez — depois do
-deploy. Não se "conserta" o envelope à mão: reescrever uma resposta que o motor descartou seria
-inventar o elo que a proveniência não viu. E `provar-producao` continua em **142 de 159** — anterior
-a esta entrega, medido no `HEAD` com o mesmo resultado.
+**O que fica declarado.** `provar-manifesto-do-plano` (3), `provar-manifesto-sem-base` (1),
+`provar-celular` (14 de 15) e `provar-producao` (142 de 159) continuam a falhar — **iguais antes e
+depois**, medidos na linha de base. `provar-navegacao` não corre: a `calango` não tem pacote-zero.
+E `Tempos`/`Compasso` continuam vazios na aula nova, e a comporta «só criar a aula N depois de a
+N‑1 ter os dados» continua por construir — as duas são a próxima peça, e são dela.
 
 ## O que está pendente
 
@@ -779,7 +800,7 @@ ela melhora com a mesma fusão, mas só quando for re-derivada com o elenco cert
 - **20/11/2026** — «Recorte» e «Transferência» fecham enquanto há um elenco em… → `REGISTRO.md` L55582
 - **20/11/2026** — O «Professor responsável» sai da Audição, e a anamnese leva… → `REGISTRO.md` L55629
 - **20/11/2026** — O PDF sai do fluxo: quem imprime é o navegador → `REGISTRO.md` L55683
-- **demi-plie · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
+- **demi-plie · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
 

@@ -539,7 +539,22 @@ lia.
 | enquanto grava | o **véu da casa** (`.veu-de-operacao`, `LastroDaOperacao.ocupar`), com o texto do processo |
 | depois de mandar | o botão de criar fica desabilitado e o outro passa a **«Fechar»**; a janela fecha-se sozinha quando a resposta chega, e o desfecho fica no véu uns segundos |
 
-> **Prova:** `experimentos/provar-criar-aula.js` — **52 asserções**, com um Chrome na secção F a
+**O manifesto, e a terceira cópia da regra (21/11/2026).** A Aula 02 foi criada e não apareceu.
+O envelope tinha-a; o **manifesto** não. O `DOCS` cresce com as aulas que o plano declara, e essa
+conta estava escrita **três vezes**: em `escrever-plano.js` crescia, em `escrever-ciclo.js` crescia
+com a conta à mão, e em `compor-conf.js` — o caminho **normal** de uma escola com a turma
+cadastrada — **preservava** o `DOCS` como estava. Sem `aula-02` na lista, o derivador não escreve, o
+gerador não publica e a coluna «Ação» continua a oferecer «Criar aula» para uma aula que existe no
+acervo.
+
+| o que fica | onde |
+|:--|:--|
+| a regra, uma só | `docsComAsAulas(docs, plano)` em `motor/nucleo/aulas-do-ciclo.js`, chamada pelos **três** caminhos |
+| a lista só cresce | nenhuma entrada que alguém lá pôs é removida |
+| a família sai em ordem | `aula-01, captura-aula-01, aula-02, captura-aula-02` — inserir «antes da primeira captura» dava `aula-01 aula-02 captura-aula-02 captura-aula-01` |
+| o tecto | uma aula acima do `contexto-total-aulas` não entra, e é **relatada** |
+
+> **Prova:** `experimentos/provar-criar-aula.js` — **53 asserções**, com um Chrome na secção F a
 > abrir a página de verdade (`?criar-aula=02`) e a conferir a janela aberta (`hidden` fora), o
 > título, o marco preenchido, a data da linha e as duas listas. Com a regra a devolver só a 01 caem
 > **8**. O `provar-objetivos-por-aula` (**55**) mede o outro lado: as duas linhas do objetivo 01

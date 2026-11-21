@@ -57475,3 +57475,90 @@ na lista de desconhecidos; **3 das 52** caem. `provar-formulario-da-aula` 53, `p
 deploy. Não se "conserta" o envelope à mão: reescrever uma resposta que o motor descartou seria
 inventar o elo que a proveniência não viu. E `provar-producao` continua em **142 de 159** — anterior
 a esta entrega, medido no `HEAD` com o mesmo resultado.
+
+## 21/11/2026 — A Aula 02 existe de facto: a regra que cresce o manifesto era três, e uma não crescia
+
+**O que motivou.** Ela clicou no botão, o modal e o véu funcionaram, ela viu o workflow correr —
+«eu vi no workflow que rodou o PO» — e a Aula 02 não apareceu: «na coluna de ação das aulas, a
+aula dois ainda está com o botão criar aula, ele não se transformou em abrir. E lá em aulas também
+eu não tenho como acessar a aula dois.» E: «me explica para onde foi a aula dois porque eu não a
+encontrei.»
+
+**A aula tinha sido criada, e desta vez o motor gravou-a.** O envelope `plano-20261121-1120` — o
+carimbo daquele clique — tem `ajuste_de` a apontar o anterior, o `motivo` certo e, dentro das
+respostas, **`aula-2-parametro` e `aula-2-sequencia`**. A correção da véspera (a família da chave)
+funcionou. O que faltava era **três passos à frente**.
+
+**A causa, e é a terceira cópia da mesma regra.** O `DOCS` do manifesto — a lista de documentos que
+o gerador publica — cresce com as aulas que o plano declara, e essa conta estava escrita **três
+vezes**:
+
+| caminho | crescia? |
+|:--|:--|
+| `escrever-plano.js` → `atualizarManifesto` (sem turma) | sim |
+| `escrever-ciclo.js` → passo 4 | sim, com a conta à mão |
+| `compor-conf.js` → `comporManifestoDaTurma` (**com** turma) | **não** — preservava o `DOCS` como estava |
+
+O terceiro é o caminho **normal** de uma escola com a turma cadastrada, e foi o que correu. Sem
+`aula-02` no `DOCS`: o derivador não escreve `-aula-02.md`, o gerador não publica `aula-02.html`, a
+lista de Aulas não a mostra, e a coluna «Ação» continua a oferecer «Criar aula» para uma aula que
+existe no acervo. **Cinco passos a jusante outra vez, e outra vez a comportarem-se bem perante um
+dado que faltava.**
+
+**O que foi decidido.**
+
+1. **A regra é uma só** — `docsComAsAulas(docs, plano)` em `motor/nucleo/aulas-do-ciclo.js` — e os
+   **três** caminhos chamam-na. Três cópias divergem na primeira correção; foi o que aconteceu.
+2. **A lista só cresce**, nunca perde uma entrada que alguém lá pôs.
+3. **A família é reposta em ordem numérica**: `aula-01, captura-aula-01, aula-02, captura-aula-02`.
+   Inserir «antes da primeira captura que já exista» dava `aula-01 aula-02 captura-aula-02
+   captura-aula-01` — funcional e ilegível, com a captura da 01 a fechar a família da 02.
+4. **Uma aula acima do `contexto-total-aulas` não entra.** A família não é um passe livre.
+5. **O manifesto dela foi regerado pela mesma regra**, a partir do envelope vigente — não editado à
+   mão —, e as fontes `-aula-02.md` e `-captura-aula-02.md` foram derivadas por
+   `tools/regerar-derivados.js`.
+
+**A paginação, no mesmo dia, e é outro pedido.** «Aqui a gente tem 15 aulas, né? E não colocamos
+aqui o que está no nossa identidade visual, que é a paginação. […] o ciclo e os planos já nascem com
+a paginação. A anamnese também tem que nascer com paginação, plano de ensino também, plano de
+observação também, as aulas também e as aulas dadas também têm que nascer com paginação. Eu acho que
+tem uma regra que a paginação só vai aparecer a partir de uma determinada pilha.»
+
+**A regra existe, está medida, e é esta:** `.paginas` nasce `hidden` e o cliente (`paginar()`) só a
+acende **a partir de duas páginas** (`IDENTIDADE-VISUAL.md`, «à vista a partir de duas»). Com 25 por
+página — o número das listas longas deste produto —, uma escola com 15 aulas **não chega a duas
+páginas**, e o rodapé não aparece. É o desenho, não a falha.
+
+O que **faltava** era a peça, e ela faltava em quatro sítios: `/ciclos/planos/` (que dizia, num
+comentário, «não há paginação… quando passar de ~200, a paginação da Produção entra — e não antes»,
+um número que nunca foi medido, enquanto a lista de aulas do mesmo pacote já paginava a 25) e as
+**três** listas da Área do Professor, que passam todas por **um** chamador só. Os quatro passaram a
+pedi-la, pela peça da casa.
+
+**O calendário do plano não pagina** — e é uma decisão, não um esquecimento: é uma tabela de
+**documento**, e o documento imprime-se inteiro. Uma paginação ali esconderia dez das quinze aulas
+na folha que a professora leva para a sala.
+
+**Motivo declarado — `tools/` é congelado.** `tools/montar-publicacao.js` mudou porque é ali que a
+lista dos planos nasce. A alteração é **aditiva**: a lista passa a receber `porPagina` e `campos`,
+como a lista de aulas do mesmo ficheiro já recebia. Nenhum documento foi reescrito por causa disto.
+
+**Onde entrou.** `motor/nucleo/aulas-do-ciclo.js` (`docsComAsAulas`, `lerChaveDaAula`),
+`motor/servidor/compor-conf.js`, `motor/servidor/escrever-plano.js` e
+`motor/servidor/escrever-ciclo.js` (os três caminhos, uma regra), `motor/servidor/listas-do-acervo.js`
+(`porPagina` nas três listas), `tools/montar-publicacao.js` (`porPagina` na lista dos planos),
+`experimentos/provar-manifesto-da-turma.js` (§9.1) e `experimentos/provar-paginacao.js` (§8 e §9).
+
+**Prova.** `provar-criar-aula` **53/53** (a secção F deixou de estar presa ao número `02` — a `02`
+existe, e a prova passou a **ler** qual é a primeira aula por criar); `provar-paginacao` **129/129**
+(§8 monta a publicação e mede o artefacto; §9 mede as três listas da Área do Professor);
+`provar-manifesto-da-turma` §9.1 nova, com **8** asserções a caírem com a regra desligada.
+`provar-geracao` 54, `provar-aula-dada` 34/34, `provar-derivador-da-aula` 35/35,
+`provar-objetivos-por-aula` 55/55, `provar-indices` 64/64, `check-identidade` sem reprovação,
+`check-pacote` 0 erros, `hash-ciclo --check` com a cadeia intacta.
+
+**O que fica declarado.** `provar-manifesto-do-plano` (3), `provar-manifesto-sem-base` (1),
+`provar-celular` (14 de 15) e `provar-producao` (142 de 159) continuam a falhar — **iguais antes e
+depois**, medidos na linha de base. `provar-navegacao` não corre: a `calango` não tem pacote-zero.
+E `Tempos`/`Compasso` continuam vazios na aula nova, e a comporta «só criar a aula N depois de a
+N‑1 ter os dados» continua por construir — as duas são a próxima peça, e são dela.

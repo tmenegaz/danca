@@ -4,10 +4,27 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 21/11/2026 (commit `54be1100`). Nesta entrega, **a aula 02 que ela criou
-> e não existia**. Ela clicou em «Criar e gerar», leu «gravado. A aula 02 está a ser gerada», foi
-> à lista de Aulas e **não encontrou nada**. E estava certo que não encontrasse: **a aula nunca foi
-> criada**. **CONFIRMADO** no envelope `plano-20261121-0933` — o carimbo daquele clique —, que tem
+> **Última fotografia:** 21/11/2026 (commit `a4c004d7`). Nesta entrega, **a Aula 02 existe de
+> facto** — e o caminho que faltava era o terceiro. O envelope `plano-20261121-1120` (o clique
+> dela, já com a correção anterior no ar) **tem** `aula-2-parametro` e `aula-2-sequencia`: o motor
+> gravou-as. O que não as recebeu foi o **manifesto**: com a turma no contexto, a escrita passa por
+> `comporManifestoDaTurma`, e esse caminho **preservava** o `DOCS` como estava enquanto os outros
+> dois o cresciam. **CONFIRMADO** em três cópias da mesma regra — `escrever-plano.js` (crescia),
+> `compor-conf.js` (não crescia) e `escrever-ciclo.js` (crescia à mão). Sem `aula-02` no `DOCS`, o
+> gerador não a publica, o derivador não a escreve e a coluna «Ação» continua a oferecer «Criar
+> aula» para uma aula que já existe — que é exactamente o que ela viu. **DECIDIDO**: a regra é uma
+> só (`docsComAsAulas`, em `aulas-do-ciclo.js`), e os **três** caminhos chamam-na; a família é
+> reposta **em ordem numérica** (aula-01, captura-aula-01, aula-02, captura-aula-02), e não
+> remendada. O manifesto dela foi regerado pela mesma regra a partir do envelope, as fontes
+> `-aula-02.md` e `-captura-aula-02.md` foram derivadas, e o pacote publica `aula-02.html` com a
+> linha «Abrir» na coluna «Ação». **CONFIRMADO** em `provar-manifesto-da-turma` (§9.1, nova) e
+> `provar-criar-aula` **53/53**. E a **paginação** nasceu nas quatro listas que não a tinham —
+> `/ciclos/planos/` e as três da Área do Professor — pela peça da casa, com a regra declarada: só
+> aparece **a partir de duas páginas**, e é por isso que uma escola com 15 aulas não a vê.
+>
+> **Fotografia anterior (21/11/2026 — a aula 02 que ela criou e não existia).** Ela clicou em
+> «Criar e gerar», leu «gravado. A aula 02 está a ser gerada», foi à lista de Aulas e **não
+> encontrou nada**. E estava certo que não encontrasse: **a aula nunca foi criada**. **CONFIRMADO** no envelope `plano-20261121-0933` — o carimbo daquele clique —, que tem
 > `aula-de-cada-objetivo` a apontar o objetivo 2 e **nem** `aula-2-parametro` **nem**
 > `aula-2-sequencia`. **A CAUSA, e é de desenho, não de digitação:** a elicitação guarda as
 > respostas cujo `id` o **conteúdo** declara (`prepararRespostas`, em `motor/nucleo/elicitar.js`),
@@ -2900,6 +2917,27 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      que vai cancelar o processo». A janela fecha-se sozinha quando a resposta chega, e o desfecho
      fica no véu uns segundos.
 
+130. **A REGRA QUE CRESCE O `DOCS` É UMA SÓ — E ELA ESTAVA EM TRÊS CÓPIAS, DAS QUAIS UMA NÃO
+     CRESCIA.** A Aula 02 foi criada, o envelope ficou com `aula-2-parametro` e
+     `aula-2-sequencia`, e o manifesto continuou a declarar uma aula: com a turma no contexto, a
+     escrita passa por `comporManifestoDaTurma`, e esse caminho **preservava** o `DOCS`. Os outros
+     dois cresciam — um deles com a conta escrita à mão. **DECIDIDO**: `docsComAsAulas(docs, plano)`
+     em `motor/nucleo/aulas-do-ciclo.js`, chamada pelos **três** caminhos; a lista **só cresce**,
+     nunca perde uma entrada, e a família é reposta **em ordem numérica** (`aula-01`,
+     `captura-aula-01`, `aula-02`, `captura-aula-02`), porque inserir «antes da primeira captura»
+     dava `aula-01 aula-02 captura-aula-02 captura-aula-01` — funcional e ilegível. Uma aula fora
+     do `contexto-total-aulas` não entra. Ver `REGISTRO.md` (21/11/2026).
+131. **TODA LISTAGEM NASCE COM A PAGINAÇÃO — E O RODAPÉ SÓ APARECE A PARTIR DE DUAS PÁGINAS.**
+     Palavras dela: «o ciclo e os planos já nascem com a paginação. A anamnese também tem que
+     nascer com paginação, plano de ensino também, plano de observação também, as aulas também e as
+     aulas dadas também.» A peça é **uma** (`.paginas`, `data-paginar`, o cliente `paginar()` do
+     núcleo), o número é **um** (25), e as quatro listas que não a tinham passaram a tê-la:
+     `/ciclos/planos/` e as três da Área do Professor — que são **um chamador só**, e é por isso
+     que a regra não pode valer numa e faltar noutra. **A regra do aparecimento é a da folha**: o
+     rodapé nasce `hidden` e o cliente acende-o a partir de **duas** páginas; com 15 aulas e 25 por
+     página ele **não aparece**, e isso é o desenho, não a falha. O calendário do plano **não**
+     pagina: é tabela de documento, e o documento imprime-se inteiro.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -3624,7 +3662,21 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (21/11/2026 — a aula 02 que ela criou e não existia)
+### Executado nesta fotografia (21/11/2026 — a Aula 02 existe, e a paginação nas listagens)
+
+| Verificação | Resultado |
+|:--|:--|
+| o envelope dela, lido | `escola/breu/envelopes/plano-20261121-1120.json` — `ajuste_de` `plano-20261121-0933`, `motivo` «a aula 02 foi criada a partir do calendário do plano», e **tem** `aula-2-parametro` e `aula-2-sequencia`. É o clique dela, e o motor gravou-o: o que faltava era a jusante |
+| `provar-manifesto-da-turma` (§9.1, **nova**) | prova que o caminho **composto** cresce com a Aula 02 e que a família sai em ordem; prova que o caminho da **escrita** também, e que a Aula 01 não se perde; e prova o negativo — **sem** a aula no plano, nada é acrescentado. **Mutação medida**: com a regra desligada no `compor-conf` caem **8** asserções (a linha de base do ficheiro é 3, e continua 3) |
+| `provar-criar-aula` | **53/53**, e a secção F deixou de estar presa ao número `02`: a prova **lê** da página qual é a primeira aula por criar, porque a `02` passou a existir — uma prova que fixa um número mede o dia em que foi escrita |
+| `provar-paginacao` | **129/129**. A §8 (nova) monta a publicação e mede o **artefacto**: `/ciclos/planos/index.html` e `/aulas/index.html` têm `data-paginar`, `.paginas` `hidden` e o cliente. A §9 (nova) mede as três listas da Área do Professor: **um chamador só** para as três, e é ele que pede o `porPagina` — mais a página da anamnese **com** registo, com o rodapé escondido. **Mutação**: sem o `porPagina` no `montar-publicacao` caem **4**; sem ele no `listas-do-acervo` caem **3** |
+| o pacote da `breu-rosa`, regerado | publica `aula-02.html` e `captura-aula-02.html`; a coluna «Ação» oferece **Abrir** à 01 **e** à 02, e «Criar aula» a partir da 03; o menu de todas as páginas lista as duas aulas |
+| `provar-geracao` · `provar-aula-dada` · `provar-derivador-da-aula` · `provar-objetivos-por-aula` · `provar-aula-prosa` · `provar-indices` | **54 · 34/34 · 35/35 · 55/55 · 19 · 64/64** — verdes |
+| `node tools/check-identidade.js` · `check-sem-destruicao` · `check-indices` · `check-pacote` · `hash-ciclo --check` | **0 reprovações (22 ok)** · **ok** · **16/16** · **0 erros, 1 aviso** · **cadeia intacta** |
+| Falhas que **já existiam**, medidas na linha de base | `provar-manifesto-do-plano` **3** e `provar-manifesto-sem-base` **1** — iguais antes e depois desta entrega; `provar-navegacao` não corre (a `calango` não tem pacote-zero); `provar-celular` **14 de 15** e `provar-producao` **142 de 159** — idem |
+| Ao vivo | **Não executado** — o deploy leva o pacote e o manifesto; a conferência é depois do push |
+
+### Executado na fotografia anterior (21/11/2026 — a aula 02 que ela criou e não existia)
 
 | Verificação | Resultado |
 |:--|:--|

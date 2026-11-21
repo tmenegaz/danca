@@ -1327,9 +1327,12 @@ function principal() {
    * existe é a versão educada de um menu que mente. Elas nascem aqui, antes da varredura que
    * reescreve a barra — para já levarem a barra certa de saída, e não só quando o Worker servir.
    *
-   * Cada uma é escrita uma vez, a partir do que existe no disco. Não há paginação: uma escola
-   * com três turmas e dezoito aulas dá 54 linhas, e o filtro do cliente resolve isso. Quando
-   * passar de ~200, a paginação da Produção entra — e não antes. */
+   * Cada uma é escrita uma vez, a partir do que existe no disco. **E paginam** (21/11/2026): «o
+   * ciclo e os planos já nascem com a paginação». Aqui dizia-se o contrário — «não há paginação…
+   * quando passar de ~200, a paginação da Produção entra» —, e o número de ~200 nunca foi medido:
+   * a lista de aulas do mesmo pacote já paginava a 25. A peça é uma (`.paginas`, da casa), o
+   * número é um (25), e o rodapé só aparece a partir de duas páginas — o que mantém a lista curta
+   * inteira, sem um rodapé de um botão desactivado. */
   const escrever = (caminho, html) => {
     const alvo = path.join(destino, caminho);
     fs.mkdirSync(path.dirname(alvo), { recursive: true });
@@ -1350,7 +1353,15 @@ function principal() {
     planos,
     'Ainda não há plano de ciclo nesta escola. Ele nasce quando o Plano de Observação de '
       + 'uma turma é concluído.',
-    { singular: 'plano', plural: 'planos' });
+    /* A PAGINAÇÃO NASCE COM A LISTA (21/11/2026). Ela: «o ciclo e os planos já nascem com a
+     * paginação». A peça é a da casa — o rodapé `.paginas`, que nasce `hidden` e só aparece a
+     * partir de duas páginas —, e o número é o mesmo das outras listas longas deste produto.
+     *
+     * É a MESMA decisão que o comentário acima (4.2) tomava ao contrário: «não há paginação…
+     * quando passar de ~200, a paginação da Produção entra — e não antes». O número de ~200 não
+     * estava medido em lado nenhum, e a lista de aulas do mesmo pacote já pagina a 25. Duas
+     * listas irmãs com regras diferentes é o defeito; a regra passa a ser uma. */
+    { singular: 'plano', plural: 'planos', campos: ['busca'], porPagina: 25 });
 
   /* A LISTA DE AULAS reúne a leitura em prosa e a outra vista da Aula 01. O título abre a aula;
      a leitura em notação é um botão do CABEÇALHO da aula (28/10/2026), não uma ação desta lista.

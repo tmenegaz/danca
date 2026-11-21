@@ -210,7 +210,14 @@ const lerTurmas = async () => TURMAS;
   igual('ESCOLA vem do .conf da escola', v.ESCOLA, 'Fita');
   igual('ESCOLA_HABILITADA vem do .conf da escola', v.ESCOLA_HABILITADA, 'sim');
   igual('OBJETIVO_GERAL vem do PLANO', v.OBJETIVO_GERAL, 'Objetivo geral do ciclo - teste');
-  igual('DOCS nasce «plano»', v.DOCS, 'plano');
+  /* O `DOCS` NASCE COM AS AULAS QUE O PLANO DECLARA (21/11/2026) — e esta asserção afirmava o
+   * contrário. O envelope deste fixture declara `aula-1-sequencia`, e a regra do ciclo diz que a
+   * aula existe quando o plano a declara; um `DOCS` só com «plano» deixava o gerador de fora da
+   * Aula 01 — e a coluna «Ação» a oferecer «Criar aula» para uma aula que já tinha dados. Era o
+   * MESMO defeito que ela relatou na Aula 02: «a aula dois ainda está com o botão criar aula, ele
+   * não se transformou em abrir». A expectativa antiga guardava o defeito no caminho COMPOSTO,
+   * que é o caminho normal de uma escola com a turma cadastrada. */
+  igual('DOCS nasce com a Aula 01, que o plano declara', v.DOCS, 'plano aula-01 captura-aula-01');
   ok('o arquivo se declara DERIVADO', /DERIVADO\. Não edite à mão\./.test(composto.texto));
 
   // ── 5. O que diverge é REPORTADO, não silenciado ───────────────────────────
@@ -290,7 +297,7 @@ const lerTurmas = async () => TURMAS;
   // ── 9. O DOCS já escrito é PRESERVADO ──────────────────────────────────────
   console.log('\n9. Re-eliciar o plano não apaga as fontes que o gerador escreveu');
   igual('o DOCS do composto é lido (é dele que se parte)',
-    docsDoConf(criado), 'plano');
+    docsDoConf(criado), 'plano aula-01 captura-aula-01');
   const comAulas = comporConf({
     turma: TURMAS[0], plano: ENVELOPE, identidade, escola: 'fita', ciclo: '01',
     docs: 'plano harmonizacao aula-01 captura-aula-01',
@@ -303,14 +310,60 @@ const lerTurmas = async () => TURMAS;
   });
   igual('DOCS sem o plano recebe o plano NO COMEÇO',
     variaveisDoConf(semPlano.texto).DOCS, 'plano aula-01 captura-aula-01');
-  const conferido = criarFetch({ variante: composto.texto.replace('DOCS="plano"', 'DOCS="plano aula-01"') });
+  const conferido = criarFetch({
+    variante: composto.texto.replace('DOCS="plano aula-01 captura-aula-01"', 'DOCS="plano aula-01"'),
+  });
   await atualizarManifesto({
     token: 'x', dono: 'd', repo: 'r', ref: 'main',
     contexto: ENVELOPE.contexto, plano: ENVELOPE, fetchImpl: conferido.falso, lerTurmas,
   });
   ok('a escrita manteve o aula-01',
-    /^DOCS="plano aula-01"$/m.test(conferido.arquivos['ciclo-01-fita-teste.conf']),
+    /^DOCS="plano aula-01 captura-aula-01"$/m.test(conferido.arquivos['ciclo-01-fita-teste.conf']),
     conferido.arquivos['ciclo-01-fita-teste.conf']);
+
+  // ── 9.1 A AULA NOVA ENTRA NO DOCS — os DOIS caminhos, a mesma regra ────────
+  /* O DEFEITO DE 21/11/2026, e ele é desta função: com a turma no contexto, o manifesto é
+     COMPOSTO, e o `DOCS` era PRESERVADO como estava — de modo que a Aula 02, criada pelo
+     calendário do plano, entrava no envelope e não entrava na lista. O gerador publicava o ciclo
+     de uma aula só, e a coluna «Ação» continuava a oferecer «Criar aula» para uma aula que já
+     existia. Ela: «a aula dois ainda está com o botão criar aula, ele não se transformou em
+     abrir». O outro caminho (`atualizarManifesto` sem turma) já crescia — eram duas cópias da
+     mesma regra, e a que faltava era a do caminho normal. */
+  console.log('\n9.1 A aula que o plano declara entra no DOCS, pelos DOIS caminhos');
+  const comAula2 = {
+    id: 'plano-x', contexto: ENVELOPE.contexto,
+    respostas: Object.assign({}, ENVELOPE.respostas, {
+      'aula-2-sequencia': { valor: [{ Bloco: 'Barra', 'Conteúdo do nível': 'Plié' }] },
+      'aula-2-parametro': { valor: [{ marco: 2, marcados: ['Plié'] }] },
+    }),
+  };
+  const dois = comporConf({
+    turma: TURMAS[0], plano: comAula2, identidade, escola: 'fita', ciclo: '01',
+    docs: 'plano harmonizacao aula-01 captura-aula-01 notacao',
+  });
+  igual('o caminho COMPOSTO cresce com a Aula 02',
+    variaveisDoConf(dois.texto).DOCS,
+    'plano harmonizacao aula-01 captura-aula-01 aula-02 captura-aula-02 notacao');
+  igual('…e a família sai em ORDEM, e não remendada',
+    variaveisDoConf(comporConf({
+      turma: TURMAS[0], plano: comAula2, identidade, escola: 'fita', ciclo: '01',
+      docs: 'plano aula-01 captura-aula-01 aula-02 captura-aula-02',
+    }).texto).DOCS, 'plano aula-01 captura-aula-01 aula-02 captura-aula-02');
+  igual('…e sem a Aula 02 no plano, nada é acrescentado',
+    variaveisDoConf(comporConf({
+      turma: TURMAS[0], plano: ENVELOPE, identidade, escola: 'fita', ciclo: '01',
+      docs: 'plano aula-01 captura-aula-01',
+    }).texto).DOCS, 'plano aula-01 captura-aula-01');
+
+  const comAula2NoRepo = criarFetch({ variante: dois.texto.replace('aula-02 captura-aula-02 ', '') });
+  await atualizarManifesto({
+    token: 'x', dono: 'd', repo: 'r', ref: 'main',
+    contexto: ENVELOPE.contexto, plano: comAula2, fetchImpl: comAula2NoRepo.falso, lerTurmas,
+  });
+  ok('o caminho da ESCRITA cresce com a Aula 02, e a 01 não se perde',
+    /^DOCS="plano harmonizacao aula-01 captura-aula-01 aula-02 captura-aula-02 notacao"$/m
+      .test(comAula2NoRepo.arquivos['ciclo-01-fita-teste.conf']),
+    comAula2NoRepo.arquivos['ciclo-01-fita-teste.conf']);
 
   // ── 10. Turma fora do cadastro: recusa com nome, e nenhuma escrita ─────────
   console.log('\n10. Turma que o cadastro não tem: recusa, e nada é escrito');

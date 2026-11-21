@@ -267,10 +267,18 @@ function comporConf({ turma, plano, identidade, escola, ciclo: numeroDoCiclo, do
     linhasDaProporcao.push(linha('VOLUME_POR_MINUTO_MAX', String(ident.VOLUME_POR_MINUTO_MAX)));
   }
 
-  // O `DOCS` já escrito é PRESERVADO: re-eliciar o plano depois de o ciclo ter aulas não pode
-  // apagar as fontes que o gerador já escreveu. O plano entra no começo quando ainda não está.
-  const atuais = String(docs === undefined ? '' : docs).trim().split(/\s+/).filter(Boolean);
-  const lista = atuais.length ? atuais.slice() : ['plano'];
+  /* O `DOCS` JÁ ESCRITO É PRESERVADO, E CRESCE COM AS AULAS QUE O PLANO DECLARA (21/11/2026).
+   *
+   * Re-eliciar o plano depois de o ciclo ter aulas não pode apagar as fontes que o gerador já
+   * escreveu — e por isso a lista é preservada. O que ela NÃO fazia era CRESCER: com a turma no
+   * contexto, este é o caminho normal da escrita do manifesto, e a Aula 02 criada pelo calendário
+   * entrava no envelope e não entrava na lista. O gerador publicava o ciclo de uma aula só, e a
+   * coluna «Ação» continuava a oferecer «Criar aula» para uma aula que já existia.
+   *
+   * A regra do crescimento é UMA (`docsComAsAulas`), e os dois caminhos de escrita a chamam — era
+   * exactamente esta a duplicação que faltava fechar. */
+  const { docsComAsAulas } = require('../nucleo/aulas-do-ciclo.js');
+  const lista = docsComAsAulas(docs === undefined ? '' : docs, plano);
   if (lista.indexOf('plano') === -1) lista.unshift('plano');
 
   const texto = [

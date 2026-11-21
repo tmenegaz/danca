@@ -414,24 +414,46 @@ const PO = {
         ['-m', 'http.server', String(porta), '--bind', '127.0.0.1'], { cwd: PASTA, stdio: 'ignore' });
       try {
         require('node:child_process').execFileSync('sleep', ['2']);
+        /* A AULA DA PROVA É A PRIMEIRA QUE AINDA NÃO EXISTE (21/11/2026). Estava presa à `02`, e
+         * a `02` passou a existir de facto — o pacote publica `aula-02.html` e a coluna «Ação»
+         * oferece-lhe «Abrir», não «Criar». Uma prova presa a um número mede o dia em que foi
+         * escrita, não o mecanismo: o número passa a ser LIDO da página, e o que se exige é o que
+         * a linha da tabela declara para ele. */
+        const pagina = path.join(PASTA, 'plano.html');
+        const html = fs.readFileSync(pagina, 'utf8');
+        const alvo = (/data-criar-aula="(\d+)"/.exec(html) || [])[1];
+        provar('a página tem ao menos uma aula por criar (senão esta secção não mede nada)',
+          Boolean(alvo), alvo);
         const dom = execFileSync(CHROME, ['--headless=new', '--disable-gpu', '--no-sandbox',
           '--no-first-run', '--disable-dev-shm-usage', '--virtual-time-budget=3000', '--dump-dom',
-          'http://127.0.0.1:' + porta + '/plano.html?criar-aula=02'],
+          'http://127.0.0.1:' + porta + '/plano.html?criar-aula=' + alvo],
         { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, timeout: 90000 });
 
         /* ABERTO É `hidden` FORA: a janela é um `.modal` que nasce escondido (`hidden`) e o
            script o tira. Procurar `open` era a marca do `<dialog>` que já não existe. */
         const janela = /<div class="modal" id="criar-aula"[^>]*>/.exec(dom);
-        provar('a janela ABRE com `?criar-aula=02` (o botão não é uma promessa)',
+        provar('a janela ABRE com `?criar-aula=' + alvo + '` (o botão não é uma promessa)',
           Boolean(janela) && !/\shidden(\s|>)/.test(janela[0]), janela && janela[0]);
         provar('…e o título diz a aula que se está a criar',
-          /<h2 id="criar-aula-titulo">Criar a aula 02<\/h2>/.test(dom),
+          new RegExp('<h2 id="criar-aula-titulo">Criar a aula ' + alvo + '</h2>').test(dom),
           (/id="criar-aula-titulo">([^<]*)/.exec(dom) || [])[1]);
         provar('…com o marco da aula já preenchido (o plano já o declara)',
-          /transferir o peso entre os pés sem perder o alinhamento/.test(dom));
+          /transferir o peso entre os pés sem perder o alinhamento/.test(dom)
+          || /sustentar a transferência com musicalidade/.test(dom));
+        /* A DATA NÃO É COPIADA PARA O BOTÃO — é LIDA da linha. Esta asserção compara o que a
+         * caixa diz com o que a PRÓPRIA linha da tabela declara, em vez de fixar um dia: um
+         * `16/12/2026` escrito à mão passaria a medir o calendário do dia em que foi escrito. */
+        const linhaDoAlvo = new RegExp('<tr[^>]*>\\s*<td[^>]*>' + alvo + '[\\s\\S]{0,900}?</tr>')
+          .exec(html);
+        const celulas = linhaDoAlvo
+          ? [...linhaDoAlvo[0].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)]
+            .map((m) => m[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim())
+          : [];
+        const naCaixa = (/id="criar-aula-quando">([^<]*)/.exec(dom) || [])[1] || '';
         provar('…e a data, o dia e a duração da LINHA do calendário, na caixa',
-          /02 · 16\/12\/2026 · quarta · 120 min/.test(dom),
-          (/id="criar-aula-quando">([^<]*)/.exec(dom) || [])[1]);
+          celulas.length >= 4 && celulas.slice(1, 4).every((c) => naCaixa.indexOf(c) !== -1
+            || (/\d{2}\/\d{2}\/\d{4}/.test(c) && new RegExp(c).test(naCaixa))),
+          { linha: celulas.slice(0, 4), naCaixa });
         provar('…e os exercícios do repertório e os blocos da aula, para marcar',
           (dom.match(/id="criar-aula-exercicios-\d+"/g) || []).length === 4
           && (dom.match(/id="criar-aula-blocos-\d+"/g) || []).length === 4,

@@ -30,7 +30,8 @@
           "marco": "transferir o peso entre os pés sem perder o alinhamento",
           "lancada": false,
           "ancora": null,
-          "prazo": "2026-12-17T10:30"
+          "prazo": "2026-12-17T10:30",
+          "config": "captura-aula-02.json"
         },
         {
           "n": "03",

@@ -5,7 +5,9 @@
     "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa.fipp",
     "cobertura": [
       "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
+      "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-02.md",
       "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md",
+      "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-02.md",
       "professores/demi-plie/ciclos/ciclo-01-breu-rosa-dados.json",
       "professores/demi-plie/ciclos/ciclo-01-breu-rosa-glossario-codigo_de_danca.md",
       "professores/demi-plie/ciclos/ciclo-01-breu-rosa-harmonizacao.md",
@@ -16,22 +18,26 @@
       "professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
       "professores/demi-plie/ciclos/ciclo-01.conf"
     ],
-    "hash": "b1202f11ec4f5025efbe1708ce6a1b031b210bdb9933eb46c6b05b5a1539b53c",
-    "hash_conteudo": "20d7552d94eaabd18505e3b9306fbe80fe6f102a3a3fb3d82035b4d6caf3e9b8",
+    "hash": "5b119028504e5781d49433d6b283b8c6efe27563129605a65093f83ad6e0c2aa",
+    "hash_conteudo": "ec4263645d58331dd18a4de04982e6d797dc47e6ea062c238800f35045cd160d",
     "id": "ciclo-01-breu-rosa",
     "lida": true,
     "parent_hash": ""
   },
   "aulas": [
-    "ciclo:demi-plie/01/breu/rosa/aula-01"
+    "ciclo:demi-plie/01/breu/rosa/aula-01",
+    "ciclo:demi-plie/01/breu/rosa/aula-02"
   ],
   "ciclo": "01",
   "documentos": [
     "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.fipp",
+    "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-02.fipp",
     "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu-rosa.fipp",
     "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu.fipp",
     "documento:aula:professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
+    "documento:aula:professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-02.md",
     "documento:aula:professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md",
+    "documento:aula:professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-02.md",
     "documento:dados:professores/demi-plie/ciclos/ciclo-01-breu-rosa-dados.cifrado.json",
     "documento:dados:professores/demi-plie/ciclos/ciclo-01-breu-rosa-dados.json",
     "documento:dados:professores/demi-plie/ciclos/ciclo-01-breu-rosa/ciclo-01-breu-rosa-dados.json",
@@ -52,12 +58,12 @@
   "filtros": {
     "tipos": [
       {
-        "contagem": 3,
+        "contagem": 4,
         "rotulo": "ancora",
         "valor": "ancora"
       },
       {
-        "contagem": 2,
+        "contagem": 4,
         "rotulo": "aula",
         "valor": "aula"
       },
@@ -115,9 +121,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "4600c99"
+    "commit": "ceeddca5"
   },
-  "gerado_em": "2026-11-21T14:20",
+  "gerado_em": "2026-11-21T14:33",
   "id": "ciclo:demi-plie/01/breu",
   "professor": "demi-plie",
   "versao": 7

@@ -460,6 +460,114 @@ function linhasVisiveis(painel) {
       { visiveis: visiveis(contas).length, info: textoDaPagina(contas) });
   }
 
+  // -------------------------------------------------------------------------
+  console.log('\n8. As LISTAS PÚBLICAS paginam pela mesma peça (21/11/2026)');
+  // -------------------------------------------------------------------------
+  /* O QUE ELA VIU: «aqui a gente tem 15 aulas, né? E não colocamos aqui o que está no nossa
+   * identidade visual, que é a paginação. [...] o ciclo e os planos já nascem com a paginação. A
+   * anamnese também tem que nascer com paginação, plano de ensino também, plano de observação
+   * também, as aulas também e as aulas dadas também têm que nascer com paginação.»
+   *
+   * A MEDIÇÃO É A PÁGINA MONTADA, e não o código que a monta: `montar-publicacao` escreve
+   * `/ciclos/planos/index.html` e `/aulas/index.html` no disco, e é o que o deploy copia. Uma
+   * asserção sobre o `porPagina` no fonte mediria a intenção, não o artefacto. */
+  {
+    const fs = require('fs');
+    const { execFileSync } = require('child_process');
+    const PACOTE = path.join(RAIZ, 'professores/demi-plie/ciclos/ciclo-01-breu-rosa');
+    if (!fs.existsSync(PACOTE)) {
+      console.log('  (sem o pacote da breu-rosa nesta máquina — esta secção não corre, e não se declara passada)');
+    } else {
+      execFileSync('node', [path.join(RAIZ, 'tools/montar-publicacao.js'), 'breu'],
+        { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
+      const ler = (rel) => {
+        const alvo = path.join(RAIZ, 'publicacao/breu', rel);
+        return fs.existsSync(alvo) ? fs.readFileSync(alvo, 'utf8') : '';
+      };
+      for (const [rel, nome] of [['ciclos/planos/index.html', 'Planos do ciclo'],
+        ['aulas/index.html', 'Aulas']]) {
+        const html = ler(rel);
+        checar('[' + nome + '] a lista montada TEM o rodapé de páginas',
+          /<div data-paginar data-por-pagina="\d+">/.test(html)
+          && /class="paginas" hidden/.test(html), rel);
+        checar('[' + nome + '] …e o cliente que o faz andar',
+          html.indexOf('function paginar()') !== -1, null);
+      }
+      /* O RODAPÉ NASCE ESCONDIDO, E É O CLIENTE QUE O ACENDE — a regra da folha («à vista a
+       * partir de duas»). Sem JavaScript a lista mostra tudo; com uma página só, o `paginar()`
+       * mantém o `hidden`. É por isso que uma escola com quinze aulas não vê rodapé nenhum: o
+       * número de páginas não chega a dois. Isso está certo, e é o que se mede aqui. */
+      const planoHtml = ler('ciclos/planos/index.html');
+      const porPagina = Number((/data-por-pagina="(\d+)"/.exec(planoHtml) || [])[1]);
+      const itens = (planoHtml.match(/<li class="trio-plano"/g) || []).length;
+      checar('a lista dos planos pagina a ' + porPagina + ', com ' + itens + ' item(ns) — '
+        + (itens > porPagina ? 'mais de uma página, o rodapé aparece' : 'uma página, o rodapé fica escondido'),
+        porPagina > 0 && itens > 0, { porPagina, itens });
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  console.log('\n9. As TRÊS listas da Área do Professor paginam pela mesma peça');
+  // -------------------------------------------------------------------------
+  /* «A anamnese também tem que nascer com paginação, plano de ensino também, plano de observação
+   * também» (21/11/2026). As três são UM chamador só (`paginaDeLista` dentro de `listas-do-acervo`),
+   * e é por isso que se medem as três: uma regra escrita uma vez pode ser lida três vezes, mas uma
+   * que falte num dos caminhos é a que ninguém vê.
+   *
+   * O QUE SE MEDE É O ARTEFACTO — a página que a ponte serve —, e não o `porPagina` no fonte. O
+   * rodapé nasce `hidden` e é o cliente que o acende a partir de duas páginas: com um registo só
+   * ele não aparece, e isso é a regra, não a falha. */
+  {
+    const porta = require(path.join(RAIZ, 'motor/nucleo/porta.js'));
+    const producao = require(path.join(RAIZ, 'motor/servidor/producao.js'));
+    const listasDoAcervo = require(path.join(RAIZ, 'motor/servidor/listas-do-acervo.js'));
+    const dados = new Map();
+    const kv = {
+      async get(k) { return dados.has(k) ? dados.get(k) : null; },
+      async put(k, v) { dados.set(k, String(v)); },
+      async delete(k) { dados.delete(k); },
+      async list(op) {
+        const p = (op && op.prefix) || '';
+        return { keys: [...dados.keys()].filter((k) => k.startsWith(p)).map((name) => ({ name })),
+          list_complete: true };
+      },
+    };
+    const env = { ESCOLA_SLUG: 'breu', ESCOLA_HABILITADA: 'sim', SENHA_ADMIN: 's', PADD_KV: kv };
+    const arm = producao.__armazenamento(env);
+    const relatorio = (id) => ({
+      id, estado: 'Input_anamnese_construida', contagem: { respondidos: 0, obrigatorios: 0 },
+      elos: [], paradas: [], idsDesconhecidos: [],
+      validacao: { resultado: 'aceite', contrato: 'prova' }, errosDoDocumento: [], linhas: [],
+    });
+    await porta.gravarEnvelope(arm, {
+      id: 'anamnese-prova-01', gerado_em: '2026-11-21T10:00',
+      contexto: { escola: 'breu', professor: 'demi-plie', aluna: 'Aluna A' }, respostas: {},
+    }, relatorio('anamnese-prova-01'));
+
+    /* UMA LISTA VAZIA NÃO PAGINA — `paginaDeLista` só embrulha quando há cartões, e é a regra:
+       não se pagina uma lista de dois registos para mostrar um botão desactivado. Por isso a
+       prova mede a lista COM um registo (a anamnese tem um), e prova a outra metade pelo
+       CONTRATO: as três famílias passam pelo MESMO chamador, e é ele que pede o `porPagina`.
+       Sem esta segunda asserção, «as três paginam» seria uma afirmação sobre uma delas. */
+    const fonteListas = require('fs').readFileSync(
+      path.join(RAIZ, 'motor/servidor/listas-do-acervo.js'), 'utf8');
+    const chamadores = (fonteListas.match(/listas\.paginaDeLista\(\{/g) || []).length;
+    checar('as três famílias da Área do Professor passam por UM chamador só',
+      chamadores === 1 && Object.keys(listasDoAcervo.FAMILIAS).length >= 3, chamadores);
+    checar('…e esse chamador pede o `porPagina` (a peça não está num caminho e não no outro)',
+      /listas\.paginaDeLista\(\{[\s\S]{0,2000}?porPagina:\s*25/.test(fonteListas), null);
+
+    const p = await listasDoAcervo.pagina('/area-do-professor/anamnese/', {
+      env, menu: null, escola: 'breu', curadorias: [], linhasDeBase: [],
+    });
+    const html = (p && p.html) || '';
+    checar('[anamnese] a página COM registo tem o painel que pagina e o rodapé escondido',
+      /<div data-paginar data-por-pagina="25">/.test(html)
+      && /class="paginas" hidden/.test(html), html.length);
+    checar('[anamnese] …e o cliente que o faz andar vem com a página',
+      html.indexOf('function paginar()') !== -1, null);
+  }
+
   console.log('');
   if (falhas) {
     console.log(falhas + ' FALHA(S) de ' + n);

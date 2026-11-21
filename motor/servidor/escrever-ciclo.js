@@ -50,7 +50,7 @@ const {
   notacaoEscolhida,
 } = require('../nucleo/derivar-ciclo.js');
 /* QUE AULAS UMA REGENERAÇÃO PODE ESCREVER (21/11/2026) — a regra é UMA e vive lá. */
-const { aulasLancadas, podeRegenerar, numeroDaAula, aulasDeclaradasPeloPlano } =
+const { aulasLancadas, podeRegenerar, numeroDaAula, aulasDeclaradasPeloPlano, docsComAsAulas } =
   require('../nucleo/aulas-do-ciclo.js');
 
 // O caminho de uma fonte derivada, a partir do contexto — a MESMA regra dos `-po.md`/`-plano.md`.
@@ -971,17 +971,16 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
        * SÓ ACRESCENTA. A lista que está é a do manifesto, com o que alguém lá pôs; reescrevê-la
        * por `docsGerados` apagaria uma entrada que não é deste derivador (um documento extra de
        * uma variante antiga), e apagar é a única coisa que este caminho nunca faz. */
-      const faltam = [];
-      for (const nn of aulasDeclaradasPeloPlano(plano)) {
-        if (atuais.indexOf('aula-' + nn) === -1) faltam.push('aula-' + nn);
-        if (atuais.indexOf('captura-aula-' + nn) === -1) faltam.push('captura-aula-' + nn);
-      }
-      if (faltam.length) {
-        const indice = atuais.findIndex((d) => /^captura-aula-\d+$/.test(d));
-        const onde = indice === -1 ? atuais.length : indice;
-        const lista = atuais.slice(0, onde).concat(faltam, atuais.slice(onde));
+      /* A REGRA É UMA SÓ, e esta era a TERCEIRA cópia (21/11/2026). As outras duas
+       * (`escrever-plano.js` e `compor-conf.js`) já foram chamadas a `docsComAsAulas`; esta ficou
+       * com a conta escrita à mão, e três cópias da mesma lista divergem na primeira correcção —
+       * foi exactamente esse o defeito do dia, com o caminho composto a preservar o `DOCS` que os
+       * outros dois cresciam. */
+      const lista = docsComAsAulas(atuais.join(' '), plano);
+      if (lista.join(' ') !== atuais.join(' ')) {
+        const acrescentadas = lista.filter((d) => atuais.indexOf(d) === -1);
         confTexto = confTexto.replace(/^DOCS="[^"]*"/m, 'DOCS="' + lista.join(' ') + '"');
-        relatorio.docs = { ok: true, docs: lista, acrescentadas: faltam };
+        relatorio.docs = { ok: true, docs: lista, acrescentadas };
       } else {
         relatorio.docs = { ok: true, nota: 'DOCS já declara as aulas do plano' };
       }

@@ -159,6 +159,60 @@ function aulasDeclaradasPeloPlano(plano) {
   return [...aulas].sort((a, b) => Number(a) - Number(b));
 }
 
+/**
+ * O `DOCS` DO MANIFESTO, CRESCIDO PELAS AULAS QUE O PLANO DECLARA (21/11/2026).
+ *
+ * O DEFEITO, medido duas vezes no mesmo dia — e a segunda é a que interessa: a lista de
+ * documentos crescia num caminho de escrita (`atualizarManifesto`) e **não** no outro
+ * (`comporManifestoDaTurma`, que é o caminho normal de uma escola com a turma cadastrada). Com a
+ * turma no contexto, o manifesto era COMPOSTO e o `DOCS` era **preservado** como estava — de modo
+ * que a Aula 02, criada pelo calendário, entrava no envelope e não entrava no pacote. Ela viu
+ * exactamente isso: «a aula dois ainda está com o botão criar aula, ele não se transformou em
+ * abrir. E lá em aulas também eu não tenho como acessar a aula dois.»
+ *
+ * A REGRA É DERIVADA, e não pedida a ninguém: a aula existe quando o plano declara a sequência
+ * dela. Quem cria a aula (o diálogo do calendário) não tem de se lembrar de mexer numa lista — e
+ * é bom que não tenha, porque uma lista à mão diverge em silêncio.
+ *
+ * A LISTA SÓ CRESCE. O que o manifesto já declara fica onde está; a aula nova entra na posição da
+ * família — depois da última aula, antes da captura dela. Nenhuma aula sai por esta via, e sem
+ * `plano` a lista volta como veio.
+ */
+function docsComAsAulas(docs, plano) {
+  const atuais = String(docs == null ? '' : docs).trim().split(/\s+/).filter(Boolean);
+  const lista = atuais.length ? atuais.slice() : ['plano'];
+  if (!plano) return lista;
+  const declaradas = aulasDeclaradasPeloPlano(plano);
+  const faltam = [];
+  for (const nn of declaradas) {
+    if (lista.indexOf('aula-' + nn) === -1) faltam.push('aula-' + nn);
+    if (lista.indexOf('captura-aula-' + nn) === -1) faltam.push('captura-aula-' + nn);
+  }
+  if (!faltam.length) return lista;
+  /* A FAMÍLIA É REESCOLhIDA, e não remendada. Inserir a aula nova antes da primeira captura que
+     já exista dá `aula-01 aula-02 captura-aula-02 captura-aula-01` — funcional, e com a captura da
+     Aula 01 a fechar a família da 02. A ordem do gerador é plano · harmonização · (aula, captura)
+     por aula · notação · glossário · referências, e é essa que sai daqui: a família inteira é
+     removida e reposta em ordem numérica, no lugar da primeira aula. */
+  const ehDaFamilia = (d) => /^(captura-)?aula-\d+$/.test(d);
+  const fora = lista.filter((d) => !ehDaFamilia(d));
+  const aulas = new Set(declaradas);
+  for (const d of lista) {
+    const m = /^(captura-)?aula-(\d+)$/.exec(d);
+    if (m) { const nn = numeroDaAula(m[2]); if (nn) aulas.add(nn); }
+  }
+  const familia = [];
+  for (const nn of [...aulas].sort((a, b) => Number(a) - Number(b))) {
+    familia.push('aula-' + nn, 'captura-aula-' + nn);
+  }
+  const ancora = lista.findIndex((d) => /^aula-\d+$/.test(d));
+  const onde = ancora === -1
+    ? fora.findIndex((d) => /^captura-aula-\d+$/.test(d))
+    : fora.filter((d) => lista.indexOf(d) < ancora).length;
+  const ondeCerto = onde === -1 ? fora.length : onde;
+  return fora.slice(0, ondeCerto).concat(familia, fora.slice(ondeCerto));
+}
+
 /** As que podem — na ordem em que foram declaradas, sem repetir. */
 function aulasRegeneraveis(declaradas, lancadas) {
   const vistas = new Set();
@@ -175,5 +229,5 @@ function aulasRegeneraveis(declaradas, lancadas) {
 module.exports = {
   numeroDaAula, aulasLancadas, podeRegenerar, aulasRegeneraveis,
   chaveDaAula, aulaSeguinte, aulasDeclaradasPeloPlano,
-  lerChaveDaAula, CAMPOS_DA_AULA,
+  lerChaveDaAula, CAMPOS_DA_AULA, docsComAsAulas,
 };

@@ -2139,6 +2139,15 @@ async function pagina(caminho, { env, menu, escola, curadorias, linhasDeBase, li
       campos: ['busca', 'turma'],
       singular: familia.singular,
       plural: familia.plural,
+      /* A PAGINAÇÃO NASCE COM AS TRÊS LISTAS DA ÁREA DO PROFESSOR (21/11/2026). Ela: «A anamnese
+       * também tem que nascer com paginação, plano de ensino também, plano de observação também.»
+       * A peça é a da casa — `.paginas`, `data-paginar`, o rodapé que nasce `hidden` —, e o número
+       * é o mesmo das outras listas longas deste produto (`/aulas`, as aulas dadas): 25.
+       *
+       * O RODAPÉ SÓ APARECE A PARTIR DE DUAS PÁGINAS. É a regra declarada em
+       * `IDENTIDADE-VISUAL.md` («à vista a partir de duas»), e é o que faz uma escola com seis
+       * registos continuar a ver a lista inteira, sem um rodapé de um botão desactivado. */
+      porPagina: 25,
       dica: 'pelo nome, pela turma ou pelo professor',
       /* O PAINEL DO ATO SUBSTITUI O BOTÃO DO TOPO (25/10/2026). O `acao` continua a existir em
        * `paginaDeLista` — as outras cinco listas usam-no —, mas esta página não o passa: criar

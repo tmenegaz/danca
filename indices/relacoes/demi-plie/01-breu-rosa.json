@@ -13,6 +13,12 @@
       "tipo": "ancora"
     },
     {
+      "chave": "ancora.aula_id",
+      "de": "ancora:demi-plie/01/breu-rosa/aula-02",
+      "para": "aula:demi-plie/01/breu-rosa/02",
+      "tipo": "ancora"
+    },
+    {
       "chave": "ancora.ciclo_id",
       "de": "ancora:demi-plie/01/breu-rosa",
       "para": "ciclo:demi-plie/01/breu-rosa",
@@ -35,6 +41,12 @@
       "de": "aula:demi-plie/01/breu-rosa/01",
       "para": "ciclo:demi-plie/01/breu-rosa",
       "tipo": "pertence_a"
+    },
+    {
+      "chave": "aula.ancora_id",
+      "de": "aula:demi-plie/01/breu-rosa/02",
+      "para": "ancora:demi-plie/01/breu-rosa/aula-02",
+      "tipo": "ancorada_por"
     },
     {
       "chave": "aula.marco",
@@ -139,6 +151,12 @@
       "tipo": "declara_o_que_se_observa"
     },
     {
+      "chave": "indice.aulas[].config",
+      "de": "captura:demi-plie/01/breu-rosa/02",
+      "para": "aula:demi-plie/01/breu-rosa/02",
+      "tipo": "declara_o_que_se_observa"
+    },
+    {
       "chave": "escola",
       "de": "ciclo:demi-plie/01/breu-rosa",
       "para": "escola:breu",
@@ -164,6 +182,18 @@
     },
     {
       "chave": "documento.ancora_id",
+      "de": "documento:demi-plie/01/breu-rosa/aula-02",
+      "para": "ancora:demi-plie/01/breu-rosa",
+      "tipo": "ancorado_por"
+    },
+    {
+      "chave": "documento.ciclo_id",
+      "de": "documento:demi-plie/01/breu-rosa/aula-02",
+      "para": "ciclo:demi-plie/01/breu-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "documento.ancora_id",
       "de": "documento:demi-plie/01/breu-rosa/captura-aula-01",
       "para": "ancora:demi-plie/01/breu-rosa",
       "tipo": "ancorado_por"
@@ -171,6 +201,18 @@
     {
       "chave": "documento.ciclo_id",
       "de": "documento:demi-plie/01/breu-rosa/captura-aula-01",
+      "para": "ciclo:demi-plie/01/breu-rosa",
+      "tipo": "pertence_a"
+    },
+    {
+      "chave": "documento.ancora_id",
+      "de": "documento:demi-plie/01/breu-rosa/captura-aula-02",
+      "para": "ancora:demi-plie/01/breu-rosa",
+      "tipo": "ancorado_por"
+    },
+    {
+      "chave": "documento.ciclo_id",
+      "de": "documento:demi-plie/01/breu-rosa/captura-aula-02",
       "para": "ciclo:demi-plie/01/breu-rosa",
       "tipo": "pertence_a"
     },
@@ -267,16 +309,16 @@
   ],
   "ciclo": "demi-plie/01/breu-rosa",
   "contagens": {
-    "arestas": 43,
+    "arestas": 50,
     "marcas": 0,
-    "nos": 46,
+    "nos": 50,
     "porTipo": {
-      "ancora": 2,
+      "ancora": 3,
       "aspecto": 13,
       "aula": 15,
-      "captura": 1,
+      "captura": 2,
       "ciclo": 1,
-      "documento": 8,
+      "documento": 10,
       "escola": 1,
       "marco": 3,
       "professor": 1,
@@ -297,6 +339,11 @@
     {
       "id": "ancora:demi-plie/01/breu-rosa/aula-01",
       "rotulo": "ciclo-01-breu-rosa-aula-01.fipp",
+      "tipo": "ancora"
+    },
+    {
+      "id": "ancora:demi-plie/01/breu-rosa/aula-02",
+      "rotulo": "ciclo-01-breu-rosa-aula-02.fipp",
       "tipo": "ancora"
     },
     {
@@ -474,6 +521,12 @@
       "tipoDocumento": "captura"
     },
     {
+      "id": "captura:demi-plie/01/breu-rosa/02",
+      "rotulo": "captura-aula-02.json",
+      "tipo": "captura",
+      "tipoDocumento": "captura"
+    },
+    {
       "id": "ciclo:demi-plie/01/breu-rosa",
       "rotulo": "Ciclo 01 — Breu · Rosa",
       "tipo": "ciclo"
@@ -485,10 +538,22 @@
       "tipoDocumento": "aula-01"
     },
     {
+      "id": "documento:demi-plie/01/breu-rosa/aula-02",
+      "rotulo": "aula-02",
+      "tipo": "documento",
+      "tipoDocumento": "aula-02"
+    },
+    {
       "id": "documento:demi-plie/01/breu-rosa/captura-aula-01",
       "rotulo": "captura-aula-01",
       "tipo": "documento",
       "tipoDocumento": "captura-aula-01"
+    },
+    {
+      "id": "documento:demi-plie/01/breu-rosa/captura-aula-02",
+      "rotulo": "captura-aula-02",
+      "tipo": "documento",
+      "tipoDocumento": "captura-aula-02"
     },
     {
       "id": "documento:demi-plie/01/breu-rosa/glossario-codigo_de_danca",

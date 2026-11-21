@@ -2,13 +2,13 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "b1202f11ec4f5025efbe1708ce6a1b031b210bdb9933eb46c6b05b5a1539b53c",
+        "hash": "5b119028504e5781d49433d6b283b8c6efe27563129605a65093f83ad6e0c2aa",
         "id": "ciclo-01-breu-rosa",
         "lida": true,
         "parent_hash": ""
       },
-      "aulas": 1,
-      "documentos": 19,
+      "aulas": 2,
+      "documentos": 22,
       "escola": "breu",
       "estado": "ancorado",
       "id": "ciclo:demi-plie/01/breu",
@@ -65,7 +65,7 @@
       ],
       "contagens": {
         "anamneses": 4,
-        "aulas": 1,
+        "aulas": 2,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
         "planos": 32,
@@ -419,9 +419,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "4600c99"
+    "commit": "ceeddca5"
   },
-  "gerado_em": "2026-11-21T14:20",
+  "gerado_em": "2026-11-21T14:33",
   "nao_indexado": [
     {
       "familia": "conteudo",
