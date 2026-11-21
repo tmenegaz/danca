@@ -97,6 +97,12 @@ async function abrir(base) {
 }
 
 /** Os campos de critério que a tela desenhou, com o bloco e a coluna a que pertencem. */
+/** Os campos agrupados por bloco da folha — a chave do bloco é a do id (`t-<bloco>-…`). */
+const porBlocoDe = (campos) => campos.reduce((m, c) => {
+  m[c.bloco] = (m[c.bloco] || 0) + 1;
+  return m;
+}, {});
+
 const camposDeCriterio = (doc) => Array.from(doc.querySelectorAll('[id^="t-"]'))
   .map((el) => {
     const m = /^t-(.+?)-([^-]+)-(.+)$/.exec(el.id);
@@ -136,17 +142,30 @@ const camposDeCriterio = (doc) => Array.from(doc.querySelectorAll('[id^="t-"]'))
     win.eval(`sel.aula.value = ${JSON.stringify(AULA)}; renderCaptura(); render();`);
     await espera(win, 400);
     const campos = camposDeCriterio(doc);
-    /* UMA ALUNA × UMA COLUNA = UM CAMPO. A conta é esta, e não um número escrito à mão: se a tela
-     * desenhasse um campo por banda (o defeito), o total seria `blocos.length × alunas`. */
+    /* UM CAMPO POR PAR (ESPAÇO, CRITÉRIO) E POR ALUNA — e não por coluna declarada (20/11/2026).
+     *
+     * A CONTA ANTIGA era `colunas × alunas`, e valia enquanto cada espaço fosse um bloco só. A
+     * folha pode declarar o MESMO espaço duas vezes — «Bloco 1 — Solo» com os objectivos do plano e
+     * «Bloco 5 — Técnica — Solo» com os critérios —, e o formulário junta-os: o par (espaço,
+     * critério) é uma pergunta só. O total passa a ser o número de PARES, que é o que a tela
+     * desenha; a conta continua a sair do config, e não de um literal.
+     *
+     * O DEFEITO que a secção trava não mudou: é a coluna que junta DOIS critérios num rótulo só. */
     const alunas = [...new Set(campos.map((c) => c.aluna))];
-    provar('a tela desenha um campo por coluna e por aluna',
-      campos.length === colunas.length * alunas.length,
-      { campos: campos.length, colunas: colunas.length, alunas: alunas.length });
-    const porBloco = {};
-    for (const c of campos) porBloco[c.bloco] = (porBloco[c.bloco] || 0) + 1;
-    provar('…e cada banda tem os campos das SUAS colunas, e não um só',
-      blocos.every((b) => porBloco[b.chave] === b.colunas.length * alunas.length),
-      { porBloco, esperado: blocos.map((b) => [b.chave, b.colunas.length * alunas.length]) });
+    const { blocoDaDimensao } = require(path.join(RAIZ, 'motor/nucleo/eixos.js'));
+    const semAcento = (t) => String(t == null ? '' : t).normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+    const pares = new Set();
+    for (const b of blocos) {
+      const espaco = semAcento(blocoDaDimensao(b.rotulo || b.titulo || '') || b.rotulo || b.chave);
+      for (const c of b.colunas) pares.add(espaco + '|' + semAcento(c.rotulo));
+    }
+    provar('a tela desenha um campo por par (espaço, critério) e por aluna',
+      campos.length === pares.size * alunas.length,
+      { campos: campos.length, pares: pares.size, alunas: alunas.length });
+    provar('…e cada banda continua a ter os seus campos, e não um só',
+      blocos.every((b) => (porBlocoDe(campos)[b.chave] || 0) > 0),
+      { porBloco: porBlocoDe(campos) });
     const rotulos = Array.from(doc.querySelectorAll('#captura-campos table.captura th'))
       .map((th) => th.textContent.trim());
     provar('…e cada cabeçalho nomeia UM critério',

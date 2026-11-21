@@ -703,6 +703,12 @@ fi
 # o índice, os JSONs de entrada e o JSON de dados cifrado.
 cp "$TPL/lancamento.html" "$PACOTE/lancamento.html"
 cp "$RAIZ/tools/lib-vistas.js" "$RAIZ/tools/lib-cifra.js" "$TPL/nav.js" "$PACOTE/assets/"
+# A TAXONOMIA DOS EIXOS VAI TAMBÉM (20/11/2026). O formulário decidia a que eixo pertence um bloco
+# com uma SEGUNDA cópia da regra — comparava o rótulo inteiro («Técnica — Barra») com as dimensões
+# do PO, e os blocos escritos com o prefixo caíam fora dos três eixos. O módulo é puro e tem o
+# mesmo embrulho do `lib-vistas.js` (Node por `module.exports`, browser por global `Eixos`), por
+# isso é copiado tal e qual — sem reescrita e sem build.
+cp "$RAIZ/motor/nucleo/eixos.js" "$PACOTE/assets/eixos.js"
 
 # ---------------------------------------------------------------------------
 # 0) Normalização dos ids: TODA fonte passa por aqui antes de virar HTML,

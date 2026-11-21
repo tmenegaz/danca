@@ -366,6 +366,11 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
      entrada (po-XX.json, plano-XX.json) e o JSON de dados do ciclo (cifrado). O lançamento ela
      ENVIA para o site: nada aqui é gravado no computador de quem usa. -->
 <script src="assets/lib-vistas.js"></script>
+<!-- A TAXONOMIA DOS TRÊS EIXOS, servida do `motor/nucleo/eixos.js` — o MESMO ficheiro que o
+     gerador e o Plano de Observação leem. É ele que decide a que eixo pertence um bloco da folha
+     (`blocoDaDimensao` tira o prefixo «Técnica —» e `eixoDoBloco` aplica a taxonomia). Esteve
+     reescrita aqui, e divergiu: cinco blocos da folha caíam fora dos eixos. -->
+<script src="assets/eixos.js"></script>
 <!-- O comportamento da barra fixa e do menu mobile é o MESMO do resto do site, e vive num
      único arquivo (`nav.js`). Antes era um bloco inline do `ciclo.html`, que esta página não
      carrega: a barra ficava por cima do título e o hamburger não abria no celular. A guarda
@@ -1760,15 +1765,25 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
    * poiesis aparecem UMA vez por espaço (não seis), e toda marca é de uma aluna.
    */
   const eixos = eixosDoPo(po);
-  // A que eixo pertence um bloco da folha: pelo RÓTULO da dimensão, contra as dimensões do PO. É o
-  // que liga «Solo» (a folha) a «Técnica» (o PO) sem uma lista paralela que envelheça.
+  /* A QUE EIXO PERTENCE UM BLOCO DA FOLHA — pela regra CANÓNICA, servida em `assets/eixos.js`.
+   *
+   * AQUI HAVIA UMA SEGUNDA CÓPIA DA REGRA, e ela divergiu. Comparava o rótulo INTEIRO do bloco
+   * («Técnica — Barra») com as dimensões do PO («Barra»), e por isso nenhum bloco escrito com o
+   * prefixo caía em eixo nenhum: no ciclo da `breu` eram CINCO — Técnica — Solo, — Barra, —
+   * Centro, — Musicalidade, — Expressão —, todos desenhados ao fim do formulário com o aviso
+   * «este bloco não cai em nenhum dos três eixos do PO». Os critérios que o professor escreveu
+   * ficavam fora da matriz, e o formulário pedia-os à parte.
+   *
+   * `Eixos.blocoDaDimensao` existe precisamente para tirar o prefixo, e `Eixos.eixoDoBloco` é a
+   * taxonomia decidida («musicalidade e expressão jamais sob o eixo técnico»). O módulo é servido à
+   * página como `assets/eixos.js` — uma declaração, dois consumidores —, e não reescrito aqui.
+   *
+   * Sem bloco nenhum (um rótulo vazio, uma folha avariada) devolve `null`: é o único caso que
+   * continua a merecer o aviso, porque não há sequer um nome por onde decidir. */
   const eixoDoBloco = (b) => {
     if (b.secoes) return 'corpo';            // a linha de base revisitada É o eixo do corpo
-    const alvo = semAcento(b.rotulo || b.titulo || '');
-    for (const [chave] of EIXOS_DA_CAPTURA) {
-      if (eixos[chave].dimensoes.some((d) => semAcento(d) === alvo)) return chave;
-    }
-    return null;
+    const bloco = Eixos.blocoDaDimensao(b.rotulo || b.titulo || '');
+    return bloco ? Eixos.eixoDoBloco(bloco) : null;
   };
   // QUEM APARECE: quem está presente. Uma aluna ausente numa matriz de marcas é uma linha de
   // selects que ninguém vai preencher, e «ausente» já está dito na folha de presença.
@@ -1816,30 +1831,51 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
     </table>`, itens.length, b.rotulo || 'Linha de base');
   };
 
-  // A MATRIZ DE VÁRIOS BLOCOS NO MESMO EIXO (a Técnica tem três espaços, a Poiesis dois): uma
-  // tabela por OBJECTIVO, e os espaços como colunas. É assim que a repetição desaparece — o
-  // objectivo — que estava escrito três vezes como coluna — passa a ser o título de uma tabela,
-  // e os espaços, que estavam escritos como títulos, passam a ser as colunas.
-  const matrizPorObjectivo = (g) => {
-    const objectivos = [];
-    g.blocos.forEach((b) => (b.colunas || []).forEach((c) => {
-      if (!objectivos.some((o) => o.chave === c.chave)) objectivos.push({ chave: c.chave, rotulo: c.rotulo });
-    }));
-    return objectivos.map((o) => {
-      const colunas = [];
-      g.blocos.forEach((b) => {
-        const c = (b.colunas || []).find((x) => x.chave === o.chave);
-        if (c) colunas.push({ b, c });
-      });
-      return `<p class="matriz-objectivo">${esc(o.rotulo)}</p>
-        ${comRolagem(`<table class="captura matriz" style="--colunas:${colunas.length}">
-          <tr><th>Aluna</th>${colunas.map(({ b }) => `<th>${esc(b.rotulo || b.titulo)}</th>`).join('')}</tr>
-          ${presentes.map(([k, nome]) => `<tr><th class="aluna">${esc(nome)}</th>`
-            + colunas.map(({ b, c }) => `<td>${campo(`t-${b.chave}-${k}-${c.chave}`, c.tipo,
-              doBloco(b, k)[c.chave])}</td>`).join('')
-            + '</tr>').join('')}
-        </table>`, colunas.length, o.rotulo)}`;
-    }).join('');
+  /* OS BLOCOS DA FOLHA, AGRUPADOS POR ESPAÇO (20/11/2026) — e a transposição que aqui estava sai.
+   *
+   * O QUE ELA FAZIA. Uma tabela por OBJECTIVO, com os espaços como colunas, para o objectivo não
+   * aparecer escrito três vezes como coluna em três tabelas. Estava certa enquanto cada espaço era
+   * UMA tabela da folha.
+   *
+   * PORQUE DEIXOU DE SERVIR. A folha pode declarar o MESMO espaço duas vezes — uma com os
+   * objectivos do plano («Bloco 1 — Solo») e outra com os critérios que o professor escreveu
+   * («Bloco 5 — Técnica — Solo») —, porque `dimensoes-de-observacao` e `itens-por-dimensao` são
+   * duas escritas do mesmo recorte, e `itensComObjetivos` põe os objectivos do plano à frente das
+   * DUAS. Transposta, a tabela do objectivo «reconhecer o apoio» saía com quatro colunas, e duas
+   * delas eram o mesmo espaço: «Solo» e «Técnica — Solo». A pergunta repetida voltava, agora em
+   * coluna em vez de em tabela.
+   *
+   * A REGRA NOVA É A DA FOLHA IMPRESSA, que é o que o professor tem na mão durante a aula: um
+   * bloco por ESPAÇO. Os blocos que nomeiam o mesmo espaço juntam-se, as colunas são a UNIÃO dos
+   * itens (os objectivos do plano vêm à frente porque é assim que `itensComObjetivos` os põe), e
+   * cada par (item, espaço) aparece UMA vez. Nada se perde: a coluna guarda de que bloco veio
+   * (`{b, c}`), e é por ele que o valor é lido e gravado.
+   *
+   * A leitura por objectivo não se perdeu — ela vive na §4 e na §5 da aula, onde o objectivo é o
+   * título da tabela. Aqui, na hora de marcar, o que organiza é o espaço. */
+  const espacosDoEixo = (lista) => {
+    const porEspaco = new Map();
+    for (const b of lista) {
+      const nome = Eixos.blocoDaDimensao(b.rotulo || b.titulo || '') || (b.rotulo || b.chave || '');
+      const chave = semAcento(nome);
+      if (!porEspaco.has(chave)) porEspaco.set(chave, { nome, colunas: [] });
+      const esp = porEspaco.get(chave);
+      for (const c of (b.colunas || [])) {
+        if (esp.colunas.some((x) => semAcento(x.c.chave) === semAcento(c.chave))) continue;
+        esp.colunas.push({ b, c });
+      }
+    }
+    return [...porEspaco.values()];
+  };
+  const matrizDoEspaco = (esp) => {
+    const quantas = esp.colunas.length;
+    return comRolagem(`<table class="captura matriz" style="--colunas:${quantas}">
+      <tr><th>Aluna</th>${esp.colunas.map(({ c }) => `<th>${esc(c.rotulo)}</th>`).join('')}</tr>
+      ${presentes.map(([k, nome]) => `<tr><th class="aluna">${esc(nome)}</th>`
+        + esp.colunas.map(({ b, c }) => `<td>${campo(`t-${b.chave}-${k}-${c.chave}`, c.tipo,
+          doBloco(b, k)[c.chave])}</td>`).join('')
+        + '</tr>').join('')}
+    </table>`, quantas, esp.nome);
   };
 
   /** Os valores do grupo, na ordem em que se lêem — é o que a contagem do sumário conta. */
@@ -1903,8 +1939,14 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
       const base = g.blocos.filter((b) => b.secoes);
       const resto = g.blocos.filter((b) => !b.secoes);
       const partes = base.map(matrizDaBase);
-      if (resto.length === 1) partes.push(matrizDeBloco(resto[0]));
-      else if (resto.length > 1) partes.push(matrizPorObjectivo({ chave: g.chave, blocos: resto }));
+      /* UMA TABELA POR ESPAÇO — e o título diz QUAL quando o eixo tem mais do que uma: com uma
+       * tabela só, o título do eixo já é o nome dela. O bloco repetido deixa de ser duas
+       * perguntas, e é essa a mudança. */
+      const espacos = espacosDoEixo(resto);
+      for (const esp of espacos) {
+        partes.push((espacos.length > 1 ? `<p class="matriz-objectivo">${esc(esp.nome)}</p>` : '')
+          + matrizDoEspaco(esp));
+      }
       corpo = partes.join('');
     }
     return `<details class="eixo"${aberto ? ' open' : ''}>

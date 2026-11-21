@@ -1,5 +1,23 @@
 'use strict';
 
+/* ---------------------------------------------------------------------- os dois ambientes
+ *
+ * A PÁGINA TAMBÉM PRECISA DESTA REGRA (20/11/2026). O formulário do lançamento decidia o eixo de
+ * cada bloco com uma SEGUNDA cópia da regra — comparava o rótulo inteiro («Técnica — Barra») com
+ * as dimensões do PO, e por isso os blocos escritos com o prefixo caíam FORA dos três eixos e
+ * apareciam ao fim do formulário com um aviso. Uma cópia a divergir da outra é exactamente o que
+ * este módulo existe para impedir; o remédio é ele ser servido à página, e não reescrito lá.
+ *
+ * O EMBRULHO É FECHADO, e tem de ser: em browser um `<script src>` clássico põe as declarações de
+ * topo no escopo global, e `semAcento` colidia com a função de mesmo nome que a página já tem
+ * («Identifier 'semAcento' has already been declared»). Nada sai daqui a não ser o objeto — em
+ * Node `module.exports`, no browser o global `Eixos`. O padrão é o do `tools/lib-vistas.js`.
+ */
+(function (raiz, fabrica) {
+  if (typeof module === 'object' && module.exports) module.exports = fabrica();
+  else raiz.Eixos = fabrica();
+}(typeof self !== 'undefined' ? self : this, () => {
+
 /**
  * OS TRÊS EIXOS DO QUE SE OBSERVA EM DANÇA — a declaração ÚNICA do lado do código.
  *
@@ -71,4 +89,6 @@ function rotuloDoEixo(id) {
   return achado ? achado.rotulo : '';
 }
 
-module.exports = { EIXOS, BLOCOS_DA_POIESIS, semAcento, blocoDaDimensao, eixoDoBloco, rotuloDoEixo };
+
+  return { EIXOS, BLOCOS_DA_POIESIS, semAcento, blocoDaDimensao, eixoDoBloco, rotuloDoEixo };
+}));

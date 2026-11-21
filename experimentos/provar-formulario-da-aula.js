@@ -27,21 +27,35 @@
  *
  * O QUE SE PROVA AQUI, e cada item corresponde a uma frase dela:
  *
- *   A. a matriz: as linhas são as alunas e as colunas são os aspectos — os quatro do corpo (que
- *      não tinham coluna nenhuma), os objectivos da técnica com os três espaços como colunas, e os
- *      da poiesis com os dois dela. 14 marcas por aluna, e todas com dono;
+ *   A. A MATRIZ — e, desde 20/11/2026, a RELAÇÃO: **o formulário pergunta o que a folha declara,
+ *      uma vez por par (espaço, item), no eixo que a taxonomia manda**. As linhas são as alunas do
+ *      elenco; as colunas são os aspectos; nenhum bloco da folha fica fora dos três eixos; todo
+ *      item declarado tem a sua célula e nenhuma célula existe sem declaração; e o número de
+ *      marcas por aluna sai da CONTA (corpo pelo PO + técnica + poiesis), não de um literal.
+ *      É esta a secção que serve às aulas que ainda vêm: ela não sabe quantos itens a aula tem —
+ *      compara os dois lados. Foi ela que revelou que cinco blocos da folha da `breu`
+ *      («Técnica — Solo» … «Técnica — Expressão») caíam fora dos eixos, por a página decidir o
+ *      eixo com uma segunda cópia da regra;
  *   B. «O plano foi seguido?» é UMA pergunta de três estados (sim / em parte / não) com um texto —
  *      as duas perguntas que diziam a mesma coisa deixaram de existir;
  *   C. a escrita obrigatória é uma só quando o plano é seguido — «o que aconteceu de novo»;
- *   D. o payload passa no `validar-dados-ciclo.js`, a linha de base vai por aluna, e uma marca
- *      fora do vocabulário é recusada (inclusive ali, que até hoje passava sem ser olhado);
+ *   D. o payload passa no `validar-dados-ciclo.js`, a linha de base vai por aluna (uma marca por
+ *      aspecto do PO), e uma marca fora do vocabulário é recusada (inclusive ali, que até hoje
+ *      passava sem ser olhado);
  *   E. a LARGURA: a coluna do formulário é a do documento mais a do roteiro — 1132px a 1280, e
  *      não os 828 que sobravam de uma coluna de índice que o formulário não tem;
- *   F. a MATRIZ QUE NÃO CABE: as colunas crescem com o dado, e quando passam a largura a tabela
- *      rola dentro de si — com as setas a dizer que há mais, e a desligar-se no fim do caminho;
+ *   F. a MATRIZ QUE NÃO CABE: as colunas crescem com o dado, e cada tabela diz se cabe
+ *      (`data-rolagem`) — a fileira de setas aparece só onde não cabe, as setas andam a caixa e
+ *      desligam-se no fim do caminho. A asserção é a REGRA, caixa a caixa, e não «a primeira
+ *      tabela a 1280»: a mesma tela tem caixas com e sem setas;
  *   G. a PRESENÇA com cinquenta alunas: uma caixa que abre (e não uma linha de cinquenta nomes),
  *      com todos/nenhum, e a matriz a seguir a marcação sem perder o que já estava escrito;
  *   H. a página não estoura na horizontal, nem a 1280 nem a 390.
+ *
+ * A PROVA NÃO SABE QUAL É A ESCOLA NEM A AULA. O pacote vem do `lib-pacote.js` e a aula da prova é
+ * a primeira sem lançamento que o índice declara; o config é o que o índice nomeia
+ * (`aulas[].config`). Trocar de escola, de ciclo ou de aula não muda uma linha — é o que a torna
+ * reutilizável para as aulas que ainda vêm.
  *
  * Requer Chrome/Chromium (puppeteer-core vem com o marp-cli global). Sem ele: NÃO FEITO.
  *
@@ -72,6 +86,12 @@ if (!executavel) {
 }
 
 const { umPacote } = require('./lib-pacote.js');
+/* A TAXONOMIA É A DO PRODUTO (20/11/2026): o mesmo módulo que a página carrega como
+ * `assets/eixos.js`. A prova não reescreve a regra — se ela divergisse da página, a prova estaria
+ * a medir a sua própria cópia. */
+const Eixos = require(path.join(raiz, 'motor/nucleo/eixos.js'));
+const { chaveDoItem } = require(path.join(raiz, 'tools/lib-vistas.js')).helpers;
+const semAcentoLocal = Eixos.semAcento;
 const PACOTE = umPacote();
 const ABS = path.join(raiz, PACOTE);
 
@@ -99,7 +119,32 @@ function estadoDaAula(a, quando = new Date()) {
  * é a única em que o painel abre (`primeiraSemDado`). Derivada do índice, não fixa em código. */
 const arquivoDados = ciclo.arquivo;
 const apelidos = { aluna_a: 'Aluna A', aluna_b: 'Aluna B' };
-const DADOS_EM_CLARO = JSON.stringify({ ciclo: ciclo.id, escola: 'calango', aulas: {},
+/* A ESCOLA VEM DO ÍNDICE DO PACOTE, e não de um literal: era `calango`, escola expurgada. O
+ * `escola` do `ciclos.json` é o nome como se escreve («Breu»); o slug sai do caminho do pacote
+ * (`ciclo-01-<slug>-<turma>`), e é ele que o JSON de dados carrega. */
+const ESCOLA = (() => {
+  const nome = path.basename(ABS);                       // ciclo-01-breu-rosa
+  const partes = nome.replace(/^ciclo-\d+-/, '').split('-');
+  return partes.length > 1 ? partes[0] : (ciclo.escola || 'escola');
+})();
+
+/* OS ITENS DO CORPO que o PO declara — a coluna da tabela da linha de base. Calculados UMA vez
+ * aqui: a secção A compara a tela com eles, e a secção D conta as marcas gravadas por eles. */
+const corpoItens = (() => {
+  const itens = [];
+  for (const d of PO.itensPorDimensao || []) {
+    const eixo = String(d.eixo || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (eixo !== 'Corpo') continue;
+    for (const bruto of String(d.itens || '').split(';')) {
+      const item = bruto.trim();
+      if (item && !/^sem\s+(restri|nenhum|altera)/i.test(item)
+        && itens.indexOf(item) === -1) itens.push(item);
+    }
+  }
+  return itens;
+})();
+
+const DADOS_EM_CLARO = JSON.stringify({ ciclo: ciclo.id, escola: ESCOLA, aulas: {},
   apelidos }, null, 2) + '\n';
 
 /* O item que o PO declara como AUSÊNCIA, e não como coisa a olhar. */
@@ -119,6 +164,10 @@ function servir() {
     'assets/nav.js': 'tools/templates/nav.js',
     'assets/lib-vistas.js': 'tools/lib-vistas.js',
     'assets/lib-cifra.js': 'tools/lib-cifra.js',
+    /* A TAXONOMIA DOS EIXOS ENTROU NO PACOTE A 20/11/2026: o formulário lia-a de uma cópia sua, e
+     * a cópia divergiu (cinco blocos fora dos eixos). A bancada serve o ficheiro como o gerador o
+     * copia — mesmo caminho, mesmo conteúdo. */
+    'assets/eixos.js': 'motor/nucleo/eixos.js',
     'lancamento.html': 'tools/templates/lancamento.html' };
   const srv = http.createServer((req, res) => {
     const rel = decodeURIComponent(req.url.split('?')[0]).replace(/^\/+/, '') || 'index.html';
@@ -145,6 +194,8 @@ function servir() {
 }
 
 (async () => {
+  /* Os números que o fecho imprime — medidos, não escritos. */
+  const medido = {};
   const { srv, base } = await servir();
   const navegador = await puppeteer.launch({
     executablePath: executavel,
@@ -185,99 +236,210 @@ function servir() {
     }, { timeout: 15000 });
 
     // ----------------------------------------------------------------------------------------
-    console.log('A. A matriz — as linhas são as alunas, as colunas são os aspectos');
+    console.log('A. A matriz — o formulário pergunta o que a folha declara, uma vez por par');
     {
-      /* A CAIXA DOS PRESENTES TAMBÉM É UMA `.eixo` (é a peça que abre), e não é um eixo da aula:
-       * o filtro está aqui, e não na página, porque na página o que importa é a peça ser a mesma. */
-      const eixos = await pagina.$$eval('#captura-campos details.eixo:not(.presenca-da-turma) > summary',
+      /* O QUE ESTA SECÇÃO PASSOU A MEDIR, E PORQUÊ (20/11/2026).
+       *
+       * Ela media a FORMA que a matriz tinha no ciclo da `batata`: «uma tabela por objectivo, os
+       * três espaços como colunas, 14 marcas por aluna». Medido contra a `breu`, o número e a
+       * forma não batiam — e o que a diferença revelou não era fixture: CINCO blocos da folha
+       * («Técnica — Solo» … «Técnica — Expressão») caíam FORA dos três eixos, porque a página
+       * decidia o eixo com uma segunda cópia da regra, comparando o rótulo inteiro com as
+       * dimensões do PO. Os critérios que o professor escreveu ficavam ao fim do formulário, com
+       * um aviso, fora da matriz.
+       *
+       * A asserção deixou de fixar números de uma escola e passou a medir a RELAÇÃO, que é a mesma
+       * em qualquer aula: **cada par (espaço, item) que a folha declara aparece UMA vez, no eixo
+       * que a taxonomia manda** — e nada aparece que a folha não declare. É esta a prova que
+       * serve às aulas que ainda vêm: ela não sabe quantos itens há, sabe que os dois lados têm de
+       * dizer o mesmo. */
+      const CAIXA = '#captura-campos details.eixo:not(.presenca-da-turma)';
+      const eixos = await pagina.$$eval(CAIXA + ' > summary',
         (ss) => ss.map((x) => x.textContent.replace(/\s+/g, ' ').trim().split(' — ')[0]));
       provar('os três eixos aparecem, e nesta ordem: Corpo, Técnica, Poiesis',
         JSON.stringify(eixos) === JSON.stringify(['Corpo', 'Técnica', 'Poiesis']), eixos);
 
-      /* A MATRIZ COMO ELA ESTÁ NA TELA: por eixo, as tabelas, o objectivo de cada uma (quando o
-       * há) e as colunas. */
-      const matriz = await pagina.evaluate(() => {
-        const out = {};
-        document.querySelectorAll('#captura-campos details.eixo:not(.presenca-da-turma)').forEach((d) => {
-          const nome = d.querySelector('summary').textContent.split('—')[0].trim();
-          out[nome] = [...d.querySelectorAll('table')].map((t) => {
-            // A tabela vive DENTRO da caixa que rola: o título dela é o irmão da caixa.
+      /* A MATRIZ COMO ELA ESTÁ NA TELA: por eixo, as tabelas — o título (o espaço), as colunas (os
+       * itens) e as linhas (as alunas). */
+      const tela = await pagina.evaluate((sel) => {
+        const out = [];
+        document.querySelectorAll(sel).forEach((d) => {
+          const eixo = d.querySelector('summary').textContent.split('—')[0].trim();
+          [...d.querySelectorAll('table')].forEach((t) => {
             const caixa = t.closest('.rolagem') || t;
             const antes = caixa.previousElementSibling;
-            return {
-              objectivo: (antes && antes.classList.contains('matriz-objectivo')) ? antes.textContent.trim() : null,
+            out.push({
+              eixo,
+              titulo: (antes && antes.classList.contains('matriz-objectivo')) ? antes.textContent.trim() : null,
               colunas: [...t.querySelectorAll('tr')[0].children].slice(1).map((c) => c.textContent.trim()),
               alunas: [...t.querySelectorAll('tr')].slice(1).map((tr) => tr.querySelector('th').textContent.trim()),
-              selects: t.querySelectorAll('select').length,
-            };
+              ids: [...t.querySelectorAll('select')].map((s) => s.id),
+            });
           });
         });
         return out;
-      });
+      }, CAIXA);
+      const totalNaTela = await pagina.$$eval(CAIXA + ' select', (x) => x.length);
 
-      // O QUE O PO DECLARA, eixo a eixo: os itens (sem repetir) e as dimensões onde aparecem.
-      const doPo = { 'Corpo': { itens: [], dimensoes: [] }, 'Técnica': { itens: [], dimensoes: [] },
-        'Poiesis': { itens: [], dimensoes: [] } };
-      const eixoDe = { Corpo: 'Corpo', Tecnica: 'Técnica', Poiesis: 'Poiesis' };
-      for (const d of PO.itensPorDimensao || []) {
-        const e = eixoDe[String(d.eixo || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')];
-        if (!e) continue;
-        if (d.dimensao && !doPo[e].dimensoes.includes(d.dimensao)) doPo[e].dimensoes.push(d.dimensao);
-        for (const bruto of String(d.itens || '').split(';')) {
-          const item = bruto.trim();
-          if (!item || AUSENCIA.test(item)) continue;
-          if (!doPo[e].itens.some((x) => x.toLowerCase() === item.toLowerCase())) doPo[e].itens.push(item);
+      /* O QUE A FOLHA DECLARA, lido do config que o índice do ciclo nomeia — o MESMO arquivo que a
+       * página carrega (`aulas[].config`). Cada bloco dá o seu espaço pela regra canónica
+       * (`motor/nucleo/eixos.js`, o módulo que a página também usa), e cada coluna é um item. */
+      const configNome = ((ciclo.aulas || []).find((a) => String(a.n) === String(aulaDaProva.n)) || {}).config
+        || ('captura-aula-' + aulaDaProva.n + '.json');
+      const CONFIG = JSON.parse(fs.readFileSync(path.join(ABS, configNome), 'utf8'));
+      /* OS ITENS DO CORPO, que vêm do PO e não da folha (ver o `continue` dos `secoes`, abaixo). */
+      const doPo = corpoItens.map(chaveDoItem);
+
+      const declarado = [];
+      for (const b of CONFIG.blocos || []) {
+        if (b.tipo !== 'tabela' || !Array.isArray(b.colunas) || !b.colunas.length) continue;
+        /* A LINHA DE BASE NÃO DECLARA ITENS. Ela é uma tabela de UM campo («Observado na aula») por
+         * aluna, e as colunas dela são os itens do CORPO, que vêm do PO (`matrizDaBase`) — a folha
+         * não os repete de propósito («não se reescreve aqui: aqui anota-se o que a aula
+         * mostrou»). Contá-la como declaração de item daria uma célula a mais por aluna. */
+        if (b.secoes) continue;
+        const espaco = Eixos.blocoDaDimensao(b.rotulo || b.titulo || '') || String(b.rotulo || b.chave || '');
+        const eixo = Eixos.eixoDoBloco(espaco);
+        for (const c of b.colunas) {
+          declarado.push({ bloco: b.chave, eixo, espaco, item: c.rotulo || c.chave,
+            chave: chaveDoItem(c.rotulo || c.chave) });
         }
       }
+      const ROTULO_DO_EIXO = { corpo: 'Corpo', tecnica: 'Técnica', poiesis: 'Poiesis' };
+      provar('a folha declara itens — sem eles não há matriz a medir', declarado.length > 0,
+        declarado.length);
 
-      /* O CORPO: uma tabela, e as colunas são os quatro aspectos do recorte. Era o que faltava — a
-       * linha de base revisitada estava morta, e o corpo não tinha coluna nenhuma. */
-      const corpo = matriz['Corpo'] || [];
-      provar('o Corpo é UMA tabela, com uma coluna por aspecto do recorte',
-        corpo.length === 1 && JSON.stringify(corpo[0].colunas) === JSON.stringify(doPo['Corpo'].itens),
-        { naTela: corpo[0] && corpo[0].colunas, noPo: doPo['Corpo'].itens });
-      provar('as linhas do Corpo são as duas alunas do elenco',
-        corpo[0] && JSON.stringify(corpo[0].alunas) === JSON.stringify(['Aluna A', 'Aluna B']),
-        corpo[0] && corpo[0].alunas);
+      /* A) NADA CAI FORA DOS EIXOS. Era o defeito: cinco blocos desenhados ao fim do formulário,
+       * com um aviso, e os critérios do professor fora da matriz. */
+      const foraDosEixos = await pagina.evaluate(() =>
+        [...document.querySelectorAll('#captura-campos h4, #captura-campos p.fraco')]
+          .map((x) => x.textContent.trim())
+          .filter((t) => /não cai em nenhum dos três eixos/i.test(t)));
+      provar('nenhum bloco da folha fica fora dos três eixos (nem com aviso, nem desenhado à parte)',
+        foraDosEixos.length === 0, foraDosEixos);
+
+      /* B) CADA PAR (ESPAÇO, ITEM) UMA VEZ. É a regra que a pesquisadora enunciou em 06/11 — «seis
+       * perguntas iguais por aluna» —, agora medida entre os DOIS lados: o que a folha declara não
+       * se repete, e o que a tela desenha não repete o que já desenhou. */
+      const chaveDoPar = (e, espaco, chave) => e + '|' + semAcentoLocal(espaco) + '|' + chave;
+      const repetidosNaFolha = [];
+      {
+        const vistos = new Set();
+        for (const d of declarado) {
+          const k = chaveDoPar(d.eixo, d.espaco, d.chave);
+          if (vistos.has(k)) repetidosNaFolha.push(k);
+          vistos.add(k);
+        }
+      }
+      const repetidosNaTela = [];
+      {
+        const vistos = new Set();
+        for (const t of tela) {
+          const eixo = Eixos.semAcento(t.eixo);
+          /* O TÍTULO DA TABELA É O ESPAÇO quando o eixo tem mais de uma. Com uma só, o espaço é o
+           * que a folha declara para aquele eixo — e é o que se usa como chave. */
+          const espaco = t.titulo || (declarado.find((d) => ROTULO_DO_EIXO[d.eixo] === t.eixo) || {}).espaco || '';
+          for (const c of t.colunas) {
+            const k = chaveDoPar(eixo, espaco, chaveDoItem(c));
+            if (vistos.has(k)) repetidosNaTela.push(k);
+            vistos.add(k);
+          }
+        }
+      }
+      /* A FOLHA REPETE, E ISSO É UM FACTO DELA — não da tela. Ela declara o mesmo espaço duas vezes
+       * («Bloco 1 — Solo» e «Bloco 5 — Técnica — Solo»), porque `dimensoes-de-observacao` e
+       * `itens-por-dimensao` são duas escritas do mesmo recorte e `itensComObjetivos` põe os
+       * objectivos do plano à frente das duas. O que se exige do FORMULÁRIO é que ele não herde a
+       * repetição: o par (espaço, item) que aparece duas vezes na folha tem UMA célula.
+       *
+       * (A duplicação da folha impressa está registada como pendência — ela pede uma decisão de
+       * conteúdo, não de código: juntar os dois blocos no documento muda o que se imprime.) */
+      const paresNaTela = new Set();
+      for (const t of tela) {
+        const espaco = t.titulo || (declarado.find((d) => ROTULO_DO_EIXO[d.eixo] === t.eixo) || {}).espaco || '';
+        for (const c of t.colunas) paresNaTela.add(chaveDoPar(Eixos.semAcento(t.eixo), espaco, chaveDoItem(c)));
+      }
+      provar('a tela não pergunta duas vezes o mesmo par (espaço, item)', repetidosNaTela.length === 0,
+        repetidosNaTela);
+      provar('…e absorve a repetição da folha: cada par repetido lá tem UMA célula aqui',
+        repetidosNaFolha.length > 0
+          ? repetidosNaFolha.every((k) => paresNaTela.has(k))
+          : repetidosNaTela.length === 0,
+        { repetidosNaFolha: repetidosNaFolha.length, naTela: paresNaTela.size });
+
+      /* C) OS DOIS LADOS DIZEM O MESMO: todo item declarado tem a sua célula, no eixo certo, e
+       * nenhuma célula existe sem declaração. É esta a asserção que vale para a aula 02, a 03 e as
+       * que vierem — ela não conta, ela compara. */
+      const itensDaTela = tela.map((t) => ({ eixo: Eixos.semAcento(t.eixo),
+        colunas: t.colunas.map(chaveDoItem), titulo: t.titulo }));
+      const faltamNaTela = [];
+      for (const d of declarado) {
+        const eixoDaTela = itensDaTela.find((t) => t.eixo === d.eixo && t.colunas.indexOf(d.chave) !== -1);
+        if (!eixoDaTela) faltamNaTela.push(ROTULO_DO_EIXO[d.eixo] + ' · ' + d.espaco + ' · ' + d.item);
+        else if (eixoDaTela.eixo !== d.eixo) faltamNaTela.push('eixo trocado: ' + d.item);
+      }
+      provar('todo item que a folha declara tem a sua célula, no eixo que a taxonomia manda',
+        faltamNaTela.length === 0, faltamNaTela);
+
+      /* NENHUMA CÉLULA SEM ORIGEM: cada coluna da tela ou é um item que a folha declara, ou é um
+       * item do corpo que o PO declara (a tabela da linha de base). O corpo fica de fora da
+       * comparação anterior porque a coluna dele na folha é o CAMPO, não o item. */
+      const declaradas = new Set(declarado.map((d) => d.chave));
+      const semDeclaracao = [];
+      for (const t of tela) {
+        const doCorpo = Eixos.semAcento(t.eixo) === 'corpo';
+        for (const c of t.colunas) {
+          const k = chaveDoItem(c);
+          if (doCorpo) { if (doPo.indexOf(k) === -1) semDeclaracao.push('corpo sem PO: ' + c); }
+          else if (!declaradas.has(k)) semDeclaracao.push(Eixos.semAcento(t.eixo) + ': ' + c);
+        }
+      }
+      provar('…e nenhuma célula existe sem a folha ou o PO a declarar', semDeclaracao.length === 0,
+        semDeclaracao);
+
+      /* D) O CORPO: uma tabela, e as colunas são os aspectos do recorte que o PO declara — o eixo
+       * que não tinha coluna nenhuma até 06/11. A comparação é com o PO, não com um número. */
+      const corpo = tela.filter((t) => Eixos.semAcento(t.eixo) === 'corpo');
+      const colunasDoCorpo = [].concat(...corpo.map((t) => t.colunas.map(chaveDoItem)));
+      provar('o Corpo é UMA tabela, com uma coluna por aspecto que o PO declara',
+        corpo.length === 1 && JSON.stringify(colunasDoCorpo) === JSON.stringify(doPo),
+        { naTela: colunasDoCorpo, noPo: doPo });
       provar('«sem restrições declaradas» NÃO é oferecido como aspecto a marcar',
-        !(corpo[0] || { colunas: [] }).colunas.some((c) => AUSENCIA.test(c)),
-        (corpo[0] || { colunas: [] }).colunas.filter((c) => AUSENCIA.test(c)));
+        !colunasDoCorpo.some((k) => AUSENCIA.test(k)), colunasDoCorpo.filter((k) => AUSENCIA.test(k)));
 
-      /* A TÉCNICA E A POIESIS: uma tabela por objectivo, e as DIMENSÕES como colunas. É a
-       * inversão que mata a repetição — o objectivo estava escrito como coluna em cinco tabelas
-       * (seis perguntas iguais por aluna) e passa a ser o título de uma tabela; as dimensões
-       * estavam escritas como títulos e passam a ser as colunas. */
-      const tecnica = matriz['Técnica'] || [];
-      provar('a Técnica tem uma tabela por objectivo, e o objectivo é o título',
-        tecnica.length === doPo['Técnica'].itens.length
-          && JSON.stringify(tecnica.map((t) => t.objectivo)) === JSON.stringify(doPo['Técnica'].itens),
-        { naTela: tecnica.map((t) => t.objectivo), noPo: doPo['Técnica'].itens });
-      provar('…e as colunas da Técnica são os três espaços onde o PO a observa',
-        tecnica.length > 0
-          && tecnica.every((t) => JSON.stringify(t.colunas) === JSON.stringify(['Solo', 'Barra', 'Centro'])),
-        tecnica.map((t) => t.colunas));
-      const poiesis = matriz['Poiesis'] || [];
-      provar('a Poiesis tem as dimensões dela como colunas: Musicalidade e Expressão',
-        poiesis.length === doPo['Poiesis'].itens.length
-          && poiesis.every((t) => JSON.stringify(t.colunas) === JSON.stringify(['Musicalidade', 'Expressão'])),
-        poiesis.map((t) => t.colunas));
+      /* E) AS LINHAS SÃO O ELENCO — e cada marca é de uma aluna. `dados.apelidos` é o elenco que o
+       * ciclo leva ao formulário; a tela tem de desenhar exactamente essas pessoas. */
+      const elenco = Object.values(apelidos);
+      provar('as linhas da matriz são as alunas do elenco, e todas',
+        tela.length > 0 && tela.every((t) => JSON.stringify(t.alunas) === JSON.stringify(elenco)),
+        { naTela: tela[0] && tela[0].alunas, elenco });
 
-      /* E O NÚMERO: cada célula tem dono. 4 do corpo + 6 da técnica + 4 da poiesis, por aluna. */
-      const todasAsTabelas = [].concat(corpo, tecnica, poiesis);
-      const porAluna = todasAsTabelas.reduce((n, t) => n + t.selects / Math.max(t.alunas.length, 1), 0);
-      provar('as marcas por aluna são 14 — e cada uma é de uma aluna (antes: 20, e 8 sem dono)',
-        porAluna === 14, porAluna);
-      const totalNaTela = await pagina.$$eval('#captura-campos details.eixo select', (x) => x.length);
-      provar('…e todas as células da matriz são um controle na tela (2 alunas × 14)',
-        totalNaTela === 28, totalNaTela);
+      /* F) O NÚMERO SAI DA CONTA, e não de um literal: uma célula por (item, aluna). Se a tela
+       * desenhasse uma coluna a mais, ou uma aluna a menos, isto reprovava sem saber quantos itens
+       * a aula tem. */
+      const porAluna = tela.reduce((n, t) => n + t.colunas.length, 0);
+      medido.porAluna = porAluna;
+      medido.corpo = corpo.reduce((n, t) => n + t.colunas.length, 0);
+      medido.tecnica = tela.filter((t) => Eixos.semAcento(t.eixo) === 'tecnica')
+        .reduce((n, t) => n + t.colunas.length, 0);
+      medido.poesia = tela.filter((t) => Eixos.semAcento(t.eixo) === 'poiesis')
+        .reduce((n, t) => n + t.colunas.length, 0);
+      const esperado = doPo.length + new Set(declarado.map((d) => d.eixo + '|' + semAcentoLocal(d.espaco) + '|' + d.chave)).size;
+      provar('há uma célula por item e por aluna — ' + porAluna + ' por aluna (o corpo pelo PO + a folha)',
+        porAluna === esperado, { naTela: porAluna, esperado });
+      provar('…e todas as células da matriz são um controle na tela (' + elenco.length + ' × ' + porAluna + ')',
+        totalNaTela === elenco.length * porAluna, totalNaTela);
+      const ids = [].concat(...tela.map((t) => t.ids));
+      provar('…e nenhum id de célula se repete (o valor de uma não escreve por cima da outra)',
+        ids.length === new Set(ids).size, ids.filter((x, i) => ids.indexOf(x) !== i).slice(0, 4));
 
       provar('o eixo que ainda não tem marca abre fechado, e o Corpo — a âncora — abre aberto',
-        await pagina.evaluate(() => {
-          const d = [...document.querySelectorAll('#captura-campos details.eixo:not(.presenca-da-turma)')];
+        await pagina.evaluate((sel) => {
+          const d = [...document.querySelectorAll(sel)];
           return d[0].open === true && d.slice(1).every((x) => x.open === false);
-        }));
+        }, CAIXA));
       provar('o sumário de cada eixo diz quantas marcas tem lá dentro',
-        await pagina.$$eval('#captura-campos details.eixo:not(.presenca-da-turma) > summary',
+        await pagina.$$eval(CAIXA + ' > summary',
           (ss) => ss.every((x) => /\d+ de \d+ marcados/.test(x.textContent))));
     }
 
@@ -360,14 +522,18 @@ function servir() {
       const payload = await pagina.evaluate((d) => {
         const r = coletarCaptura(d);
         return { faltando: r.faltando, aula: r.aula };
-      }, { ciclo: ciclo.id, escola: 'calango', aulas: {}, apelidos });
+      }, { ciclo: ciclo.id, escola: ESCOLA, aulas: {}, apelidos });
 
       provar('com o obrigatório preenchido, nada falta', payload.faltando.length === 0, payload.faltando);
       const base = payload.aula && payload.aula.linha_de_base;
-      provar('a linha de base é gravada POR ALUNA, com os quatro aspectos do PO',
-        !!(base && Array.isArray(base.aluna_a) && base.aluna_a.length === 4
+      /* O NÚMERO DE ASPECTOS VEM DO PO, e não de um literal: eram «os quatro» da `batata`, e a
+       * `breu` declara dez. O que a asserção guarda é o que sempre guardou — uma marca por
+       * aspecto, por aluna, com o item nomeado —, e o número sai do documento. */
+      const aspectos = corpoItens.length;
+      provar('a linha de base é gravada POR ALUNA, com os ' + aspectos + ' aspectos do PO',
+        !!(base && Array.isArray(base.aluna_a) && base.aluna_a.length === aspectos
           && base.aluna_a.every((x) => x.item && typeof x.marca === 'string')),
-        base && base.aluna_a && base.aluna_a.map((x) => x.marca));
+        { naBase: base && base.aluna_a && base.aluna_a.length, noPo: aspectos });
       provar('…e as marcas que o professor deu estão lá, na ordem do PO',
         !!(base && base.aluna_a[0] && base.aluna_a[0].marca === 'ok'
           && base.aluna_a[1] && base.aluna_a[1].marca === 'parcial'),
@@ -481,16 +647,28 @@ function servir() {
       provar('…e no fim do caminho a seta da direita desliga-se (não promete o que não há)',
         clique.noFim.dir === true && clique.noFim.esq === false, clique.noFim);
 
-      /* O CONTRÁRIO: com espaço de sobra, seta nenhuma — uma seta sempre presente é mobília. */
+      /* O CONTRÁRIO: com espaço de sobra, seta nenhuma — uma seta sempre presente é mobília.
+       *
+       * A ASSERÇÃO É A REGRA, E NÃO UM NÚMERO DE COLUNAS (20/11/2026). Ela dizia «a 1280px, com as
+       * quatro colunas a caberem» e media a PRIMEIRA tabela do formulário — que no ciclo da `breu`
+       * tem dez colunas (os aspectos do corpo) e não cabe. A regra do produto é outra e é melhor:
+       * `data-rolagem` e a fileira de setas respondem por CADA caixa, ao que ela mede
+       * (`scrollWidth > clientWidth`), e por isso o mesmo ecrã tem caixas com e sem setas. */
       await pagina.setViewport({ width: 1280, height: 900 });
       await new Promise((r) => setTimeout(r, 300));
-      const largo = await pagina.evaluate(() => {
-        const bloco = document.querySelector('#captura-campos .rolagem');
-        return { estado: bloco.dataset.rolagem,
-          visiveis: getComputedStyle(bloco.querySelector('.rolagem-setas')).display };
-      });
-      provar('a 1280px, com as quatro colunas a caberem, NÃO há setas nem fileira',
-        largo.estado === 'nao' && largo.visiveis === 'none', largo);
+      const largo = await pagina.evaluate(() => [...document.querySelectorAll('#captura-campos .rolagem')]
+        .map((bloco) => ({
+          cabe: bloco.querySelector('.rolagem-caixa').scrollWidth
+            <= bloco.querySelector('.rolagem-caixa').clientWidth + 2,
+          estado: bloco.dataset.rolagem,
+          setas: getComputedStyle(bloco.querySelector('.rolagem-setas')).display,
+        })));
+      provar('a 1280px, cada matriz diz se cabe — e a fileira de setas só aparece onde não cabe',
+        largo.length > 0 && largo.every((x) => x.estado === (x.cabe ? 'nao' : 'sim')
+          && x.setas === (x.cabe ? 'none' : 'flex')), largo);
+      provar('…e há matrizes que cabem e matrizes que não (senão a asserção acima não media nada)',
+        largo.some((x) => x.cabe) && largo.some((x) => !x.cabe),
+        { cabem: largo.filter((x) => x.cabe).length, naoCabem: largo.filter((x) => !x.cabe).length });
 
       /* A LARGURA MÍNIMA VEM DO DADO: `--colunas` é escrito quando a tabela é montada, e a
        * matriz fica com 10rem por coluna. É o que faz a tabela rolar em vez de espremer. */
@@ -576,14 +754,15 @@ function servir() {
     console.log('FALHOU — ' + falhas + ' de ' + total + ' asserção(ões).');
     process.exit(1);
   }
-  console.log('TUDO CERTO — ' + total + ' asserções: a matriz tem as alunas por linha e os '
-    + 'aspectos por coluna (4 do corpo + 6 da técnica + 4 da poiesis, por aluna), o corpo ganhou '
-    + 'as quatro colunas que lhe faltavam, «o plano foi seguido?» é uma pergunta de três estados, '
-    + 'o payload passa no validador com a linha de base por aluna e sem o bloco sem dono, a coluna '
-    + 'do formulário é a do documento MAIS a do roteiro (1132px), a matriz que não cabe rola dentro '
-    + 'de si com as setas a aparecerem só quando há para onde ir (e a desligarem-se no fim), a '
-    + 'presença é uma caixa que abre e que a matriz segue sem perder o que já estava escrito, e a '
-    + 'página não estoura a 1280 nem a 390.');
+  const resumo = medido || {};
+  console.log('TUDO CERTO — ' + total + ' asserções: a matriz tem as alunas por linha e os aspectos '
+    + 'por coluna (' + (resumo.porAluna || '?') + ' por aluna: ' + (resumo.corpo || '?') + ' do corpo, '
+    + (resumo.tecnica || '?') + ' da técnica e ' + (resumo.poesia || '?') + ' da poiesis — contados do '
+    + 'documento, não escritos aqui); nenhum bloco da folha fica fora dos três eixos, e cada par '
+    + '(espaço, item) aparece uma vez; «o plano foi seguido?» é uma pergunta de três estados; o '
+    + 'payload passa no validador com a linha de base por aluna; a matriz que não cabe rola dentro '
+    + 'de si, com as setas a aparecerem só onde há para onde ir; a presença é uma caixa que abre e '
+    + 'que a matriz segue sem perder o que já estava escrito; e a página não estoura a 1280 nem a 390.');
 })().catch((erro) => {
   console.error('a prova quebrou: ' + (erro && erro.stack ? erro.stack : erro));
   process.exit(1);

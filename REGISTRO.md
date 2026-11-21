@@ -57006,3 +57006,101 @@ mesma regra — 113/113), e as duas cópias da porta nos pacotes.
 dos Bastidores («Editar a curadoria», «esta aluna ainda não está em nenhuma curadoria com plano de
 ensino», «sem isto a turma não pode ser atribuída na curadoria»). São texto de tooltip, não de
 frase lida; ficam para uma passagem própria, e não se corrigem a meio de outra coisa.
+
+## 20/11/2026 — «Curadoria» sai de TODA a tela, inclusive dos tooltips
+
+**O que motivou.** A entrada anterior tirou a palavra das frases da lista e do formulário e declarou,
+como pendência, os `title` dos Bastidores. A pesquisadora não aceitou a pendência: «*não existe mais
+a curadoria. Então, editar a curadoria, esta aluna ainda não está em nenhuma curadoria com um plano
+de ensino, você tem que ajustar essas coisas*».
+
+**O que foi decidido.** A palavra sai de tudo o que se lê — tooltip incluído. **Onde ela fica, e por
+quê:** no ARMAZENAMENTO (a chave `bastidores/<escola>/curadorias`, a rota
+`/api/bastidores/curadoria`, a variável `CURADORIAS` do cliente) e no núcleo, onde `curada` é o
+nome do ESTADO que `podeEditarNoLugar` recebe — mudar qualquer dos dois obrigaria a migrar o acervo
+ou a mexer nas três rotas que o consultam, e nenhum dos dois é lido por quem usa o sistema.
+
+Nove frases mudaram: os cinco tooltips dos selos e botões dos Bastidores, os dois do cartão do
+plano na publicação (`montar-publicacao.js`), a linha-de-estado da lista («plano de uma turma
+curada» → «de uma turma atribuída»), a recusa da rota do plano («é a curadoria que autoriza» → «é a
+turma que autoriza»), a frase do seletor no preenchedor de teste, e o `motivoDaRecusa` do núcleo
+(«já está numa curadoria activa» → «já compõe uma turma»).
+
+O selo do professor deixou de dizer «curado» e diz **«com turma»** — era a última palavra da
+família a aparecer num selo.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (cinco `title`s), `motor/servidor/listas-do-acervo.js`,
+`motor/servidor/rotas.js`, `motor/servidor/teste-cliente.js`, `motor/nucleo/estado-da-turma.js`,
+`porta/index.html`, `tools/montar-publicacao.js`; e as duas provas que citavam as frases
+(`provar-listas-do-acervo` 113/113, `provar-conteudos-e-estado-da-turma` verde).
+
+**Motivo declarado — os congelados.** `tools/montar-publicacao.js` é de `tools/`, que o
+`CONGELAMENTO.md` congela. A alteração é **de redação, não de comportamento**: duas frases de
+tooltip do cartão do plano passam a dizer «turma» e «sala» onde diziam «curadoria». **O que não
+muda:** a fórmula do hash, a cobertura da âncora, os validadores, as regras pedagógicas e as 22
+pétreas. A âncora do ciclo foi conferida depois (`hash-ciclo.sh --check`: íntegra).
+
+## 20/11/2026 — A matriz do formulário pergunta uma vez por par, e o eixo vem de uma regra só
+
+**O que motivou.** `provar-formulario-da-aula` estava em 4 de 17, e a pesquisadora pediu o ajuste
+com o objetivo dito: «*o que a gente precisa garantir com esse formulário da aula? Que ele seja
+realmente um espaço de coletar o que planejamos na aula […] os testes dessa relação […] você já pode
+elaborar, até porque isso vai servir para os testes das outras aulas*».
+
+**O que os quatro avisos revelaram — e não era fixture.** A página decidia a que eixo pertence cada
+bloco da folha com uma **segunda cópia** da regra: comparava o rótulo INTEIRO («Técnica — Barra»)
+com as dimensões do PO («Barra»). Os blocos escritos com o prefixo não casavam com nada, e no ciclo
+da `breu` eram **cinco** — Técnica — Solo, — Barra, — Centro, — Musicalidade, — Expressão. Eram
+desenhados ao fim do formulário com o aviso «este bloco não cai em nenhum dos três eixos», e os
+critérios que o professor escreveu ficavam fora da matriz: **dez células por aluna** que a folha
+declarava e o formulário não pedia.
+
+`motor/nucleo/eixos.js` existe desde 04/11/2026 precisamente para isto — `blocoDaDimensao` tira o
+prefixo e `eixoDoBloco` aplica a taxonomia («musicalidade e expressão jamais sob o eixo técnico») —
+e havia uma terceira cópia a divergir.
+
+**O que foi decidido.**
+- **O módulo é servido à página**, como `assets/eixos.js`, com o mesmo embrulho do `lib-vistas.js`
+  (Node por `module.exports`, browser pelo global `Eixos`). O embrulho é **fechado**: num
+  `<script src>` clássico as declarações de topo vão para o escopo global, e `semAcento` colidia com
+  a função de mesmo nome da página («Identifier 'semAcento' has already been declared»). Uma
+  declaração, dois consumidores; a cópia da página sai.
+- **A matriz agrupa por ESPAÇO.** A folha pode declarar o mesmo espaço duas vezes — «Bloco 1 —
+  Solo» com os objetivos do plano e «Bloco 5 — Técnica — Solo» com os critérios —, e `itensComObjetivos`
+  põe os objetivos do plano à frente das duas. A transposição «uma tabela por objetivo, os espaços
+  como colunas» (06/11) passou então a produzir tabelas com a MESMA coluna duas vezes («Solo» e
+  «Técnica — Solo»): a pergunta repetida voltava, em coluna em vez de em tabela. Agora os blocos que
+  nomeiam o mesmo espaço juntam-se, as colunas são a união sem repetir chave, e cada par (espaço,
+  item) tem UMA célula. A leitura por objetivo não se perdeu — ela vive na §4 e na §5 da aula.
+- **A prova passou a medir a RELAÇÃO, e não números de uma escola.** Ela não sabe quantos itens a
+  aula tem: compara os dois lados. Nenhum bloco fora dos eixos; todo item declarado tem a sua
+  célula, no eixo que a taxonomia manda; nenhuma célula sem declaração; o corpo entra pela lista do
+  PO; as linhas são o elenco; e o número por aluna sai da conta — 27 na `breu`, medido, não escrito.
+
+**A prova de mutação.** Reposto o defeito (a regra antiga na página), ela reprova **3 de 53** e
+nomeia os dez critérios que ficavam de fora. Sem essa contraprova, «a matriz confere» seria a
+palavra da prova contra a palavra de quem a escreveu.
+
+**O que continua em aberto, e é decisão de conteúdo.** A **folha impressa** ainda pergunta duas
+vezes o mesmo par: ela imprime os nove blocos, e o professor marca o mesmo objetivo em «Bloco 1 —
+Solo» e em «Bloco 5 — Técnica — Solo». O formulário absorve a repetição; o papel não. Juntar os dois
+blocos no documento muda o que se imprime, e por isso fica à decisão dela.
+
+**Onde entrou.** `motor/nucleo/eixos.js` (embrulho para os dois ambientes), `tools/gerar-ciclo.sh`
+(copia o módulo para `assets/eixos.js`), `tools/templates/lancamento.html` (a tag, a regra
+canónica, o agrupamento por espaço, e sai a `matrizPorObjectivo`),
+`experimentos/provar-formulario-da-aula.js` (secção A reescrita; 53/53),
+`experimentos/provar-janela-do-lancamento.js` (a contagem passa a ser por par; 11/11), e o pacote
+`ciclo-01-breu-rosa` regenerado.
+
+**Motivo declarado — os congelados.** `tools/templates/lancamento.html` e `tools/gerar-ciclo.sh` são
+de `tools/`, congelado. O que muda é o **formulário**: (a) a regra do eixo passa a ser lida do
+módulo canónico em vez de uma cópia; (b) a matriz deixa de repetir a mesma pergunta e passa a
+agrupar por espaço. A estrutura de dados NÃO muda — cada célula continua a gravar-se em
+`<bloco>.<aluna>.<coluna>`, com o mesmo id. **O que não muda:** a fórmula do hash, a cobertura da
+âncora, os validadores, as regras pedagógicas e as 22 pétreas; a âncora do ciclo foi conferida
+(`hash-ciclo.sh --check`: íntegra) e o `check-pacote` dá 0 erros.
+
+**O que ainda não está feito.** Duas provas da família do lançamento continuam vermelhas e **já
+estavam antes desta mudança** (conferido em worktree): `provar-lancamento` e
+`provar-eixos-e-tempo-da-aula`.
