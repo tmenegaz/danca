@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-21T15:24:56-0300`
-Commit atual: `e7f27197` — chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
+Gerado em: `2026-11-21T15:28:30-0300`
+Commit atual: `7839fed0` — fix(po): a leitura das anamneses é um botão — e o elenco por ler passa a dizê-lo
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+7839fed0 fix(po): a leitura das anamneses é um botão — e o elenco por ler passa a dizê-lo
 e7f27197 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
 2798a370 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
 6af0dc2b chore(estrutura): fechar os derivados — âncoras e índices
@@ -101,7 +102,6 @@ e214985e audit(experimentos): o estado de hoje ao vivo — sem leitura no elenco
 aeb80aa7 fix(po): «Ajustar» abre o registo, e não um nó que não se preenche
 9be50a2d fix(po): o atalho que falha deixa de devolver à lista sem dizer porquê
 5b439822 feat(estrutura): a fonte é Open Sans, e passa a ser entregue pelo pacote
-4809fb09 fix(estrutura): a bancada do ajuste de anamnese volta a montar a página
 ```
 
 ## Por professor

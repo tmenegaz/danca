@@ -3341,6 +3341,32 @@ repositório; o vocabulário do repositório tem hoje **93 termos**, e o ar só 
 
 ## 8. Pendências e dúvidas
 
+### O plano de observação em `/rosa/` não carrega o formulário (21/11/2026) — medido, não corrigido
+
+**O SINTOMA.** A página em `https://breu.padd.com.br/rosa/plano-observacao/` abre e escreve «GET
+/api/mapa devolveu 404»; a mesma página em `https://breu.padd.com.br/plano-observacao/` abre com o
+formulário e o painel. **Medido com `curl`, uma chamada por endereço:**
+
+| endereço | resposta |
+|:--|:--|
+| `/plano-observacao/api/mapa?fonte=po` | **200** |
+| `/rosa/plano-observacao/api/mapa?fonte=po` | **404** |
+| `/api/mapa?fonte=po` | **404** |
+| `/api/saude` | 200 — o Worker está de pé, e diz `escola breu`, `origem mapa` |
+
+**A CAUSA.** A porta pede a API **por caminho relativo** (`fetch('api/mapa')`, e são **24** chamadas
+assim): a página em `/plano-observacao/` resolve para `/plano-observacao/api/…`, que o Worker serve;
+a página em `/rosa/plano-observacao/`, um nível mais funda, resolve para
+`/rosa/plano-observacao/api/…`, que ele **não** serve. Não é a chave nem o KV: é a profundidade.
+
+**O QUE NÃO ESTÁ QUEBRADO.** O menu do topo aponta para `/plano-observacao/?…` **absoluto**, e é por
+lá que se chega ao formulário. O endereço da cópia da turma é que fica a meio caminho.
+
+**A CORREÇÃO, quando ela a pedir,** é de uma linha (24, na verdade) e tem de ser medida nas duas
+profundidades: os `fetch('api/…')` da porta passam a absolutos (`/api/…`) — o que só é seguro se
+nada servir a porta fora da raiz do Worker. Fica declarado aqui em vez de ser corrigido à socapa,
+porque muda o contrato do pacote inteiro e não é o que ela pediu nesta sessão.
+
 ### «A página não responde» no computador, e abre no telemóvel e em anónimo (21/11/2026)
 
 **O SINTOMA, e ele custou uma manhã de investigação errada.** No Chrome do computador, o
