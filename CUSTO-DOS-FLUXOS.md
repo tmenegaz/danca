@@ -928,10 +928,59 @@ contra o do plano) e a **habilidade do professor** (a tradição do **perfil** c
 `contexto-metodologia` do plano). O que se lê: o plano vigente (uma leitura) e o perfil (uma por
 professor). O que não se lê: nada de novo em KV — a régua e o conteúdo já estão lá.
 
-O **dicionário** não entra nesta conta, e é o único dos quatro que ela nomeou que fica de fora: o
-corpo de um verbete não viaja no plano, portanto não há contra o que comparar. Ele já está coberto —
-gravar um verbete ou um termo regenera os documentos das Turmas que o usam (T5/T6, §7.9d) —, e um
-sinal a mais no botão acenderia para não apagar nada.
+O **dicionário** também entrou, e por uma porta que não existia. A frase anterior deste documento
+dizia que ele ficava de fora «porque o corpo de um verbete não viaja no plano, portanto não há contra
+o que comparar» — e era verdade enquanto se procurava o corpo. O que se compara é a **impressão** do
+dicionário: um `sha256` do alfabeto (a notação) e do vocabulário (os verbetes) da modalidade,
+calculado no Worker e guardado no selo do ciclo. Ela viu o defeito e disse-o com precisão: «Eu
+alterei o dicionário do plié […] e o dicionário não aparece de jeito nenhum aqui». Com a impressão,
+qualquer mudança — o nome do exercício, a categoria, a tradição de referência, a classificação, a
+definição — acende o botão, porque todas elas mudam o ficheiro.
+
+### A tabela que faltava: cada gesto, e por onde ele passa
+
+Ela pediu-a com estas palavras: «verifica para mim se o que temos aqui […] está no botão», e «me
+mostra isso em uma tabela». A coluna do meio é o que o **código faz hoje**, lido nas rotas e não
+inferido; a última é o que ela decidiu.
+
+| onde se mexe | o que acontece hoje | decidido |
+|:--|:--|:--|
+| **Régua / rubrica** do professor | fica registado; o contador do «Atualizar o ciclo» mostra-o | **botão** |
+| **Habilitações** — modalidades e tradições | idem | **botão** |
+| **Dicionário** — nome, categoria, tradição de referência, classificação, definição | idem (o sha do alfabeto e do vocabulário diverge) | **botão** |
+| **Estilo / verbete derivado** — método, música, decomposição | idem | **botão** |
+| **Cadastro do professor** — nome, CPF, telefone, e-mail, senha | nada | **nada** |
+| **Habilidade** no step do cadastro | o campo é **somente leitura** desde 20/11/2026; muda-se na aba Habilitações | **nada** (é a mesma coisa que a linha 2) |
+| **Alunas** — criar, editar | nada | **nada** («já nasce com a nova anamnese») |
+| **Desligamento** | nada | **nada** |
+| **Salas** — nome, dias, início e fim do período, e o **associar** | `POST /turma-editar`, `/turma-derivar` e `/turma-professor` correm `rodarCadeia` | **dispara já** — «é uma mudança delicada, tem que disparar» |
+| **Audição** — nome do elenco, inclusão e exclusão de alunas, recortes | `POST /linha-de-base` e `/elenco-mover` correm `rodarCadeia` e `gerarOsCiclosDoElenco` | **dispara já** — «mexeu em qualquer coisa aqui, gera» |
+| **A Turma em si** — `curadoria-derivar` | corre `rodarCadeia` | **dispara já** (é o gesto que cria o elo) |
+
+**As duas maneiras de chegar ao ciclo, e porque não podem ser três.** Ou o gesto **corre a cadeia**
+(`rodarCadeia`: plano → PO → documentos, no mesmo pedido), ou o gesto **só toca em KV** e o que ele
+mudou fica à espera do botão. A diferença não é de gosto: um gesto que não tem plano para derivar não
+tem nada que derivar. Por isso as Salas e a Audição — que mexem no que o plano **declara** — correm a
+cadeia, e a régua, as habilitações, o dicionário e o estilo — que mudam o que os documentos **leem**,
+sem tocar no plano — ficam à espera e são comparados.
+
+**E uma garantia, porque ela perguntou por ela:** «tem certeza que os outros não estão mandando gerar
+o ciclo por fora da turma?» A resposta, verificada nas rotas: **nada fora destas seis corre a
+cadeia**. O dicionário tinha uma porta dessas até 20/11 (`gerarOsCiclosDoTermo`, chamada pelas cinco
+rotas do termo) e essa porta está fechada — as rotas passaram a chamar `comAGeracaoDoTermo`, que
+regista em vez de disparar. A função continua exportada e a prova `provar-o-estilo-regera.js` mede-a
+como travessia, mas **nenhuma rota a chama**: é código de reserva, e é bom que se saiba que é isso.
+
+**A frase vai no GESTO, e não no cartão (20/11/2026).** Ela viu a nota fixa na listagem das Turmas e
+mandou-a embora: «Tira esse texto, não tem que existir esse texto. […] essa mensagem […] tem que
+existir quando ajustes são feitos nesses lugares, tá? Aí sim é que aparece lá no canto superior
+direito.» A regra é a mesma que governa todos os gestos desta página — `.res` é para o que se está a
+compor, o canto é para o gesto concluído —, e a consequência prática é que a frase aparece **nos
+gestos que ficam na Turma**, e não no cartão: a régua do professor (`avisarDoAjusteQueParaNaTurma`) e
+o verbete e o termo (`avisarDaGeracao`). Há três coisas nela que não são decoração: diz que o ajuste
+**está** registado, diz que ele **ainda não** chegou ao papel, e nomeia o botão que resolve. Sem a
+segunda é uma promessa que o prazo de oito segundos não pode cumprir; sem a terceira é um problema
+sem saída.
 
 **A habilitação do professor entrou no grupo, e não dispara sozinha.** Era o único dos quatro itens
 fora de todos os grupos: `POST /api/bastidores/perfil` grava o perfil, marca as Turmas que ficaram sem
@@ -943,16 +992,6 @@ comparação, não o de uma geração.
 plano como fotografia, e `derivarPlano` copiava as respostas relendo só o ritmo: o elo novo nascia com
 as duas velhas. O botão acendia, derivava, e o documento saía igual. Agora as duas são relidas do
 cadastro, e o elo anterior fica intacto.
-
-**A frase vai no GESTO, e não no cartão (20/11/2026).** Ela viu a nota fixa na listagem das Turmas e
-mandou-a embora: «Tira esse texto, não tem que existir esse texto. […] essa mensagem […] tem que
-existir quando ajustes são feitos nesses lugares, tá? Aí sim é que aparece lá no canto superior
-direito.» A regra é a mesma que governa todos os gestos desta página — `.res` é para o que se está a
-compor, o canto é para o gesto concluído —, e a consequência prática é que hoje só **três** gestos a
-dizem: a régua do professor, o verbete do Dicionário e o termo. `avisarDoAjusteQueParaNaTurma` é a
-frase, e há duas coisas nela que não são decoração: diz que o ajuste **está** registado, diz que ele
-**ainda não** chegou ao papel, e nomeia o botão que resolve. Sem a segunda é uma promessa que o prazo
-de oito segundos não pode cumprir; sem a terceira é um problema sem saída.
 
 ---
 

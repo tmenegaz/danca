@@ -1741,3 +1741,15 @@ experimentos/modelo-formulario/*
 # `Auditoria:` do commit, e um arquivo citado que não existe no clone é uma afirmação que ninguém
 # pode conferir.
 !experimentos/provar-o-represado.js
+# AS TABELAS NÃO SAEM DA MOLDURA DO SEU BLOCO (20/11/2026). Ela viu, a 1360×768, as tabelas da
+# leitura das anamneses e a decomposição do Estilo «para fora da margem do bloco delas». A prova
+# mede a geometria num navegador de verdade, com os nomes REAIS do catálogo — e o caminho até aqui
+# está escrito nela, porque a primeira versão media 330px numa coluna de 362, dava tudo certo, e
+# continuava a dar tudo certo com o defeito reposto. É citada no REGISTRO e no rodapé `Auditoria:`
+# do commit.
+!experimentos/provar-as-tabelas-do-bloco.js
+# O «ADICIONAR» DO ESCOLHEDOR SÓ ACENDE COM UM ITEM ESCOLHIDO (20/11/2026). Palavras dela: «o botão
+# adicionar do conteúdo do estilo só pode ficar habilitado se o conteúdo for escolhido». Mede os
+# dois escolhedores, no caminho do evento, e também o que nasce depois de a página ter montado — um
+# ouvinte preso ao elemento morria no primeiro repinte.
+!experimentos/provar-o-botao-adicionar.js

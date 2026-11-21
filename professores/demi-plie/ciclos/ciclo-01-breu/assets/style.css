@@ -1736,6 +1736,29 @@ a.acao { border-bottom-style: solid; border-bottom-width: 1px; }
    do que o professor precisa para marcar. */
 .rolagem { min-width: 0; }
 .rolagem-caixa { overflow-x: auto; overscroll-behavior-x: contain; }
+/* A CAIXA QUE ROLA SÓ ROLA SE A TABELA RECUSAR ENCOLHER (20/11/2026).
+ *
+ * O DEFEITO, medido a 1360×768: as seis colunas da decomposição do Estilo ficavam com 79, 79, 64,
+ * 84, 67 e 92px — duas palavras por coluna, o texto lido aos pedaços. E `overflow-x: auto` na
+ * caixa **não salvava nada**, porque `table { width: 100% }` (três regras acima) é um comando e
+ * não um limite: a tabela espreme as colunas até caberem no pai, nunca fica mais larga do que
+ * ele, e uma caixa que rola um conteúdo que nunca a excede é mobília.
+ *
+ * É EXACTAMENTE o que a casa já tinha escrito para a matriz: «a regra `table { width: 100% }` da
+ * casa ESPREMIA as colunas até caberem, que é o contrário do que o professor precisa». A receita
+ * é a mesma — um mínimo por coluna — e faltava aplicá-la aqui.
+ *
+ * O MÍNIMO É POR CÉLULA, e não na tabela. Na tabela não serve: mediu-se `min-width` no `<table>`
+ * com 6 colunas e o resultado foi 85, 85, 69, 91, 134 e 208 — o total respeitado e a repartição a
+ * esmagar três colunas, porque `table-layout: auto` distribui pelo conteúdo e não em partes
+ * iguais. O `min-width` na `th`/`td` é o que cada coluna reclama para si: com ele, as seis ficam
+ * em 104px e a tabela cresce até 625px, que é o que a caixa rola. E as três colunas da leitura das
+ * anamneses continuam a caber nos 330px do bloco, sem rolar — o mínimo é um mínimo, não um alvo.
+ *
+ * `min-width: 100%` mantém o preenchimento de sempre nas tabelas estreitas. */
+.rolagem-caixa > table { min-width: 100%; }
+.rolagem-caixa > table > thead > tr > th,
+.rolagem-caixa > table > tbody > tr > td { min-width: 6.5rem; }
 .rolagem-caixa:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
 /* A tabela de dentro NÃO tem scroller próprio: quem rola é a caixa. Sem isto, no telemóvel
    ficavam dois (o da casa, `table { display:block; overflow-x:auto }` abaixo de 900px, e o

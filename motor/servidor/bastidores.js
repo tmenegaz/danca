@@ -3896,7 +3896,8 @@ function escolhedor(id, opcoes) {
     '<select class="opcoes"><option value="">— escolher —</option>' +
     lista.map((o) => '<option value="' + esc(o.valor) + '">' + esc(o.rotulo) + '</option>').join('') +
     '</select>' +
-    '<button type="button" class="adicionar acao pequena">Adicionar</button>' +
+    '<button type="button" class="adicionar acao pequena" disabled ' +
+      'title="Escolha um item da lista para o poder adicionar">Adicionar</button>' +
     '</div>' +
     '</div>';
 }
@@ -8833,12 +8834,32 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * criação da escola — e lá a habilidade é um campo do cadastro. As duas abas gravam o MESMO
      * sítio (`professores/<slug>/perfil.json`, `modalidades`), pela razão que ela deu: «essa
      * habilidade tem que fazer correspondência com os bastidores produção professor». Duas listas
-     * em dois sítios seriam a divergência com um mês de atraso. */
+     * em dois sítios seriam a divergência com um mês de atraso.
+     *
+     * E O CAMPO PASSA A SER SÓ DE LEITURA NA EDIÇÃO (20/11/2026) — a ordem dela, e é uma trava de
+     * desenho, não uma limitação técnica:
+     *
+     *   «Aqui no step cadastro do professor […] este campo habilidade, o que ele ensina, é somente
+     *   leitura. Ele foi criado lá no cadastro do professor quando nasceu a escola. E se ele quiser
+     *   modificar esse campo da habilidade, ele tem que fazer isso pela aba Habilitações. Então,
+     *   aqui ele é somente leitura.»
+     *
+     * O PORQUÊ, e não é só arrumação: a habilidade é a MODALIDADE da escola — nasce com ela e
+     * quase nunca muda. A tradição que ele ensina nessa modalidade é que muda (é a aba
+     * Habilitações, onde estão as caixas por modalidade). Deixar as duas portas abertas para a
+     * mesma chave é o que faz alguém trocar a modalidade por engano e desligar o professor das
+     * Turmas que ele dá.
+     *
+     * `disabled` no `select` — e não `readonly`, que não existe para `<select>` —, com o motivo
+     * no `title`. Quem pinta é `pintarHabilidadeDoProfessor`, chamada pelo mesmo funil do modo
+     * (`pintarCancelarDoProfessor`), para não haver uma quarta porta a esquecer-se. */
     '<label class="campo-rotulo" for="pmodalidade">Habilidade (o que ele ensina)</label>' +
     '<select id="pmodalidade" name="modalidade"><option value="">— escolher —</option>' +
     MODALIDADES.modalidades.map((m) => '<option value="' + esc(m.id) + '">' + esc(m.nome) +
       (m.temConteudo ? '' : ' — sem conteúdo ainda') + '</option>').join('') +
     '</select>' +
+    '<p class="sub" id="pmodalidade-nota" hidden>A habilidade nasce com a escola e não se muda '
+      + 'aqui: para trocar a modalidade ou a tradição que ele ensina, use a aba <b>Habilitações</b>.</p>' +
     '<div id="prof-senha">' +
     '<label class="campo-rotulo" for="psenha">Senha do professor</label>' +
     '<input id="psenha" name="senha" type="password" autocomplete="new-password">' +
@@ -14029,6 +14050,45 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!el || !el.querySelectorAll) return [];' +
     '  return Array.prototype.slice.call(el.querySelectorAll(".escolhido")).map(function(f){ return f.getAttribute("data-valor"); });' +
     '}' +
+    /* O «ADICIONAR» SÓ VIVE QUANDO HÁ O QUE ADICIONAR (20/11/2026) — a ordem dela:
+     *
+     *   «Observa o seguinte: o botão adicionar do conteúdo do estilo só pode ficar habilitado se o
+     *   conteúdo for escolhido. Se não for escolhido nenhum conteúdo, esse botão fica desabilitado.»
+     *
+     * ANTES: o botão estava sempre vivo e o clique sem escolha abria um `alert(«Escolha um item
+     * antes de adicionar.»)`. Duas coisas erradas de uma vez — o botão prometia uma acção que não
+     * existia, e a recusa chegava por uma janela do sistema em vez do canto, que é a regra desta
+     * casa desde 20/11.
+     *
+     * AGORA: nasce apagado, acende quando o `<select>` tem valor, e apaga-se outra vez quando a
+     * escolha volta ao «— escolher —» — que é o estado depois de cada ficha entrar (`fonte.value =
+     * ""`). O `title` explica o apagado, em vez de deixar um botão morto sem razão.
+     *
+     * VALE PARA TODOS OS ESCOLHEDORES, e não só o do Estilo: é a mesma peça (`escolhedor`) e a
+     * mesma pergunta. Uma regra que valesse só num deles faria o outro parecer avariado. */
+    'function pintarAdicionar(el){' +
+    '  if (!el || !el.querySelector) return;' +
+    '  var fonte = el.querySelector("select.opcoes");' +
+    '  var b = el.querySelector(".adicionar");' +
+    '  if (!fonte || !b) return;' +
+    '  var tem = String(fonte.value || "").trim() !== "";' +
+    '  b.disabled = !tem;' +
+    '  if (tem) b.removeAttribute("title");' +
+    '  else b.setAttribute("title", "Escolha um item da lista para o poder adicionar");' +
+    '}' +
+    'function pintarAdicionares() {' +
+    '  var todos = document.querySelectorAll(".escolhedor");' +
+    '  Array.prototype.slice.call(todos).forEach(pintarAdicionar);' +
+    '}' +
+    /* A ESCUTA É NO DOCUMENTO, e não em cada `<select>`: os escolhedores nascem no servidor e
+     * podem ser repintados (a lista de conteúdos muda com a Turma). Um ouvinte por elemento
+     * perder-se-ia no primeiro repinte — a família de defeito que já custou a esta página três
+     * correcções. */
+    'document.addEventListener("change", function(e){' +
+    '  var sel = e.target && e.target.closest ? e.target.closest(".escolhedor select.opcoes") : null;' +
+    '  if (sel) pintarAdicionar(sel.closest(".escolhedor"));' +
+    '});' +
+    'pintarAdicionares();' +
     'function adicionarFicha(el, valor) {' +
     '  valor = String(valor || "").trim();' +
     '  if (!valor) return false;' +
@@ -14051,7 +14111,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    var el = b.closest(".escolhedor");' +
     '    var fonte = el.querySelector("select.opcoes");' +
     '    var valor = fonte ? fonte.value : "";' +
-    '    if (!valor) { alert("Escolha um item antes de adicionar."); return; }' +
+    '    if (!valor) { avisar("atencao", "Escolha um item da lista antes de adicionar."); return; }' +
     /* O CONTEÚDO DA TURMA PASSA PELA PERGUNTA (20/11/2026) — e só ele. É o único sítio da página
      * onde acrescentar um exercício pode ter consequência no plano de ensino; nos outros
      * escolhedores (as alunas, os blocos) a ficha entra como sempre entrou.
@@ -14065,7 +14125,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      pedirOObjetivo(el, valor, fonte);' +
     '      return;' +
     '    }' +
-    '    if (adicionarFicha(el, valor)) fonte.value = "";' +
+    '    if (adicionarFicha(el, valor)) { fonte.value = ""; pintarAdicionar(el); }' +
     '    return;' +
     '  }' +
     '  var t = e.target.closest ? e.target.closest(".escolhedor .tirar") : null;' +
@@ -14898,7 +14958,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * fica a olhar para um exercício incluído sem saber porque não foi perguntada. */
     'function pedirOObjetivo(el, valor, fonte){' +
     '  var alvo = curadoriaEmCurso();' +
-    '  if (!alvo) { if (adicionarFicha(el, valor)) { if (fonte) fonte.value = ""; } return; }' +
+    '  if (!alvo) { if (adicionarFicha(el, valor)) { if (fonte) fonte.value = ""; pintarAdicionar(el); } return; }' +
     '  recado("", "a ver o que este exercício muda\\u2026");' +
     '  fetch("/api/bastidores/impacto-da-inclusao", {' +
     '    method: "POST", headers: {"Content-Type": "application/json"},' +
@@ -14909,13 +14969,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * contrário da duração — onde gravar sem decidir gravaria números errados —, aqui gravar sem
      * declarar não estraga nada: o exercício entra no repertório e não entra em aula, que é
      * exactamente o estado de hoje. Dizer o motivo é o que permite repetir. */
-    '      if (adicionarFicha(el, valor) && fonte) fonte.value = "";' +
+    '      if (adicionarFicha(el, valor) && fonte) { fonte.value = ""; pintarAdicionar(el); }' +
     '      recado("aviso", "Não consegui ver o impacto deste exercício: " + ((d && d.erro) || "erro") + "."' +
     '        + " A ficha entrou, e a declaração do objetivo fica para a próxima derivação.");' +
     '      return;' +
     '    }' +
     '    if (d.precisaDecisao !== "objetivo") {' +
-    '      if (adicionarFicha(el, valor) && fonte) fonte.value = "";' +
+    '      if (adicionarFicha(el, valor) && fonte) { fonte.value = ""; pintarAdicionar(el); }' +
     /* O MOTIVO, EM VOZ ALTA. Sem esta linha, um «sem plano» do servidor — que pode ser um erro do
      * servidor e não um facto da Turma — entrava em silêncio, e ela ficava com um exercício
      * incluído sem saber por que não lhe perguntaram nada. É o mesmo princípio do `.aviso` que a
@@ -14926,10 +14986,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    recado("", "");' +
     '    perguntarOObjetivo(d.impacto, valor, function(marcados){' +
     '      OBJETIVOS_DECLARADOS[valor] = marcados;' +
-    '      if (adicionarFicha(el, valor) && fonte) fonte.value = "";' +
+    '      if (adicionarFicha(el, valor) && fonte) { fonte.value = ""; pintarAdicionar(el); }' +
     '    });' +
     '  }).catch(function(err){' +
-    '    if (adicionarFicha(el, valor) && fonte) fonte.value = "";' +
+    '    if (adicionarFicha(el, valor) && fonte) { fonte.value = ""; pintarAdicionar(el); }' +
     '    recado("aviso", "Não consegui ver o impacto deste exercício: " + err.message' +
     '      + ". A ficha entrou, e a declaração do objetivo fica para a próxima derivação.");' +
     '  });' +
@@ -15761,6 +15821,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * formulário aberto, como em todas as outras secções. O que fica aqui é o que é só desta
      * secção: a trava do passo 2 da tira. */
     '  if (typeof pintarCancelares === "function") pintarCancelares();' +
+    /* A HABILIDADE É SÓ DE LEITURA NA EDIÇÃO (20/11/2026) — ver a nota do campo.
+     *
+     * Pendurada AQUI, e não no `editarProfessor`, porque este é o funil por onde passam a abertura
+     * da edição, o «Cancelar» e a troca de passo — os mesmos três sítios da `pintarCancelares`. E
+     * no CADASTRO NOVO o campo fica vivo: é ali que a habilidade nasce, e é a única porta que a
+     * cria (a aba Habilitações só a lê e muda a tradição — sem modalidade, não há caixas). */
+    '  var hab = document.getElementById("pmodalidade");' +
+    '  var notaHab = document.getElementById("pmodalidade-nota");' +
+    '  if (hab) {' +
+    '    var emEdicaoDoCadastro = modoDoProfessor() === "editar";' +
+    '    hab.disabled = emEdicaoDoCadastro;' +
+    '    if (emEdicaoDoCadastro) {' +
+    '      hab.setAttribute("title", "A habilidade nasce com a escola. Para a mudar, use a aba Habilitações.");' +
+    '    } else {' +
+    '      hab.removeAttribute("title");' +
+    '    }' +
+    '    if (notaHab) notaHab.hidden = !emEdicaoDoCadastro;' +
+    '  }' +
     /* AS OUTRAS DUAS ABAS ACOMPANHAM O PROCESSO (19/11/2026). Este é o funil por onde passam a
      * abertura da edição, o «Cancelar» e a troca de passo — os três sítios onde «há um professor a
      * meio» muda de resposta. Pendurar o repinte aqui, e não em cada clique, é o que impede a quarta
@@ -16986,7 +17064,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    pintarFica();' +
     '    return;' +
     '  }' +
-    '  var html = "<table><thead><tr>" +' +
+    /* A DECOMPOSIÇÃO ROLA DENTRO DE SI (20/11/2026). «Essa tabela está fora das dimensões aqui do
+     * bloco dela por causa da resolução da minha tela.» São SEIS colunas — compasso, contagem,
+     * direção, orientação, notação e os botões — e a 1360×768 o conteúdo mínimo delas é mais largo
+     * do que a coluna do formulário. `table { width: 100% }` é um MÍNIMO quando o texto não cabe:
+     * a tabela cresce para fora e atravessa a moldura do bloco.
+     *
+     * A caixa é a peça que a casa já tem para isto (`.rolagem-caixa`, a mesma da matriz do
+     * parâmetro): ela rola, a tabela fica inteira lá dentro, e `tabindex="0"` deixa-a alcançável
+     * pelo teclado — quem não usa o rato tem de poder andar para o lado. */
+    '  var html = "<div class=\\"rolagem-caixa\\" tabindex=\\"0\\"><table><thead><tr>" +' +
     '    "<th scope=\\"col\\">compasso</th><th scope=\\"col\\">contagem</th>" +' +
     '    "<th scope=\\"col\\">direção</th><th scope=\\"col\\">orientação</th>" +' +
     '    "<th scope=\\"col\\">notação</th><th scope=\\"col\\"></th>" +' +
@@ -17058,7 +17145,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      "</td><td><code>[" + (c.categoria || "") + ": " + (c.sinais || []).join(" ") +' +
     '      "]</code>" + oQue + "</td><td>" + acoes + "</td></tr>";' +
     '  });' +
-    '  html += "</tbody></table>";' +
+    '  html += "</tbody></table></div>";' +
     '  alvo.innerHTML = html;' +
     '  pintarDesacordo();' +
     '  pintarCobertura();' +
@@ -21215,7 +21302,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!itens || !itens.length) {' +
     '    corpo = "<p class=\\"sub\\">" + escHtml(nota || "nada a registar.") + "</p>";' +
     '  } else {' +
-    '    corpo = "<div class=\\"rolagem\\"><table class=\\"tabela\\"><thead><tr><th>Aspecto</th>" +' +
+    '    corpo = "<div class=\\"rolagem-caixa\\" tabindex=\\"0\\"><table class=\\"tabela\\"><thead><tr><th>Aspecto</th>" +' +
     '      "<th>Eixo</th><th>Como está o grupo</th></tr></thead><tbody>" +' +
     '      itens.map(function(x){' +
     '        return "<tr><td>" + escHtml(x.nome) + "</td><td>" + escHtml(x.eixo || "") + "</td><td>" +' +
@@ -21733,7 +21820,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var usados = (indice.aspectos || []).filter(function(a){ return a.recortes > 0; });' +
     '  if (usados.length) {' +
     '    html += "<h4>Mais escolhidos</h4>" +' +
-    '      "<div class=\\"rolagem\\"><table class=\\"tabela\\"><thead><tr>" +' +
+    '      "<div class=\\"rolagem-caixa\\" tabindex=\\"0\\"><table class=\\"tabela\\"><thead><tr>" +' +
     '      "<th scope=\\"col\\">aspecto</th><th scope=\\"col\\">eixo</th>" +' +
     '      "<th scope=\\"col\\">recortes</th></tr></thead><tbody>" +' +
     '      usados.slice(0, 12).map(function(a){' +

@@ -27,8 +27,8 @@
  *      tinha dado para a Audição: «a listagem deve permanecer visível em todas as abas»);
  *   B. as ABAS A CORRER, em jsdom — o clique troca o painel, o teclado também, e o «Editar» de uma
  *      linha leva à aba do cadastro;
- *   C. a FICHA a preencher — nome e sobrenome divididos CERTOS, e os sete campos abertos, com a
- *      senha em branco e à vista;
+ *   C. a FICHA a preencher — nome e sobrenome divididos CERTOS, e os seis campos abertos, com a
+ *      senha em branco e à vista — e a HABILIDADE fechada, que é a ordem dela (20/11/2026);
  *   D. o SERVIDOR — a ficha (`GET`) e a gravação (`POST`), com as duas metades do que se pode e do
  *      que não se pode: o nome de quem já assinou documentos não muda (e a recusa é dele, com a
  *      razão), e tudo o resto — CPF, telefone, e-mail, habilidade, senha — muda;
@@ -318,14 +318,31 @@ const comSenha = (corpo) => Object.assign({ senhaDirecao: '123' }, corpo || {});
     conferir('o telefone também', campo('ptelefone') === '(51) 99999-0000', campo('ptelefone'));
     conferir('o e-mail também', campo('pemail') === 'brise@exemplo.com', campo('pemail'));
     conferir('a habilidade vem a que ele declara', campo('pmodalidade') === 'bale-classico', campo('pmodalidade'));
-    /* «PODE EDITAR TUDO, NÃO TEM CAMPO DESABILITADO» — nesta página, `disabled` em campo é o
-     * defeito, não o desenho. */
-    const campos = ['pnome', 'psobrenome', 'pcpf', 'ptelefone', 'pemail', 'pmodalidade', 'psenha'];
+    /* «PODE EDITAR TUDO» DEIXOU DE SER VERDADE PARA UM CAMPO, E A ORDEM É DELA (20/11/2026):
+     *
+     *   «este campo habilidade, o que ele ensina é somente leitura. Ele foi criado lá no cadastro
+     *    do professor quando nasceu a escola. E se ele quiser modificar esse campo da habilidade,
+     *    ele tem que fazer isso pela aba habilitações.»
+     *
+     * E a razão de ser assim, e não ao contrário: a habilidade não é um dado do cadastro, é o que
+     * a Turma lê para saber de que modalidade é o professor. Mudá-la por aqui seria uma segunda
+     * porta para a mesma coisa — e a porta que o `Atualizar o ciclo` vigia é a das Habilitações.
+     * Duas portas para o mesmo dado é a garantia de que uma delas fica por vigiar.
+     *
+     * A prova afirmava o contrário e por isso reprovava a página certa: passa a afirmar o
+     * contrato novo, que é mais estreito e não mais largo. */
+    const campos = ['pnome', 'psobrenome', 'pcpf', 'ptelefone', 'pemail', 'psenha'];
     const apagados = campos.filter((id) => {
       const el = d.getElementById(id);
       return !el || el.disabled || el.readOnly;
     });
-    conferir('nenhum dos sete campos está desabilitado ou só-de-leitura', apagados.length === 0, apagados);
+    conferir('os seis campos do cadastro continuam abertos', apagados.length === 0, apagados);
+    conferir('a habilidade é SOMENTE LEITURA no cadastro — muda-se na aba das Habilitações',
+      d.getElementById('pmodalidade').disabled === true, d.getElementById('pmodalidade').disabled);
+    conferir('…e o campo diz onde se muda, ao lado dele',
+      Boolean(d.getElementById('pmodalidade-nota'))
+        && /habilita/i.test(d.getElementById('pmodalidade-nota').textContent),
+      d.getElementById('pmodalidade-nota') && d.getElementById('pmodalidade-nota').textContent.trim());
     conferir('a senha está à vista, e em branco (em branco mantém a que ele usa)',
       !d.getElementById('prof-senha').hidden && campo('psenha') === '', null);
     conferir('o modo é «editar» e o alvo é o slug', campo('prof-modo') === 'editar' && campo('prof-alvo') === 'brise-volet',
