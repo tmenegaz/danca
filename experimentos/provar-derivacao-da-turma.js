@@ -74,6 +74,26 @@ const json = (env, caminho, metodo, corpo) => pedir(env, caminho, {
   body: JSON.stringify(Object.assign({ senhaDirecao: SENHA_DA_DIRECAO }, corpo)),
 });
 
+/**
+ * SEMEAR UM ENVELOPE — e o índice, que é quem o torna visível (20/11/2026).
+ *
+ * A prova gravava só o ficheiro do envelope. Funcionava enquanto a leitura dos planos enumerava o
+ * armazenamento; deixou de funcionar quando o ÍNDICE passou a mandar (`resumosDeEnvelopes` lê
+ * `.indice.json` e não volta a enumerar enquanto ele existir e estiver completo). O sintoma foi o
+ * pior possível: a prova continuou a correr, a turma com plano passou a responder 200 em vez de
+ * 409, e o que se lia era «o código deixou de proteger a turma» — quando o que estava invisível era
+ * o PLANO, semeado por fora do caminho que escreve o índice.
+ *
+ * Em produção isto não acontece: `gravarEnvelope` reescreve o índice na MESMA escrita, e é por isso
+ * que o índice pode confiar em si próprio. Uma prova que escreve no KV à mão tem de fazer o mesmo —
+ * e a forma mais curta de o fazer é apagar o índice, que obriga a enumeração a ver o registo novo.
+ * É o mesmo remédio, com a mesma razão, que `provar-alunas-da-anamnese.js` já usa.
+ */
+async function semearEnvelope(env, nome, envelope) {
+  await env.PADD_KV.put('barra/envelope/' + nome + '.json', JSON.stringify(envelope));
+  await env.PADD_KV.delete('barra/envelope/.indice.json');
+}
+
 async function principal() {
   const casos = [];
   const conferir = (nome, obtido, esperado) => {
@@ -241,7 +261,7 @@ async function principal() {
   // esta prova passar com um código que, em produção, nunca encontraria plano nenhum.
   conferir('o envelope do plano fica na chave da escola',
     /^barra\//.test('barra/envelope/plano-20261016-1800.json'), true);
-  await env.PADD_KV.put('barra/envelope/plano-20261016-1800.json', JSON.stringify(envelope));
+  await semearEnvelope(env, 'plano-20261016-1800', envelope);
 
   const recusada = await editar({ id: 'outra', nome: 'Outra', frequencia: 2, dias: ['sab'],
     horarios: { sab: '10:00' }, duracaoMin: 50, periodoInicio: '2026-10-16', periodoFim: '2026-12-18' });
@@ -276,7 +296,17 @@ async function principal() {
   const pagina = await (await pedir(env, '/bastidores/producao')).text();
   conferir('o cartão da turma livre diz «livre»', pagina.includes('>livre<'), true);
   conferir('…e oferece «Editar»', pagina.includes('data-modo="editar"'), true);
-  conferir('o cartão da turma com plano diz «vinculada»', pagina.includes('>vinculada<'), true);
+  /* O SELO DA SALA MUDOU DE PALAVRA, E DE PERGUNTA — por decisão dela, a 12/11/2026:
+   *
+   *   «eu estou dizendo que a turma ela tem a sala piano. E aí a etiqueta que está na sala piano é
+   *    vinculada e não em turma. […] E agora a sala rosa, ela está dizendo que está vinculada. Na
+   *    verdade ela não está, porque eu só tenho uma turma até agora.»
+   *
+   * `vinculada` respondia «um plano já a cita?»; a pergunta que se faz a um cartão de SALA é outra —
+   * «alguma turma a usa?» —, e a resposta passou a ser `em turma`. A asserção guardava a palavra
+   * antiga e por isso reprovava a página certa. O que ela MEDE continua igual, e é o que interessa:
+   * o cartão distingue as duas situações e o botão diz o que vai fazer. */
+  conferir('o cartão da sala em uso diz «em turma»', pagina.includes('>em turma<'), true);
   conferir('…e oferece «Derivar»', pagina.includes('data-modo="derivar"'), true);
   conferir('…e o botão «Ajustar» antigo desapareceu',
     pagina.includes('data-turma-ajustar') && !/>Ajustar</.test(pagina), true);
@@ -307,7 +337,12 @@ async function principal() {
   const duasTurmas = await curadoria({ professor: 'Leticia', modalidade: 'Balé Clássico',
     turmas: ['Turma A', 'Turma B'] });
   conferir('a curadoria recusa DUAS turmas', duasTurmas.status, 400);
-  conferir('…e o erro explica por quê', /UMA turma/.test((await duasTurmas.json()).erro), true);
+  /* A FRASE PASSOU A DIZER «SALA» (12/11/2026) — a nomenclatura dela: a Turma é o conjunto, a sala
+   * é o ritmo que ela declara. O que a asserção mede é que a recusa EXPLICA, e a explicação continua
+   * a ser a mesma: uma por vez, porque as alunas de uma não são as da outra. Guardar a palavra
+   * antiga fazia-a reprovar uma mensagem que ficou melhor. */
+  conferir('…e o erro explica por quê',
+    /UMA (sala|turma) por vez/.test((await duasTurmas.json()).erro), true);
 
   // O professor é guardado como SLUG — é o que o plano leva em `contexto.professor`.
   const criada = await curadoria({ professor: 'Leticia', modalidade: 'Balé Clássico',
@@ -328,7 +363,15 @@ async function principal() {
   conferir('…e o id não muda', (await editada.json()).curadoria.id, idCuradoria);
   const listaCrua4 = JSON.parse(await env.PADD_KV.get('bastidores/barra/curadorias') || '[]');
   conferir('…e continua a ser UM registo', listaCrua4.length, 1);
-  conferir('…com o valor novo', listaCrua4[0].alunas, ['Ana', 'Bia']);
+  /* O ELENCO NÃO VEM DO CORPO, E ISSO É UMA DECISÃO (05/11/2026) — «ele vai ser embutido dentro da
+   * turma por meio da linha de base». O `corpo.alunas` deixou de escrever: quem declara quem está
+   * na Turma é o ELENCO escolhido, e aceitar nomes por aqui deixaria um cliente escrever um corpo
+   * que ninguém vê no ecrã. A asserção guardava o contrato antigo (`['Ana','Bia']`) e por isso
+   * reprovava o servidor por fazer o que foi decidido.
+   *
+   * O que ela mede agora é mais forte do que media: que a porta antiga está FECHADA. Se alguém a
+   * reabrir, esta linha acusa. */
+  conferir('…e o elenco NÃO vem do corpo — `alunas` é ignorado de propósito', listaCrua4[0].alunas, []);
 
   // O REPERTÓRIO DEIXOU DE SER PEDIDO NA CURADORIA (19/10/2026) — e por isso NÃO SE APAGA.
   // Quem o declara é a TURMA, no passo «Associar». O formulário já não manda o campo; a
@@ -342,11 +385,11 @@ async function principal() {
   conferir('…e o repertório já gravado NÃO é apagado', listaCrua5[0].repertorio, ['Tendu']);
 
   // Nasce o plano de ensino dela: par (professor, turma) no envelope.
-  await env.PADD_KV.put('barra/envelope/plano-20261016-1900.json', JSON.stringify({
+  await semearEnvelope(env, 'plano-20261016-1900', {
     id: 'plano-20261016-1900',
     contexto: { escola: 'barra', professor: 'leticia', ciclo: '01', turma: 'Turma A' },
     respostas: { 'contexto-turma': { valor: 'Turma A' } },
-  }));
+  });
   const recusaCuradoria = await curadoria({ professor: 'Leticia', modalidade: 'Balé Clássico',
     tradicao: 'RAD', turmas: ['Turma A'], alunas: ['Ana'] });
   conferir('uma curadoria VINCULADA recusa a edição', recusaCuradoria.status, 409);
@@ -469,36 +512,90 @@ async function principal() {
   conferir('…com a turma nova', turmasDa(cruasVelho2[0])[0], 'Turma E');
 
   // --- 12c. A ALUNA NÃO SE REPETE NA MESMA MODALIDADE --------------------
+  /* A ALUNA ENTRA PELO ELENCO, E NÃO PELO CORPO (05/11/2026, provado a 20/11/2026).
+   *
+   * A secção mandava os nomes no corpo (`alunas: ['Gabi']`) e esperava 409. Depois da decisão — «ele
+   * vai ser embutido dentro da turma por meio da linha de base» —, o `corpo.alunas` passou a ser
+   * IGNORADO, a curadoria nascia sem corpo nenhum, e a recusa nunca chegava. A prova reprovava o
+   * servidor por não recusar uma aluna que nunca lá chegou.
+   *
+   * Aqui a aluna entra por onde a produção a faz entrar: um ELENCO, escolhido pela Turma. A regra
+   * que se mede é a mesma de sempre — uma aluna, UMA Turma por modalidade —, e agora ela tem por
+   * onde ser exercida.
+   *
+   * O elenco da Gabi vai para a Turma C (é a Turma do Miguel no Jazz, criada em 12b), e o da Nina
+   * para a Turma D: são as duas Turmas que o filtro da página, em 12d, vai ter de mostrar ocupadas.
+   * A REDAÇÃO ANTERIOR DESTA SECÇÃO FALAVA EM «Turma A» E «Turma B» — Turmas que, no estado real da
+   * prova, são do Balé da Leticia. O erro estava escondido atrás da recusa que nunca acontecia. */
+  const criarElenco = async (nome, professor, alunas) => {
+    const r = await json(env, '/api/bastidores/linha-de-base', 'POST', {
+      nome, professor, alunas, campos: [], rascunho: true,
+    });
+    return ((await r.json()).linha || {}).id;
+  };
+  const elencoDaGabi = await criarElenco('Elenco da Gabi', 'miguel', ['Gabi']);
+  const elencoDaNina = await criarElenco('Elenco da Nina', 'miguel', ['Nina']);
+  conferir('os dois elencos são criados para o teste',
+    [Boolean(elencoDaGabi), Boolean(elencoDaNina)], [true, true]);
+
+  const comAGabi = await curadoria({ professor: 'Miguel', modalidade: 'Jazz',
+    tradicao: 'Jazz', turmas: ['Turma C'], linhaDeBase: elencoDaGabi });
+  conferir('a Turma C do Jazz passa a ter a Gabi pelo elenco',
+    (await comAGabi.json()).curadoria.alunas, ['Gabi']);
+  const comANina = await curadoria({ professor: 'Miguel', modalidade: 'Jazz',
+    tradicao: 'Jazz', turmas: ['Turma D'], linhaDeBase: elencoDaNina });
+  conferir('…e a Turma D, a Nina', (await comANina.json()).curadoria.alunas, ['Nina']);
+
   const repetida = await curadoria({ professor: 'Miguel', modalidade: 'Jazz',
-    tradicao: 'Jazz', turmas: ['Turma F'], alunas: ['Gabi'], repertorio: [] });
+    tradicao: 'Jazz', turmas: ['Turma F'], linhaDeBase: elencoDaGabi });
   conferir('a aluna de outra turma da MESMA modalidade é recusada', repetida.status, 409);
   const erroRepetida = await repetida.json();
-  conferir('…e o erro diz ONDE ela está', /Gabi \(em Turma A\)/.test(erroRepetida.erro), true);
-  conferir('…e diz qual é a regra', /UMA turma por modalidade/.test(erroRepetida.erro), true);
+  conferir('…e o erro diz ONDE ela está', /Gabi \(em Turma C\)/.test(erroRepetida.erro), true);
+  /* «UMA sala por modalidade» é a frase de hoje; a regra é a mesma de 16/10/2026. */
+  conferir('…e diz qual é a regra', /UMA sala por modalidade/.test(erroRepetida.erro), true);
   const noutraModalidade = await curadoria({ professor: 'Miguel', modalidade: 'Balé clássico',
-    tradicao: 'RAD', turmas: ['Turma G'], alunas: ['Gabi'], repertorio: [] });
+    tradicao: 'RAD', turmas: ['Turma G'], linhaDeBase: elencoDaGabi });
   conferir('a MESMA aluna noutra MODALIDADE é aceita', noutraModalidade.status, 201);
+  /* EDITAR A PRÓPRIA TURMA NÃO COMPETE CONSIGO — o `idQueEdita` fica de fora da comparação. Sem
+   * isto, gravar duas vezes a mesma curadoria seria recusado por ela mesma. */
   const mesmoPar = await curadoria({ professor: 'Miguel', modalidade: 'Jazz',
-    tradicao: 'Jazz', turmas: ['Turma H'], alunas: ['Nina'], repertorio: ['Plié'] });
+    tradicao: 'Jazz', turmas: ['Turma C'], linhaDeBase: elencoDaGabi, repertorio: ['Plié'] });
   conferir('…e editar a própria curadoria com as alunas DELA é aceite (não competem consigo)',
     mesmoPar.status, 201);
-  conferir('…e a Gabi continua só na Turma A — do JAZZ',
+  conferir('…e a Gabi continua só na Turma C — do JAZZ',
     (await (await pedir(env, '/api/bastidores/curadorias')).json()).curadorias
       .filter((c) => c.professor === 'miguel' && c.modalidade === 'Jazz'
         && (c.alunas || []).indexOf('Gabi') !== -1)
-      .map((c) => turmasDa(c)[0]), ['Turma A']);
+      .map((c) => turmasDa(c)[0]), ['Turma C']);
 
   // --- 12d. O FILTRO das alunas na PÁGINA --------------------------------
-  // A página tira `ALUNAS_TODAS` do cadastro de alunas da escola — e a prova não criou nenhuma.
+  /* A PÁGINA TIRA `ALUNAS_TODAS` DO CADASTRO DA ESCOLA, e o cadastro passou a exigir CPF
+   * (18/11/2026) — «a rota é a mesma pessoa do outro caminho, e uma regra que só existe numa das
+   * portas não é uma regra». A prova criava as três alunas só com o apelido, a rota respondia 400, e
+   * o filtro era medido sobre uma lista VAZIA: as asserções reprovavam e o que faltava era o dado.
+   *
+   * Os CPF são SINTÉTICOS e sintéticos à vista — `000.000.001-91` e seguintes, com os dígitos
+   * verificadores calculados para passarem. Um número inventado que não passe o dígito mediria o
+   * validador; um número real seria dado pessoal de alguém nesta prova. */
+  const CPF_SINTETICO = {
+    Gabi: '000.000.001-91', Nina: '000.000.002-72', Ana: '000.000.003-53',
+  };
   for (const a of ['Gabi', 'Nina', 'Ana']) {
-    await json(env, '/api/bastidores/aluna', 'POST', { apelido: a });
+    const r = await json(env, '/api/bastidores/aluna', 'POST',
+      { apelido: a, cpf: CPF_SINTETICO[a] });
+    conferir('a aluna «' + a + '» é cadastrada para o filtro', r.status,
+      r.status === 201 || r.status === 200 ? r.status : 201);
   }
   const paginaFiltro = await (await pedir(env, '/bastidores/producao')).text();
   const filtro = exercitarFiltroAlunas(paginaFiltro);
-  // O ESTADO neste ponto: Jazz/Turma A → Gabi; Jazz/Turma B → Nina; Balé clássico/Turma B →
+  // O ESTADO neste ponto: Jazz/Turma C → Gabi; Jazz/Turma D → Nina; Balé clássico/Turma G →
   // Gabi. Logo: no Jazz, Gabi e Nina estão ocupadas e só a Ana sobra; no Balé, a Gabi está
   // ocupada e a Nina (que é do Jazz) volta a poder ser escolhida — é a prova de que a regra é
   // POR MODALIDADE, e não uma lista global de quem já está em alguma turma.
+  //
+  // (As Turmas eram «A» e «B» nesta redacção até 20/11/2026. Não eram: a Turma A é do Balé da
+  // Leticia, e a Gabi do Jazz sempre esteve na Turma C. O engano vivia escondido atrás da recusa
+  // que nunca chegava — ver 12c.)
   conferir('o filtro da página arranca com todas as alunas oferecidas', filtro.inicial.length >= 3, true);
   conferir('escolher a modalidade da Gabi tira-a da lista',
     filtro.comJazz.indexOf('Gabi'), -1);
@@ -510,7 +607,7 @@ async function principal() {
     filtro.comBale.indexOf('Gabi'), -1);
   conferir('a ficha de uma aluna que passa a estar ocupada SAI do formulário',
     filtro.fichaSaiu, true);
-  conferir('…e a página diz onde ela está', /Turma A/.test(filtro.aviso), true);
+  conferir('…e a página diz onde ela está', /Turma C/.test(filtro.aviso), true);
 
   // --- 13. o «Editar»/«Derivar» da curadoria, no SCRIPT SERVIDO ----------
   // O markup já está conferido acima; aqui corre-se o script da página e chamam-se as funções.
@@ -518,31 +615,65 @@ async function principal() {
   // a curadoria — o id nasce dele); no «Derivar» fica LIVRE (09/11/2026), para a escola trocar
   // quem ensina ou a modalidade ao criar o elo novo. A data só aparece no «Derivar», e as fichas
   // de alunas e repertório são preenchidas com o que está gravado.
+  /* «EDITAR» MEDE-SE NUMA TURMA SEM PLANO — e a razão é uma regra de 15/11/2026.
+   *
+   * `ajustarCuradoria` passou a ABRIR EM «DERIVAR» uma Turma que já tem plano de ensino: «se o
+   * cartão ainda diz «Editar» e a Turma já tem plano de ensino, abrir o formulário de edição seria
+   * oferecer um caminho que o servidor recusa no fim». A prova media o «Editar» na Turma DERIVADA —
+   * que é exactamente a que tem plano —, recebia «derivar», e reprovava a página por cumprir a
+   * regra.
+   *
+   * O que se faz agora é o que a regra obriga: o «Editar» mede-se numa Turma SEM plano (esta, nova),
+   * e a derivada mede outra coisa — que ela abre em «Derivar», e que o aviso o diz. */
+  conferir('a turma do «Editar» é criada', (await novo({ nome: 'Turma Livre' })).status, 201);
+  const paraEditar = await curadoria({ professor: 'Leticia', modalidade: 'Balé clássico',
+    tradicao: 'RAD', turmas: ['Turma Livre'] });
+  const idParaEditar = ((await paraEditar.json()).curadoria || {}).id;
+  conferir('…e a curadoria dela nasce livre', paraEditar.status, 201);
+  const pagina3 = await (await pedir(env, '/bastidores/producao')).text();
+  const cenLivre = exercitarCuradoria(pagina3, idParaEditar);
+
   const cen = exercitarCuradoria(pagina2, derivada.id);
-  conferir('o script da página exercita as curadorias', cen.ok, true);
-  conferir('«Editar» põe o modo e esconde a data', [cen.editar.modo, cen.editar.vigenciaOculta],
-    ['editar', true]);
-  conferir('…e o botão passa a «Gravar curadoria»', cen.editar.botao, 'Gravar curadoria');
-  conferir('…e trava o par que identifica a curadoria',
-    [cen.editar.professorTravado, cen.editar.modalidadeTravada], [true, true]);
-  conferir('…e preenche o que está gravado',
-    [cen.editar.professor, cen.editar.modalidade, cen.editar.turma, cen.editar.tradicao],
-    ['leticia', 'Balé Clássico', 'Turma A', 'RAD']);
-  // O REPERTÓRIO SAIU DA CURADORIA (19/10/2026): quem o declara é a TURMA, no passo
-  // «Associar», e é de lá que o plano lê. A curadoria devolve só as alunas.
-  conferir('…e as alunas voltam como fichas', cen.editar.alunas, ['Ana']);
-  conferir('…e o repertório já não é pedido na curadoria', cen.editar.repertorio, []);
-  /* A DATA SAIU DO FORMULÁRIO (18/11/2026) — as duas asserções que a mediam passam a medir a
-   * ausência dela e a presença do que ficou. «O bloco da derivação mostra o motivo e não pergunta
-   * a data» é a afirmação inteira: o bloco continua a existir (é onde vive o motivo), e o campo da
-   * data já não está lá. Sem o par, uma asserção só sobre o motivo passaria com o campo de volta. */
+  conferir('o script da página exercita as curadorias', cen.ok && cenLivre.ok, true);
+  conferir('«Editar» põe o modo e esconde o bloco do ajuste',
+    [cenLivre.editar.modo, cenLivre.editar.vigenciaOculta], ['editar', true]);
+  conferir('…e preenche a Turma que está gravada',
+    [cenLivre.editar.professor, cenLivre.editar.modalidade, cenLivre.editar.turma],
+    ['', '', 'Turma Livre']);
+  /* OS TRÊS CAMPOS SAÍRAM DO FORMULÁRIO (18/11/2026) — «não há o que preencher, nem o que travar».
+   *
+   * Esta secção media «no Editar o par professor × modalidade fica TRAVADO; no Derivar fica LIVRE».
+   * Deixou de haver par no formulário: quem ensina e que modalidade vêm da SALA, e o que resta ao
+   * formulário é a Turma, o motivo e o elenco. Uma asserção sobre `disabled` de um campo que já não
+   * existe passaria sempre — e passaria também no dia em que o campo voltasse. O que se mede agora
+   * é a AUSÊNCIA, que é o contrato de hoje.
+   *
+   * O `professor` e a `modalidade` lidos acima vêm vazios por isso mesmo: o `doId` fabrica o
+   * elemento que lhe pedirem, e um campo que não existe na página responde `''`. A asserção acima
+   * afirma os dois vazios de propósito — se voltarem a ser preenchidos, ela acusa. */
+  conferir('o formulário já não pergunta professor, modalidade nem tradição',
+    [/id="cuprofessor"/, /id="cumodalidade"/, /id="cutradicao"/].every((r) => !r.test(pagina3)), true);
+  /* O RÓTULO DO GRAVAR É UM SÓ (19/11/2026) — «Gravar», e não «Gravar curadoria» / «Gravar
+   * ajuste». O verbo não muda com o modo: o que muda é o que o formulário mostra. A prova guardava
+   * os dois rótulos antigos e por isso reprovava o botão novo. */
+  conferir('…e o rótulo do gravar é UM só — «Gravar», nos dois modos',
+    /id="cu-enviar">Gravar</.test(pagina3), true);
+  /* O REPERTÓRIO SAIU DA CURADORIA (19/10/2026): quem o declara é a TURMA. E as ALUNAS saíram do
+   * formulário a 05/11/2026 — o elenco vem da Turma, pela linha de base. O que sobra é uma lista
+   * de fichas vazia, e é o que se afirma. */
+  conferir('…e as fichas de aluna não vêm do corpo — vêm do ELENCO', cenLivre.editar.alunas, []);
+  conferir('…e o repertório já não é pedido na curadoria', cenLivre.editar.repertorio, []);
+
+  /* E A TURMA QUE JÁ TEM PLANO ABRE EM «DERIVAR» — medido na derivada, que é a que tem plano. */
+  conferir('«Editar» numa Turma COM plano abre em «Derivar» (15/11/2026)',
+    [cen.editar.modo, cen.editar.vigenciaOculta], ['derivar', false]);
+
+  /* «Derivar» põe o modo e MOSTRA o bloco do ajuste — e é na derivada que se mede, porque é ela
+   * que tem plano para ajustar. */
   conferir('«Derivar» põe o modo e MOSTRA o bloco do ajuste',
     [cen.derivar.modo, cen.derivar.vigenciaOculta], ['derivar', false]);
   conferir('…e o campo da data JÁ NÃO EXISTE no formulário', cen.derivar.temCampoDaData, false);
   conferir('…e o motivo, que ficou, continua lá', cen.derivar.temCampoDoMotivo, true);
-  conferir('…e o botão passa a «Gravar ajuste»', cen.derivar.botao, 'Gravar ajuste');
-  conferir('…e o professor e a modalidade ficam LIVRES na derivação',
-    [cen.derivar.professorTravado, cen.derivar.modalidadeTravada], [false, false]);
   /* E O CLIENTE NÃO MANDA A DATA (18/11/2026). A tela deixou de a perguntar, mas a linha que a
    * enviava podia ficar no script — e um `campos.vigencia` sobrevivente mandaria `""`, que o
    * servidor trataria como ausente. Funcionaria por acidente. O que se mede aqui é a ausência da
@@ -591,6 +722,40 @@ async function principal() {
  */
 function turmasDa(c) { return (c && c.turmas && c.turmas.length) ? c.turmas : []; }
 
+/**
+ * O ELEMENTO FALSO — UMA VEZ, E COM O QUE UM ELEMENTO TEM (20/11/2026).
+ *
+ * Havia três DOMs de mentira escritos à mão, cada um com o subconjunto de métodos que o código
+ * servido usava no dia em que foi escrito. Cada método NOVO que a página passou a usar derrubava a
+ * prova — e o sintoma era sempre `x.y is not a function`, que se lê como «o código está errado»
+ * quando o errado é o dublê.
+ *
+ * Aconteceu duas vezes seguidas hoje: `reset` (o `#form-verbete` passou a ser limpo no arranque) e
+ * `removeAttribute` (a nota da habilidade, que passa a ser escrita e apagada ao entrar e sair da
+ * edição). Patch a patch, o dublê ia ficar a lista dos métodos do dia — e a próxima chamada nova
+ * voltaria a partir a prova, outra vez, sem que nada estivesse partido.
+ *
+ * Aqui os métodos comuns estão todos. O que cada bloco NÃO tem em comum (os `querySelector` que
+ * respondem com fixtures, os ouvintes que se querem espiar) entra por `extra`, que sobrepõe.
+ *
+ * O `reset` não está aqui de propósito: um `<form>` verdadeiro limpa os CAMPOS, e o que é um campo
+ * depende do bloco. Quem precisa dele declara-o (`limparOsCampos`), e assim o que ele limpa é
+ * visível no sítio onde é usado.
+ */
+function elementoFalso(id, extra) {
+  return Object.assign({
+    id, value: '', checked: false, hidden: false, disabled: false, readOnly: false,
+    textContent: '', innerHTML: '', className: '',
+    addEventListener() {}, removeEventListener() {},
+    setAttribute() {}, getAttribute() { return null; },
+    removeAttribute() {}, hasAttribute() { return false; },
+    focus() {}, blur() {}, scrollIntoView() {},
+    closest() { return null; },
+    appendChild() {}, removeChild() {},
+    querySelector() { return null; }, querySelectorAll() { return []; },
+  }, extra || {});
+}
+
 function exercitarHoras(html) {
   const fs = require('fs');
   const vm = require('vm');
@@ -606,12 +771,25 @@ function exercitarHoras(html) {
     getAttribute: (k) => (k === 'value' ? d : null) }));
   const horas = DIAS.map((d) => ({ value: '', disabled: false, getAttribute: (k) => (k === 'data-dia' ? d : null) }));
   const elementos = new Map();
+  /* O `reset()` QUE O DOM DE MENTIRA NÃO TINHA — e que o código servido passou a chamar (20/11/2026).
+   *
+   * O estouro era `f.reset is not a function`, e a tentação era dar ao elemento falso um `reset`
+   * que não faz nada. Ficaria a passar e seria mentira: `#form-verbete` é mesmo um `<form>` no HTML
+   * servido, e um `<form>` verdadeiro limpa os campos todos. Um `reset` vazio deixaria a prova
+   * declarar «o formulário ficou limpo» sem nada ter sido limpo — a família de defeito desta sessão.
+   *
+   * Aqui o formulário limpa o que este mapa conhece: é o mais perto do real que um DOM de mentira
+   * consegue chegar, e é honesto sobre o que não modela (os campos fora do mapa não existem).
+   *
+   * PORQUE APARECEU AGORA: o código servido ganhou o `reset()` do `#form-verbete` no `limparOFormularioDoEstilo`,
+   * que corre no arranque. A prova ficou a falhar por uma chamada NOVA num caminho VELHO — e é
+   * exactamente o que uma prova serve para dizer. */
+  const limparOsCampos = () => {
+    for (const el of elementos.values()) { el.value = ''; el.checked = false; }
+  };
   const doId = (id) => {
     if (!elementos.has(id)) {
-      elementos.set(id, { id, value: '', hidden: false, readOnly: false, textContent: '', innerHTML: '',
-        scrollIntoView() {}, focus() {}, setAttribute() {}, getAttribute() { return null; },
-        closest() { return null; }, addEventListener() {}, querySelector() { return null; },
-        querySelectorAll() { return []; } });
+      elementos.set(id, elementoFalso(id, { reset: limparOsCampos }));
     }
     return elementos.get(id);
   };
@@ -673,21 +851,34 @@ function exercitarCuradoria(html, id) {
   const vm = require('vm');
   const code = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]).join('\n');
   const elementos = new Map();
+  /* O `reset()` QUE O DOM DE MENTIRA NÃO TINHA — e que o código servido passou a chamar (20/11/2026).
+   *
+   * O estouro era `f.reset is not a function`, e a tentação era dar ao elemento falso um `reset`
+   * que não faz nada. Ficaria a passar e seria mentira: `#form-verbete` é mesmo um `<form>` no HTML
+   * servido, e um `<form>` verdadeiro limpa os campos todos. Um `reset` vazio deixaria a prova
+   * declarar «o formulário ficou limpo» sem nada ter sido limpo — a família de defeito desta sessão.
+   *
+   * Aqui o formulário limpa o que este mapa conhece: é o mais perto do real que um DOM de mentira
+   * consegue chegar, e é honesto sobre o que não modela (os campos fora do mapa não existem).
+   *
+   * PORQUE APARECEU AGORA: o código servido ganhou o `reset()` do `#form-verbete` no `limparOFormularioDoEstilo`,
+   * que corre no arranque. A prova ficou a falhar por uma chamada NOVA num caminho VELHO — e é
+   * exactamente o que uma prova serve para dizer. */
+  const limparOsCampos = () => {
+    for (const el of elementos.values()) { el.value = ''; el.checked = false; }
+  };
   const fichas = {}; // id do escolhedor → array de fichas
   const doId = (idEl) => {
     if (!elementos.has(idEl)) {
-      elementos.set(idEl, {
-        id: idEl, value: '', hidden: false, disabled: false, readOnly: false,
-        textContent: '', innerHTML: '', ouvintes: {},
+      elementos.set(idEl, elementoFalso(idEl, {
+        ouvintes: {},
         addEventListener(tipo, fn) { (this.ouvintes[tipo] = this.ouvintes[tipo] || []).push(fn); },
-        setAttribute() {}, getAttribute() { return null; }, focus() {},
-        scrollIntoView() {}, closest() { return null; },
-        appendChild() {}, querySelector() { return null; },
         querySelectorAll(sel) {
           if (sel === '.escolhido') return fichas[this.id] || [];
           return [];
         },
-      });
+        reset: limparOsCampos,
+      }));
     }
     return elementos.get(idEl);
   };
@@ -768,16 +959,27 @@ function exercitarFiltroAlunas(html) {
   const vm = require('vm');
   const code = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]).join('\n');
   const elementos = new Map();
+  /* O `reset()` QUE O DOM DE MENTIRA NÃO TINHA — e que o código servido passou a chamar (20/11/2026).
+   *
+   * O estouro era `f.reset is not a function`, e a tentação era dar ao elemento falso um `reset`
+   * que não faz nada. Ficaria a passar e seria mentira: `#form-verbete` é mesmo um `<form>` no HTML
+   * servido, e um `<form>` verdadeiro limpa os campos todos. Um `reset` vazio deixaria a prova
+   * declarar «o formulário ficou limpo» sem nada ter sido limpo — a família de defeito desta sessão.
+   *
+   * Aqui o formulário limpa o que este mapa conhece: é o mais perto do real que um DOM de mentira
+   * consegue chegar, e é honesto sobre o que não modela (os campos fora do mapa não existem).
+   *
+   * PORQUE APARECEU AGORA: o código servido ganhou o `reset()` do `#form-verbete` no `limparOFormularioDoEstilo`,
+   * que corre no arranque. A prova ficou a falhar por uma chamada NOVA num caminho VELHO — e é
+   * exactamente o que uma prova serve para dizer. */
+  const limparOsCampos = () => {
+    for (const el of elementos.values()) { el.value = ''; el.checked = false; }
+  };
   const fichas = [];
   let aviso = '';
   const doId = (id) => {
     if (!elementos.has(id)) {
-      elementos.set(id, {
-        id, value: '', hidden: false, disabled: false, textContent: '', className: '',
-        addEventListener() {}, setAttribute() {}, getAttribute() { return null; },
-        focus() {}, scrollIntoView() {}, closest() { return null; }, appendChild() {},
-        querySelector() { return null; }, querySelectorAll() { return []; },
-      });
+      elementos.set(id, elementoFalso(id, { reset: limparOsCampos }));
     }
     return elementos.get(id);
   };

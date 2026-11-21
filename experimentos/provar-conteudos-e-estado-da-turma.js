@@ -557,12 +557,25 @@ async function oFormularioInteligente() {
     /ainda não declarou as habilitações/.test(script));
   checar('…e uma falha de rede não tranca o formulário',
     /catch\(function\(\)\{/.test(script) && /aplicarHabilitacao\(slug\);/.test(script));
-  /* EM EDIÇÃO NÃO SE REFILTRA: o par (professor, modalidade) de uma curadoria que já existe está
-   * travado, e reconstruir a lista à volta dele apagaria a escolha que está no formulário. */
-  checar('…e uma curadoria em edição não é refiltrada por baixo',
-    /var emEdicao = String\(\(document\.getElementById\("cuderivar"\)/.test(script));
-  checar('a modalidade manda na lista das tradições (o handler existe)',
-    /selModCu\.addEventListener\("change"/.test(script));
+  /* DUAS ASSERÇÕES ENVELHECERAM, E O CONTRATO QUE ELAS GUARDAVAM MUDOU DE DONO (20/11/2026).
+   *
+   * `emEdicao` e `selModCu` eram variáveis do formulário da Turma. Quando o par (professor,
+   * modalidade) saiu do formulário — 18/11/2026, «não há o que preencher, nem o que travar» —, as
+   * duas desapareceram, e as asserções passaram a reprovar o script por não ter os nomes antigos.
+   * Uma asserção que procura um identificador mede o identificador; o que se quer medir é o facto.
+   *
+   * O FACTO DE HOJE, e é mais forte do que era:
+   *
+   *   1. Não há «refiltrar por baixo» a temer, porque a curadoria que se está a abrir FICA DE FORA
+   *      da comparação — `refiltrarAlunas` passa o id em edição como `idQueEdita`, e as alunas dela
+   *      não competem consigo mesmas. Era isso que o `emEdicao` protegia, por outro caminho.
+   *
+   *   2. Quem manda na lista das tradições deixou de ser a modalidade escolhida à mão: é a SALA,
+   *      que traz modalidade e tradição juntas (`pintarDaSala`). Mede-se o handler que existe. */
+  checar('…e a curadoria em edição fica de fora da comparação (as alunas dela não competem consigo)',
+    /alunasOcupadas\(modalidade, idAtual\)/.test(script) && /var idAtual = /.test(script));
+  checar('a SALA manda na modalidade e na tradição (o handler existe)',
+    /selTurmaCu\.addEventListener\("change", pintarDaSala\)/.test(script));
 }
 
 (async () => {
