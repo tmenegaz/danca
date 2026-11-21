@@ -47,13 +47,16 @@ sistema não fiscaliza: a consequência é do processo, não do software.
 verifica se ele guardou o material num papel, num vídeo ou na memória. Isso **não é
 problema do sistema** — é do professor. O sistema faz o corte e declara o estado.
 
-> **Implementado (B6, 27/09/2026).** O índice declara `estado` por aula — `planejada`,
-> `dada`, `lancada`, `nao_dada` —, derivado por `derivar_estado()` em `tools/gerar-ciclo.sh`;
-> e o formulário **re-deriva com o próprio relógio** (`estadoDaAula()`), em vez de confiar no
-> veredito do índice, que é do instante em que ele foi gerado. Nada foi acrescentado a
-> nenhum arquivo de dados: o estado sai do cronograma, do prazo e do registro. A **aula não
-> dada** é a única a que o formulário não serve — não houve aula, não há o que lançar, e o
-> ajuste já estaria fora do prazo —, e o painel dela é o único que não abre.
+> **Implementado (B6, 27/09/2026).** Os quatro estados continuam a valer — `planejada`, `dada`,
+> `lancada`, `nao_dada` —, e o corte continua a ser o cronograma casado com o prazo e lido contra
+> o registro. **O que mudou a 15/11/2026 é ONDE eles se calculam: o índice já não os declara.**
+> Até essa data, `tools/gerar-ciclo.sh` gravava um `estado` por aula; hoje não grava, e a razão
+> está escrita lá — ninguém o lia, e o `estado` é o juízo de um instante, que só quem tem um
+> *agora* pode fazer. Quem o calcula é o formulário, em `estadoDaAula()`, com o próprio relógio;
+> o índice guarda o **facto** (`lancada`), não o juízo. Nada foi acrescentado a nenhum arquivo de
+> dados: o estado sai do cronograma, do prazo e do registro. A **aula não dada** é a única a que
+> o formulário não serve — não houve aula, não há o que lançar, e o ajuste já estaria fora do
+> prazo —, e o painel dela é o único que não abre.
 >
 > **A aula não dada não é declarada — é o que sobra.** Não há campo, nem botão, nem lista de
 > "aulas dadas": o professor edita o plano da aula seguinte **livremente até a data dela**
