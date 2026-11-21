@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-21T09:26:30-0300`
-Commit atual: `030ef48c` — feat(estrutura): a aula nasce do calendário do plano
+Gerado em: `2026-11-21T09:28:24-0300`
+Commit atual: `1a9baf5b` — docs(estrutura): a conferência ao vivo do caminho da porta, medida
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,8 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+1a9baf5b docs(estrutura): a conferência ao vivo do caminho da porta, medida
+3d11d8e7 fix(estrutura): a coluna nomeia o que entrega, e a janela usa as peças da folha
 030ef48c feat(estrutura): a aula nasce do calendário do plano
 a37d426a feat(estrutura): o derivador escreve a aula que lhe pedem, e não sempre a primeira
 3c7de1d0 fix(estrutura): a aula que já foi dada não se reescreve por uma regeneração
@@ -100,8 +102,6 @@ fad5bc77 fix(tools): as duas provas antigas voltam a medir — e o que elas medi
 bf3ffef9 fix(estrutura): as tabelas dentro da moldura, a habilidade só-leitura, e o «Adicionar» que só acende com escolha
 106de79d chore(estrutura): fechar os derivados — âncoras e índices
 06ea6e5b chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
-b78ef89c feat(ciclo): o «Guardar» do PO grava as fontes de breu-rosa num commit só
-d7ebcfd0 feat(acervo): envelope/po-20261120-2052.json
 ```
 
 ## Por professor
