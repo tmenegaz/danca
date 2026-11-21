@@ -10,9 +10,9 @@ type: Ciclo
 professor: demi-plie
 ciclo: 01
 variante: breu-rosa
-hash_conteudo: 5212412bcefee247b22dad0ea3bd233d27ecddd2de9619fbdbbb99910c3dfc44
+hash_conteudo: 9ee2522b461027432765befcdc76076a7d2b2b9d44f3c62ce7bbeb76fdc2157f
 parentHash: 
-hash: da35f5fe530d7f91b11a3e24b1c4ea906b467b64982cbf8e12246559fce5eecd
+hash: a644780d1d20950580055f3be2f476e68f4810efb2f3cbd47d78d099f107115b
 algoritmo: SHA-256
 po: professores/demi-plie/ciclos/ciclo-01-breu-rosa-po.md
 po_state: Input_PO_Validado

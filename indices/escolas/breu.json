@@ -7,8 +7,8 @@
         "recorte:tami"
       ],
       "primeira": "20261117-1709",
-      "ultima": "20261121-1831",
-      "versoes": 11
+      "ultima": "20261121-2255",
+      "versoes": 12
     },
     {
       "aspecto": "cinco-posicoes-1a-bracos",
@@ -17,8 +17,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261121-1831",
-      "versoes": 8
+      "ultima": "20261121-2255",
+      "versoes": 9
     },
     {
       "aspecto": "cinco-posicoes-1a-pes",
@@ -27,8 +27,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261121-1831",
-      "versoes": 8
+      "ultima": "20261121-2255",
+      "versoes": 9
     },
     {
       "aspecto": "forca-excentrica-recuo-na-flexao-de-tronco",
@@ -37,8 +37,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261121-1831",
-      "versoes": 8
+      "ultima": "20261121-2255",
+      "versoes": 9
     },
     {
       "aspecto": "mobilidade-de-flexao-extensao-do-tornozelo",
@@ -47,8 +47,8 @@
         "recorte:tami"
       ],
       "primeira": "20261118-2039",
-      "ultima": "20261121-1831",
-      "versoes": 8
+      "ultima": "20261121-2255",
+      "versoes": 9
     },
     {
       "aspecto": "musicalidade-e-pulsacao-ritmica",
@@ -57,8 +57,8 @@
         "recorte:tami"
       ],
       "primeira": "20261120-1626",
-      "ultima": "20261121-1831",
-      "versoes": 5
+      "ultima": "20261121-2255",
+      "versoes": 6
     },
     {
       "aspecto": "espiral-rotacao-de-tronco",
@@ -67,8 +67,8 @@
         "recorte:tami"
       ],
       "primeira": "20261120-1711",
-      "ultima": "20261121-1831",
-      "versoes": 4
+      "ultima": "20261121-2255",
+      "versoes": 5
     },
     {
       "aspecto": "estabilidade-vestibular-e-deslocamento",
@@ -77,8 +77,8 @@
         "recorte:tami"
       ],
       "primeira": "20261120-1711",
-      "ultima": "20261121-1831",
-      "versoes": 4
+      "ultima": "20261121-2255",
+      "versoes": 5
     },
     {
       "aspecto": "passe",
@@ -87,8 +87,8 @@
         "recorte:tami"
       ],
       "primeira": "20261120-1711",
-      "ultima": "20261121-1831",
-      "versoes": 4
+      "ultima": "20261121-2255",
+      "versoes": 5
     },
     {
       "aspecto": "formato-anatomico-dos-joelhos",
@@ -97,8 +97,8 @@
         "recorte:tami"
       ],
       "primeira": "20261120-2146",
-      "ultima": "20261121-1831",
-      "versoes": 3
+      "ultima": "20261121-2255",
+      "versoes": 4
     },
     {
       "aspecto": "sustentacao-ativa-de-mmii-forca-de-adagio",
@@ -107,8 +107,8 @@
         "recorte:tami"
       ],
       "primeira": "20261121-1831",
-      "ultima": "20261121-1831",
-      "versoes": 1
+      "ultima": "20261121-2255",
+      "versoes": 2
     },
     {
       "aspecto": "meia-ponta",
@@ -161,8 +161,8 @@
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md"
         ],
-        "hash": "2391b483fdeb4407313557c7687384af920743fd8d230bcef36122a5f57e74e4",
-        "hash_conteudo": "fd7b7372ff8267c071ec97ad1f56a58320d9c3df9b1f9559f0ce9a8f51500a7b",
+        "hash": "a9dc89cd1d1860a07c2ce6be38bf3b3d27bc1fbec44ed2b3413a6ff74016473d",
+        "hash_conteudo": "581aceda22eaf28ba1d7acdc883e29e71a8114a268566231aea375f3f337a105",
         "id": "ciclo-01-breu-rosa-aula-01",
         "lida": true,
         "parent_hash": ""
@@ -182,8 +182,8 @@
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-02.md",
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-02.md"
         ],
-        "hash": "637672acb3fe8489713e276a7b4b0153d6f3997de757f7ed3c144f15a39b5558",
-        "hash_conteudo": "ea44065bbe448c3d6d8ec30a340562e68d54f808f2d201a93e3416dad472658d",
+        "hash": "ef9bca8051cd9e7a885b363a8ed9399c6d48f0ef301c3fc78a1eee821185420b",
+        "hash_conteudo": "2ce89281c3d08cf815941ad39892c89a1ca45f22bbde79a85c31e52ee1341d5b",
         "id": "ciclo-01-breu-rosa-aula-02",
         "lida": true,
         "parent_hash": ""
@@ -216,8 +216,8 @@
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
           "professores/demi-plie/ciclos/ciclo-01.conf"
         ],
-        "hash": "da35f5fe530d7f91b11a3e24b1c4ea906b467b64982cbf8e12246559fce5eecd",
-        "hash_conteudo": "5212412bcefee247b22dad0ea3bd233d27ecddd2de9619fbdbbb99910c3dfc44",
+        "hash": "a644780d1d20950580055f3be2f476e68f4810efb2f3cbd47d78d099f107115b",
+        "hash_conteudo": "9ee2522b461027432765befcdc76076a7d2b2b9d44f3c62ce7bbeb76fdc2157f",
         "id": "ciclo-01-breu-rosa",
         "lida": true,
         "parent_hash": ""
@@ -232,8 +232,8 @@
               "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
               "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md"
             ],
-            "hash": "2391b483fdeb4407313557c7687384af920743fd8d230bcef36122a5f57e74e4",
-            "hash_conteudo": "fd7b7372ff8267c071ec97ad1f56a58320d9c3df9b1f9559f0ce9a8f51500a7b",
+            "hash": "a9dc89cd1d1860a07c2ce6be38bf3b3d27bc1fbec44ed2b3413a6ff74016473d",
+            "hash_conteudo": "581aceda22eaf28ba1d7acdc883e29e71a8114a268566231aea375f3f337a105",
             "id": "ciclo-01-breu-rosa-aula-01",
             "lida": true,
             "parent_hash": ""
@@ -252,8 +252,8 @@
               "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-02.md",
               "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-02.md"
             ],
-            "hash": "637672acb3fe8489713e276a7b4b0153d6f3997de757f7ed3c144f15a39b5558",
-            "hash_conteudo": "ea44065bbe448c3d6d8ec30a340562e68d54f808f2d201a93e3416dad472658d",
+            "hash": "ef9bca8051cd9e7a885b363a8ed9399c6d48f0ef301c3fc78a1eee821185420b",
+            "hash_conteudo": "2ce89281c3d08cf815941ad39892c89a1ca45f22bbde79a85c31e52ee1341d5b",
             "id": "ciclo-01-breu-rosa-aula-02",
             "lida": true,
             "parent_hash": ""
@@ -520,10 +520,10 @@
       "aulas": 2,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
-      "planos": 34,
-      "pos": 34,
+      "planos": 35,
+      "pos": 35,
       "recortes": 1,
-      "registros": 72
+      "registros": 74
     },
     "criada_em": "2026-11-17T00:41:45.598067+00:00",
     "expurgada": false,
@@ -576,6 +576,7 @@
       "plano:plano-20261121-1120",
       "plano:plano-20261121-1508",
       "plano:plano-20261121-1531",
+      "plano:plano-20261121-1955",
       "po:po-20261119-1233",
       "po:po-20261119-2144",
       "po:po-20261119-2350",
@@ -609,14 +610,15 @@
       "po:po-20261121-0933",
       "po:po-20261121-1120",
       "po:po-20261121-1508",
-      "po:po-20261121-1531"
+      "po:po-20261121-1531",
+      "po:po-20261121-1955"
     ],
     "slug": "breu"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 72,
+        "contagem": 74,
         "ids": [
           "anamnese:anamnese-20261116-2201",
           "anamnese:anamnese-20261117-1407",
@@ -656,6 +658,7 @@
           "plano:plano-20261121-1120",
           "plano:plano-20261121-1508",
           "plano:plano-20261121-1531",
+          "plano:plano-20261121-1955",
           "po:po-20261119-1233",
           "po:po-20261119-2144",
           "po:po-20261119-2350",
@@ -689,7 +692,8 @@
           "po:po-20261121-0933",
           "po:po-20261121-1120",
           "po:po-20261121-1508",
-          "po:po-20261121-1531"
+          "po:po-20261121-1531",
+          "po:po-20261121-1955"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -805,7 +809,7 @@
         "valor": "bom-bom"
       },
       {
-        "contagem": 72,
+        "contagem": 74,
         "ids": [
           "anamnese:anamnese-20261116-2201",
           "anamnese:anamnese-20261117-1407",
@@ -845,6 +849,7 @@
           "plano:plano-20261121-1120",
           "plano:plano-20261121-1508",
           "plano:plano-20261121-1531",
+          "plano:plano-20261121-1955",
           "po:po-20261119-1233",
           "po:po-20261119-2144",
           "po:po-20261119-2350",
@@ -878,7 +883,8 @@
           "po:po-20261121-0933",
           "po:po-20261121-1120",
           "po:po-20261121-1508",
-          "po:po-20261121-1531"
+          "po:po-20261121-1531",
+          "po:po-20261121-1955"
         ],
         "rotulo": "demi-plie",
         "valor": "demi-plie"
@@ -905,7 +911,7 @@
         "valor": "ciclo"
       },
       {
-        "contagem": 34,
+        "contagem": 35,
         "ids": [
           "plano:plano-20261119-1143",
           "plano:plano-20261119-2144",
@@ -940,13 +946,14 @@
           "plano:plano-20261121-0933",
           "plano:plano-20261121-1120",
           "plano:plano-20261121-1508",
-          "plano:plano-20261121-1531"
+          "plano:plano-20261121-1531",
+          "plano:plano-20261121-1955"
         ],
         "rotulo": "Plano de ensino",
         "valor": "plano"
       },
       {
-        "contagem": 34,
+        "contagem": 35,
         "ids": [
           "po:po-20261119-1233",
           "po:po-20261119-2144",
@@ -981,7 +988,8 @@
           "po:po-20261121-0933",
           "po:po-20261121-1120",
           "po:po-20261121-1508",
-          "po:po-20261121-1531"
+          "po:po-20261121-1531",
+          "po:po-20261121-1955"
         ],
         "rotulo": "Plano de observação",
         "valor": "po"
@@ -990,9 +998,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "4e12e7b"
+    "commit": "6067886"
   },
-  "gerado_em": "2026-11-21T18:32",
+  "gerado_em": "2026-11-21T22:55",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -1089,14 +1097,33 @@
         "passe",
         "sustentacao-ativa-de-mmii-forca-de-adagio"
       ],
-      "atualizada_em": "2026-11-21T18:31:05.410Z",
-      "enviada_em": "2026-11-21T18:31:05.825Z",
+      "atualizada_em": "2026-11-21T22:55:11.093Z",
+      "enviada_em": "2026-11-21T22:55:11.507Z",
       "id": "recorte:tami",
       "linha": "tami",
       "nome": "Tami",
       "professor": null,
       "turma": null,
       "versoes": [
+        {
+          "alunas": 2,
+          "arquivo": "escola/breu/linhas-de-base/tami--20261121-2255.json",
+          "aspectos": [
+            "cinco-posicoes-1a-pes",
+            "cinco-posicoes-1a-bracos",
+            "passe",
+            "formato-anatomico-dos-joelhos",
+            "mobilidade-de-quadril-en-dehors-de-origem",
+            "mobilidade-de-flexao-extensao-do-tornozelo",
+            "musicalidade-e-pulsacao-ritmica",
+            "forca-excentrica-recuo-na-flexao-de-tronco",
+            "sustentacao-ativa-de-mmii-forca-de-adagio",
+            "estabilidade-vestibular-e-deslocamento",
+            "espiral-rotacao-de-tronco"
+          ],
+          "enviada_em": "2026-11-21T22:55:11.507Z",
+          "versao": "20261121-2255"
+        },
         {
           "alunas": 2,
           "arquivo": "escola/breu/linhas-de-base/tami--20261121-1831.json",
@@ -1743,6 +1770,18 @@
       "turma": "Rosa"
     },
     {
+      "ajuste_de": "plano-20261121-1531",
+      "ano": "2026",
+      "carimbo": "plano-20261121-1955",
+      "ciclo": "01",
+      "data": "2026-11-21T19:55",
+      "id": "plano:plano-20261121-1955",
+      "objetivo": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
+      "professor": "demi-plie",
+      "tipo": "plano",
+      "turma": "Rosa"
+    },
+    {
       "ajuste_de": null,
       "ano": "2026",
       "carimbo": "po-20261119-1233",
@@ -2079,6 +2118,16 @@
       "ciclo": "01",
       "data": "2026-11-21T15:31",
       "id": "po:po-20261121-1531",
+      "professor": "demi-plie",
+      "tipo": "po"
+    },
+    {
+      "ajuste_de": "po-20261121-1531",
+      "ano": "2026",
+      "carimbo": "po-20261121-1955",
+      "ciclo": "01",
+      "data": "2026-11-21T19:55",
+      "id": "po:po-20261121-1955",
       "professor": "demi-plie",
       "tipo": "po"
     }
