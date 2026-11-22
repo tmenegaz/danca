@@ -6018,9 +6018,26 @@ function lateralDaProducao(opcoes) {
  * das Aulas dadas lê para declarar o prazo, e é a única que sabe o que foi lançado sem decifrar o
  * `-dados.json`. Sem `ASSETS` (as bancadas), o número não se inventa: a sala diz «sem leitura».
  */
-let DIAGNOSTICO = null;
+/**
+ * A PASTA QUE O SITE DÁ A UMA TURMA (22/11/2026) — e não o id dela.
+ *
+ * O id de uma turma ganha um CARIMBO a cada versão (`rosa-2026-11-20-11`), e é o id que a Sala
+ * guarda. O pacote publicado, esse, mora na pasta da TURMA: a variante (`breu-rosa`) sem o prefixo
+ * da escola — `rosa`. O painel tirava só o carimbo de DATA, e ao vivo o id termina em `-11`, um
+ * contador: pedia `/breu/rosa-2026-11-20-11/ciclos.json`, recebia 404 e anunciava «o pacote não
+ * está no ar» sobre um ficheiro que está. Medido na `breu` em 22/11/2026, com o URL pedido no
+ * `data-leitura` do cartão.
+ *
+ * A regra já existia, escrita: «a pasta que a publicação dá à turma é o que vem DEPOIS do nome da
+ * escola» (`motor/servidor/aulas-dadas.js`). Faltava segui-la.
+ */
+function pastaDaTurma(idDaTurma, escola) {
+  const base = String(idDaTurma || '').trim().replace(/-\d{4}-\d{2}-\d{2}(-\d{1,2})?$/, '');
+  const slug = String(escola || '').trim();
+  return slug && base.indexOf(slug + '-') === 0 ? base.slice(slug.length + 1) : base;
+}
+
 async function painelDoEstudio({ env, escola, aluns, profs, dono, trms, linhas, matriculasDaEscola, dadosDaEscola }) {
-  DIAGNOSTICO = { prefixo: null, env: { assets: !!(env && env.ASSETS), partilhado: env && env.PACOTE_PARTILHADO, slug: env && env.ESCOLA_SLUG } };
   const norm = (v) => String(v == null ? '' : v).trim();
   const ativas = (Array.isArray(aluns) ? aluns : []).filter((a) => a && !a.desligadaEm);
   const apelidosAtivos = new Set(ativas.map((a) => norm(a.apelido).toLowerCase()).filter(Boolean));
@@ -6056,21 +6073,19 @@ async function painelDoEstudio({ env, escola, aluns, profs, dono, trms, linhas, 
   const prefixo = prefixoDaArvore(env);
   const lerCiclosDoPacote = async (variante) => {
     if (!variante || !env || !env.ASSETS || typeof env.ASSETS.fetch !== 'function') return null;
-    const alvo = 'https://assets.local' + prefixo + '/' + encodeURIComponent(variante) + '/ciclos.json';
     try {
-      const r = await env.ASSETS.fetch(alvo);
-      if (!r || !r.ok) { DIAGNOSTICO = { alvo, status: r && r.status, motivo: 'nao-ok' }; return null; }
+      const r = await env.ASSETS.fetch('https://assets.local' + prefixo + '/'
+        + encodeURIComponent(variante) + '/ciclos.json');
+      if (!r || !r.ok) return null;
       const d = await r.json();
       const c = d && Array.isArray(d.ciclos) ? d.ciclos[0] : null;
       return c && Array.isArray(c.aulas) ? c : null;
-    } catch (erro) { DIAGNOSTICO = { alvo, status: 0, motivo: String(erro && erro.message || erro) }; return null; }
+    } catch (erro) { return null; }
   };
 
   const salas = [];
   for (const t of vigentes) {
-    const variante = norm(t.id) && /-\d{4}-\d{2}-\d{2}$/.test(norm(t.id))
-      ? norm(t.id).replace(/-\d{4}-\d{2}-\d{2}$/, '')
-      : norm(t.id);
+    const variante = pastaDaTurma(t.id, escola);
     const ciclo = await lerCiclosDoPacote(variante);
     const previstas = ciclo ? ciclo.aulas.length : (compomAulasNoPeriodo(t));
     const dadas = ciclo ? ciclo.aulas.filter((a) => a && a.lancada === true).length : null;
@@ -6214,7 +6229,7 @@ function painelInicial(p) {
           + ' é o número certo, e não uma falha.</p>';
       }
     }
-    return '<div class="sala-do-painel" data-leitura="' + esc(JSON.stringify(DIAGNOSTICO)) + '">' +
+    return '<div class="sala-do-painel">' +
       '<p class="painel-linha"><strong>' + esc(s.nome) + '</strong>' +
       (s.modalidade ? ' <span class="selo livre">' + esc(s.modalidade) + '</span>' : '') + '</p>' +
       (ritmo.length ? '<p class="sub">' + esc(ritmo.join(' · ')) + '</p>' : '') +

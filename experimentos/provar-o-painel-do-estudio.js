@@ -206,6 +206,37 @@ function numero(html, rotulo) {
   provar('…e por isso LÊ: as dadas e as previstas vêm do ficheiro',
     noShard.salas[0].dadas === 2 && noShard.salas[0].previstas === 3, noShard.salas[0]);
 
+  /* O ID DA TURMA NÃO É A PASTA DELA (22/11/2026). Ao vivo o id é `rosa-2026-11-20-11` — um
+   * carimbo com data E contador —, e a pasta publicada é `rosa`. A prova usa o id REAL da `breu`:
+   * com o carimbo, o painel pedia `/breu/rosa-2026-11-20-11/ciclos.json`, recebia 404 e dizia «o
+   * pacote não está no ar» sobre um ficheiro que está. Medido com o URL no `data-leitura`. */
+  const pedidosCarimbados = [];
+  const carimbada = await bastidores.painelDoEstudio({
+    env: {
+      PACOTE_PARTILHADO: 'sim', ESCOLA_SLUG: 'breu',
+      ASSETS: {
+        async fetch(url) {
+          const caminho = String(url instanceof URL ? url.pathname
+            : String(url).replace(/^https?:\/\/[^/]+/, ''));
+          pedidosCarimbados.push(caminho);
+          if (caminho !== '/breu/rosa/ciclos.json') return new Response('', { status: 404 });
+          return new Response(JSON.stringify({ ciclos: [{ aulas: AULAS }] }), {
+            status: 200, headers: { 'Content-Type': 'application/json' },
+          });
+        },
+      },
+    },
+    escola: 'breu', aluns: [], profs: [], dono: 'Demi Plié',
+    trms: [{ id: 'rosa-2026-11-20-11', nome: 'Rosa', dias: ['seg'], horarios: { seg: '10:30' },
+      duracaoMin: 120, periodoInicio: '2026-12-14', periodoFim: '2027-01-15' }],
+    linhas: [], matriculasDaEscola: [], dadosDaEscola: null,
+  });
+  provar('a turma com carimbo (`rosa-2026-11-20-11`) pede a pasta DELA (`/breu/rosa/…`)',
+    pedidosCarimbados.length === 1 && pedidosCarimbados[0] === '/breu/rosa/ciclos.json',
+    pedidosCarimbados);
+  provar('…e por isso lê: as dadas vêm do ficheiro, e não «sem leitura»',
+    carimbada.salas[0].dadas === 2, carimbada.salas[0]);
+
   const semAssets = await bastidores.painelDoEstudio({
     env: {}, escola: 'breu', aluns: ALUNAS, profs: PROFESSORES, dono: 'Demi Plié',
     trms: TURMAS, linhas: LINHAS, matriculasDaEscola: MATRICULAS, dadosDaEscola: null,
