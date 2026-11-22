@@ -58284,3 +58284,39 @@ a reproduzir o defeito: a 1024 os quatro grupos nascem abertos, a seta escondida
 671px num ecrã de 640. Com a correção, a 1024×640, 1280×800 e 900×700: grupos fechados, seta à
 vista, Pedagogia aberta a 168px, último item a 436px, sem rolagem; a 760×900 continua a folha.
 `check-identidade` **0 problemas** depois de as três cópias serem regeradas.
+
+## 22/11/2026 — O painel inicial construído: a opção B
+
+**O que motivou.** Ela escolheu: «Quero a opção B» — o número grande, a peça nova em vez da caixinha
+que a Produção já usava. O pedido original está na entrada anterior (o estúdio, e o modelo), e o que
+faltava era isto: construir.
+
+**O que foi decidido.**
+- **A conta é da rota, e o desenho é da página.** `painelDoEstudio({…})` — exportado — devolve os
+  números; `painelInicial(p)` desenha. É o que permite medir a conta sem abrir um navegador, e é o
+  que separa «o número está errado» de «o número não aparece».
+- **Cada número conta o que interessa, e não o que é fácil.** Alunas **sem `desligadaEm`** (2 de 5
+  registos — o registo não se apaga, é a memória de quem deu as aulas); professores **com o
+  principal**, que não vive na lista de registados (2); salas **vigentes** e não as 23 encarnações
+  da mesma sala (1 de 23); elencos pela **versão mais recente de cada** (Tami com 2 pessoas, Ami com
+  1); modalidades pelas **matrículas não substituídas** (2). Cada um destes é um número que se pode
+  contar de duas maneiras, e a errada é sempre a que soma tudo o que encontra.
+- **A ocupação é a agenda** — aulas dadas sobre as previstas no período —, e as dadas vêm do
+  `lancada` do `ciclos.json` do pacote, lido por `env.ASSETS`. **Sem leitura, o painel não mostra
+  zero**: mostra «—» e diz onde se resolve. A barra é a `.cota` do Monitoramento, a mesma peça.
+- **O nome da escola é o do cadastro** (`cadastro.escolaNome`), não o slug; sem cadastro, o slug — e
+  a página não inventa um nome bonito. As datas saem em `dd/mm/aaaa`, que é como o produto as
+  escreve; uma data ISO no meio de um painel é o vocabulário do programador na cara de quem lê.
+- **O período que ainda não começou é DITO**: «0 de 15» lido sem essa frase parece uma falha.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (`painelDoEstudio`, `compomAulasNoPeriodo`,
+`painelInicial`, `emDataFora`, a secção `sec-painel` e o `painel` na rota),
+`tools/templates/ciclo.css` (as peças — commit próprio, ver a entrada acima),
+`experimentos/provar-o-painel-do-estudio.js` (**novo**), `.gitignore`, `ESTADO-ATUAL.md`.
+
+**MEDIDO.** `provar-o-painel-do-estudio` **32/32**, com o **controle negativo** `--contra=de95569a`
+a mostrar o parágrafo antigo («Aqui aparece o que mudou desde a última vez») e nenhum número. O
+painel da escola viva, desenhado: Alunas 2 («5 registos, 2 ativas») · Professores 2 · Salas 1 («1
+vigente · 22 substituídas») · Elencos 2 · Modalidades 2, e a sala Rosa a «0 de 15» com «o período
+ainda não começou». **O que continua em aberto**: se «ocupação» é a agenda ou o corpo — vagas não
+existe na Sala, e essa é uma decisão de dados.

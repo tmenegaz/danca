@@ -5982,7 +5982,259 @@ function lateralDaProducao(opcoes) {
     '</nav>';
 }
 
-function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia, turmaEmFoco, linhas, alunasObservadas, dadosDaEscola, matriculasDaEscola, registoDoDonoPrincipal, registosDeAlunas, anamnesesDaEscola) {
+/**
+ * O PAINEL INICIAL DO ESTÚDIO — OS NÚMEROS, LIDOS (22/11/2026).
+ *
+ * O QUE ELA PEDIU, na letra: «Sempre que entrar no [estúdio] a gente vai para o painel inicial. O
+ * painel inicial a gente vai construir aqui um dashboard, aliás, vários dashboards, que mostram
+ * para a gente em blocos quantos alunos existem na escola, qual é o nome da escola, quem é o
+ * responsável pela escola, quantos professores tem na escola, quais são as salas que essa escola
+ * possui, qual é a taxa de ocupação das salas, quantos elencos tem, esses elencos são compostos de
+ * quantas pessoas, quais modalidades a escola ensina.»
+ *
+ * A DIVISÃO É A DESTA CASA: **a rota lê, a página desenha**. `paginaProducao` é desenho puro e não
+ * vai buscar nada — por isso os números são apurados aqui, num lugar só, e chegam prontos. Isso
+ * também é o que os torna prováveis: um número calculado dentro de uma função de marcação não se
+ * mede sem abrir a página.
+ *
+ * CADA NÚMERO DIZ DE ONDE VEM, e é por isso que cada um leva `nota`:
+ *
+ *   · alunas ........ `alunas` sem `desligadaEm` — as que a escola tem hoje, e não os registos;
+ *   · professores ... a lista registada mais o PRINCIPAL, que não vive nela (`dono`);
+ *   · salas ......... as turmas VIGENTES (`substituidaPor` ausente), e não as 23 encarnações;
+ *   · elencos ....... a versão mais recente de cada `linhas-de-base`;
+ *   · modalidades ... as matrículas não substituídas — é o que a escola ENSINA hoje, e não o que
+ *                     alguma sala alguma vez declarou.
+ *
+ * A OCUPAÇÃO É A DA AGENDA — as aulas dadas sobre as previstas no período da sala —, e é a leitura
+ * que ela viu no modelo. A outra leitura possível («o corpo»: alunas do elenco sobre as vagas da
+ * sala) continua em aberto, porque **vagas não existe** na Sala: seria um campo novo, e isso é uma
+ * decisão de dados, não de desenho.
+ *
+ * «DADAS» VEM DO `ciclos.json` DO PACOTE — o `lancada` de cada aula. É a mesma fonte que a página
+ * das Aulas dadas lê para declarar o prazo, e é a única que sabe o que foi lançado sem decifrar o
+ * `-dados.json`. Sem `ASSETS` (as bancadas), o número não se inventa: a sala diz «sem leitura».
+ */
+async function painelDoEstudio({ env, escola, aluns, profs, dono, trms, linhas, matriculasDaEscola, dadosDaEscola }) {
+  const norm = (v) => String(v == null ? '' : v).trim();
+  const ativas = (Array.isArray(aluns) ? aluns : []).filter((a) => a && !a.desligadaEm);
+  const apelidosAtivos = new Set(ativas.map((a) => norm(a.apelido).toLowerCase()).filter(Boolean));
+
+  const vigentes = (Array.isArray(trms) ? trms : []).filter((t) => t && !t.substituidaPor);
+  const registosDeSala = (Array.isArray(trms) ? trms : []).length;
+
+  // Os elencos: a versão mais recente de cada id, como a secção da Audição lê.
+  const porElenco = new Map();
+  for (const l of (Array.isArray(linhas) ? linhas : [])) {
+    if (!l || !l.id) continue;
+    const ja = porElenco.get(l.id);
+    if (!ja || String(ja.atualizada_em || '') < String(l.atualizada_em || '')) porElenco.set(l.id, l);
+  }
+  const elencos = [...porElenco.values()];
+
+  // As modalidades: das matrículas vigentes; sem elas, das salas vigentes. Uma fonte só, e dita.
+  const matriculas = (Array.isArray(matriculasDaEscola) ? matriculasDaEscola : []).filter((m) => m && !m.substituidaPor);
+  const modalidades = new Set();
+  for (const m of matriculas) if (norm(m.modalidade)) modalidades.add(norm(m.modalidade));
+  if (!modalidades.size) for (const t of vigentes) if (norm(t.modalidade)) modalidades.add(norm(t.modalidade));
+
+  /* O `ciclos.json` DO PACOTE, por turma — do ASSETS, e nunca da rede. `null` quando não há
+   * assets (as bancadas) ou quando o pacote daquela turma não está montado: «não li» é uma
+   * resposta, e é diferente de «zero aulas». */
+  const lerCiclosDoPacote = async (variante) => {
+    if (!variante || !env || !env.ASSETS || typeof env.ASSETS.fetch !== 'function') return null;
+    try {
+      const r = await env.ASSETS.fetch('https://assets.local/' + encodeURIComponent(variante) + '/ciclos.json');
+      if (!r || !r.ok) return null;
+      const d = await r.json();
+      const c = d && Array.isArray(d.ciclos) ? d.ciclos[0] : null;
+      return c && Array.isArray(c.aulas) ? c : null;
+    } catch (erro) { return null; }
+  };
+
+  const salas = [];
+  for (const t of vigentes) {
+    const variante = norm(t.id) && /-\d{4}-\d{2}-\d{2}$/.test(norm(t.id))
+      ? norm(t.id).replace(/-\d{4}-\d{2}-\d{2}$/, '')
+      : norm(t.id);
+    const ciclo = await lerCiclosDoPacote(variante);
+    const previstas = ciclo ? ciclo.aulas.length : (compomAulasNoPeriodo(t));
+    const dadas = ciclo ? ciclo.aulas.filter((a) => a && a.lancada === true).length : null;
+    salas.push({
+      nome: norm(t.nome) || norm(t.id),
+      modalidade: norm(t.modalidade) || null,
+      dias: Array.isArray(t.dias) ? t.dias : [],
+      horarios: t.horarios && typeof t.horarios === 'object' ? t.horarios : {},
+      duracaoMin: Number(t.duracaoMin) || null,
+      periodoInicio: norm(t.periodoInicio) || null,
+      periodoFim: norm(t.periodoFim) || null,
+      previstas,
+      dadas,
+    });
+  }
+
+  const nomesDasModalidades = [...modalidades].sort((a, b) => (a < b ? -1 : 1));
+  /* O NOME DA ESCOLA NÃO É O SLUG (22/11/2026). «breu» é a pasta; o nome que a escola declara é o
+   * do cadastro (`raiz/<slug>/cadastro`, campo `escolaNome`). Quando não há cadastro, o slug é o
+   * que se tem — e a página não inventa um nome bonito. */
+  const nomeDeclarado = norm(dadosDaEscola && dadosDaEscola.cadastro && dadosDaEscola.cadastro.escolaNome);
+
+  return {
+    escola,
+    nome: nomeDeclarado || norm(escola) || null,
+    responsavel: norm(dono) || null,
+    alunas: ativas.length,
+    alunasRegistos: (Array.isArray(aluns) ? aluns : []).length,
+    professores: (Array.isArray(profs) ? profs.length : 0) + (norm(dono) ? 1 : 0),
+    professoresRegistados: (Array.isArray(profs) ? profs.length : 0),
+    salas,
+    salasRegistos: registosDeSala,
+    elencos: elencos.map((e) => ({
+      nome: norm(e.nome) || norm(e.id),
+      professor: norm(e.professor) || null,
+      pessoas: Array.isArray(e.alunas) ? e.alunas.length : 0,
+      atualizada: norm(e.atualizada_em) || null,
+    })),
+    modalidades: nomesDasModalidades.map((nome) => ({
+      nome,
+      vinculos: matriculas.filter((m) => norm(m.modalidade) === nome).length,
+      professores: [...new Set(matriculas.filter((m) => norm(m.modalidade) === nome)
+        .map((m) => norm(m.professor)).filter(Boolean))],
+    })),
+    apelidosAtivos: [...apelidosAtivos],
+  };
+}
+
+/** As aulas previstas no período de uma sala — a conta do calendário do plano. */
+function compomAulasNoPeriodo(turma) {
+  try { return require('./compor-conf.js').aulasNoPeriodo(turma); } catch (erro) { return null; }
+}
+
+/**
+ * O PAINEL INICIAL, DESENHADO (22/11/2026). Recebe os números apurados por `painelDoEstudio` e não
+ * calcula nenhum: a conta mora na rota, e é lá que ela se mede.
+ *
+ * AS PEÇAS SÃO AS DA FOLHA — `.numeros`/`.numero`, `.cota`, `.caixa`, `.selo`, `.sub`. Nenhuma
+ * classe nova: a opção B do modelo criou uma peça (`.numero`), e ela nasceu na folha com o
+ * comentário que diz porquê. O resto é o vocabulário que a Produção já fala.
+ *
+ * SEM NÚMEROS NÃO SE INVENTA: uma escola sem `alunas` lidas mostra `—` e diz de onde viria. É a
+ * mesma regra do resto do sistema — o vazio declarado é informação, o zero inventado é corrupção.
+ */
+/** `2026-12-14` → `14/12/2026`. A data como o produto a escreve. */
+function emDataFora(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso || '').trim());
+  return m ? m[3] + '/' + m[2] + '/' + m[1] : String(iso || '').trim();
+}
+
+function painelInicial(p) {
+  const n = p || {};
+  const num = (v) => (v === null || v === undefined || v === '' ? '—' : String(v));
+  const plural = (n2, um, muitos) => (n2 === 1 ? '1 ' + um : n2 + ' ' + muitos);
+
+  const caixa = (rotulo, valor, nota) =>
+    '<div class="painel-numero">' +
+    '<span class="painel-numero-v">' + esc(valor) + '</span>' +
+    '<span class="painel-numero-k">' + esc(rotulo) + '</span>' +
+    (nota ? '<span class="painel-numero-nota">' + esc(nota) + '</span>' : '') +
+    '</div>';
+
+  const nomeDaEscola = (n.nome || n.escola || '').trim();
+  const identidade = '<div class="caixa">' +
+    '<p class="identidade-do-painel"><strong>' + esc(nomeDaEscola || 'Escola') + '</strong>' +
+    '<span class="sub">responsável: ' + esc(n.responsavel || 'não declarado') + '</span></p>' +
+    '<div class="painel-numeros">' +
+    caixa('Alunas', num(n.alunas), n.alunasRegistos
+      ? (n.alunasRegistos === n.alunas ? 'todas as registadas' : plural(n.alunasRegistos, 'registo', 'registos')
+        + ', ' + n.alunas + ' ativa' + (n.alunas === 1 ? '' : 's'))
+      : null) +
+    caixa('Professores', num(n.professores), n.professores
+      ? (n.professoresRegistados ? 'o principal e ' + plural(n.professoresRegistados, 'registado', 'registados') : 'o principal')
+      : null) +
+    caixa('Salas', num(n.salas ? n.salas.length : null), n.salasRegistos
+      ? (n.salasRegistos === (n.salas || []).length
+        ? plural(n.salasRegistos, 'sala', 'salas')
+        : plural((n.salas || []).length, 'vigente', 'vigentes') + ' · ' + (n.salasRegistos - (n.salas || []).length) + ' substituída' + (n.salasRegistos - (n.salas || []).length === 1 ? '' : 's'))
+      : null) +
+    caixa('Elencos', num(n.elencos ? n.elencos.length : null),
+      (n.elencos && n.elencos.length)
+        ? n.elencos.map((e) => e.nome + ' (' + e.pessoas + ')').join(' · ')
+        : null) +
+    caixa('Modalidades', num(n.modalidades ? n.modalidades.length : null),
+      (n.modalidades && n.modalidades.length) ? n.modalidades.map((m) => m.nome).join(', ') : null) +
+    '</div></div>';
+
+  /* AS SALAS, com a ocupação. A `.cota` é a barra do Monitoramento — `value` em milésimos, para a
+   * barra não perder resolução nos primeiros por cento, que é onde ela está na maior parte do tempo.
+   * Uma sala sem leitura NÃO mostra zero: mostra o que falta, e porquê. */
+  const cartaoDaSala = (s) => {
+    const ritmo = [];
+    if (s.dias && s.dias.length) {
+      const hora = s.horarios && s.horarios[s.dias[0]] ? ' às ' + s.horarios[s.dias[0]] : '';
+      ritmo.push(s.dias.join(', ') + hora);
+    }
+    if (s.duracaoMin) ritmo.push(s.duracaoMin + ' min');
+    /* A DATA NO FORMATO DO PRODUTO (22/11/2026): o resto da tela escreve `dd/mm/aaaa`, e uma
+     * data ISO no meio de um painel é o vocabulário do programador a aparecer na cara de quem lê. */
+    const emData = emDataFora;
+    if (s.periodoInicio || s.periodoFim) {
+      ritmo.push((s.periodoInicio ? emData(s.periodoInicio) : '?') + ' → ' + (s.periodoFim ? emData(s.periodoFim) : '?'));
+    }
+    const semLeitura = s.dadas === null || s.dadas === undefined;
+    const previstas = s.previstas;
+    let barraHtml = '';
+    let rotulo = '';
+    if (semLeitura || !previstas) {
+      rotulo = 'Ocupação — sem leitura das aulas lançadas';
+      barraHtml = '<p class="sub">O pacote desta sala não está no ar, por isso não se sabe quantas '
+        + 'aulas foram dadas. O número não se inventa.</p>';
+    } else {
+      const mil = Math.round((s.dadas / previstas) * 1000);
+      const nivel = mil >= 950 ? 'agora' : (mil >= 800 ? 'atencao' : 'folga');
+      rotulo = 'Ocupação — ' + s.dadas + ' de ' + previstas + ' aulas dadas';
+      barraHtml = '<progress class="cota" data-nivel="' + nivel + '" value="' + mil + '" max="1000">'
+        + Math.round(mil / 10) + '%</progress>';
+      if (s.periodoInicio && new Date(s.periodoInicio) > new Date()) {
+        barraHtml += '<p class="sub">O período desta sala ainda não começou ('
+          + esc(emDataFora(s.periodoInicio)) + '): zero de ' + previstas
+          + ' é o número certo, e não uma falha.</p>';
+      }
+    }
+    return '<div class="sala-do-painel">' +
+      '<p class="painel-linha"><strong>' + esc(s.nome) + '</strong>' +
+      (s.modalidade ? ' <span class="selo livre">' + esc(s.modalidade) + '</span>' : '') + '</p>' +
+      (ritmo.length ? '<p class="sub">' + esc(ritmo.join(' · ')) + '</p>' : '') +
+      '<p class="painel-rotulo">' + esc(rotulo) + '</p>' + barraHtml +
+      '</div>';
+  };
+
+  const salasHtml = (n.salas && n.salas.length)
+    ? '<div class="caixa painel-secao"><h3>As salas</h3>' + n.salas.map(cartaoDaSala).join('') + '</div>'
+    : '<div class="caixa painel-secao"><h3>As salas</h3><p class="sub">[Preencher: esta escola '
+      + 'ainda não tem nenhuma sala cadastrada — a sala é o ritmo, e cadastra-se em Pedagogia › Salas.]</p></div>';
+
+  const elencosHtml = (n.elencos && n.elencos.length)
+    ? '<div class="caixa painel-secao"><h3>Os elencos</h3>' + n.elencos.map((e) =>
+      '<p class="painel-linha"><strong>' + esc(e.nome) + '</strong><span class="sub">' +
+      plural(e.pessoas, 'aluna', 'alunas') + (e.professor ? ' · por ' + esc(e.professor) : '') +
+      (e.atualizada ? ' · desde ' + esc(String(e.atualizada).slice(0, 10)) : '') +
+      '</span></p>').join('') + '</div>'
+    : '<div class="caixa painel-secao"><h3>Os elencos</h3><p class="sub">Nenhum elenco composto '
+      + 'ainda — compõe-se em Pedagogia › Audição.</p></div>';
+
+  const modalidadesHtml = (n.modalidades && n.modalidades.length)
+    ? '<div class="caixa painel-secao"><h3>As modalidades</h3>' + n.modalidades.map((m) =>
+      '<p class="painel-linha"><strong>' + esc(m.nome) + '</strong><span class="sub">' +
+      plural(m.vinculos || 0, 'vínculo', 'vínculos') +
+      (m.professores && m.professores.length ? ' · ' + m.professores.map(esc).join(', ') : '') +
+      '</span></p>').join('') + '</div>'
+    : '<div class="caixa painel-secao"><h3>As modalidades</h3><p class="sub">Nenhuma modalidade '
+      + 'declarada ainda — declara-se no cadastro da aluna, em Pessoas › Alunas.</p></div>';
+
+  return identidade + salasHtml + elencosHtml + modalidadesHtml;
+}
+
+function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia, turmaEmFoco, linhas, alunasObservadas, dadosDaEscola, matriculasDaEscola, registoDoDonoPrincipal, registosDeAlunas, anamnesesDaEscola, painel) {
   /* O ID DE CADA ALUNA, À MÃO PARA O CARTÃO (18/11/2026). Ver `idLegadoDaAluna`: o vínculo é
    * filtrado pelo id, e não pelo apelido, porque o apelido pode ter pertencido a outra pessoa.
    * O mapa é derivado da lista de registos que a rota já leu — nenhuma leitura nova, e o default
@@ -8663,7 +8915,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // uma página só com tudo empilhado (o sintoma quando o script morria).
     '<section class="secao" id="sec-painel">' +
     '<h2>Painel inicial</h2>' +
-    '<p>Aqui aparece o que mudou desde a última vez. Use o menu ao lado para gerir pessoas e pedagogia.</p>' +
+    painelInicial(painel) +
     '</section>' +
     // A APARÊNCIA DA ESCOLA (18/10/2026). Dois modos, UM valor para a escola inteira.
     //
@@ -22534,9 +22786,15 @@ async function fetch(request, env, extras) {
      * mensalidades. Carregam-se em paralelo com as que já estavam. */
     const dadosDaEscola = await dadosDaEscolaParaAProducao(env, kv, escola);
     const matriculasDaEscola = await matriculas(kv, escola);
+    /* O PAINEL INICIAL — os números apurados AQUI, e a página só desenha (22/11/2026). Ler antes
+     * de desenhar é o que permite medi-los: um número calculado dentro da marcação não se prova
+     * sem abrir a página. Ver `painelDoEstudio`. */
+    const painel = await painelDoEstudio({
+      env, escola, aluns, profs, dono, trms, linhas, matriculasDaEscola, dadosDaEscola,
+    });
     return html(paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usos,
       aparencia, turmaEmFoco, linhas, alunasObservadas, dadosDaEscola, matriculasDaEscola,
-      registoDoDonoPrincipal, registosDasAlunas, anamnesesDaEscola));
+      registoDoDonoPrincipal, registosDasAlunas, anamnesesDaEscola, painel));
   }
 
   // GET /api/bastidores/alunas — a lista para o seletor da anamnese.
@@ -28656,6 +28914,12 @@ module.exports = {
    * não se via por uma rota: era a LEITURA a depender da montagem de uma escrita. A prova mede o
    * leitor contra um acervo de memória — a mesma composição que o Worker usa. */
   planoDaTurmaNaSala,
+  /* O PAINEL INICIAL, exportado (22/11/2026). A conta dos números é uma FUNÇÃO, separada do
+   * desenho — e por isso se mede sem abrir a página: `provar-o-painel-do-estudio` chama-a com os
+   * registos da escola e confere cada número contra as armadilhas de contagem (as alunas
+   * desligadas, as salas substituídas, os elencos com várias versões). Uma conta que só se vê
+   * desenhada só se prova por fotografia. */
+  painelDoEstudio,
   /* A RÉGUA DE UMA SALA e as listas que ela precisa (20/11/2026) — a validação do botão
    * «Atualizar o ciclo» e a derivação usam a MESMA conta, e por isso ela é exportada em vez de
    * recalculada em cada sítio. */
