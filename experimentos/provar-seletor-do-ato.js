@@ -150,7 +150,7 @@ const postar = (env, caminho, corpo) => pedir(env, caminho, {
 
   {
     const { env } = ambiente([ATIVO, SAIDO]);
-    const html = await (await pedir(env, '/bastidores/producao')).text();
+    const html = await (await pedir(env, '/bastidores/estudio')).text();
     /* A página é HTML inteiro; o que se procura é o nome dele e o selo `desligado` na MESMA
      * página. A data também: sem ela, «desligado» não diz desde quando, e é a data que a direção
      * de amanhã vai querer. */

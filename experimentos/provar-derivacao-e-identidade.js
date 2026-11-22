@@ -305,7 +305,7 @@ async function provarAPagina(motor) {
     if (caminho.indexOf('/api/') !== -1) return ok('application/json', '{"ok":true}');
     /* SÓ A PÁGINA CONTA. O favicon e os assets também não são `/api/`, e contá-los dava uma
      * «recarga» que nunca houve — o oposto do que se está a medir. */
-    if (caminho === '/bastidores/producao') visto.paginas += 1;
+    if (caminho === '/bastidores/estudio') visto.paginas += 1;
     ok('text/html; charset=utf-8', html);
   });
   const base = await new Promise((pronto) => srv.listen(0, '127.0.0.1', () => pronto(
@@ -327,7 +327,7 @@ async function provarAPagina(motor) {
    * e é ele que diz qual `.res` recebe o recado. Sem ele, a caixa de destino seria a do painel,
    * que não é onde a pessoa está. A recarga preserva o hash, e é isso que faz o recado voltar ao
    * sítio certo. */
-  await p.goto(base + '/bastidores/producao#curadorias', { waitUntil: 'networkidle0', timeout: 60000 });
+  await p.goto(base + '/bastidores/estudio#curadorias', { waitUntil: 'networkidle0', timeout: 60000 });
 
   /* O GESTO: «Ajustar» na linha da curadoria, e o «Gravar ajuste» do formulário. */
   const clicou = await p.evaluate(() => {

@@ -84,7 +84,7 @@ async function abrir() {
   vc.on('jsdomError', (e) => queixas.push((e && e.detail && e.detail.message) || (e && e.message)));
   const pedidos = [];
   const dom = new JSDOM(aPagina().replace(/<script src="[^"]*"><\/script>/g, ''), {
-    runScripts: 'dangerously', url: 'https://breu.padd.com.br/bastidores/producao',
+    runScripts: 'dangerously', url: 'https://breu.padd.com.br/bastidores/estudio',
     pretendToBeVisual: true, virtualConsole: vc,
     beforeParse(w) {
       w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},

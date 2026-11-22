@@ -378,7 +378,7 @@ async function principais() {
       const html = bastidores.paginaProducao('x', { professor: 'prof-a', ciclo: '01', query: '' },
         [], [], '', '', turmas, [], {}, [], [], [], null, null, TURMA);
       const producao = new JSDOM(html, {
-        url: 'http://x/bastidores/producao?turma=' + encodeURIComponent(TURMA) + '#turmas',
+        url: 'http://x/bastidores/estudio?turma=' + encodeURIComponent(TURMA) + '#turmas',
         runScripts: 'dangerously',
         pretendToBeVisual: true,
         beforeParse(janela) {

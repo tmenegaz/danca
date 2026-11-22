@@ -140,7 +140,7 @@ function medir() {
   const abrir = async (largura, secao) => {
     const p = await navegador.newPage();
     await p.setViewport({ width: largura, height: 760 });
-    await p.goto(base + '/bastidores/producao', { waitUntil: 'load', timeout: 60000 });
+    await p.goto(base + '/bastidores/estudio', { waitUntil: 'load', timeout: 60000 });
     await p.evaluate((s) => {
       const c = document.getElementById('conteudo');
       if (c) c.hidden = false;

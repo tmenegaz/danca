@@ -997,11 +997,13 @@ const GRUPOS_DA_COLUNA = [
 ];
 
 /** O que sobra para a barra de cima: o Bastidores e os dois destinos dele. */
+/* UM DESTINO SÓ (22/11/2026) — a mesma decisão do `tools/templates/nav-html.js`: a cena
+ * («Estúdio de Dança») deixou de existir, e a produção passou a chamar-se estúdio. Aqui era um par
+ * com dois rótulos e, depois da mudança de endereço, os dois a apontar ao mesmo sítio. */
 const MENU_DA_BARRA = {
   versao: 1,
   grupos: [{ tipo: 'menu', rotulo: 'Bastidores', itens: [
-    { rotulo: 'Estúdio de Dança', href: '/bastidores/estudio' },
-    { rotulo: 'Produção', href: '/bastidores/producao' },
+    { rotulo: 'Estúdio', href: '/bastidores/estudio' },
   ] }],
 };
 
@@ -2323,6 +2325,23 @@ projeto, embutido. Nada aqui muda o que está publicado na escola; a escolha é 
       <tr><td>B</td><td>painel fechado</td><td>sempre à vista</td><td>2</td></tr>
       <tr><td>C</td><td>primeiro cartão</td><td>no cartão</td><td>0</td></tr>
     </table>
+    <span class="abrir">Abrir a proposta →</span>
+  </a>
+
+  <a class="cartao" href="proposta-painel-do-estudio.html">
+    <p class="sobre">Proposta · o Estúdio</p>
+    <h2>O Painel inicial, com números</h2>
+    <p>O ecrã onde ela cai ao entrar no Estúdio. Hoje é um parágrafo; passa a ser o retrato da
+    escola em blocos — com os números <strong>da escola viva</strong>, e cada um com a sua fonte.</p>
+    <table>
+      <tr><th>Bloco</th><th>O que mostra</th></tr>
+      <tr><td>A escola</td><td>nome, responsável, alunas, professores, salas, elencos, modalidades</td></tr>
+      <tr><td>As salas</td><td>o ritmo, o período e a <strong>ocupação</strong> (aulas dadas de previstas)</td></tr>
+      <tr><td>Os elencos</td><td>quantos são e de quantas pessoas cada um</td></tr>
+      <tr><td>As modalidades</td><td>as que a escola ensina, com os vínculos</td></tr>
+    </table>
+    <p class="fina">A decisão que ele pede: «ocupação» mede a <em>agenda</em> (tem dado) ou o
+    <em>corpo</em> (alunas sobre vagas — e vagas não existe: é campo novo na Sala)?</p>
     <span class="abrir">Abrir a proposta →</span>
   </a>
 
@@ -4124,6 +4143,272 @@ function proporVeu() {
   });
 }
 
+
+// ============================================================== PROPOSTA · O PAINEL DO ESTÚDIO
+
+/*
+ * O PAINEL INICIAL DO ESTÚDIO — o modelo, e a única decisão de desenho que ele tem (22/11/2026).
+ *
+ * O PEDIDO, na letra dela:
+ *
+ *   «Sempre que entrar no [estúdio] a gente vai para o painel inicial. O painel inicial a gente vai
+ *    construir aqui um dashboard, aliás, vários dashboards, que mostram para a gente em blocos
+ *    quantos alunos existem na escola, qual é o nome da escola, quem é o responsável pela escola,
+ *    quantos professores tem na escola, quais são as salas que essa escola possui, qual é a taxa de
+ *    ocupação das salas, quantos elencos tem, esses elencos são compostos de quantas pessoas, quais
+ *    modalidades a escola ensina. Mas primeiro você vai me apresentar lá no experimento um modelo
+ *    para que é esse painel inicial com esses dashboards.»
+ *
+ * OS NÚMEROS SÃO OS DA ESCOLA VIVA, e cada um tem a sua fonte declarada ao lado — nenhum é
+ * inventado, e nenhum é arredondado para ficar bonito:
+ *
+ *   · alunas ......... `bastidores/breu/alunas`, os registos sem `desligadaEm` (5 registos, 2 ativas)
+ *   · professores .... `bastidores/breu/professores` (1) + o principal, que vive em `dono` (1)
+ *   · salas .......... `bastidores/breu/turmas`, as vigentes (23 registos, 1 vigente)
+ *   · elencos ........ `escola/breu/linhas-de-base/`, a versão mais recente de cada (2)
+ *   · modalidades .... `bastidores/breu/matriculas`, as não substituídas (2)
+ *   · ocupação ....... aulas lançadas ÷ aulas previstas no período da sala (0 de 15)
+ *
+ * A DECISÃO QUE O MODELO PEDE. «Taxa de ocupação da sala» tem duas leituras, e a escolha muda o
+ * que o painel mede — e uma delas precisa de um campo que hoje não existe:
+ *
+ *   A. A AGENDA — quantas das aulas previstas no período já foram dadas. Tem dado hoje; mede o que
+ *      está a acontecer; e é a mesma conta do calendário do plano (`aulasNoPeriodo`).
+ *   B. O CORPO — quantas alunas o elenco da sala tem, sobre as vagas da sala. Mede a lotação — e
+ *      **falta o campo**: «vagas» não existe na Sala. É um número que o professor declara.
+ *
+ * O MODELO MOSTRA A A; A B FICA DITA, com o seu custo. Escolher a B é abrir um campo novo na Sala,
+ * e isso é uma decisão de dados, não de desenho.
+ */
+const NUMEROS_DA_ESCOLA = [
+  { k: 'Alunas', v: '2', nota: 'ativas · 3 registos desligados' },
+  { k: 'Professores', v: '2', nota: 'o principal e 1' },
+  { k: 'Salas', v: '1', nota: 'vigente · 22 substituídas' },
+  { k: 'Elencos', v: '2', nota: 'Tami (2) e Ami (1)' },
+  { k: 'Modalidades', v: '2', nota: 'Balé clássico, Dança moderna' },
+];
+
+const SALAS_DA_ESCOLA = [
+  { nome: 'Rosa', modalidade: 'Balé clássico', dias: 'seg, qua, sex', hora: '16:30',
+    duracao: '120 min', periodo: '14/12/2026 → 15/01/2027', previstas: 15, dadas: 0 },
+];
+
+const ELENCOS_DA_ESCOLA = [
+  { nome: 'Tami', professor: 'demi-plie', alunas: 2, atualizado: '22/11/2026' },
+  { nome: 'Ami', professor: 'demi-plie', alunas: 1, atualizado: '18/11/2026' },
+];
+
+const MODALIDADES_DA_ESCOLA = [
+  { nome: 'Balé clássico', vinculos: 2, professores: 'demi-plie' },
+  { nome: 'Dança moderna', vinculos: 1, professores: 'bom-bom' },
+];
+
+const ESCOLA_DO_PAINEL = { nome: 'Breu', responsavel: 'Demi Plié', em: '22 de novembro de 2026' };
+
+/**
+ * AS DUAS FORMAS DE DIZER UM NÚMERO. É a única coisa que muda entre as opções A e B — o resto da
+ * página é idêntico, e é de propósito: o que está em decisão é o peso do número, não o painel.
+ */
+function numerosEmCaixinhas() {
+  return '<div class="painel-numeros">' + NUMEROS_DA_ESCOLA.map((n) => `
+    <div class="trio-item painel-caixinha">
+      <span class="trio-k">${n.k}</span>
+      <span class="trio-v">${n.v}</span>
+      <span class="painel-nota">${n.nota}</span>
+    </div>`).join('') + '</div>';
+}
+
+function numerosGrandes() {
+  return '<div class="painel-numeros painel-numeros-grandes">' + NUMEROS_DA_ESCOLA.map((n) => `
+    <div class="painel-numero">
+      <span class="painel-numero-v">${n.v}</span>
+      <span class="painel-numero-k">${n.k}</span>
+      <span class="painel-nota">${n.nota}</span>
+    </div>`).join('') + '</div>';
+}
+
+/** Uma sala: o ritmo, o período e a ocupação — a barra é a `.cota` da folha. */
+function cartaoDaSala(s) {
+  const mil = Math.round((s.dadas / s.previstas) * 1000);
+  return `<div class="painel-sala">
+    <p class="painel-sala-nome"><strong>${s.nome}</strong>
+      <span class="selo livre">${s.modalidade}</span></p>
+    <p class="sub">${s.dias} às ${s.hora} · ${s.duracao} · ${s.periodo}</p>
+    <p class="painel-rotulo">Ocupação — ${s.dadas} de ${s.previstas} aulas dadas</p>
+    <progress class="cota" data-nivel="folga" value="${mil}" max="1000">${Math.round(mil / 10)}%</progress>
+    <p class="painel-nota">O período desta sala ainda não começou (14/12/2026): zero de quinze é o
+    número certo, e não uma falha.</p>
+  </div>`;
+}
+
+/** O corpo da página, por opção. */
+function corpoDoPainel(opcao) {
+  const numeros = opcao === 'grande' ? numerosGrandes() : numerosEmCaixinhas();
+  const hoje = opcao === 'hoje';
+  const corpo = hoje
+    ? `<div class="caixa"><p>Aqui aparece o que mudou desde a última vez. Use o menu ao lado para
+       gerir pessoas e pedagogia.</p></div>`
+    : `<div class="caixa">
+    <p class="painel-identidade"><strong>${ESCOLA_DO_PAINEL.nome}</strong>
+      <span class="sub">responsável: ${ESCOLA_DO_PAINEL.responsavel}</span></p>
+    ${numeros}
+  </div>
+
+  <div class="caixa secao-do-painel">
+    <h2>As salas</h2>
+    ${SALAS_DA_ESCOLA.map(cartaoDaSala).join('')}
+  </div>
+
+  <div class="caixa secao-do-painel">
+    <h2>Os elencos</h2>
+    ${ELENCOS_DA_ESCOLA.map((e) => `<p class="painel-linha"><strong>${e.nome}</strong>
+      <span class="sub">${e.alunas === 1 ? '1 aluna' : e.alunas + ' alunas'} · por ${e.professor} · desde ${e.atualizado}</span></p>`).join('')}
+    <p class="painel-nota">A soma dos elencos (3) é maior do que o número de alunas (2): a mesma
+    aluna está em dois. Um painel que somasse os elencos mentiria — e é por isso que os dois números
+    são ditos separados.</p>
+  </div>
+
+  <div class="caixa secao-do-painel">
+    <h2>As modalidades</h2>
+    ${MODALIDADES_DA_ESCOLA.map((m) => `<p class="painel-linha"><strong>${m.nome}</strong>
+      <span class="sub">${m.vinculos === 1 ? '1 vínculo' : m.vinculos + ' vínculos'} · ${m.professores}</span></p>`).join('')}
+  </div>`;
+
+  return `<header class="doc">
+  <h1>Estúdio · Painel inicial</h1>
+  <p class="subtitulo">${ESCOLA_DO_PAINEL.nome} · ${ESCOLA_DO_PAINEL.em}</p>
+</header>
+
+<main>
+<div class="conteudo">
+
+<div class="nota-do-teste">
+  <p><strong>O que é isto.</strong> O modelo do painel inicial do Estúdio — o ecrã onde ela cai ao
+  entrar. <strong>Os números são os da escola viva</strong> (<code>breu</code>), lidos do KV e do
+  repositório: nenhum é inventado. Cada bloco diz de onde vem o que mostra.</p>
+  <p><strong>A única decisão de desenho</strong> é o peso do número: a opção <em>A</em> reutiliza a
+  caixinha que a Produção já usa em «Turmas cadastradas» (zero peças novas); a opção <em>B</em> pede
+  uma peça nova, e diz o custo dela. O resto da página é igual nas duas — o que se compara é o
+  número, não o painel.</p>
+  <p><strong>A pergunta que o modelo faz</strong> é outra: «taxa de ocupação da sala» mede o quê?
+  Aqui ela mede <em>a agenda</em> — as aulas dadas sobre as previstas no período, que é a mesma
+  conta do calendário do plano. A outra leitura, <em>o corpo</em> (alunas sobre as vagas da sala),
+  mede a lotação — e hoje <strong>não há campo de vagas</strong>: seria um número novo na Sala.</p>
+</div>
+
+${corpo}
+
+</div>
+</main>`;
+}
+
+const CSS_PAINEL = `
+/* ============================================================================
+   O PAINEL DO ESTÚDIO — o modelo em avaliação. Estas classes NÃO estão na folha: são a proposta.
+   Nasce na folha (tools/templates/ciclo.css), no catálogo (IDENTIDADE-VISUAL.md) e na prova se e
+   quando a opção for escolhida. Enquanto é proposta, vive aqui — como a métrica da listagem nasceu
+   aqui e passou a trio-item na folha.
+   ========================================================================== */
+.painel-numeros {
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .5rem; margin: .8rem 0 0;
+}
+@media (max-width: 900px) { .painel-numeros { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .painel-numeros { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* A · a caixinha da casa. A única regra nova é a nota por baixo — a trio-item não tem terceira
+   linha, e a nota é o que impede o número de ser uma adivinha («2 alunas» de quantos registos?). */
+.painel-caixinha { cursor: default; }
+.painel-nota {
+  display: block; margin: .3rem 0 0; font-size: .74rem; line-height: 1.35; color: var(--texto-suave);
+}
+
+/* B · a peça nova. Número grande, rótulo em versalete, e a nota miúda: três linhas, e o número é
+   o que se lê primeiro. É a diferença de peso em relação à A — e o custo é esta regra existir. */
+.painel-numero {
+  display: block; padding: .55rem .7rem .6rem;
+  background: var(--fundo-suave); border: 1px solid var(--borda-campo); border-radius: var(--raio-2);
+}
+.painel-numero-v {
+  display: block; font: 700 1.7rem/1.1 var(--ui); color: var(--marca); letter-spacing: -.01em;
+}
+.painel-numero-k {
+  display: block; font: 700 .66rem/1.2 var(--ui); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--texto-suave); margin: .1rem 0 0;
+}
+
+.painel-identidade { margin: 0; font-size: 1.1rem; }
+.painel-identidade .sub { display: block; font-size: .85rem; }
+.secao-do-painel { margin-top: .8rem; }
+.secao-do-painel h2 { margin: 0 0 .5rem; font-size: 1rem; }
+.painel-linha { margin: .3rem 0; }
+.painel-linha .sub { display: block; font-size: .82rem; }
+.painel-sala { padding: .55rem 0; }
+.painel-sala + .painel-sala { border-top: 1px solid var(--borda); }
+.painel-sala-nome { margin: 0; display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.painel-rotulo {
+  margin: .5rem 0 0; font: 700 .68rem/1.2 var(--ui); letter-spacing: .06em;
+  text-transform: uppercase; color: var(--texto-suave);
+}
+`;
+
+const OPCOES_PAINEL = [
+  { id: 'hoje', n: '0', t: 'Hoje — um parágrafo', m: '0 dados',
+    d: '«Aqui aparece o que mudou desde a última vez»: o painel inicial não mostra nada da escola' },
+  { id: 'caixinha', n: 'A', t: 'As caixinhas da casa', m: '0 peças novas',
+    d: 'a mesma caixinha de «Turmas cadastradas»: número a 14px, com a nota por baixo' },
+  { id: 'grande', n: 'B', t: 'O número grande', m: '1 peça nova',
+    d: 'número a 26px em bordô: lê-se primeiro, e é o que faz o ecrã ser um painel e não uma lista' },
+];
+
+function proporPainelDoEstudio() {
+  const barra = [
+    colunaDoMenu(true, true),
+    barraDoMenu(MENU_DA_BARRA, '/bastidores/estudio',
+      '<span class="doc-atual">Estúdio</span>'),
+  ].join('\n');
+
+  const base = paginaDeNav({
+    titulo: 'Proposta — o Painel inicial do Estúdio',
+    opcaoInicial: 'caixinha',
+    nav: 'marcada',
+    barra,
+    secoes: barraDeSecoes('Produção', 'Painel inicial'),
+    corpo: corpoDoPainel('caixinha'),
+  });
+
+  return base
+    .replace('</head>', `<style>${CSS_PAINEL}</style>\n</head>`)
+    .replace('</body>', `${marcacaoDaBancada({
+      sobre: 'Proposta · o Painel inicial do Estúdio',
+      titulo: 'O peso do número',
+      intro: 'O painel, com os números da escola viva. A única coisa que muda entre as opções é '
+        + 'como o número se diz — e o custo de o dizer assim.',
+      opcoes: OPCOES_PAINEL,
+      inicio: 'caixinha',
+    })}
+<script>${scriptDaBancada(OPCOES_PAINEL)}</script>
+<script>
+(function () {
+  var CORPOS = ${JSON.stringify({
+    hoje: corpoDoPainel('hoje'),
+    caixinha: corpoDoPainel('caixinha'),
+    grande: corpoDoPainel('grande'),
+  })};
+  window.aoTrocarOpcao = function (opcao) {
+    if (!CORPOS[opcao]) return;
+    // O corpo é reconstruído por inteiro: são três marcações diferentes, e esconder duas no DOM
+    // seria entregar ao leitor de ecrã o que a página decidiu não mostrar.
+    var main = document.querySelector('main');
+    var novo = document.createElement('div');
+    novo.innerHTML = CORPOS[opcao];
+    var alvo = novo.querySelector('main');
+    if (main && alvo) main.outerHTML = alvo.outerHTML;
+  };
+})();
+</script>
+</body>`);
+}
+
 // ==================================================================================== escrever
 
 const arquivos = {
@@ -4137,6 +4422,7 @@ const arquivos = {
   'proposta-estados.html': proporEstados(),
   'proposta-veu.html': proporVeu(),
   'proposta-verbetes.html': proporVerbetes(),
+  'proposta-painel-do-estudio.html': proporPainelDoEstudio(),
 };
 
 for (const [nome, texto] of Object.entries(arquivos)) {

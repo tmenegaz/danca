@@ -330,7 +330,7 @@ async function aTela() {
   console.log('\nD. A TELA — o passo 3 da turma perdeu os conteúdos, e a curadoria ganhou-os');
 
   const { env } = ambiente();
-  const html = await (await pedir(env, '/bastidores/producao')).text();
+  const html = await (await pedir(env, '/bastidores/estudio')).text();
 
   checar('o passo 3 da turma já não tem o bloco de conteúdos', html.includes('id="vinc-conteudos"') === false);
   checar('…nem o menu de termos da turma', html.includes('id="vinc-termo"') === false);
@@ -402,7 +402,7 @@ async function aNota() {
       Object.assign({}, TURMA, { descricao: 'Turma da tarde, sala 2' }),
     ]),
   });
-  const html = await (await pedir(env, '/bastidores/producao')).text();
+  const html = await (await pedir(env, '/bastidores/estudio')).text();
   checar('o campo da nota saiu do formulário', html.includes('id="tdescricao"') === false);
 
   // Editar a turma NÃO apaga a nota antiga: ela deixa de ser copiada, e o que não se copia fica.
@@ -544,7 +544,7 @@ async function oFormularioInteligente() {
 
   // A PÁGINA SERVE O MAPA — e não uma segunda cópia das tradições.
   const { env } = ambiente();
-  const html = await (await pedir(env, '/bastidores/producao')).text();
+  const html = await (await pedir(env, '/bastidores/estudio')).text();
   checar('a página entrega o mapa das tradições por modalidade', html.includes('TRADICOES_DA_MODALIDADE'));
   checar('…e o rótulo de cada tradição (o `RAD` fica sigla)',
     /"francesa":"Francesa"/.test(html));

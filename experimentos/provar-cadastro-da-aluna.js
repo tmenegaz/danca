@@ -248,7 +248,7 @@ async function principal() {
     outraVez.dados && outraVez.dados.vigente === derivada.dados.matricula.id);
 
   console.log('\nF — a listagem diz o que ela pediu');
-  const pagina = await bastidores.fetch(new Request('https://breu.example/bastidores/producao'), env);
+  const pagina = await bastidores.fetch(new Request('https://breu.example/bastidores/estudio'), env);
   const html = await pagina.text();
   provar('a secção das alunas está na página', /id="lista-alunas"/.test(html));
   provar('o cartão da aluna traz um lugar por vínculo',
@@ -309,13 +309,13 @@ async function principal() {
        * modalidades TIRA o outro da lista. Sem isto os dois declaram nada, ficam sempre os dois, e
        * a prova do filtro passaria sem medir o filtro. */
       const PERFIS = { 'demi-plier': ['bale-classico', 'jazz'], 'redinha-rosa': ['jazz'] };
-      const pagina = await bastidores.fetch(new Request('https://breu.example/bastidores/producao'), env);
+      const pagina = await bastidores.fetch(new Request('https://breu.example/bastidores/estudio'), env);
       const documento = await pagina.text();
       const vc = new VC();
       const errosDoCliente = [];
       vc.on('jsdomError', (e) => errosDoCliente.push(e.message));
       const dom = new JSDOM(documento.replace(/<script src="[^"]*"><\/script>/g, ''), {
-        runScripts: 'dangerously', url: 'https://breu.example/bastidores/producao', pretendToBeVisual: true,
+        runScripts: 'dangerously', url: 'https://breu.example/bastidores/estudio', pretendToBeVisual: true,
         virtualConsole: vc,
         beforeParse(w) {
           w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -438,7 +438,7 @@ async function principal() {
         alunas: ['Vavá'], campos: ['eixo'], rascunho: false }]),
     });
     const envJ = ambiente(kvJ);
-    const pagina = await bastidores.fetch(new Request('https://breu.example/bastidores/producao'), envJ);
+    const pagina = await bastidores.fetch(new Request('https://breu.example/bastidores/estudio'), envJ);
     const html2 = await pagina.text();
     const cartaoDaVavaTurmas = (/<li class="turma" data-aluna="Vavá"[\s\S]*?<\/li>/.exec(html2) || [''])[0];
     provar('o cartão da aluna traz o botão que leva às turmas dela',
@@ -496,13 +496,13 @@ async function principal() {
       const envK = ambiente(criarKV(Object.fromEntries(mapa)));
       const entrada = await pedir(envK, '/api/bastidores/validar-producao', { senha: 'segredo' });
       const token = entrada.dados && entrada.dados.token;
-      const pagina = await bastidores.fetch(new Request('https://breu.example/bastidores/producao'), envK);
+      const pagina = await bastidores.fetch(new Request('https://breu.example/bastidores/estudio'), envK);
       const htmlK = await pagina.text();
       const vc = new VC();
       const errosK = [];
       vc.on('jsdomError', (e) => errosK.push(e.message));
       const dom = new JSDOM(htmlK.replace(/<script src="[^"]*"><\/script>/g, ''), {
-        runScripts: 'dangerously', url: 'https://breu.example/bastidores/producao', pretendToBeVisual: true,
+        runScripts: 'dangerously', url: 'https://breu.example/bastidores/estudio', pretendToBeVisual: true,
         virtualConsole: vc,
         beforeParse(w) {
           w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -646,13 +646,13 @@ async function principal() {
           modalidade: 'Jazz', turmas: ['Rosa'], alunas: ['Aluna A'], nivel: 'Nível 1' }]),
       });
       const envM = ambiente(kvM);
-      const pagina = await bastidores.fetch(new Request('https://breu.example/bastidores/producao'), envM);
+      const pagina = await bastidores.fetch(new Request('https://breu.example/bastidores/estudio'), envM);
       const htmlM = await pagina.text();
       const vc = new VC();
       const errosM = [];
       vc.on('jsdomError', (e) => errosM.push(e.message));
       const dom = new JSDOM(htmlM.replace(/<script src="[^"]*"><\/script>/g, ''), {
-        runScripts: 'dangerously', url: 'https://breu.example/bastidores/producao', pretendToBeVisual: true,
+        runScripts: 'dangerously', url: 'https://breu.example/bastidores/estudio', pretendToBeVisual: true,
         virtualConsole: vc,
         beforeParse(w) {
           w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -744,14 +744,14 @@ async function principal() {
       /* O `#alunas` NA URL NÃO É DETALHE: é o que faz a secção ser a visível, e é o que faz
        * `alvoDoRecado()` entregar a mensagem ao `.res` DESTA secção. Sem ele a prova mediria o
        * recado global e não veria o defeito. */
-      const pagina = await bastidores.fetch(new Request('https://breu.example/bastidores/producao'), envN);
+      const pagina = await bastidores.fetch(new Request('https://breu.example/bastidores/estudio'), envN);
       const htmlN = await pagina.text();
       const vc = new VC();
       const errosN = [];
       vc.on('jsdomError', (e) => errosN.push(e.message));
       const trocasN = [];
       const dom = new JSDOM(htmlN.replace(/<script src="[^"]*"><\/script>/g, ''), {
-        runScripts: 'dangerously', url: 'https://breu.example/bastidores/producao#alunas',
+        runScripts: 'dangerously', url: 'https://breu.example/bastidores/estudio#alunas',
         pretendToBeVisual: true, virtualConsole: vc,
         beforeParse(w) {
           w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -892,7 +892,7 @@ async function principal() {
     const entradaO = await pedir(envO, '/api/bastidores/validar-producao', { senha: 'segredo' });
     const TOKEN_O = entradaO.dados && entradaO.dados.token;
 
-    const pagO = await bastidores.fetch(new Request('https://breu.example/bastidores/producao'), envO);
+    const pagO = await bastidores.fetch(new Request('https://breu.example/bastidores/estudio'), envO);
     const htmlO = await pagO.text();
     const cartaoDe = (nome) => {
       const m = new RegExp('<li class="turma" data-aluna="' + nome + '">([\\s\\S]*?)</li>').exec(htmlO);
@@ -924,7 +924,7 @@ async function principal() {
         const vc = new VC();
         const pedidos = [];
         const dom = new JSDOM(htmlO.replace(/<script src="[^"]*"><\/script>/g, ''), {
-          runScripts: 'dangerously', url: 'https://breu.example/bastidores/producao',
+          runScripts: 'dangerously', url: 'https://breu.example/bastidores/estudio',
           pretendToBeVisual: true, virtualConsole: vc,
           beforeParse(w) {
             w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -1052,7 +1052,7 @@ async function principal() {
     });
     provar('derivar a aluna livre é gravado (201)', derivou.status === 201,
       derivou.dados && derivou.dados.erro);
-    const pagO2 = await bastidores.fetch(new Request('https://breu.example/bastidores/producao'), envO);
+    const pagO2 = await bastidores.fetch(new Request('https://breu.example/bastidores/estudio'), envO);
     const htmlO2 = await pagO2.text();
     const cartaoTami2 = (new RegExp('<li class="turma" data-aluna="Tami">([\\s\\S]*?)</li>')
       .exec(htmlO2) || [])[1] || '';
@@ -1096,7 +1096,7 @@ async function principal() {
       }]),
     });
     const envP = ambiente(kvP);
-    const pagP = await bastidores.fetch(new Request('https://breu.example/bastidores/producao'), envP);
+    const pagP = await bastidores.fetch(new Request('https://breu.example/bastidores/estudio'), envP);
     const htmlP = await pagP.text();
     provar('o professor com ficha corrigida mostra «ajustado em», com a data',
       (() => {
@@ -1167,11 +1167,11 @@ async function principal() {
       if (!JSDOM) {
         provar('a etiqueta da Audição e do Estilo (jsdom)', false, 'jsdom ausente');
       } else {
-        const pagA = await bastidores.fetch(new Request('https://breu.example/bastidores/producao'), envP);
+        const pagA = await bastidores.fetch(new Request('https://breu.example/bastidores/estudio'), envP);
         const htmlA = await pagA.text();
         const vc = new VC();
         const dom = new JSDOM(htmlA.replace(/<script src="[^"]*"><\/script>/g, ''), {
-          runScripts: 'dangerously', url: 'https://breu.example/bastidores/producao',
+          runScripts: 'dangerously', url: 'https://breu.example/bastidores/estudio',
           pretendToBeVisual: true, virtualConsole: vc,
           beforeParse(w) {
             w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},

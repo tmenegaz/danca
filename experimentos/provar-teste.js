@@ -101,7 +101,7 @@ async function producao() {
    * normal passaria com o preenchedor ainda lá. */
   for (const [nome, env] of [['de teste', envTeste], ['normal', envReal]]) {
     const html = await (await bastidores.fetch(
-      new Request('https://' + env.ESCOLA_SLUG + '.example/bastidores/producao'), env)).text();
+      new Request('https://' + env.ESCOLA_SLUG + '.example/bastidores/estudio'), env)).text();
     assert.doesNotMatch(html, /data-escola-teste=/, 'a Produção ' + nome + ' ainda traz o atributo');
     assert.doesNotMatch(html, /teste-preenchimento\.js/, 'a Produção ' + nome + ' ainda traz o script');
   }
@@ -141,7 +141,7 @@ async function estadoForaDaEdicao() {
   const env = { ESCOLA_SLUG: escola, ESCOLA_HABILITADA: 'sim', SENHA_ADMIN: 'x',
     SENHA_PROFESSOR: 'y', PROFESSOR_NOME: 'Docente', PADD_KV: kv };
   const html = await (await bastidores.fetch(
-    new Request('https://' + escola + '.example/bastidores/producao'), env)).text();
+    new Request('https://' + escola + '.example/bastidores/estudio'), env)).text();
 
   const ESTADO = JSON.stringify({
     turma: {
@@ -166,7 +166,7 @@ async function estadoForaDaEdicao() {
     if (u.pathname === '/assets/style.css') return envia(MIME['.css'], fs.readFileSync(path.join(RAIZ, 'tools/templates/ciclo.css')));
     if (u.pathname === '/assets/nav.js') return envia(MIME['.js'], fs.readFileSync(path.join(RAIZ, 'tools/templates/nav.js')));
     if (u.pathname === '/assets/favicon.svg') return envia(MIME['.svg'], fs.readFileSync(path.join(RAIZ, 'tools/templates/marca/favicon.svg')));
-    if (u.pathname === '/bastidores/producao' || u.pathname === '/bastidores/producao/') return envia(MIME['.html'], html);
+    if (u.pathname === '/bastidores/estudio' || u.pathname === '/bastidores/estudio/') return envia(MIME['.html'], html);
     return envia('text/plain', '404 ' + u.pathname, 404);
   });
   await new Promise((r) => srv.listen(0, '127.0.0.1', r));
@@ -174,12 +174,12 @@ async function estadoForaDaEdicao() {
 
   const abrir = async (editando) => {
     const vc = new VirtualConsole();
-    const dom = await JSDOM.fromURL(base + '/bastidores/producao', {
+    const dom = await JSDOM.fromURL(base + '/bastidores/estudio', {
       runScripts: 'dangerously', resources: 'usable', pretendToBeVisual: true, virtualConsole: vc,
       beforeParse(w) {
         w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
           addListener() {}, removeListener() {} });
-        w.fetch = (u, i) => fetch(new URL(String(u), base + '/bastidores/producao'), i);
+        w.fetch = (u, i) => fetch(new URL(String(u), base + '/bastidores/estudio'), i);
         w.confirm = () => true; w.alert = () => {}; w.scrollTo = () => {};
         try {
           w.sessionStorage.setItem('producao:form', ESTADO);

@@ -115,7 +115,7 @@ async function listaDaProducao(pagina) {
   vc.on('jsdomError', () => {});
   vc.on('error', () => {});
   const dom = new JSDOM(pagina.replace(/<script src="[^"]*"><\/script>/g, ''), {
-    runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/producao',
+    runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/estudio',
     pretendToBeVisual: true, virtualConsole: vc,
     beforeParse(w) {
       w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},

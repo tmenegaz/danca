@@ -94,7 +94,7 @@ function arvore() {
     '      <a href="anamnese/?professor=prova&escola=' + ESCOLA + '&ciclo=01">Anamnese do aluno</a>\n' +
     '    </div>\n  </details>\n' +
     '  <details class="menu">\n    <summary>Bastidores</summary>\n    <div class="submenu">\n' +
-    '      <a href="bastidores/producao">Produção</a>\n' +
+    '      <a href="bastidores/estudio">Estúdio</a>\n' +
     '    </div>\n  </details>\n' +
     '</nav>\n<main><h1>Sistema Lastro</h1></main></body></html>\n');
   escrever(raiz, path.join(ciclos, 'ciclo-01-' + ESCOLA, 'assets', 'style.css'), 'body{}\n');
@@ -344,7 +344,7 @@ function principal() {
       + '  <details class="menu"><summary>Área do Professor</summary><div class="submenu">'
       + '<a href="anamnese/">Anamnese do aluno</a></div></details>\n'
       + '  <details class="menu"><summary>Bastidores</summary><div class="submenu">'
-      + '<a href="bastidores/producao">Produção</a></div></details>\n'
+      + '<a href="bastidores/estudio">Estúdio</a></div></details>\n'
       + '  </div>\n</nav>\n</body></html>\n');
     escrever(vazia, path.join(ciclosVazio, 'ciclo-01-' + ESCOLA, 'assets', 'style.css'), 'body{}\n');
     montar(vazia);

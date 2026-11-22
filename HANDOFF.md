@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T13:02:55-0300`
-Commit atual: `feac5b03` — fix(estrutura): o nome da turma não é do sistema — e a metade do KV passa a ser lida
+Gerado em: `2026-11-22T13:17:51-0300`
+Commit atual: `d85c42c1` — fix(estrutura): a coluna do corpo nasce pela régua, e o plano de ensino da escolha passa a ser um só
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,8 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+d85c42c1 fix(estrutura): a coluna do corpo nasce pela régua, e o plano de ensino da escolha passa a ser um só
+6c17f241 fix(tools): a folha de lançamento mede o corpo pela régua da turma, e não pelas marcas
 feac5b03 fix(estrutura): o nome da turma não é do sistema — e a metade do KV passa a ser lida
 144115fc fix(experimentos): três provas que mediam o mundo de antes passam a medir o de hoje
 255100db feat(estrutura): o expurgo ganha conferidor, e o fluxo da Aula 02 fica escrito
@@ -100,8 +102,6 @@ dddf46cf feat(linha de base): índice — tami 20261122-1149
 5795075a feat(elenco): tami — concluído
 cdb60071 fix(po): o plano de observação mostra as dimensões, e o valor é da aula
 ddf4dd34 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
-ed509ab1 chore(estrutura): fechar os derivados — âncoras e índices
-4f389278 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
 ```
 
 ## Por professor
@@ -195,95 +195,81 @@ ed509ab1 chore(estrutura): fechar os derivados — âncoras e índices
 
 ## Última entrada do REGISTRO
 
-## 22/11/2026 — Uma régua só, e um plano só na escolha
+## 22/11/2026 — O estúdio, e o modelo do painel inicial
 
-**O que motivou.** Três coisas na mesma mensagem, e as três arestas do mesmo problema — dois nomes
-para a mesma coisa. (1) A **régua**: a folha de lançamento media os critérios pela régua da turma e
-a matriz do corpo («linha de base revisitada») pelas cinco marcas chumbadas no template
-(`ok / parcial / nao / nao_vi`), com as duas legendas na mesma página. (2) O **plano de ensino**: o
-PO oferecia dois planos com o mesmo objetivo, o segundo dito «(versão anterior)», por causa de uma
-excepção que deixava ficar o elo que o documento já apontava. (3) A **chave do cofre** que ela deu
-para medir a metade do KV do expurgo não era o que eu tinha pedido.
+**O que motivou.** Duas coisas na mesma mensagem: um ajuste de endereços e de nomes em Bastidores — e
+o pedido de um **modelo** para o novo painel inicial antes de o construir. A decisão dos endereços,
+na letra dela: «bastidores tem dois endereços, o estúdio de dança e a produção. Esse endereço estúdio
+de dança vai deixar de existir. Em bastidores a gente vai ter apenas a produção e tudo o que a gente
+já desenvolveu dentro dela. Só que nós vamos rebatizar a produção. A produção vai se chamar estúdio.»
 
 **O que foi decidido.**
-- **A régua da turma é uma só, e o corpo mede-se por ela.** A correção tem duas metades, e as duas
-  são necessárias: a **declaração** (`declaracaoDeCaptura` passa a declarar a coluna do corpo como
-  `rubrica`, e `mesclarDeclaracao` passa a **adoptar o `tipo` derivado** conservando a `chave` —
-  sem isso os schemas já gravados continuavam a dizer `marca`) e a **página** (a folha é servida
-  sozinha, de um pacote que pode ser de ontem: se a folha em cena mede critérios pela régua, o
-  corpo mede-se pela MESMA, declarada ou de recurso).
-- **O passado não se reescreve.** O `tipo` é modo de leitura, não identidade de dado: o valor
-  gravado é uma string nos dois casos, e um valor que a régua já não declara continua visível
-  (opção extra no formulário, `nivel-fora` na leitura). Uma folha inteira em marcas — o ciclo
-  antigo — fica exatamente como estava.
-- **Um plano de ensino por ciclo, na escolha.** A excepção de 07/11 saiu. Quando o documento
-  aponta um elo que já foi ajustado, a lista segue a cadeia (`ajuste_de`) até ao topo, abre no
-  vigente, e uma **nota** diz que a referência mudou. A âncora de 07/11 era boa — a gravação
-  seguinte não podia perder a referência em silêncio — e o que a substitui é a nota. A mesma regra
-  nos dois clientes: a porta e o painel do acervo.
-- **A chave que ela deu é a `SENHA_MESTRA`, e não um token do Cloudflare.** Medido: 64 caracteres
-  (um token de API da Cloudflare tem 40), `verify` → **401**. A mestra é a chave de que se deriva a
-  de cada escola — `HMAC(SENHA_MESTRA, «lastro/escola/<slug>»)`, também 64 hex —, e não uma
-  credencial da Cloudflare. O conferidor do KV passou a consultá-lo quando há
-  `CLOUDFLARE_API_TOKEN` no ambiente, e a dizer «NÃO MEDI o KV: <motivo>» quando não há.
+- **Bastidores tem um destino só: o Estúdio.** A «cena» (`paginaEstudio`) sai — era um `<h1>`, um
+  parágrafo e um link, e nunca teve conteúdo próprio. A Produção **herda o nome e o endereço**:
+  `/bastidores/estudio` passa a servir a página que era a Produção, com as secções todas dentro.
+  O **grupo «Produção» da coluna fica** — é o BLOCO que continua dentro do estúdio, e é o que ela
+  descreveu.
+- **Os endereços antigos não se apagam.** `/bastidores` e `/bastidores/producao` respondem **302**
+  para o novo, com a query; o mês a mês idem nas duas formas antigas. É a regra que o
+  `/bastidores/financeiro` já seguia. Um favorito antigo chega ao mesmo sítio; um 404 seria a
+  mudança de nome a apagar o caminho de quem o tinha guardado.
+- **O painel inicial passa a ser o retrato da escola em blocos** — e ele **ainda não está
+  construído**: o que existe é o **modelo**, em `experimentos/propostas/`. Os números são os da
+  escola viva (nenhum inventado), e cada um diz de onde vem.
+- **A pergunta que o modelo faz é sobre «ocupação»**, e ela não tem resposta ainda: mede a **agenda**
+  (aulas dadas sobre as previstas no período — tem dado, e é a conta do calendário do plano) ou o
+  **corpo** (alunas do elenco sobre as vagas da sala — e **vagas não existe**: é campo novo na
+  Sala). O modelo mostra a agenda e diz a outra com o custo dela.
 
 **Onde entrou.**
-- `motor/nucleo/derivar-ciclo.js` — `declaracaoDeCaptura` (a coluna do corpo é `rubrica`) e
-  `mesclarDeclaracao` (adopta o `tipo` derivado, conserva a `chave`).
-- `tools/templates/lancamento.html` — `medePelaRegua` + `tipoDaColuna`; a matriz do corpo, a
-  leitura do que foi lançado e a legenda passam todos pela mesma função.
-- `porta/index.html` — a excepção do plano sai; `topoDaCadeia` e a nota.
-- `motor/servidor/listas-do-acervo.js` — a mesma regra no painel do acervo (o código vive dentro de
-  um template literal: um backtick num comentário fecha-o).
-- `escola/conferir-expurgo.js` — a secção 5 consulta o KV pelo leitor do `conferir-kv.js`, quando há
-  token; sem token, diz que não mediu.
-- `professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-declaracao.json` — a coluna do corpo
-  passa a `rubrica`, com a mesma regra que a próxima gravação do PO aplicaria (o ficheiro é
-  derivado, e a derivação é a mesma).
-- As provas: `provar-uma-regua-so` (**novo**), `provar-estante-do-po` (**reaberta**).
+- `motor/servidor/bastidores.js` — as rotas (`/bastidores/estudio` serve; `/bastidores` e
+  `/bastidores/producao` são 302), o mês a mês em `/bastidores/estudio/financeiro`, o `<h1>` e o
+  título «Estúdio», o `aria-label` da coluna, e a saída de `paginaEstudio`.
+- `tools/templates/nav-html.js` — o grupo «Bastidores» com **um** item, «Estúdio».
+- `tools/montar-publicacao.js` — o menu de recurso da publicação montada, com um item.
+- `tools/check-identidade.js` — o rótulo da página medida no relatório.
+- `motor/servidor/producao.js` e `porta/index.html` — os dois links que apontavam à Produção.
+- `experimentos/propostas/construir.js` — o modelo do painel (`proporPainelDoEstudio`), com as duas
+  formas de dizer o número, e o cartão no índice das propostas.
+- `professores/demi-plie/ciclos/ciclo-01-breu{,-rosa}/plano-observacao/index.html` — as duas cópias
+  da porta, re-sincronizadas com o link novo.
+- As **86 provas** que citavam `/bastidores/producao` passam a citar `/bastidores/estudio`: elas
+  medem o endereço que existe, e o antigo responde 302.
 
-**Motivo declarado — os congelados.** `tools/templates/lancamento.html` está em `CONGELAMENTO.md`, e
-esta alteração muda **comportamento** na tela: a matriz do corpo deixa de oferecer as cinco marcas
-quando a turma declara uma régua. A alteração foi pedida pela proprietária, com a regra dita
-(«a régua da turma é só uma»), e é feita em **commit próprio**. **O que não muda**: formato de
-dados, chaves gravadas, hash de proveniência, cobertura de validação e as regras de `REGRAS.md` e
-`PROTOCOLO.md`. O valor gravado continua a ser uma string, e um valor fora da régua continua a ser
-lido e mostrado — não há migração, e nada do que já foi lançado se perde.
+**Motivo declarado — os congelados.** `tools/templates/nav-html.js`, `tools/montar-publicacao.js` e
+`tools/check-identidade.js` estão em `CONGELAMENTO.md`, e a alteração muda **comportamento** na tela:
+o menu de Bastidores passa de dois itens a um, e o rótulo do segundo muda. Foi pedido pela
+proprietária, e vai em **commit próprio**. **O que não muda**: formato de dados, chaves gravadas, o
+hash de proveniência, a cobertura de validação, e as regras de `REGRAS.md` e as pétreas de
+`PROTOCOLO.md`. O que muda é navegação — um destino a menos e um nome novo —, e nenhum documento
+gerado muda por causa dela.
 
-**Com o quê.** `tools/templates/lancamento.html`, `motor/nucleo/derivar-ciclo.js`,
-`motor/servidor/listas-do-acervo.js`, `porta/index.html`, `escola/conferir-expurgo.js`,
-`experimentos/provar-uma-regua-so.js`, `experimentos/provar-estante-do-po.js`,
-`experimentos/provar-conferir-expurgo.js`,
-`professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-declaracao.json`, o pacote `breu-rosa`
-regerado, `.gitignore`, `ESTADO-ATUAL.md`.
+**Com o quê.** `motor/servidor/bastidores.js`, `motor/servidor/producao.js`,
+`tools/templates/nav-html.js`, `tools/montar-publicacao.js`, `tools/check-identidade.js`,
+`porta/index.html`, `experimentos/propostas/construir.js`,
+`experimentos/provar-o-estudio.js` (**novo**), as 86 provas com o endereço antigo, as duas cópias da
+porta nos pacotes, `.gitignore`, `ESTADO-ATUAL.md`.
 
-**Referências.** `IDENTIDADE-VISUAL.md` (nenhuma peça nova: a nota usa `.caixa.nota`, que já existe);
-`CONGELAMENTO.md`; `PLANO-CICLO-DA-TURMA.md` §3.1 (a régua da turma e o seu caminho);
-`motor/nucleo/chave-mestra.js` (a derivação da chave da escola).
+**Referências.** `IDENTIDADE-VISUAL.md` (o catálogo das peças — o modelo do painel não inventa
+peça nenhuma sem o dizer); `IDEIA-PAINEL-ESCOLA.md` §2 (o que era a «cena»); `ARQUITETURA-GERAL.md`.
 
-**MEDIDO.** `provar-uma-regua-so` **17/17** (com dois controlos); `provar-estante-do-po` **33/33**;
-`provar-declaracao-da-captura` 12; `provar-regua-do-professor` 44; `provar-janela-do-lancamento` 11;
-`provar-corpo-da-linha-de-base` 30. No navegador, sobre o pacote regenerado: o campo do corpo passou
-de `✓ ok | ~ parcial | X não aconteceu | ? não vi` a `Satisfatório | Razoável | Em desenvovimento |
-Não se aplica`, e a legenda das marcas desapareceu. `check-identidade` **0 problemas**,
-`check-indices` **16/16**, `check-pacote` **0 erros** (1 aviso: o PDF, por desenho), `hash-ciclo
---check` **cadeia intacta**.
+**MEDIDO.** `provar-o-estudio` **33/33**, com o **controle negativo** `--contra=feac5b03` a derrubar
+**26 de 33**. `provar-a-moldura-em-todas-as-telas` **111/111**. O modelo, no navegador: cinco
+números reais, a cota da sala a `0/1000`, e a bancada a trocar entre as três opções. As provas que
+tocam os Bastidores medidas **contra a base** — `provar-producao` 142/159, `provar-barra-unica` 3
+falhas, `provar-abas-da-audicao` 4 falhas, `provar-aparencia` 76/77 — dão **exactamente o mesmo
+número com e sem esta mudança**: são falhas anteriores, não custos desta. `check-identidade` **0
+problemas**, `check-indices` **16/16**, `check-pacote` **0 erros** (1 aviso: o PDF, por desenho).
 
 **O que ainda não está feito.**
-- **A metade do KV do expurgo continua por medir**: a chave recebida é a mestra, e não um token da
-  Cloudflare. Falta um token de API (`Workers KV Storage: Edit`) ou uma corrida do workflow com o
-  segredo do repositório.
-- **`provar-lancamento`** morre com `ENOENT` no fixture `ciclo-01-maria` — a escola foi expurgada e a
-  prova lê o pacote dela. Mesma família da `provar-estante-do-po`; não foi tocada hoje.
+- **O painel não está construído.** O que existe é o modelo, e ele espera duas decisões: o **peso do
+  número** (a caixinha da casa ou uma peça nova) e o que **«ocupação»** mede.
+- **Se a ocupação for o corpo**, falta o campo **vagas** na Sala — e é um campo novo de dados, com o
+  caminho que os outros tiveram (declarado no cadastro, lido pelo painel, provado).
+- **A metade do KV do expurgo continua por medir**: a chave do cofre é a `SENHA_MESTRA`, não um token
+  da Cloudflare. Fica à espera de um token de API.
 
 ## O que está pendente
-
-## 20/11/2026 — «Curadoria» saiu da tela, e a prova que media uma Turma sem Sala
-
-A palavra «curadoria» continua em **`title`s** de selos e botões
-dos Bastidores («Editar a curadoria», «esta aluna ainda não está em nenhuma curadoria com plano de
-ensino», «sem isto a turma não pode ser atribuída na curadoria»). São texto de tooltip, não de
-frase lida; ficam para uma passagem própria, e não se corrigem a meio de outra coisa.
 
 ## 20/11/2026 — A matriz do formulário pergunta uma vez por par, e o eixo vem de uma regra só
 
@@ -312,6 +298,15 @@ ela melhora com a mesma fusão, mas só quando for re-derivada com o elenco cert
   segredo do repositório.
 - **`provar-lancamento`** morre com `ENOENT` no fixture `ciclo-01-maria` — a escola foi expurgada e a
   prova lê o pacote dela. Mesma família da `provar-estante-do-po`; não foi tocada hoje.
+
+## 22/11/2026 — O estúdio, e o modelo do painel inicial
+
+- **O painel não está construído.** O que existe é o modelo, e ele espera duas decisões: o **peso do
+  número** (a caixinha da casa ou uma peça nova) e o que **«ocupação»** mede.
+- **Se a ocupação for o corpo**, falta o campo **vagas** na Sala — e é um campo novo de dados, com o
+  caminho que os outros tiveram (declarado no cadastro, lido pelo painel, provado).
+- **A metade do KV do expurgo continua por medir**: a chave do cofre é a `SENHA_MESTRA`, não um token
+  da Cloudflare. Fica à espera de um token de API.
 
 ## Pendências anteriores (índice)
 
@@ -801,6 +796,7 @@ ela melhora com a mesma fusão, mas só quando for re-derivada com o elenco cert
 - **20/11/2026** — O PDF sai do fluxo: quem imprime é o navegador → `REGISTRO.md` L55683
 - **20/11/2026** — O estudo do modal do Estilo, corrigido por ela: é na… → `REGISTRO.md` L56004
 - **20/11/2026** — Duas provas apagadas: as que mediam um mundo que já não… → `REGISTRO.md` L56921
+- **20/11/2026** — «Curadoria» saiu da tela, e a prova que media uma Turma sem… → `REGISTRO.md` L56965
 - **demi-plie · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

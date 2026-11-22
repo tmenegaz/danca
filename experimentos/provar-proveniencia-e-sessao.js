@@ -135,7 +135,7 @@ function servir() {
     else { ko++; console.log('  FALHA ' + n + (e !== undefined ? '  → ' + JSON.stringify(e) : '')); }
   };
 
-  await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
+  await pg.goto(base + '/bastidores/estudio', { waitUntil: 'load' });
   await pg.type('#dsenha', '123456');
   await pg.click('#form-senha button[type=submit]');
   await pg.waitForFunction(() => !document.getElementById('conteudo').hidden, { timeout: 5000 });

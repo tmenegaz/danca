@@ -232,7 +232,7 @@ const DUAS_TURMAS = Object.assign({}, PARADA_NO_PACOTE, {
 
   const p = await navegador.newPage();
   await p.setViewport({ width: 1280, height: 900 });
-  await p.goto(base + '/bastidores/producao', { waitUntil: 'networkidle0', timeout: 60000 });
+  await p.goto(base + '/bastidores/estudio', { waitUntil: 'networkidle0', timeout: 60000 });
 
   /* A CAIXA DO ACTO: o mesmo `data-res` que a página usa, com a frase que o gesto escreveu. É
    * ela que a cadeia não pode apagar. */

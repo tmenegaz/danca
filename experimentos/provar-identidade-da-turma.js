@@ -406,7 +406,7 @@ async function provarANavegador() {
   p.on('dialog', (d) => d.dismiss().catch(() => {}));
 
   await p.setViewport({ width: 1280, height: 900 });
-  await p.goto(base + '/bastidores/producao', { waitUntil: 'networkidle0', timeout: 60000 });
+  await p.goto(base + '/bastidores/estudio', { waitUntil: 'networkidle0', timeout: 60000 });
   // O portão da direção esconde o conteúdo; o que se mede é a página por dentro dele.
   await p.evaluate(() => {
     location.hash = '#curadorias';

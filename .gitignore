@@ -1836,3 +1836,7 @@ experimentos/modelo-formulario/*
 # `provar-barra-unica` pagou. Em 22/11/2026 ela foi reaberta (a fixture apontava para a `batata`,
 # expurgada, e morria com ENOENT) e corrigida para a regra nova: um plano só, o vigente da cadeia.
 !experimentos/provar-estante-do-po.js
+
+# A PROVA DO ESTÚDIO (22/11/2026): Bastidores tem um destino só, os endereços antigos levam lá com a
+# query, e o menu não tem dois itens a apontar ao mesmo sítio. Tem controle negativo (`--contra=`).
+!experimentos/provar-o-estudio.js

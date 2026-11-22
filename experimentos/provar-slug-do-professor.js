@@ -168,7 +168,7 @@ async function principais() {
       depois.professores[0].nome, 'Ana Maria Silva');
 
     // A PORTA recebe o mesmo slug no `?professor=` — é ele que entra no caminho do PO e do plano.
-    const pagina = await (await pedir(e, '/bastidores/producao')).text();
+    const pagina = await (await pedir(e, '/bastidores/estudio')).text();
     conferir('a página da Produção usa o slug da pasta (e não o do nome novo)',
       pagina.indexOf('professor=tiago-menegaz') !== -1 && pagina.indexOf('professor=ana-maria-silva') === -1,
       { temOPasta: pagina.indexOf('professor=tiago-menegaz') !== -1, temONome: pagina.indexOf('professor=ana-maria-silva') !== -1 });

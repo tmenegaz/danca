@@ -1129,7 +1129,7 @@ async function chamar(env, caminho, opcoes) {
     vc.on('jsdomError', () => {});
     vc.on('error', () => {});
     const dom = new JSDOM(PAGINA.replace(/<script src="[^"]*"><\/script>/g, ''), {
-      runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/producao',
+      runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/estudio',
       pretendToBeVisual: true, virtualConsole: vc,
       beforeParse(w) {
         w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -1217,7 +1217,7 @@ async function chamar(env, caminho, opcoes) {
     const vc = new VirtualConsole();
     vc.on('jsdomError', () => {}); vc.on('error', () => {});
     const dom = new JSDOM(PAGINA.replace(/<script src="[^"]*"><\/script>/g, ''), {
-      runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/producao',
+      runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/estudio',
       pretendToBeVisual: true, virtualConsole: vc,
       beforeParse(w) {
         w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -1294,7 +1294,7 @@ async function chamar(env, caminho, opcoes) {
     vc.on('jsdomError', () => {}); vc.on('error', () => {});
     const pedidos = [];
     const dom = new JSDOM(PAGINA.replace(/<script src="[^"]*"><\/script>/g, ''), {
-      runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/producao',
+      runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/estudio',
       pretendToBeVisual: true, virtualConsole: vc,
       beforeParse(w) {
         w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -1352,7 +1352,7 @@ async function chamar(env, caminho, opcoes) {
     const vc = new VirtualConsole();
     vc.on('jsdomError', () => {}); vc.on('error', () => {});
     const dom = new JSDOM(PAGINA.replace(/<script src="[^"]*"><\/script>/g, ''), {
-      runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/producao',
+      runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/estudio',
       pretendToBeVisual: true, virtualConsole: vc,
       beforeParse(w) {
         w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -1569,7 +1569,7 @@ async function chamar(env, caminho, opcoes) {
       const vc = new VirtualConsole();
       vc.on('jsdomError', () => {}); vc.on('error', () => {});
       const dom = new JSDOM(PAGINA.replace(/<script src="[^"]*"><\/script>/g, ''), {
-        runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/producao',
+        runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/estudio',
         pretendToBeVisual: true, virtualConsole: vc,
         beforeParse(w) {
           w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -1799,7 +1799,7 @@ async function chamar(env, caminho, opcoes) {
       const pedidos = [];
       let linhas = [];
       const dom = new JSDOM(PAGINA.replace(/<script src="[^"]*"><\/script>/g, ''), {
-        runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/producao',
+        runScripts: 'dangerously', url: 'https://calango.workers.dev/bastidores/estudio',
         pretendToBeVisual: true, virtualConsole: vc,
         beforeParse(w) {
           w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},

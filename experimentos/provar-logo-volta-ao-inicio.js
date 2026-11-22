@@ -15,7 +15,7 @@
  *
  *   · no pacote da turma (`/aula-01`), é o índice do ciclo;
  *   · na porta (`/plano-observacao/`), é a própria porta outra vez;
- *   · nos Bastidores (`/bastidores/producao`), é a pasta dos Bastidores.
+ *   · nos Bastidores (`/bastidores/estudio`), é a pasta dos Bastidores.
  *
  * `/` é a única resposta certa nas três. Um `href` relativo levaria a três sítios e o gesto
  * deixaria de querer dizer «início».

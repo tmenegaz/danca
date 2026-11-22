@@ -127,7 +127,7 @@ function medir() {
   const MARP = path.join(execSync('npm root -g').toString().trim(), '@marp-team/marp-cli');
   const puppeteer = require(path.join(MARP, 'node_modules', 'puppeteer-core'));
 
-  const { srv, base } = await servir({ '/bastidores/producao': producao, '/': raizDoLastro });
+  const { srv, base } = await servir({ '/bastidores/estudio': producao, '/': raizDoLastro });
   const browser = await puppeteer.launch({ executablePath: executavel, args: ['--no-sandbox'] });
   const page = await browser.newPage();
   const erros = [];
@@ -137,7 +137,7 @@ function medir() {
     console.log('\nA. A PÁGINA DE TRABALHO — o rodapé começa onde o conteúdo começa');
     for (const [largura, altura] of [[1280, 950], [1024, 800], [390, 844]]) {
       await page.setViewport({ width: largura, height: altura });
-      await page.goto(base + '/bastidores/producao', { waitUntil: 'networkidle0' });
+      await page.goto(base + '/bastidores/estudio', { waitUntil: 'networkidle0' });
       // A Produção é uma página de sessão; é o que o login faz ao vivo.
       await page.evaluate(() => { if (typeof abrirSessao === 'function') abrirSessao('token-de-prova'); });
       await new Promise((r) => setTimeout(r, 400));

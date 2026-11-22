@@ -362,7 +362,7 @@ async function provarAPagina(motor) {
     SENHA_ADMIN: 'prova', GITHUB_TOKEN: '',
   };
   const resposta = await b.fetch(new Request(
-    'https://' + ESCOLA + '.tmenegaz77.workers.dev/bastidores/producao'), env);
+    'https://' + ESCOLA + '.tmenegaz77.workers.dev/bastidores/estudio'), env);
   const pagina = resposta ? await resposta.text() : '';
 
   provar('a página da Produção responde', Boolean(pagina) && pagina.length > 1000, pagina.length);

@@ -157,7 +157,7 @@ function servir() {
     if (caminho === '/ref') return ok('text/html; charset=utf-8', REFERENCIA);
     if (caminho === '/ficha') return ok('text/html; charset=utf-8', FICHA);
     if (caminho === '/estado') return ok('text/html; charset=utf-8', ESTADO);
-    if (caminho.indexOf('/bastidores/producao') !== -1) return okEscola(PAGINA_PRODUCAO);
+    if (caminho.indexOf('/bastidores/estudio') !== -1) return okEscola(PAGINA_PRODUCAO);
     return okEscola(PORTA);
   });
   return new Promise((pronto) => srv.listen(0, '127.0.0.1', () => pronto({ srv, base: `http://127.0.0.1:${srv.address().port}` })));
@@ -279,7 +279,7 @@ const MEDIR_COMPONENTES = () => {
     x.cor, x.raio, x.fonte, x.familia, x.peso, x.caixa, x.espaco, x.padding]);
 
   const superficies = [
-    ['Bastidores', '/bastidores/producao', () => { const c = document.getElementById('conteudo'); if (c) c.hidden = false; }],
+    ['Bastidores', '/bastidores/estudio', () => { const c = document.getElementById('conteudo'); if (c) c.hidden = false; }],
     ['anamnese', '/anamnese/?professor=tiago-menegaz&escola=fita&ciclo=01', null],
     ['plano de ensino', '/plano-ensino/?professor=tiago-menegaz&escola=fita&ciclo=01&fonte=plano', null],
     ['plano de observação', '/plano-observacao/?professor=tiago-menegaz&escola=fita&ciclo=01&fonte=po', null],

@@ -200,7 +200,7 @@ function publicacaoMinima() {
   ]) fs.copyFileSync(path.join(RAIZ, de), path.join(dir, para));
   fs.writeFileSync(path.join(dir, 'nav.json'), JSON.stringify({ versao: 2, coluna: [],
     barra: [{ tipo: 'menu', rotulo: 'Bastidores',
-      itens: [{ rotulo: 'Produção', href: '/bastidores/producao' }] }] }));
+      itens: [{ rotulo: 'Produção', href: '/bastidores/estudio' }] }] }));
   return dir;
 }
 

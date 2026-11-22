@@ -156,7 +156,7 @@ const RITMO = {
   conferir('a sala é criada (é o ato que desobstrui a atribuição)', criada.status === 201 || criada.status === 200,
     { status: criada.status, corpo: criada.corpo && criada.corpo.erro });
 
-  const pagina = await bastidores.fetch(new Request(BASE + '/bastidores/producao'), env);
+  const pagina = await bastidores.fetch(new Request(BASE + '/bastidores/estudio'), env);
   const html = await pagina.text();
   conferir('a página da Produção abre', pagina.status === 200, pagina.status);
 
@@ -217,7 +217,7 @@ const RITMO = {
     (comDono.status === 201 || comDono.status === 200) && Boolean(comDono.corpo.id),
     { status: comDono.status, corpo: comDono.corpo });
 
-  const pagina2 = await bastidores.fetch(new Request(BASE + '/bastidores/producao'), env);
+  const pagina2 = await bastidores.fetch(new Request(BASE + '/bastidores/estudio'), env);
   const html2 = await pagina2.text();
   const trecho2 = (() => {
     const i = html2.indexOf('Sala de Jazz');
@@ -239,7 +239,7 @@ const RITMO = {
     (regua.status === 201 || regua.status === 200) && regua.corpo.sala === 'Sala de Jazz',
     { status: regua.status, sala: regua.corpo && regua.corpo.sala });
 
-  const pagina3 = await bastidores.fetch(new Request(BASE + '/bastidores/producao'), env);
+  const pagina3 = await bastidores.fetch(new Request(BASE + '/bastidores/estudio'), env);
   const html3 = await pagina3.text();
   const trecho3 = (() => {
     const i = html3.indexOf('Sala de Jazz');
@@ -494,7 +494,7 @@ const RITMO = {
     vc.on('jsdomError', () => {});
     vc.on('error', () => {});
     const dom = new JSDOM(html.replace(/<script src="[^"]*"><\/script>/g, ''), {
-      runScripts: 'dangerously', url: BASE + '/bastidores/producao',
+      runScripts: 'dangerously', url: BASE + '/bastidores/estudio',
       pretendToBeVisual: true, virtualConsole: vc,
       beforeParse(w) {
         w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -544,7 +544,7 @@ const RITMO = {
     vc.on('jsdomError', () => {});
     vc.on('error', () => {});
     const dom = new JSDOM(html.replace(/<script src="[^"]*"><\/script>/g, ''), {
-      runScripts: 'dangerously', url: BASE + '/bastidores/producao', pretendToBeVisual: true,
+      runScripts: 'dangerously', url: BASE + '/bastidores/estudio', pretendToBeVisual: true,
       virtualConsole: vc,
       beforeParse(w) {
         w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -731,7 +731,7 @@ const RITMO = {
       vcG.on('jsdomError', () => {});
       vcG.on('error', () => {});
       const domG = new JSDOM2(htmlG.replace(/<script src="[^"]*"><\/script>/g, ''), {
-        runScripts: 'dangerously', url: BASE + '/bastidores/producao', pretendToBeVisual: true,
+        runScripts: 'dangerously', url: BASE + '/bastidores/estudio', pretendToBeVisual: true,
         virtualConsole: vcG,
         beforeParse(w) {
           w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -839,7 +839,7 @@ const RITMO = {
         marina: { modalidades: ['bale-classico'], tradicoes: {} },
       };
       const dom3 = new JSDOM3(html3.replace(/<script src="[^"]*"><\/script>/g, ''), {
-        runScripts: 'dangerously', url: BASE + '/bastidores/producao', pretendToBeVisual: true,
+        runScripts: 'dangerously', url: BASE + '/bastidores/estudio', pretendToBeVisual: true,
         virtualConsole: vc3,
         beforeParse(w) {
           w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -1007,7 +1007,7 @@ const RITMO = {
       vcI.on('jsdomError', () => {});
       vcI.on('error', () => {});
       const domI = new JSDOM4(htmlI.replace(/<script src="[^"]*"><\/script>/g, ''), {
-        runScripts: 'dangerously', url: BASE + '/bastidores/producao', pretendToBeVisual: true,
+        runScripts: 'dangerously', url: BASE + '/bastidores/estudio', pretendToBeVisual: true,
         virtualConsole: vcI,
         beforeParse(w) {
           w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -1145,7 +1145,7 @@ const RITMO = {
       vcJ.on('jsdomError', () => {});
       vcJ.on('error', () => {});
       const domJ = new JSDOM5(htmlJ.replace(/<script src="[^"]*"><\/script>/g, ''), {
-        runScripts: 'dangerously', url: BASE + '/bastidores/producao#turmas', pretendToBeVisual: true,
+        runScripts: 'dangerously', url: BASE + '/bastidores/estudio#turmas', pretendToBeVisual: true,
         virtualConsole: vcJ,
         beforeParse(w) {
           w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -1236,7 +1236,7 @@ const RITMO = {
       { status: apagado.status, erro: apagado.corpo && apagado.corpo.erro });
 
     /* ---- 3. A LISTAGEM DOS ELENCOS: «Excluir» desabilitado em turma. ---- */
-    const paginaK = await bastidores.fetch(new Request(BASE + '/bastidores/producao'), e4);
+    const paginaK = await bastidores.fetch(new Request(BASE + '/bastidores/estudio'), e4);
     const htmlK = await paginaK.text();
     /* O cartão do elenco é desenhado pelo CLIENTE (`LINHAS_DE_BASE`), e o que se lê no HTML são
      * as duas metades da regra dentro do script: a condição e o `disabled`. */
@@ -1372,7 +1372,7 @@ const RITMO = {
         vc.on('jsdomError', (e) => erros.push(String((e && e.message) || e)));
         vc.on('error', () => {});
         const dom = new JSDOML(htmlL.replace(/<script src="[^"]*"><\/script>/g, ''), {
-          runScripts: 'dangerously', url: BASE + '/bastidores/producao#turmas',
+          runScripts: 'dangerously', url: BASE + '/bastidores/estudio#turmas',
           pretendToBeVisual: true, virtualConsole: vc,
           beforeParse(w) {
             w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -1823,7 +1823,7 @@ const RITMO = {
         vc.on('jsdomError', (e) => erros.push(String((e && e.message) || e)));
         vc.on('error', () => {});
         const dom = new JSDOML((htmlUsado || htmlN).replace(/<script src="[^"]*"><\/script>/g, ''), {
-          runScripts: 'dangerously', url: BASE + '/bastidores/producao#turmas',
+          runScripts: 'dangerously', url: BASE + '/bastidores/estudio#turmas',
           pretendToBeVisual: true, virtualConsole: vc,
           beforeParse(w) {
             w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -2286,7 +2286,7 @@ const RITMO = {
       vcM.on('jsdomError', (e) => errosM.push(String((e && e.message) || e)));
       vcM.on('error', () => {});
       const domM = new JSDOML(htmlM.replace(/<script src="[^"]*"><\/script>/g, ''), {
-        runScripts: 'dangerously', url: BASE + '/bastidores/producao#corpo',
+        runScripts: 'dangerously', url: BASE + '/bastidores/estudio#corpo',
         pretendToBeVisual: true, virtualConsole: vcM,
         beforeParse(w) {
           w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},

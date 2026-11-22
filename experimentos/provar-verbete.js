@@ -672,7 +672,7 @@ async function aPagina() {
     !recusado.ok && /recusou a leitura/.test(recusado.erro) && !/não existe/.test(recusado.erro), recusado.erro);
 
   // A PÁGINA: a nota técnica saiu, o exercício é escolha, e a música tem dois rótulos.
-  const pagina = await bastidores.fetch(new Request('https://e.workers.dev/bastidores/producao'), env);
+  const pagina = await bastidores.fetch(new Request('https://e.workers.dev/bastidores/estudio'), env);
   const html = await pagina.text();
   checar('a nota técnica sobre commit e proveniência saiu da tela',
     !/vai para o repositório, num commit/.test(html));
@@ -982,7 +982,7 @@ async function aOrigemDoVocabulario() {
   checar('o vocabulário é servido do bundle, com o KV vazio', servido.status === 200
     && lista.termos.length === esperado.length, [servido.status, lista.termos && lista.termos.length]);
 
-  const pagina = await bastidores.fetch(new Request('https://e.workers.dev/bastidores/producao'), env);
+  const pagina = await bastidores.fetch(new Request('https://e.workers.dev/bastidores/estudio'), env);
   const html = await pagina.text();
   /* O EXERCÍCIO NOVO É O PASSO 1, E NÃO UM «+» (02/11/2026).
    *
@@ -1452,7 +1452,7 @@ async function aTradicaoDeReferencia() {
     PADD_KV: { async get() { return null; }, async put() {}, async delete() {}, async list() { return { keys: [], list_complete: true }; } },
   };
   const html = await (await bastidores.fetch(
-    new Request('https://e.workers.dev/bastidores/producao'), env)).text();
+    new Request('https://e.workers.dev/bastidores/estudio'), env)).text();
 
   /** As opções de um `<select>` por id, como `{valor, texto}`. */
   /* O `<select>` PASSOU A TRAZER ATRIBUTOS (18/11/2026) — `id`, e mais coisas. A expressão exigia

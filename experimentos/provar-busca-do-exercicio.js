@@ -169,7 +169,7 @@ const ESCREVER = (valor) => {
 
   /** Abre a página, revela a secção do Estilo e devolve o estado inicial. */
   const abrir = async () => {
-    await pg.goto(base + '/bastidores/producao', { waitUntil: 'networkidle0' });
+    await pg.goto(base + '/bastidores/estudio', { waitUntil: 'networkidle0' });
     await pg.evaluate(() => {
       if (typeof abrirSessao === 'function') abrirSessao('token-de-prova');
       const c = document.getElementById('conteudo'); if (c) c.hidden = false;

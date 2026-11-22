@@ -4445,7 +4445,7 @@ const LISTA_VAZIA = {
 function detalheDaTurmaDoPlano(opcao) {
   const turma = String((opcao && opcao.turma) || '').trim();
   if (!turma) return '';
-  const href = '/bastidores/producao?turma=' + encodeURIComponent(turma) + '#turmas';
+  const href = '/bastidores/estudio?turma=' + encodeURIComponent(turma) + '#turmas';
   return '<em>Turma: ' + escapar(turma) + ' · ' +
     '<a class="atalho-do-plano" href="' + escapar(href) + '" target="_blank" rel="noopener" ' +
     'title="abrir o cadastro desta turma na Produção">ver a turma</a></em>';

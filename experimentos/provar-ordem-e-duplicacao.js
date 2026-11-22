@@ -289,7 +289,7 @@ const LER_TABELA = () => {
 
   /** Abre a página e injeta um verbo com as células dadas — como se fosse um verbete carregado. */
   const abrir = async (celulas) => {
-    await pg.goto(base + '/bastidores/producao', { waitUntil: 'networkidle0' });
+    await pg.goto(base + '/bastidores/estudio', { waitUntil: 'networkidle0' });
     await pg.evaluate((c) => {
       if (typeof abrirSessao === 'function') abrirSessao('token-de-prova');
       const cont = document.getElementById('conteudo'); if (cont) cont.hidden = false;

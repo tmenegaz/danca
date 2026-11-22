@@ -75,7 +75,7 @@ const MIME = { '.css': 'text/css;charset=utf-8', '.js': 'text/javascript;charset
 function servir(html) {
   return http.createServer((req, res) => {
     const u = new URL(req.url, 'http://x');
-    if (u.pathname === '/bastidores/producao') {
+    if (u.pathname === '/bastidores/estudio') {
       res.writeHead(200, { 'Content-Type': 'text/html;charset=utf-8', 'Cache-Control': 'no-store' });
       return res.end(html);
     }
@@ -144,7 +144,7 @@ function servir(html) {
     args: ['--no-sandbox', '--disable-dev-shm-usage'] });
   const pg = await nav.newPage();
   await pg.setViewport({ width: 1280, height: 900 });
-  await pg.goto(base + '/bastidores/producao', { waitUntil: 'networkidle0' });
+  await pg.goto(base + '/bastidores/estudio', { waitUntil: 'networkidle0' });
   await pg.evaluate(() => {
     document.getElementById('gate').hidden = true;
     document.getElementById('conteudo').hidden = false;

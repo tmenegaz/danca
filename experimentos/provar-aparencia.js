@@ -186,7 +186,7 @@ async function api(kv, caminho, metodo, corpo) {
     await api(kv, '/api/bastidores/aparencia', 'POST', { modo: 'noturna', senhaDirecao: 'senha-da-escola' });
     const env = Object.assign({ PADD_KV: kv }, AMBIENTE);
 
-    for (const vista of ['/bastidores/producao', '/bastidores/estudio']) {
+    for (const vista of ['/bastidores/estudio', '/bastidores/estudio']) {
       const r = await bastidores.fetch(pedido(vista), env, {});
       const html = await r.text();
       provar(vista + ' sai em noturna', /<html[^>]*data-modo="noturna"/.test(html), true);
@@ -195,7 +195,7 @@ async function api(kv, caminho, metodo, corpo) {
     }
 
     const padrao = criarKV();
-    const r = await bastidores.fetch(pedido('/bastidores/producao'), Object.assign({ PADD_KV: padrao }, AMBIENTE), {});
+    const r = await bastidores.fetch(pedido('/bastidores/estudio'), Object.assign({ PADD_KV: padrao }, AMBIENTE), {});
     provar('sem nada guardado, a vista sai em clara',
       /<html[^>]*data-modo="clara"/.test(await r.text()), true);
   }
@@ -286,11 +286,11 @@ async function api(kv, caminho, metodo, corpo) {
     const lerHtml = async (caminho) => (await bastidores.fetch(pedido(caminho), env, {})).text();
 
     provar('sem nada guardado, a vista diz que é a Bordô de Cena',
-      /data-paleta="bordo"/.test(await lerHtml('/bastidores/producao')), true);
+      /data-paleta="bordo"/.test(await lerHtml('/bastidores/estudio')), true);
 
     await api(kv, '/api/bastidores/aparencia', 'POST',
       { paleta: 'cortina', senhaDirecao: 'senha-da-escola' });
-    const html = await lerHtml('/bastidores/producao');
+    const html = await lerHtml('/bastidores/estudio');
     provar('a vista sai com a família escolhida', /data-paleta="cortina"/.test(html), true);
     provar('…e sem o atributo duplicado', (html.match(/data-paleta=/g) || []).length, 1);
     provar('…e a pílula da família em vigor vem marcada',

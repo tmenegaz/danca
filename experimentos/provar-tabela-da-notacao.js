@@ -190,7 +190,7 @@ async function aListagem() {
   const fetchDeVerdade = globalThis.fetch;
   globalThis.fetch = repo.f;
 
-  const resposta = await bastidores.fetch(new Request(BASE + '/bastidores/producao'), env);
+  const resposta = await bastidores.fetch(new Request(BASE + '/bastidores/estudio'), env);
   const html = await resposta.text();
   checar('a página da Produção é servida', resposta.status === 200 && html.length > 10000,
     { status: resposta.status, tamanho: html.length });
@@ -200,7 +200,7 @@ async function aListagem() {
   vc.on('jsdomError', (e) => { if (!/Not implemented/.test(e.message)) problemas.push(e.message); });
 
   const dom = new JSDOM(html, {
-    url: BASE + '/bastidores/producao',
+    url: BASE + '/bastidores/estudio',
     runScripts: 'dangerously',
     pretendToBeVisual: true,
     virtualConsole: vc,
@@ -210,7 +210,7 @@ async function aListagem() {
       w.alert = () => {};
       w.confirm = () => true;
       w.fetch = async (u, i) => {
-        const url = new URL(String(u), BASE + '/bastidores/producao');
+        const url = new URL(String(u), BASE + '/bastidores/estudio');
         if (url.pathname.indexOf('/api/') === 0) {
           const r = await bastidores.fetch(new Request(url.toString(), i), env);
           if (r) return r;
@@ -336,13 +336,13 @@ async function oPasso6() {
   const fetchDeVerdade = globalThis.fetch;
   globalThis.fetch = repo.f;
 
-  const html = await (await bastidores.fetch(new Request(BASE + '/bastidores/producao'), env)).text();
+  const html = await (await bastidores.fetch(new Request(BASE + '/bastidores/estudio'), env)).text();
   const problemas = [];
   const vc = new VirtualConsole();
   vc.on('jsdomError', (e) => { if (!/Not implemented/.test(e.message)) problemas.push(e.message); });
 
   const dom = new JSDOM(html, {
-    url: BASE + '/bastidores/producao',
+    url: BASE + '/bastidores/estudio',
     runScripts: 'dangerously',
     pretendToBeVisual: true,
     virtualConsole: vc,
@@ -352,7 +352,7 @@ async function oPasso6() {
       w.alert = () => {};
       w.confirm = () => true;
       w.fetch = async (u, i) => {
-        const url = new URL(String(u), BASE + '/bastidores/producao');
+        const url = new URL(String(u), BASE + '/bastidores/estudio');
         if (url.pathname.indexOf('/api/') === 0) {
           const r = await bastidores.fetch(new Request(url.toString(), i), env);
           if (r) return r;

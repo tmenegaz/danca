@@ -117,7 +117,7 @@ async function abrir({ profs = PROFS, turmas = SALAS, linhas = [], verbetes = nu
   const pedidos = [];
   const dom = new JSDOM(html, {
     runScripts: 'dangerously',
-    url: 'https://breu.padd.com.br/bastidores/producao',
+    url: 'https://breu.padd.com.br/bastidores/estudio',
     virtualConsole: vc,
     beforeParse(w) {
       w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });

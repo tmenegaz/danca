@@ -5249,25 +5249,17 @@ function fimDaVista() {
   return '<script src="/assets/nav.js"></script></body></html>';
 }
 
-function paginaEstudio(escola, contexto, aparencia) {
-  return cabecalhoDaVista('Bastidores · Estúdio de Dança · ' + escola, aparencia) +
-    '<style>' +
-    'body{font:17px/1.65 var(--serif);color:var(--texto);background:var(--fundo);margin:0;}' +
-    '.vista{max-width:44rem;margin:0 auto;padding:1.6rem 1.25rem;}' +
-    '.vista h1{color:var(--marca);}' +
-    '.vista p{color:var(--texto-suave);}' +
-    '.vista a{color:var(--marca);font-weight:700;}' +
-    '</style></head><body data-layout="painel" data-tela="bastidores">' +
-    topnav(contexto, 'estudio') +
-    '<div class="vista">' +
-    '<h1>Estúdio de Dança</h1>' +
-    '<p>Esta é a cena — a vista que a direção e o professor partilham. O que a cena produz sobe para cá.</p>' +
-    /* A MESMA RAZÃO DO MENU (15/11/2026): abrir a Área do Professor é abrir a lista, não um
-     * formulário que ainda não tem sujeito. */
-    '<p><a href="' + LISTA_DA_ANAMNESE + '">Abrir a Área do Professor</a> (anamnese, plano de ensino e plano de observação).</p>' +
-    '</div>' +
-    fimDaVista();
-}
+/* A PÁGINA «ESTÚDIO DE DANÇA» SAIU (22/11/2026) — e o que fica no lugar dela é o endereço.
+ *
+ * Ela era a «cena»: um `<h1>`, um parágrafo e um link para a Área do Professor. Nunca teve
+ * conteúdo próprio, e a decisão dela é que Bastidores passa a ter UM destino só: «Em bastidores a
+ * gente vai ter apenas a produção e tudo o que a gente já desenvolveu dentro dela. Só que nós
+ * vamos rebatizar a produção. A produção vai se chamar estúdio.»
+ *
+ * O NOME «ESTÚDIO» NÃO SE PERDEU — passou a ser o nome da página que era a Produção
+ * (`/bastidores/estudio`), e é lá que estão as secções todas. Uma página a menos, um destino a
+ * menos, e nenhum link para um sítio que já não existe: `/bastidores/producao` responde 302.
+ */
 
 /**
  * «A ESCOLA» — O DADO DA ESCOLA, DO LADO DELA (16/11/2026).
@@ -5520,7 +5512,7 @@ function painelDaSituacaoDaEscola(s) {
     + (pares ? '<div class="trio-grade">' + pares + '</div>' : '')
     + emAberto
     + '<p class="par-botoes">' + pagar
-    + '<a class="acao ' + (pagar ? 'secundario ' : '') + 'pequena" href="/bastidores/producao/financeiro"'
+    + '<a class="acao ' + (pagar ? 'secundario ' : '') + 'pequena" href="/bastidores/estudio/financeiro"'
     + ' title="ver todos os meses, com o que foi pago e quando">Ver o mês a mês</a>'
     + '</p>';
 }
@@ -5577,7 +5569,7 @@ function painelDoPixDaEscola(pix, s, nomeDaEscola) {
  * está pago, quando. O valor não se repete na linha de baixo; o que ela diz é o que a linha dos
  * factos não diz.
  *
- * O CASCO É O DO ESTÚDIO (`paginaEstudio`): a mesma barra, a mesma folha, e um `<main>` próprio —
+ * O CASCO É O DO ESTÚDIO (a página de `/bastidores/estudio`): a mesma barra, a mesma folha, e um `<main>` próprio —
  * não a grade de duas colunas da Produção, que aqui só deixaria meia página vazia.
  */
 function paginaFinanceiro(escola, contexto, aparencia, dados) {
@@ -5621,7 +5613,7 @@ function paginaFinanceiro(escola, contexto, aparencia, dados) {
     const acao = pago
       ? '<button type="button" class="acao secundario pequena" disabled'
         + ' aria-disabled="true" title="este mês está pago">Pagar</button>'
-      : '<a class="acao pequena" href="/bastidores/producao?abrir=pagar#a-escola"'
+      : '<a class="acao pequena" href="/bastidores/estudio?abrir=pagar#a-escola"'
         + ' title="abrir a chave Pix para pagar este mês">Pagar</a>';
     return '<tr><td>' + esc(m.nome) + '</td>'
       + '<td>' + esc(dia(m.vencimento)) + '</td>'
@@ -5764,7 +5756,7 @@ function paginaFinanceiro(escola, contexto, aparencia, dados) {
    *
    * A `.mes-a-mes` perde o `padding` que tinha: quem o dá agora é o `.corpo`, e dois paddings
    * somados afastariam a tabela da coluna sem motivo. */
-  return cabecalhoDaVista('Bastidores · Produção · Mês a mês · ' + escola, aparencia) +
+  return cabecalhoDaVista('Bastidores · Estúdio · Mês a mês · ' + escola, aparencia) +
     '<style>' +
     ESTILO_DA_PAGINA_DE_TRABALHO +
     'body{background:var(--fundo);margin:0;}' +
@@ -5773,17 +5765,17 @@ function paginaFinanceiro(escola, contexto, aparencia, dados) {
     '.mes-a-mes .sub{margin:0 0 .6rem;}' +
     '.mes-a-mes .voltar{display:inline-block;margin:0 0 1rem;}' +
     '</style></head><body data-layout="painel" data-tela="bastidores">' +
-    topnav(contexto, 'producao') +
+    topnav(contexto, 'estudio') +
     '<div class="corpo">' +
     lateralDaProducao({
-      prefixo: '/bastidores/producao',
+      prefixo: '/bastidores/estudio',
       atual: 'a-escola',
       grupoDeHoje: 'Configuração',
       paginaDeHoje: 'Mês a mês',
     }) +
     '<div class="principal">' +
     '<main class="mes-a-mes">' +
-    '<a class="acao secundario pequena voltar" href="/bastidores/producao#a-escola">'
+    '<a class="acao secundario pequena voltar" href="/bastidores/estudio#a-escola">'
     + '\u2190 A escola</a>' +
     '<h1>Mês a mês</h1>' +
     '<p class="sub">' + esc(nome) + '</p>' +
@@ -5897,7 +5889,7 @@ function lateralDaProducao(opcoes) {
   const grupoDeHoje = o.grupoDeHoje || 'Produção';
   const paginaDeHoje = o.paginaDeHoje || 'Painel inicial';
   const nav = { prefixo: prefixo, atual: o.atual || '' };
-  return     '<nav class="lateral" aria-label="Seções da Produção" data-aberta="nao">' +
+  return     '<nav class="lateral" aria-label="Seções do Estúdio" data-aberta="nao">' +
     // A barra do celular: o grupo e a página em que se está, e o botão que abre a folha.
     // Em tela larga ela não aparece — quem navega é a coluna abaixo.
     '<div class="lateral-barra">' +
@@ -7735,7 +7727,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       }).join('')
     : '<li class="vazia">(nenhuma turma atribuída)</li>';
 
-  return cabecalhoDaVista('Bastidores · Produção · ' + escola, { modo: modo, paleta: paleta }) +
+  return cabecalhoDaVista('Bastidores · Estúdio · ' + escola, { modo: modo, paleta: paleta }) +
     '<style>' +
     // A IDENTIDADE É A MESMA DA RAIZ («criar nova escola») e do pacote do ciclo: as
     // variáveis vêm de `/assets/style.css` (a folha do ciclo, carregada acima), e o que
@@ -8595,7 +8587,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
        quem navega é a coluna. */
     ESTILO_DA_PAGINA_DE_TRABALHO +
     '</style></head><body data-layout="painel" data-tela="bastidores">' +
-    topnav(contexto, 'producao', sessaoNaBarra()) +
+    topnav(contexto, 'estudio', sessaoNaBarra()) +
     '<div class="corpo">' +
     // `data-aberta` é o estado da FOLHA do celular. No HTML ele nasce «nao»: a folha está
     // fechada, e na tela larga o atributo não tem efeito nenhum (o CSS que o lê só existe
@@ -8628,7 +8620,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // Ele desceu para DENTRO do portão: quem ainda não entrou vê do que é a página antes de
     // escrever a senha; quem já entrou não o vê, porque o portão inteiro se esconde.
     '<div id="gate">' +
-    '<h1>Produção</h1>' +
+    '<h1>Estúdio</h1>' +
     '<p>O gabinete da direção — só a direção entra.</p>' +
     /* O CAMPO DA SENHA SÓ EXISTE QUANDO SE PEDE A SENHA (19/11/2026).
      *
@@ -8664,7 +8656,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // `<h2>` da secção (é o pedido), mas sem um `h1` a estrutura fica com um salto de nível —
     // e um leitor anuncia `h2` sem dizer de que página é. Esta linha é INVISÍVEL: não ocupa
     // espaço, não desloca nada, e não é lida em voz alta para quem vê.
-    '<h1 class="so-leitor">Produção</h1>' +
+    '<h1 class="so-leitor">Estúdio</h1>' +
     '<div class="res" id="res"></div>' +
     // Só o Painel inicial nasce visível: as demais secções já vêm com `hidden` do
     // servidor — mesmo que o script da página falhe, a Produção nunca volta a ser
@@ -22401,10 +22393,12 @@ async function fetch(request, env, extras) {
   const cadeia = (extras && extras.cadeia) || null;
   const ehBastidores = path === '/bastidores'
     || path === '/bastidores/estudio'
+    || path === '/bastidores/estudio/financeiro'
+    /* OS ENDEREÇOS ANTIGOS CONTINUAM A ENTRAR AQUI, e é de propósito (22/11/2026): eles respondem
+     * com um 302 mais abaixo. Um caminho antigo que não entrasse nesta lista cairia fora dos
+     * Bastidores e iria parar à ponte de produção — o pedido de um favorito antigo devolveria a
+     * página de outra coisa, em vez de o sítio novo. */
     || path === '/bastidores/producao'
-    /* O MÊS A MÊS MUDOU DE SÍTIO (17/11/2026), e o endereço antigo continua a responder — está
-     * mais abaixo, num 302. Ele entra nesta lista para o pedido antigo não cair fora dos
-     * Bastidores e ir parar à ponte de produção. */
     || path === '/bastidores/financeiro'
     || path === '/bastidores/producao/financeiro'
     || path.startsWith('/api/bastidores');
@@ -22431,12 +22425,32 @@ async function fetch(request, env, extras) {
   if (path === '/bastidores') {
     return new Response(null, {
       status: 302,
-      headers: semCache({ Location: '/bastidores/producao' + (url.search || '') }),
+      headers: semCache({ Location: '/bastidores/estudio' + (url.search || '') }),
     });
   }
   const contexto = contextoDaPorta(env, escola, url);
-  if (path === '/bastidores/estudio') {
-    return html(paginaEstudio(escola, contexto, await aparenciaDaEscola(kv, escola)));
+  /* A PRODUÇÃO PASSOU A CHAMAR-SE ESTÚDIO, E O ENDEREÇO FOI COM O NOME (22/11/2026).
+   *
+   * Palavras dela: «Nós temos aqui bastidores, e bastidores tem dois endereços, o estúdio de dança
+   * e a produção. Esse endereço estúdio de dança vai deixar de existir. Em bastidores a gente vai
+   * ter apenas a produção e tudo o que a gente já desenvolveu dentro dela. Só que nós vamos
+   * rebatizar a produção. A produção vai se chamar estúdio. E aí os demais endereços, tudo o que
+   * está contido dentro dessa parte que chama produção, vai ficar agora dentro do estúdio.»
+   *
+   * O QUE HAVIA. Dois destinos em Bastidores: «Estúdio de Dança» (a cena — uma página de um
+   * parágrafo e um link, `paginaEstudio`) e «Produção» (o gabinete: Painel inicial, Configuração,
+   * Pessoas, Pedagogia). O primeiro sai — não tinha conteúdo próprio —, e o segundo herda o nome
+   * e o endereço: `/bastidores/estudio` passa a servir a página que era a Produção, com as
+   * secções dela todas dentro. O grupo «Produção» da coluna fica: o que ela descreveu é que o
+   * BLOCO produção continua dentro do estúdio, e é isso que se lê na coluna.
+   *
+   * O ENDEREÇO ANTIGO NÃO SE APAGA: 302 para o novo, com a query, como já se fez com o mês a mês
+   * a 17/11. Um favorito antigo chega ao mesmo sítio — e não a um 404. */
+  if (path === '/bastidores/producao') {
+    return new Response(null, {
+      status: 302,
+      headers: semCache({ Location: '/bastidores/estudio' + (url.search || '') }),
+    });
   }
   /* O MÊS A MÊS NUMA PÁGINA PRÓPRIA (17/11/2026) — «um outro URL», como ela pediu, e «só uma
    * listagem». É a mesma leitura do cartão da escola (`dadosDaEscolaParaAProducao`: cadastro,
@@ -22455,20 +22469,20 @@ async function fetch(request, env, extras) {
    *
    * O ANTIGO NÃO SE APAGA: 302 para o novo, e com a query, para um favorito antigo continuar a
    * chegar ao mesmo sítio. */
-  if (path === '/bastidores/financeiro') {
+  if (path === '/bastidores/financeiro' || path === '/bastidores/producao/financeiro') {
     return new Response(null, {
       status: 302,
-      headers: semCache({ Location: '/bastidores/producao/financeiro' + (url.search || '') }),
+      headers: semCache({ Location: '/bastidores/estudio/financeiro' + (url.search || '') }),
     });
   }
-  if (path === '/bastidores/producao/financeiro') {
+  if (path === '/bastidores/estudio/financeiro') {
     const [aparenciaDoMes, dadosDoMes] = await Promise.all([
       aparenciaDaEscola(kv, escola),
       dadosDaEscolaParaAProducao(env, kv, escola),
     ]);
     return html(paginaFinanceiro(escola, contexto, aparenciaDoMes, dadosDoMes));
   }
-  if (path === '/bastidores/producao') {
+  if (path === '/bastidores/estudio') {
     const [profs, aluns, trms, trmos, rbs] = await Promise.all([
       professores(kv, escola), alunas(kv, escola), turmas(kv, escola), termos(kv, escola),
       rubricas(kv, escola),

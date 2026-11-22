@@ -149,7 +149,7 @@ async function abrir({ turmas = [SALA_ROSA], curadorias = [], profs = PROF_COM_R
   const pedidos = [];
   const dom = new JSDOM(html, {
     runScripts: 'dangerously',
-    url: 'https://breu.padd.com.br/bastidores/producao#turmas',
+    url: 'https://breu.padd.com.br/bastidores/estudio#turmas',
     virtualConsole: vc,
     beforeParse(w) {
       w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });

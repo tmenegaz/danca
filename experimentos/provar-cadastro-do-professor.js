@@ -236,7 +236,7 @@ const comSenha = (corpo) => Object.assign({ senhaDirecao: '123' }, corpo || {});
     const erros = [];
     vc.on('jsdomError', (e) => erros.push(String((e && e.message) || e)));
     const dom = new JSDOM(html, {
-      runScripts: 'dangerously', url: 'https://breu.padd.com.br/bastidores/producao', virtualConsole: vc,
+      runScripts: 'dangerously', url: 'https://breu.padd.com.br/bastidores/estudio', virtualConsole: vc,
       beforeParse(w) {
         w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
         Object.defineProperty(w, 'localStorage', { configurable: true, value: { getItem: () => null, setItem: () => {}, removeItem: () => {} } });
@@ -284,7 +284,7 @@ const comSenha = (corpo) => Object.assign({ senhaDirecao: '123' }, corpo || {});
     const vc = new VirtualConsole();
     vc.on('jsdomError', (e) => console.log('   (jsdom: ' + String((e && e.message) || e).split('\n')[0] + ')'));
     const dom = new JSDOM(html, {
-      runScripts: 'dangerously', url: 'https://breu.padd.com.br/bastidores/producao', virtualConsole: vc,
+      runScripts: 'dangerously', url: 'https://breu.padd.com.br/bastidores/estudio', virtualConsole: vc,
       beforeParse(w) {
         w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
         Object.defineProperty(w, 'localStorage', { configurable: true, value: { getItem: () => null, setItem: () => {}, removeItem: () => {} } });
@@ -595,7 +595,7 @@ const comSenha = (corpo) => Object.assign({ senhaDirecao: '123' }, corpo || {});
     const erros = [];
     vc.on('jsdomError', (e) => erros.push(String((e && e.message) || e)));
     const dom = new JSDOM(html, {
-      runScripts: 'dangerously', url: 'https://breu.padd.com.br/bastidores/producao', virtualConsole: vc,
+      runScripts: 'dangerously', url: 'https://breu.padd.com.br/bastidores/estudio', virtualConsole: vc,
       beforeParse(w) {
         w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
         Object.defineProperty(w, 'localStorage', { configurable: true, value: { getItem: () => null, setItem: () => {}, removeItem: () => {} } });

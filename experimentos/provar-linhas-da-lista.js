@@ -231,7 +231,7 @@ const LARGURAS = [1280, 1024, 768, 390, 320];
       ? 'o selo desce para a linha da turma e do botão, e o nome fica sozinho em cima'
       : 'o complemento desce, e o selo fica na primeira linha';
 
-    await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
+    await pg.goto(base + '/bastidores/estudio', { waitUntil: 'load' });
     await pg.evaluate(() => {
       const c = document.getElementById('conteudo');
       if (c) c.hidden = false;

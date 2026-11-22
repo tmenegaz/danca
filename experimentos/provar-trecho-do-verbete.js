@@ -187,7 +187,7 @@ function servir(html) {
 
   try {
     await page.setViewport({ width: 1280, height: 950 });
-    await page.goto(base + '/bastidores/producao', { waitUntil: 'networkidle0' });
+    await page.goto(base + '/bastidores/estudio', { waitUntil: 'networkidle0' });
     await page.evaluate(() => {
       if (typeof abrirSessao === 'function') abrirSessao('token-de-prova');
       location.hash = '#verbetes';

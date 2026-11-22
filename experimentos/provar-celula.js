@@ -545,7 +545,7 @@ function estado() {
 
   try {
     await page.setViewport({ width: 1280, height: 950 });
-    await page.goto(base + '/bastidores/producao', { waitUntil: 'networkidle0' });
+    await page.goto(base + '/bastidores/estudio', { waitUntil: 'networkidle0' });
     ULTIMO = await page.evaluate(() => window.ULTIMO_PASSO);
     conferir('a página diz qual é o último passo, e são seis', ULTIMO === 6, ULTIMO);
     // A Produção é uma página de sessão: `abrirSessao` é o que revela o conteúdo e o que o

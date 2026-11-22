@@ -78,7 +78,7 @@ function colunaDoSistema() {
 }
 
 async function paginaDosBastidores() {
-  const r = await producao.fetch(new Request('https://batata.padd.com.br/bastidores/producao'), envDeBancada());
+  const r = await producao.fetch(new Request('https://batata.padd.com.br/bastidores/estudio'), envDeBancada());
   return r.text();
 }
 

@@ -341,7 +341,7 @@ async function digital(slug) {
     const depoisBreu = await chamar('breu', '/api/bastidores/professores');
     provar('…e o seletor do ato já NÃO o oferece',
       !/Prova Do Shard/i.test(JSON.stringify(depoisBreu.corpo)), depoisBreu.corpo);
-    const producaoBreu = await chamar('breu', '/bastidores/producao');
+    const producaoBreu = await chamar('breu', '/bastidores/estudio');
     provar('…mas a lista da escola continua a mostrá-lo, com o selo `desligado`',
       /Prova Do Shard/i.test(producaoBreu.texto) && /desligado/.test(producaoBreu.texto), null);
 
@@ -500,7 +500,7 @@ async function digital(slug) {
     provar('o gesto da `batata` (turma) deixou a `batata` sem turma de prova — o que se cria, apaga-se',
       !(await turmasDe('batata')).some((t) => /Prova do Shard/.test(String(t.nome))), null);
     provar('…e a `breu` (professor) ficou com o registo do desligado, como proveniência',
-      /Prova Do Shard/i.test((await chamar('breu', '/bastidores/producao')).texto), null);
+      /Prova Do Shard/i.test((await chamar('breu', '/bastidores/estudio')).texto), null);
   }
 
   const total = ok + ko;

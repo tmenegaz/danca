@@ -58151,3 +58151,77 @@ Não se aplica`, e a legenda das marcas desapareceu. `check-identidade` **0 prob
   segredo do repositório.
 - **`provar-lancamento`** morre com `ENOENT` no fixture `ciclo-01-maria` — a escola foi expurgada e a
   prova lê o pacote dela. Mesma família da `provar-estante-do-po`; não foi tocada hoje.
+
+## 22/11/2026 — O estúdio, e o modelo do painel inicial
+
+**O que motivou.** Duas coisas na mesma mensagem: um ajuste de endereços e de nomes em Bastidores — e
+o pedido de um **modelo** para o novo painel inicial antes de o construir. A decisão dos endereços,
+na letra dela: «bastidores tem dois endereços, o estúdio de dança e a produção. Esse endereço estúdio
+de dança vai deixar de existir. Em bastidores a gente vai ter apenas a produção e tudo o que a gente
+já desenvolveu dentro dela. Só que nós vamos rebatizar a produção. A produção vai se chamar estúdio.»
+
+**O que foi decidido.**
+- **Bastidores tem um destino só: o Estúdio.** A «cena» (`paginaEstudio`) sai — era um `<h1>`, um
+  parágrafo e um link, e nunca teve conteúdo próprio. A Produção **herda o nome e o endereço**:
+  `/bastidores/estudio` passa a servir a página que era a Produção, com as secções todas dentro.
+  O **grupo «Produção» da coluna fica** — é o BLOCO que continua dentro do estúdio, e é o que ela
+  descreveu.
+- **Os endereços antigos não se apagam.** `/bastidores` e `/bastidores/producao` respondem **302**
+  para o novo, com a query; o mês a mês idem nas duas formas antigas. É a regra que o
+  `/bastidores/financeiro` já seguia. Um favorito antigo chega ao mesmo sítio; um 404 seria a
+  mudança de nome a apagar o caminho de quem o tinha guardado.
+- **O painel inicial passa a ser o retrato da escola em blocos** — e ele **ainda não está
+  construído**: o que existe é o **modelo**, em `experimentos/propostas/`. Os números são os da
+  escola viva (nenhum inventado), e cada um diz de onde vem.
+- **A pergunta que o modelo faz é sobre «ocupação»**, e ela não tem resposta ainda: mede a **agenda**
+  (aulas dadas sobre as previstas no período — tem dado, e é a conta do calendário do plano) ou o
+  **corpo** (alunas do elenco sobre as vagas da sala — e **vagas não existe**: é campo novo na
+  Sala). O modelo mostra a agenda e diz a outra com o custo dela.
+
+**Onde entrou.**
+- `motor/servidor/bastidores.js` — as rotas (`/bastidores/estudio` serve; `/bastidores` e
+  `/bastidores/producao` são 302), o mês a mês em `/bastidores/estudio/financeiro`, o `<h1>` e o
+  título «Estúdio», o `aria-label` da coluna, e a saída de `paginaEstudio`.
+- `tools/templates/nav-html.js` — o grupo «Bastidores» com **um** item, «Estúdio».
+- `tools/montar-publicacao.js` — o menu de recurso da publicação montada, com um item.
+- `tools/check-identidade.js` — o rótulo da página medida no relatório.
+- `motor/servidor/producao.js` e `porta/index.html` — os dois links que apontavam à Produção.
+- `experimentos/propostas/construir.js` — o modelo do painel (`proporPainelDoEstudio`), com as duas
+  formas de dizer o número, e o cartão no índice das propostas.
+- `professores/demi-plie/ciclos/ciclo-01-breu{,-rosa}/plano-observacao/index.html` — as duas cópias
+  da porta, re-sincronizadas com o link novo.
+- As **86 provas** que citavam `/bastidores/producao` passam a citar `/bastidores/estudio`: elas
+  medem o endereço que existe, e o antigo responde 302.
+
+**Motivo declarado — os congelados.** `tools/templates/nav-html.js`, `tools/montar-publicacao.js` e
+`tools/check-identidade.js` estão em `CONGELAMENTO.md`, e a alteração muda **comportamento** na tela:
+o menu de Bastidores passa de dois itens a um, e o rótulo do segundo muda. Foi pedido pela
+proprietária, e vai em **commit próprio**. **O que não muda**: formato de dados, chaves gravadas, o
+hash de proveniência, a cobertura de validação, e as regras de `REGRAS.md` e as pétreas de
+`PROTOCOLO.md`. O que muda é navegação — um destino a menos e um nome novo —, e nenhum documento
+gerado muda por causa dela.
+
+**Com o quê.** `motor/servidor/bastidores.js`, `motor/servidor/producao.js`,
+`tools/templates/nav-html.js`, `tools/montar-publicacao.js`, `tools/check-identidade.js`,
+`porta/index.html`, `experimentos/propostas/construir.js`,
+`experimentos/provar-o-estudio.js` (**novo**), as 86 provas com o endereço antigo, as duas cópias da
+porta nos pacotes, `.gitignore`, `ESTADO-ATUAL.md`.
+
+**Referências.** `IDENTIDADE-VISUAL.md` (o catálogo das peças — o modelo do painel não inventa
+peça nenhuma sem o dizer); `IDEIA-PAINEL-ESCOLA.md` §2 (o que era a «cena»); `ARQUITETURA-GERAL.md`.
+
+**MEDIDO.** `provar-o-estudio` **33/33**, com o **controle negativo** `--contra=feac5b03` a derrubar
+**26 de 33**. `provar-a-moldura-em-todas-as-telas` **111/111**. O modelo, no navegador: cinco
+números reais, a cota da sala a `0/1000`, e a bancada a trocar entre as três opções. As provas que
+tocam os Bastidores medidas **contra a base** — `provar-producao` 142/159, `provar-barra-unica` 3
+falhas, `provar-abas-da-audicao` 4 falhas, `provar-aparencia` 76/77 — dão **exactamente o mesmo
+número com e sem esta mudança**: são falhas anteriores, não custos desta. `check-identidade` **0
+problemas**, `check-indices` **16/16**, `check-pacote` **0 erros** (1 aviso: o PDF, por desenho).
+
+**O que ainda não está feito.**
+- **O painel não está construído.** O que existe é o modelo, e ele espera duas decisões: o **peso do
+  número** (a caixinha da casa ou uma peça nova) e o que **«ocupação»** mede.
+- **Se a ocupação for o corpo**, falta o campo **vagas** na Sala — e é um campo novo de dados, com o
+  caminho que os outros tiveram (declarado no cadastro, lido pelo painel, provado).
+- **A metade do KV do expurgo continua por medir**: a chave do cofre é a `SENHA_MESTRA`, não um token
+  da Cloudflare. Fica à espera de um token de API.

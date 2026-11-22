@@ -1205,7 +1205,7 @@ async function fetch(request, env) {
       return respostaEstado('Área do Professor desabilitada',
         '<p>Esta escola ainda não tem um professor cadastrado — a Área do Professor ' +
         '(anamnese, plano de ensino e plano de observação) abre depois do cadastro.</p>' +
-        '<p class="acoes"><a href="/bastidores/producao">Ir aos Bastidores → cadastrar o professor</a></p>',
+        '<p class="acoes"><a href="/bastidores/estudio">Ir aos Bastidores → cadastrar o professor</a></p>',
         200);
     }
     const rel = caminhoDaPorta(path, prefixo);

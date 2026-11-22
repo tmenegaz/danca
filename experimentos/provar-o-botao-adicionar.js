@@ -58,7 +58,7 @@ function pagina() {
   vc.on('jsdomError', (e) => erros.push(String((e && e.message) || e).split('\n')[0]));
   const dom = new JSDOM(pagina(), {
     runScripts: 'dangerously',
-    url: 'https://breu.padd.com.br/bastidores/producao',
+    url: 'https://breu.padd.com.br/bastidores/estudio',
     virtualConsole: vc,
     /* SEM `fetch`, O SCRIPT ABORTA E NENHUM OUVINTE É REGISTADO — e a prova passaria a medir uma
      * página a que faltava metade do comportamento, com o `disabled` certo por acidente (o botão já

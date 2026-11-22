@@ -127,7 +127,7 @@ function provar(descricao, obtido, esperado) {
 /** Abre a secção das alunas e mede a linha, a coluna da listagem e a do formulário. */
 async function medir(pg, largura, cssExtra) {
   await pg.setViewport({ width: largura, height: ALTURA });
-  await pg.goto(pg.__base + '/bastidores/producao', { waitUntil: 'load' });
+  await pg.goto(pg.__base + '/bastidores/estudio', { waitUntil: 'load' });
   await pg.evaluate(() => {
     const conteudo = document.getElementById('conteudo');
     if (conteudo) conteudo.hidden = false;

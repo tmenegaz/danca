@@ -239,7 +239,7 @@ const LARGURAS = [1280, 1200, 768, 390, 360, 320];
 
   for (const w of LARGURAS) {
     await pg.setViewport({ width: w, height: 1400 });
-    await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
+    await pg.goto(base + '/bastidores/estudio', { waitUntil: 'load' });
     // O ESTADO É LIMPO A CADA LARGURA. Ele vive em `sessionStorage` e sobrevive à navegação:
     // sem limpar, a segunda largura começaria com tudo recolhido pela primeira, e a prova
     // mediria o rastro da anterior em vez do estado inicial.
@@ -359,7 +359,7 @@ const LARGURAS = [1280, 1200, 768, 390, 360, 320];
   // sozinho desfaria, a cada operação, o que a pessoa acabou de pedir. E ele é POR SECÇÃO:
   // quem recolheu o vocabulário para ler a lista não pediu para recolher as alunas.
   await pg.setViewport({ width: 1280, height: 1400 });
-  await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
+  await pg.goto(base + '/bastidores/estudio', { waitUntil: 'load' });
   await pg.evaluate(() => { try { sessionStorage.clear(); } catch (e) { /* modo privado */ } });
   await pg.reload({ waitUntil: 'load' });
   /* O QUE SE LEMBRA AGORA É O ABERTO (18/11/2026). Antes, o padrão era «aberta» e o que se
@@ -408,7 +408,7 @@ const LARGURAS = [1280, 1200, 768, 390, 360, 320];
     ];
     for (const [nome, id, seletor] of GESTOS) {
       await pg.setViewport({ width: 1280, height: 1400 });
-      await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
+      await pg.goto(base + '/bastidores/estudio', { waitUntil: 'load' });
       await pg.evaluate(() => { try { sessionStorage.clear(); } catch (e) { /* modo privado */ } });
       await pg.reload({ waitUntil: 'load' });
       await abrir(pg, id);
@@ -441,7 +441,7 @@ const LARGURAS = [1280, 1200, 768, 390, 360, 320];
     /* E A OUTRA METADE: QUEM NUNCA CLICOU EM NADA ENCONTRA O FORMULÁRIO FECHADO. Sem esta
      * asserção, «abre no gesto» poderia estar a passar porque TUDO abre no arranque — e o
      * recolhimento por omissão, que é metade do pedido, ficaria por medir. */
-    await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
+    await pg.goto(base + '/bastidores/estudio', { waitUntil: 'load' });
     await pg.evaluate(() => { try { sessionStorage.clear(); } catch (e) { /* modo privado */ } });
     await pg.reload({ waitUntil: 'load' });
     const todasFechadas = await pg.evaluate((ids) => {
@@ -485,7 +485,7 @@ const LARGURAS = [1280, 1200, 768, 390, 360, 320];
     ];
     for (const [nome, id, seletorDoGesto, seletorDoCancelar, seletorDoForm] of CANCELARES) {
       await pg.setViewport({ width: 1280, height: 1400 });
-      await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
+      await pg.goto(base + '/bastidores/estudio', { waitUntil: 'load' });
       await pg.evaluate(() => { try { sessionStorage.clear(); } catch (e) { /* modo privado */ } });
       await pg.reload({ waitUntil: 'load' });
       await abrir(pg, id);
@@ -554,7 +554,7 @@ const LARGURAS = [1280, 1200, 768, 390, 360, 320];
    */
   {
     await pg.setViewport({ width: 1280, height: 1400 });
-    await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
+    await pg.goto(base + '/bastidores/estudio', { waitUntil: 'load' });
     await pg.evaluate(() => { try { sessionStorage.clear(); } catch (e) { /* modo privado */ } });
     await pg.reload({ waitUntil: 'load' });
     await abrir(pg, 'sec-verbetes');

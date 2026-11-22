@@ -18,7 +18,7 @@
  *   · as três caixas são os três assuntos que eram abas: **Contrato**, **Situação** e **Pagar**;
  *   · a caixa «Situação» abre com o MÊS CORRENTE e, **só quando há**, com o que está em aberto —
  *     «se não tiver nenhum em aberto, nem exibe»;
- *   · a mesma caixa leva o link para uma página nova, `/bastidores/producao/financeiro`, que lista o mês a
+ *   · a mesma caixa leva o link para uma página nova, `/bastidores/estudio/financeiro`, que lista o mês a
  *     mês completo — a listagem inteira, «só uma listagem mesmo».
  *
  * O QUE ELE **NÃO** FAZ, e é o ponto de método: não muda a produção. A proposta é um documento
@@ -280,7 +280,7 @@ function painelDaSituacao(s) {
     + emAberto
     + '<p class="par-botoes">' + botaoPagar
     + '<a class="acao secundario pequena"'
-    + ' href="/bastidores/producao/financeiro" title="ver todos os meses, com o que foi pago e quando">'
+    + ' href="/bastidores/estudio/financeiro" title="ver todos os meses, com o que foi pago e quando">'
     + 'Ver o mês a mês</a></p>';
 }
 
@@ -682,7 +682,7 @@ function paginaDaProposta() {
       'No telemóvel o painel ocupa a largura toda, abaixo das três caixas.'),
     '</div>',
 
-    '<h2 class="rodada">A página do mês a mês — <code>/bastidores/producao/financeiro</code></h2>',
+    '<h2 class="rodada">A página do mês a mês — <code>/bastidores/estudio/financeiro</code></h2>',
     '<div class="posturas">',
     lado('proposta-escola-extrato-desktop.html', 'larga', 'Computador', '1240 × 860',
       'A listagem inteira, do mais recente para o mais antigo. É «só uma listagem»: um cartão por '
@@ -693,7 +693,7 @@ function paginaDaProposta() {
 
     '<p class="abre">O que esta proposta <b>não</b> decide: a barra e o menu da página nova (aqui '
     + 'não aparecem, para não roubar largura ao que se está a avaliar), e o nome do endereço — '
-    + '<code>/bastidores/producao/financeiro</code> é sugestão, e muda sem custo.</p>',
+    + '<code>/bastidores/estudio/financeiro</code> é sugestão, e muda sem custo.</p>',
     '<p class="abre">Em janelas com menos de 1320px de largura as molduras do computador não '
     + 'aparecem — são janelas de 1240px, e encolhê-las mostraria outra página. Num ecrã largo '
     + 'vê-se tudo; num estreito ficam as do telemóvel, que é onde a decisão é difícil.</p>',

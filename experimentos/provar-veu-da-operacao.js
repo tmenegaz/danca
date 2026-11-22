@@ -110,7 +110,7 @@ const srv = http.createServer((req, res) => {
   const nav = await puppeteer.launch({ executablePath: executavel, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
   const p = await nav.newPage();
   await p.setViewport({ width: 1280, height: 900 });
-  await p.goto(base + '/bastidores/producao', { waitUntil: 'networkidle0', timeout: 60000 });
+  await p.goto(base + '/bastidores/estudio', { waitUntil: 'networkidle0', timeout: 60000 });
 
   let ok = 0, ko = 0;
   const provar = (t, c, d) => { if (c) { ok++; console.log('  ok    ' + t); } else { ko++; console.log('  FALHOU ' + t + (d === undefined ? '' : ' → ' + JSON.stringify(d))); } };

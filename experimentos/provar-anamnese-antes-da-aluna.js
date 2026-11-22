@@ -84,7 +84,7 @@ function envDeEscola() {
 
   /* ── A. O RECADO ──────────────────────────────────────────────────────────────────────────── */
   const pagina = await producao.fetch(
-    new Request('https://batata.padd.com.br/bastidores/producao'), env);
+    new Request('https://batata.padd.com.br/bastidores/estudio'), env);
   const html = await pagina.text();
 
   provar('a Produção responde 200', pagina.status === 200, pagina.status);

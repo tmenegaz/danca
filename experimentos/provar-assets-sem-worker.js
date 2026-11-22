@@ -167,7 +167,7 @@ console.log('\n2 · o roteamento classifica cada caminho como deve');
     '/', '/aulas/', '/ciclos/planos/', '/piano/aula-01.html', '/sistema.html',
     '/api/saude', '/api/bastidores/alunas', '/api/receber',
     '/area-do-professor/anamnese', '/area-do-professor/plano-de-observacao',
-    '/plano-observacao/', '/anamnese/', '/bastidores/producao',
+    '/plano-observacao/', '/anamnese/', '/bastidores/estudio',
     '/scripts/geracao.js', '/scripts/teste-preenchimento.js',
   ];
   for (const c of devemIrParaOWorker) {

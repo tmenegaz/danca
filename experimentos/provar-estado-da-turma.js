@@ -278,7 +278,7 @@ async function oCliente() {
         acoes: '<button class="ajustar acao pequena" data-curadoria-ajustar="c1" data-modo="derivar" title="Derivar">Derivar</button>',
       } },
     };
-    await page.goto(base + '/bastidores/producao', { waitUntil: 'networkidle0' });
+    await page.goto(base + '/bastidores/estudio', { waitUntil: 'networkidle0' });
     await new Promise((r) => setTimeout(r, 700));
 
     const montada = await cartao();
@@ -298,7 +298,7 @@ async function oCliente() {
     // SEGUNDA CARGA: a rota falha, para o cartão FICAR a dizer «Editar» — é o botão atrasado que
     // ela encontrou, e é sobre ele que a guarda trabalha.
     estado.rota = { ok: false };
-    await page.goto(base + '/bastidores/producao', { waitUntil: 'networkidle0' });
+    await page.goto(base + '/bastidores/estudio', { waitUntil: 'networkidle0' });
     await new Promise((r) => setTimeout(r, 500));
     const atrasada = await cartao();
     checar('com a rota a falhar, o cartão fica como nasceu — «Editar»', atrasada.modoDoBotao === 'editar', atrasada.mododoBotao);

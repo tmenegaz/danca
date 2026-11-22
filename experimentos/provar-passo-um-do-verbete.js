@@ -197,7 +197,7 @@ function nomesRepetidos(script) {
 
   try {
     await page.setViewport({ width: 1280, height: 950 });
-    await page.goto(base + '/bastidores/producao', { waitUntil: 'networkidle0' });
+    await page.goto(base + '/bastidores/estudio', { waitUntil: 'networkidle0' });
     // A Produção é uma página de sessão: `abrirSessao` é o que o login faz ao vivo.
     await page.evaluate(() => {
       if (typeof abrirSessao === 'function') abrirSessao('token-de-prova');

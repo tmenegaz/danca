@@ -389,7 +389,7 @@ console.log('\n7. AS ROTAS — a lista que já existe, e a rota própria');
       }]),
     });
     const dom = new JSDOM(pagina.replace(/<script src="[^"]*"><\/script>/g, ''), {
-      runScripts: 'dangerously', url: 'https://' + ESCOLA + '.workers.dev/bastidores/producao',
+      runScripts: 'dangerously', url: 'https://' + ESCOLA + '.workers.dev/bastidores/estudio',
       pretendToBeVisual: true, virtualConsole: vc,
       beforeParse(w) {
         w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},

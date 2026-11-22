@@ -143,7 +143,7 @@ const MEDIR = (raiz) => {
     const pg = await br.newPage();
     /* A TELA DELA, e não uma qualquer: 1360×768 é a medida em que o defeito aparece. */
     await pg.setViewport({ width: 1360, height: 768 });
-    await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
+    await pg.goto(base + '/bastidores/estudio', { waitUntil: 'load' });
     /* ABRIR OS ANTEPASSADOS É PARTE DA MEDIÇÃO, e não preparação. Sem isto as tabelas estão dentro
      * de `<section hidden>` e de painéis de passo também `hidden` — `display:none` —, todas as
      * larguras dão ZERO, e as asserções passam por vacuidade. Uma prova que mede o vazio declara

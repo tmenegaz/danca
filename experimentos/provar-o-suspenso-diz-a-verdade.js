@@ -154,7 +154,7 @@ function envDa(estado) {
       paciente.on('jsdomError', (e) => erros.push(String((e && e.message) || e)));
       const dom = new JSDOM(html, {
         runScripts: 'dangerously',
-        url: 'https://breu.padd.com.br/bastidores/producao',
+        url: 'https://breu.padd.com.br/bastidores/estudio',
         virtualConsole: paciente,
         beforeParse(win) {
           win.fetch = () => Promise.resolve({

@@ -217,7 +217,7 @@ function lerVeu(p) {
    * A. EM REPOUSO
    * ==================================================================================== */
   console.log('A. EM REPOUSO AS DUAS ABAS ESTÃO DESTRAVADAS');
-  const a = await abrir('/bastidores/producao');
+  const a = await abrir('/bastidores/estudio');
   const b = await abrir('/plano-ensino/');
 
   const repousoA = await lerVeu(a);

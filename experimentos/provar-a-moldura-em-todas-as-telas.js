@@ -83,7 +83,7 @@ function arvore() {
   escrever(raiz, path.join(zero, 'index.html'),
     '<!DOCTYPE html><html lang="pt-BR"><body>\n' + nav.desenhar({
       versao: 2, coluna: [], barra: [{ tipo: 'menu', rotulo: 'Bastidores',
-        itens: [{ rotulo: 'Produção', href: '/bastidores/producao' }] }],
+        itens: [{ rotulo: 'Produção', href: '/bastidores/estudio' }] }],
     }, '/') + '\n<main><h1>Sistema Lastro</h1></main></body></html>\n');
   escrever(raiz, path.join(zero, 'assets', 'style.css'), 'body{}\n');
   escrever(raiz, path.join(zero, 'assets', 'nav.js'), '// nav\n');
@@ -271,7 +271,7 @@ const MOLdura = (html) => ({
       + '&ciclo=01'],
     ['o plano do ciclo (documento)', '/nivel-1/plano.html'],
     ['a aula (documento)', '/nivel-1/aula-01.html'],
-    ['os Bastidores — Produção', '/bastidores/producao'],
+    ['os Bastidores — Produção', '/bastidores/estudio'],
     ['os Bastidores — Estúdio', '/bastidores/estudio'],
   ];
 

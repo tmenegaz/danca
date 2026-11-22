@@ -231,7 +231,7 @@ const LI = 'li.turma[data-turma="tu1"]';
   // ---- 1 e 2: a geometria, em seis larguras ------------------------------------------
   for (const w of LARGURAS) {
     await pg.setViewport({ width: w, height: 900 });
-    await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
+    await pg.goto(base + '/bastidores/estudio', { waitUntil: 'load' });
     await abrirTurmas(pg);
     const r = await pg.evaluate((sel) => {
       const l = document.querySelector(sel);
@@ -264,7 +264,7 @@ const LI = 'li.turma[data-turma="tu1"]';
 
   // ---- 3 a 6: o painel abre, fecha, e um fecha o outro -------------------------------
   await pg.setViewport({ width: 1280, height: 900 });
-  await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
+  await pg.goto(base + '/bastidores/estudio', { waitUntil: 'load' });
   await abrirTurmas(pg);
   const estado = () => pg.evaluate((sel) => {
     const l = document.querySelector(sel);
@@ -773,7 +773,7 @@ const LI = 'li.turma[data-turma="tu1"]';
 
   // No telefone, o par associar continua a andar junto.
   await pg.setViewport({ width: 390, height: 900 });
-  await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
+  await pg.goto(base + '/bastidores/estudio', { waitUntil: 'load' });
   await pg.evaluate(() => {
     const c = document.getElementById('conteudo'); if (c) c.hidden = false;
     location.hash = '#turmas';
@@ -960,7 +960,7 @@ const LI = 'li.turma[data-turma="tu1"]';
   for (const w of [414, 390, 360, 320, 1280]) {
     for (const editando of [false, true]) {
       await pg.setViewport({ width: w, height: 900 });
-      await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
+      await pg.goto(base + '/bastidores/estudio', { waitUntil: 'load' });
       await abrirTurmas(pg);
       if (editando) {
         await pg.evaluate(() => {

@@ -204,7 +204,7 @@ function provar(rotulo, condicao, detalhe) {
     provar('/anamnese/ (escola sem professor) não é 302', r.status !== 302, r.status);
     provar('…e a página diz o que falta e onde se resolve',
       html.indexOf('Área do Professor desabilitada') !== -1
-        && html.indexOf('/bastidores/producao') !== -1, html.slice(0, 80));
+        && html.indexOf('/bastidores/estudio') !== -1, html.slice(0, 80));
   }
 
   console.log('\n' + (falhas ? 'FALHOU — ' : 'TUDO CERTO — ') + total + ' asserção(ões), '

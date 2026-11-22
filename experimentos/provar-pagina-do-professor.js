@@ -85,7 +85,7 @@ try { ({ JSDOM, VirtualConsole } = require('jsdom')); } catch (e) { JSDOM = null
   const vc = new VirtualConsole();
   vc.on('jsdomError', (e) => erros.push((e && e.detail && e.detail.message) || (e && e.message)));
   const dom = new JSDOM(aPagina().replace(/<script src="[^"]*"><\/script>/g, ''), {
-    runScripts: 'dangerously', url: BASE + '/bastidores/producao', pretendToBeVisual: true,
+    runScripts: 'dangerously', url: BASE + '/bastidores/estudio', pretendToBeVisual: true,
     virtualConsole: vc,
     beforeParse(w) {
       w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},

@@ -72,7 +72,7 @@ const MENU = {
   ],
   barra: [{ tipo: 'menu', rotulo: 'Bastidores', itens: [
     { rotulo: 'Estúdio de Dança', href: '/bastidores/estudio' },
-    { rotulo: 'Produção', href: '/bastidores/producao' },
+    { rotulo: 'Produção', href: '/bastidores/estudio' },
   ] }],
 };
 
@@ -132,7 +132,7 @@ console.log('\n2 · O caminho é escrito UMA vez, por muitas passagens que a pá
      e o `s5-sessao` da Produção vive no mesmo intervalo. */
   const comS5 = pagina.replace('<span class="doc-atual"><small>Área do Professor</small>Notação</span>',
     '<span class="s5-sessao">Produção · Alunas</span>');
-  const depois = nav.aplicar(comS5, MENU, '/bastidores/producao');
+  const depois = nav.aplicar(comS5, MENU, '/bastidores/estudio');
   provar('o bloco da página (a S5 da Produção) sobrevive à passagem',
     /s5-sessao/.test(depois) && /Produção · Alunas/.test(depois), (depois || '').slice(0, 80));
 }
@@ -228,7 +228,7 @@ console.log('\n5 · Os Bastidores têm a coluna, e continuam a não ter dois men
      lista da barra não se mostra, e quem navega é a folha. Sem coluna, a folha não existia — e a
      pesquisadora abria o ☰ dentro da Produção e só tinha o Bastidores. A coluna passa a ser
      desenhada em TODO o lado; o duplo no computador resolve-se no CSS. */
-  const nosBastidores = nav.desenhar(MENU, '/bastidores/producao', { extras: '', titulo: 'Produção' });
+  const nosBastidores = nav.desenhar(MENU, '/bastidores/estudio', { extras: '', titulo: 'Produção' });
   provar('a página dos Bastidores RECEBE a coluna do sistema — é ela que o ☰ abre no telemóvel',
     /class="coluna[ "]/.test(nosBastidores), (nosBastidores || '').slice(0, 60));
   provar('…e a barra continua lá, com o Bastidores',

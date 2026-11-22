@@ -312,7 +312,7 @@ async function medirVaoDaAba(PAGINA) {
   const linhas = linhasDaProva();
   const servidor = http.createServer((req, res) => {
     const url = String(req.url).split('?')[0];
-    if (url === '/bastidores/producao' || url === '/sem') {
+    if (url === '/bastidores/estudio' || url === '/sem') {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       return res.end(url === '/sem' ? semARegra : PAGINA);
     }
@@ -391,7 +391,7 @@ async function medirVaoDaAba(PAGINA) {
       };
     };
 
-    const v = await vaos('/bastidores/producao');
+    const v = await vaos('/bastidores/estudio');
     /* Sem isto, a medida do vão estaria a medir o aviso das anamneses em vez da fronteira. */
     provar('a bancada arranca com a leitura sã (o aviso das anamneses escondido)',
       v.avisoEscondido === true, JSON.stringify(v));
@@ -535,7 +535,7 @@ async function medirLeituraQueFalha(PAGINA, JSDOM, VirtualConsole) {
     vc.on('jsdomError', () => {});
     vc.on('error', () => {});
     const dom = new JSDOM(PAGINA.replace(/<script src="[^"]*"><\/script>/g, ''), {
-      runScripts: 'dangerously', url: 'https://barra.workers.dev/bastidores/producao',
+      runScripts: 'dangerously', url: 'https://barra.workers.dev/bastidores/estudio',
       pretendToBeVisual: true, virtualConsole: vc,
       beforeParse(w) {
         w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -773,7 +773,7 @@ async function principal() {
    * aqui é exactamente o de uma tela que não acompanha o servidor. */
   let linhasNaRota = linhasDaProva();
   const dom = new JSDOM(PAGINA.replace(/<script src="[^"]*"><\/script>/g, ''), {
-    runScripts: 'dangerously', url: 'https://barra.workers.dev/bastidores/producao',
+    runScripts: 'dangerously', url: 'https://barra.workers.dev/bastidores/estudio',
     pretendToBeVisual: true, virtualConsole: vc,
     beforeParse(w) {
       w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},

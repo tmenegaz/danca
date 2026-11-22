@@ -120,7 +120,7 @@ function semear(quantos) {
 async function abrirProducao(quantos) {
   const kv = kvEmMemoria(semear(quantos));
   const res = await bastidores.fetch(
-    new Request('https://prova.test/bastidores/producao'),
+    new Request('https://prova.test/bastidores/estudio'),
     { ESCOLA_SLUG: ESCOLA, PADD_KV: kv, PROFESSOR_NOME: 'Tiago Menegaz' }
   );
   const html = await res.text();
@@ -130,7 +130,7 @@ async function abrirProducao(quantos) {
   const dom = new JSDOM(html, {
     runScripts: 'dangerously',
     virtualConsole: vc,
-    url: 'https://prova.test/bastidores/producao',
+    url: 'https://prova.test/bastidores/estudio',
     /* O `fetch` DO JSDOM NÃO EXISTE, e a página pede as listas ao servidor assim que abre. Sem
      * este substituto o script morria na primeira chamada e metade da página deixava de correr —
      * o erro aparecia como «a página carrega sem erro de script», que é verdade e não diz nada

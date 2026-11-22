@@ -66,7 +66,7 @@ async function abrir() {
   const queixas = [];
   vc.on('jsdomError', (e) => queixas.push((e && e.detail && e.detail.message) || (e && e.message)));
   const dom = new JSDOM(aPagina().replace(/<script src="[^"]*"><\/script>/g, ''), {
-    runScripts: 'dangerously', url: 'https://breu.padd.com.br/bastidores/producao',
+    runScripts: 'dangerously', url: 'https://breu.padd.com.br/bastidores/estudio',
     pretendToBeVisual: true, virtualConsole: vc,
     beforeParse(w) {
       w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},

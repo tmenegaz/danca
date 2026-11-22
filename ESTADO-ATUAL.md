@@ -4,7 +4,20 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 22/11/2026 (commit `144115fc`). Ainda neste dia, **a régua da turma passou a
+> **Última fotografia:** 22/11/2026 (commit `d85c42c1`). Ainda neste dia, **Bastidores passou a ter um
+> destino só**: a «cena» (o Estúdio de Dança) saiu — era um `<h1>`, um parágrafo e um link, e nunca
+> teve conteúdo próprio — e a Produção **herdou o nome e o endereço**. Palavras dela: «Em bastidores
+> a gente vai ter apenas a produção e tudo o que a gente já desenvolveu dentro dela. Só que nós
+> vamos rebatizar a produção. A produção vai se chamar estúdio.» `/bastidores/estudio` serve a
+> página com as dez secções todas dentro, e `/bastidores` e `/bastidores/producao` respondem **302**
+> para lá, com a query — um favorito antigo chega ao mesmo sítio. O grupo «Produção» da coluna fica:
+> é o BLOCO que continua dentro do estúdio. E o **modelo do painel inicial** — o novo ecrã de
+> entrada — está em `experimentos/propostas/proposta-painel-do-estudio.html`, com os **números da
+> escola viva** e a pergunta que só ela pode responder: «ocupação da sala» mede a **agenda** (aulas
+> dadas de previstas — tem dado) ou o **corpo** (alunas sobre vagas — e vagas não existe: é campo
+> novo na Sala)?
+>
+> **Fotografia anterior (22/11/2026 — commit `144115fc`).** Ainda neste dia, **a régua da turma passou a
 > ser uma só** — e o corpo da folha de lançamento media-se por outra, chumbada no template
 > (`ok / parcial / nao / nao_vi`). Palavras dela: «Nós temos duas matrizes, está errado isso. A
 > régua da turma é só uma […] a parte do corpo está com uma régua que ela está chumbada no código.
@@ -3141,6 +3154,40 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      na estante, e é o histórico que o lê. A mesma regra nos **dois** clientes (a porta e o painel
      do acervo). **DECIDIDO** 22/11/2026.
 
+142. **BASTIDORES TEM UM DESTINO SÓ, E ELE CHAMA-SE ESTÚDIO — O ENDEREÇO VAI COM O NOME.** Palavras
+     dela: «Nós temos aqui bastidores, e bastidores tem dois endereços, o estúdio de dança e a
+     produção. Esse endereço estúdio de dança vai deixar de existir. Em bastidores a gente vai ter
+     apenas a produção e tudo o que a gente já desenvolveu dentro dela. Só que nós vamos rebatizar a
+     produção. A produção vai se chamar estúdio. […] aqui dentro do estúdio nós temos o bloco
+     produção, que aí tem um painel inicial, isso continua assim. Configuração com o que tem dentro
+     dele continua. Pessoa também e pedagogia e tudo que tem dentro também.» **A cena sai** — era um
+     `<h1>`, um parágrafo e um link, e nunca teve conteúdo próprio —, e **a produção herda o nome e
+     o endereço**: `/bastidores/estudio` passa a servir a página que era a Produção, com as secções
+     todas dentro (Painel inicial, Aparência e A escola, Professores e Alunas, Salas, Audição,
+     Dicionário, Estilo e Turmas). O **grupo «Produção» da coluna fica** — é o BLOCO que continua
+     dentro do estúdio, e é o que se lê. O `<h1>` e o título são «Estúdio»; o menu de Bastidores tem
+     **um item**. **Os endereços antigos não se apagam**: `/bastidores` e `/bastidores/producao`
+     respondem **302** para o novo, com a query, e o mês a mês idem nas duas formas antigas — é a
+     regra que o `/bastidores/financeiro` já seguia desde 17/11. Um favorito antigo chega ao mesmo
+     sítio; um 404 seria a mudança de nome a apagar o caminho de quem o tinha guardado.
+     **DECIDIDO** 22/11/2026.
+
+143. **O PAINEL INICIAL PASSA A SER O RETRATO DA ESCOLA EM BLOCOS — E «OCUPAÇÃO» AINDA NÃO TEM
+     DEFINIÇÃO.** Palavras dela: «Sempre que entrar no [estúdio] a gente vai para o painel inicial.
+     […] aliás, vários dashboards, que mostram para a gente em blocos quantos alunos existem na
+     escola, qual é o nome da escola, quem é o responsável pela escola, quantos professores tem na
+     escola, quais são as salas que essa escola possui, qual é a taxa de ocupação das salas, quantos
+     elencos tem, esses elencos são compostos de quantas pessoas, quais modalidades a escola
+     ensina. Mas primeiro você vai me apresentar lá no experimento um modelo.» O modelo está em
+     `experimentos/propostas/proposta-painel-do-estudio.html`, com os **números da escola viva**
+     (nenhum inventado, e cada um com a fonte ao lado), e a única decisão de desenho que ele põe é o
+     **peso do número** — a caixinha que a Produção já usa (zero peças novas) ou uma peça nova com o
+     número grande. **A pergunta que ele faz é outra**: «taxa de ocupação» mede a **agenda** (aulas
+     dadas sobre as previstas no período — tem dado hoje, e é a conta do calendário do plano) ou o
+     **corpo** (alunas do elenco sobre as vagas da sala — e **vagas não existe**: é campo novo na
+     Sala, e essa é uma decisão de dados, não de desenho). O modelo mostra a agenda e **diz a outra
+     com o seu custo**. **DECIDIDO** 22/11/2026.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -3956,7 +4003,17 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (22/11/2026 — uma régua só, e um plano só na escolha)
+### Executado nesta fotografia (22/11/2026 — o estúdio, e o modelo do painel)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-o-estudio` (**novo**, 33/33) | `/bastidores/estudio` responde 200 e diz «Estúdio» no título e no `<h1>`; `/bastidores` e `/bastidores/producao` são **302** para ele, e a **query atravessa** (`?abrir=pagar` chega); o mês a mês novo responde 200 e **as duas formas antigas** são 302; as dez secções continuam todas dentro; o grupo «Produção» da coluna fica; e o menu de Bastidores tem **um item**, «Estúdio», aceso na página |
+| o controle negativo da mesma prova | `--contra=feac5b03` → **26 de 33 caem**. Na base, `/bastidores/estudio` é a «cena» (um parágrafo), `/bastidores/producao` serve o gabinete, e o menu tem dois itens. A prova mede a mudança |
+| a busca do menu em 111 telas | `provar-a-moldura-em-todas-as-telas` **111/111** — a barra e a coluna continuam em todas as telas que o Worker serve, agora com o destino novo |
+| o modelo do painel, medido no navegador | `proposta-painel-do-estudio.html`: cinco números (Alunas 2 · Professores 2 · Salas 1 · Elencos 2 · Modalidades 2), a cota da sala a `0/1000` e a nota «o período ainda não começou»; a bancada troca entre «hoje» (um parágrafo, zero cotas), «caixinhas da casa» (5) e «número grande» (5 da peça nova) |
+| `check-identidade` · `check-indices` · `check-pacote` | **0 problemas** (depois de re-sincronizar as duas cópias da porta) · **16/16** · **0 erros, 1 aviso** (o PDF, por desenho) |
+
+### Executado na fotografia anterior (22/11/2026 — uma régua só, e um plano só na escolha)
 
 | Verificação | Resultado |
 |:--|:--|

@@ -162,13 +162,13 @@ async function abrirNavegador(executavel) {
 
 /** Sobe a página servida de 127.0.0.1, com o `/api/*` respondido pelo teste. */
 async function subirBancada({ respostaDoPost, atraso }) {
-  const pagina = await bastidores.fetch(new Request('https://calango.tmenegaz77.workers.dev/bastidores/producao'), env());
+  const pagina = await bastidores.fetch(new Request('https://calango.tmenegaz77.workers.dev/bastidores/estudio'), env());
   const html = await pagina.text();
   const pedidos = [];
   const servidor = http.createServer((req, res) => {
     pedidos.push(req.method + ' ' + req.url);
     const u = new URL(req.url, 'http://127.0.0.1');
-    if (u.pathname === '/bastidores/producao') {
+    if (u.pathname === '/bastidores/estudio') {
       res.writeHead(200, { 'Content-Type': 'text/html;charset=utf-8', 'Cache-Control': 'no-store' });
       return res.end(html);
     }
@@ -273,7 +273,7 @@ async function principais() {
       atraso: 1500,
     });
     const nav = await abrirNavegador(executavel);
-    await nav.ir('http://127.0.0.1:' + bancada.porta + '/bastidores/producao#professores');
+    await nav.ir('http://127.0.0.1:' + bancada.porta + '/bastidores/estudio#professores');
     await nav.avaliar(CLICAR);
 
     await new Promise((s) => setTimeout(s, 500));
@@ -284,7 +284,7 @@ async function principais() {
     await new Promise((s) => setTimeout(s, 2000));
     const depois = await nav.avaliar(ESTADO_DO_BOTAO);
     const recado = await nav.avaliar(ESTADO_DO_RECADO);
-    const gets = bancada.pedidos.filter((p) => p.indexOf('GET /bastidores/producao') === 0).length;
+    const gets = bancada.pedidos.filter((p) => p.indexOf('GET /bastidores/estudio') === 0).length;
 
     conferir('no erro, o botão volta ao rótulo de antes', depois.rotulo === 'Gravar cadastrar professor', depois);
     conferir('…e volta a ficar habilitado', depois.desabilitado === false, depois);
@@ -306,11 +306,11 @@ async function principais() {
       atraso: 300,
     });
     const nav = await abrirNavegador(executavel);
-    await nav.ir('http://127.0.0.1:' + bancada.porta + '/bastidores/producao#professores');
+    await nav.ir('http://127.0.0.1:' + bancada.porta + '/bastidores/estudio#professores');
     await nav.avaliar(CLICAR);
     await new Promise((s) => setTimeout(s, 2000));
 
-    const gets = bancada.pedidos.filter((p) => p.indexOf('GET /bastidores/producao') === 0).length;
+    const gets = bancada.pedidos.filter((p) => p.indexOf('GET /bastidores/estudio') === 0).length;
     const posts = bancada.pedidos.filter((p) => p.indexOf('POST /api/bastidores/professor') === 0).length;
     conferir('o clique manda UM pedido de cadastro', posts === 1, posts);
     conferir('no sucesso a página recarrega (o servidor vê o segundo GET)', gets >= 2, gets);

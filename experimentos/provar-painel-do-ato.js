@@ -1316,7 +1316,7 @@ const servidor = http.createServer(async (req, res) => {
         'color', 'padding-top', 'padding-left', 'font-size', 'font-weight']);
 
     // 3) a folha do «Seções» (Produção) e a sua pílula
-    await abrir('/bastidores/producao', 390);
+    await abrir('/bastidores/estudio', 390);
     await p.evaluate(() => { const b = document.getElementById('lateral-abrir'); if (b) b.click(); });
     await new Promise((r) => setTimeout(r, 450));
     const doSecoes = { folha: await vestes('#lateral-lista', FOLHA), puxador: await vestes('#lateral-lista .folha-puxador', PEGADOR) };
@@ -1358,7 +1358,7 @@ const servidor = http.createServer(async (req, res) => {
 
     /* A COLUNA DOS BASTIDORES — o mesmo comportamento da do sistema, no computador. */
     await p.setViewport({ width: 1280, height: 900 });
-    await p.goto(base + '/bastidores/producao', { waitUntil: 'load' });
+    await p.goto(base + '/bastidores/estudio', { waitUntil: 'load' });
     await new Promise((r) => setTimeout(r, 900));
     const lateral = await p.evaluate(() => {
       const l = document.querySelector('.lateral');

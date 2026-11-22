@@ -81,7 +81,7 @@ async function comAlfabeto(verbetes, escola) {
     };
     const r = await bastidores.fetch(new Request('https://e.workers.dev/api/bastidores/verbete'), env);
     const corpo = await r.json();
-    const pagina = await bastidores.fetch(new Request('https://e.workers.dev/bastidores/producao'), env);
+    const pagina = await bastidores.fetch(new Request('https://e.workers.dev/bastidores/estudio'), env);
     return { status: r.status, corpo, html: await pagina.text() };
   } finally {
     globalThis.fetch = original;

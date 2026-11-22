@@ -169,7 +169,7 @@ const linha = () => ({
       /path === '\/api\/bastidores\/revalidacao'/.test(fonte));
     provar('…e devolve `ordem` e `pendentes`, que é o que o aviso lê',
       /pendentes: \[\.\.\.r\.pendentes\.entries\(\)\]/.test(fonte));
-    /* O DEFEITO ERA O CAMINHO. A página da Produção vive em `/bastidores/producao`; um pedido
+    /* O DEFEITO ERA O CAMINHO. A página da Produção vive em `/bastidores/estudio`; um pedido
      * absoluto `/api/revalidacao` não é servido na raiz — só debaixo dos prefixos da porta. */
     provar('a página pede o caminho que existe, e não o antigo',
       /fetch\("\/api\/bastidores\/revalidacao"\)/.test(fonte)

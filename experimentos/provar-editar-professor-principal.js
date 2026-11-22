@@ -189,13 +189,13 @@ async function abrirNavegador(executavel, perfil) {
 }
 
 async function subirBancada({ respostaDoDono, curadorias = [] }) {
-  const pagina = await bastidores.fetch(new Request('https://calango.tmenegaz77.workers.dev/bastidores/producao'), env(curadorias));
+  const pagina = await bastidores.fetch(new Request('https://calango.tmenegaz77.workers.dev/bastidores/estudio'), env(curadorias));
   const html = await pagina.text();
   const pedidos = [];
   const servidor = http.createServer((req, res) => {
     pedidos.push(req.method + ' ' + req.url);
     const u = new URL(req.url, 'http://127.0.0.1');
-    if (u.pathname === '/bastidores/producao') {
+    if (u.pathname === '/bastidores/estudio') {
       res.writeHead(200, { 'Content-Type': 'text/html;charset=utf-8', 'Cache-Control': 'no-store' });
       return res.end(html);
     }
@@ -330,7 +330,7 @@ async function principais() {
   {
     const bancada = await subirBancada({ respostaDoDono: { status: 200, corpo: { ok: true } } });
     const nav = await abrirNavegador(executavel, perfil);
-    await nav.ir('http://127.0.0.1:' + bancada.porta + '/bastidores/producao#professores');
+    await nav.ir('http://127.0.0.1:' + bancada.porta + '/bastidores/estudio#professores');
 
     const antes = await nav.avaliar(ESTADO);
     conferir('a linha do principal tem «Editar» e NÃO tem «Excluir»',
@@ -411,7 +411,7 @@ async function principais() {
 
     const corpo = bancada.pedidos.find((p) => p.indexOf('CORPO /api/bastidores/professor') === 0);
     const pedidos = bancada.pedidos.filter((p) => p.indexOf('POST /api/bastidores/professor') === 0);
-    const gets = bancada.pedidos.filter((p) => p.indexOf('GET /bastidores/producao') === 0).length;
+    const gets = bancada.pedidos.filter((p) => p.indexOf('GET /bastidores/estudio') === 0).length;
     conferir('gravar manda UM pedido a /api/bastidores/professor', pedidos.length === 1, pedidos.length);
     conferir('…com o nome inteiro, juntando os dois campos, e SEM o `s` comido',
       !!corpo && /"nome":"Ana Maria"/.test(corpo) && /"sobrenome":"Silva Souza"/.test(corpo), corpo);
@@ -427,7 +427,7 @@ async function principais() {
   {
     const bancada = await subirBancada({ respostaDoDono: { status: 500, corpo: { ok: false, erro: 'x' } } });
     const nav = await abrirNavegador(executavel, perfil);
-    await nav.ir('http://127.0.0.1:' + bancada.porta + '/bastidores/producao#professores');
+    await nav.ir('http://127.0.0.1:' + bancada.porta + '/bastidores/estudio#professores');
     await nav.avaliar(CLICAR_EDITAR);
     await nav.avaliar(`(function(){ document.getElementById('prof-cancelar').click(); return JSON.stringify({foi:true}); })()`);
     const cancelado = await nav.avaliar(ESTADO);
@@ -514,7 +514,7 @@ async function principais() {
       curadorias: [{ id: 'c1', professor: 'Ana Maria Silva', turma: 'Turma A', alunas: [] }],
     });
     const nav = await abrirNavegador(executavel, perfil);
-    await nav.ir('http://127.0.0.1:' + bancada.porta + '/bastidores/producao#professores');
+    await nav.ir('http://127.0.0.1:' + bancada.porta + '/bastidores/estudio#professores');
     const estado = await nav.avaliar(`
       (function(){
         var b = document.querySelector('#sec-professores button.editar');

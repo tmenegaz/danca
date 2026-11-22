@@ -172,7 +172,7 @@ function medir(formularios) {
     console.log('\n' + (largura >= 1000 ? 'tela larga' : 'celular') + ' (' + largura + 'px)');
     const p = await navegador.newPage();
     await p.setViewport({ width: largura, height: 900 });
-    await p.goto(base + '/bastidores/producao', { waitUntil: 'networkidle0', timeout: 60000 });
+    await p.goto(base + '/bastidores/estudio', { waitUntil: 'networkidle0', timeout: 60000 });
     /* O portão e a recolha das secções saem da frente, por script: o que se mede é o
        formulário, não o caminho até ele (esse é a `provar-menu-da-producao.js`). */
     await p.evaluate(() => {

@@ -87,7 +87,7 @@ async function aPaginaAberta() {
   const queixas = [];
   vc.on('jsdomError', (e) => queixas.push((e && e.detail && e.detail.message) || (e && e.message)));
   const dom = new JSDOM(SEM_SCRIPTS(aPagina()), {
-    runScripts: 'dangerously', url: 'https://breu.padd.com.br/bastidores/producao',
+    runScripts: 'dangerously', url: 'https://breu.padd.com.br/bastidores/estudio',
     pretendToBeVisual: true, virtualConsole: vc,
     beforeParse(w) {
       w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -113,7 +113,7 @@ async function paginaComOPreenchedor(salaDoFixture) {
   const queixas = [];
   vc.on('jsdomError', (e) => queixas.push((e && e.detail && e.detail.message) || (e && e.message)));
   const dom = new JSDOM(SEM_SCRIPTS(aPagina()), {
-    runScripts: 'dangerously', url: 'https://breu.padd.com.br/bastidores/producao',
+    runScripts: 'dangerously', url: 'https://breu.padd.com.br/bastidores/estudio',
     pretendToBeVisual: true, virtualConsole: vc,
     beforeParse(w) {
       w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -216,7 +216,7 @@ const SALA_NOVA = { nome: 'Sala Nova', dias: ['sex'], horarios: ['08:00'], durac
   const vc2 = new VirtualConsole();
   vc2.on('jsdomError', () => {});
   const dom2 = new JSDOM(SEM_SCRIPTS(aPagina()), {
-    runScripts: 'dangerously', url: 'https://breu.padd.com.br/bastidores/producao', virtualConsole: vc2,
+    runScripts: 'dangerously', url: 'https://breu.padd.com.br/bastidores/estudio', virtualConsole: vc2,
     beforeParse(w) {
       w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
         addListener() {}, removeListener() {} });

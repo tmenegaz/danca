@@ -167,7 +167,7 @@ function paginaComSalas(salas) {
     const dom = new JSDOM(HTML.replace(/<script src="[^"]*"><\/script>/g, '')
       .replace('</body>', '<script>' + NAVJS + '</script></body>'), {
       runScripts: 'dangerously',
-      url: 'https://calango.workers.dev/bastidores/producao',
+      url: 'https://calango.workers.dev/bastidores/estudio',
       pretendToBeVisual: true, virtualConsole: vc,
       beforeParse(w) {
         w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},

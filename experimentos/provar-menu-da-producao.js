@@ -184,13 +184,13 @@ function estado() {
     ],
     barra: [{ tipo: 'menu', rotulo: 'Bastidores', itens: [
       { rotulo: 'Estúdio de Dança', href: '/bastidores/estudio' },
-      { rotulo: 'Produção', href: '/bastidores/producao' },
+      { rotulo: 'Produção', href: '/bastidores/estudio' },
     ] }],
   };
-  const comMenu = navModulo.aplicar(html, MENU_DA_PROVA, '/bastidores/producao') || html;
+  const comMenu = navModulo.aplicar(html, MENU_DA_PROVA, '/bastidores/estudio') || html;
   const BLOCOS_ESPERADOS = MENU_DA_PROVA.coluna.length + MENU_DA_PROVA.barra.length;
 
-  const { srv, base } = await servir(html, { '/bastidores/producao-menu': comMenu });
+  const { srv, base } = await servir(html, { '/bastidores/estudio-menu': comMenu });
   const navegador = await puppeteer.launch({ executablePath: executavel, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
   let ok = 0;
   let ko = 0;
@@ -213,7 +213,7 @@ function estado() {
   const abrir = async (largura) => {
     const p = await navegador.newPage();
     await p.setViewport({ width: largura, height: 760 });
-    await p.goto(base + '/bastidores/producao', { waitUntil: 'networkidle0', timeout: 60000 });
+    await p.goto(base + '/bastidores/estudio', { waitUntil: 'networkidle0', timeout: 60000 });
     for (let i = 0; i < 6; i += 1) await new Promise((r) => setTimeout(r, 60));
     return p;
   };
@@ -331,7 +331,7 @@ function estado() {
   {
     const p = await navegador.newPage();
     await p.setViewport({ width: 390, height: 760 });
-    await p.goto(base + '/bastidores/producao-menu', { waitUntil: 'networkidle0', timeout: 60000 });
+    await p.goto(base + '/bastidores/estudio-menu', { waitUntil: 'networkidle0', timeout: 60000 });
     for (let i = 0; i < 6; i += 1) await new Promise((r) => setTimeout(r, 60));
 
     const antes = await p.evaluate(() => {
@@ -438,7 +438,7 @@ function estado() {
   {
     const p = await navegador.newPage();
     await p.setViewport({ width: 1280, height: 760 });
-    await p.goto(base + '/bastidores/producao-menu', { waitUntil: 'networkidle0', timeout: 60000 });
+    await p.goto(base + '/bastidores/estudio-menu', { waitUntil: 'networkidle0', timeout: 60000 });
     for (let i = 0; i < 6; i += 1) await new Promise((r) => setTimeout(r, 60));
 
     const lerMenu = () => p.evaluate(() => {
@@ -589,7 +589,7 @@ function estado() {
   {
     const p = await navegador.newPage();
     await p.setViewport({ width: 390, height: 760 });
-    await p.goto(base + '/bastidores/producao-menu', { waitUntil: 'networkidle0', timeout: 60000 });
+    await p.goto(base + '/bastidores/estudio-menu', { waitUntil: 'networkidle0', timeout: 60000 });
     for (let i = 0; i < 6; i += 1) await new Promise((r) => setTimeout(r, 60));
     const barra = await p.evaluate(() => {
       const lat = document.querySelector('.lateral');

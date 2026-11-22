@@ -515,7 +515,7 @@ async function principal() {
 
   // 1. A página e as listagens não podem ser cacheáveis — uma Produção de antes do
   //    deploy não pode continuar aparecendo no navegador.
-  const pagina = await pedir(env, '/bastidores/producao');
+  const pagina = await pedir(env, '/bastidores/estudio');
   const html = await pagina.text();
   conferir('a página não é cacheável', pagina.headers.get('Cache-Control'), 'no-store, max-age=0');
   const listagem = await pedir(env, '/api/bastidores/curadorias');
@@ -1060,7 +1060,7 @@ async function principal() {
     body: JSON.stringify({ senhaDirecao: SENHA_DA_DIRECAO, termo: 'Inventado', categoria: 'passo', tradicao: 'rad' }),
   });
   conferir('tradição fora do catálogo é recusada', tradicaoInventada.status, 400);
-  const comTermos = await (await pedir(env, '/bastidores/producao')).text();
+  const comTermos = await (await pedir(env, '/bastidores/estudio')).text();
   // O MENU DOS TERMOS MUDOU DE CASA A 03/11/2026: era o passo «Associar» da TURMA
   // (`#vinc-termo`), e é agora o escolhedor da CURADORIA (`#esc-conteudos`). A asserção é a
   // mesma pergunta — «o menu oferece o vocabulário inteiro?» —, feita no sítio certo.
@@ -1145,7 +1145,7 @@ async function principal() {
     (await (await pedir(env, '/bastidores/estudio')).text()).includes('<nav class="topnav"'), true);
   const intermediaria = await pedir(env, '/bastidores');
   conferir('o grupo «Bastidores» NÃO tem página intermediária', intermediaria.status, 302);
-  conferir('…e o caminho antigo leva à Produção', intermediaria.headers.get('Location'), '/bastidores/producao');
+  conferir('…e o caminho antigo leva à Produção', intermediaria.headers.get('Location'), '/bastidores/estudio');
 
   // 10. A PÁGINA ALINHA COM A BARRA DO TOPO, E A LISTA FICA COM O RESTO. O menu de secções
   //     ficava colado na borda porque o painel tinha `max-width:120rem` (1920px) e margem de

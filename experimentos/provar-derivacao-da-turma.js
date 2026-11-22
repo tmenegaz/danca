@@ -293,7 +293,7 @@ async function principal() {
     crua3.filter((t) => t.id === 'bale-iniciante').map((t) => t.nome), ['Balé Iniciante']);
 
   // --- 11. o cartão diz o estado, e o botão diz o que vai fazer ----------
-  const pagina = await (await pedir(env, '/bastidores/producao')).text();
+  const pagina = await (await pedir(env, '/bastidores/estudio')).text();
   conferir('o cartão da turma livre diz «livre»', pagina.includes('>livre<'), true);
   conferir('…e oferece «Editar»', pagina.includes('data-modo="editar"'), true);
   /* O SELO DA SALA MUDOU DE PALAVRA, E DE PERGUNTA — por decisão dela, a 12/11/2026:
@@ -429,7 +429,7 @@ async function principal() {
   }
 
   // A página: o selinho e o botão certo.
-  const pagina2 = await (await pedir(env, '/bastidores/producao')).text();
+  const pagina2 = await (await pedir(env, '/bastidores/estudio')).text();
   conferir('a curadoria vinculada diz «vinculada»', pagina2.includes('>vinculada<'), true);
   conferir('…e oferece «Derivar» na curadoria',
     pagina2.includes('data-curadoria-ajustar'), true);
@@ -586,7 +586,7 @@ async function principal() {
     conferir('a aluna «' + a + '» é cadastrada para o filtro', r.status,
       r.status === 201 || r.status === 200 ? r.status : 201);
   }
-  const paginaFiltro = await (await pedir(env, '/bastidores/producao')).text();
+  const paginaFiltro = await (await pedir(env, '/bastidores/estudio')).text();
   const filtro = exercitarFiltroAlunas(paginaFiltro);
   // O ESTADO neste ponto: Jazz/Turma C → Gabi; Jazz/Turma D → Nina; Balé clássico/Turma G →
   // Gabi. Logo: no Jazz, Gabi e Nina estão ocupadas e só a Ana sobra; no Balé, a Gabi está
@@ -630,7 +630,7 @@ async function principal() {
     tradicao: 'RAD', turmas: ['Turma Livre'] });
   const idParaEditar = ((await paraEditar.json()).curadoria || {}).id;
   conferir('…e a curadoria dela nasce livre', paraEditar.status, 201);
-  const pagina3 = await (await pedir(env, '/bastidores/producao')).text();
+  const pagina3 = await (await pedir(env, '/bastidores/estudio')).text();
   const cenLivre = exercitarCuradoria(pagina3, idParaEditar);
 
   const cen = exercitarCuradoria(pagina2, derivada.id);

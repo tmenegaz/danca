@@ -205,7 +205,7 @@ function servir(html) {
     const { srv, base } = await servir(html);
     const br = await puppeteer.launch({ executablePath: executavel, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
     const pg = await br.newPage();
-    await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
+    await pg.goto(base + '/bastidores/estudio', { waitUntil: 'load' });
     const pele = await pg.evaluate(() => {
       const alvos = {
         professor: 'label[for="cuprofessor"]',

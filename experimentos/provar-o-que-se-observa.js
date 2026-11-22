@@ -458,9 +458,9 @@ console.log('\nE. Na página: o painel do Corpo mostra as DIMENSÕES, e só elas
 
     /* A LISTA — o segundo sítio onde a falta tem de ser visível, porque é por onde ela passou. */
     const pb = await br.newPage();
-    await pb.goto(BASE + '/bastidores/producao', { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await pb.goto(BASE + '/bastidores/estudio', { waitUntil: 'domcontentloaded', timeout: 60000 });
     await pb.evaluate((t) => { try { sessionStorage.setItem('producao:token', t); } catch (e) {} }, TOKEN);
-    await pb.goto(BASE + '/bastidores/producao', { waitUntil: 'networkidle2', timeout: 60000 });
+    await pb.goto(BASE + '/bastidores/estudio', { waitUntil: 'networkidle2', timeout: 60000 });
     await new Promise((ok) => setTimeout(ok, 3000));
     const cartao = await pb.evaluate(() => {
       const li = document.querySelector('[data-elenco]');

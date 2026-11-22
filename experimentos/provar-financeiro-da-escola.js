@@ -571,7 +571,7 @@ function kvCom(dados) {
 
     /* O «PAGAR» DO MÊS A MÊS CHEGA AQUI COM A CAIXA ABERTA (17/11/2026).
      *
-     * O link de cada linha em aberto é `/bastidores/producao?abrir=pagar#a-escola`, e quem o segue
+     * O link de cada linha em aberto é `/bastidores/estudio?abrir=pagar#a-escola`, e quem o segue
      * tem de encontrar a chave Pix à vista — «ele leva para o mesmo lugar que a gente tem lá na
      * listagem da escola, que é o pagar, onde a gente exibe a informação e a chave Pix».
      *
@@ -586,7 +586,7 @@ function kvCom(dados) {
      * responde vazio: o que se quer medir é o gesto que corre ANTES de qualquer resposta. */
     {
       const { JSDOM: JSDOMScripts, VirtualConsole } = require('jsdom');
-      const rota = 'https://x.test/bastidores/producao?abrir=pagar#a-escola';
+      const rota = 'https://x.test/bastidores/estudio?abrir=pagar#a-escola';
       const erros = [];
       const vc = new VirtualConsole();
       vc.on('jsdomError', (e) => erros.push(String(e.message)));
@@ -602,7 +602,7 @@ function kvCom(dados) {
         { search: d2.window.location.search, hash: d2.window.location.hash });
       /* SEM O PARÂMETRO, a caixa continua fechada: o gesto não é «abrir sempre». */
       const domFechado = new JSDOMScripts(html, {
-        runScripts: 'dangerously', url: 'https://x.test/bastidores/producao#a-escola',
+        runScripts: 'dangerously', url: 'https://x.test/bastidores/estudio#a-escola',
         virtualConsole: vc, beforeParse(janela) { janela.fetch = () => new Promise(() => {}); },
       });
       conferir('…e sem o parâmetro a caixa do Pix nasce fechada',

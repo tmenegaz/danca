@@ -467,7 +467,7 @@ async function principal() {
 
       /* O CARTÃO. A segunda não pode mostrar a linha do vínculo da primeira. */
       const pagina = await bastidores.fetch(
-        new Request('https://breu.example/bastidores/producao'), envE, { fetchImpl: ghE.fetchFalso });
+        new Request('https://breu.example/bastidores/estudio'), envE, { fetchImpl: ghE.fetchFalso });
       const html = await pagina.text();
       const cartao = (new RegExp('<li class="turma" data-aluna="Aluno A">([\\s\\S]*?)</li>')
         .exec(html) || [])[1] || '';
@@ -519,7 +519,7 @@ async function principal() {
         novo.dados && novo.dados.matricula && novo.dados.matricula.alunaId);
 
       const pagina = await bastidores.fetch(
-        new Request('https://breu.example/bastidores/producao'), envE2, { fetchImpl: ghE2.fetchFalso });
+        new Request('https://breu.example/bastidores/estudio'), envE2, { fetchImpl: ghE2.fetchFalso });
       const html = await pagina.text();
       const cartao = (new RegExp('<li class="turma" data-aluna="Aluno A">([\\s\\S]*?)</li>')
         .exec(html) || [])[1] || '';
@@ -624,7 +624,7 @@ async function principal() {
 
       /* O cartão da passagem nova: sem turma, sem elenco, sem a modalidade de antes. */
       const pagina = await bastidores.fetch(
-        new Request('https://breu.example/bastidores/producao'), envP, { fetchImpl: gh.fetchFalso });
+        new Request('https://breu.example/bastidores/estudio'), envP, { fetchImpl: gh.fetchFalso });
       const html = await pagina.text();
       const cartao = (new RegExp('<li class="turma" data-aluna="Vavá">([\\s\\S]*?)</li>')
         .exec(html) || [])[1] || '';
@@ -678,7 +678,7 @@ async function principal() {
     const kvG = criarKV({ [RAIZ + '/alunas']: JSON.stringify(['Aluna A']) });
     const envG = ambiente(kvG);
     const pagina = await bastidores.fetch(
-      new Request('https://breu.example/bastidores/producao'), envG, { fetchImpl: ghG.fetchFalso });
+      new Request('https://breu.example/bastidores/estudio'), envG, { fetchImpl: ghG.fetchFalso });
     const html = await pagina.text();
     const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
     const quebrados = [];

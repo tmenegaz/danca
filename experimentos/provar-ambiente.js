@@ -214,7 +214,7 @@ async function baixar(url) {
     }
 
     // A PRODUÇÃO — o CSS e o CÓDIGO do motor. O CSS primeiro: é o que desenha a página.
-    const prod = await baixar(base + '/bastidores/producao');
+    const prod = await baixar(base + '/bastidores/estudio');
 
     // A FAMÍLIA CHEGA AO QUE A ESCOLA SERVE, e não só aos Bastidores (18/10/2026). A Produção
     // lê a lista de famílias e pinta; a porta e o pacote passam pela ponte, e a ponte tinha a

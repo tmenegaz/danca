@@ -81,7 +81,7 @@ const BARRA_DE_ONTEM =
   '    <a href="/plano-observacao/?professor=prova&escola=' + ESCOLA + '&ciclo=01">Plano de Observação</a>\n' +
   '  </div></details>\n' +
   '  <details class="menu"><summary>Bastidores</summary><div class="submenu">\n' +
-  '    <a href="/bastidores/producao">Produção</a>\n' +
+  '    <a href="/bastidores/estudio">Produção</a>\n' +
   '  </div></details>\n' +
   '</nav>';
 
@@ -567,7 +567,7 @@ async function principal() {
     checar('o bloco é lido do `<nav>`, entre a marca e o ☰',
       /s5-sessao/.test(extrasDaBarra(COM_EXTRAS)) && /s5-secoes/.test(extrasDaBarra(COM_EXTRAS)),
       extrasDaBarra(COM_EXTRAS));
-    const aplicado = aplicar(pagina(COM_EXTRAS), menuDaProva, '/bastidores/producao');
+    const aplicado = aplicar(pagina(COM_EXTRAS), menuDaProva, '/bastidores/estudio');
     checar('…e a barra desenhada volta a trazê-lo, no mesmo lugar',
       /s5-sessao/.test(aplicado) && /s5-secoes/.test(aplicado), null);
     checar('…antes do ☰, que é o que faz o ☰ não andar',

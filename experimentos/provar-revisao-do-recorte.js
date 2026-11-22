@@ -398,7 +398,7 @@ const fetchOriginal = globalThis.fetch;
       const vc = new VirtualConsole();
       vc.on('jsdomError', () => {});
       const dom = new JSDOM(html.replace(/<script src="[^"]*"><\/script>/g, ''), {
-        runScripts: 'dangerously', url: 'https://' + ESCOLA + '.workers.dev/bastidores/producao',
+        runScripts: 'dangerously', url: 'https://' + ESCOLA + '.workers.dev/bastidores/estudio',
         pretendToBeVisual: true, virtualConsole: vc,
         beforeParse(w) {
           w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},

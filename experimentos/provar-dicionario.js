@@ -718,7 +718,7 @@ console.log('\nJ. A gravação não recarrega a página — e o cartão muda à 
   let pedidos = { termos: 0, put: 0, del: 0, semear: 0 };
 
   const dom = new JSDOM(aPagina().replace(/<script src="[^"]*"><\/script>/g, ''), {
-    runScripts: 'dangerously', url: 'https://breu.workers.dev/bastidores/producao',
+    runScripts: 'dangerously', url: 'https://breu.workers.dev/bastidores/estudio',
     pretendToBeVisual: true, virtualConsole: vc,
     beforeParse(w) {
       w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -912,7 +912,7 @@ console.log('\nK. A listagem do Estilo dá os gestos à versão do CATÁLOGO tam
   });
 
   const dom = new JSDOM(aPagina().replace(/<script src="[^"]*"><\/script>/g, ''), {
-    runScripts: 'dangerously', url: 'https://breu.workers.dev/bastidores/producao',
+    runScripts: 'dangerously', url: 'https://breu.workers.dev/bastidores/estudio',
     pretendToBeVisual: true, virtualConsole: vc,
     beforeParse(w) {
       w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
@@ -1010,7 +1010,7 @@ console.log('\nL. Gravar o verbete: o caminho que falhou, a correr');
 
   let gravou = 0;
   const dom = new JSDOM(aPagina().replace(/<script src="[^"]*"><\/script>/g, ''), {
-    runScripts: 'dangerously', url: 'https://breu.workers.dev/bastidores/producao',
+    runScripts: 'dangerously', url: 'https://breu.workers.dev/bastidores/estudio',
     pretendToBeVisual: true, virtualConsole: vc,
     beforeParse(w) {
       w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},

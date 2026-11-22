@@ -128,7 +128,7 @@ console.log('1. A CAUSA — o véu não aparecia porque a função recusava um b
   const dom = new JSDOM(HTML.replace(/<script src="[^"]*"><\/script>/g, '')
     .replace('</body>', '<script>' + NAVJS + '</script></body>'), {
     runScripts: 'dangerously',
-    url: 'https://calango.workers.dev/bastidores/producao',
+    url: 'https://calango.workers.dev/bastidores/estudio',
     pretendToBeVisual: true, virtualConsole: vc,
     beforeParse(w) {
       w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
