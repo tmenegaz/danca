@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T13:57:12-0300`
-Commit atual: `d1127afd` — fix(estrutura): um elo que nunca olhou não é um elo limpo
+Gerado em: `2026-11-22T14:01:31-0300`
+Commit atual: `ba571849` — fix(estrutura): o painel pede o pacote através do prefixo da árvore
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,8 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+ba571849 fix(estrutura): o painel pede o pacote através do prefixo da árvore
+b189d776 docs(estrutura): a fotografia do painel, da coluna e do KV
 d1127afd fix(estrutura): um elo que nunca olhou não é um elo limpo
 9b415003 feat(estrutura): o painel inicial do Estúdio conta o que interessa
 dff5ccff fix(template): a coluna dos Bastidores abre e fecha a partir dos 769
@@ -100,8 +102,6 @@ feac5b03 fix(estrutura): o nome da turma não é do sistema — e a metade do KV
 e83ad10e chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
 a2bb9231 chore(estrutura): fechar os derivados — âncoras e índices
 4f16c4c5 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
-dc8e3d00 feat(ciclo): o «Guardar» do PO grava as fontes de breu-rosa num commit só
-cf5fb074 feat(acervo): envelope/po-20261122-0849.json
 ```
 
 ## Por professor
@@ -195,47 +195,36 @@ cf5fb074 feat(acervo): envelope/po-20261122-0849.json
 
 ## Última entrada do REGISTRO
 
-## 22/11/2026 — Um elo que nunca olhou não é um elo limpo (a `calango` tinha 6 chaves vivas)
+## 22/11/2026 — O painel pedia o pacote no caminho errado (e o AO VIVO é que o disse)
 
-**O que motivou.** Ela pediu para apagar o resíduo da `calango` e perguntou, de caminho, se o expurgo
-levaria os 302 novos. Fui medir o KV com o `CLOUDFLARE_API_TOKEN` do `.env` — e as três escolas
-mortas não estavam todas limpas: `batata` 0, `duo` 0, **`calango` 6**.
+**O que motivou.** O painel subiu, e a primeira carga ao vivo da `breu`
+(`https://breu.padd.com.br/bastidores/estudio`) mostrou o número certo em cinco caixas e, na sala,
+«Ocupação — **sem leitura das aulas lançadas**». O pacote está publicado: `/rosa/ciclos.json`
+responde **200**. O defeito era o caminho.
 
-**O que era.** O elo do expurgo da `calango` dizia `{ok: true, apagadas: 0, restantes: 0,
-namespaceId: null}`, e as seis chaves (alunas, curadorias, dono, linhas-de-base, rubricas, turmas)
-estavam vivas. Duas camadas: (1) `apagarChavesDeEscola` devolve `ok: true` para
-`namespaceId === null` — «a escola não declara namespace, não havia o que limpar» —, e nas escolas de
-**shard** esse `null` era **falso**: elas escrevem, no namespace do shard, com prefixo próprio. O elo
-dizia «limpo» sem ter olhado. (2) `pendenciaDoKv` só reconhecia `kv.pendente === true`, portanto o
-único elo que importava era invisível — e «Terminar a limpeza do KV» respondia **«nada pendente»**,
-em silêncio. Um botão que diz «nada pendente» a um elo que nunca olhou é pior do que um botão que
-falha: fecha a única porta.
+**O que era.** O painel pedia `https://assets.local/<variante>/ciclos.json`. No shard o pacote vive
+debaixo do **prefixo da escola** (`PACOTE_PARTILHADO=sim` → `/breu/…`), e o pedido sem prefixo
+responde 404 — o painel concluía «o pacote não está no ar» sobre um ficheiro que estava. A regra já
+existia em `prefixoDaArvore` (`motor/servidor/producao.js`), e a lição é a de sempre: uma convenção
+de caminho, um sítio só; uma segunda cópia envelhece a primeira.
 
-**O que foi decidido.**
-- **Uma pergunta, dois chamadores.** `eloPedeLimpezaDoKv(elo)`, exportado, é o predicado que o
-  anúncio (`pendenciaDoKv`) e o fecho (`comResolucaoDoKv`) usam. Dois predicados seriam a forma de
-  eles divergirem outra vez.
-- **Ele reconhece o `null`**, respeita a `retomada` (o elo já resolvido não se acusa duas vezes) e
-  **a recriação**: um expurgo anterior à última recriação não é pendência — o que a encarnação de
-  agora escreveu é dado, não resíduo. Sem esta última parte a `breu` seria acusada para sempre (o
-  último expurgo dela também tem `namespaceId: null`, e as 23 chaves são dela).
-- **A pendência diz PORQUE existe**: «a limpeza não se completou» (com o erro) ou «o elo nunca
-  chegou a olhar». São dois casos muito diferentes, e a resposta era a mesma.
-- **O fecho grava onde limpou** (`namespaceId`, `ok: true`), no elo — e não reescreve o expurgo de
-  16/11. A `/api/expurgar-kv` resolve o namespace por `moradaDaEscola` quando o elo não o tem, e
-  recusa só quando nenhum dos dois sabe: um id inventado apagaria as chaves de outra escola.
+**O que mudou.** `painelDoEstudio` usa `prefixoDaArvore(env)` no URL do pacote, e a prova mede o
+**URL pedido** (`/breu/rosa/ciclos.json`) e não só o resultado — é a única coisa que distingue «não
+li» de «li e não havia». De caminho, a data do elenco («desde 2026-11-22») passou a `dd/mm/aaaa`,
+como as da sala.
 
-**Com o quê.** `motor/servidor/repo-escola.js`, `motor/servidor/raiz.js`,
-`experimentos/provar-limpeza-do-kv.js` (**novo**), `.gitignore`, `ESTADO-ATUAL.md`.
+**MEDIDO.** `provar-o-painel-do-estudio` **34/34** (duas asserções novas: o caminho com prefixo, e a
+leitura que ele permite). Ao vivo, a mesma carga passou a dizer o que se sabe: o período da sala
+começa a **14/12/2026**, e «0 de 15» é o número certo — dito na própria página, para não se ler como
+falha.
 
-**MEDIDO.** As **6 chaves da `calango` apagadas** (`apagadas: 6, restantes: 0`) e a listagem lida a
-zero para `calango`, `batata` e `duo`; `breu` com 23 (viva, e é dela). `provar-limpeza-do-kv`
-**14/14**, com o **controle negativo** `--contra=de95569a` a dar o elo da `calango` como «nada
-pendente» (7 falhas). `pendenciaDoKv` nos quatro elos: pendência nas três mortas, nada na `breu`.
-
-**E o que ela perguntou:** os **302 continuam**. `excluirEscola` recusa apagar um shard de confiança
-(«o próprio shard NUNCA se apaga») e os redirecionamentos são código do Worker — não são artefacto
-de escola. Expurgar a `breu`, ou recriá-la com o mesmo nome, não lhes toca.
+**O que continua em aberto, e agora com um dado novo.** O `lancada` de `/rosa/ciclos.json` está
+`false` nas **15** aulas, embora as páginas `aula-01.html` e `aula-02.html` existam no pacote. Pelo
+critério do próprio sistema (`ler_lancadas` em `tools/gerar-ciclo.sh`: o facto é a chave `aulas['NN']`
+no JSON de dados), **nenhuma aula desta escola foi lançada** — e o `-dados.json` do repositório tem
+`aulas: []`. Isto **não** foi interpretado nem corrigido aqui: é a pergunta da §6/143 («ocupação» é a
+agenda ou o corpo?) a encontrar um segundo facto que ela precisa de ver. O painel **não inventa**: se
+o `lancada` não for o registo que se quer, o número diz zero e a frase diz porquê.
 
 ## O que está pendente
 
