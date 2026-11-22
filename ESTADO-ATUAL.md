@@ -4,7 +4,19 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 22/11/2026 (commit `d85c42c1`). Ainda neste dia, **Bastidores passou a ter um
+> **Última fotografia:** 22/11/2026 (commit `d1127afd`). Ainda neste dia, **o painel inicial ficou
+> construído** — ela viu o modelo e respondeu «Quero a opção B», o número grande —, e ele conta o que
+> interessa: alunas **ativas** (2 de 5 registos), professores **com o principal** (2), salas
+> **vigentes** (1 de 23 encarnações), elencos pela **versão de hoje** de cada, modalidades pelas
+> matrículas vivas. A **ocupação é a agenda** (aulas dadas sobre as previstas, lida do `ciclo` do
+> pacote), e sem leitura o painel diz «—» em vez de zero. No mesmo dia, **a coluna dos Bastidores
+> passou a abrir e a fechar a partir dos 769** — entre 769 e 1140 a coluna existia e o acordeão não,
+> e o menu crescia para fora do ecrã («ele para ali no dicionário», medido: 671px num ecrã de 640) —
+> e **o expurgo deixou de mentir no KV**: o elo da `calango` dizia `ok: true, restantes: 0` com
+> **seis chaves vivas**, e o botão «Terminar a limpeza do KV» respondia «nada pendente». As seis
+> foram apagadas; a `breu` não é acusada, porque foi recriada depois.
+>
+> **Fotografia anterior (22/11/2026 — commit `d85c42c1`).** Ainda neste dia, **Bastidores passou a ter um
 > destino só**: a «cena» (o Estúdio de Dança) saiu — era um `<h1>`, um parágrafo e um link, e nunca
 > teve conteúdo próprio — e a Produção **herdou o nome e o endereço**. Palavras dela: «Em bastidores
 > a gente vai ter apenas a produção e tudo o que a gente já desenvolveu dentro dela. Só que nós
@@ -3187,6 +3199,43 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      **corpo** (alunas do elenco sobre as vagas da sala — e **vagas não existe**: é campo novo na
      Sala, e essa é uma decisão de dados, não de desenho). O modelo mostra a agenda e **diz a outra
      com o seu custo**. **DECIDIDO** 22/11/2026.
+144. **O PAINEL INICIAL ESTÁ CONSTRUÍDO — A OPÇÃO B, E CADA NÚMERO COM A SUA CONTA.** Depois de ver
+     o modelo ela respondeu «Quero a opção B»: o número grande. O painel passou a existir na página
+     do Estúdio (`sec-painel`), e a **conta é da rota** (`painelDoEstudio`, exportado): alunas
+     **sem `desligadaEm`** e não os registos (2 de 5), professores **com o principal** (que não vive
+     na lista: 2), salas **vigentes** e não as encarnações (1 de 23), elencos pela **versão mais
+     recente de cada** (Tami com 2, Ami com 1), modalidades pelas **matrículas não substituídas**.
+     A **ocupação é a agenda** — aulas dadas (`lancada` no `ciclos.json` do pacote, lido por
+     `ASSETS`) sobre as previstas do período, na `.cota` que o Monitoramento já usa —, e sem leitura
+     o painel **declara a lacuna em vez de mostrar zero**. O **nome** vem do cadastro da escola
+     (`cadastro.escolaNome`), não do slug, e as datas saem em `dd/mm/aaaa`. A peça nasceu na folha
+     (`painel-numeros`, `painel-numero`, `painel-rotulo`, `sala-do-painel`) e **não se chama
+     `numero`**: a `porta/index.html` já escreve `.numero` com outro sentido — o número do degrau —
+     e a peça vestiria os degraus de cartão. **DECIDIDO** 22/11/2026. O que **continua** em aberto é
+     a pergunta da 143: se «ocupação» é a agenda ou o corpo (vagas não existe na Sala).
+145. **A COLUNA DOS BASTIDORES ABRE E FECHA A PARTIR DOS 769 — O ACORDEÃO SEGUE O CORTE DA COLUNA.**
+     Palavras dela: «quando eu entro, por exemplo, em produção e depois eu vou para aparência […]
+     o menu ele fica expandido […] e essa parte que devia acompanhar o tamanho do menu não
+     acompanha, esse background não acompanha o tamanho do menu. Ele para ali no dicionário». A
+     causa **não era o fundo**: `.lateral` deixa de ser coluna e passa a barra+folha a 768px
+     (`bastidores.js`), e o acordeão — `max-height:0`, `[data-aberto="sim"]`, `:hover` — vivia só
+     no `@media (min-width:1141px)`, que é o corte da coluna do **Sistema Lastro**. Entre **769 e
+     1140** a coluna existe e o acordeão não: os quatro grupos ficavam permanentemente abertos,
+     `data-aberto` era ignorado, a seta não aparecia, e o menu crescia para fora do ecrã (medido a
+     1024×640: último item a **671px** num ecrã de 640). A regra mudou para `@media (min-width:769px)`
+     e as regras do `.coluna` ficaram onde estavam: `if (é coluna)` e `if (abre e fecha)` tinham
+     deixado de ser a mesma pergunta. **DECIDIDO** 22/11/2026.
+146. **UM ELO QUE NUNCA OLHOU NÃO É UM ELO LIMPO.** O expurgo da `calango` deixou o elo a dizer
+     `{ok: true, apagadas: 0, restantes: 0, namespaceId: null}` — e **seis chaves vivas no KV**
+     (alunas, curadorias, dono, linhas-de-base, rubricas, turmas). O botão «Terminar a limpeza do
+     KV» respondia **«nada pendente»**, em silêncio, porque `pendenciaDoKv` só reconhecia
+     `kv.pendente === true` e esse elo não tinha o sinal. `apagarChavesDeEscola` devolve `ok` para
+     `namespaceId === null` («a escola não declara namespace»), e nas escolas de **shard** esse
+     `null` era **falso**: elas escrevem, com prefixo próprio, no namespace do shard. A pergunta
+     passou a ser uma só — `eloPedeLimpezaDoKv`, usada pelo anúncio **e** pelo fecho —, e ela
+     reconhece o `null`, respeita a `retomada` e **a recriação**: o que a encarnação de agora
+     escreveu é dado, não resíduo. As seis chaves foram apagadas (`apagadas: 6, restantes: 0`) e o
+     KV das três escolas mortas lido a zero. **DECIDIDO** 22/11/2026.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
@@ -4003,7 +4052,23 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (22/11/2026 — o estúdio, e o modelo do painel)
+### Executado nesta fotografia (22/11/2026 — o painel, a coluna, e o KV que dizia «nada pendente»)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-o-painel-do-estudio.js` | **32/32** — alunas ativas e não registos (2 de 5), professores com o principal (2), salas vigentes (1 de 23), elenco pela versão de hoje, ocupação pela agenda, «sem leitura» quando não há `ASSETS`, datas em `dd/mm/aaaa`, a peça na folha. Controle `--contra=de95569a`: **o painel é o parágrafo antigo, e não há número nenhum** |
+| `node experimentos/provar-a-coluna-da-vertical.js` | **32/32** — em 1280×800, 1024×640 e 900×700 os grupos nascem fechados, a seta aparece, o último abre a 168px e o último item cabe no ecrã (436px); a 760×900 continua a folha, com tudo à vista. Controle `--contra=de95569a`: a 1024 os quatro grupos nascem **abertos** (`max-height: none`), a seta escondida, e o último item a **671px** num ecrã de 640 — o defeito, medido |
+| `node experimentos/provar-limpeza-do-kv.js` | **14/14** — o elo da `calango` (namespace nulo, `ok: true`) é pendente e o `porque` diz «nunca chegou a olhar»; o elo que falhou mantém o erro; a `retomada` cala; a recriação encerra; fechar grava `namespaceId` e o expurgo de 16/11 não é reescrito. Controle `--contra=de95569a`: o mesmo elo é dado como **«nada pendente»** — 7 falhas |
+| `node experimentos/provar-o-estudio.js` | 33/33 |
+| `node experimentos/provar-menu-da-producao.js` | 55/55 |
+| `node experimentos/provar-a-moldura-em-todas-as-telas.js` | 111/111 |
+| `node experimentos/provar-identidade-ao-lado.js` | 33/33 |
+| `node tools/check-identidade.js` | **0 problemas** (depois de uma correção: a peça do painel chamava-se `numero`, e a `porta` já usa `.numero` para o número do degrau — a checagem 8 reprovou, com razão) |
+| `node tools/check-pacote.js professores/demi-plie/ciclos/ciclo-01-breu-rosa` | **0 erros**, 1 aviso (o PDF, por desenho) |
+| O KV das escolas mortas, com o `CLOUDFLARE_API_TOKEN` do `.env` | `calango` **6 chaves → 0** (`apagadas: 6, restantes: 0`), `batata` **0**, `duo` **0**; `breu` 23 (viva) |
+| `pendenciaDoKv` nos quatro elos | `calango`/`batata`/`duo` → pendência com `porque`; **`breu` → nada pendente** (recriada depois do expurgo) |
+
+### Executado na fotografia anterior (22/11/2026 — o estúdio, e o modelo do painel)
 
 | Verificação | Resultado |
 |:--|:--|
