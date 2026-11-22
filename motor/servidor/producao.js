@@ -331,11 +331,10 @@ const MENU_EM_CACHE = new Map();
  * se lê. O valor por omissão é o de hoje — um Worker, uma escola —, e é por isso que nenhuma
  * das três escolas vivas muda de comportamento com este código.
  */
-function prefixoDaArvore(env) {
-  if (!env || env.PACOTE_PARTILHADO !== 'sim') return '';
-  const escola = String(env.ESCOLA_SLUG || '').trim();
-  return escola ? '/' + escola : '';
-}
+/* A REGRA MUDOU DE CASA (22/11/2026): mora em `motor/nucleo/arvore-de-assets.js`, para os
+ * Bastidores a poderem ler sem fechar o ciclo de `require` que existe entre este módulo e
+ * aquele. Continua a ser UMA definição, e continua a ser esta a porta por onde a produção entra. */
+const { prefixoDaArvore } = require('../nucleo/arvore-de-assets.js');
 
 /**
  * `/assets/…` É PARTILHADO, E NÃO SE REESCREVE (14/11/2026).

@@ -58381,6 +58381,15 @@ de caminho, um sítio só; uma segunda cópia envelhece a primeira.
 li» de «li e não havia». De caminho, a data do elenco («desde 2026-11-22») passou a `dd/mm/aaaa`,
 como as da sala.
 
+**E a primeira tentativa não chegou ao ar** — a carga seguinte ainda dizia «sem leitura», com a data
+já corrigida, o que provou que o código novo estava publicado e que o caminho é que continuava
+errado. A causa era o `require`: `producao.js` requer `bastidores.js` na primeira linha, e o
+`require('./producao.js')` de dentro dos Bastidores fechava o ciclo — em Node resolve-se (a chamada
+é tardia), no bundle do Worker a função chegava `undefined` e o prefixo saía vazio. A regra mudou de
+casa para `motor/nucleo/arvore-de-assets.js`, que não requer ninguém; `producao.js` reexporta-a, e
+continua a haver **uma** definição. Verificado no bundle: **uma** ocorrência de
+`function prefixoDaArvore` e **sete** usos.
+
 **MEDIDO.** `provar-o-painel-do-estudio` **34/34** (duas asserções novas: o caminho com prefixo, e a
 leitura que ele permite). Ao vivo, a mesma carga passou a dizer o que se sabe: o período da sala
 começa a **14/12/2026**, e «0 de 15» é o número certo — dito na própria página, para não se ler como

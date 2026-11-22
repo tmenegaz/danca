@@ -175,6 +175,9 @@ const CATALOGO = require('./catalogo-seed.js');
 const { normalizarNivel, estruturaDaTradicao } = require('../nucleo/niveis.js');
 // O ENQUADRAMENTO — quem ensina o quê, em que nível, e que turmas ficaram sem quem as ensine.
 const enquadramento = require('../nucleo/enquadramento.js');
+/* O PREFIXO DA ÁRVORE DE ASSETS (22/11/2026) — a regra de `producao.js`, num módulo neutro para os
+ * dois a poderem ler sem fechar o ciclo de `require` entre eles. */
+const { prefixoDaArvore } = require('../nucleo/arvore-de-assets.js');
 /* A TRANSFERÊNCIA DE UMA ALUNA ENTRE ELENCOS e o DESLIGAMENTO DE UM PROFESSOR (08/11/2026). As
  * duas regras são puras — recebem as listas e devolvem as versões novas, ou os motivos da recusa —,
  * e vivem no núcleo pela mesma razão das outras: a rota escreve, o núcleo decide. */
@@ -6048,9 +6051,7 @@ async function painelDoEstudio({ env, escola, aluns, profs, dono, trms, linhas, 
    * concluía «o pacote não está no ar» sobre um ficheiro que está. Medido na `breu`:
    * `/rosa/ciclos.json` 200 e `/ciclos.json` 404. A regra é a de `prefixoDaArvore`, em
    * `producao.js` — uma convenção, um sítio, e não uma segunda cópia que envelheça. */
-  const prefixo = (() => {
-    try { return require('./producao.js').prefixoDaArvore(env); } catch (erro) { return ''; }
-  })();
+  const prefixo = prefixoDaArvore(env);
   const lerCiclosDoPacote = async (variante) => {
     if (!variante || !env || !env.ASSETS || typeof env.ASSETS.fetch !== 'function') return null;
     try {
