@@ -199,8 +199,13 @@ console.log('\nG. A TURMA NA NOTAÇÃO — o terceiro documento, e a mesma fonte
 // ---------------------------------------------------------------------------------------------
 console.log('\nC. A §6 — UM SELECTOR DO ELENCO, E AS ACÇÕES DA ALUNA ESCOLHIDA');
 {
+  /* QUEM FEZ A ANAMNESE E QUANDO (22/11/2026). O pedido dela: «tem que dizer aqui nessa listagem,
+   * ao lado do nome da aluna, quem é o que fez a anamnese e a data em que essa anamnese foi feita.»
+   *
+   * A Aluna A leva autor; a Aluna B NÃO — é o caso dos envelopes anteriores ao campo existir, e o
+   * documento não pode inventar um nome. A data sai do CARIMBO, e por isso as duas a têm. */
   const anamneses = {
-    'Aluna A': { carimbo: 'anamnese-20261105-2301', vinculada: true },
+    'Aluna A': { carimbo: 'anamnese-20261105-2301', vinculada: true, autor: 'demi-plie' },
     'Aluna B': { carimbo: 'anamnese-20261105-2031', vinculada: false },
   };
   const s6 = secao6(aula({ anamneses }));
@@ -222,6 +227,18 @@ console.log('\nC. A §6 — UM SELECTOR DO ELENCO, E AS ACÇÕES DA ALUNA ESCOLH
     && ((bloco || '').match(/<option value="Aluna /g) || []).length === 3, bloco && bloco.slice(0, 200));
   provar('…e NÃO há uma lista markdown de alunas (era a parede que ela recusou)',
     !/^- \*\*Aluna /m.test(s6), s6.split('\n').filter((l) => /^- /m.test(l)));
+
+  /* QUEM FEZ, E QUANDO — na OPÇÃO (é o que se lê ao escolher) e na linha das acções. */
+  {
+    const op = (blocoHtml(s6) || '').match(/<option value="Aluna [AB]">[^<]*/g) || [];
+    provar('a opção da aluna diz QUEM fez a anamnese e a DATA, ao lado do nome',
+      op.some((o) => /<option value="Aluna A">Aluna A · por demi-plie em 05\/11\/2026$/.test(o)), op);
+    provar('…e a data sai do CARIMBO, sem autor inventado quando o envelope não declara nenhum',
+      op.some((o) => /<option value="Aluna B">Aluna B · em 05\/11\/2026$/.test(o)), op);
+    provar('…e a mesma frase está na linha das acções (para quem não tem JavaScript)',
+      /<span class="origem-da-aluna">anamnese por demi-plie em 05\/11\/2026 · /.test(blocoHtml(s6)),
+      (blocoHtml(s6) || '').match(/<span class="origem-da-aluna">[^<]*/g));
+  }
 
   /* O ELENCO É O DA LINHA DE BASE — o defeito que ela viu («a aluna C existe no banco geral, mas
    * não pertence àquela turma»). O PO da fixture continua a declarar três; a linha de base tem

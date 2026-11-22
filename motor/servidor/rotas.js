@@ -1761,7 +1761,17 @@ async function recusaDaRelacaoDoCiclo({ armazenamento, corpo, escola, doPlano })
          * guia da aula (§6) e o `-dados.json` imprimem. `null` é «não declarada», e os dois
          * documentos dizem isso em vez de inventar uma escola. */
         const metodo = String((o && o.metodo) || '').trim();
-        if (aluna && carimbo) mapa[aluna] = { carimbo, vinculada: Boolean(o.vinculada), metodo: metodo || null };
+        /* QUEM FEZ A ANAMNESE VAI TAMBÉM (22/11/2026). Ela: «nós temos aqui uma lista que tem a
+         * aluna […] tem que dizer aqui nessa listagem, ao lado do nome da aluna, quem é o que fez a
+         * anamnese e a data em que essa anamnese foi feita.» O dado já existe — `porta.anamneses`
+         * o devolve em `professorNome` desde 20/11 (é o autor, não o professor da sala) —, e
+         * faltava chegar ao documento. A DATA sai do carimbo, no derivador: são a mesma coisa, e
+         * uma segunda cópia dela aqui poderia divergir do nome do ficheiro. */
+        const autor = String((o && o.professorNome) || '').trim();
+        if (aluna && carimbo) {
+          mapa[aluna] = { carimbo, vinculada: Boolean(o.vinculada), metodo: metodo || null,
+            autor: autor || null };
+        }
       }
     } catch (erro) { /* a §6 declara a lacuna */ }
     return mapa;

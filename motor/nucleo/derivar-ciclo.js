@@ -1299,6 +1299,32 @@ function derivarAula({ nn = '01', plano, po, contexto, calibracao, linhaDeBase, 
      * E O ECRÃ NÃO REPETE O PAPEL: o selector mostra as acções de UMA aluna de cada vez. Sem
      * JavaScript ficam todas à vista — é o comportamento anterior, e é a degradação certa: a
      * página perde o conforto, não a função. */
+    /* QUEM FEZ A ANAMNESE E QUANDO — a frase que a listagem leva ao lado do nome (22/11/2026).
+     *
+     * Ela, a olhar a lista do §6 da aula: «tem que dizer aqui nessa listagem, ao lado do nome da
+     * aluna, quem é o que fez a anamnese e a data em que essa anamnese foi feita. […] A gente já
+     * tem isso nos arquivos de chave e valor, então é fácil colocar aqui.»
+     *
+     * Tem, e é essa a razão de não se inventar nada: o AUTOR vem de `anamneses[aluna].autor` (o
+     * `professorNome` do envelope — quem respondeu, não quem dirige a sala) e a DATA sai do
+     * CARIMBO, que é o nome do próprio ficheiro (`anamnese-20261118-1737`). As duas fontes são as
+     * do acervo; a função só as põe em português.
+     *
+     * SEM AUTOR NÃO SE INVENTA UM. Um envelope anterior a este campo existir não declara quem o
+     * fez, e uma linha com «por —» seria uma promessa vazia; a frase fica só com a data, que é o
+     * que o carimbo garante. Sem carimbo legível não fica nada — e a lista diz «sem anamnese
+     * registada», como já dizia. */
+    const quandoDaAnamnese = (carimbo) => {
+      const casou = String(carimbo || '').match(/(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(?:-\d+)?$/);
+      return casou ? casou[3] + '/' + casou[2] + '/' + casou[1] : '';
+    };
+    const deQuemEQuando = (nome) => {
+      const dado = anamneses && anamneses[nome];
+      const carimbo = String(dado && typeof dado === 'object' ? dado.carimbo : dado || '').trim();
+      const autor = String(dado && typeof dado === 'object' ? dado.autor || '' : '').trim();
+      const quando = quandoDaAnamnese(carimbo);
+      return [autor ? 'por ' + autor : '', quando ? 'em ' + quando : ''].filter(Boolean).join(' ');
+    };
     const doActo = emLista(((linhaDeBase && linhaDeBase.alunas) || []).map(String))
       .map((n) => n.trim()).filter((n) => n && !GABARITO_VAZADO.test(n));
     const doPo = emLista(resp(po, 'sujeitos')).filter((v) => !GABARITO_VAZADO.test(v));
@@ -1330,7 +1356,12 @@ function derivarAula({ nn = '01', plano, po, contexto, calibracao, linhaDeBase, 
         const nome = String(aluna).trim();
         const dado = anamneses && anamneses[nome];
         const carimbo = String(dado && typeof dado === 'object' ? dado.carimbo : dado || '').trim();
-        html.push('<option value="' + escaparHtmlAtributo(nome) + '">' + escaparHtml(nome) + '</option>');
+        /* A FRASE VAI NA OPÇÃO E NA LINHA DAS ACÇÕES (22/11/2026). Na opção, porque é ela que se
+         * lê ao ESCOLHER — e a escolha é o gesto de quem vai abrir a anamnese; na linha, porque
+         * sem JavaScript ficam todas à vista, e a informação não pode depender do script. */
+        const quem = deQuemEQuando(nome);
+        html.push('<option value="' + escaparHtmlAtributo(nome) + '">' + escaparHtml(nome)
+          + (quem ? ' · ' + escaparHtml(quem) : '') + '</option>');
       }
       html.push('</select>');
       for (const aluna of elenco) {
@@ -1367,9 +1398,17 @@ function derivarAula({ nn = '01', plano, po, contexto, calibracao, linhaDeBase, 
          * campo existir, não recebe uma escola inventada: sai «origem metodológica não declarada»,
          * que é a verdade e é o que o professor precisa de saber para pedir o novo registo. */
         const metodo = String(dado && typeof dado === 'object' ? dado.metodo || '' : '').trim();
+        /* UMA FRASE SÓ, NO `<span>` QUE JÁ EXISTE (22/11/2026). O autor e a data entram na mesma
+         * linha da origem metodológica, separados por um ponto médio — os três são metadados do
+         * MESMO retrato, e uma peça nova no catálogo para uma frase que ninguém pediu seria a
+         * classe inventada que o `IDENTIDADE-VISUAL.md` proíbe. A ordem é a da pergunta do
+         * professor: de quem é, de quando, e por que método. */
+        const quem = deQuemEQuando(nome);
         html.push('<div class="acoes-da-aluna" data-prov-par="'
           + escaparHtmlAtributo(nome) + '">' + accoes
-          + '<span class="origem-da-aluna">' + (metodo
+          + '<span class="origem-da-aluna">'
+          + (quem ? 'anamnese ' + escaparHtml(quem) + ' · ' : '')
+          + (metodo
             ? 'origem metodológica declarada: <strong>' + escaparHtml(metodo) + '</strong>'
             : 'origem metodológica não declarada') + '</span></div>');
       }

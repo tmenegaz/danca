@@ -565,7 +565,14 @@ async function montarCadeia(env, escola, fetchImpl) {
       for (const o of await portaNucleo.anamneses(armazenamento, null, null)) {
         const aluna = String((o && o.valor) || '').trim();
         const carimbo = String((o && o.carimbo) || '').trim();
-        if (aluna && carimbo) mapa[aluna] = { carimbo, vinculada: Boolean(o.vinculada) };
+        /* O AUTOR E A ORIGEM METODOLÓGICA, como na ponte das rotas (22/11/2026) — os dois sítios
+         * compõem o mesmo mapa, e um deles a menos é uma secção mais pobre conforme o caminho. */
+        const autor = String((o && o.professorNome) || '').trim();
+        const metodo = String((o && o.metodo) || '').trim();
+        if (aluna && carimbo) {
+          mapa[aluna] = { carimbo, vinculada: Boolean(o.vinculada), metodo: metodo || null,
+            autor: autor || null };
+        }
       }
     } catch (erro) { /* a §6 declara a lacuna */ }
     return mapa;

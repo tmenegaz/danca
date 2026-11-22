@@ -57909,3 +57909,53 @@ anteriores inalteradas** (medidas com o worktree em `stash`).
 **O que continua em aberto, e é dito.** O vínculo turma→elenco devia estar no repositório. Enquanto
 não estiver, qualquer regeneração local exige `--elenco=` — a guarda impede o dano, não substitui o
 dado.
+
+## 22/11/2026 — a listagem da anamnese diz quem a fez e quando
+
+**O PEDIDO DELA.** «Quando a gente entra no plano para a aula, seja o um ou seja o dois […] nós temos
+a parte da anamnese de cada aluna. Aí nós temos aqui uma lista que tem a aluna […] Tem que dizer aqui
+nessa listagem, ao lado do nome da aluna, quem é o que fez a anamnese e a data em que essa anamnese
+foi feita. […] A gente já tem isso nos arquivos de chave e valor, então é fácil colocar aqui.»
+
+Tem, e é essa a razão de não se inventar nada:
+
+| o dado | de onde vem | e o que se vê |
+|:--|:--|:--|
+| **quem** | o `professor` do envelope da anamnese — quem a **respondeu**, e não quem dirige a sala | «Aluna A · por demi-plie» |
+| **quando** | o **carimbo**, que é o nome do próprio ficheiro (`anamnese-20261118-1737`) | «em 18/11/2026» |
+
+E o dado distingue o que interessa: nesta turma as duas anamneses foram feitas por **professores
+diferentes** — a da Aluna A por `demi-plie` a 18/11, a da Aluna B por `bom-bom` a 19/11. Até hoje as
+duas linhas diziam só o nome da aluna, e essa diferença não estava em sítio nenhum do documento.
+
+**ONDE.** Na **opção** do selector (é o que se lê ao escolher, e a escolha é o gesto de quem vai abrir
+a anamnese) e na **linha das acções** daquela aluna (para quem não tem JavaScript, que vê as três ao
+mesmo tempo). A frase entra no `<span class="origem-da-aluna">` que já existia, com um ponto médio a
+separar os três metadados do mesmo retrato — de quem é, de quando, por que método. Nenhuma peça nova
+no catálogo: a frase ninguém a pediu como componente, e uma classe inventada seria a que o
+`IDENTIDADE-VISUAL.md` proíbe.
+
+**SEM AUTOR NÃO SE INVENTA UM.** Um envelope anterior a este campo existir não declara quem o fez: a
+frase fica só com a data, que o carimbo garante. E sem carimbo legível não fica nada — a lista diz
+«sem anamnese registada», como já dizia.
+
+**O CAMINHO DO DADO.** `porta.anamneses` já devolvia `professorNome` desde 20/11; o que faltava era
+chegar ao documento. `rotas.anamnesesDaTurma` e `producao.anamnesesDaTurma` — os dois sítios que
+compõem o mesmo mapa — passam a levar `autor`, e o derivador compõe a frase. A data sai do carimbo **no
+derivador**, e não é uma segunda cópia: é o mesmo carimbo que nomeia o ficheiro.
+
+**PROVA.** `provar-proveniencia-e-turma` ganhou **3 asserções**: a opção da Aluna A diz «por demi-plie
+em 05/11/2026»; a da Aluna B — sem autor no fixture — diz só «em 05/11/2026», sem nome inventado; e a
+mesma frase está na linha das acções. **53 de 56**, e as 3 falhas são **as mesmas da linha de base**
+(medido com o worktree em `stash`): a notação não é o que a prova espera desde 15/11, e a verificação
+de classes «inventadas» reprova o `origem-da-aluna`, que existe desde 18/11 e nunca foi desenhado na
+folha. Nenhuma delas é desta entrega.
+
+**MEDIDO no navegador**, sobre o pacote montado e servido em `127.0.0.1`: `/rosa/aula-01.html` tem o
+`<select>` com as duas opções («Aluna A · por demi-plie em 18/11/2026», «Aluna B · por bom-bom em
+19/11/2026»), nada visível antes de escolher, e escolher a Aluna B mostra as acções dela com
+«anamnese por bom-bom em 19/11/2026 · origem metodológica não declarada».
+
+`provar-derivador-da-aula` 35/35, `provar-corpo-da-linha-de-base` 30/30; `check-identidade` 22 ok / 0
+reprovações, `check-indices` 16/16, `check-pacote` 0 erros (1 aviso: o PDF, por desenho),
+`hash-ciclo --check` cadeia intacta, pacote da `breu-rosa` regerado.

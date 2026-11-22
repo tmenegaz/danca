@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-21T20:26:14-0300`
-Commit atual: `ddf4dd34` — chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
+Gerado em: `2026-11-22T08:58:39-0300`
+Commit atual: `37a511cd` — fix(tools): o `regerar-derivados` não apaga o que não consegue reproduzir
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,19 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+37a511cd fix(tools): o `regerar-derivados` não apaga o que não consegue reproduzir
+e83ad10e chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
+a2bb9231 chore(estrutura): fechar os derivados — âncoras e índices
+4f16c4c5 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
+dc8e3d00 feat(ciclo): o «Guardar» do PO grava as fontes de breu-rosa num commit só
+cf5fb074 feat(acervo): envelope/po-20261122-0849.json
+07a162c7 feat(acervo): envelope/.indice.json
+225c8e3b feat(plano): o elo da cadeia automática
+bba499f8 feat(acervo): envelope/plano-20261122-0849.json
+a64cfdb5 feat(acervo): envelope/.indice.json
+dddf46cf feat(linha de base): índice — tami 20261122-1149
+5795075a feat(elenco): tami — concluído
+cdb60071 fix(po): o plano de observação mostra as dimensões, e o valor é da aula
 ddf4dd34 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
 ed509ab1 chore(estrutura): fechar os derivados — âncoras e índices
 4f389278 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
@@ -89,19 +102,6 @@ ed509ab1 chore(estrutura): fechar os derivados — âncoras e índices
 dcef471b feat(ciclo): o «Guardar» do PO grava as fontes de breu-rosa num commit só
 6708e7f8 feat(acervo): envelope/po-20261121-1955.json
 e4736aa0 feat(acervo): envelope/.indice.json
-91f71c52 feat(plano): o elo da cadeia automática
-ec29a867 feat(acervo): envelope/plano-20261121-1955.json
-f9921206 feat(acervo): envelope/.indice.json
-b8dc8ac5 feat(linha de base): índice — tami 20261121-2255
-cb26eb13 feat(elenco): tami — concluído
-ad08c33d chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
-f76430bd chore(estrutura): fechar os derivados — âncoras e índices
-845c373b chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
-5e4e84dd feat(ciclo): o «Guardar» do PO grava as fontes de breu-rosa num commit só
-731a3f78 feat(acervo): envelope/po-20261121-1531.json
-30a25bdf feat(acervo): envelope/.indice.json
-24175136 feat(plano): o elo da cadeia automática
-45288d1b feat(acervo): envelope/plano-20261121-1531.json
 ```
 
 ## Por professor
@@ -128,7 +128,7 @@ f76430bd chore(estrutura): fechar os derivados — âncoras e índices
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `59b86b60252a` | (vazio) | — |
-| breu-rosa | ciclo-01-breu-rosa.fipp | `a644780d1d20` | (vazio) | Input_PO_Validado |
+| breu-rosa | ciclo-01-breu-rosa.fipp | `8f01f98fc765` | (vazio) | Input_PO_Validado |
 
 ### fernando-franciose — 0 ciclo(s)
 
@@ -195,71 +195,55 @@ f76430bd chore(estrutura): fechar os derivados — âncoras e índices
 
 ## Última entrada do REGISTRO
 
-## 21/11/2026 — o PO mostra as dimensões, o valor é da aula, e a leitura não aparecia por um defeito
+## 22/11/2026 — a listagem da anamnese diz quem a fez e quando
 
-**A decisão dela, que reverte a minha.** A 21/11 eu tinha posto no Bloco 2 do Plano de Observação o
-valor lido de cada aspecto, a nota do professor e — pior — uma frase a explicar onde se fazia a
-leitura. Ela leu e respondeu:
+**O PEDIDO DELA.** «Quando a gente entra no plano para a aula, seja o um ou seja o dois […] nós temos
+a parte da anamnese de cada aluna. Aí nós temos aqui uma lista que tem a aluna […] Tem que dizer aqui
+nessa listagem, ao lado do nome da aluna, quem é o que fez a anamnese e a data em que essa anamnese
+foi feita. […] A gente já tem isso nos arquivos de chave e valor, então é fácil colocar aqui.»
 
-> «Eu não espero que os resultados estejam aqui no plano de observação, tá? O plano de observação é
-> exatamente o que está aqui. Não precisa ter isso. E essa parte que você colocou, "sem leitura neste
-> elenco", esses elementos aqui você tem que tirar. Esse monte de texto que você incluiu aqui também
-> você tem que tirar. […] Eu espero é que lá nos resultados da aula, na coluna o que se observa, é
-> que tenha o resultado da primeira posição de pés, primeira posição de braços, que são obtidos lá na
-> anamnese. E o caminho para se chegar até esses resultados é pelo plano de observação.»
+Tem, e é essa a razão de não se inventar nada:
 
-O painel volta a desenhar os grupos e os aspectos — e só isso. O PO é o **caminho**: diz QUAIS
-aspectos se observam. O valor é da **aula**, que é o documento que se leva para a sala.
+| o dado | de onde vem | e o que se vê |
+|:--|:--|:--|
+| **quem** | o `professor` do envelope da anamnese — quem a **respondeu**, e não quem dirige a sala | «Aluna A · por demi-plie» |
+| **quando** | o **carimbo**, que é o nome do próprio ficheiro (`anamnese-20261118-1737`) | «em 18/11/2026» |
 
-**E ela tinha razão sobre o resto: não aparecia por um defeito, e o defeito era duplo.** Fez o passo
-e o acto do elenco continuou sem `leitura`. Medido ao vivo:
+E o dado distingue o que interessa: nesta turma as duas anamneses foram feitas por **professores
+diferentes** — a da Aluna A por `demi-plie` a 18/11, a da Aluna B por `bom-bom` a 19/11. Até hoje as
+duas linhas diziam só o nome da aluna, e essa diferença não estava em sítio nenhum do documento.
 
-| o que se mediu | o que se viu |
-|:--|:--|
-| `GET …/linha-de-base/leitura?id=tami&alunas=Aluna A,Aluna B` | **200** — a leitura funciona — e devolveu `alunas: ['Aluna A','Aluna B','Aluna A','Aluna B']`: **quatro nomes para duas pessoas** |
-| o índice do acervo | `anamnese-20261116-2201` (Aluna A, **sem** `alunaId`) e `anamnese-20261118-1737` (Aluna A, `aluna-a-3`). Pela regra do `vigente` — que é por PESSOA —, são duas identidades, e as duas contam |
-| o `POST` do «Concluir elenco» | compara `leitura.alunas` com as alunas do elenco por `map(String).sort()` — uma lista **ordenada**, não um conjunto. Quatro contra dois não bate, e a leitura é **descartada em silêncio** |
+**ONDE.** Na **opção** do selector (é o que se lê ao escolher, e a escolha é o gesto de quem vai abrir
+a anamnese) e na **linha das acções** daquela aluna (para quem não tem JavaScript, que vê as três ao
+mesmo tempo). A frase entra no `<span class="origem-da-aluna">` que já existia, com um ponto médio a
+separar os três metadados do mesmo retrato — de quem é, de quando, por que método. Nenhuma peça nova
+no catálogo: a frase ninguém a pediu como componente, e uma classe inventada seria a que o
+`IDENTIDADE-VISUAL.md` proíbe.
 
-O acto que ela gravou às 22:55 confirma-o: tem `lida` (a proveniência dos carimbos, que sobrevive a
-tudo) e não tem `leitura`. E é por isso que o painel dizia «sem leitura neste elenco» sobre corpos que
-ela tinha observado.
+**SEM AUTOR NÃO SE INVENTA UM.** Um envelope anterior a este campo existir não declara quem o fez: a
+frase fica só com a data, que o carimbo garante. E sem carimbo legível não fica nada — a lista diz
+«sem anamnese registada», como já dizia.
 
-**O que se consertou.**
+**O CAMINHO DO DADO.** `porta.anamneses` já devolvia `professorNome` desde 20/11; o que faltava era
+chegar ao documento. `rotas.anamnesesDaTurma` e `producao.anamnesesDaTurma` — os dois sítios que
+compõem o mesmo mapa — passam a levar `autor`, e o derivador compõe a frase. A data sai do carimbo **no
+derivador**, e não é uma segunda cópia: é o mesmo carimbo que nomeia o ficheiro.
 
-1. **Uma anamnese por apelido, a mais recente.** A leitura de uma turma quer um retrato por apelido; o
-   `vigente` por pessoa continua a ser a regra da estante, que é outro sítio e outra pergunta.
-2. **Conjunto é sem repetições.** A comparação do «Gravar» — e a do aviso `avisoLeitura` — passam a
-   comparar `[...new Set(...)].sort()`. Uma leitura legítima deixa de poder ser deitada fora por causa
-   de um nome repetido.
-3. **O painel do PO volta a mostrar só as dimensões.** Sai o valor, sai a nota, sai o «sem leitura
-   neste elenco», sai o parágrafo de instruções.
-4. **O valor aparece na AULA**, e é a mesma frase do passo 3 que o derivador imprime no Corpo.
+**PROVA.** `provar-proveniencia-e-turma` ganhou **3 asserções**: a opção da Aluna A diz «por demi-plie
+em 05/11/2026»; a da Aluna B — sem autor no fixture — diz só «em 05/11/2026», sem nome inventado; e a
+mesma frase está na linha das acções. **53 de 56**, e as 3 falhas são **as mesmas da linha de base**
+(medido com o worktree em `stash`): a notação não é o que a prova espera desde 15/11, e a verificação
+de classes «inventadas» reprova o `origem-da-aluna`, que existe desde 18/11 e nunca foi desenhado na
+folha. Nenhuma delas é desta entrega.
 
-**MEDIDO, e é o que ele pediu para ver.** `experimentos/mostrar-o-que-se-observa.js` (novo) lê o
-acervo ao vivo — o recorte do elenco, as anamneses das duas alunas, o conteúdo da anamnese — e
-imprime, aspecto a aspecto, o que cada uma registou e a frase que a aula vai dizer. Os onze aspectos
-têm resposta das duas. E a Aula 01, derivada com essa leitura, imprime as onze linhas, por exemplo:
+**MEDIDO no navegador**, sobre o pacote montado e servido em `127.0.0.1`: `/rosa/aula-01.html` tem o
+`<select>` com as duas opções («Aluna A · por demi-plie em 18/11/2026», «Aluna B · por bom-bom em
+19/11/2026»), nada visível antes de escolher, e escolher a Aluna B mostra as acções dela com
+«anamnese por bom-bom em 19/11/2026 · origem metodológica não declarada».
 
-> `1ª posição — pés` — 1 de 2 em «Bom» (com toque) · 1 de 2 em «precisa desenvolver» (por
-> consciência própria) — ponto de atenção
-
-**PROVA.** `provar-o-que-se-observa` — **49/49**, com a §E revista (passa a medir o CONTRÁRIO: o
-painel não mostra valor, não diz «sem leitura», não traz instruções) e a §G nova, que mede a raiz do
-defeito: dois envelopes do mesmo apelido contam **uma** vez, a frase sai «de 2» e não «de 4», a nota
-atravessa, e o «Concluir» leva a leitura mesmo com a lista repetida no rascunho. **CONTROLE
-NEGATIVO**: 14 de 49 caem contra o `75b91620`; **0** contra o `7839fed0` — e isso passou a estar
-escrito no ficheiro, porque as secções E, F e G medem a página e as rotas, que o controle não
-reverte. Uma prova cujo controle nunca falha não é um controle.
-
-`provar-corpo-da-linha-de-base` 30/30, `provar-leituras-do-po` 27/27, `provar-derivador-da-aula`
-35/35, `provar-eixos-do-po` 42/42; `check-identidade` 22 ok / 0 reprovações, `check-indices` 16/16,
-`check-pacote` 0 erros (1 aviso: o PDF, por desenho), `hash-ciclo --check` cadeia intacta.
-
-**E fica dito o que eu fiz ao vivo, porque um agente não escreve na escola sem o dizer.** Chamei a
-rota `…/linha-de-base/leitura` duas vezes para medir o defeito — é o mesmo gesto que o botão
-«Ler as anamneses» faz, e deixou no KV um rascunho do elenco «Tami» com a leitura (a segunda chamada,
-já com as duas alunas). Nada foi concluído: o acto é dela. O rascunho aparece na lista como «em
-edição», e o «Concluir elenco» seguinte leva a leitura — que é o que ela queria desde o princípio.
+`provar-derivador-da-aula` 35/35, `provar-corpo-da-linha-de-base` 30/30; `check-identidade` 22 ok / 0
+reprovações, `check-indices` 16/16, `check-pacote` 0 erros (1 aviso: o PDF, por desenho),
+`hash-ciclo --check` cadeia intacta, pacote da `breu-rosa` regerado.
 
 ## O que está pendente
 
