@@ -1182,13 +1182,19 @@ const MARCAS = [['', 'não observei'], ['ok', '✓ ok'], ['parcial', '~ parcial'
 // declarada não pode ficar sem medida.
 const REGUA_PADRAO = ['Satisfatório', 'Razoável', 'Em desenvolvimento', 'Não se aplica'];
 let reguaAtual = REGUA_PADRAO.slice();
+// A régua foi DECLARADA pela turma (e não é a de recurso)? É a diferença entre «esta turma mede
+// assim» e «ninguém declarou nada, e a página não pode ficar sem escala». Governa a matriz do
+// corpo junto com `comRegua` — ver `tipoDaColuna`, em `camposCaptura`.
+let reguaDeclarada = false;
 
 // A régua do ciclo em cena. O vazio NÃO é uma régua: sem níveis, volta o padrão.
 function usarRegua(plano) {
   const declarada = ((plano && plano.reguaDaRubrica) || [])
     .filter((x) => typeof x === 'string' && x.trim()).map((x) => x.trim());
-  reguaAtual = declarada.length ? declarada : REGUA_PADRAO.slice();
+  reguaDeclarada = declarada.length > 0;
+  reguaAtual = reguaDeclarada ? declarada : REGUA_PADRAO.slice();
 }
+
 
 // O campo de um critério: um nível da régua, ou o vazio (não medido nesta aula). Um valor JÁ
 // LANÇADO que não está na régua entra como opção extra — a régua pode mudar entre ciclos, e
@@ -1717,11 +1723,31 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
   // régua não se explica pelas cinco marcas, e vice-versa.
   const usaTipo = (t) => blocos.some((b) => (b.colunas || []).some((c) => c.tipo === t));
   const comRegua = usaTipo('rubrica');
+  /* UMA FOLHA, UMA RÉGUA (22/11/2026).
+   *
+   * O DEFEITO, medido por ela: «Nós temos duas matrizes, está errado isso. A régua da turma é só
+   * uma, não pode ser duas […] a parte do corpo está com uma régua que ela está chumbada no
+   * código. Ela é OK, parcial, não aconteceu e não vi. Está errado isso.» A página mostrava DUAS
+   * legendas — «Régua desta turma: Satisfatório · Razoável · …» e «Marcas: ✓ aconteceu · ~
+   * parcial · X não aconteceu · ? não vi» — para medir critérios da mesma aula: os blocos mediam-se
+   * pela régua, e a matriz do corpo (a «linha de base revisitada») pelas cinco marcas.
+   *
+   * A COLUNA DO CORPO NASCE AGORA `rubrica` na derivação (`declaracaoDeCaptura`), e esta é a
+   * segunda metade da mesma regra — porque esta página é servida SOZINHA, de um pacote que pode ter
+   * sido gerado ontem. A regra é a da PÁGINA, e não a da coluna: se a folha em cena mede critérios
+   * pela régua (declarada ou a de recurso), o corpo mede-se pela MESMA — é isso que faz haver uma
+   * escala só. Uma folha inteira em marcas — o ciclo antigo — fica como estava: não se inventa uma
+   * escala nova em cima de um ciclo que nunca a teve. */
+  const medePelaRegua = comRegua || reguaDeclarada;
+  const tipoDaColuna = (b, c) => {
+    if (b && b.chave === 'linha_de_base' && medePelaRegua) return 'rubrica';
+    return (c && c.tipo) || 'marca';
+  };
   // A legenda das marcas aparece quando alguma coluna RENDERIZA como marca — e `marca` é o ramo
   // padrão de `campo()`: uma coluna cujo tipo ninguém declarou cai nele, e a legenda tem de
   // explicá-la. Só o que é de outro registro declarado (número, booleano, texto, régua) fica fora.
   const comMarcas = blocos.some((b) => (b.colunas || [])
-    .some((c) => !['numero', 'booleano', 'texto', 'rubrica'].includes(c.tipo)));
+    .some((c) => !['numero', 'booleano', 'texto', 'rubrica'].includes(tipoDaColuna(b, c))));
   // Um campo por TIPO declarado: marca (os cinco da folha), rubrica (os níveis da turma),
   // número, booleano. `texto` e `checkbox` não são coluna de tabela nestes ciclos (ver a
   // declaração no schema da captura).
@@ -1826,7 +1852,7 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
       ${presentes.map(([k, nome]) => {
         const lancado = Array.isArray((a && a[b.chave] || {})[k]) ? a[b.chave][k] : [];
         return `<tr><th class="aluna">${esc(nome)}</th>`
-          + itens.map((x, j) => `<td>${campo(`lb-${k}-${j}`, (b.colunas[0] || {}).tipo || 'marca',
+          + itens.map((x, j) => `<td>${campo(`lb-${k}-${j}`, tipoDaColuna(b, b.colunas[0]),
             (lancado[j] || {}).marca)}</td>`).join('')
           + '</tr>';
       }).join('')}
@@ -2331,7 +2357,7 @@ function coletarCaptura(dados) {
         const marcas = itens.map((x, j) => ({
           chave: Vistas.helpers.chaveDoItem(x.item),
           item: x.item,
-          marca: lerValor(`lb-${k}-${j}`, (b.colunas[0] || {}).tipo || 'marca'),
+          marca: lerValor(`lb-${k}-${j}`, tipoDaColuna(b, b.colunas[0])),
         }));
         if (marcas.length) porPessoa[k] = marcas;
       });

@@ -4463,16 +4463,49 @@ function gradeDeOpcoesDinamicas(no) {
    * (`anterior`); a lista de ESCOLHA esconde-os, e o histórico continua a ser lido por quem o lê
    * (a turma e o ciclo deste documento, por exemplo).
    *
-   * A EXCEPÇÃO É DECLARADA: o plano que ESTE documento já aponta fica. Sem ele o campo
-   * apareceria sem marcação, e a gravação seguinte perdia a referência em silêncio. Fica dito
-   * por extenso, para não se confundir com o vigente. */
+   * E A EXCEPÇÃO QUE HAVIA SAIU (22/11/2026). Ela 「deixava ficar」 o plano que este documento já
+   * apontava, com a nota «(versão anterior)» no rótulo, para a gravação seguinte não perder a
+   * referência em silêncio. O remédio era melhor do que a doença? Não: com o documento a apontar
+   * um elo já substituído, o campo mostrava DOIS planos com o mesmo objetivo — que é exactamente
+   * o que ela viu e recusou: «o item dois […] você preencheu com dois planos de ensino. A gente
+   * tem uma correção documentada a respeito disso […] que não é para ter dois aqui dentro do
+   * mesmo ciclo. E você colocou o mesmo objetivo deles, mas você tomou uma nota no segundo que diz
+   * versão anterior. E não pode ser assim, isso está errado.»
+   *
+   * O QUE SE FAZ AGORA: um plano na lista, e é o VIGENTE. Se o documento apontava um elo
+   * substituído, a lista segue a CADEIA (`ajuste_de`, que a estante já manda) até ao topo, e o
+   * campo abre apontado nele — com uma nota que diz o que aconteceu, porque mudar a referência de
+   * um documento tem de ser visível. O elo antigo não se perde: continua na estante como versão
+   * anterior, e é o que o histórico lê. */
+  let notaDoPlanoSubstituido = '';
   if (no.opcoesDe === 'api/planos') {
     const bruto = RESPOSTAS.get(no.id);
     const escolhido = String((Array.isArray(bruto) ? bruto[0] : bruto) || '').trim();
-    lista = lista.filter((o) => !o.anterior || String(o.valor) === escolhido)
-      .map((o) => (o.anterior
-        ? Object.assign({}, o, { rotulo: (o.rotulo || o.valor) + ' (versão anterior)' })
-        : o));
+    // O topo da cadeia a que um elo pertence. `anterior` diz que ELE tem sucessor; `ajuste_de`
+    // diz QUEM é o sucessor — a mesma seta que a estante usa para marcar, lida ao contrário.
+    const topoDaCadeia = (id) => {
+      let atual = id;
+      for (let passo = 0; passo < 200; passo += 1) {
+        const sucessor = lista.find((o) => String(o.ajuste_de || '') === atual);
+        if (!sucessor) return atual;
+        atual = String(sucessor.valor);
+      }
+      return atual;
+    };
+    const apontaSubstituido = escolhido
+      && lista.some((o) => String(o.valor) === escolhido && o.anterior === true);
+    const vigente = apontaSubstituido ? topoDaCadeia(escolhido) : escolhido;
+    lista = lista.filter((o) => !o.anterior);
+    if (apontaSubstituido && vigente !== escolhido && lista.some((o) => String(o.valor) === vigente)) {
+      // A referência do documento passa a ser o vigente da MESMA cadeia. Gravar daqui em diante
+      // grava-o; o elo antigo fica no acervo, que é onde o histórico o lê.
+      RESPOSTAS.set(no.id, Array.isArray(bruto) ? [vigente] : vigente);
+      const rotuloVigente = (lista.find((o) => String(o.valor) === vigente) || {}).rotulo || vigente;
+      notaDoPlanoSubstituido = '<div class="caixa nota"><p class="sub">Este documento apontava o '
+        + 'plano <strong>' + escapar(escolhido) + '</strong>, que foi ajustado. O plano de ensino '
+        + 'deste ciclo é um só, e é o vigente: <strong>' + md(rotuloVigente) + '</strong> — é ele '
+        + 'que fica marcado. O anterior continua no acervo, como versão anterior.</p></div>';
+    }
   }
 
   /* O QUE A ESCOLA DECLARA DESCE PARA O CAMPO. Um nó que declara `daCuradoria` lê a atribuição
@@ -4538,7 +4571,8 @@ function gradeDeOpcoesDinamicas(no) {
       (usada ? ' disabled' : '') + '><span>' + md(o.rotulo || o.valor) +
       (usada ? ' ' + marcaDaTurmaUsada(usada) : '') + turma + '</span></label>';
   }).join('');
-  const blocos = ['<div class="grade">' + caixas + '</div>'];
+  const blocos = (notaDoPlanoSubstituido ? [notaDoPlanoSubstituido] : [])
+    .concat(['<div class="grade">' + caixas + '</div>']);
   // A lista pode estar inteira bloqueada: todas as turmas dele já têm plano. Dizer isso é o
   // que evita a leitura de «o sistema quebrou» — e aponta o caminho (falar com a direção).
   if (usadas.size && !disponiveis.length) {
