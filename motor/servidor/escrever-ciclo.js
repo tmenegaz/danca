@@ -458,6 +458,21 @@ function horaDosDias(confTexto) {
  * campos elicitados; o que não foi preenchido fica como está (o mock vira a
  * exceção, não a regra, e a lacuna continua declarada pelo `.conf`).
  */
+/**
+ * O CALENDÁRIO QUE O `.conf` DECLARA (22/11/2026) — `{ inicio, dias, total }`.
+ *
+ * Os três campos são os que a conta de `motor/nucleo/calendario-das-aulas.js` precisa, e são os
+ * que o manifesto já tem: `DATA_INICIO` (em `dd/mm/aaaa`), `DIAS` (a forma `1@10:30,3@10:30`) e
+ * `TOTAL_AULAS`. Devolve o que existir; a conta recusa-se a inventar quando falta algum.
+ */
+function calendarioDoConf(confTexto) {
+  const pegar = (chave) => {
+    const m = new RegExp('^' + chave + '="([^"]*)"', 'm').exec(confTexto || '');
+    return m ? m[1].trim() : '';
+  };
+  return { inicio: pegar('DATA_INICIO'), dias: pegar('DIAS'), total: pegar('TOTAL_AULAS') };
+}
+
 function linhasDeContexto(plano, confTexto) {
   const saida = [];
 
@@ -621,6 +636,29 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
     ctx.escolaNome = cal.escolaNome || escolaNome;
     relatorio.conf = { ok: true, cal };
 
+    /* A DATA DE CADA AULA, E O NOME DE QUEM A DÁ (22/11/2026).
+     *
+     * O §1 da aula dizia a data como LACUNA — «a data desta aula não está na fonte» —, e estava na
+     * fonte: o `.conf` declara o início do período, os dias da semana e o total de aulas, que é o
+     * que a Regra 10 (camada 2) nomeia. A conta existe em `motor/nucleo/calendario-das-aulas.js`,
+     * e é a do `calendario.py` — as duas dão as mesmas datas (a prova mede contra o `ciclos.json`).
+     *
+     * O NOME DO PROFESSOR vem do PERFIL dele (`professores/<slug>/perfil.json`), e não do `.conf`:
+     * o `PROFESSOR` do manifesto é o SLUG (é assim que o `comporConf` o escreve), e o `RESPONSAVEL`
+     * é o responsável pela ESCOLA — que pode não ser quem dá esta aula. O slug fica como reserva,
+     * e a reserva é declarada: sem perfil, o documento diz o slug em vez de inventar um nome. */
+    const calendario = calendarioDoConf(conf.texto);
+    let professorNome = '';
+    try {
+      const perfil = await lerArquivoRemoto({
+        token, dono, repo, ref, caminho: 'professores/' + String(ctx.professor || '') + '/perfil.json', fetchImpl,
+      });
+      if (perfil && perfil.existe) {
+        const dados = JSON.parse(perfil.texto);
+        professorNome = String((dados && dados.nome) || '').trim();
+      }
+    } catch (erro) { professorNome = ''; }
+
     // 2. As fontes derivadas, cada uma com o seu caminho. O `-dados.json` é a
     // FONTE (não entra em DOCS): é o que o cifrador lê para publicar a cópia no
     // pacote — sem ela o `check-pacote.js` acusa o pacote incompleto.
@@ -715,7 +753,8 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
       ...aulasParaDerivar.map((nn) => ({
         sufixo: '-aula-' + nn + '.md',
         ...daAula(nn, () => derivarAula({ nn,
-          plano, po, contexto: Object.assign({}, ctx, { aulas: aulasDoCiclo }),
+          plano, po,
+          contexto: Object.assign({}, ctx, { aulas: aulasDoCiclo, calendario, professorNome }),
           calibracao: cal, linhaDeBase, anamneses })),
       })),
       { sufixo: '-referencias.md', md: derivarReferencias({ plano, contexto: ctx }) },
@@ -1135,6 +1174,7 @@ module.exports = {
   dataBrasil,
   frequenciaDoContexto,
   DIA_ISO,
+  calendarioDoConf,
   lerArquivoRemoto,
   gravarArquivoRemoto,
 };

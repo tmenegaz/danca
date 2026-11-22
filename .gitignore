@@ -1865,3 +1865,8 @@ experimentos/modelo-formulario/*
 # dá — e não a matriz inteira do ciclo —, e o guia mede pela régua da turma em vez das cinco marcas
 # que o produto abandonou. Tem controle negativo contra o código de antes.
 !experimentos/provar-a-aula-diz-so-o-que-e-dela.js
+
+# A PROVA DA IDENTIDADE DA AULA (22/11/2026): o §1 diz quem dá a aula, em que sala e em que dia — e
+# uma data, não um calendário —, e o §5 explica o formulário e leva lá com um botão. O dia da semana
+# é conferido por FORA, com o `Intl` do Node, para a prova não perguntar ao código que o escreveu.
+!experimentos/provar-a-identidade-da-aula.js

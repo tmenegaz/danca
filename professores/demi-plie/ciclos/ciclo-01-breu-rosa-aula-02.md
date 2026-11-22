@@ -17,6 +17,9 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 
 | Item | Definição |
 |:--|:--|
+| **Professor responsável** | Demi Plié |
+| **Sala** | Rosa |
+| **Data e dia** | quarta-feira, 16/12/2026 |
 | **Objetivo específico** | transferir o peso entre os pés sem perder o alinhamento |
 | **Parâmetro de medição** | **2** transferir o peso entre os pés sem perder o alinhamento — observa: Battement tendu · Battement jeté |
 | **Duração** | 120 minutos (Pré-requisito 4) |
@@ -44,10 +47,45 @@ Sem música declarada na sequência: Barra — Battement tendu · Barra — Batt
 
 ## 5. Guia de observação do professor
 
+> **Este guia é o que se leva para a sala; o registo faz-se no formulário.** Depois da aula,
+> abra o formulário da aula e preencha-o bloco a bloco: é lá que cada linha desta secção vira
+> uma pergunta, e é do que você marcar lá que saem os resultados desta aula. O guia não se
+> preenche — ele diz o que olhar enquanto a aula acontece.
+
+```{=html}
+<div class="acoes-do-ato">
+<a class="acao secundario" href="#guia-do-formulario">Como preencher o formulário</a>
+<a class="acao" href="lancamento.html">Lançar os dados desta aula</a>
+</div>
+
+<details class="bloco-lista" id="guia-do-formulario">
+<summary class="bloco-cabeca"><span class="bloco-titulo">O que cada bloco do formulário pede</span></summary>
+<div class="bloco-corpo">
+<p>O formulário abre o <strong>ciclo</strong> e a <strong>aula</strong> que você escolher no
+alto, e desenha os blocos abaixo. Cada um abre e fecha; o que está fechado continua a
+contar no resumo ao lado do nome.</p>
+<p><strong>Presentes</strong> — as alunas do elenco desta turma, uma a uma. Quem fica de
+fora não desaparece do formulário: a linha dela aparece e o resultado sai com «não estava».
+Este bloco corresponde à coluna de alunas das tabelas de cada eixo, mais abaixo.</p>
+<p><strong>Data e duração executada</strong> — vêm do calendário do ciclo (a data desta
+aula é a que o §1 diz) e do planeamento. Ajuste-as se a aula aconteceu noutro dia ou durou
+outro tempo: o que fica gravado é o que aconteceu, não o que estava previsto.</p>
+<p><strong>Ânimo, interesse e harmonia</strong> — três notas de 1 a 5 sobre a turma no dia,
+não sobre cada aluna. São do lançamento, e é por isso que não estão neste guia.</p>
+<p><strong>Corpo · Técnica · Poiesis</strong> — os três eixos desta secção. Cada um abre as
+suas tabelas, e cada tabela pede, por aluna, o nível da régua da turma nos critérios que
+este guia lista. O número ao lado do nome do eixo («3 de 12 marcados») é o que já foi
+preenchido.</p>
+<p><strong>Depois da aula</strong> — «o plano foi seguido?» (sim · em parte · não) e o que
+mudou em relação ao plano. É o único bloco do formulário que não tem correspondência aqui:
+o guia diz o que observar, e este diz o que aconteceu ao plano.</p>
+</div></details>
+```
+
 > Os itens vêm do **Itens de cada dimensão** no Plano de Observação, e o que se observa vem
 > do que a turma mostra nos aspectos que a linha de base escolheu. O ponto de partida de cada
-> aluna fica no Plano de Observação — é ele que a Captura pede, aluna a aluna —, e o que se
-> anota é o **nível da régua desta turma**: Satisfatório · Razoável · Em desenvovimento · Não se aplica.
+> aluna fica no Plano de Observação — é ele que o formulário pede, aluna a aluna —, e o que
+> se anota é o **nível da régua desta turma**: Satisfatório · Razoável · Em desenvovimento · Não se aplica.
 
 ### Corpo
 

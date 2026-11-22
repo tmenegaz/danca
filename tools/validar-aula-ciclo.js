@@ -117,11 +117,18 @@ const DECLARACAO = { secoes: MAPA_SECOES, colunas: MAPA_COLUNAS, pares: PARES };
 
 // AS LACUNAS DECLARADAS — o que o documento não tem em forma de dado. O motivo vai escrito:
 // quem lê o `[Preencher]` sabe de quem é a decisão.
-const LACUNAS = {
-  'identificacao.dataEHorarioDestaAula': 'a data desta aula não está na fonte — os dialetos B/C remetem a '
-    + '`plano.html#calendario-do-ciclo`, e quem a sabe é o .conf da variante (Regra 10, '
-    + 'camada 2: frequência, dias, duração, datas reais)',
-};
+//
+// A LACUNA DA DATA SAIU (22/11/2026), e por uma razão, não por conveniência: O DOCUMENTO PASSOU A
+// TRAZÊ-LA. O §1 ganhou a linha «Data e dia» — o dia da semana e a data daquela aula, do calendário
+// do `.conf` (Regra 10, camada 2, que é exactamente o sítio que esta lacuna nomeava). Manter as
+// duas coisas fazia o JSON dizer, na mesma `identificacao`, `dataEDia: "segunda-feira, 14/12/2026"`
+// e `dataEHorarioDestaAula: "[Preencher: a data desta aula não está na fonte]"` — o dado e a
+// lacuna sobre o mesmo facto, na mesma secção. Uma lacuna que persiste depois de a fonte existir
+// deixa de ser honestidade e passa a ser ruído.
+//
+// A CHAVE ANTIGA NÃO SE FORÇA: quem já a tenha em ficheiro gravado conserva-a, e a leitura tolera-a
+// (o schema não a exige). O que não se faz é escrevê-la de novo onde a resposta já está.
+const LACUNAS = {};
 
 /**
  * Aplica as lacunas declaradas. Onde o caminho pode hospedar a chave (o pai é um objeto), ela

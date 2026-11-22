@@ -58503,3 +58503,74 @@ no §1, e as marcas mortas nos quatro documentos. `check-pacote` 0 erros, `hash-
 **`provar-aula-prosa` cai** numa asserção anterior (`resposta ao pulso na marcação` não existe no
 `.md` deste ciclo, e não existia antes desta mudança) — verificado com o `.md` de `HEAD`: falha no
 mesmo sítio.
+
+## 22/11/2026 — O §1 diz quem dá a aula, onde e em que dia; o §5 leva ao formulário (motivo declarado)
+
+**O que motivou.** Duas faltas no mesmo documento, na Aula 01 da `breu`:
+
+1. «falta dizer quem é o professor responsável pela aula, aonde essa aula acontece, aonde eu me
+   refiro à sala, qual é o espaço que acontece essa aula e o dia da semana que isso acontece. […]
+   Você não vai transformar isso aqui num calendário, viu? Você vai dizer o dia específico, a data e
+   o dia da semana específico.»
+2. «nesse guia de observação do professor, a gente tem que explicar para ele que ele tem que
+   preencher o formulário da aula que ele vai dar. E o que que representa aqui neste documento cada
+   um dos espaços dos blocos que expande ou colapsa […] um botão com essa explicação melhorada e um
+   botão em seguida que leva direto ao formulário.»
+
+**O que era.** O §1 dizia o objetivo, o parâmetro, a duração e o volume — nada sobre quem, onde ou
+quando. A data existia como **lacuna declarada** (`identificacao.dataEHorarioDestaAula: «a data
+desta aula não está na fonte»`), e era **falsa**: a data estava na fonte que a própria lacuna
+nomeava — o `.conf` da variante, com `DATA_INICIO`, `DIAS` e `TOTAL_AULAS` (Regra 10, camada 2). E
+o §5 explicava o que observar, mas não dizia que o registo se faz **noutro sítio** — o formulário —,
+nem o que cada bloco dele representa.
+
+**O que foi decidido.**
+- **A CONTA DO CALENDÁRIO PASSA A EXISTIR EM JAVASCRIPT** — `motor/nucleo/calendario-das-aulas.js`,
+  com a regra do `calendario.py` copiada e não reinventada (a primeira aula é a primeira ocorrência
+  de um dia da turma a partir do início; um dia repetido na lista gera duas aulas na mesma data). As
+  duas implementações dão as **mesmas 15 datas** — é o que a prova mede contra o `ciclos.json`
+  publicado, que o Python gerou.
+- **O §1 ganha três linhas, e uma data não é um calendário.** `Professor responsável` (o **nome do
+  perfil**, com o slug como reserva — o `PROFESSOR` do `.conf` é o slug e o `RESPONSAVEL` é o da
+  escola), `Sala` (a turma do plano — é ela que o produto chama «sala» desde 07/11/2026) e `Data e
+  dia` (`segunda-feira, 14/12/2026`). Sem calendário no contexto, a linha declara a lacuna **e
+  nomeia os três campos do manifesto** — um documento que não sabe não inventa uma data.
+- **A LACUNA DO VALIDADOR SAIU.** `tools/validar-aula-ciclo.js` declarava `dataEHorarioDestaAula`
+  como lacuna; com a linha nova, o mesmo `identificacao` dizia o dado e a lacuna sobre o mesmo
+  facto. A lista fica vazia, com o motivo escrito ao lado — e o nome do campo antigo continua no
+  comentário, porque o registo do que saiu é informação.
+- **O §5 explica o formulário e leva lá.** Uma frase que diz para que serve o guia («o registo
+  faz-se no formulário»), dois botões — `.acao` é o botão da casa, e o do formulário é
+  **relativo** (`lancamento.html`) porque o formulário viaja ao lado do documento no pacote e o
+  derivador não conhece a pasta da turma —, e a explicação bloco a bloco dentro de um `<details>`
+  (`.bloco-lista`/`.bloco-cabeca`), **dita em relação a este documento**: «o Presentes é a coluna de
+  alunas das tabelas de cada eixo», «o número ao lado do nome do eixo é o que já foi preenchido».
+  Os blocos descritos são os que o formulário desenha: Presentes · Data e duração · Ânimo,
+  interesse e harmonia · Corpo·Técnica·Poiesis · Depois da aula.
+
+**Motivo declarado — os congelados.** `tools/validar-aula-ciclo.js` está em `CONGELAMENTO.md`, e a
+alteração muda **comportamento**: a chave `identificacao.dataEHorarioDestaAula` deixa de ser escrita
+como lacuna. Foi pedido pela proprietária («você vai colocar esses itens que estão faltando»), e vai
+no mesmo commit que a linha que a torna desnecessária. **O que não muda**: o formato dos documentos,
+as chaves que o schema exige (a antiga não é exigida), o hash de proveniência, e as regras de
+`REGRAS.md` e as pétreas de `PROTOCOLO.md`.
+
+**Com o quê.** `motor/nucleo/calendario-das-aulas.js` (**novo**), `motor/nucleo/derivar-ciclo.js` (o
+§1 e o §5), `motor/servidor/escrever-ciclo.js` (`calendarioDoConf`, a leitura do perfil, e as duas
+coisas no contexto da derivação), `tools/regerar-derivados.js` (o mesmo, do lado local),
+`tools/validar-aula-ciclo.js` (a lacuna), as fontes derivadas e o pacote da `breu-rosa` regerados, a
+âncora recalculada, `experimentos/provar-a-identidade-da-aula.js` (**novo**), `.gitignore`,
+`ESTADO-ATUAL.md`.
+
+**MEDIDO.** `provar-a-identidade-da-aula` **26/26**: as três linhas com o dado de cada uma; a data
+igual à do `ciclos.json` publicado e o dia da semana conferido pelo `Intl` do Node (uma segunda
+implementação, não a que escreveu); a Aula 02 com a data dela (quarta-feira, 16/12/2026); **uma só
+data no §1** (a asserção que impede o calendário); a lacuna a nomear `DATA_INICIO`/`DIAS`/
+`TOTAL_AULAS` quando não há calendário; os dois botões, com o `lancamento.html` ao lado do
+documento no pacote; a explicação a nomear os cinco blocos; as seis peças na folha. Com o **controle
+negativo** `--contra=e504f372`, as mesmas asserções reprovam **17 de 26** — sem as três linhas, sem
+os botões, e com o `plano-aula-01.json` a declarar a lacuna. `check-pacote` 0 erros,
+`hash-ciclo --check` íntegro, `check-identidade` **0 problemas**, `provar-a-aula-diz-so-o-que-e-dela`
+25/25. **`provar-aula-prosa` continua a cair** na mesma asserção anterior (o critério «resposta ao
+pulso na marcação» não existe neste `.md`) — e a geração da prosa preserva os botões e o `<details>`,
+medido.

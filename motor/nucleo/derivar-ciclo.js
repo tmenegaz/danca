@@ -23,6 +23,9 @@
  */
 
 const { respostaDo, emLista, itensDaDimensao, itensComObjetivos, turmaDoDocumento } = require('./derivar-po.js');
+/* A DATA DE CADA AULA (22/11/2026) — a conta do `calendario.py` em JavaScript, para o §1 poder
+ * dizer o dia em que esta aula acontece sem depender do gerador. */
+const calendarioDasAulas = require('./calendario-das-aulas.js');
 // O MOTOR DO REGISTRO DE NOTAÇÃO — o alfabeto é dado, e é ele que compõe a grade (20/10/2026).
 const moduloNotacao = require('./notacao.js');
 const sequenciaDoPlano = require('./sequencia.js');
@@ -840,7 +843,45 @@ function derivarAula({ nn = '01', plano, po, contexto, calibracao, linhaDeBase, 
 
   // §1 — Validação dos objetivos, métricas e duração (item/valor → `identificacao`).
   {
+    /* QUEM DÁ A AULA, ONDE, E EM QUE DIA (22/11/2026).
+     *
+     * O §1 dizia o objetivo, o parâmetro, a duração e o volume — e nada disto. Palavras dela:
+     * «falta dizer quem é o professor responsável pela aula, aonde essa aula acontece, aonde eu me
+     * refiro à sala, qual é o espaço que acontece essa aula e o dia da semana que isso acontece.
+     * Essa aula específica […] tem que dizer a data e o dia, se é uma segunda, uma terça […] Você
+     * não vai transformar isso aqui num calendário, viu? Você vai dizer o dia específico, a data e
+     * o dia da semana específico.»
+     *
+     * AS TRÊS LINHAS SÃO DO §1 E NÃO UM CALENDÁRIO: uma data, um dia, um professor, uma sala —
+     * a desta aula. Nenhuma lista, nenhuma repetição do ciclo.
+     *
+     * DE ONDE VEM CADA UMA, e nenhuma se inventa:
+     *   · a SALA é a turma do plano (`turmaDoDocumento`) — é ela que o produto chama «sala» desde
+     *     07/11/2026 (o ritmo: dias, horários, duração, período), e é o espaço onde a aula acontece;
+     *   · o PROFESSOR é o nome do perfil (`contexto.professorNome`), com o slug como reserva
+     *     declarada — quem sabe o nome é o perfil, não o slug da pasta;
+     *   · a DATA é a da aula N no calendário do `.conf` (`contexto.calendario`), e o DIA DA SEMANA
+     *     é aritmética sobre ela — não é um juízo sobre o instante, e por isso pode estar aqui.
+     *     Sem calendário, as duas linhas dizem a lacuna com o nome do campo que falta. */
+    const sala = turmaDoDocumento(plano);
+    const docente = String((contexto && contexto.professorNome) || '').trim()
+      || String((contexto && contexto.professor) || '').trim();
+    const calendario = (contexto && contexto.calendario) || null;
+    const dataDaAula = calendario
+      ? (Array.isArray(calendario)
+        ? (calendario[Number(numero) - 1] || null)
+        : calendarioDasAulas.dataDaAula(numero, calendario))
+      : null;
+
     const corpo = ['| Item | Definição |', '|:--|:--|'];
+    corpo.push('| **Professor responsável** | ' + (docente
+      || '[Preencher: o professor da turma — a aula não sabe o nome de quem a dá]') + ' |');
+    corpo.push('| **Sala** | ' + (sala
+      || '[Preencher: a sala (o nome da turma) — o plano de ensino não a declara]') + ' |');
+    corpo.push('| **Data e dia** | ' + (dataDaAula
+      ? calendarioDasAulas.dataEPeriodoDoDia(dataDaAula)
+      : '[Preencher: a data e o dia desta aula — o calendário do ciclo não chegou '
+        + '(`DATA_INICIO`, `DIAS` e `TOTAL_AULAS` no manifesto da variante)]') + ' |');
     corpo.push('| **Objetivo específico** | ' + objetivo + ' |');
     corpo.push('| **Parâmetro de medição** | ' + parametro + ' |');
     corpo.push('| **Duração** | ' + duracaoMin + ' minutos (Pré-requisito 4) |');
@@ -1108,11 +1149,75 @@ function derivarAula({ nn = '01', plano, po, contexto, calibracao, linhaDeBase, 
      * régua, um leitor: a aula não abre uma segunda lista de níveis nem uma segunda regra para
      * quando eles faltam — a falta já está dita na secção «Régua da rubrica» do plano. */
     const reguaDaTurma = niveisDaRubrica(resp(plano, 'rubrica'));
+
+    /* O GUIA EXPLICA AO PROFESSOR QUE ELE VAI PREENCHER UM FORMULÁRIO, E O QUE É CADA BLOCO DELE
+     * (22/11/2026).
+     *
+     * Palavras dela: «nesse guia de observação do professor, a gente tem que explicar para ele que
+     * ele tem que preencher o formulário da aula que ele vai dar. E o que que representa aqui neste
+     * documento cada um dos espaços dos blocos que expande ou colapsa que ele vai ter que preencher
+     * lá no formulário. E aí a gente vai colocar aqui também um link nesse item cinco, um botão, é
+     * um botão, não um link, um botão com essa explicação melhorada e um botão em seguida que leva
+     * direto ao formulário que ele vai lançar os dados da aula.»
+     *
+     * O QUE ESTA SECÇÃO PASSA A TER, e a ordem é a de quem lê de cima para baixo:
+     *
+     *   1. a frase que diz PARA QUE SERVE o guia, e que o registo se faz no formulário;
+     *   2. os DOIS BOTÕES — o que abre a explicação bloco a bloco (um `summary` de um `<details>`,
+     *      que é o controle que a casa usa para abrir e fechar) e o que leva ao formulário;
+     *   3. a explicação, um bloco por bloco do formulário, DITA em relação a este documento: «o
+     *      Presentes é a lista das alunas que estão aqui na tabela de cada eixo»;
+     *   4. a nota da régua, e as três tabelas.
+     *
+     * O BOTÃO DO FORMULÁRIO É RELATIVO (`lancamento.html`), e isso é uma decisão: o formulário
+     * viaja DENTRO do pacote do ciclo, ao lado deste documento (`/rosa/aula-01` e
+     * `/rosa/lancamento.html`). Um caminho absoluto teria de saber a pasta da turma — que o
+     * derivador não conhece —, e um absoluto errado é um 404. Relativo, ele acerta em qualquer
+     * pasta onde o pacote for montado.
+     *
+     * AS PEÇAS SÃO AS DA FOLHA: `.acoes-do-ato` é a fileira de acções, `.acao` é o botão,
+     * `.bloco-lista`/`.bloco-cabeca`/`.bloco-titulo` é o bloco que abre e fecha (com o marcador
+     * nativo escondido), e `.sub` é a nota miúda. Nenhuma classe nova. */
     const corpo = [
+      '> **Este guia é o que se leva para a sala; o registo faz-se no formulário.** Depois da aula,',
+      '> abra o formulário da aula e preencha-o bloco a bloco: é lá que cada linha desta secção vira',
+      '> uma pergunta, e é do que você marcar lá que saem os resultados desta aula. O guia não se',
+      '> preenche — ele diz o que olhar enquanto a aula acontece.',
+      '',
+      '```{=html}',
+      '<div class="acoes-do-ato">',
+      '<a class="acao secundario" href="#guia-do-formulario">Como preencher o formulário</a>',
+      '<a class="acao" href="lancamento.html">Lançar os dados desta aula</a>',
+      '</div>',
+      '',
+      '<details class="bloco-lista" id="guia-do-formulario">',
+      '<summary class="bloco-cabeca"><span class="bloco-titulo">O que cada bloco do formulário pede</span></summary>',
+      '<div class="bloco-corpo">',
+      '<p>O formulário abre o <strong>ciclo</strong> e a <strong>aula</strong> que você escolher no',
+      'alto, e desenha os blocos abaixo. Cada um abre e fecha; o que está fechado continua a',
+      'contar no resumo ao lado do nome.</p>',
+      '<p><strong>Presentes</strong> — as alunas do elenco desta turma, uma a uma. Quem fica de',
+      'fora não desaparece do formulário: a linha dela aparece e o resultado sai com «não estava».',
+      'Este bloco corresponde à coluna de alunas das tabelas de cada eixo, mais abaixo.</p>',
+      '<p><strong>Data e duração executada</strong> — vêm do calendário do ciclo (a data desta',
+      'aula é a que o §1 diz) e do planeamento. Ajuste-as se a aula aconteceu noutro dia ou durou',
+      'outro tempo: o que fica gravado é o que aconteceu, não o que estava previsto.</p>',
+      '<p><strong>Ânimo, interesse e harmonia</strong> — três notas de 1 a 5 sobre a turma no dia,',
+      'não sobre cada aluna. São do lançamento, e é por isso que não estão neste guia.</p>',
+      '<p><strong>Corpo · Técnica · Poiesis</strong> — os três eixos desta secção. Cada um abre as',
+      'suas tabelas, e cada tabela pede, por aluna, o nível da régua da turma nos critérios que',
+      'este guia lista. O número ao lado do nome do eixo («3 de 12 marcados») é o que já foi',
+      'preenchido.</p>',
+      '<p><strong>Depois da aula</strong> — «o plano foi seguido?» (sim · em parte · não) e o que',
+      'mudou em relação ao plano. É o único bloco do formulário que não tem correspondência aqui:',
+      'o guia diz o que observar, e este diz o que aconteceu ao plano.</p>',
+      '</div></details>',
+      '```',
+      '',
       '> Os itens vêm do **Itens de cada dimensão** no Plano de Observação, e o que se observa vem',
       '> do que a turma mostra nos aspectos que a linha de base escolheu. O ponto de partida de cada',
-      '> aluna fica no Plano de Observação — é ele que a Captura pede, aluna a aluna —, e o que se',
-      '> anota é o **nível da régua desta turma**: ' + reguaDaTurma.join(' · ') + '.',
+      '> aluna fica no Plano de Observação — é ele que o formulário pede, aluna a aluna —, e o que',
+      '> se anota é o **nível da régua desta turma**: ' + reguaDaTurma.join(' · ') + '.',
       '',
     ];
     /* AS TRÊS FRENTES SÃO TRÊS TABELAS (04/11/2026).

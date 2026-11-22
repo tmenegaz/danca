@@ -56,7 +56,7 @@ const {
 } = require(path.join(RAIZ, 'motor/nucleo/derivar-ciclo.js'));
 const { varianteDoContexto } = require(path.join(RAIZ, 'motor/servidor/escrever-po.js'));
 const { linhaDeBaseDaTurma, linhaDeBaseDoElenco } = require(path.join(RAIZ, 'motor/nucleo/linha-de-base.js'));
-const { calibracaoDoConf } = require(path.join(RAIZ, 'motor/servidor/escrever-ciclo.js'));
+const { calibracaoDoConf, calendarioDoConf } = require(path.join(RAIZ, 'motor/servidor/escrever-ciclo.js'));
 const { aulasLancadas, podeRegenerar, numeroDaAula } = require(path.join(RAIZ, 'motor/nucleo/aulas-do-ciclo.js'));
 
 const argv = process.argv.slice(2);
@@ -79,6 +79,16 @@ if (!fs.existsSync(caminhoConf)) morrer('não achei o manifesto ' + path.relativ
 
 const confTexto = fs.readFileSync(caminhoConf, 'utf8');
 const cal = calibracaoDoConf(confTexto);
+/* O CALENDÁRIO E O NOME DO PROFESSOR (22/11/2026) — as duas coisas de que o §1 da aula passou a
+ * precisar. O calendário sai do próprio manifesto (o início, os dias e o total), e é a MESMA
+ * função que o escritor do Worker usa: uma conta, um sítio. O nome do professor vem do perfil
+ * dele, e não do `PROFESSOR` do `.conf`, que é o slug. */
+const calendario = calendarioDoConf(confTexto);
+const professorNome = (() => {
+  const caminho = path.join(RAIZ, 'professores', professor, 'perfil.json');
+  try { return String((JSON.parse(fs.readFileSync(caminho, 'utf8')) || {}).nome || '').trim(); }
+  catch { return ''; }
+})();
 const pegarDoConf = (chave) => {
   const m = new RegExp('^' + chave + '="([^"]*)"', 'm').exec(confTexto);
   return m ? m[1] : '';
@@ -275,7 +285,8 @@ const fontes = [
    * entra sempre, porque todo o ciclo a tem. */
   ...aulasParaDerivar.map((nn) => ({
     sufixo: '-aula-' + nn + '.md', deAula: nn,
-    texto: derivarAula({ nn, plano, po, contexto: Object.assign({}, contexto, { aulas }),
+    texto: derivarAula({ nn, plano, po,
+      contexto: Object.assign({}, contexto, { aulas, calendario, professorNome }),
       calibracao: cal, linhaDeBase, anamneses }),
   })),
   { sufixo: '-referencias.md', texto: derivarReferencias({ plano, contexto }) },
