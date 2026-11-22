@@ -58412,3 +58412,30 @@ no JSON de dados), **nenhuma aula desta escola foi lançada** — e o `-dados.js
 `aulas: []`. Isto **não** foi interpretado nem corrigido aqui: é a pergunta da §6/143 («ocupação» é a
 agenda ou o corpo?) a encontrar um segundo facto que ela precisa de ver. O painel **não inventa**: se
 o `lancada` não for o registo que se quer, o número diz zero e a frase diz porquê.
+
+## 22/11/2026 — O painel inicial empilha os blocos, como ela aprovou
+
+**O que motivou.** «no painel inicial você me apresentou no experimento, na parte de teste, os blocos
+empilhados e agora você colocou o breu do lado esquerdo, as salas do lado direito, um ao lado do
+outro, os elencos abaixo e as modalidades do lado direito. Então você me entregou duas linhas e duas
+colunas. Eu prefiro do jeito que eu aprovei. […] você precisa refazer isso.»
+
+**O que era.** A bancada é uma página própria, com os cartões no fluxo. A página real põe a secção
+dentro da `.secao`, que é uma **grade de duas colunas** (formulário à esquerda, listagem à direita),
+e os quatro cartões caíam nela dois a dois. Medido a 1440: bordas esquerdas `[288, 748, 288, 748]` e
+topos `[471, 471, 669, 669]` — exactamente as duas linhas e duas colunas que ela descreveu. O modelo
+e o produto tinham o mesmo conteúdo e uma arrumação diferente, e foi o modelo que ela aprovou.
+
+**O que foi decidido.** A secção do painel passa a **uma coluna** — `#sec-painel
+{grid-template-columns: minmax(0,1fr)}`, a mesma solução que «A escola» já usa desde 17/11 —, e o
+vão da grade (`.9rem`) é o que separa os blocos. Nenhuma peça nova: é a `.secao` a deixar de ter
+duas colunas onde só há um assunto.
+
+**Com o quê.** `motor/servidor/bastidores.js` (a regra da secção),
+`experimentos/provar-o-painel-empilhado.js` (**novo**), `.gitignore`, `ESTADO-ATUAL.md`.
+
+**MEDIDO.** `provar-o-painel-empilhado` **20/20** a 1440×900, 1280×800, 1024×700 e 390×800: uma
+coluna, os quatro blocos com a mesma borda esquerda e a largura da secção, topo a crescer pela ordem
+da leitura (identidade → salas → elencos → modalidades). Com o **controle negativo**
+`--contra=a61d4ddb`, as mesmas asserções reprovam **8 de 20** e mostram o defeito: bordas
+`[288,748,288,748]`, topos `[471,471,669,669]`.
