@@ -203,8 +203,7 @@ gerar_nav_zero() { # $1 = prefixo de link ('' para o índice, '/' para a porta)
   <details class="menu">
     <summary>Bastidores</summary>
     <div class="submenu">
-      <a href="${p}bastidores/estudio">Estúdio de Dança</a>
-      <a href="${p}bastidores/producao">Produção</a>
+      <a href="${p}bastidores/estudio">Estúdio</a>
     </div>
   </details>
 EOF
