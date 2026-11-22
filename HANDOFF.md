@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T19:28:19-0300`
-Commit atual: `4c37b9ef` — fix(musicalidade): a música é a da escola, e sobe do verbete quando a linha não a copiou
+Gerado em: `2026-11-22T19:57:27-0300`
+Commit atual: `c9a4168c` — feat(aula-03): a aula decide a sua música, e o repertório do plano acompanha a Turma
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,8 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+c9a4168c feat(aula-03): a aula decide a sua música, e o repertório do plano acompanha a Turma
+d2bbab1b chore(estrutura): fechar os derivados — âncoras e índices
 4c37b9ef fix(musicalidade): a música é a da escola, e sobe do verbete quando a linha não a copiou
 9d4b9744 chore(estrutura): fechar os derivados — âncoras e índices
 3673d403 feat(musicalidade): o diálogo que cria a aula pergunta a música dela
@@ -100,8 +102,6 @@ a61d4ddb docs(estrutura): a fotografia regista o id carimbado e a pasta da turma
 2c336cb0 fix(estrutura): o id da turma tem carimbo, a pasta dela não
 ef7d25ee chore(estrutura): diagnóstico temporário da leitura do pacote no painel
 831f6f6f fix(estrutura): a regra do prefixo muda de casa, e o painel passa a lê-la
-e0b3aab6 docs(estrutura): a fotografia regista o caminho do pacote e o `lancada` da breu
-ba571849 fix(estrutura): o painel pede o pacote através do prefixo da árvore
 ```
 
 ## Por professor
@@ -195,75 +195,73 @@ ba571849 fix(estrutura): o painel pede o pacote através do prefixo da árvore
 
 ## Última entrada do REGISTRO
 
-## 22/11/2026 — A aula decide a sua música; o plano perde a lista que não era dele; a Turma manda no repertório
+## 22/11/2026 — A mudança chega à aula que vem, e às aulas dadas não chega nada
 
-**O que ela pediu**, e são três coisas distintas: os **tempos e compassos do modal passam a ser campos
-editáveis** («vão abrir como campos de formulário carregados com os valores reais, mas também
-editáveis, para que o professor possa editar. E aí ele vai decidir se realmente ele quer trabalhar
-nesse tempo e com esses compassos»); a secção **«Música e vídeo de referência» do plano deixa de
-listar a música dos exercícios** («é o que o professor coloca de música e de vídeo de referência, são
-links externos e não o repertório»); e uma **investigação** — «se eu quero incluir fondue aqui como
-exercício também, eu preciso ir lá nos bastidores e fazer essa inclusão. E aí eu volto aqui e ele tem
-que estar disponível».
+**O pedido, nas palavras dela.** «seja qual for o exercício […] no momento que isso for feito, então é
+para a aula vigente. Ah, e se eu trocar de sala? A mesma coisa. E se trocar de professor? A mesma
+coisa. E se entrar ou sair alguma aluna do elenco? A mesma coisa.» E a outra metade: «aquelas que já
+foram concluídas nas aulas dadas […] têm que ser igualzinhas ao último registro.» O «fondue» é
+**exemplo**, e a resposta negativa sobre ele já estava dada (decisão 156): não tem notação na `breu`,
+logo não entra.
 
-**1. Os campos do modal.** Quando o verbete declarava **uma** música, a célula era um `span` de
-leitura com um `input` escondido. A regra está certa para o **Estilo** (o verbete declara a música do
-exercício) e errada **aqui**: o que a aula trabalha é decisão da aula, e quem a toma é a professora,
-no gesto de criar. Um campo travado obrigava-a a ir ao Estilo mudar a música do exercício — e isso
-mudaria a música de **todas** as aulas do ciclo. Agora os dois campos abrem **preenchidos** com o
-valor declarado e são de escrever; o `title` nomeia a origem («declarado no verbete: 8 em 2/4») e,
-quando o verbete declara várias, lista-as todas. O que fica gravado é `aula-N-sequencia`; o verbete
-não se toca.
+**A metade que já existia, e não se tocou.** `motor/nucleo/aulas-do-ciclo.js` (`aulasLancadas`,
+`podeRegenerar`) lê o **registo do lançamento** — o facto, não o juízo, e não o relógio —, e o
+escritor recusa reescrever o que já é facto (`escrever-ciclo.js:918`, com a excepção declarada da
+fonte que falta). `provar-aula-dada` já a media: **34/34**, e continua.
 
-**2. A secção do plano.** Aqui estava a música da sequência, exercício por exercício — e o lugar não
-era este: o sítio da música de cada exercício é a **§4 da aula**, onde é consolidada por compasso e
-com a contagem. A secção volta a ter só o que a professora escreveu (o link da faixa, o vídeo), com
-uma linha em citação a dizer para onde olhar, para o documento não parecer ter perdido o dado.
+**A metade que faltava, e o primeiro defeito.** A aula **N** lia só `aula-N-parametro`. Enquanto a
+aula não é criada, essa chave **não existe**, e o §1 da Aula 03 dizia
+`[Preencher: parâmetro de medição da Aula 03 — o plano não respondeu «aula-3-parametro» para o marco 3
+desta aula]` sobre um plano que **tinha** respondido — na matriz do ciclo (`aula-1-parametro`, marco
+3, quatro exercícios). O sintoma é o pior dos dois mundos: o documento não mente, mas acusa o plano
+por uma falta que é da **chave**. `derivar-ciclo.js` passa a cair para a matriz do ciclo quando a
+chave da aula não existe; a chave própria, **mesmo vazia**, não cai — senão apagar a resposta de uma
+aula passaria a mostrar a do ciclo, e o vazio é uma resposta.
 
-**3. A investigação, e o que ela mediu.** Duas coisas, e a primeira é uma resposta negativa:
-  · **o «fondue» não pode ser incluído na `breu`** — o menu «Conteúdos» dos Bastidores só oferece os
-    exercícios com notação **naquela escola** (`exerciciosComNotacao`, 03/11/2026), e o Battement
-    fondu só tem notação da `calango` (`8|2/4@calango`). Medido: o menu da `breu` é
-    `Plié · Battement tendu · Battement jeté · Relevé` — os quatro que o plano já tem. Para o incluir
-    é preciso primeiro o verbete dele existir para esta escola;
-  · **para os que se podem incluir, o plano não sabia.** O `repertorio` do plano é uma cópia semeada
-    pela curadoria, e crescia só por `aplicarDeclaracoes` — que exige a **declaração de objectivos**.
-    Incluir um exercício no conteúdo da Turma era um gesto anterior a esse, e não mudava nada em
-    documento nenhum: o diálogo, que lê o `repertorio` do plano, nunca o oferecia. A guarda da cadeia
-    (`diferencaDeConteudo`) contava só os **declarados**, pelo motivo certo — «a derivação não
-    aplicaria; exigi-la seria pedir uma derivação que não deriva nada, para sempre».
+**O segundo defeito, e este era meu.** A decisão 156 pôs `sincronizarRepertorio` a encher o
+`repertorio` do plano com a lista da Turma. O `estadoDaDeclaracao` — a regra do `ja-na-aula`, que
+impede uma declaração de se aplicar duas vezes — lia **esse campo**. Medido: incluir o exercício no
+conteúdo da Turma e declará-lo num objectivo respondia `ja-na-aula`; a janela do «a que objectivo
+serve este exercício?» **não abria**; o exercício nunca entrava na matriz, e o documento nunca o
+imprimia. A premissa do guarda («esta lista só cresce pela declaração») morreu no dia em que a lista
+passou a ser sincronizada. A identidade passou a ser o **arranjo** — alguma linha da matriz do
+parâmetro e alguma linha de sequência.
 
-**A correção é a outra metade da poda.** `podarForaDoRepertorio` já tirava do plano o que a Turma
-deixou de ensinar, em **toda** a derivação. Passa a haver `sincronizarRepertorio` — a inclusão pelo
-mesmo caminho: o que a Turma ensina e o plano não declara entra no fim da lista (a ordem dos que já
-estavam não muda), **sem tocar no parâmetro**, e a guarda da cadeia passa a olhar a lista inteira. A
-cadeia diz o que fez («entrou no plano o que o conteúdo da Turma passou a ensinar: …»), pela mesma
-razão que já dizia a poda.
+**O preço, declarado e medido nas duas direcções.** Quem desmarcar o exercício na matriz **e** ele não
+estiver na sequência vê a declaração voltar na derivação seguinte — a asserção que dizia o contrário
+foi **invertida**, com o motivo escrito no corpo. Quem desmarcar só na matriz continua protegido
+enquanto a sequência o citar, e num ciclo real ela cita: é a sequência que o documento imprime.
 
-**Com o quê.** `motor/nucleo/derivar-plano-ciclo.js` (a célula editável, a nota, a secção, e a remoção
-de `musicasDaSequencia`/`valoresDe`/`opcoes`/`ajustarCompasso`, que ficaram sem uso),
-`motor/nucleo/objetivos-do-repertorio.js` (`sincronizarRepertorio`), `motor/nucleo/cadeia.js` (a
-guarda do conteúdo olha a lista da Turma), `motor/servidor/cadeia.js` (a sincronia na derivação e o
-aviso), as fontes derivadas e o pacote regerados, a âncora recalculada,
-`experimentos/provar-a-musica-do-modal.js`, `experimentos/provar-o-exercicio-novo.js` (§8),
-`experimentos/provar-cadeia-automatica.js` (o controlo invertido, com o motivo escrito),
-`experimentos/provar-derivados-da-sequencia.js` (a secção), `ESTADO-ATUAL.md`.
+**E a lição de arquitectura.** As três coisas que a Turma faz ao plano — a declaração, a poda e a
+sincronização — viviam soltas no `cadeia.js`, uma a seguir à outra, com a **ordem** num comentário. A
+primeira versão da prova nova copiou-as **pela ordem errada** (sincronizar primeiro) e concluiu que a
+declaração estava morta: a prova mediu o defeito dela própria. A ordem passou a ser código, em
+`objetivos-do-repertorio.aplicarAoPlano`, e a cadeia passou a chamar a porta única.
 
-**MEDIDO.** `provar-a-musica-do-modal` **26/26** — os campos abrem `type=text` preenchidos, sem
-`hidden` a fazer de campo travado; o tendu editado para **16 em 4/4** faz a sequência gravar `16` e
-`4/4`, e o jeté que ela deixou como veio grava `8` e `2/4`; com duas músicas da mesma escola, o campo
-abre com a primeira e o `title` diz as duas. `provar-o-exercicio-novo` **61/61** (§8 nova: entra no
-repertório, não no parâmetro, ordem preservada, vazio não julga). `provar-cadeia-automatica`
-**136/136**, com o controlo «exercício novo SEM declaração» **invertido** — reprovava 1 de 135 antes
-da correção desta asserção. `provar-derivados-da-sequencia` **27/27**. `provar-criar-aula` 53/53,
-`provar-compasso-limpo`, `provar-a-dobra-e-a-aula-anterior` 31/31, `provar-a-identidade-da-aula`
-26/26, `provar-a-aula-diz-so-o-que-e-dela` 25/25, `check-pacote` 0 erros, `hash-ciclo --check`
-íntegro, `check-identidade` **0 problemas**.
+**Com o quê.** `motor/nucleo/derivar-ciclo.js` (a queda para a matriz do ciclo),
+`motor/nucleo/objetivos-do-repertorio.js` (a identidade do `ja-na-aula` e o `aplicarAoPlano`),
+`motor/servidor/cadeia.js` (a porta única),
+`experimentos/provar-a-aula-que-vem.js` (**novo**: a chegada, o congelamento das quatro mudanças, o
+controlo negativo, a âncora), `experimentos/provar-o-exercicio-novo.js` (as duas asserções da
+identidade, com o controlo e o motivo da inversão), `.gitignore`, `ESTADO-ATUAL.md`.
 
-**E o efeito no documento.** O `plano.html` do ciclo da `rosa` passa a ter, no diálogo, dois campos de
-escrever por exercício; e o `plano-01.json` perde as três linhas da música dos exercícios no campo
-`musicasVideos` (ficam lá as do professor) — o dado não se perdeu: mudou para a §4 da aula, que é
-onde ele se lê.
+**MEDIDO.** `provar-a-aula-que-vem` **70/70** — as quatro mudanças chegam à Aula 03 e as Aulas 01 e 02
+ficam **byte a byte** iguais, com a âncora igual e nenhum elo novo em `historico/`; o presente
+continua a corrigir-se. Controlo `--contra=c9a4168c`: **4 de 70 reprovam**, e são exactamente as
+quatro asserções do §1 da Aula 03 — a lacuna «não respondeu `aula-3-parametro`». A §C, sem o registo
+do lançamento, mostra as mesmas aulas **a serem reescritas** e o elo a abrir.
+`provar-o-exercicio-novo` **65/65**, controlo `--contra=c9a4168c` a reprovar **2 de 65** — as duas da
+identidade. `provar-cadeia-automatica` **136/136** pela porta única. `provar-aula-dada` 34/34,
+`provar-criar-aula` 53/53, `provar-a-musica-do-modal` 26/26, `provar-derivados-da-sequencia` 27/27,
+`provar-compasso-limpo` verde, `provar-a-dobra-e-a-aula-anterior` 31/31,
+`provar-a-identidade-da-aula` 26/26. `regerar-derivados` da `breu`: **9 ficheiros `igual`** — a
+correcção não muda o que está impresso hoje, muda o que a Aula 03 vai imprimir quando nascer.
+`check-pacote` 0 erros, `check-identidade` 0 problemas.
+
+**O que NÃO se fez, e tem pergunta.** O **portão da aula dada** (passo 3 da ordem dela) não começou: a
+aula **N** só se cria quando a **N-1** tem o registo do lançamento — e falta ela decidir se o portão
+**bloqueia** (botão desabilitado, com a razão) ou **avisa e deixa passar**. As duas são defensáveis:
+bloquear impede preparar duas aulas de uma vez. Fica em §8 do `ESTADO-ATUAL.md`, à espera.
 
 ## O que está pendente
 

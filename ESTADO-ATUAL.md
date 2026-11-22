@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 22/11/2026 (commit `4c37b9ef`, e **a aula a decidir a sua música** a seguir).
+> **Última fotografia:** 22/11/2026 (commit `c9a4168c`, e **a mudança que chega à aula vigente** a seguir).
 > Ainda neste dia, **o modal passou a deixar escrever**: os tempos e o compasso de cada exercício
 > abrem preenchidos com o que o verbete declara e são editáveis — a música do verbete é a da escola,
 > a da aula é decisão de quem a dá, e essas duas coisas estavam a ser a mesma. A secção «Música e
@@ -3423,6 +3423,38 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      `/plano-ensino/` e a página pede o `markdown.js` num caminho **absoluto** — uma fixture que não
      serve o que a página pede não mede nada, e o silêncio dela lia-se como «não há nada a medir».
 
+157. **A MUDANÇA CHEGA À AULA VIGENTE; AS DADAS FICAM IGUAIS AO ÚLTIMO REGISTO.** Palavras dela:
+     «seja qual for o exercício […] no momento que isso for feito, então é para a aula vigente. Ah, e
+     se eu trocar de sala? A mesma coisa. E se trocar de professor? A mesma coisa. E se entrar ou sair
+     alguma aluna do elenco? A mesma coisa.» E a outra metade: «aquelas que já foram concluídas nas
+     aulas dadas […] têm que ser igualzinhas ao último registro».
+     **A regra das aulas dadas já existia** e não mudou: `aulas-do-ciclo.js` (`podeRegenerar`) lê o
+     **registo do lançamento**, não o relógio, e o escritor recusa reescrever o que já é facto — com
+     a excepção, declarada, da fonte que falta. O que **faltava era a outra metade**: a mudança não
+     chegava à aula que ainda vem. A aula **N** lia só `aula-N-parametro`; e a chave dela **não
+     existe** enquanto a aula não é criada — o §1 da Aula 03 dizia
+     `[Preencher: parâmetro de medição da Aula 03 — o plano não respondeu «aula-3-parametro»]` sobre
+     um plano que **tinha** respondido, na matriz do ciclo (`aula-1-parametro`, marco 3).
+     **DECIDIDO** 22/11/2026: o §1 da aula que vem cai para a matriz do ciclo quando a chave dela não
+     existe — a chave própria, mesmo vazia, **não** cai.
+     **E o segundo defeito, que era meu.** `sincronizarRepertorio` (decisão 156) passou a encher o
+     `repertorio` do plano com a lista da Turma, e o `ja-na-aula` — a regra que impede uma declaração
+     de se aplicar duas vezes — lia **esse** campo. Resultado medido: incluir um exercício no conteúdo
+     da Turma e declará-lo num objectivo respondia `ja-na-aula`, a janela do «a que objectivo serve
+     este exercício?» **não abria**, e o exercício nunca entrava na matriz. A lista sincronizada
+     tornou sem sentido a premissa de que ela só cresce pela declaração. A identidade passou a ser o
+     **arranjo** — a matriz do parâmetro e as sequências.
+     **O PREÇO, declarado:** quem desmarcar o exercício na matriz **e** ele não estiver na sequência
+     vê a declaração voltar na derivação seguinte. Quem desmarcar só na matriz continua protegido
+     enquanto a sequência o citar — e num ciclo real ela cita, porque é a sequência que o documento
+     imprime. As duas direcções estão medidas.
+     **E uma lição de arquitectura:** a declaração, a poda e a sincronização viviam soltas no
+     `cadeia.js`, uma a seguir à outra, e a **ordem** era um comentário. A primeira tentativa de as
+     medir copiou a ordem **ao contrário** (sincronizar primeiro) e concluiu que a declaração estava
+     morta — a prova mediu o defeito dela própria. Passaram a ser uma função do núcleo,
+     `aplicarAoPlano`, com a ordem dentro: duas cópias da mesma sequência divergem à primeira
+     correcção.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -3758,6 +3790,25 @@ com motivo declarado), `4f4795a` (os dois modos, a direção derivada e o editor
 repositório; o vocabulário do repositório tem hoje **93 termos**, e o ar só se confirma no deploy.
 
 ## 8. Pendências e dúvidas
+
+### O portão da aula dada — o que falta, e a pergunta que o trava (22/11/2026)
+
+**DECIDIDO pela ordem dela**: «primeiro a tabela que falta para a aula dois […] depois, segundo
+passo, no modal a parte da musicalidade […] e aí no passo três a gente faz o portão da aula dada».
+Os passos 1 e 2 estão feitos (decisões 151-156); o **passo 3 não começou**, e é de propósito.
+
+**O que é:** a aula **N** só pode ser criada quando a aula **N-1** tem o **registo do lançamento** —
+o mesmo facto que a guarda de regeneração já lê (`podeRegenerar`). Hoje o formulário de criar aula
+oferece a Aula 03 com a Aula 02 por lançar, e nada o impede.
+
+**Onde ele vive:** a quinta coluna do calendário (`tools/calendario.py`, `celula_da_coluna_criar`), que
+já desenha o botão de criar e já sabe qual é a aula seguinte.
+
+**O que o trava, e é uma decisão dela:** **bloquear** (o botão desabilitado, com a razão escrita) ou
+**avisar e deixar passar** (o aviso diz «a Aula 02 ainda não foi lançada», e ela decide). As duas são
+defensáveis e produzem produtos diferentes: bloquear impede o professor de preparar a aula seguinte
+antes de fechar a anterior — e há quem prepare duas de uma vez. **PENDENTE** até ela escolher.
+
 
 ### O plano de observação em `/rosa/` não carrega o formulário (21/11/2026) — medido, não corrigido
 
@@ -4238,7 +4289,19 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (22/11/2026 — a aula decide a sua música)
+### Executado nesta fotografia (22/11/2026 — a mudança chega à aula vigente)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-a-aula-que-vem.js` (**nova**) | **70/70**: as quatro mudanças (exercício, sala, professor, elenco) chegam à Aula 03 — o §1 dela diz o marco **dela** com os exercícios que o plano declara, o fondu incluído entre eles —, e as Aulas 01 e 02 ficam **byte a byte** como estavam, com a âncora igual, sem elo novo em `historico/`. O presente continua a corrigir-se. Controlo negativo `--contra=c9a4168c`: **4 de 70 reprovam**, e são exactamente as quatro asserções do §1 da Aula 03 (a lacuna `[Preencher: … não respondeu «aula-3-parametro»]`) |
+| …a §C da mesma prova | sem o registo do lançamento, as mesmas aulas **são** reescritas, o texto muda e o elo em `historico/` abre — é a guarda que protege, e ela recusa |
+| `node experimentos/provar-o-exercicio-novo.js` | **65/65** — duas asserções novas: o termo que a **sincronização** pôs no `repertorio` continua a ser `nova` (a janela abre), e o mesmo termo **assinalado na matriz** é `ja-na-aula`. Controlo `--contra=c9a4168c`: **2 de 65 reprovam**, e são essas duas |
+| `node experimentos/provar-cadeia-automatica.js` · `provar-aula-dada.js` · `provar-criar-aula.js` | 136/136 · 34/34 · 53/53, com a cadeia a passar pela porta única (`aplicarAoPlano`) |
+| `provar-a-musica-do-modal` · `provar-derivados-da-sequencia` · `provar-compasso-limpo` · `provar-a-dobra-e-a-aula-anterior` · `provar-a-identidade-da-aula` | 26/26 · 27/27 · verde · 31/31 · 26/26 |
+| `tools/regerar-derivados.js demi-plie 01 breu-rosa --elenco=tami --escrever` | **9 ficheiros `igual`** — a correcção não muda o que está impresso hoje (a Aula 03 ainda não tem fonte); muda o que a Aula 03 vai imprimir quando nascer |
+| `check-pacote` · `check-identidade` | 0 erros (1 aviso de PDF, por desenho) · **0 problemas** |
+
+### Executado na fotografia anterior (22/11/2026 — a aula decide a sua música)
 
 | Verificação | Resultado |
 |:--|:--|

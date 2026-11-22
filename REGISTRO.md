@@ -58834,3 +58834,71 @@ da correção desta asserção. `provar-derivados-da-sequencia` **27/27**. `prov
 escrever por exercício; e o `plano-01.json` perde as três linhas da música dos exercícios no campo
 `musicasVideos` (ficam lá as do professor) — o dado não se perdeu: mudou para a §4 da aula, que é
 onde ele se lê.
+
+## 22/11/2026 — A mudança chega à aula que vem, e às aulas dadas não chega nada
+
+**O pedido, nas palavras dela.** «seja qual for o exercício […] no momento que isso for feito, então é
+para a aula vigente. Ah, e se eu trocar de sala? A mesma coisa. E se trocar de professor? A mesma
+coisa. E se entrar ou sair alguma aluna do elenco? A mesma coisa.» E a outra metade: «aquelas que já
+foram concluídas nas aulas dadas […] têm que ser igualzinhas ao último registro.» O «fondue» é
+**exemplo**, e a resposta negativa sobre ele já estava dada (decisão 156): não tem notação na `breu`,
+logo não entra.
+
+**A metade que já existia, e não se tocou.** `motor/nucleo/aulas-do-ciclo.js` (`aulasLancadas`,
+`podeRegenerar`) lê o **registo do lançamento** — o facto, não o juízo, e não o relógio —, e o
+escritor recusa reescrever o que já é facto (`escrever-ciclo.js:918`, com a excepção declarada da
+fonte que falta). `provar-aula-dada` já a media: **34/34**, e continua.
+
+**A metade que faltava, e o primeiro defeito.** A aula **N** lia só `aula-N-parametro`. Enquanto a
+aula não é criada, essa chave **não existe**, e o §1 da Aula 03 dizia
+`[Preencher: parâmetro de medição da Aula 03 — o plano não respondeu «aula-3-parametro» para o marco 3
+desta aula]` sobre um plano que **tinha** respondido — na matriz do ciclo (`aula-1-parametro`, marco
+3, quatro exercícios). O sintoma é o pior dos dois mundos: o documento não mente, mas acusa o plano
+por uma falta que é da **chave**. `derivar-ciclo.js` passa a cair para a matriz do ciclo quando a
+chave da aula não existe; a chave própria, **mesmo vazia**, não cai — senão apagar a resposta de uma
+aula passaria a mostrar a do ciclo, e o vazio é uma resposta.
+
+**O segundo defeito, e este era meu.** A decisão 156 pôs `sincronizarRepertorio` a encher o
+`repertorio` do plano com a lista da Turma. O `estadoDaDeclaracao` — a regra do `ja-na-aula`, que
+impede uma declaração de se aplicar duas vezes — lia **esse campo**. Medido: incluir o exercício no
+conteúdo da Turma e declará-lo num objectivo respondia `ja-na-aula`; a janela do «a que objectivo
+serve este exercício?» **não abria**; o exercício nunca entrava na matriz, e o documento nunca o
+imprimia. A premissa do guarda («esta lista só cresce pela declaração») morreu no dia em que a lista
+passou a ser sincronizada. A identidade passou a ser o **arranjo** — alguma linha da matriz do
+parâmetro e alguma linha de sequência.
+
+**O preço, declarado e medido nas duas direcções.** Quem desmarcar o exercício na matriz **e** ele não
+estiver na sequência vê a declaração voltar na derivação seguinte — a asserção que dizia o contrário
+foi **invertida**, com o motivo escrito no corpo. Quem desmarcar só na matriz continua protegido
+enquanto a sequência o citar, e num ciclo real ela cita: é a sequência que o documento imprime.
+
+**E a lição de arquitectura.** As três coisas que a Turma faz ao plano — a declaração, a poda e a
+sincronização — viviam soltas no `cadeia.js`, uma a seguir à outra, com a **ordem** num comentário. A
+primeira versão da prova nova copiou-as **pela ordem errada** (sincronizar primeiro) e concluiu que a
+declaração estava morta: a prova mediu o defeito dela própria. A ordem passou a ser código, em
+`objetivos-do-repertorio.aplicarAoPlano`, e a cadeia passou a chamar a porta única.
+
+**Com o quê.** `motor/nucleo/derivar-ciclo.js` (a queda para a matriz do ciclo),
+`motor/nucleo/objetivos-do-repertorio.js` (a identidade do `ja-na-aula` e o `aplicarAoPlano`),
+`motor/servidor/cadeia.js` (a porta única),
+`experimentos/provar-a-aula-que-vem.js` (**novo**: a chegada, o congelamento das quatro mudanças, o
+controlo negativo, a âncora), `experimentos/provar-o-exercicio-novo.js` (as duas asserções da
+identidade, com o controlo e o motivo da inversão), `.gitignore`, `ESTADO-ATUAL.md`.
+
+**MEDIDO.** `provar-a-aula-que-vem` **70/70** — as quatro mudanças chegam à Aula 03 e as Aulas 01 e 02
+ficam **byte a byte** iguais, com a âncora igual e nenhum elo novo em `historico/`; o presente
+continua a corrigir-se. Controlo `--contra=c9a4168c`: **4 de 70 reprovam**, e são exactamente as
+quatro asserções do §1 da Aula 03 — a lacuna «não respondeu `aula-3-parametro`». A §C, sem o registo
+do lançamento, mostra as mesmas aulas **a serem reescritas** e o elo a abrir.
+`provar-o-exercicio-novo` **65/65**, controlo `--contra=c9a4168c` a reprovar **2 de 65** — as duas da
+identidade. `provar-cadeia-automatica` **136/136** pela porta única. `provar-aula-dada` 34/34,
+`provar-criar-aula` 53/53, `provar-a-musica-do-modal` 26/26, `provar-derivados-da-sequencia` 27/27,
+`provar-compasso-limpo` verde, `provar-a-dobra-e-a-aula-anterior` 31/31,
+`provar-a-identidade-da-aula` 26/26. `regerar-derivados` da `breu`: **9 ficheiros `igual`** — a
+correcção não muda o que está impresso hoje, muda o que a Aula 03 vai imprimir quando nascer.
+`check-pacote` 0 erros, `check-identidade` 0 problemas.
+
+**O que NÃO se fez, e tem pergunta.** O **portão da aula dada** (passo 3 da ordem dela) não começou: a
+aula **N** só se cria quando a **N-1** tem o registo do lançamento — e falta ela decidir se o portão
+**bloqueia** (botão desabilitado, com a razão) ou **avisa e deixa passar**. As duas são defensáveis:
+bloquear impede preparar duas aulas de uma vez. Fica em §8 do `ESTADO-ATUAL.md`, à espera.

@@ -119,17 +119,42 @@ function estadoDaDeclaracao({ plano, termo, repertorio, oTermoEntra }) {
   const nome = String(termo || '').trim();
   if (!nome) return { estado: 'sem-termo' };
   if (!plano) return { estado: 'sem-plano' };
-  /* O QUE A AULA JÁ USA. `repertorio` é o que o plano declara; `aula-1-sequencia` é o que ele
-   * imprime. Os dois, porque um plano antigo pode não ter o campo `repertorio` preenchido e ter a
-   * sequência — e a pergunta é «esta aula já fala deste exercício?», não «que campo está cheio?». */
-  const daAula = termosLimpios(valorDaResposta(plano.respostas || {}, 'repertorio'));
-  const sequencia = valorDaResposta(plano.respostas || {}, 'aula-1-sequencia');
-  const daSequencia = [];
-  for (const linha of (Array.isArray(sequencia) ? sequencia : [])) {
-    const conteudo = String((linha && (linha['Conteúdo do nível'] || linha.conteudo)) || '').trim();
-    if (conteudo) daSequencia.push(conteudo);
+  /* O QUE A AULA JÁ USA — E O `repertorio` DEIXOU DE CONTAR (22/11/2026).
+   *
+   * AQUI ESTAVA `repertorio` + sequência, e a premissa era: «o `repertorio` é o que o plano já
+   * decidiu». Ela deixou de valer no dia em que a derivação passou a SINCRONIZAR o repertório com a
+   * lista da Turma (`sincronizarRepertorio`): a partir daí, tudo o que a Turma ensina está no
+   * repertório do plano — e o `ja-na-aula` passava a responder a TODAS as declarações. Medido:
+   * incluir o exercício no conteúdo da Turma e declará-lo no objectivo 3 respondia `ja-na-aula`, a
+   * declaração era ignorada e o exercício não entrava em matriz nenhuma. A janela morria em
+   * silêncio — a mesma família de defeito que este ficheiro já pagou caro.
+   *
+   * A IDENTIDADE CERTA É O QUE O PLANO **ARRANJA**: a matriz do parâmetro (em que objectivo o
+   * exercício é trabalhado) e a sequência (o que a aula imprime). O repertório é a LISTA DA TURMA —
+   * diz que o exercício existe para esta escola, e não que a aula já o trabalha.
+   *
+   * O QUE SE PERDE, e fica declarado: quem desmarcar o exercício **na matriz e na sequência** vê a
+   * declaração voltar na derivação seguinte. Quem desmarcar só na matriz continua protegido
+   * enquanto a sequência o citar. É o preço de ter lista sincronizada; a alternativa era a janela
+   * nunca abrir. */
+  const nomeNormal = (t) => String(t == null ? '' : t).trim();
+  const naMatriz = (() => {
+    const matriz = valorDaResposta(plano.respostas || {}, 'aula-1-parametro');
+    const linhas = Array.isArray(matriz) ? matriz : [];
+    return linhas.some((l) => l && typeof l === 'object' && !Array.isArray(l)
+      && termosLimpios(l.marcados).some((t) => nomeNormal(t) === nome));
+  })();
+  let daSequencia = false;
+  for (const chave of Object.keys(plano.respostas || {})) {
+    if (!/^aula-0*\d+-sequencia$/.test(chave)) continue;
+    const seq = valorDaResposta(plano.respostas || {}, chave);
+    for (const linha of (Array.isArray(seq) ? seq : [])) {
+      const conteudo = nomeNormal((linha && (linha['Conteúdo do nível'] || linha.conteudo)));
+      if (conteudo === nome) { daSequencia = true; break; }
+    }
+    if (daSequencia) break;
   }
-  if (daAula.indexOf(nome) !== -1 || daSequencia.indexOf(nome) !== -1) {
+  if (naMatriz || daSequencia) {
     return { estado: 'ja-na-aula' };
   }
   const acordado = termosLimpios(repertorio);
@@ -367,6 +392,57 @@ function sincronizarRepertorio({ respostas, repertorio }) {
 }
 
 /**
+ * AS TRÊS COISAS QUE A TURMA FAZ AO PLANO, NA ORDEM CERTA — uma porta, e não três.
+ *
+ * A ORDEM É A REGRA, e não um detalhe:
+ *
+ *   1. **A DECLARAÇÃO** (`aplicarDeclaracoes`) — o exercício declarado entra na matriz do parâmetro
+ *      e no repertório. Tem de ser a PRIMEIRA: ela pergunta «o plano já arranja este exercício?», e
+ *      o repertório é uma das coisas que a sincronização mexe. Se a sincronização corresse antes,
+ *      o exercício já lá estaria e a declaração seria ignorada — que é exactamente o defeito que a
+ *      `provar-a-aula-que-vem` mediu, com a lista a mexer antes da pergunta.
+ *   2. **A PODA** (`podarForaDoRepertorio`) — o que a Turma já não ensina sai.
+ *   3. **A SINCRONIZAÇÃO** (`sincronizarRepertorio`) — o que a Turma passou a ensinar entra.
+ *
+ * PORQUE UM PONTO DE ENTRADA SÓ (22/11/2026). As três viviam soltas em `motor/servidor/cadeia.js`,
+ * chamadas uma a seguir à outra, e a ordem era um comentário. A primeira coisa que aconteceu quando
+ * alguém as quis medir foi chamá-las pela ordem errada e concluir que a declaração estava morta —
+ * a prova mediu o defeito dela própria. Duas cópias da mesma ordem divergem à primeira correcção; a
+ * ordem passa a ser código.
+ */
+function aplicarAoPlano({ respostas, declaracoes, repertorio } = {}) {
+  const acordado = termosLimpios(repertorio);
+  let saida = respostas || {};
+  let aplicadas = [];
+  let ignoradas = [];
+  let removidos = [];
+  let acrescentados = [];
+
+  if (Array.isArray(declaracoes) || (declaracoes && typeof declaracoes === 'object')) {
+    const d = aplicarDeclaracoes({ respostas: saida, declaracoes, repertorio: acordado });
+    saida = d.respostas;
+    aplicadas = d.aplicadas;
+    ignoradas = d.ignoradas;
+  }
+  /* A PODA E A SINCRONIZAÇÃO SÓ CORREM COM LISTA ACORDADA — o vazio não julga, e é a convenção
+   * que os dois já guardam em separado; aqui fica dita uma vez. */
+  if (acordado.length) {
+    const p = podarForaDoRepertorio({ respostas: saida, repertorio: acordado });
+    saida = p.respostas;
+    removidos = p.removidos;
+    const sc = sincronizarRepertorio({ respostas: saida, repertorio: acordado });
+    saida = sc.respostas;
+    acrescentados = sc.acrescentados;
+  }
+  /* SE A MESMA PASSAGEM TIROU E PÔS O MESMO TERMO, o que vale é o que ficou: a lista da Turma é a
+   * mesma para as duas, e um termo não pode sair por uma e voltar pela outra. Não é um caso
+   * teórico — é o que aconteceria se a poda lesse uma lista e a sincronização outra. */
+  const ambos = removidos.filter((t) => acrescentados.indexOf(t) !== -1);
+  if (ambos.length) removidos = removidos.filter((t) => ambos.indexOf(t) === -1);
+  return { respostas: saida, aplicadas, ignoradas, removidos, acrescentados };
+}
+
+/**
  * A DECLARAÇÃO APLICADA AO PLANO — o elo novo nasce com o exercício no parâmetro.
  *
  * Chamada pela derivação da cadeia, com as `respostas` do elo anterior já copiadas. Muda o objecto
@@ -506,6 +582,7 @@ module.exports = {
   estadoDaDeclaracao,
   impactoDaInclusao,
   aplicarDeclaracoes,
+  aplicarAoPlano,
   sincronizarRepertorio,
   podarForaDoRepertorio,
   somaPorBloco,

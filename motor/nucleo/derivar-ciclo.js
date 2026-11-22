@@ -896,7 +896,31 @@ function derivarAula({ nn = '01', plano, po, contexto, calibracao, linhaDeBase, 
    * quando tem um. O escopo vem do que o plano declara para esta aula (`aula-de-cada-objetivo`,
    * com a reserva 1:1 da Regra 2), e é o MESMO que decide o objetivo da linha de cima: uma aula,
    * um marco. */
-  const parametroLinhas = parametroEmLinhas(resp(plano, chaveDoParametro),
+  /* O PARÂMETRO DESTA AULA — E, QUANDO ELA AINDA NÃO TEM UM, O DO CICLO (22/11/2026).
+   *
+   * O DEFEITO, medido no envelope verdadeiro da `rosa` (`plano-20261122-0849`): a Aula 03 saía com
+   * `| **Parâmetro de medição** | [Preencher: parâmetro de medição da Aula 03 — o plano não
+   * respondeu «aula-3-parametro» para o marco 3 desta aula] |` — e o plano TINHA respondido, na
+   * matriz do ciclo (`aula-1-parametro`, marco 3, quatro exercícios). A aula lia só a chave dela,
+   * a chave dela não existia (a aula ainda não tinha sido criada), e o documento acusava o plano
+   * por uma falta que era da chave.
+   *
+   * É a diferença entre «a aula ainda não tem matriz própria» e «o plano não sabe o que esta aula
+   * mede». A primeira acontece sempre que se abre o documento de uma aula que ainda não foi
+   * criada — e é exactamente a AULA VIGENTE, aquela em que a professora está a trabalhar: palavras
+   * dela, «é para essa aula que está por vir, a aula do momento […] até o momento em que até o ato
+   * de fechá-la, de lançar os dados e fechar, é que dá para incluir ou excluir exercícios».
+   *
+   * A QUEDA É A CERTA, e não uma licença: a matriz do ciclo é a MESMA forma (`[{marco, marcados}]`),
+   * e o escopo já filtra o marco desta aula — o que sai é a linha do marco dela, com os exercícios
+   * que o plano declara para esse objetivo. Quando a aula é criada, ela ganha a chave própria
+   * (o diálogo grava `aula-N-parametro`) e passa a mandar. Uma matriz própria, ainda que vazia, não
+   * cai para o ciclo: quem a escreveu decidiu. */
+  const matrizDaAula = resp(plano, chaveDoParametro);
+  const matrizDoCiclo = resp(plano, chaveDaAula('01', 'parametro'));
+  const matrizDaVez = matrizDaAula === undefined || matrizDaAula === null || matrizDaAula === ''
+    ? matrizDoCiclo : matrizDaAula;
+  const parametroLinhas = parametroEmLinhas(matrizDaVez,
     marcosEmTexto(resp(plano, 'marcos-por-aula')), resp(plano, 'repertorio'), marcosDaAula(plano, numero));
   /*
    * UMA LINHA, NÃO VÁRIAS (20/10/2026). O parâmetro vira uma CÉLULA de tabela, e uma célula de

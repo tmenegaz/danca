@@ -1871,4 +1871,5 @@ experimentos/modelo-formulario/*
 # é conferido por FORA, com o `Intl` do Node, para a prova não perguntar ao código que o escreveu.
 !experimentos/provar-a-identidade-da-aula.js
 !experimentos/provar-a-dobra-e-a-aula-anterior.js
+!experimentos/provar-a-aula-que-vem.js
 !experimentos/provar-a-musica-do-modal.js

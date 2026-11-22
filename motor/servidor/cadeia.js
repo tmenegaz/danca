@@ -612,55 +612,23 @@ function criarCadeia({
       for (const d of doPedido) porTermo.set(d.termo, d);
       return [...porTermo.values()];
     })();
-    if (declaracoesDaVez.length) {
-      const r = objetivosDoRepertorio.aplicarDeclaracoes({
-        respostas,
-        declaracoes: declaracoesDaVez,
-        /* A lista ACORDADA da Turma — a que acabou de gravar, com o exercício novo dentro. Sem ela
-         * o núcleo recusaria a declaração: declarar o que a Turma não acordou seria escrever
-         * pedagogia que ninguém decidiu. */
-        repertorio: repertorioDaCuradoria(curadoria),
-      });
-      if (r.aplicadas.length) declaracaoAplicada = r.aplicadas;
-    }
-    /* O EXERCÍCIO QUE SAIU DA TURMA SAI DO PLANO (20/11/2026) — a outra metade da declaração.
+    /* AS TRÊS COISAS QUE A TURMA FAZ AO PLANO, NUMA CHAMADA SÓ (22/11/2026).
      *
-     * A inclusão tem janela; a remoção não tem, e é decisão dela: «quando eu removo, não tem
-     * impacto […] ele se desvincula dos objetivos.» Aqui é o desvincular a acontecer. Sem isto, o
-     * elo novo copiava o `repertorio` e a matriz do parâmetro do elo anterior, e o exercício que a
-     * Turma já não ensina continuava a ser impresso no plano — o oposto da regra de 03/11/2026,
-     * «em nenhum lugar da aula pode existir algo que não esteja definido na curadoria».
-     *
-     * A REGRA É DE IDENTIDADE, E NÃO DE GESTO: corre em toda a derivação — a troca de elenco, a
-     * mudança de sala, a derivação da Turma. Quem decide é a lista da Turma de hoje, e não o gesto
-     * que a mudou: uma poda amarrada ao gatilho deixaria o plano a divergir na primeira vez que a
-     * lista mudasse por outro caminho. */
-    let repertorioPodado = null;
-    if (curadoria) {
-      const poda = objetivosDoRepertorio.podarForaDoRepertorio({
-        respostas,
-        /* O VAZIO NÃO PODA. Uma Turma sem `repertorio` declarado é uma Turma de antes do campo
-         * existir, e comparar contra uma lista vazia apagaria o plano inteiro — a mesma defesa de
-         * `declaracoesDaTurma`, e a mesma convenção de sempre: o que não se declara não se julga. */
-        repertorio: repertorioDaCuradoria(curadoria),
-      });
-      if (poda.removidos.length) repertorioPodado = poda.removidos;
-    }
-    /* E O EXERCÍCIO QUE A TURMA PASSOU A ENSINAR ENTRA NO PLANO (22/11/2026) — a outra metade,
-     * e a que faltava. A poda já tirava o que saiu; a inclusão só acontecia pela declaração (a
-     * janela onde se diz em que objectivos o exercício entra), e incluir um exercício no CONTEÚDO
-     * da Turma é um gesto anterior a esse. Medido: acrescentar um exercício sem lhe declarar
-     * objectivos não mudava nada em documento nenhum — e o diálogo que cria a aula, que lê o
-     * `repertorio` do plano, nunca o oferecia. A regra aqui é a mesma da poda: a lista do plano
-     * acompanha a da Turma, e é a Turma que manda. */
-    let repertorioAcrescentado = null;
-    if (curadoria) {
-      const sincronia = objetivosDoRepertorio.sincronizarRepertorio({
-        respostas,
-        repertorio: repertorioDaCuradoria(curadoria),
-      });
-      if (sincronia.acrescentados.length) repertorioAcrescentado = sincronia.acrescentados;
-    }
+     * A declaração, a poda e a sincronização viviam aqui soltas, uma a seguir à outra, e a ORDEM
+     * era um comentário — a declaração primeiro, porque ela pergunta «o plano já arranja este
+     * exercício?» e a sincronização mexe na lista que responde. Quem as quisesse medir tinha de
+     * copiar a ordem, e a primeira tentativa de o fazer chamou-as ao contrário e concluiu que a
+     * declaração estava morta (está registado na `provar-a-aula-que-vem`). A ordem passou a ser
+     * código, numa função do núcleo. */
+    const daTurma = objetivosDoRepertorio.aplicarAoPlano({
+      respostas,
+      declaracoes: declaracoesDaVez,
+      repertorio: repertorioDaCuradoria(curadoria),
+    });
+    if (daTurma.aplicadas.length) declaracaoAplicada = daTurma.aplicadas;
+    const repertorioPodado = daTurma.removidos.length ? daTurma.removidos : null;
+    const repertorioAcrescentado = daTurma.acrescentados.length ? daTurma.acrescentados : null;
+
     /* A IDENTIDADE VAI COM O ELO (10/11/2026) — nas RESPOSTAS, que é o que o documento imprime.
      * O NOME É O DO AUTOR (12/11/2026): o do documento anterior, que é — pela guarda acima — o
      * mesmo que dirige a Turma hoje. A fonte do nome é a autoria, e não a curadoria, porque a

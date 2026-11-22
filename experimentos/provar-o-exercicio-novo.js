@@ -21,10 +21,33 @@
  * E mede-se o que o IMPACTO tem de dizer antes de perguntar: a linha do parâmetro que ganha o termo,
  * os objetivos todos (sem pré-seleção), e as linhas do item 10 que já citam o exercício — que para
  * um exercício novo são zero, e dizê-lo é o que evita a leitura de que o sistema fará a linha.
+ *
+ * CONTROLE NEGATIVO: `--contra=<sha>` carrega o núcleo DAQUELE commit e corre as mesmas asserções.
+ * A ferramenta é o único ficheiro que a prova mede; o resto é fixture. A 22/11/2026 o controlo
+ * devolve as asserções da IDENTIDADE — o `ja-na-aula` lia o `repertorio` do plano, que a
+ * sincronização passou a encher, e a janela morria em silêncio.
+ *
+ *   node experimentos/provar-o-exercicio-novo.js
+ *   node experimentos/provar-o-exercicio-novo.js --contra=c9a4168c
  */
 
-const obj = require('../motor/nucleo/objetivos-do-repertorio.js');
-const planoDoCiclo = require('../motor/nucleo/derivar-plano-ciclo.js');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const { execSync } = require('node:child_process');
+
+const RAIZ = path.resolve(__dirname, '..');
+const CONTRA = (process.argv.find((a) => a.indexOf('--contra=') === 0) || '').split('=')[1] || '';
+let BASE = RAIZ;
+let TEMPORARIO = null;
+if (CONTRA) {
+  TEMPORARIO = fs.mkdtempSync(path.join(os.tmpdir(), 'exercicio-novo-'));
+  execSync('git archive ' + CONTRA + ' motor modelo biblioteca | tar -x -C ' + TEMPORARIO,
+    { cwd: RAIZ, stdio: 'pipe' });
+  BASE = TEMPORARIO;
+}
+const obj = require(path.join(BASE, 'motor/nucleo/objetivos-do-repertorio.js'));
+const planoDoCiclo = require(path.join(BASE, 'motor/nucleo/derivar-plano-ciclo.js'));
 
 let n = 0;
 let falhas = 0;
@@ -121,6 +144,32 @@ const TURMA_COM_O_NOVO = ['Battement tendu', 'Plié', 'Battement jeté'];
       plano: umPlano(), termo: 'Battement jeté', repertorio: ['Battement tendu', 'Plié'],
     }),
     { estado: 'fora-do-repertorio' });
+  /* O DEFEITO QUE A SINCRONIZAÇÃO ABRIU (medido a 22/11/2026), e é o que fecha a janela em silêncio:
+   * a derivação passa a escrever no `repertorio` do plano TUDO o que a Turma ensina
+   * (`sincronizarRepertorio`). Se a identidade do `ja-na-aula` fosse o `repertorio`, o exercício que
+   * ela acabou de acrescentar ao conteúdo já lá estaria — e a pergunta «que objectivo trabalha este
+   * exercício?» era respondida com «já está na aula», antes de alguém a fazer. O exercício nunca
+   * entrava na matriz, e o documento nunca o imprimia.
+   *
+   * A identidade passou a ser o ARRANJO: a matriz do parâmetro e as sequências. */
+  const sincronizado = umPlano();
+  sincronizado.respostas.repertorio = resp(TURMA_COM_O_NOVO);
+  igual('um termo que a SINCRONIZAÇÃO pôs no repertório do plano continua a ser «nova» (a janela abre)',
+    obj.estadoDaDeclaracao({
+      plano: sincronizado, termo: 'Battement jeté', repertorio: TURMA_COM_O_NOVO,
+    }),
+    { estado: 'nova' });
+  /* O CONTROLE: o mesmo plano, com o termo ARRANJADO na matriz, é «ja-na-aula». A diferença entre as
+   * duas asserções é só a matriz — é isso que a identidade passou a ler. */
+  const arranjado = umPlano();
+  arranjado.respostas.repertorio = resp(TURMA_COM_O_NOVO);
+  arranjado.respostas['aula-1-parametro'] = resp([
+    { marco: 1, marcados: ['Battement tendu', 'Plié', 'Battement jeté'] },
+  ]);
+  igual('…e o mesmo termo ASSINALADO na matriz é «ja-na-aula»',
+    obj.estadoDaDeclaracao({ plano: arranjado, termo: 'Battement jeté', repertorio: TURMA_COM_O_NOVO }),
+    { estado: 'ja-na-aula' });
+
   /* E A AULA MANDA SEMPRE: um exercício que o plano já usa não se pergunta outra vez, mesmo que
    * esteja a entrar na Turma de novo. */
   igual('…e o que a aula já usa continua a não se perguntar, mesmo com a marca',
@@ -173,15 +222,45 @@ const TURMA_COM_O_NOVO = ['Battement tendu', 'Plié', 'Battement jeté'];
   igual('…e a matriz fica exactamente como estava',
     segunda.respostas['aula-1-parametro'], primeira.respostas['aula-1-parametro']);
 
-  /* E O PROFESSOR QUE DESMARCA FICA COM A ÚLTIMA PALAVRA. Depois de o exercício estar no plano, o
-   * plano é a autoridade — a Turma não lhe repõe a marca. */
+  /* A IDENTIDADE MUDOU A 22/11/2026, E A ASSERÇÃO VIRA COM ELA — com o motivo escrito, porque o que
+   * se perde é uma protecção que existia.
+   *
+   * ANTES: «o que o professor desmarcou no plano NÃO volta na derivação seguinte». A identidade do
+   * `ja-na-aula` era o `repertorio` do plano, e desmarcar a matriz deixava o termo lá — logo a
+   * declaração era ignorada, e o plano ficava com a última palavra.
+   *
+   * PORQUE MUDOU: a derivação passou a SINCRONIZAR o repertório com a lista da Turma
+   * (`sincronizarRepertorio`). Desde então tudo o que a Turma ensina está no repertório do plano, e
+   * o `ja-na-aula` respondia a TODAS as declarações: incluir um exercício no conteúdo da Turma e
+   * declará-lo num objectivo era ignorado em silêncio, e o exercício nunca chegava à aula. Medido
+   * na `provar-a-aula-que-vem`. A identidade passou a ser o ARRANJO — a matriz do parâmetro e a
+   * sequência —, que é o que diz «esta aula já trabalha este exercício».
+   *
+   * O QUE SE PERDE, e fica dito: quem desmarcar o exercício na matriz E na sequência vê a
+   * declaração voltar na derivação seguinte. Quem desmarcar só na matriz continua protegido
+   * enquanto a sequência o citar — e é o caso desta asserção, que é a que se mede agora. */
   const desmarcado = JSON.parse(JSON.stringify(primeira.respostas));
   desmarcado['aula-1-parametro'] = resp([{ marco: 1, marcados: ['Battement tendu', 'Plié'] }]);
   const terceira = obj.aplicarDeclaracoes({
     respostas: desmarcado, declaracoes: { 'Battement jeté': [1] }, repertorio: TURMA_COM_O_NOVO,
   });
-  igual('…e o que o professor desmarcou no plano NÃO volta na derivação seguinte',
-    terceira.aplicadas, []);
+  igual('…desmarcado na matriz E fora da sequência, a declaração volta (é o preço da lista sincronizada)',
+    terceira.aplicadas, [{ termo: 'Battement jeté', objetivos: [1] }]);
+
+  /* E O QUE A SEQUÊNCIA AINDA CITA CONTINUA PROTEGIDO — é o resto da regra de 20/11, e é o que a
+   * torna utilizável: desmarcar da matriz não obriga a Turma a calar-se se a aula ainda imprime o
+   * exercício numa linha. */
+  const comSequencia = JSON.parse(JSON.stringify(desmarcado));
+  comSequencia['aula-1-sequencia'] = resp([
+    { Bloco: 'Barra', Objetivo: '1', 'Conteúdo do nível': 'Battement jeté' },
+  ]);
+  const quarta = obj.aplicarDeclaracoes({
+    respostas: comSequencia, declaracoes: { 'Battement jeté': [1] }, repertorio: TURMA_COM_O_NOVO,
+  });
+  igual('…desmarcado da matriz mas ainda na sequência, NÃO volta (a aula ainda o imprime)',
+    quarta.aplicadas, []);
+  igual('…e o motivo continua a ser dito', quarta.ignoradas,
+    [{ termo: 'Battement jeté', motivo: 'ja-na-aula' }]);
 
   // ── 4. O QUE NÃO SE APLICA, E PORQUÊ ──────────────────────────────────────
   console.log('\n4. O que a Turma não acordou, ou o que o plano não sabe medir, fica de fora');
@@ -423,5 +502,11 @@ const TURMA_COM_O_NOVO = ['Battement tendu', 'Plié', 'Battement jeté'];
     + ' repertório do plano acompanha a lista da Turma: o exercício incluído no conteúdo entra no'
     + ' plano (é de lá que o diálogo que cria a aula o oferece), sem tocar no parâmetro nem na'
     + ' ordem dos que já estavam.');
+  if (TEMPORARIO) fs.rmSync(TEMPORARIO, { recursive: true, force: true });
+  if (CONTRA) {
+    console.log('\n' + (falhas ? 'CONTROLE CONFORME — ' : 'CONTROLE SUSPEITO — ') + falhas + ' de ' + n
+      + ' asserções falham com o núcleo de ' + CONTRA + '.');
+    process.exit(falhas ? 0 : 1);
+  }
   process.exit(falhas === 0 ? 0 : 1);
 })();
