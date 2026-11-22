@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T09:18:49-0300`
-Commit atual: `35d1c7fa` — feat(ciclo-01): a listagem da anamnese diz quem a fez e quando
+Gerado em: `2026-11-22T09:32:08-0300`
+Commit atual: `144115fc` — fix(experimentos): três provas que mediam o mundo de antes passam a medir o de hoje
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,8 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+144115fc fix(experimentos): três provas que mediam o mundo de antes passam a medir o de hoje
+255100db feat(estrutura): o expurgo ganha conferidor, e o fluxo da Aula 02 fica escrito
 35d1c7fa feat(ciclo-01): a listagem da anamnese diz quem a fez e quando
 37a511cd fix(tools): o `regerar-derivados` não apaga o que não consegue reproduzir
 e83ad10e chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
@@ -100,8 +102,6 @@ ddf4dd34 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
 ed509ab1 chore(estrutura): fechar os derivados — âncoras e índices
 4f389278 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
 4eecbcc5 chore(estrutura): fechar os derivados — âncoras e índices
-dcef471b feat(ciclo): o «Guardar» do PO grava as fontes de breu-rosa num commit só
-6708e7f8 feat(acervo): envelope/po-20261121-1955.json
 ```
 
 ## Por professor
@@ -235,7 +235,7 @@ família de erro que este projeto persegue: afirmar um facto que ninguém leu.
 - `ARQUITETURA-AULA.md` — §4.5, o fluxo do zero à Aula 02.
 - `escola/conferir-expurgo.js` — **novo**, só leitura, sem rede. Aceita `--raiz=<dir>` para ser
   provável.
-- `experimentos/provar-conferir-expurgo.js` — **novo**, 15 asserções sobre três árvores sintéticas
+- `experimentos/provar-conferir-expurgo.js` — **novo**, **24** asserções sobre três árvores sintéticas
   (viva, expurgada, com resíduo).
 - `motor/servidor/raiz.js` — `lerComercial` passa `semRegisto`; `estadoDoExpurgo` ganha o ramo da
   ausência de cadastro.
@@ -264,11 +264,24 @@ família de erro que este projeto persegue: afirmar um facto que ninguém leu.
 25, `dono-do-expurgo` 11, `elo-do-expurgo` ok, `expurgo-do-professor-compartilhado` 13,
 `expurgo-por-carencia` 34, `lista-do-expurgo` 26, `o-expurgo-do-financeiro` 15,
 `proveniencia-do-expurgo` 38, `expurgo-sem-listagem` 49, `expurgo-raiz` ok,
-`expurgo-leitura-atrasada` 45, `conferir-expurgo` 15, `os-fluxos-da-derivacao` 74. As que atravessam
+`expurgo-leitura-atrasada` 45, `conferir-expurgo` **24**, `os-fluxos-da-derivacao` 74. As que atravessam
 o mesmo caminho: `a-carencia-nao-se-burla` 58, `conciliacao-do-painel` 35, `financeiro` 58,
 `financeiro-da-escola` 135, `cofre-e-shard` 138, `indice-do-recorte` 24. Nas quatro escolas:
 `batata` **0** arquivos, `calango` **0**, `duo` **0** — último acto é o expurgo, nenhum resíduo sem
 razão, o nome **livre** para criar; `breu` **266** arquivos e **viva**.
+
+**Correção do mesmo dia — o conferidor passou a ver a metade do KV.** A primeira redação dizia que a
+metade do KV não se mede daqui e ponto. Com a chave que ela deu para o teste (`62960bc8…`), **mediu-se
+que ela não autentica**: `GET /user/tokens/verify` → **401**; `GET /accounts/<id>/storage/kv/namespaces`
+→ `code 10000 Authentication error`; e o `escola/conferir-kv.js --escola breu` respondeu
+`::warning::não conferi o KV da escola «breu» — não consegui listar «breu/»: Authentication error`.
+A string tem **64** caracteres e um token de API do Cloudflare tem **40**. O que se fez com isso: em
+vez de deixar a metade do KV fora do alcance, o `conferir-expurgo.js` passou a **consultá-la** pelo
+mesmo leitor (`chavesDaEscola`), quando `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` existem no
+ambiente — e, quando não existem ou a leitura falha, imprime **«NÃO MEDI o KV: <motivo>»**, que nunca
+é «está limpo». A classificação ficou provada sem rede: `--kv-de=<arquivo>` lê uma leitura gravada, e a
+prova mede os três casos (falhou / vazio conferido / chaves que sobraram, com os nomes e sem os
+valores).
 
 **O que ainda não está feito.**
 - **A metade do KV não foi medida daqui.** `provar-expurgo-kv` exige `CLOUDFLARE_API_TOKEN` e o
@@ -277,6 +290,21 @@ razão, o nome **livre** para criar; `breu` **266** arquivos e **viva**.
   «por enquanto não faz, mas tome nota disso».
 - **O pacote da turma `rosa` da `breu`** colide com uma escola nova com o mesmo nome: a escola passa,
   a **turma** é que recusa. Criar com **outro nome de turma**, ou deixar o expurgo levar o pacote.
+
+**Correção de 22/11/2026 (mesmo dia).** O parágrafo acima está **errado**, e ela apanhou-o:
+«não pode ser assim. não tem-se controle sobre as turmas que uma escola quer adotar.» Tem razão. A
+afirmação de que a turma recusa não vinha do código — veio de mim, por analogia com a recusa da
+escola. Medido: o `criar-escola.sh` recusa pela **variante** (`ciclo-NN-<escola>.conf`), pelo
+**pacote da escola** (`ciclo-NN-<escola>/`) e pelo **wrangler** — um `ciclo-NN-<escola>-<turma>/`
+não está em nenhuma das três; o `gerar-ciclo.sh` escreve por cima (`mkdir -p`) e nunca pergunta se a
+pasta existe; e a **única** recusa por nome de turma é `turmaVigentePorNome` — duas salas **vivas**
+com o mesmo nome na **mesma** escola, que diz «já existe uma sala com o nome «X» — abra-a em Editar
+para a corrigir». O pacote da turma é **artefacto da escola** — o slug está no caminho, e o
+`escolaDosCaminhos` apanha-o (é o que a prova nova mede) —, portanto o expurgo leva-o; e se algum
+sobreviver a um expurgo incompleto, a geração seguinte escreve por cima. **O nome da turma é escolha
+de quem a cria.** O que pode morder é diferente e está dito no ponto 5 da conferência: com o KV por
+limpar, a sala velha **existe**, e a recusa que aparece é a verdadeira; o remédio é terminar o
+expurgo, nunca renomear a turma.
 
 ## O que está pendente
 

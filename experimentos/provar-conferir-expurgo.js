@@ -88,8 +88,26 @@ function árvore(estado, slug) {
   return raiz;
 }
 
-const conferir = (raiz, slug) => execFileSync(process.execPath,
-  [CONFERIR, slug, '--raiz=' + raiz], { encoding: 'utf8' });
+/* O AMBIENTE VAI EXPLÍCITO, e limpo das duas chaves do Cloudflare. Sem isto a prova mediria o
+ * token de quem a corre: numa máquina com `CLOUDFLARE_API_TOKEN` exportado a secção do KV ia à rede
+ * e o resultado passava a depender da conta. Um dos piores defeitos possíveis numa prova: verde
+ * numa máquina, vermelho noutra, e nenhum dos dois a dizer nada sobre o código. */
+const ambienteLimpo = () => {
+  const env = Object.assign({}, process.env);
+  delete env.CLOUDFLARE_API_TOKEN;
+  delete env.CLOUDFLARE_ACCOUNT_ID;
+  return env;
+};
+const conferir = (raiz, slug, extra) => execFileSync(process.execPath,
+  [CONFERIR, slug, '--raiz=' + raiz].concat(extra || []),
+  { encoding: 'utf8', env: ambienteLimpo() });
+
+/** Uma leitura do KV gravada em JSON — para medir o texto sem rede e sem token. */
+const leitura = (obj) => {
+  const arquivo = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'kv-')), 'leitura.json');
+  fs.writeFileSync(arquivo, JSON.stringify(obj), 'utf8');
+  return arquivo;
+};
 
 console.log('\nA CONFERÊNCIA DO EXPURGO — o que sobra, e porquê\n');
 
@@ -108,9 +126,32 @@ let raizViva = null;
   provar('a criação com o mesmo nome é RECUSADA, e o motivo é nomeado',
     /RECUSA criar/.test(saida) && /wrangler\.escola-viva\.jsonc/.test(saida),
     (saida.match(/· (wrangler|professores)[^\n]*/g) || []).slice(0, 3));
-  provar('…e a turma que colidiria é nomeada pelo NOME DELA, e não pelo sufixo do ficheiro',
-    /pacote\(s\) de TURMA com este nome — rosa\b/.test(saida),
+  provar('…e o pacote da TURMA é nomeado pelo NOME DELA, e não pelo sufixo do ficheiro',
+    /pacote\(s\) de TURMA no caminho da escola — rosa\b/.test(saida),
     (saida.match(/pacote\(s\) de TURMA[^\n]*/) || [''])[0]);
+  /* NÃO SE PEDE OUTRO NOME DE TURMA (22/11/2026). Palavras dela: «não pode ser assim. não tem-se
+   * controle sobre as turmas que uma escola quer adotar.» A frase anterior — «criar a MESMA turma
+   * é que recusa […] escolha outro nome de turma» — era minha, e o código não a sustentava. O que
+   * se mede aqui é a afirmação certa, e ela é medida em dois sítios: o texto não pede nome novo, e
+   * o pacote da turma ESTÁ nos caminhos da escola (a autoridade é o `escolaDosCaminhos`, o mesmo do
+   * expurgo — se ele o não apanhasse, o expurgo deixava-o e a conferência estaria a mentir). */
+  provar('a conferência NÃO manda escolher outro nome de turma',
+    !/outro nome de turma/i.test(saida), saida.match(/[^\n]*nome de turma[^\n]*/g));
+  /* A PROMESSA DO CABEÇALHO TAMBÉM SE MEDE. «Nada vai à rede» era verdade enquanto a metade do KV
+   * estava fora do alcance; com a secção 5, a listagem do KV vai — e uma linha que promete o
+   * contrário é a primeira coisa que se lê. */
+  provar('o cabeçalho não promete o que deixou de ser verdade (a ida à rede é declarada)',
+    /À rede, só a listagem do KV/.test(saida) && !/nada vai à rede/i.test(saida),
+    saida.split('\n')[3]);
+  provar('…e o pacote da turma conta como ARTEFACTO da escola, porque o `escolaDosCaminhos` o apanha',
+    (() => {
+      const { escolaDosCaminhos } = require('../motor/servidor/repo-escola.js');
+      const achados = escolaDosCaminhos('escola-viva', [
+        'professores/p/ciclos/ciclo-01-escola-viva-rosa/index.html',
+        'professores/p/ciclos/ciclo-01-escola-viva-rosa.conf',
+      ]).arquivos;
+      return achados.length === 2;
+    })(), 'o expurgo tem de levar o pacote da turma; senão o nome dela ficaria preso');
 }
 
 /* ------------------------------------------------------------------------------------------ */
@@ -159,12 +200,50 @@ console.log('\nD. A fronteira: o que a conferência NÃO alcança é dito, e nom
 /* ------------------------------------------------------------------------------------------ */
 {
   const saida = conferir(raizExpurgada, 'escola-morta');
-  provar('ela diz que o Cloudflare (Worker, rota, KV) não é alcançado daqui',
-    /vivem no Cloudflare/.test(saida));
+  /* «O KV não é alcançado daqui» DEIXOU DE SER VERDADE (22/11/2026): com token ele é lido, pelo
+   * leitor do `conferir-kv.js`. O que continua fora é o Worker, o subdomínio e a rota — e é isso
+   * que se mede, mais a recusa em chamar «limpo» ao que não se leu. */
+  provar('ela diz o que CONTINUA fora do alcance — o Worker, o subdomínio e a rota',
+    /Worker, o subdomínio e a rota/.test(saida));
   provar('…e que o KV é o que uma escola nova com o mesmo nome HERDA',
     /HERDA/.test(saida));
   provar('…e que a autoridade de lá confere por LEITURA, não pela listagem',
     /confere por\s+LEITURA|por\n?\s*LEITURA/.test(saida) || /por LEITURA/.test(saida.replace(/\s+/g, ' ')));
+}
+
+/* ------------------------------------------------------------------------------------------ */
+console.log('\nE. O KV — a metade que o repositório não vê: «não medi» nunca é «está limpo»');
+/* ------------------------------------------------------------------------------------------ */
+{
+  const semToken = conferir(raizExpurgada, 'escola-morta');
+  provar('sem token a conferência DIZ que não mediu, e não afirma limpeza',
+    /NÃO MEDI o KV/.test(semToken) && /CLOUDFLARE_API_TOKEN/.test(semToken), semToken.match(/[^\n]*NÃO MEDI[^\n]*/g));
+  provar('…e explica que a autoridade desta metade é o relatório da página',
+    /relatório da[\s\S]{0,40}página/.test(semToken));
+
+  const falhou = conferir(raizExpurgada, 'escola-morta', ['--kv-de=' + leitura({ conferido: false, chaves: [], erro: 'Authentication error' })]);
+  provar('uma leitura que FALHOU é «não medi» com o motivo dela — nunca «está limpo»',
+    /NÃO MEDI o KV: Authentication error/.test(falhou) && !/nenhuma chave com o prefixo/.test(falhou),
+    falhou.match(/[^\n]*NÃO MEDI[^\n]*/g));
+
+  const limpo = conferir(raizExpurgada, 'escola-morta', ['--kv-de=' + leitura({ conferido: true, chaves: [], porPrefixo: {} })]);
+  provar('uma leitura CONFERIDA e vazia diz que o nome nasce sem herdar nada',
+    /nenhuma chave com o prefixo/.test(limpo) && /não herda/.test(limpo),
+    limpo.match(/nenhuma chave[^\n]*/g));
+
+  const sujo = conferir(raizExpurgada, 'escola-morta', ['--kv-de=' + leitura({
+    conferido: true,
+    chaves: ['escola-morta/envelope/anamnese-20260101-0000.json', 'bastidores/escola-morta/turmas'],
+    porPrefixo: {},
+  })]);
+  provar('chaves que sobraram são NOMEADAS, e o valor não se imprime',
+    /ATENÇÃO: 2 chaves/.test(sujo)
+    && /bastidores\/escola-morta\/turmas/.test(sujo)
+    && !/Aluna A/.test(sujo),
+    sujo.match(/[^\n]*ATENÇÃO[^\n]*/g));
+  provar('…e o caminho de resolver vem escrito, antes de criar a escola de novo',
+    /HERDA isto/.test(sujo) && /expurgar\.js escola-morta/.test(sujo)
+    && sujo.indexOf('HERDA isto') < sujo.indexOf('6. O QUE CONTINUA FORA'));
 }
 
 /* A limpeza: as árvores são temporárias, e são nossas. */

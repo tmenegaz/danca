@@ -14,17 +14,25 @@
  * página, e o elo em `escola/<slug>/indice.json`), mas ninguém sabe dizer, do lado do
  * repositório, o que SOBROU — nem separar o que sobrou por acidente do que sobra por decisão.
  *
- * O QUE ELE FAZ, e não faz. Só LÊ: nada é apagado, nada é escrito, nada vai à rede. Ele usa as
+ * O QUE ELE FAZ, e não faz. Só LÊ: nada é apagado, nada é escrito — e uma única coisa vai à rede,
+ * a listagem do KV, e só quando há token no ambiente (secção 5). Ele usa as
  * MESMAS funções que o expurgo usa para decidir o que é de uma escola (`escolaDosCaminhos`, em
  * `motor/servidor/repo-escola.js`) — uma segunda lista de regras divergiria da primeira ao
  * primeiro caso, e a que ficasse para trás seria a que confere.
  *
- * A METADE QUE ELE NÃO ALCANÇA É DITA COM TODAS AS LETRAS: o Worker, o subdomínio, a rota e as
- * chaves do KV vivem no Cloudflare, e só quem tem o token os lê. O relatório da página é a
- * autoridade lá; aqui a conferência é a do REPOSITÓRIO, que é a metade que impede a criação com o
- * mesmo nome de colidir.
+ * AS DUAS METADES, E O QUE CADA UMA RESPONDE (22/11/2026). O repositório lê-se daqui. O KV, o
+ * Worker, o subdomínio e a rota vivem no Cloudflare e só se leem com token — e a chave que ela deu
+ * para os medir não autentica (`HTTP 401`, `Authentication error`), por isso a ausência de token
+ * tem de ser DITA e não confundida com «está limpo». Com `CLOUDFLARE_API_TOKEN` e
+ * `CLOUDFLARE_ACCOUNT_ID` no ambiente, este comando consulta o KV pelo MESMO leitor que o
+ * `escola/conferir-kv.js` usa (`chavesDaEscola`) e responde a pergunta que importa antes de criar a
+ * escola de novo: **o nome novo herda chaves do nome velho?**
  *
- *   node escola/conferir-expurgo.js <slug>
+ *   node escola/conferir-expurgo.js <slug> [--raiz=<dir>] [--kv-de=<arquivo>]
+ *
+ * `--kv-de=<arquivo>` lê uma leitura do KV já gravada em JSON (a forma que `chavesDaEscola`
+ * devolve). Existe pela mesma razão que o `--raiz`: torna PROVÁVEL a secção do KV sem rede e sem
+ * token. Nada mais o usa.
  */
 
 const fs = require('fs');
@@ -93,7 +101,7 @@ const ultimoExpurgo = quando(elo && elo.expurgo);
 const ultimaRecriacao = quando(elo && elo.recriacao);
 
 console.log('\nCONFERIR O EXPURGO — «' + slug + '»');
-console.log('Só leitura: nada é apagado, nada é escrito, nada vai à rede.\n');
+console.log('Só leitura: nada é apagado, nada é escrito. À rede, só a listagem do KV — e só com token.\n');
 
 /* ------------------------------------------------------------------------------------------ */
 console.log('1. O ELO (a memória do nome — e ele NÃO se apaga)');
@@ -185,10 +193,21 @@ console.log('\n4. A CRIAÇÃO COM O MESMO NOME');
  * (`wrangler.<worker>.jsonc`). A base do ciclo (`ciclo-<ciclo>.conf`) e os schemas REAPROVEITAM-SE
  * — são o molde partilhado, e recusar por eles impediria a segunda escola do mesmo professor.
  *
- * UMA SEGUNDA LISTA, À PARTE: os pacotes das TURMAS (`ciclo-<ciclo>-<escola>-<turma>`). Não são
- * colisão da escola — são colisão do par escola+turma —, e por isso não abortam a criação da
- * escola: abortam a criação daquela turma. Nomeá-los aqui é o que evita a surpresa de a criação
- * passar e a geração da turma falhar a seguir. */
+ * UMA SEGUNDA LISTA, À PARTE: os pacotes das TURMAS (`ciclo-<ciclo>-<escola>-<turma>`). NÃO SÃO
+ * COLISÃO — e a primeira redação disto estava ERRADA (corrigida a 22/11/2026, no mesmo dia).
+ *
+ * Ela leu «escolha outro nome de turma» e respondeu o que tinha de responder: «não pode ser assim.
+ * não tem-se controle sobre as turmas que uma escola quer adotar.» Tem razão, e a afirmação era
+ * minha, não do código. Medido: o `criar-escola.sh` recusa pela VARIANTE, pelo PACOTE da escola e
+ * pelo WRANGLER — um `ciclo-<ciclo>-<escola>-<turma>/` não está em nenhuma das três; o `gerar-ciclo`
+ * escreve por cima (`mkdir -p`, e nunca pergunta se a pasta existe); e a ÚNICA recusa por nome de
+ * turma é a de duas salas VIVAS com o mesmo nome dentro da MESMA escola (`turmaVigentePorNome`,
+ * `POST /turma`) — que não é uma restrição ao nome, é «esta sala já existe, abra-a em Editar».
+ *
+ * O que estes caminhos são, então: **artefactos da escola**. Carregam o slug no caminho, o
+ * `escolaDosCaminhos` apanha-os (é o que a secção 2 conta), e o expurgo leva-os consigo. Se algum
+ * sobreviver a um expurgo incompleto, a geração seguinte escreve por cima — o nome da turma
+ * continua a ser escolha de quem a cria. */
 const colisoesDaEscola = [];
 const colisoesDaTurma = [];
 const ciclosDe = (p) => {
@@ -235,23 +254,74 @@ if (colisoesDaTurma.length) {
     if (/\./.test(resto)) continue;              // um ficheiro, não a pasta da turma
     turmas.add(resto);
   }
-  console.log('   e há pacote(s) de TURMA com este nome — '
-    + ([...turmas].sort().join(', ') || '(nenhum: só há ficheiros soltos, que a geração reescreve)')
-    + '.');
-  console.log('   Criar a escola passa; criar a MESMA turma é que recusa (o pacote dela é');
-  console.log('   `ciclo-<ciclo>-' + slug + '-<turma>`). Escolha outro nome de turma, ou expurgue também');
-  console.log('   estes — o expurgo da escola os leva consigo, e é isso que o ponto 2 mede.');
+  /* NÃO É UMA RECUSA, E NÃO SE PEDE OUTRO NOME. O nome da turma é escolha de quem a cria, e o
+   * sistema não a limita: estes caminhos são artefactos da ESCOLA (têm o slug no caminho, e o
+   * ponto 2 conta-os), o expurgo leva-os, e a geração escreve por cima sem perguntar. Dizer
+   * «escolha outro nome» era transferir para a pessoa um problema que não existe. */
+  console.log('   e há ' + turmas.size + ' pacote(s) de TURMA no caminho da escola — '
+    + ([...turmas].sort().join(', ') || '(nenhum)') + '.');
+  console.log('   Isto NÃO trava o nome de nenhuma turma: o pacote da turma é SAÍDA da geração, o');
+  console.log('   expurgo da escola leva-o consigo (é o ponto 2), e a geração escreve por cima. A');
+  console.log('   única recusa por nome de turma é outra: duas salas VIVAS com o mesmo nome na');
+  console.log('   mesma escola — e essa é uma sala que já existe, para abrir e corrigir.');
 }
 
 /* ------------------------------------------------------------------------------------------ */
-console.log('\n5. O QUE ESTA CONFERÊNCIA NÃO ALCANÇA — e quem alcança');
+/* 5. O KV — a metade que o repositório não vê, e a única que a escola nova HERDA.
+ *
+ * «É o KV que uma escola nova com o mesmo nome herda: o prefixo é o nome» — e isso é uma frase
+ * sobre dados que ninguém viu. Aqui ela passa a ser uma LEITURA, com a disciplina de sempre: sem
+ * leitura não se diz «limpo», diz-se «não medi» e porquê. */
 /* ------------------------------------------------------------------------------------------ */
-console.log('   · O Worker, o subdomínio, a rota e as CHAVES DO KV vivem no Cloudflare. Só quem tem');
-console.log('     o token os lê — por isso a autoridade lá é o relatório da página, que confere por');
-console.log('     LEITURA de cada chave (`kv.restantes` / `kv.ficaram`), e não pela listagem.');
-console.log('   · Se a limpeza do KV não se completou, a página diz «este expurgo NÃO está completo»');
-console.log('     e oferece «Terminar a limpeza do KV» — a pendência fica gravada no elo.');
-console.log('   · É o KV que uma escola nova com o mesmo nome HERDA: o prefixo é o nome. Se o');
-console.log('     relatório da página disse que sobrou chave, resolva a pendência ANTES de criar;');
-console.log('     nada no repositório impede a criação por causa disso.');
-console.log('');
+const { chavesDaEscola } = require(path.join(__dirname, 'conferir-kv.js'));
+
+(async () => {
+  console.log('\n5. O KV — o que uma escola nova com o mesmo nome HERDA');
+  const gravada = argumentoDe('kv-de');
+  let leitura;
+  if (gravada) {
+    try {
+      leitura = JSON.parse(fs.readFileSync(gravada, 'utf8'));
+    } catch (erro) {
+      leitura = { conferido: false, chaves: [], erro: 'não li ' + gravada + ': ' + erro.message };
+    }
+  } else {
+    leitura = await chavesDaEscola({
+      slug,
+      token: process.env.CLOUDFLARE_API_TOKEN,
+      accountId: process.env.CLOUDFLARE_ACCOUNT_ID,
+      raiz: RAIZ,
+    });
+  }
+  if (!leitura || !leitura.conferido) {
+    /* O SILÊNCIO VIRA RESPOSTA, e essa foi a lição de 21/11: «não havia» e «não consegui» não são
+     * a mesma coisa, e a segunda nunca se imprime como a primeira. */
+    console.log('   NÃO MEDI o KV: ' + ((leitura && leitura.erro) || 'sem motivo declarado'));
+    console.log('   → e «não medi» não é «está limpo». A autoridade desta metade é o relatório da');
+    console.log('     página «Sistema Lastro», que confere por LEITURA de cada chave');
+    console.log('     (`kv.restantes` / `kv.ficaram`) e oferece «Terminar a limpeza do KV».');
+  } else if (!leitura.chaves.length) {
+    console.log('   nenhuma chave com o prefixo «' + slug + '/» nem «bastidores/' + slug + '/»');
+    console.log('   → conferido por LISTAGEM, e o prefixo é o nome: criar a escola de novo não herda');
+    console.log('     nada de uma encarnação anterior.');
+  } else {
+    console.log('   ATENÇÃO: ' + leitura.chaves.length
+      + (leitura.chaves.length === 1 ? ' chave' : ' chaves') + ' com o prefixo da escola:');
+    for (const c of leitura.chaves.slice(0, 12)) console.log('      · ' + c);
+    if (leitura.chaves.length > 12) console.log('      · … e ' + (leitura.chaves.length - 12) + ' outra(s)');
+    console.log('   → o VALOR não se imprime (uma chave dos Bastidores pode ter apelido de aluna).');
+    console.log('     Como o prefixo do KV é o nome, criar a escola de novo HERDA isto. Resolva');
+    console.log('     ANTES: «Terminar a limpeza do KV» na página, ou `node escola/expurgar.js ' + slug + '`.');
+  }
+
+  /* ---------------------------------------------------------------------------------------- */
+  console.log('\n6. O QUE CONTINUA FORA DO ALCANCE — e quem alcança');
+  /* ---------------------------------------------------------------------------------------- */
+  console.log('   · O Worker, o subdomínio e a rota. Nenhum leitor daqui os vê, e é a página — que os');
+  console.log('     criou e os desliga — que responde por eles.');
+  console.log('   · Se a limpeza do KV não se completou, a página diz «este expurgo NÃO está completo»');
+  console.log('     e oferece «Terminar a limpeza do KV» — a pendência fica gravada no elo.');
+  console.log('   · Nada daqui IMPEDE a criação da escola: esta conferência informa. Quem decide é');
+  console.log('     quem cria.');
+  console.log('');
+})();

@@ -13,9 +13,15 @@
 > `calango` e `duo` com **0 arquivos**, **nenhum resíduo sem razão declarada** e o nome **livre**
 > para criar; `breu` **viva**, com 266. O que fica depois de um expurgo fica por **três** razões, e
 > as três são do desenho: o **elo** (a proveniência acrescenta, não edita), a **fixture** (dados
-> sintéticos, ligados à *palavra* do nome) e o **índice derivado** (é saída). A metade do
-> **KV/Cloudflare** não se mede sem token: a autoridade é o relatório da página, que confere **por
-> leitura de cada chave** e oferece «Terminar a limpeza do KV». O fluxo, do zero à Aula 02, está em
+> sintéticos, ligados à *palavra* do nome) e o **índice derivado** (é saída). A metade do **KV**
+> passou a ser consultada pelo mesmo leitor (`chavesDaEscola`), e quando não há token — ou a chave
+> não autentica, que é o caso da que ela deu para este teste, **401**, 64 caracteres onde o
+> Cloudflare usa 40 — o comando imprime **«NÃO MEDI o KV: <motivo>»**, nunca «está limpo».
+> **Duas correções do mesmo dia, as duas dela:** o **nome da turma é escolha de quem a cria** — eu
+> tinha escrito que a `breu` recriada precisaria de «outro nome», e isso não vem do código (o
+> `criar-escola.sh` não olha para pacotes de turma, o `gerar-ciclo` escreve por cima, e a única
+> recusa é a de duas salas vivas com o mesmo nome na mesma escola); e a **leitura** da metade do KV
+> deixou de ser uma promessa para passar a ser um caminho provado (`--kv-de`). O fluxo, do zero à Aula 02, está em
 > `ARQUITETURA-AULA.md` §4.5. Pelo caminho, **três provas vermelhas** passaram a medir o mundo de
 > hoje: duas do expurgo (a lista de chaves cresceu de 9 para 16; a carência e a auditoria vêm antes
 > da morada) e uma do índice do recorte (o bloco mudou de secção e de nome a 09/11 e a prova ficou
@@ -3072,6 +3078,21 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      ligados à *palavra* do nome, não a dado de ninguém) e o **índice derivado** (`indices/**` — é
      saída, e o `orfaosNoDisco` apaga o que já não corresponde). **DECIDIDO** 22/11/2026.
 
+139. **O NOME DA TURMA É ESCOLHA DE QUEM A CRIA — O SISTEMA NÃO O LIMITA, E EU TINHA DITO QUE
+     SIM.** Palavras dela, ao ler o meu aviso de que a `breu` recriada precisaria de «outro nome de
+     turma»: «não pode ser assim. não tem-se controle sobre as turmas que uma escola quer adotar.»
+     Está certo, e a frase era **minha**, não do código. Medido: o `criar-escola.sh` recusa pela
+     variante (`ciclo-NN-<escola>.conf`), pelo pacote da escola (`ciclo-NN-<escola>/`) e pelo
+     wrangler — um `ciclo-NN-<escola>-<turma>/` não está em nenhuma das três; o `gerar-ciclo.sh`
+     escreve por cima (`mkdir -p`) e nunca pergunta se a pasta existe; e a **única** recusa por nome
+     de turma é `turmaVigentePorNome` — duas salas **vivas** com o mesmo nome na **mesma** escola,
+     que é «esta sala já existe, abra-a em Editar». O pacote da turma é **artefacto da escola** (o
+     slug está no caminho, e o `escolaDosCaminhos` apanha-o): o expurgo leva-o, e se algum sobreviver
+     a um expurgo incompleto a geração escreve por cima. **O que pode morder é outra coisa**: com o
+     KV por limpar, a sala velha **existe** — e aí `POST /turma` responde «já existe uma sala com o
+     nome «Rosa»», o que é verdade. O remédio é **terminar o expurgo** («Terminar a limpeza do KV»),
+     nunca renomear a turma. **DECIDIDO** 22/11/2026.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -3891,9 +3912,10 @@ recorta» como «a rota está fechada».
 
 | Verificação | Resultado |
 |:--|:--|
-| a bateria do expurgo, inteira | **14 provas verdes**: `bancadas-e-expurgo` 16 · `cartas-do-expurgo` 25 · `dono-do-expurgo` 11 · `elo-do-expurgo` ok · `expurgo-do-professor-compartilhado` 13 · `expurgo-por-carencia` 34 · `lista-do-expurgo` 26 · `o-expurgo-do-financeiro` 15 · `proveniencia-do-expurgo` 38 · `expurgo-sem-listagem` **49** · `expurgo-raiz` **ok** · `expurgo-leitura-atrasada` **45** · `conferir-expurgo` **15** · `os-fluxos-da-derivacao` **74** |
+| a bateria do expurgo, inteira | **14 provas verdes**: `bancadas-e-expurgo` 16 · `cartas-do-expurgo` 25 · `dono-do-expurgo` 11 · `elo-do-expurgo` ok · `expurgo-do-professor-compartilhado` 13 · `expurgo-por-carencia` 34 · `lista-do-expurgo` 26 · `o-expurgo-do-financeiro` 15 · `proveniencia-do-expurgo` 38 · `expurgo-sem-listagem` **49** · `expurgo-raiz` **ok** · `expurgo-leitura-atrasada` **45** · `conferir-expurgo` **24** · `os-fluxos-da-derivacao` **74** |
 | o que estava vermelho, e porquê | três provas mediam o mundo de antes. (a) `expurgo-sem-listagem` fixava **9** chaves fixas — a lista tem **16** desde 17/11 e 19/11, e crescer a lista é o que se quer: a asserção passou a medir **cobertura** (as nove fundadoras continuam lá) e o número de **tentativas** (`fixas.length + 1`, o ponteiro da geração), que é o que não muda quando a lista cresce. (b) `expurgo-raiz` esperava a mensagem da **morada** em dois sítios onde hoje responde passo anterior: a **carência** (16/11) e a **auditoria da proveniência** (07/11) vêm antes. O cenário passou a ter o que precisa para medir o que diz medir — uma escola suspensa com a carência vencida —, e o caminho até à morada passou a ser o do **`forcar` declarado** (com o token real, uma leitura da árvore). (c) `indice-do-recorte` exigia `#lb-indice` **dentro de `sec-corpo`** e o título «O que os recortes olham»: o bloco mudou para a **aba 2 da Audição** em `ba76c401` (09/11) e o título foi corrigido para «Recorte» em `38cab0e2`. Estava vermelha há treze dias |
-| a conferência do expurgo, medida nas quatro escolas | `batata` **0** arquivos · `calango` **0** · `duo` **0** · `breu` **266**. Nas três expurgadas o último acto é o expurgo, **nenhum resíduo sem razão declarada**, e `criar-escola.sh` **não recusa** o nome. Na `breu`, a criação é recusada por `ciclo-01-breu.conf` e `ciclo-01-breu/`, e há pacote da turma `rosa` — a turma nova precisa de **outro nome** |
+| a conferência do expurgo, medida nas quatro escolas | `batata` **0** arquivos · `calango` **0** · `duo` **0** · `breu` **266**. Nas três expurgadas o último acto é o expurgo, **nenhum resíduo sem razão declarada**, e `criar-escola.sh` **não recusa** o nome. Na `breu`, a criação é recusada por `ciclo-01-breu.conf` e `ciclo-01-breu/` — ficheiros **da própria escola**, que o expurgo leva. **Correção de 22/11/2026, no mesmo dia:** esta linha dizia «há pacote da turma `rosa` — a turma nova precisa de outro nome», e isso era **falso**; o `criar-escola.sh` não olha para pacotes de turma, o `gerar-ciclo` escreve por cima, e a única recusa por nome de turma é a de duas salas **vivas** com o mesmo nome na **mesma** escola. O nome da turma é escolha de quem a cria |
+| a metade do KV — **não medida, e dita** | a chave recebida para a medir **não autentica**: `GET /user/tokens/verify` → **401**, e `GET /accounts/<id>/storage/kv/namespaces` → `code 10000 Authentication error`. Ela tem **64** caracteres; um token de API do Cloudflare tem **40**. O `node escola/conferir-kv.js --escola breu` respondeu `::warning::não conferi o KV da escola «breu» — não consegui listar «breu/»: Authentication error` — que é a resposta honesta: não medido, nunca impresso como «limpo». O caminho da leitura ficou provado com uma leitura gravada (`--kv-de`), sem rede |
 | a frase da recusa sem cadastro | `POST /api/apagar-escola` para uma escola **sem registo comercial** dizia «A escola está habilitada» — uma afirmação sobre um estado que ninguém leu, e sobre uma escola cuja morada a raiz não conhece. `lerComercial` passou a marcar `semRegisto: true` e `estadoDoExpurgo` tem frase própria. A recusa continua a ser recusa (`pode: false`), e a prova mede as duas: a frase nova e o silêncio sobre «habilitada» |
 | `provar-a-carencia-nao-se-burla` · `provar-conciliacao-do-painel` · `provar-financeiro` · `provar-financeiro-da-escola` · `provar-cofre-e-shard` · `provar-indice-do-recorte` | **58/58** · **35/35** · **58/58** · **135/135** · **138/138** · **24/24** |
 
