@@ -1840,3 +1840,13 @@ experimentos/modelo-formulario/*
 # A PROVA DO ESTÚDIO (22/11/2026): Bastidores tem um destino só, os endereços antigos levam lá com a
 # query, e o menu não tem dois itens a apontar ao mesmo sítio. Tem controle negativo (`--contra=`).
 !experimentos/provar-o-estudio.js
+
+# A PROVA DO PAINEL INICIAL (22/11/2026): os números da escola contam o que interessa — as alunas
+# ativas e não os registos, as salas vigentes e não as encarnações, a versão de hoje de cada elenco
+# —, a ocupação é a da agenda, e sem leitura o painel declara a lacuna em vez de mostrar zero.
+!experimentos/provar-o-painel-do-estudio.js
+
+# A PROVA DA COLUNA DA VERTICAL (22/11/2026): entre 769 e 1140 a coluna dos Bastidores abre e fecha
+# os grupos. A prova mede o que o OLHO vê — `elementFromPoint`, e não `getBoundingClientRect`: o
+# `max-height:0` do acordeão corta pelo `overflow:hidden` do pai, e o filho mantém o retângulo.
+!experimentos/provar-a-coluna-da-vertical.js

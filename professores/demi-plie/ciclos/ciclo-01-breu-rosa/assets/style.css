@@ -995,6 +995,51 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
    dentro de uma folha é um menu a esconder-se dentro de outro. Tudo à vista. */
 .coluna .coluna-itens, .lateral .coluna-itens { max-height: none; }
 
+/* ---------- o painel do Estúdio -------------------------------------------
+   OS NÚMEROS DA ESCOLA, EM BLOCO (22/11/2026). A peça nasceu na bancada
+   (`experimentos/propostas/proposta-painel-do-estudio.html`, opção B, escolhida por ela) e passou
+   a morar aqui: `painel-numero` é a caixinha de um número e `painel-numeros` é a fila delas.
+   Três linhas, e a ordem é a da leitura: o NÚMERO primeiro (é o que se procura), o RÓTULO em
+   versalete, e a NOTA miúda que diz de onde vem. A nota não é enfeite — sem ela «2 alunas» não
+   diz de quantos registos, e um número sem procedência é a família de erro que este projeto
+   persegue.
+   O número é o único sítio da folha onde a marca pinta um valor; por isso ele leva a cor de
+   `--marca` e não a do texto.
+
+   O NOME É `painel-numero`, E NÃO `numero` (22/11/2026). A `porta/index.html` escreve `.numero`
+   com outro sentido — o número do degrau, dentro de `.marco-texto` e de `li.item-numerado` — e uma
+   peça chamada `numero` na folha vestiria esses degraus de cartão: fundo, borda e 1.7rem. As duas
+   coisas não são a mesma, e o nome é o que as separa. A checagem 8 (Peça) foi quem o disse. */
+.painel-numeros { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .5rem; margin: .7rem 0 0; }
+@media (max-width: 900px) { .painel-numeros { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .painel-numeros { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.painel-numero {
+  display: block; padding: .55rem .7rem .6rem; min-width: 0;
+  background: var(--fundo-suave); border: 1px solid var(--borda-campo); border-radius: var(--raio-2);
+}
+.painel-numero-v { display: block; font: 700 1.7rem/1.1 var(--ui); color: var(--marca); letter-spacing: -.01em; }
+.painel-numero-k {
+  display: block; font: 700 .66rem/1.2 var(--ui); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--texto-suave); margin: .1rem 0 0;
+}
+.painel-numero-nota { display: block; margin: .3rem 0 0; font-size: .74rem; line-height: 1.35; color: var(--texto-suave); }
+/* A OCUPAÇÃO DA SALA. A barra é a `.cota` que o Monitoramento já usa — a mesma peça, e não uma
+   segunda barra com outro desenho. O rótulo vai em versalete, como o do número.
+   O `.sub` e o `.rotulo` NÃO se estilizam daqui: a página dos Bastidores já os desenha, e uma
+   regra da folha a apontar-lhes (`.sala-do-painel .rotulo`) fazia deles componentes da folha —
+   a checagem 8 reprovava, com razão, a `porta` por os redeclarar. Quem os quer na página, usa os
+   da página. */
+.sala-do-painel { padding: .55rem 0; }
+.sala-do-painel + .sala-do-painel { border-top: 1px solid var(--borda); }
+.painel-rotulo {
+  margin: .5rem 0 0; font: 700 .68rem/1.2 var(--ui); letter-spacing: .06em;
+  text-transform: uppercase; color: var(--texto-suave);
+}
+.identidade-do-painel { margin: 0; font-size: 1.05rem; }
+.painel-secao { margin-top: .8rem; }
+.painel-secao h3 { margin: 0 0 .45rem; font-size: .95rem; color: var(--marca); }
+.painel-linha { margin: .3rem 0; }
+
 /* «Aulas» é um DESTINO, não uma pasta: sem seta, e com o peso de um título. */
 .coluna a.coluna-direto,
 .lateral a.coluna-direto {
@@ -1079,6 +1124,57 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
 /* A COLUNA, NO COMPUTADOR. O corte é o de 1140 — o mesmo em que o `.conteudo` deixa de ter as
    duas colunas —, e não um número novo: abaixo dele a página é estreita de mais para pagar
    248 px sem espremer o texto. */
+/* A COLUNA DOS BASTIDORES É COLUNA A PARTIR DOS 769 — E O ACORDEÃO TAMBÉM (22/11/2026).
+ *
+ * O DEFEITO, medido. `.lateral` (Bastidores) deixa de ser coluna e passa a barra+folha a
+ * **768px** (`motor/servidor/bastidores.js`, `@media (max-width:768px)`). O acordeão —
+ * `max-height: 0` fechado, `[data-aberto="sim"]` e `:hover` abertos — vivia só em
+ * `@media (min-width:1141px)`, que é o corte da coluna do SISTEMA LASTRO.
+ *
+ * ENTRE 769 E 1140, portanto, a coluna existe e o acordeão não: `.coluna-itens` caía no
+ * `max-height: none` escrito para a FOLHA («na folha não há acordeão»), e os quatro grupos
+ * ficavam PERMANENTEMENTE abertos — `data-aberto` era ignorado, a seta não aparecia, e o
+ * ponteiro não abria nem fechava nada, porque já estava tudo aberto.
+ *
+ * E o preço era visível: a coluna é `position: fixed` com `overflow-y: auto`, por isso o que
+ * passa da janela é CORTADO. Medido a 1024×640 na página ao vivo: a coluna mede 640, o conteúdo
+ * 671, e os últimos itens de Pedagogia caem abaixo da dobra — a lista acaba poucos pixels depois
+ * de «Dicionário». É a frase dela: «ele fica completamente expandido […] esse background não
+ * acompanha o tamanho do menu. Ele para ali no dicionário».
+ *
+ * A REGRA QUE FICOU: o acordeão vale onde a coluna existe. Os dois cortes eram diferentes
+ * (768 para a coluna, 1140 para o acordeão) e ninguém deu por isso porque, entre eles, o CSS
+ * caía num valor escrito para outro contexto — a mesma família do `if` que filtrava o título
+ * vazio: a pergunta «isto é coluna?» e a pergunta «isto abre e fecha?» deixaram de ser a mesma. */
+@media (min-width: 769px) {
+  /* A MESMA CARA DA COLUNA DO SISTEMA, e é de propósito: são a mesma peça em dois sítios
+     («o menu lateral… tem o mesmo comportamento da página principal, não pode ser diferente»). */
+  .lateral .coluna-titulo {
+    padding: 9px 10px; border-radius: var(--raio-2);
+    font: 15px/1.25 var(--ui); letter-spacing: 0; text-transform: none;
+    color: var(--sobre-marca);
+  }
+  .lateral .coluna-grupo[data-atual="sim"] > .coluna-titulo {
+    color: var(--ornamento-forte); font-weight: 700;
+    box-shadow: inset 3px 0 0 var(--ornamento-forte);
+  }
+  .lateral .coluna-seta { display: block; opacity: .75; transition: transform .16s ease; }
+  .lateral .coluna-itens {
+    max-height: 0; margin: 0 0 0 10px; padding-left: 9px;
+    border-left: 1px solid var(--ornamento);
+  }
+  .lateral .coluna-grupo[data-aberto="sim"] > .coluna-itens { max-height: 15rem; }
+  .lateral .coluna-grupo[data-aberto="sim"] .coluna-seta { transform: rotate(90deg); }
+  .lateral .coluna-itens a { padding: 8px 10px; border-radius: var(--raio-2); font-size: 14px; }
+  .lateral .coluna-itens a[aria-current="page"]::after { content: none; }
+  .lateral a.coluna-direto { padding: 9px 10px; border-radius: var(--raio-2); font-weight: 700; }
+  @media (hover: hover) {
+    .lateral .coluna-grupo:hover > .coluna-itens { max-height: 15rem; }
+    .lateral .coluna-grupo:hover > .coluna-titulo { background: var(--marca-fundo-hover); }
+    .lateral .coluna-grupo:hover .coluna-seta { transform: rotate(90deg); }
+  }
+}
+
 @media (min-width: 1141px) {
   .coluna {
     right: auto; bottom: 0; top: 0; width: 248px; max-height: none; z-index: 21;
@@ -1092,46 +1188,34 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
   .veu { display: none; }
   /* A identificação não tem mais ar próprio: quem o tem é a LINHA (`.coluna-identidade`), e
      duas regras a dar o mesmo ar é a forma de elas divergirem. */
-  .coluna .coluna-titulo,
-  .lateral .coluna-titulo {
+  .coluna .coluna-titulo {
     padding: 9px 10px; border-radius: var(--raio-2);
     font: 15px/1.25 var(--ui); letter-spacing: 0; text-transform: none;
     color: var(--sobre-marca);
   }
-  .coluna .coluna-grupo[data-atual="sim"] > .coluna-titulo,
-  .lateral .coluna-grupo[data-atual="sim"] > .coluna-titulo {
+  .coluna .coluna-grupo[data-atual="sim"] > .coluna-titulo {
     color: var(--ornamento-forte); font-weight: 700;
     box-shadow: inset 3px 0 0 var(--ornamento-forte);
   }
-  .coluna .coluna-seta,
-  .lateral .coluna-seta { display: block; opacity: .75; transition: transform .16s ease; }
+  .coluna .coluna-seta { display: block; opacity: .75; transition: transform .16s ease; }
   /* O ACORDEÃO. `max-height` em vez de `display:none` porque é o que ANIMA e o que EMPURRA os
      de baixo — abrir desce os outros, fechar recompõe. O filete à esquerda diz que os itens
      pertencem ao título de cima. */
-  .coluna .coluna-itens,
-  .lateral .coluna-itens {
+  .coluna .coluna-itens {
     max-height: 0; margin: 0 0 0 10px; padding-left: 9px;
     border-left: 1px solid var(--ornamento);
   }
-  .coluna .coluna-grupo[data-aberto="sim"] > .coluna-itens,
-  .lateral .coluna-grupo[data-aberto="sim"] > .coluna-itens { max-height: 15rem; }
-  .coluna .coluna-grupo[data-aberto="sim"] .coluna-seta,
-  .lateral .coluna-grupo[data-aberto="sim"] .coluna-seta { transform: rotate(90deg); }
-  .coluna .coluna-itens a,
-  .lateral .coluna-itens a { padding: 8px 10px; border-radius: var(--raio-2); font-size: 14px; }
-  .coluna .coluna-itens a[aria-current="page"]::after,
-  .lateral .coluna-itens a[aria-current="page"]::after { content: none; }
-  .coluna a.coluna-direto,
-  .lateral a.coluna-direto { padding: 9px 10px; border-radius: var(--raio-2); font-weight: 700; }
+  .coluna .coluna-grupo[data-aberto="sim"] > .coluna-itens { max-height: 15rem; }
+  .coluna .coluna-grupo[data-aberto="sim"] .coluna-seta { transform: rotate(90deg); }
+  .coluna .coluna-itens a { padding: 8px 10px; border-radius: var(--raio-2); font-size: 14px; }
+  .coluna .coluna-itens a[aria-current="page"]::after { content: none; }
+  .coluna a.coluna-direto { padding: 9px 10px; border-radius: var(--raio-2); font-weight: 700; }
   /* SÓ ONDE HÁ PONTEIRO: num telemóvel o `:hover` fica colado ao toque e o grupo nunca mais
      fecharia. O `(hover: hover)` separa os dois mundos — e não a largura, que é outra coisa. */
   @media (hover: hover) {
-    .coluna .coluna-grupo:hover > .coluna-itens,
-    .lateral .coluna-grupo:hover > .coluna-itens { max-height: 15rem; }
-    .coluna .coluna-grupo:hover > .coluna-titulo,
-    .lateral .coluna-grupo:hover > .coluna-titulo { background: var(--marca-fundo-hover); }
-    .coluna .coluna-grupo:hover .coluna-seta,
-    .lateral .coluna-grupo:hover .coluna-seta { transform: rotate(90deg); }
+    .coluna .coluna-grupo:hover > .coluna-itens { max-height: 15rem; }
+    .coluna .coluna-grupo:hover > .coluna-titulo { background: var(--marca-fundo-hover); }
+    .coluna .coluna-grupo:hover .coluna-seta { transform: rotate(90deg); }
   }
   /* A BARRA FICA AO LADO DA COLUNA, e o `body` é quem cede a largura: a coluna é fixa, e sem
      este afastamento a coluna de leitura passaria por trás dela.

@@ -58236,3 +58236,51 @@ sítio que não se lê; e o que a tela mostra pode não vir do código que se ac
   caminho que os outros tiveram (declarado no cadastro, lido pelo painel, provado).
 - **A metade do KV do expurgo continua por medir**: a chave do cofre é a `SENHA_MESTRA`, não um token
   da Cloudflare. Fica à espera de um token de API.
+
+## 22/11/2026 — A coluna dos Bastidores abre e fecha a partir dos 769 (motivo declarado)
+
+**O que motivou.** Palavras dela, com o menu aberto: «quando eu entro, por exemplo, em produção e
+depois eu vou para aparência, ou eu vou para professores e eu vou para audição, o menu ele fica
+expandido. Ele fica completamente aberto, né? E essa parte que devia acompanhar o tamanho do menu não
+acompanha, esse background não acompanha o tamanho do menu. Ele para ali no dicionário e ele deveria
+acompanhar o tamanho. Ele só acompanha o tamanho se eu clicar de novo nos itens.»
+
+**O que era, medido.** O fundo não tinha defeito nenhum. `.lateral` (Bastidores) deixa de ser coluna
+e passa a barra+folha a **768px** (`motor/servidor/bastidores.js`), e o acordeão — `max-height: 0`
+fechado, `[data-aberto="sim"]` e `:hover` abertos, seta que roda — vivia **só** dentro de
+`@media (min-width: 1141px)`, que é o corte da coluna do **Sistema Lastro**. Entre **769 e 1140** a
+coluna existe e o acordeão não: `.coluna-itens` caía no `max-height: none` escrito para a **folha**
+(«na folha não há acordeão»), os quatro grupos ficavam **permanentemente abertos**, `data-aberto` era
+ignorado e a seta não aparecia. Medido a 1024×640 com o código de antes: último item a **671px** num
+ecrã de 640, e a coluna a rolar. O sintoma que ela descreveu — «para ali no dicionário» — é o menu a
+crescer para fora da caixa que o desenha.
+
+**O que foi decidido.**
+- **O acordeão mora no corte da coluna, não no corte do vizinho.** As regras de `.lateral` passaram
+  para um `@media (min-width: 769px)` próprio; as de `.coluna` **ficaram onde estavam** (1141). A
+  lição, escrita na folha: `if (é coluna)` e `if (abre e fecha)` tinham deixado de ser a mesma
+  pergunta, e a diferença morava entre dois `@media` que cada um supunha do outro.
+- **A peça do painel nasce na folha** (`painel-numeros`, `painel-numero`, `painel-numero-v`,
+  `painel-numero-k`, `painel-numero-nota`, `painel-rotulo`, `sala-do-painel`,
+  `identidade-do-painel`, `painel-secao`, `painel-linha`), no mesmo commit, porque é a folha que as
+  desenha — ver a entrada do painel, a seguir.
+- **Ela NÃO se chama `numero`.** A `porta/index.html` escreve `.numero` com outro sentido — o número
+  do degrau, dentro de `.marco-texto` e de `li.item-numerado` —, e uma peça chamada `numero` na folha
+  vestiria esses degraus de cartão. A checagem 8 (Peça) reprovou, e tinha razão.
+
+**Motivo declarado — o congelado.** `tools/templates/ciclo.css` está em `CONGELAMENTO.md`, e a
+alteração muda **comportamento na tela**: entre 769 e 1140 o menu dos Bastidores passa a abrir e a
+fechar em vez de mostrar tudo. Foi pedido pela proprietária, e vai em **commit próprio**. **O que não
+muda**: formato de dados, chaves gravadas, o hash de proveniência, a cobertura de validação, as
+regras de `REGRAS.md` e as pétreas de `PROTOCOLO.md`. O que muda é geometria e estado de um menu.
+
+**Com o quê.** `tools/templates/ciclo.css` (o acordeão em 769, e as peças do painel),
+`experimentos/provar-a-coluna-da-vertical.js` (**novo**), e as três cópias regeradas
+(`raiz/assets/style.css` por `tools/gerar-raiz.sh`, as duas dos pacotes por
+`tools/gerar-ciclo.sh demi-plie 01 breu-rosa` e cópia para a variante `breu`).
+
+**MEDIDO.** `provar-a-coluna-da-vertical` **32/32**, com o **controle negativo** `--contra=de95569a`
+a reproduzir o defeito: a 1024 os quatro grupos nascem abertos, a seta escondida, o último item a
+671px num ecrã de 640. Com a correção, a 1024×640, 1280×800 e 900×700: grupos fechados, seta à
+vista, Pedagogia aberta a 168px, último item a 436px, sem rolagem; a 760×900 continua a folha.
+`check-identidade` **0 problemas** depois de as três cópias serem regeradas.
