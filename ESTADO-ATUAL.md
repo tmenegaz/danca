@@ -2975,6 +2975,16 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      `--serif` fica (nomeia o papel, e não o desenho) e a `--ui` não muda. **O PDF do ciclo não
      segue** — um `.woff2` não serve ao `pdflatex`. **DECIDIDO** 21/11/2026.
 
+137. **A LISTAGEM DA ANAMNESE, NO DOCUMENTO DA AULA, DIZ QUEM A FEZ E QUANDO.** Palavras dela:
+     «tem que dizer aqui nessa listagem, ao lado do nome da aluna, quem é o que fez a anamnese e a
+     data em que essa anamnese foi feita. A gente já tem isso nos arquivos de chave e valor, então é
+     fácil colocar aqui.» Tem: o AUTOR é o `professor` do envelope da anamnese — quem a respondeu, e
+     não quem dirige a sala —, e a DATA sai do CARIMBO, que é o nome do próprio ficheiro. O
+     documento passa a dizer «Aluna B · por bom-bom em 19/11/2026», e isso é um facto do acervo: as
+     duas anamneses desta turma foram feitas por professores diferentes. Sem autor declarado (os
+     envelopes anteriores ao campo), a frase fica só com a data — não se inventa um nome.
+     **DECIDIDO** 22/11/2026.
+
 135. **O PLANO DE OBSERVAÇÃO MOSTRA AS DIMENSÕES, E SÓ ELAS; O VALOR LIDO É DA AULA.** Palavras
      dela: «Eu não espero que os resultados estejam aqui no plano de observação, tá? O plano de
      observação é exatamente o que está aqui. Não precisa ter isso. E essa parte que você colocou,
@@ -3386,6 +3396,33 @@ lá que se chega ao formulário. O endereço da cópia da turma é que fica a me
 profundidades: os `fetch('api/…')` da porta passam a absolutos (`/api/…`) — o que só é seguro se
 nada servir a porta fora da raiz do Worker. Fica declarado aqui em vez de ser corrigido à socapa,
 porque muda o contrato do pacote inteiro e não é o que ela pediu nesta sessão.
+
+### O `regerar-derivados` apagava o Corpo das aulas que não conseguia reproduzir (22/11/2026) — corrigido
+
+**O SINTOMA, medido a 22/11/2026 neste repositório.** Para pôr a listagem da anamnese em dia foi
+preciso regerar as fontes derivadas. `node tools/regerar-derivados.js demi-plie 01 breu-rosa`
+anunciou «linha de base: nenhuma enviada para esta turma» e, entre as linhas que saíam, as **onze
+do Corpo** e todo o eixo Técnica da Aula 01 — os valores lidos das anamneses, acabados de obter
+por ela. Com `--escrever` teria gravado a lacuna.
+
+**A CAUSA não era do derivador.** Desde 07/11/2026 quem declara que uma turma lê um elenco é a
+TURMA (`curadorias`, com `linhaDeBase`), e o elenco deixou de ter o campo `turma`. As curadorias
+vivem no KV do Worker, e **não há no repositório um ficheiro que a ferramenta possa ler** para
+refazer a ligação. Sem ela, a ferramenta não sabe qual é o elenco — e o que não se sabe não se
+reescreve.
+
+**O QUE FICOU.** Duas coisas, e nenhuma delas adivinha:
+
+1. **Uma guarda.** Se o ficheiro no disco tem uma linha da forma `| <aspecto> | N de M em «<nível>»` —
+   a marca que só a leitura do passo 3 produz — e o derivador novo não a pode produzir, o ficheiro
+   é **travado**, com a frase que diz onde está a causa. É a regra de sempre: o que não se consegue
+   reproduzir, não se apaga.
+2. **`--elenco=<id>`**, porque quem sabe o vínculo é ela e o Worker: o id é o que
+   `GET /api/bastidores/alunas-da-turma?turma=<nome>` devolve em `linhaDeBase.id`. Não é invenção —
+   é o mesmo valor que a Turma declara.
+
+`tools/` é congelado (`CONGELAMENTO.md`): a mudança tem motivo declarado, entrada no `REGISTRO.md` e
+commit próprio.
 
 ### «A página não responde» no computador, e abre no telemóvel e em anónimo (21/11/2026)
 
@@ -3813,7 +3850,17 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (21/11/2026 — o PO mostra as dimensões; o valor é da aula)
+### Executado nesta fotografia (22/11/2026 — quem fez a anamnese, e quando)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-proveniencia-e-turma` | **53 de 56**, e as **3 falhas são as mesmas da linha de base** (medido com o worktree em `stash`): a notação não é o que a prova espera, e a verificação de classes «inventadas» reprova o `origem-da-aluna`, que existe desde 18/11 e nunca foi desenhado na folha. As **3 asserções novas** passam: a opção diz «Aluna A · por demi-plie em 05/11/2026», a data sai do carimbo e a Aluna B — sem autor no fixture — fica «em 05/11/2026» sem nome inventado, e a mesma frase está na linha das acções |
+| medido no navegador, sobre o pacote montado | `/rosa/aula-01.html`: o `<select>` tem as duas opções com a frase; escolher a Aluna B mostra as acções dela com «anamnese por bom-bom em 19/11/2026 · origem metodológica não declarada» |
+| as fontes e o pacote | `regerar-derivados … --elenco=tami --escrever` reescreveu as duas aulas **só nas opções e nas linhas das acções** (o Corpo ficou intacto, conferido no diff), as âncoras foram refeitas e o pacote regerado: `aula-01.html` e `aula-02.html` trazem a frase |
+| `node tools/check-identidade.js` · `check-indices` · `check-pacote` · `hash-ciclo --check` | **22 ok / 0 reprovações** · **16/16** · **0 erros, 1 aviso** (o PDF, por desenho) · **cadeia intacta** |
+| `provar-derivador-da-aula` · `provar-corpo-da-linha-de-base` | **35/35** · **30/30** |
+
+### Executado na fotografia anterior (21/11/2026 — o PO mostra as dimensões; o valor é da aula)
 
 | Verificação | Resultado |
 |:--|:--|

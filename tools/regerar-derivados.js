@@ -6,6 +6,9 @@
  *
  *   node tools/regerar-derivados.js <professor> <ciclo> <variante>            (mostra o que muda)
  *   node tools/regerar-derivados.js <professor> <ciclo> <variante> --escrever (grava)
+ *   …e `--elenco=<id>` quando a turma declara o elenco só no KV do Worker (ver
+ *   `linhaDeBaseDaTurmaDoCiclo`): é o id que `GET /api/bastidores/alunas-da-turma?turma=<nome>`
+ *   devolve em `linhaDeBase.id`.
  *
  * PORQUE EXISTE (02/11/2026). As fontes de um ciclo têm duas metades: as que alguém ESCREVE (o
  * `-po.md` e o `-plano.md`, e o `.conf`) e as que saem delas — a aula, a notação, o glossário, a
@@ -52,7 +55,7 @@ const {
   slugDe,
 } = require(path.join(RAIZ, 'motor/nucleo/derivar-ciclo.js'));
 const { varianteDoContexto } = require(path.join(RAIZ, 'motor/servidor/escrever-po.js'));
-const { linhaDeBaseDaTurma } = require(path.join(RAIZ, 'motor/nucleo/linha-de-base.js'));
+const { linhaDeBaseDaTurma, linhaDeBaseDoElenco } = require(path.join(RAIZ, 'motor/nucleo/linha-de-base.js'));
 const { calibracaoDoConf } = require(path.join(RAIZ, 'motor/servidor/escrever-ciclo.js'));
 const { aulasLancadas, podeRegenerar, numeroDaAula } = require(path.join(RAIZ, 'motor/nucleo/aulas-do-ciclo.js'));
 
@@ -190,6 +193,16 @@ function linhaDeBaseDaTurmaDoCiclo() {
   }
   const turma = (plano.respostas && plano.respostas['contexto-turma']);
   const nome = String((turma && (turma.valor !== undefined ? turma.valor : turma)) || '').trim();
+  /* O ELENCO QUE A TURMA ESCOLHEU PODE SER DITO À MÃO (22/11/2026) — motivo declarado.
+   *
+   * Desde 07/11/2026 quem declara o elenco de uma turma é a TURMA (`curadorias`, com `linhaDeBase`),
+   * e o elenco deixou de guardar `turma`. As curadorias vivem no KV do Worker, e não há no
+   * repositório nada que esta ferramenta possa ler para refazer a ligação — por isso ela pede o id
+   * a quem sabe: `--elenco=tami`. Não é invenção: é o mesmo valor que a Turma declara, lido de
+   * `GET /api/bastidores/alunas-da-turma?turma=<nome>` no Worker. Sem a opção, o vínculo antigo
+   * continua a ser procurado, e a guarda abaixo impede que a falta de elenco apague o que existe. */
+  const aMao = (argv.find((a) => a.indexOf('--elenco=') === 0) || '').split('=').slice(1).join('=').trim();
+  if (aMao) return linhaDeBaseDoElenco(linhas, aMao);
   return linhaDeBaseDaTurma(linhas, nome);
 }
 /*
@@ -230,9 +243,14 @@ function anamnesesVigentesDoCiclo() {
     const aluna = String((env && env.contexto && env.contexto.aluna) || '').trim();
     const carimbo = String((env && env.id) || nome.replace(/\.json$/, ''));
     if (!aluna || !carimbo) continue;
+    /* QUEM FEZ A ANAMNESE (22/11/2026) — a MESMA escolha de `porta.anamneses`: o nome de exibição
+     * quando o envelope o declara, e o slug quando só há slug (é o caso de todas as anamneses já
+     * gravadas). Sem autor, o documento diz só a data — não se inventa um nome. */
+    const autor = String((env && env.contexto
+      && (env.contexto.professorNome || env.contexto.professor)) || '').trim();
     const atual = mapa[aluna];
     if (!atual || atual.carimbo < carimbo) {
-      mapa[aluna] = { carimbo, vinculada: vinculadas.has(aluna) };
+      mapa[aluna] = { carimbo, vinculada: vinculadas.has(aluna), autor: autor || null };
     }
   }
   return mapa;
@@ -294,6 +312,32 @@ for (const fonte of fontes) {
   }
   if (antes === fonte.texto) {
     console.log('igual      ' + relativo);
+    continue;
+  }
+  /* O QUE ELE NÃO CONSEGUE REPRODUZIR, ELE NÃO APAGA (22/11/2026) — motivo declarado.
+   *
+   * O SINTOMA, medido a 22/11/2026 neste repositório: `node tools/regerar-derivados.js demi-plie 01
+   * breu-rosa` anunciou «linha de base: nenhuma enviada para esta turma» e, na diferença, a remoção
+   * das **onze linhas do Corpo** e de todo o eixo Técnica da Aula 01. Com `--escrever`, teria
+   * trocado os valores lidos das anamneses — que ela tinha acabado de obter — por uma lacuna.
+   *
+   * A CAUSA não é desta ferramenta nem do derivador: desde 07/11/2026 quem declara que uma turma lê
+   * um elenco é a TURMA (`curadorias`, com `linhaDeBase`), e o elenco deixou de ter o campo `turma`.
+   * `linhaDeBaseDaTurmaDoCiclo()` continua a procurar o vínculo antigo, e as curadorias vivem no KV
+   * do Worker — não há no repositório um ficheiro que esta ferramenta possa ler para refazer a
+   * ligação. Sem a ligação, ela não sabe qual é o elenco, e o que não se sabe não se reescreve.
+   *
+   * A GUARDA é pela MARCA do dado, e não pelo nome do ficheiro: uma linha de tabela da forma
+   * `| <aspecto> | N de M em «<nível>» …` só a leitura do passo 3 a produz. Se o ficheiro que está
+   * no disco a tem e o derivador novo não a pode produzir, ele está a APAGAR um dado que não
+   * reconstruiu — e é isso que se trava, com a frase que diz onde está a causa. */
+  const MARCA_DA_LEITURA = /^\| .+ \| \d+ de \d+ em «/m;
+  if (linhaDeBase === null && antes !== null && MARCA_DA_LEITURA.test(antes)
+    && !MARCA_DA_LEITURA.test(fonte.texto)) {
+    travadas += 1;
+    console.log('travada    ' + relativo + '  (o ficheiro tem valores lidos das anamneses e este '
+      + 'comando não os consegue reproduzir: a turma declara o elenco na Turma, e o vínculo vivo '
+      + 'está no KV do Worker — ver o motivo no topo deste ficheiro)');
     continue;
   }
   mudaram += 1;

@@ -57862,3 +57862,50 @@ rota `…/linha-de-base/leitura` duas vezes para medir o defeito — é o mesmo 
 «Ler as anamneses» faz, e deixou no KV um rascunho do elenco «Tami» com a leitura (a segunda chamada,
 já com as duas alunas). Nada foi concluído: o acto é dela. O rascunho aparece na lista como «em
 edição», e o «Concluir elenco» seguinte leva a leitura — que é o que ela queria desde o princípio.
+
+## 22/11/2026 — `tools/regerar-derivados.js` deixa de apagar o que não consegue reproduzir (motivo declarado)
+
+**A MOTIVAÇÃO, e ela é medida.** `tools/` é congelado (`CONGELAMENTO.md`), e mexer-lhe exige motivo
+declarado, entrada aqui e commit próprio. O motivo é este: a 22/11/2026, para pôr em dia a listagem
+da anamnese nos documentos da aula, corri
+
+```
+node tools/regerar-derivados.js demi-plie 01 breu-rosa
+```
+
+e ele anunciou «linha de base: nenhuma enviada para esta turma» e listou, entre as linhas que saíam,
+as **onze linhas do Corpo** e todo o eixo Técnica da Aula 01 — os valores lidos das anamneses que
+ela tinha acabado de obter. Com `--escrever`, teria gravado a lacuna por cima.
+
+**A CAUSA não é do derivador nem desta ferramenta.** Desde 07/11/2026 quem declara que uma turma lê
+um elenco é a TURMA (`curadorias`, com `linhaDeBase`), e o elenco deixou de guardar `turma`. As
+curadorias vivem no KV do Worker, e **não existe no repositório um ficheiro que a ferramenta possa
+ler** para refazer a ligação. `linhaDeBaseDaTurmaDoCiclo()` continuava a procurar o vínculo antigo, e
+o resultado era silencioso: «nenhuma», logo lacuna, logo substituição.
+
+**O QUE MUDA, e são duas coisas.**
+
+1. **Uma guarda, pela MARCA do dado** e não pelo nome do ficheiro. Se o ficheiro no disco tem uma
+   linha `| <aspecto> | N de M em «<nível>»` — a forma que só a leitura do passo 3 produz — e o
+   derivador novo não a pode produzir, a fonte é **travada**: fica como está e a consola diz porquê,
+   com a causa e onde ela vive. A regra é a desta casa desde o primeiro dia: o que não se consegue
+   reproduzir, não se apaga.
+2. **`--elenco=<id>`**, porque o vínculo existe e é conhecido — só não está no repositório. O id é o
+   mesmo que `GET /api/bastidores/alunas-da-turma?turma=<nome>` devolve em `linhaDeBase.id`, e
+   passá-lo não é adivinhar: é dizer à ferramenta o que a Turma declara. Sem a opção, continua a
+   procurar o vínculo antigo, e a guarda impede o dano.
+
+E o autor da anamnese passa a ser lido do envelope (`contexto.professor`, com `professorNome` à
+frente quando existir) — a mesma escolha de `porta.anamneses`, para o documento regerado no disco
+dizer o mesmo que o gerado no Worker.
+
+**PROVA.** `node tools/regerar-derivados.js demi-plie 01 breu-rosa` → as duas aulas saem
+**travadas**, com a frase da causa; com `--elenco=tami` → só as opções e as linhas das acções mudam,
+e o Corpo fica intacto (conferido no diff: 8 linhas trocadas em cada aula, nenhuma do Corpo).
+`check-indices` 16/16, `check-pacote` 0 erros (1 aviso: o PDF, por desenho), `hash-ciclo --check`
+cadeia intacta, `provar-proveniencia-e-turma` com as 3 asserções novas verdes e as **3 falhas
+anteriores inalteradas** (medidas com o worktree em `stash`).
+
+**O que continua em aberto, e é dito.** O vínculo turma→elenco devia estar no repositório. Enquanto
+não estiver, qualquer regeneração local exige `--elenco=` — a guarda impede o dano, não substitui o
+dado.
