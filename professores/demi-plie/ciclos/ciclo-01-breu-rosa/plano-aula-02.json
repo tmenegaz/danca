@@ -16,47 +16,47 @@
     "Corpo": [
       {
         "criterio": "1ª posição — pés",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "1 de 2 em «Bom» (com toque) · 1 de 2 em «precisa desenvolver» (por consciência própria) — ponto de atenção"
       },
       {
         "criterio": "1ª posição — braços",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "1 de 2 em «razoável» (por consciência própria) · 1 de 2 em «precisa desenvolver» (com toque) — ponto de atenção"
       },
       {
         "criterio": "o passé",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "1 de 2 em «Bom» (com toque) · 1 de 2 em «precisa desenvolver» (por consciência própria) — ponto de atenção"
       },
       {
         "criterio": "Formato anatômico dos joelhos",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "1 de 2 em «Varo (\"arqueado\")» · 1 de 2 em «Recurvato (hiperflexão)» — ponto de atenção"
       },
       {
         "criterio": "Mobilidade de quadril (en dehors de origem)",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "1 de 2 em «Origem clara no quadril» · 1 de 2 em «Origem restrita (rotação forçada a partir dos joelhos/tornozelos)» — ponto de atenção"
       },
       {
         "criterio": "Mobilidade de flexão/extensão do tornozelo",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "1 de 2 em «Moderada» · 1 de 2 em «Duro (restrição frontal)» — ponto de atenção"
       },
       {
         "criterio": "Musicalidade e pulsação rítmica",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "1 de 2 em «Domina» · 1 de 2 em «Domínio parcial» — ponto de atenção"
       },
       {
         "criterio": "Força excêntrica / recuo na flexão de tronco",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "1 de 2 em «Retorna enrolando (roll-up)» · 1 de 2 em «Parcial» — ponto de atenção"
       },
       {
         "criterio": "Sustentação ativa de MMII (força de adágio)",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "1 de 2 em «Sustenta a perna a 90°+ sem apoio» · 1 de 2 em «Incapacidade por colapso» — ponto de atenção"
       },
       {
         "criterio": "Estabilidade vestibular e deslocamento",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "1 de 2 em «Caminha virando a cabeça sem desviar» · 1 de 2 em «Perde o prumo» — ponto de atenção"
       },
       {
         "criterio": "Espiral / rotação de tronco",
-        "oQueSeObserva": "sem registo na anamnese"
+        "oQueSeObserva": "1 de 2 em «Compreende e executa torções guiadas» · 1 de 2 em «Rigidez total» — ponto de atenção"
       }
     ],
     "Técnica": [
@@ -111,28 +111,36 @@
     ],
     "Poiesis": [
       {
-        "bloco": "Musicalidade",
-        "oQueSeObserva": "sustentar a transferência com musicalidade e controle do movimento"
+        "criterio": "a musicalidade",
+        "oQueSeObserva": "1 de 2 em «Domínio parcial» · 1 de 2 em «Precisa desenvolver» — ponto de atenção"
       },
       {
-        "bloco": "Musicalidade",
-        "oQueSeObserva": "resposta ao pulso na marcação"
+        "criterio": "Musicalidade e pulsação rítmica",
+        "oQueSeObserva": "1 de 2 em «Domina» · 1 de 2 em «Domínio parcial» — ponto de atenção"
       },
       {
-        "bloco": "Musicalidade",
-        "oQueSeObserva": "frase até o fim da música"
+        "criterio": "Coordenação motora e dissociação",
+        "oQueSeObserva": "1 de 2 em «Executa movimentos cruzados» · 1 de 2 em «Confusão motora severa» — ponto de atenção"
       },
       {
-        "bloco": "Expressão",
-        "oQueSeObserva": "olhar acompanha o braço"
+        "criterio": "Memória e retenção de sequências",
+        "oQueSeObserva": "1 de 2 em «Retém sequências de 3 a 4 passos» · 1 de 2 em «Precisa de apoio visual prolongado» — ponto de atenção"
       },
       {
-        "bloco": "Expressão",
-        "oQueSeObserva": "presença sem rigidez de rosto"
+        "criterio": "Discriminação de lateralidade",
+        "oQueSeObserva": "1 de 2 em «Executa comandos cruzados» · 1 de 2 em «Confusão severa» — ponto de atenção"
+      },
+      {
+        "criterio": "Orientação espacial básica",
+        "oQueSeObserva": "1 de 2 em «Desloca com precisão (frente, trás, lados, diagonais)» · 1 de 2 em «Perde a referência ao mudar de direção» — ponto de atenção"
+      },
+      {
+        "criterio": "Espiral / rotação de tronco",
+        "oQueSeObserva": "1 de 2 em «Compreende e executa torções guiadas» · 1 de 2 em «Rigidez total» — ponto de atenção"
       }
     ]
   },
-  "proveniencia": "**[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261121-1955?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho? **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261121-1955?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento. **Anamnese de cada aluna** A anamnese de cada uma das 2 alunas do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.",
+  "proveniencia": "**[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261122-0849?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho? **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261122-0849?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento. **Anamnese de cada aluna** A anamnese de cada uma das 2 alunas do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.",
   "auditoria": [
     {
       "verificacao": "Objetivo específico declarado",
