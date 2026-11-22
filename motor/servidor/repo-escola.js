@@ -1069,6 +1069,31 @@ async function apagarEscolaDoRepoUmaVez({ token, dono, repo, ref, slug, confirma
  * O elo guarda-o. Devolve `{ namespaceId, prefixos, em, motivo }` do expurgo mais recente que
  * ficou pendente — ou `null`.
  */
+/**
+ * ESTE ELO DO EXPURGO PEDE UMA LIMPEZA DO KV? (22/11/2026)
+ *
+ * UMA PERGUNTA, DOIS CHAMADORES: `pendenciaDoKv` (que a anuncia) e `comResolucaoDoKv` (que a
+ * encerra). Eram duas condições escritas em dois sítios, e a segunda só conhecia `pendente` — pelo
+ * que, alargada a primeira, a segunda deixaria de a saber encerrar, e a pendência ficaria ETERNA a
+ * dizer-se pendente. É a família de erro que este projeto já pagou várias vezes: duas cópias da
+ * mesma regra divergem ao primeiro caso novo, e a que fica para trás é sempre a que decide.
+ *
+ * Dois modos de pedir:
+ *   · `pendente: true` — a limpeza falhou DEPOIS de saber onde limpar (tem `namespaceId`);
+ *   · `namespaceId` nulo — o elo diz «limpo» sem nunca ter olhado. Nas escolas de shard esse nulo
+ *     era falso (elas escrevem no namespace do shard), e a página respondia «nada pendente» a uma
+ *     escola com o cadastro das alunas vivo. Medido na `calango`: seis chaves, e o elo a dizer
+ *     `ok: true, restantes: 0`.
+ *
+ * Um elo já retomado (`retomada`) não pede nada — o passado ganhou a linha do que veio depois.
+ */
+function eloPedeLimpezaDoKv(elo) {
+  const kv = elo && elo.kv;
+  if (!kv || kv.retomada) return false;
+  if (kv.pendente === true) return true;
+  return kv.namespaceId === null || kv.namespaceId === undefined || kv.namespaceId === '';
+}
+
 async function pendenciaDoKv({ token, dono, repo, ref, slug, fetchImpl }) {
   const texto = await lerArquivo({
     token, dono, repo, ref, caminho: 'escola/' + slug + '/indice.json', fetchImpl,
@@ -1077,14 +1102,48 @@ async function pendenciaDoKv({ token, dono, repo, ref, slug, fetchImpl }) {
   let indice = null;
   try { indice = JSON.parse(texto); } catch { return null; }
   const elos = (indice && indice.expurgo) || [];
+  /* UMA RECRIAÇÃO DEPOIS DO EXPURGO ENCERRA A PENDÊNCIA (22/11/2026).
+   *
+   * Sem isto, a regra nova acusaria a `breu` para sempre: o último expurgo dela (16/11 12:44)
+   * também tem `namespaceId: null`, e as 23 chaves que ela tem hoje são as dela, da encarnação
+   * que veio depois. O que sobra de uma encarnação anterior é pendência; o que a encarnação de
+   * agora escreveu é dado. A fronteira é a data — a mesma de `reconstruindo` e do `foiRecriada`. */
+  const ultimaRecriacao = (Array.isArray(indice && indice.recriacao) ? indice.recriacao : [])
+    .map((r) => Date.parse((r && r.em) || '')).filter(Number.isFinite)
+    .sort((a, b) => b - a)[0] || 0;
   for (let i = elos.length - 1; i >= 0; i--) {
     const kv = elos[i] && elos[i].kv;
-    if (kv && kv.pendente === true) {
+    if (!eloPedeLimpezaDoKv(elos[i])) continue;
+    const quandoExpurgou = Date.parse((elos[i] && elos[i].em) || '');
+    if (Number.isFinite(quandoExpurgou) && quandoExpurgou < ultimaRecriacao) continue;
+    /* UM ELO QUE NUNCA OLHOU NÃO É UM ELO LIMPO (22/11/2026).
+     *
+     * `pendente` só era `true` quando a limpeza falhava DEPOIS de saber onde limpar. Havia um
+     * segundo modo de falhar, mudo: um elo com `ok: true, restantes: 0, namespaceId: null` — a
+     * assinatura de 「a escola não declara namespace, não havia o que limpar」 (`apagarChavesDeEscola`
+     * devolve `ok` para `namespaceId === null`). Nas escolas de SHARD esse `null` era FALSO: elas
+     * escrevem, e escrevem no namespace do shard com prefixo próprio. O elo dizia «limpo» sem ter
+     * olhado, e a retomada — que só procurava `pendente` — respondia «nada pendente» a uma escola
+     * com o cadastro das alunas vivo.
+     *
+     * Medido a 22/11/2026 na `calango`: seis chaves no KV (`alunas`, `curadorias`, `dono`,
+     * `linhas-de-base`, `rubricas`, `turmas`) e o elo a dizer `ok: true, restantes: 0`. O botão
+     * «Terminar a limpeza do KV» da página não fazia nada — e não fazia nada em SILÊNCIO.
+     *
+     * `retomada` marca o elo já resolvido (o passado não se reescreve: ele ganha a linha do que
+     * veio depois), e é o que impede esta regra de acusar para sempre um elo já tratado. */
+    {
       return {
         namespaceId: kv.namespaceId || null,
         prefixos: kv.prefixos || null,
         em: kv.em || elos[i].em || null,
         motivo: elos[i].motivo || null,
+        /* DIZ-SE PORQUE ESTA PENDÊNCIA EXISTE. Sem isto, a resposta da retomada é a mesma para
+         * dois casos muito diferentes — «falhou a apagar» e «nunca soube onde» —, e é preciso
+         * saber qual é para decidir se basta repetir ou se é o elo que mente. */
+        porque: kv.pendente === true
+          ? (kv.erro || 'a limpeza do KV não se completou')
+          : 'o elo do expurgo não registou onde vive o KV — nunca chegou a olhar',
       };
     }
   }
@@ -1102,14 +1161,27 @@ function comResolucaoDoKv(indiceTexto, { quando, resultado }) {
   if (!indice || !Array.isArray(indice.expurgo)) return indiceTexto;
   for (let i = indice.expurgo.length - 1; i >= 0; i--) {
     const elo = indice.expurgo[i];
-    if (!elo || !elo.kv || elo.kv.pendente !== true) continue;
+    /* A MESMA PERGUNTA DA `pendenciaDoKv` — e é isto que impede a pendência eterna. Ver
+     * `eloPedeLimpezaDoKv`. */
+    if (!eloPedeLimpezaDoKv(elo)) continue;
     elo.kv.retomada = {
       em: quando || new Date().toISOString(),
       ok: resultado && resultado.ok === true,
       apagadas: resultado && resultado.apagadas !== undefined ? resultado.apagadas : null,
       restantes: resultado && resultado.restantes !== undefined ? resultado.restantes : null,
     };
-    if (resultado && resultado.ok === true) delete elo.kv.pendente;
+    /* O NAMESPACE COM QUE SE LIMPOU FICA NO ELO (22/11/2026). É o que faltava ao elo velho: ele
+     * dizia `null` porque ninguém o tinha resolvido, e sem esta linha a próxima leitura repetiria
+     * a mesma pergunta. Gravar onde se limpou é a diferença entre «não sabia» e «não sabia, e
+     * agora sei». */
+    if (resultado && resultado.ok === true) {
+      delete elo.kv.pendente;
+      if (!elo.kv.namespaceId && resultado.namespaceId) elo.kv.namespaceId = resultado.namespaceId;
+      /* `ok: true` passa a ser DITO, e não presumido: o elo velho já o tinha, mas um elo que
+       * falhou e é retomado com sucesso precisa de o ganhar. */
+      elo.kv.ok = true;
+      if (resultado.restantes === 0) elo.kv.restantes = 0;
+    }
     break;
   }
   return JSON.stringify(indice, null, 2) + '\n';
@@ -1786,6 +1858,7 @@ module.exports = {
   listarProfessoresPeloIndice,
   atualizarIndiceDaEscola,
   pendenciaDoKv,
+  eloPedeLimpezaDoKv,
   comResolucaoDoKv,
   listarProfessores,
   apagarEscolaDoRepo,

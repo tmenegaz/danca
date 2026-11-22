@@ -4707,8 +4707,29 @@ async function fetch(request, env) {
       return responderJson({ ok: true, escola: slug, nadaPendente: true,
         nota: 'não há expurgo pendente no KV para esta escola' });
     }
-    if (!pendencia.namespaceId) {
-      return responderJson({ ok: false, escola: slug, erro: 'o elo do expurgo não guardou o namespace do KV — não sei onde limpar' }, 500);
+    /* SEM NAMESPACE NO ELO, PROCURA-SE A MORADA (22/11/2026).
+     *
+     * O elo de uma escola expurgada antes de 16/11 pode não ter o namespace: o expurgo de então
+     * gravava `null` para as escolas de shard, e `null` ali queria dizer «não havia o que limpar».
+     * Recusar com «não sei onde limpar» era a resposta antiga — verdadeira e inútil, porque a
+     * morada É sabível: `moradaDaEscola` lê o shard do índice e o namespace do
+     * `wrangler.<shard>.jsonc`, que é a mesma leitura que o expurgo passou a fazer a 16/11.
+     *
+     * E A RECUSA CONTINUA A EXISTIR para o caso em que ela também não sabe: sem namespace na
+     * morada, não se apaga nada — um id inventado apagaria as chaves de OUTRA escola, e o prefixo
+     * protege as chaves, não a fronteira. */
+    let namespaceDoKv = pendencia.namespaceId;
+    if (!namespaceDoKv) {
+      let morada = null;
+      try { morada = await moradaDaEscola({ token: ghToken, slug }); } catch (err) { morada = null; }
+      namespaceDoKv = (morada && morada.kvNamespaceId) || null;
+    }
+    if (!namespaceDoKv) {
+      return responderJson({
+        ok: false, escola: slug, pendencia,
+        erro: 'o elo do expurgo não guardou o namespace do KV, e a morada desta escola também não o '
+          + 'declara — não sei onde limpar, e não se apaga a chaves de outra escola',
+      }, 500);
     }
 
     let kv = null;
@@ -4716,7 +4737,7 @@ async function fetch(request, env) {
       kv = await apagarChavesDeEscola({
         token: cfToken,
         accountId: ACCOUNT_ID,
-        namespaceId: pendencia.namespaceId,
+        namespaceId: namespaceDoKv,
         prefixos: pendencia.prefixos || prefixosDaEscola(slug),
         prefixo: null,
         slug,

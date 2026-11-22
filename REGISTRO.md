@@ -58320,3 +58320,45 @@ painel da escola viva, desenhado: Alunas 2 («5 registos, 2 ativas») · Profess
 vigente · 22 substituídas») · Elencos 2 · Modalidades 2, e a sala Rosa a «0 de 15» com «o período
 ainda não começou». **O que continua em aberto**: se «ocupação» é a agenda ou o corpo — vagas não
 existe na Sala, e essa é uma decisão de dados.
+
+## 22/11/2026 — Um elo que nunca olhou não é um elo limpo (a `calango` tinha 6 chaves vivas)
+
+**O que motivou.** Ela pediu para apagar o resíduo da `calango` e perguntou, de caminho, se o expurgo
+levaria os 302 novos. Fui medir o KV com o `CLOUDFLARE_API_TOKEN` do `.env` — e as três escolas
+mortas não estavam todas limpas: `batata` 0, `duo` 0, **`calango` 6**.
+
+**O que era.** O elo do expurgo da `calango` dizia `{ok: true, apagadas: 0, restantes: 0,
+namespaceId: null}`, e as seis chaves (alunas, curadorias, dono, linhas-de-base, rubricas, turmas)
+estavam vivas. Duas camadas: (1) `apagarChavesDeEscola` devolve `ok: true` para
+`namespaceId === null` — «a escola não declara namespace, não havia o que limpar» —, e nas escolas de
+**shard** esse `null` era **falso**: elas escrevem, no namespace do shard, com prefixo próprio. O elo
+dizia «limpo» sem ter olhado. (2) `pendenciaDoKv` só reconhecia `kv.pendente === true`, portanto o
+único elo que importava era invisível — e «Terminar a limpeza do KV» respondia **«nada pendente»**,
+em silêncio. Um botão que diz «nada pendente» a um elo que nunca olhou é pior do que um botão que
+falha: fecha a única porta.
+
+**O que foi decidido.**
+- **Uma pergunta, dois chamadores.** `eloPedeLimpezaDoKv(elo)`, exportado, é o predicado que o
+  anúncio (`pendenciaDoKv`) e o fecho (`comResolucaoDoKv`) usam. Dois predicados seriam a forma de
+  eles divergirem outra vez.
+- **Ele reconhece o `null`**, respeita a `retomada` (o elo já resolvido não se acusa duas vezes) e
+  **a recriação**: um expurgo anterior à última recriação não é pendência — o que a encarnação de
+  agora escreveu é dado, não resíduo. Sem esta última parte a `breu` seria acusada para sempre (o
+  último expurgo dela também tem `namespaceId: null`, e as 23 chaves são dela).
+- **A pendência diz PORQUE existe**: «a limpeza não se completou» (com o erro) ou «o elo nunca
+  chegou a olhar». São dois casos muito diferentes, e a resposta era a mesma.
+- **O fecho grava onde limpou** (`namespaceId`, `ok: true`), no elo — e não reescreve o expurgo de
+  16/11. A `/api/expurgar-kv` resolve o namespace por `moradaDaEscola` quando o elo não o tem, e
+  recusa só quando nenhum dos dois sabe: um id inventado apagaria as chaves de outra escola.
+
+**Com o quê.** `motor/servidor/repo-escola.js`, `motor/servidor/raiz.js`,
+`experimentos/provar-limpeza-do-kv.js` (**novo**), `.gitignore`, `ESTADO-ATUAL.md`.
+
+**MEDIDO.** As **6 chaves da `calango` apagadas** (`apagadas: 6, restantes: 0`) e a listagem lida a
+zero para `calango`, `batata` e `duo`; `breu` com 23 (viva, e é dela). `provar-limpeza-do-kv`
+**14/14**, com o **controle negativo** `--contra=de95569a` a dar o elo da `calango` como «nada
+pendente» (7 falhas). `pendenciaDoKv` nos quatro elos: pendência nas três mortas, nada na `breu`.
+
+**E o que ela perguntou:** os **302 continuam**. `excluirEscola` recusa apagar um shard de confiança
+(«o próprio shard NUNCA se apaga») e os redirecionamentos são código do Worker — não são artefacto
+de escola. Expurgar a `breu`, ou recriá-la com o mesmo nome, não lhes toca.

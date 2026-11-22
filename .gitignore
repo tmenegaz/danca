@@ -1850,3 +1850,8 @@ experimentos/modelo-formulario/*
 # os grupos. A prova mede o que o OLHO vê — `elementFromPoint`, e não `getBoundingClientRect`: o
 # `max-height:0` do acordeão corta pelo `overflow:hidden` do pai, e o filho mantém o retângulo.
 !experimentos/provar-a-coluna-da-vertical.js
+
+# A PROVA DA LIMPEZA DO KV (22/11/2026): o elo que dizia «limpo» sem ter olhado. Ela mede o elo da
+# `calango` (namespace nulo, `ok: true`, e seis chaves vivas) e a recriação que encerra a pendência —
+# o caso que o botão «Terminar a limpeza do KV» respondia em silêncio.
+!experimentos/provar-limpeza-do-kv.js
