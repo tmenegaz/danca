@@ -157,32 +157,46 @@ function servir(html, templates) {
     (forma.colunas || []).join(' | ') === 'Exercício | Tempos | Compasso', forma.colunas);
   provar('sem exercício escolhido, a caixa está fechada', forma.escondida === true);
 
-  /* ───────────────── b) a música vem do verbete, e é leitura quando é uma só ───────────────── */
-  console.log('\nb) uma música declarada: vem preenchida e é leitura');
+  /* ───── b) A MÚSICA VEM DO VERBETE E O CAMPO É DE ESCREVER (22/11/2026) ─────
+   *
+   * Palavras dela: «tempos e compassos são editáveis, vão abrir como campos de formulário
+   * carregados com os valores reais, mas também editáveis, para que o professor possa editar. E aí
+   * ele vai decidir se realmente ele quer trabalhar nesse tempo e com esses compassos.»
+   *
+   * ANTES: quando o verbete declarava uma música, a célula era um `span` de LEITURA com um `input`
+   * escondido. Um campo travado obrigava-a a ir ao Estilo mudar a música do exercício — e isso
+   * mudaria a música de TODAS as aulas do ciclo, por causa de uma decisão de uma aula. */
+  console.log('\nb) uma música declarada: o campo abre PREENCHIDO e é editável');
   const uma = await interagir(() => {
     document.querySelector('#criar-aula-exercicios input[value="Battement tendu"]').click();
     const corpo = document.getElementById('criar-aula-musica-corpo');
     const tr = corpo.querySelectorAll('tr')[0];
     if (!tr) return { linhas: 0 };
     const td = [...tr.querySelectorAll('td')];
+    const campos = [...tr.querySelectorAll('input')];
     return {
       linhas: corpo.querySelectorAll('tr').length,
       visivel: !document.getElementById('criar-aula-musica').hidden,
       nome: td[0].textContent.trim(),
-      tempos: td[1].textContent.trim(),
-      compasso: td[2].textContent.trim(),
-      controles: tr.querySelectorAll('select, input[type=text]').length,
+      tempos: campos[0] ? campos[0].value : null,
+      compasso: campos[1] ? campos[1].value : null,
+      tipo: campos.map((c) => c.type),
       escondidos: tr.querySelectorAll('input[type=hidden]').length,
+      titulo: campos[0] ? campos[0].title : '',
       nota: document.getElementById('criar-aula-musica-nota').textContent.trim(),
     };
   });
   provar('marcar um exercício abre a caixa e acrescenta a linha dele',
     uma.visivel === true && uma.linhas === 1 && uma.nome === 'Battement tendu', uma);
-  provar('os tempos e o compasso do verbete aparecem (8 e 2/4)',
+  provar('os campos abrem CARREGADOS com o valor real (8 e 2/4)',
     uma.tempos === '8' && uma.compasso === '2/4', [uma.tempos, uma.compasso]);
-  provar('e são LEITURA — nenhum campo para escrever por cima',
-    uma.controles === 0 && uma.escondidos === 2, { controles: uma.controles, escondidos: uma.escondidos });
-  provar('a nota diz de onde vêm', /Vêm do verbete/.test(uma.nota || ''), uma.nota);
+  provar('…e são campos de ESCREVER — nenhum `hidden` a fazer de campo travado',
+    (uma.tipo || []).join(',') === 'text,text' && uma.escondidos === 0,
+    { tipo: uma.tipo, escondidos: uma.escondidos });
+  provar('o campo DIZ de onde vem o valor («declarado no verbete: 8 em 2/4»)',
+    /declarado no verbete: 8 em 2\/4/.test(uma.titulo || ''), uma.titulo);
+  provar('a nota separa o que está carregado do que fica gravado',
+    /verbete declara/.test(uma.nota || '') && /só para esta/.test(uma.nota || ''), uma.nota);
 
   /* ────────── c) O DEFEITO QUE ELA VIU: a música de OUTRA escola não entra ──────────
    *
@@ -199,10 +213,11 @@ function servir(html, templates) {
     document.querySelector('#criar-aula-exercicios input[value="Battement jeté"]').click();
     const tr = document.querySelectorAll('#criar-aula-musica-corpo tr')[1];
     const tds = [...tr.querySelectorAll('td')];
+    const campos = [...tr.querySelectorAll('input')];
     return {
       nome: tds[0].textContent.trim(),
-      tempos: tds[1].textContent.trim(),
-      compasso: tds[2].textContent.trim(),
+      tempos: campos[0] ? campos[0].value : '',
+      compasso: campos[1] ? campos[1].value : '',
       controles: tr.querySelectorAll('select, input[type=text]').length,
       musicasDoDado: (function () {
         try {
@@ -214,8 +229,8 @@ function servir(html, templates) {
   provar('o Battement jeté da `breu` vem com UMA música (a dela), e não com as duas',
     Array.isArray(doJete.musicasDoDado) && doJete.musicasDoDado.length === 1
     && doJete.musicasDoDado[0] === '8|2/4', doJete.musicasDoDado);
-  provar('…e por isso os campos vêm PREENCHIDOS e em leitura, como os outros exercícios',
-    doJete.tempos === '8' && doJete.compasso === '2/4' && doJete.controles === 0, doJete);
+  provar('…e por isso os campos abrem preenchidos (8 e 2/4), sem escolha a fazer',
+    doJete.tempos === '8' && doJete.compasso === '2/4' && doJete.controles === 2, doJete);
   provar('…e a música da `batata` (4 em 4/4) não aparece em lado nenhum do diálogo',
     JSON.stringify(doJete.musicasDoDado || null).indexOf('4|4/4') === -1, doJete.musicasDoDado);
 
@@ -229,7 +244,7 @@ function servir(html, templates) {
    * músicas para o mesmo exercício, e nenhuma declara hoje. A fixture é a PÁGINA, com um `4|4/4`
    * acrescentado ao lado do `8|2/4` da `breu`: dois registos do MESMO dono, que é o que o alfabeto
    * permite e o que o diálogo tem de saber mostrar. */
-  console.log('\nd) duas músicas da MESMA escola: escolha, com o compasso a seguir os tempos');
+  console.log('\nd) duas músicas da MESMA escola: abre com a primeira, e diz as duas');
   const htmlDuas = html.replace('"Battement jeté":["8|2/4"]', '"Battement jeté":["8|2/4","4|4/4"]');
   const temFixture = htmlDuas !== html;
   servico = await servir(htmlDuas, templates);
@@ -238,54 +253,46 @@ function servir(html, templates) {
     document.querySelector('#criar-aula-exercicios input[value="Battement jeté"]').click();
     const corpo = document.getElementById('criar-aula-musica-corpo');
     const tr = corpo.querySelectorAll('tr')[0];
-    const tempos = tr.querySelector('select[data-qual="tempos"]');
-    const compasso = tr.querySelector('select[data-qual="compasso"]');
-    const antes = {
-      opcoesTempos: [...tempos.options].map((o) => o.value).filter(Boolean),
-      opcoesCompasso: [...compasso.options].map((o) => o.value).filter(Boolean),
+    const campos = [...tr.querySelectorAll('input')];
+    return {
+      nome: tr.querySelector('td').textContent.trim(),
+      campos: campos.length,
+      antes: {
+        valorTempos: campos[0] ? campos[0].value : null,
+        valorCompasso: campos[1] ? campos[1].value : null,
+        titulo: campos[0] ? campos[0].title : '',
+      },
     };
-    tempos.value = '4';
-    tempos.dispatchEvent(new Event('change', { bubbles: true }));
-    const depois4 = [...tr.querySelector('select[data-qual="compasso"]').options].map((o) => o.value).filter(Boolean);
-    tempos.value = '8';
-    tempos.dispatchEvent(new Event('change', { bubbles: true }));
-    const depois8 = [...tr.querySelector('select[data-qual="compasso"]').options].map((o) => o.value).filter(Boolean);
-    const c = tr.querySelector('select[data-qual="compasso"]');
-    c.value = '2/4';
-    return { nome: tr.querySelector('td').textContent.trim(), antes, depois4, depois8 };
   });
   provar('a fixture das duas músicas da mesma escola foi aplicada', temFixture || Boolean(contra));
-  provar('o exercício com duas músicas ganha dois campos de ESCOLHA',
-    duas.nome === 'Battement jeté', duas);
-  /* TUDO DEFENSIVO: no controle negativo o corpo da tabela não existe, e a prova tem de REPRODUZIR
-   * o defeito em vez de estourar a meio — um controle que rebenta não é um controle. */
+  provar('o exercício com duas músicas também abre em dois campos de escrever',
+    duas.nome === 'Battement jeté' && duas.campos === 2, duas);
+  /* COM VÁRIAS, ABRE COM A PRIMEIRA DECLARADA — e o `title` lista todas: a escolha é informada, e
+   * não há opção escondida (o campo aceita qualquer valor, e o documento marca «conferir» se o
+   * verbete não cobrir o que ela escrever). A fixture declara o `8` primeiro, que é o registo da
+   * `breu`. */
   const antes = (duas && duas.antes) || {};
-  /* A ORDEM É A DA DECLARAÇÃO do verbete, e a fixture declara o `8` primeiro (é o registo da
-   * `breu`); o que se mede é o CONJUNTO — as duas músicas declaradas, e mais nenhuma. */
-  provar('os tempos oferecidos são os declarados (4 e 8), e só eles',
-    (antes.opcoesTempos || []).slice().sort().join(',') === '4,8', antes.opcoesTempos);
-  provar('escolher 4 limita o compasso a 4/4',
-    ((duas && duas.depois4) || []).join(',') === '4/4', duas && duas.depois4);
-  provar('escolher 8 limita o compasso a 2/4',
-    ((duas && duas.depois8) || []).join(',') === '2/4', duas && duas.depois8);
+  provar('…preenchido com a primeira música declarada (8 em 2/4)',
+    antes.valorTempos === '8' && antes.valorCompasso === '2/4', antes);
+  provar('…e o campo nomeia as duas declaradas (8 em 2/4 · 4 em 4/4)',
+    /o verbete declara 8 em 2\/4 · 4 em 4\/4/.test(antes.titulo || ''), antes.titulo);
 
   /* ─────────────────── e) o que fica gravado na sequência (o corpo do POST) ─────────────────── */
-  console.log('\ne) a sequência nasce com a música');
+  console.log('\ne) o que a professora ESCREVE é o que fica gravado');
   /* A PÁGINA RECOMEÇA (a secção (d) deixou o Battement jeté marcado, e um segundo clique
    * DESmarcava-o): recarregar é o que garante que esta secção mede o que diz medir. */
   await abrir(servico.base, '03');
   await interagir(() => {
     document.querySelector('#criar-aula-exercicios input[value="Battement tendu"]').click();
     document.querySelector('#criar-aula-exercicios input[value="Battement jeté"]').click();
-    /* O JETÉ DESTA FIXTURE TEM DUAS MÚSICAS, e a página recarregada não traz nenhuma escolhida:
-     * escolher as duas é o gesto do professor, e é o que a linha gravada tem de reflectir. */
-    const tr = document.querySelectorAll('#criar-aula-musica-corpo tr')[1];
-    const t = tr.querySelector('select[data-qual="tempos"]');
-    t.value = '8';
-    t.dispatchEvent(new Event('change', { bubbles: true }));
-    const c = tr.querySelector('select[data-qual="compasso"]');
-    c.value = '2/4';
-    c.dispatchEvent(new Event('change', { bubbles: true }));
+    /* A EDIÇÃO É O PONTO DESTA SECÇÃO. Os campos abrem com o declarado — e é ela que decide o
+     * que a aula trabalha: o tendu passa a 16 em 4/4 (outra música, da mesma família) e o jeté
+     * fica no que veio. O que tem de ficar gravado é o ESCOLHIDO, e não o declarado. */
+    const tr = document.querySelectorAll('#criar-aula-musica-corpo tr')[0];
+    const t = tr.querySelector('input[data-qual="tempos"]');
+    const c = tr.querySelector('input[data-qual="compasso"]');
+    t.value = '16';
+    c.value = '4/4';
     const marco = document.getElementById('criar-aula-marco');
     marco.value = 'o que esta aula persegue';
     document.querySelector('#criar-aula-blocos input[value="Barra"]').click();
@@ -302,10 +309,10 @@ function servir(html, templates) {
     linhas.map((l) => l['Conteúdo do nível']));
   const doTendu = linhas.find((l) => l['Conteúdo do nível'] === 'Battement tendu') || {};
   const doJeteGravado = linhas.find((l) => l['Conteúdo do nível'] === 'Battement jeté') || {};
-  provar('o Battement tendu nasce com 8 tempos em 2/4 (do verbete)',
-    doTendu['Tempos'] === '8' && doTendu['Compasso'] === '2/4',
+  provar('o Battement tendu nasce com o que a professora ESCREVEU (16 em 4/4), e não com o declarado',
+    doTendu['Tempos'] === '16' && doTendu['Compasso'] === '4/4',
     [doTendu['Tempos'], doTendu['Compasso']]);
-  provar('o Battement jeté nasce com o que se escolheu (8 em 2/4)',
+  provar('…e o jeté, que ela deixou como veio, nasce com o declarado (8 em 2/4)',
     doJeteGravado['Tempos'] === '8' && doJeteGravado['Compasso'] === '2/4',
     [doJeteGravado['Tempos'], doJeteGravado['Compasso']]);
   provar('o bloco escolhido é o da linha', linhas.every((l) => l['Bloco'] === 'Barra'),
@@ -372,7 +379,7 @@ function servir(html, templates) {
     process.exit(1);
   }
   console.log((contra ? 'CONTROLE CONFORME — ' : 'TUDO CERTO — ') + total + ' asserções: o diálogo '
-    + 'que cria a aula mostra a música de cada exercício (do verbete, em leitura quando é uma só, '
-    + 'em escolha quando são várias, à mão quando não há nenhuma), recusa meio par, e grava a '
-    + 'sequência com os tempos e o compasso.');
+    + 'que cria a aula mostra a música de cada exercício em campos que abrem PREENCHIDOS com o que '
+    + 'o verbete declara e são EDITÁVEIS; a música de outra escola não entra; meio par é recusado; e '
+    + 'o que fica gravado na sequência é o que a professora escreveu, não o declarado.');
 })();

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T19:03:09-0300`
-Commit atual: `9d4b9744` — chore(estrutura): fechar os derivados — âncoras e índices
+Gerado em: `2026-11-22T19:28:19-0300`
+Commit atual: `4c37b9ef` — fix(musicalidade): a música é a da escola, e sobe do verbete quando a linha não a copiou
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+4c37b9ef fix(musicalidade): a música é a da escola, e sobe do verbete quando a linha não a copiou
 9d4b9744 chore(estrutura): fechar os derivados — âncoras e índices
 3673d403 feat(musicalidade): o diálogo que cria a aula pergunta a música dela
 e402dd50 chore(estrutura): fechar os derivados — âncoras e índices
@@ -101,7 +102,6 @@ ef7d25ee chore(estrutura): diagnóstico temporário da leitura do pacote no pain
 831f6f6f fix(estrutura): a regra do prefixo muda de casa, e o painel passa a lê-la
 e0b3aab6 docs(estrutura): a fotografia regista o caminho do pacote e o `lancada` da breu
 ba571849 fix(estrutura): o painel pede o pacote através do prefixo da árvore
-b189d776 docs(estrutura): a fotografia do painel, da coluna e do KV
 ```
 
 ## Por professor
@@ -128,7 +128,7 @@ b189d776 docs(estrutura): a fotografia do painel, da coluna e do KV
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `59b86b60252a` | (vazio) | — |
-| breu-rosa | ciclo-01-breu-rosa.fipp | `2c0e429216b7` | (vazio) | Input_PO_Validado |
+| breu-rosa | ciclo-01-breu-rosa.fipp | `cefa6a9edecc` | (vazio) | Input_PO_Validado |
 
 ### fernando-franciose — 0 ciclo(s)
 
@@ -195,57 +195,75 @@ b189d776 docs(estrutura): a fotografia do painel, da coluna e do KV
 
 ## Última entrada do REGISTRO
 
-## 22/11/2026 — A música é a da escola, e sobe do verbete quando a linha não a copiou
+## 22/11/2026 — A aula decide a sua música; o plano perde a lista que não era dele; a Turma manda no repertório
 
-**O que ela viu.** «O Batman GT apareceu opções para eu escolher o tempo e opções para eu escolher o
-compasso. Está errado isso, porque o Batman GT já tem isso definido. Por que é que não está
-atualizado do mesmo lugar onde você pegou para os outros exercícios?» E, no plano: «no item 10
-também está errado, ele não preencheu aqui tempos e compassos no item 10 do plano de ensino».
+**O que ela pediu**, e são três coisas distintas: os **tempos e compassos do modal passam a ser campos
+editáveis** («vão abrir como campos de formulário carregados com os valores reais, mas também
+editáveis, para que o professor possa editar. E aí ele vai decidir se realmente ele quer trabalhar
+nesse tempo e com esses compassos»); a secção **«Música e vídeo de referência» do plano deixa de
+listar a música dos exercícios** («é o que o professor coloca de música e de vídeo de referência, são
+links externos e não o repertório»); e uma **investigação** — «se eu quero incluir fondue aqui como
+exercício também, eu preciso ir lá nos bastidores e fazer essa inclusão. E aí eu volto aqui e ele tem
+que estar disponível».
 
-**As duas metades, e são a mesma causa.** O alfabeto guarda o registo do catálogo e o de **cada
-escola** — `8|2/4@breu`, `4|4/4@batata`. A lista que alimentava o diálogo e a grelha percorria as
-chaves em **cru** e tirava o dono, juntando as de todas as escolas: o Battement jeté saía com
-**duas** músicas (a da `batata` em 4/4 e a da `breu` em 2/4), e a tela — vendo duas — pedia uma
-escolha onde a escola tem uma resposta só. O Battement tendu saía certo por acidente: as duas
-declarações dizem a mesma música, e a dedução deixava uma.
+**1. Os campos do modal.** Quando o verbete declarava **uma** música, a célula era um `span` de
+leitura com um `input` escondido. A regra está certa para o **Estilo** (o verbete declara a música do
+exercício) e errada **aqui**: o que a aula trabalha é decisão da aula, e quem a toma é a professora,
+no gesto de criar. Um campo travado obrigava-a a ir ao Estilo mudar a música do exercício — e isso
+mudaria a música de **todas** as aulas do ciclo. Agora os dois campos abrem **preenchidos** com o
+valor declarado e são de escrever; o `title` nomeia a origem («declarado no verbete: 8 em 2/4») e,
+quando o verbete declara várias, lista-as todas. O que fica gravado é `aula-N-sequencia`; o verbete
+não se toca.
 
-**A regra já estava escrita**, três funções acima, e é a que compõe os documentos:
-`registosDaEscola` — «um registo de OUTRA escola não entra: não é do catálogo nem desta escola». A
-lista passa a passar por ela. Medido: a `breu` vê `Battement jeté → 8|2/4` (uma, preenchida e em
-leitura), a `batata` vê `4|4/4`, `Plié` (do catálogo, sem dono) vale para todas, e o `Battement
-fondu` — declarado só pela `calango` — deixa de aparecer à `breu`, que é o que a regra diz.
+**2. A secção do plano.** Aqui estava a música da sequência, exercício por exercício — e o lugar não
+era este: o sítio da música de cada exercício é a **§4 da aula**, onde é consolidada por compasso e
+com a contagem. A secção volta a ter só o que a professora escreveu (o link da faixa, o vídeo), com
+uma linha em citação a dizer para onde olhar, para o documento não parecer ter perdido o dado.
 
-**A segunda metade: a música sobe.** O §4 da Aula 02 saía a dizer «Nenhum exercício desta aula tem
-tempos e compasso declarados na sequência», e a lista do plano dizia «tempos e compasso por declarar
-no verbete» — uma frase que manda procurar no sítio **errado**, porque o verbete os declara. As
-linhas da sequência foram gravadas vazias antes de existir o diálogo que as preenche, e uma cópia
-que ainda não foi feita não é ausência de música. `compor` (e a lista do plano) passam a levantar a
-música do verbete **quando ele declara uma só**; quando declara várias, a frase diz isso — «o
-verbete declara N músicas (…), e a sequência não escolheu nenhuma — a decisão é da professora». O
-motor não escolhe por ela.
+**3. A investigação, e o que ela mediu.** Duas coisas, e a primeira é uma resposta negativa:
+  · **o «fondue» não pode ser incluído na `breu`** — o menu «Conteúdos» dos Bastidores só oferece os
+    exercícios com notação **naquela escola** (`exerciciosComNotacao`, 03/11/2026), e o Battement
+    fondu só tem notação da `calango` (`8|2/4@calango`). Medido: o menu da `breu` é
+    `Plié · Battement tendu · Battement jeté · Relevé` — os quatro que o plano já tem. Para o incluir
+    é preciso primeiro o verbete dele existir para esta escola;
+  · **para os que se podem incluir, o plano não sabia.** O `repertorio` do plano é uma cópia semeada
+    pela curadoria, e crescia só por `aplicarDeclaracoes` — que exige a **declaração de objectivos**.
+    Incluir um exercício no conteúdo da Turma era um gesto anterior a esse, e não mudava nada em
+    documento nenhum: o diálogo, que lê o `repertorio` do plano, nunca o oferecia. A guarda da cadeia
+    (`diferencaDeConteudo`) contava só os **declarados**, pelo motivo certo — «a derivação não
+    aplicaria; exigi-la seria pedir uma derivação que não deriva nada, para sempre».
 
-**Com o quê.** `motor/nucleo/notacao.js` (`musicasDosExercicios(escola)`, `musicaUnicaDoExercicio`,
-`NOTACAO_DO_CICLO`/`alfabetoDoCiclo` — a constante mudou de casa porque o derivador do **plano**
-também precisa dela, e o plano não pode importar o derivador da aula), `motor/servidor/bastidores.js`
-(a rota dos termos passa a escola), `motor/nucleo/derivar-plano-ciclo.js` (o diálogo, a lista do
-plano), `motor/nucleo/derivar-ciclo.js` (§4 lê o `NOTACAO_DO_CICLO` do núcleo e a frase da origem
-passa a ser verdadeira), as fontes derivadas e o pacote regerados, a âncora recalculada,
-`experimentos/provar-a-musica-do-modal.js` (o caso do «Batman GT»), `experimentos/provar-compasso-
-limpo.js` (§E, e a fixture do `markdown.js`), `experimentos/provar-derivados-da-sequencia.js` (a
-mesma fixture), `ESTADO-ATUAL.md`.
+**A correção é a outra metade da poda.** `podarForaDoRepertorio` já tirava do plano o que a Turma
+deixou de ensinar, em **toda** a derivação. Passa a haver `sincronizarRepertorio` — a inclusão pelo
+mesmo caminho: o que a Turma ensina e o plano não declara entra no fim da lista (a ordem dos que já
+estavam não muda), **sem tocar no parâmetro**, e a guarda da cadeia passa a olhar a lista inteira. A
+cadeia diz o que fez («entrou no plano o que o conteúdo da Turma passou a ensinar: …»), pela mesma
+razão que já dizia a poda.
 
-**MEDIDO.** `provar-a-musica-do-modal` **26/26**: o Battement jeté da `breu` chega com **uma**
-música, os campos vêm preenchidos e em leitura, e o `4|4/4` da `batata` não aparece em lado nenhum do
-diálogo; o caso de duas músicas da **mesma** escola continua medido, com uma fixture que as declara
-(as duas escolhas, e o compasso a seguir os tempos); a sequência grava `"Tempos": "8", "Compasso":
-"2/4"`. `provar-compasso-limpo` **volta a correr** — estava a morrer com «Markdown is not defined»
-porque a bancada servia a porta em `/plano-ensino/` e a página pede o `markdown.js` num caminho
-absoluto; a fixture passou a servi-lo —, e a §E nova mede a vista da escola com quatro asserções.
-`provar-derivados-da-sequencia` **26/26**, também ressuscitada pela mesma fixture. O §4 da Aula 02 do
-ciclo da `rosa` passa de «nenhum exercício tem tempos e compasso» a `| 2/4 | Battement tendu | 8 |
-1–2 |` e `| 2/4 | Battement jeté | 8 | 1–2 |`. `check-pacote` 0 erros, `hash-ciclo --check`
-íntegro, `check-identidade` **0 problemas**, `provar-a-dobra-e-a-aula-anterior` 31/31,
-`provar-a-identidade-da-aula` 26/26, `provar-criar-aula` 53/53.
+**Com o quê.** `motor/nucleo/derivar-plano-ciclo.js` (a célula editável, a nota, a secção, e a remoção
+de `musicasDaSequencia`/`valoresDe`/`opcoes`/`ajustarCompasso`, que ficaram sem uso),
+`motor/nucleo/objetivos-do-repertorio.js` (`sincronizarRepertorio`), `motor/nucleo/cadeia.js` (a
+guarda do conteúdo olha a lista da Turma), `motor/servidor/cadeia.js` (a sincronia na derivação e o
+aviso), as fontes derivadas e o pacote regerados, a âncora recalculada,
+`experimentos/provar-a-musica-do-modal.js`, `experimentos/provar-o-exercicio-novo.js` (§8),
+`experimentos/provar-cadeia-automatica.js` (o controlo invertido, com o motivo escrito),
+`experimentos/provar-derivados-da-sequencia.js` (a secção), `ESTADO-ATUAL.md`.
+
+**MEDIDO.** `provar-a-musica-do-modal` **26/26** — os campos abrem `type=text` preenchidos, sem
+`hidden` a fazer de campo travado; o tendu editado para **16 em 4/4** faz a sequência gravar `16` e
+`4/4`, e o jeté que ela deixou como veio grava `8` e `2/4`; com duas músicas da mesma escola, o campo
+abre com a primeira e o `title` diz as duas. `provar-o-exercicio-novo` **61/61** (§8 nova: entra no
+repertório, não no parâmetro, ordem preservada, vazio não julga). `provar-cadeia-automatica`
+**136/136**, com o controlo «exercício novo SEM declaração» **invertido** — reprovava 1 de 135 antes
+da correção desta asserção. `provar-derivados-da-sequencia` **27/27**. `provar-criar-aula` 53/53,
+`provar-compasso-limpo`, `provar-a-dobra-e-a-aula-anterior` 31/31, `provar-a-identidade-da-aula`
+26/26, `provar-a-aula-diz-so-o-que-e-dela` 25/25, `check-pacote` 0 erros, `hash-ciclo --check`
+íntegro, `check-identidade` **0 problemas**.
+
+**E o efeito no documento.** O `plano.html` do ciclo da `rosa` passa a ter, no diálogo, dois campos de
+escrever por exercício; e o `plano-01.json` perde as três linhas da música dos exercícios no campo
+`musicasVideos` (ficam lá as do professor) — o dado não se perdeu: mudou para a §4 da aula, que é
+onde ele se lê.
 
 ## O que está pendente
 

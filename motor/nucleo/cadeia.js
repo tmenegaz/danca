@@ -375,11 +375,19 @@ function indice(estado) {
     const daTurma = termosDe(hoje.repertorio);
     if (!daTurma.length) return { falta: [], sobra: [] }; // o vazio não julga
     const doPlano = termosDe(valorNoDocumento(doc, 'repertorio'));
-    const declarados = Object.keys(hoje.declaracoes || {});
+    /* A LISTA INTEIRA DA TURMA, E NÃO SÓ OS DECLARADOS (22/11/2026).
+     *
+     * Aqui contavam-se só os termos que a Turma DECLARA (`declaracoes`), e o comentário acima
+     * justificava-o: «um exercício da Turma SEM declaração não faz o plano mudar — `aplicarDeclaracoes`
+     * só escreve o que foi declarado, portanto exigi-lo aqui seria pedir uma derivação que não deriva
+     * nada, para sempre». O raciocínio era bom e a premissa deixou de valer: a derivação passou a
+     * SINCRONIZAR o repertório (`sincronizarRepertorio`), portanto incluí-lo aqui deriva alguma
+     * coisa — e é o que faz o exercício incluído no conteúdo da Turma chegar ao plano, e daí ao
+     * diálogo que cria a aula. Sem isto, incluir «Battement fondu» na Turma não mudava nada em
+     * documento nenhum: o plano não o declarava, a aula não o podia trabalhar, e nada falhava. */
     const falta = [];
-    for (const termo of declarados) {
-      const t = String(termo || '').trim();
-      if (t && daTurma.indexOf(t) !== -1 && doPlano.indexOf(t) === -1) falta.push(t);
+    for (const termo of daTurma) {
+      if (termo && doPlano.indexOf(termo) === -1) falta.push(termo);
     }
     const sobra = [];
     for (const termo of doPlano) {

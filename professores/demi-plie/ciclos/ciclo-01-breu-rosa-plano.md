@@ -104,10 +104,11 @@ Estender o ciclo em duas aulas se o último marco não for alcançado.
 
 ## Música e vídeo de referência
 
-- Battement tendu — 8 tempos em 2/4
-- Plié — 4 tempos em 2/4
-- Relevé — 8 tempos em 2/4
 - Faixa de teste em 4/4 e 3/4; vídeo de referência de teste.
+
+> **A música de cada exercício não está aqui** — ela lê-se na aula, no «Bloco de
+> musicalidade» (§4), onde é consolidada por compasso e com a contagem do verbete.
+> Esta secção guarda só o que a professora escreveu: a faixa ou o vídeo de referência.
 
 ## Repertório
 
@@ -224,73 +225,25 @@ Plano derivado da metodologia RAD, adaptado ao âmbito da turma; Plano derivado 
     }
     return fora;
   }
-  function valoresDe(pares, qual) {
-    var vistos = [];
-    for (var i = 0; i < pares.length; i++) {
-      var v = pares[i][qual];
-      if (v && vistos.indexOf(v) === -1) vistos.push(v);
-    }
-    return vistos;
-  }
-  function opcoes(sel, valores, escolhido) {
-    while (sel.firstChild) sel.removeChild(sel.firstChild);
-    var vazio = document.createElement("option");
-    vazio.value = ""; vazio.textContent = "— escolher —";
-    sel.appendChild(vazio);
-    for (var i = 0; i < valores.length; i++) {
-      var o = document.createElement("option");
-      o.value = valores[i]; o.textContent = valores[i];
-      if (valores[i] === escolhido || (!escolhido && valores.length === 1)) o.selected = true;
-      sel.appendChild(o);
-    }
-  }
   function celula(nome, indice, qual, pares) {
     var td = document.createElement("td");
-    var valor = pares.length === 1 ? pares[0][qual] : "";
-    if (pares.length === 1) {
-      var visto = document.createElement("span");
-      visto.textContent = valor;
-      td.appendChild(visto);
-      var oculto = document.createElement("input");
-      oculto.type = "hidden";
-      oculto.setAttribute("data-musica", indice);
-      oculto.setAttribute("data-qual", qual);
-      oculto.value = valor;
-      td.appendChild(oculto);
-      return td;
-    }
-    var campo;
-    if (pares.length > 1) {
-      campo = document.createElement("select");
-      opcoes(campo, valoresDe(pares, qual), "");
-      if (qual === "tempos") {
-        var paresTexto = [];
-        for (var i = 0; i < pares.length; i++) paresTexto.push(pares[i].tempos + "|" + pares[i].compasso);
-        campo.setAttribute("data-musicas", paresTexto.join(" "));
-      }
-    } else {
-      campo = document.createElement("input");
-      campo.type = "text";
-      campo.placeholder = qual === "tempos" ? "8" : "2/4";
-    }
+    var campo = document.createElement("input");
+    campo.type = "text";
+    campo.placeholder = qual === "tempos" ? "8" : "2/4";
     campo.setAttribute("data-musica", indice);
     campo.setAttribute("data-qual", qual);
+    campo.value = pares.length ? String(pares[0][qual] || "") : "";
+    if (pares.length === 1) {
+      campo.title = "declarado no verbete: " + pares[0].tempos + " em " + pares[0].compasso;
+    } else if (pares.length > 1) {
+      var lista = [];
+      for (var i = 0; i < pares.length; i++) lista.push(pares[i].tempos + " em " + pares[i].compasso);
+      campo.title = "o verbete declara " + lista.join(" · ");
+    } else {
+      campo.title = "o verbete não declara música para este exercício";
+    }
     td.appendChild(campo);
     return td;
-  }
-  function ajustarCompasso(sel) {
-    var tr = sel.closest ? sel.closest("tr") : null;
-    if (!tr) return;
-    var alvo = tr.querySelector("select[data-qual=\"compasso\"]");
-    if (!alvo) return;
-    var pares = String(sel.getAttribute("data-musicas") || "").split(" ");
-    var antes = alvo.value, vals = [];
-    for (var i = 0; i < pares.length; i++) {
-      var p = String(pares[i]).split("|");
-      if (p.length === 2 && p[0] === sel.value && vals.indexOf(p[1]) === -1) vals.push(p[1]);
-    }
-    if (!vals.length) return;
-    opcoes(alvo, vals, vals.indexOf(antes) !== -1 ? antes : "");
   }
   function pintarMusica() {
     var ex = escolhidos(exercicios);
@@ -309,10 +262,13 @@ Plano derivado da metodologia RAD, adaptado ao âmbito da turma; Plano derivado 
       tr.appendChild(celula(ex[j], j, "compasso", pares));
       corpoMusica.appendChild(tr);
     }
-    notaMusica.textContent = semMusica.length
-      ? "Sem música declarada no verbete: " + semMusica.join(", ")
-        + ". Escreva os tempos e o compasso, ou deixe em branco — e o documento dirá que esta aula não tem música a consolidar."
-      : "Vêm do verbete de cada exercício, e são a música que o plano já declarou. A contagem de cada uma sai do próprio verbete.";
+    var base = "O que está carregado é a música que o verbete declara. O que ficar gravado é o que você decidir para esta aula — e só para esta: o verbete não muda.";
+    if (semMusica.length) {
+      base += " Sem música declarada no verbete: " + semMusica.join(", ")
+NaN
+NaN
+    }
+    notaMusica.textContent = base;
   }
   function musicaLida(indice) {
     var trs = corpoMusica.querySelectorAll("tr");
@@ -326,10 +282,6 @@ Plano derivado da metodologia RAD, adaptado ao âmbito da turma; Plano derivado 
     return { tempos: t, compasso: c };
   }
   exercicios.addEventListener("change", pintarMusica);
-  caixaMusica.addEventListener("change", function (e) {
-    var s2 = e.target;
-    if (s2 && s2.getAttribute && s2.getAttribute("data-qual") === "tempos") ajustarCompasso(s2);
-  });
   function fechar() {
     caixa.hidden = true;
     document.removeEventListener("keydown", aoTeclar);

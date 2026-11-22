@@ -35,7 +35,7 @@ const sequenciaDoPlano = require('./sequencia.js');
  * ela já existia no núcleo. Sem isto, a aula criada nascia com `Tempos` e `Compasso` vazios e o §4
  * do documento saía a dizer «nenhum exercício desta aula tem tempos e compasso declarados na
  * sequência» — o defeito que ela viu na Aula 02 da `rosa`. */
-const { musicasDosExercicios, musicaUnicaDoExercicio, alfabetoDoCiclo } = require('./notacao.js');
+const { musicasDosExercicios } = require('./notacao.js');
 
 // OS BLOCOS DA AULA — a ordem canónica da Regra 3 (solo → barra → centro), a
 // musicalidade e a expressão. Os quatro primeiros são a estrutura espacial; a EXPRESSÃO
@@ -467,53 +467,6 @@ function sequenciaEmLinhas(valor) {
   return linhas;
 }
 
-/* A MÚSICA QUE A SEQUÊNCIA JÁ DECLARA — exercício por exercício, sem repetir.
- *
- * A fonte é a coluna derivada da sequência («Conteúdo do nível») e as duas colunas da música
- * («Tempos» e «Compasso»), que vêm do VERBETE do exercício. Um exercício sem verbete sai dito
- * por palavras: a ausência é do dado, e um documento que a esconde mente por omissão.
- */
-function musicasDaSequencia(valor, alfabeto, escola) {
-  const objetos = Array.isArray(valor)
-    ? valor.filter((l) => l && typeof l === 'object' && !Array.isArray(l))
-    : [];
-  const vistos = [];
-  const linhas = [];
-  for (const l of objetos) {
-    const nome = String(l['Conteúdo do nível'] || l['Conteúdo'] || '').trim();
-    if (!nome || vistos.indexOf(nome) !== -1) continue;
-    vistos.push(nome);
-    let tempos = String(l['Tempos'] || l['Tempo'] || '').trim();
-    let compasso = String(l['Compasso'] || '').trim();
-    /* A MÚSICA QUE A LINHA NÃO DECLARA SAI DO VERBETE (22/11/2026) — a mesma regra da composição
-     * (`notacao.js`), e pela mesma razão: a música é do EXERCÍCIO, e a linha da sequência é uma
-     * cópia. Quando o verbete declara uma só, não há o que perguntar; quando declara várias, a
-     * frase passa a dizer ISSO, em vez de acusar o verbete por uma falta que é da linha («tempos e
-     * compasso por declarar no verbete» mandava procurar no sítio errado). */
-    let medida;
-    if (tempos && compasso) {
-      medida = tempos + ' tempos em ' + compasso;
-    } else if (tempos || compasso) {
-      medida = tempos || compasso;
-    } else {
-      const unica = alfabeto ? musicaUnicaDoExercicio(alfabeto, nome, escola) : null;
-      if (unica) {
-        medida = unica.tempos + ' tempos em ' + unica.compasso;
-      } else {
-        const declaradas = alfabeto && alfabeto.verbetes && alfabeto.verbetes[nome]
-          ? Object.keys(alfabeto.verbetes[nome]).filter((k) => /^\d+\|/.test(k)
-            && (!/@/.test(k) || k.slice(k.indexOf('@') + 1) === String(escola || '')))
-          : [];
-        medida = declaradas.length > 1
-          ? 'o verbete declara ' + declaradas.length + ' músicas (' + declaradas.join(' · ')
-            + '), e a sequência não escolheu nenhuma'
-          : 'sem música declarada — nem na sequência, nem no verbete deste exercício';
-      }
-    }
-    linhas.push(nome + ' — ' + medida);
-  }
-  return linhas;
-}
 
 /* AS LINHAS DE UMA TABELA — a forma nova é o OBJETO `{unidade, linhas}` (a grelha com a
  * unidade da proporção, que é da TABELA e não de cada linha), a antiga é o ARRAY de linhas.
@@ -842,8 +795,8 @@ function DIALOGO_DA_AULA_JS() {
      * A MÚSICA DE CADA EXERCÍCIO ESCOLHIDO — ver a nota grande do `dialogoDaAula`.
      *
      * `dados.musicas` é `{ exercício: ['8|2/4', …] }`, a mesma chave da grelha do plano e do
-     * verbete. As três formas de controle (leitura, escolha, escrita) são decididas pelo NÚMERO
-     * de músicas declaradas, e não por uma configuração — é o dado que manda.
+     * verbete. O número de músicas declaradas decide o que o campo DIZ — uma, a origem é ela;
+     * várias, a origem são todas —, e o que ele ESCREVE é sempre decisão da professora.
      * ───────────────────────────────────────────────────────────────────────────── */
     '  function paresDe(nome) {',
     '    var l = (dados.musicas || {})[nome] || [], fora = [];',
@@ -853,81 +806,50 @@ function DIALOGO_DA_AULA_JS() {
     '    }',
     '    return fora;',
     '  }',
-    '  function valoresDe(pares, qual) {',
-    '    var vistos = [];',
-    '    for (var i = 0; i < pares.length; i++) {',
-    '      var v = pares[i][qual];',
-    '      if (v && vistos.indexOf(v) === -1) vistos.push(v);',
-    '    }',
-    '    return vistos;',
-    '  }',
-    '  function opcoes(sel, valores, escolhido) {',
-    '    while (sel.firstChild) sel.removeChild(sel.firstChild);',
-    '    var vazio = document.createElement("option");',
-    '    vazio.value = ""; vazio.textContent = "— escolher —";',
-    '    sel.appendChild(vazio);',
-    '    for (var i = 0; i < valores.length; i++) {',
-    '      var o = document.createElement("option");',
-    '      o.value = valores[i]; o.textContent = valores[i];',
-    /* UMA OPÇÃO SÓ ESCOLHE-SE SOZINHA — a mesma regra da grelha do plano: pedir um clique para
-     * confirmar o único valor que existe é pedir trabalho a fingir. */
-    '      if (valores[i] === escolhido || (!escolhido && valores.length === 1)) o.selected = true;',
-    '      sel.appendChild(o);',
-    '    }',
-    '  }',
+    /* TEMPOS E COMPASSO SÃO CAMPOS DE FORMULÁRIO — CARREGADOS COM O VALOR REAL E EDITÁVEIS
+     * (22/11/2026).
+     *
+     * Palavras dela: «a tabela tempos e compassos de cada exercício vai abrir como um formulário.
+     * Tempos e compassos são editáveis, vão abrir como campos de formulário carregados com os
+     * valores reais, mas também editáveis, para que o professor possa editar. E aí ele vai decidir
+     * se realmente ele quer trabalhar nesse tempo e com esses compassos.»
+     *
+     * O QUE ESTAVA AQUI, e porquê estava errado. Quando o verbete declarava UMA música, a célula
+     * era um `span` de LEITURA com um `input` escondido — «vem do verbete» queria dizer «não é
+     * para escrever por cima». A regra está certa para o ESTILO (o verbete declara a música do
+     * exercício) e errada para AQUI: o que a aula trabalha é uma decisão da AULA, e quem a toma é
+     * a professora, no momento em que cria a aula. Um campo travado obrigava-a a ir ao Estilo
+     * mudar a música do exercício — e isso mudaria a música de todas as aulas do ciclo.
+     *
+     * O CAMPO ABRE PREENCHIDO («carregados com os valores reais», que foi o que ela pediu) e o
+     * `title` nomeia a origem: «declarado no verbete: 8 em 2/4». Quando o verbete declara mais de
+     * uma, abre com a primeira e o `title` lista todas — a escolha é informada em vez de às cegas,
+     * e nenhuma opção lhe é escondida.
+     *
+     * O QUE NÃO MUDA: o que fica gravado é a linha da sequência DESTA aula (`aula-N-sequencia`), e
+     * o verbete não se toca. Se ela escrever um tempo que o verbete não cobre, o §4 da aula di-lo
+     * («conferir»), porque não há grade para o que não foi composto — o documento não inventa. */
     '  function celula(nome, indice, qual, pares) {',
     '    var td = document.createElement("td");',
-    '    var valor = pares.length === 1 ? pares[0][qual] : "";',
-    /* LEITURA: o verbete declara uma música só. O valor vai num `input` escondido, para o resto do
-     * código ler de um sítio só — e vai também visível, porque um campo que se lê vazio no
-     * formulário faz duvidar de que o sistema saiba a resposta. */
-    '    if (pares.length === 1) {',
-    '      var visto = document.createElement("span");',
-    '      visto.textContent = valor;',
-    '      td.appendChild(visto);',
-    '      var oculto = document.createElement("input");',
-    '      oculto.type = "hidden";',
-    '      oculto.setAttribute("data-musica", indice);',
-    '      oculto.setAttribute("data-qual", qual);',
-    '      oculto.value = valor;',
-    '      td.appendChild(oculto);',
-    '      return td;',
-    '    }',
-    '    var campo;',
-    '    if (pares.length > 1) {',
-    '      campo = document.createElement("select");',
-    '      opcoes(campo, valoresDe(pares, qual), "");',
-    '      if (qual === "tempos") {',
-    '        var paresTexto = [];',
-    '        for (var i = 0; i < pares.length; i++) paresTexto.push(pares[i].tempos + "|" + pares[i].compasso);',
-    '        campo.setAttribute("data-musicas", paresTexto.join(" "));',
-    '      }',
-    '    } else {',
-    '      campo = document.createElement("input");',
-    '      campo.type = "text";',
-    '      campo.placeholder = qual === "tempos" ? "8" : "2/4";',
-    '    }',
+    '    var campo = document.createElement("input");',
+    '    campo.type = "text";',
+    '    campo.placeholder = qual === "tempos" ? "8" : "2/4";',
     '    campo.setAttribute("data-musica", indice);',
     '    campo.setAttribute("data-qual", qual);',
+    /* O VALOR REAL, quando há um: o do verbete. Com vários, o primeiro — e a lista inteira no
+     * `title`, já que o campo é de escrever e não de escolher. */
+    '    campo.value = pares.length ? String(pares[0][qual] || "") : "";',
+    '    if (pares.length === 1) {',
+    '      campo.title = "declarado no verbete: " + pares[0].tempos + " em " + pares[0].compasso;',
+    '    } else if (pares.length > 1) {',
+    '      var lista = [];',
+    '      for (var i = 0; i < pares.length; i++) lista.push(pares[i].tempos + " em " + pares[i].compasso);',
+    '      campo.title = "o verbete declara " + lista.join(" · ");',
+    '    } else {',
+    '      campo.title = "o verbete não declara música para este exercício";',
+    '    }',
     '    td.appendChild(campo);',
     '    return td;',
-    '  }',
-    /* O COMPASSO ACOMPANHA OS TEMPOS — a mesma regra de `ajustarCompassoDaMusica` na grelha do
-     * plano: escolhido o tempo, só se oferecem os compassos que existem para ele, e o que estava
-     * escolhido é mantido quando continua a ser válido. */
-    '  function ajustarCompasso(sel) {',
-    '    var tr = sel.closest ? sel.closest("tr") : null;',
-    '    if (!tr) return;',
-    '    var alvo = tr.querySelector("select[data-qual=\\"compasso\\"]");',
-    '    if (!alvo) return;',
-    '    var pares = String(sel.getAttribute("data-musicas") || "").split(" ");',
-    '    var antes = alvo.value, vals = [];',
-    '    for (var i = 0; i < pares.length; i++) {',
-    '      var p = String(pares[i]).split("|");',
-    '      if (p.length === 2 && p[0] === sel.value && vals.indexOf(p[1]) === -1) vals.push(p[1]);',
-    '    }',
-    '    if (!vals.length) return;',
-    '    opcoes(alvo, vals, vals.indexOf(antes) !== -1 ? antes : "");',
     '  }',
     '  function pintarMusica() {',
     '    var ex = escolhidos(exercicios);',
@@ -946,10 +868,18 @@ function DIALOGO_DA_AULA_JS() {
     '      tr.appendChild(celula(ex[j], j, "compasso", pares));',
     '      corpoMusica.appendChild(tr);',
     '    }',
-    '    notaMusica.textContent = semMusica.length',
-    '      ? "Sem música declarada no verbete: " + semMusica.join(", ")',
-    '        + ". Escreva os tempos e o compasso, ou deixe em branco — e o documento dirá que esta aula não tem música a consolidar."',
-    '      : "Vêm do verbete de cada exercício, e são a música que o plano já declarou. A contagem de cada uma sai do próprio verbete.";',
+    /* A NOTA DIZ O QUE O CAMPO É — e o que passa a ser, agora que se escreve (22/11/2026). O que
+     * está carregado é a música que o VERBETE declara; o que fica gravado é o que ela decidir para
+     * ESTA aula. Sem esta frase, um campo que abre preenchido e aceita outro valor não diz qual
+     * dos dois vale — e a pessoa tem de adivinhar. */
+    '    var base = "O que está carregado é a música que o verbete declara. O que ficar gravado é o'
+    + ' que você decidir para esta aula — e só para esta: o verbete não muda.";',
+    '    if (semMusica.length) {',
+    '      base += " Sem música declarada no verbete: " + semMusica.join(", ")',
+    + ' — escreva os tempos e o compasso, ou deixe em branco, e o documento dirá que esta',
+    + ' aula não tem música a consolidar.";',
+    '    }',
+    '    notaMusica.textContent = base;',
     '  }',
     /* O QUE FICA GRAVADO NA LINHA DA SEQUÊNCIA, lido uma vez e por exercício — a música é dele, e
      * não do par (bloco, exercício): o mesmo exercício em três blocos leva a mesma música. */
@@ -965,10 +895,6 @@ function DIALOGO_DA_AULA_JS() {
     '    return { tempos: t, compasso: c };',
     '  }',
     '  exercicios.addEventListener("change", pintarMusica);',
-    '  caixaMusica.addEventListener("change", function (e) {',
-    '    var s2 = e.target;',
-    '    if (s2 && s2.getAttribute && s2.getAttribute("data-qual") === "tempos") ajustarCompasso(s2);',
-    '  });',
     '  function fechar() {',
     '    caixa.hidden = true;',
     '    document.removeEventListener("keydown", aoTeclar);',
@@ -1441,17 +1367,29 @@ function derivarPlano(envelope, opcoes) {
    * linha cujo «Conteúdo do nível» está fora do repertório do envelope não é exercício desta aula
    * — ela entrou por uma medida marcada na matriz do parâmetro, e medir não é curar. Publicá-la
    * punha na música uma peça que o próprio «Repertório», duas linhas abaixo, não lista. */
-  /* O ALFABETO DA VEZ (22/11/2026) — a mesma escolha que a composição da aula faz: a notação
-   * declarada pelo ciclo, dentro da modalidade. Sem ele a linha não tem de onde levantar a música
-   * do verbete, e volta a dizer a lacuna. */
-  /* A MESMA NOTAÇÃO QUE A AULA USA (`NOTACAO_DO_CICLO`, em `notacao.js`) — e não a resposta do
-   * plano, que num envelope antigo diz «Benesh» e não casa com o alfabeto. */
-  const alfabetoDaMusica = alfabetoDoCiclo(contexto && contexto.modalidade);
+  /* A MÚSICA E O VÍDEO DE REFERÊNCIA SÃO O QUE O PROFESSOR ESCREVEU — E NADA MAIS (22/11/2026).
+   *
+   * Palavras dela: «o que nasce aqui, música e vídeo de referência, é o que o professor coloca de
+   * música e de vídeo de referência, são links externos e não o repertório. O repertório já está
+   * escrito aqui no de baixo.»
+   *
+   * AQUI ESTAVA A MÚSICA DA SEQUÊNCIA, exercício por exercício (desde 01/11/2026). A ideia era
+   * boa — «a música não se escreve, ela sobe» —, mas o lugar não: esta secção é o campo em que a
+   * professora cola um link de vídeo de referência, e a lista dos «8 tempos em 2/4» de cada
+   * exercício não é referência nenhuma. A música de cada exercício tem o seu sítio próprio, e é
+   * a §4 da AULA («Bloco de musicalidade») — onde ela é consolidada por compasso, com a contagem.
+   * Imprimi-la aqui também punha a mesma música em dois documentos com duas formas diferentes.
+   *
+   * O QUE NÃO SE PERDE: o repertório continua a ser a secção de baixo, e a música de cada
+   * exercício continua a subir do verbete — na aula, que é onde se lê. A linha abaixo, em citação,
+   * diz para onde olhar, para o documento não parecer ter perdido o dado. */
   lista('Música e vídeo de referência',
-    musicasDaSequencia(sequenciaDoPlano.linhasDoRepertorio(
-      sequenciaDoPlano.linhasVivas(respostaDo(envelope, 'aula-1-sequencia'), objetivosVivos),
-      respostaDo(envelope, 'repertorio')), alfabetoDaMusica, contexto.escola)
-      .concat(emLista(respostaDo(envelope, 'musicas-videos')).filter(Boolean)));
+    emLista(respostaDo(envelope, 'musicas-videos')).filter(Boolean));
+  saida.push('> **A música de cada exercício não está aqui** — ela lê-se na aula, no «Bloco de');
+  saida.push('> musicalidade» (§4), onde é consolidada por compasso e com a contagem do verbete.');
+  saida.push('> Esta secção guarda só o que a professora escreveu: a faixa ou o vídeo de referência.');
+  saida.push('');
+
   lista('Repertório', respostaDo(envelope, 'repertorio'));
 
   // Registro de proveniência — required. A origem é MARCADA (as metodologias e o que foi

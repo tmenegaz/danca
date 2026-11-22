@@ -1072,14 +1072,29 @@ async function ids(arm, familia) {
     provar('CONTROLE NEGATIVO: conteúdo igual ao do plano não deriva nada',
       plano(emDia).estado === 'feita', plano(emDia));
 
-    /* CONTROLE NEGATIVO 2: um exercício da Turma SEM declaração não faz o plano mudar — a
-     * derivação não o aplicaria, e exigi-la seria pedir uma derivação que não deriva nada, para
-     * sempre. */
+    /* O EXERCÍCIO NOVO **SEM** DECLARAÇÃO PASSOU A DERIVAR (22/11/2026) — e é a inversão deste
+     * controlo, com o motivo escrito.
+     *
+     * Ele dizia: «um exercício da Turma SEM declaração não faz o plano mudar — a derivação não o
+     * aplicaria, e exigi-la seria pedir uma derivação que não deriva nada, para sempre». O raciocínio
+     * era bom e a premissa deixou de valer: a derivação passou a SINCRONIZAR o `repertorio` do plano
+     * com a lista da Turma (`sincronizarRepertorio`), portanto incluí-lo deriva alguma coisa — o
+     * exercício entra no plano, e é de lá que o diálogo que cria a aula o oferece.
+     *
+     * PORQUÊ A MUDANÇA, nas palavras dela: «eu quero incluir fondue aqui como exercício também, eu
+     * preciso ir lá nos bastidores e fazer essa inclusão. E aí eu volto aqui e ele tem que estar
+     * disponível aqui para poder então eu incluir esse exercício.» Incluir no conteúdo da Turma é um
+     * gesto anterior a dizer em que objectivos o exercício entra, e o plano tem de o acompanhar.
+     *
+     * O QUE CONTINUA A NÃO ACONTECER: o exercício entra no REPERTÓRIO, e **não** em nenhum objectivo
+     * do parâmetro — essa é a declaração, e não se inventa. */
     const semDeclaracao = indiceCom({
       repertorio: ['Battement tendu', 'Plié', 'Relevé', 'Novo sem declaração'], declaracoes: {},
     });
-    provar('CONTROLE NEGATIVO: exercício novo SEM declaração não põe o plano a derivar',
-      plano(semDeclaracao).estado === 'feita', plano(semDeclaracao));
+    provar('exercício novo SEM declaração PÕE o plano a derivar — é a lista da Turma que manda',
+      plano(semDeclaracao).estado === 'pendente', plano(semDeclaracao));
+    provar('…e a falta nomeia o exercício incluído no conteúdo',
+      /Novo sem declaração/.test(String(plano(semDeclaracao).falta)), plano(semDeclaracao).falta);
 
     /* CONTROLE NEGATIVO 3: uma Turma sem lista declarada não julga ninguém. */
     const semLista = indiceCom({ repertorio: [], declaracoes: {} });

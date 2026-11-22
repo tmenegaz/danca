@@ -646,6 +646,21 @@ function criarCadeia({
       });
       if (poda.removidos.length) repertorioPodado = poda.removidos;
     }
+    /* E O EXERCÍCIO QUE A TURMA PASSOU A ENSINAR ENTRA NO PLANO (22/11/2026) — a outra metade,
+     * e a que faltava. A poda já tirava o que saiu; a inclusão só acontecia pela declaração (a
+     * janela onde se diz em que objectivos o exercício entra), e incluir um exercício no CONTEÚDO
+     * da Turma é um gesto anterior a esse. Medido: acrescentar um exercício sem lhe declarar
+     * objectivos não mudava nada em documento nenhum — e o diálogo que cria a aula, que lê o
+     * `repertorio` do plano, nunca o oferecia. A regra aqui é a mesma da poda: a lista do plano
+     * acompanha a da Turma, e é a Turma que manda. */
+    let repertorioAcrescentado = null;
+    if (curadoria) {
+      const sincronia = objetivosDoRepertorio.sincronizarRepertorio({
+        respostas,
+        repertorio: repertorioDaCuradoria(curadoria),
+      });
+      if (sincronia.acrescentados.length) repertorioAcrescentado = sincronia.acrescentados;
+    }
     /* A IDENTIDADE VAI COM O ELO (10/11/2026) — nas RESPOSTAS, que é o que o documento imprime.
      * O NOME É O DO AUTOR (12/11/2026): o do documento anterior, que é — pela guarda acima — o
      * mesmo que dirige a Turma hoje. A fonte do nome é a autoria, e não a curadoria, porque a
@@ -697,6 +712,14 @@ function criarCadeia({
       avisos.push('saiu do plano o que já não está no conteúdo da Turma: '
         + repertorioPodado.join(' · '));
     }
+    /* E A INCLUSÃO TAMBÉM (22/11/2026) — pela mesma razão: um exercício que passa a fazer parte do
+     * conteúdo da Turma e entra no plano é uma decisão dela, e o gesto que a toma é o de incluir.
+     * Sem a frase, o diálogo que cria a aula passaria a oferecer um exercício que ninguém se lembra
+     * de ter posto lá. */
+    if (repertorioAcrescentado) {
+      avisos.push('entrou no plano o que o conteúdo da Turma passou a ensinar: '
+        + repertorioAcrescentado.join(' · '));
+    }
     /* A RÉGUA E A TRADIÇÃO DIZEM-SE TAMBÉM (20/11/2026) — pela mesma razão da poda: um documento
      * que muda de escala ou de método sem uma palavra é o sistema a decidir pedagogia em silêncio.
      * Aqui ele não decide: relata o que o cadastro e o perfil já declaravam. */
@@ -712,7 +735,7 @@ function criarCadeia({
      * que tem.» Mudar a duração não põe a dose em causa, e um aviso que a mandasse rever seria um
      * aviso falso. Ver `motor/nucleo/volume.js`. */
     return { ok: true, id: envelope && envelope.id, de: anterior.id, fonte, avisos, declaracaoAplicada,
-      repertorioPodado, reguaAtualizada, tradicaoAtualizada };
+      repertorioPodado, repertorioAcrescentado, reguaAtualizada, tradicaoAtualizada };
   }
 
   /**

@@ -4,7 +4,16 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 22/11/2026 (commit `3673d403`, e a **música a ser a da escola** a seguir).
+> **Última fotografia:** 22/11/2026 (commit `4c37b9ef`, e **a aula a decidir a sua música** a seguir).
+> Ainda neste dia, **o modal passou a deixar escrever**: os tempos e o compasso de cada exercício
+> abrem preenchidos com o que o verbete declara e são editáveis — a música do verbete é a da escola,
+> a da aula é decisão de quem a dá, e essas duas coisas estavam a ser a mesma. A secção «Música e
+> vídeo de referência» do plano perdeu a lista derivada (é o campo da professora, não o repertório),
+> e o **repertório do plano passou a acompanhar a Turma**: incluir um exercício no conteúdo chega ao
+> plano, e daí ao diálogo que cria a aula. Medido nessa investigação: o «Battement fondu» **não** se
+> pode incluir na `breu` — o menu só oferece os exercícios com notação nesta escola.
+>
+> **Fotografia anterior (22/11/2026 — commit `3673d403`, a música é a da escola).**
 > Ainda neste dia, **a música deixou de vir das outras escolas**: o alfabeto guarda o registo do
 > catálogo e o de cada escola, e a lista que alimenta o diálogo e a grelha tirava o dono e juntava
 > tudo — o Battement jeté saía com duas músicas (a da `batata` e a da `breu`) e a tela pedia uma
@@ -3387,6 +3396,28 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      metade: `compor` levanta a música do verbete quando a linha da sequência não a declara e a
      escola declara **uma só** — a música é do exercício, e a linha é uma cópia; quando o verbete
      declara várias, a frase diz isso e a decisão fica com a professora. **DECIDIDO** 22/11/2026.
+154. **A AULA DECIDE A SUA MÚSICA — O CAMPO ABRE PREENCHIDO E É DE ESCREVER.** Palavras dela: «tempos
+     e compassos são editáveis, vão abrir como campos de formulário carregados com os valores
+     reais, mas também editáveis, para que o professor possa editar. E aí ele vai decidir se
+     realmente ele quer trabalhar nesse tempo e com esses compassos.» O campo era **leitura**
+     quando o verbete declarava uma música — regra certa para o ESTILO, errada para a AULA: um
+     campo travado obrigava-a a mudar a música do exercício no verbete, e isso mudaria a música de
+     todas as aulas do ciclo. Agora abre preenchido, o `title` nomeia a origem, e o que fica
+     gravado é `aula-N-sequencia` — o verbete não se toca. **DECIDIDO** 22/11/2026.
+155. **«MÚSICA E VÍDEO DE REFERÊNCIA» É O CAMPO, NÃO A MÚSICA DOS EXERCÍCIOS.** Palavras dela: «é o
+     que o professor coloca de música e de vídeo de referência, são links externos e não o
+     repertório. O repertório já está escrito aqui no de baixo.» A lista derivada que ali estava
+     desde 01/11 saiu: a música de cada exercício lê-se na **§4 da aula**, onde é consolidada por
+     compasso e com a contagem. **DECIDIDO** 22/11/2026.
+156. **O REPERTÓRIO DO PLANO ACOMPANHA A TURMA — A INCLUSÃO, E NÃO SÓ A PODA.** A poda já tirava
+     do plano o que a Turma deixou de ensinar; a inclusão só acontecia pela declaração de
+     objectivos, e por isso incluir um exercício no conteúdo da Turma não mudava documento nenhum.
+     `sincronizarRepertorio` fecha a outra metade: o que a Turma ensina e o plano não declara entra
+     no fim da lista, sem tocar no parâmetro, e a guarda da cadeia passa a olhar a lista inteira.
+     **DECIDIDO** 22/11/2026. **CONFIRMADO por medição**, e com uma resposta negativa que importa:
+     o «Battement fondu» **não pode** ser incluído na `breu` — o menu de Conteúdos só oferece os
+     exercícios com notação **naquela escola**, e o fondu só a tem da `calango`. O menu da `breu` é
+     `Plié · Battement tendu · Battement jeté · Relevé`.
      *E uma lição de método*: duas provas (`provar-compasso-limpo`, `provar-derivados-da-sequencia`)
      estavam a morrer com «Markdown is not defined» porque as bancadas serviam a porta em
      `/plano-ensino/` e a página pede o `markdown.js` num caminho **absoluto** — uma fixture que não
@@ -4207,7 +4238,18 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (22/11/2026 — a música é a da escola)
+### Executado nesta fotografia (22/11/2026 — a aula decide a sua música)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-a-musica-do-modal.js` | **26/26**: os campos abrem `type=text` **preenchidos** (8 e 2/4), sem `hidden` a fazer de campo travado; o tendu editado para **16 em 4/4** é o que a sequência grava, e o jeté que ela deixou como veio grava 8 e 2/4; com duas músicas da mesma escola, abre com a primeira e o `title` diz as duas. Controle `--contra=d562534a`: **17 de 22 reprovam** |
+| `node experimentos/provar-o-exercicio-novo.js` | **61/61** — a §8 nova: o exercício que a Turma passou a ensinar entra no repertório do plano, **não** no parâmetro, e a ordem dos que já estavam não muda |
+| `node experimentos/provar-cadeia-automatica.js` | **136/136**, com o controlo «exercício novo SEM declaração» **invertido** (passa a derivar — é a lista da Turma que manda) |
+| `node experimentos/provar-derivados-da-sequencia.js` | **27/27** — a secção «Música e vídeo de referência» traz o link da professora, **não** traz a música dos exercícios, e diz para onde olhar |
+| `provar-criar-aula` · `provar-compasso-limpo` · `provar-a-dobra-e-a-aula-anterior` · `provar-a-identidade-da-aula` · `provar-a-aula-diz-so-o-que-e-dela` | 53/53 · verde · 31/31 · 26/26 · 25/25 |
+| `node tools/check-pacote.js` · `hash-ciclo --check` · `check-identidade` | 0 erros · íntegro · **0 problemas** |
+
+### Executado na fotografia anterior (22/11/2026 — a música é a da escola)
 
 | Verificação | Resultado |
 |:--|:--|

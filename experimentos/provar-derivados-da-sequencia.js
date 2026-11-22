@@ -348,22 +348,41 @@ const abrirNo = (w, id) => w.eval(`(async function(){
     'musicas-videos': 'https://www.youtube.com/watch?v=prova — o plié na barra',
     'repertorio': ['Plié', 'Battement tendu', 'Jeté'],
   })).markdown;
-  provar('a música sai exercício por exercício', /- Plié — 4 tempos em 2\/4/.test(comSequencia),
-    (comSequencia.match(/^## Músicas e vídeos[\s\S]{0,400}/m) || [''])[0]);
-  /* O NOME DA ASSERÇÃO ESTAVA A PROMETER OUTRA COISA (03/11/2026). Ela dizia «o exercício com duas
-   * músicas», e nenhum verbete do alfabeto declara duas hoje. O que ela prova — e continua a
-   * provar — é a REGRA: o mesmo exercício, marcado nos dois objetivos, sai UMA vez na lista. */
-  provar('…o mesmo exercício, em duas linhas da sequência, sai UMA vez',
-    (comSequencia.match(/Battement tendu — /g) || []).length === 1,
-    (comSequencia.match(/Battement tendu — /g) || []).length);
-  provar('…e o que o professor escreveu no campo vem depois, sem ser perdido',
-    /- https:\/\/www\.youtube\.com\/watch\?v=prova/.test(comSequencia));
-  /* A FRASE MUDOU (22/11/2026), e a mudança é uma correção: «por declarar no verbete» mandava
-   * procurar no sítio errado quando o verbete DECLARA a música e é a linha que não a copiou. Agora
-   * a frase nomeia os dois sítios, e o exercício que não tem música em nenhum deles diz isso. */
-  provar('…e o exercício sem verbete é dito por palavras, com os dois sítios nomeados',
-    /- Jeté — sem música declarada — nem na sequência, nem no verbete deste exercício/.test(comSequencia),
-    (comSequencia.match(/- Jeté[^\n]*/) || [''])[0]);
+  /* A SECÇÃO «MÚSICA E VÍDEO DE REFERÊNCIA» VOLTOU A SER SÓ O CAMPO (22/11/2026).
+   *
+   * Palavras dela: «o que nasce aqui, música e vídeo de referência, é o que o professor coloca de
+   * música e de vídeo de referência, são links externos e não o repertório. O repertório já está
+   * escrito aqui no de baixo.»
+   *
+   * Aqui estava a música da sequência, exercício por exercício (desde 01/11/2026) — e o lugar não
+   * era esse: o sítio da música de cada exercício é a §4 da AULA, onde ela é consolidada por
+   * compasso e com a contagem. O que se mede agora é o contrário: a lista traz o que a professora
+   * escreveu, e NÃO traz a música dos exercícios. */
+  const comMusica = (comSequencia.match(/^## Música e vídeo de referência[\s\S]*?(?=\n## )/m) || [''])[0];
+  provar('a secção traz o que a professora escreveu (a faixa, o vídeo)',
+    /- https:\/\/www\.youtube\.com\/watch\?v=prova/.test(comMusica), comMusica.slice(0, 200));
+  provar('…e NÃO traz a música dos exercícios (ela vive na §4 da aula)',
+    !/Plié — 4 tempos/.test(comMusica) && !/Battement tendu — 8 tempos/.test(comMusica),
+    comMusica.slice(0, 200));
+  provar('…e a secção diz para onde olhar, em citação',
+    /A música de cada exercício não está aqui/.test(comMusica)
+    && /Bloco de/.test(comMusica), comMusica.slice(-260));
+  /* O MESMO EXERCÍCIO DUAS VEZES NA SEQUÊNCIA NÃO É UMA SEGUNDA LINHA — mas essa regra agora vive
+   * na música da AULA, e é lá que ela se mede (a §4 agrupa por compasso e mostra o exercício uma
+   * vez). Aqui já não há lista de exercícios para deduplicar. */
+  const semCampo = derivarPlano(envelope({
+    'objetivo-geral': 'Objetivo da prova',
+    'repertorio': ['Plié'],
+  })).markdown;
+  const soRepertorio = (semCampo.match(/^## Música e vídeo de referência[\s\S]*?(?=\n## )/m) || [''])[0];
+  /* SEM CAMPO, A LISTA DIZ A LACUNA — `- [a decidir]`, que é a forma da casa, e não uma frase
+   * escrita à mão: a citação que aqui estava («Nenhuma música ou vídeo de referência declarado»)
+   * fazia uma secção só-de-citação quando o ciclo não tem link nenhum, e o extrator avisa disso
+   * («seção só com citação») — um aviso a mais para dizer o que a lista já diz. */
+  provar('sem nenhum campo escrito, a lista diz a lacuna («[a decidir]»)',
+    /- \[a decidir\]/.test(soRepertorio), soRepertorio.slice(0, 240));
+  provar('…e continua a não inventar exercícios', !/Plié —/.test(soRepertorio), soRepertorio.slice(0, 240));
+
   provar('o repertório sai como a tela o semeou', /## Repertório\n\n- Plié\n- Battement tendu\n- Jeté/.test(comSequencia),
     (comSequencia.match(/^## Repertório[\s\S]{0,200}/m) || [''])[0]);
 

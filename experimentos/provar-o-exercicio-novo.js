@@ -363,12 +363,65 @@ const TURMA_COM_O_NOVO = ['Battement tendu', 'Plié', 'Battement jeté'];
       ['Solo', 'Barra', 'Centro']);
   }
 
+  /* ─────────── 8. O REPERTÓRIO DO PLANO ACOMPANHA A TURMA (22/11/2026) ───────────
+   *
+   * Palavras dela: «eu quero incluir fondue aqui como exercício também, eu preciso ir lá nos
+   * bastidores e fazer essa inclusão. E aí eu volto aqui e ele tem que estar disponível aqui para
+   * poder então eu incluir esse exercício.»
+   *
+   * A DECLARAÇÃO (as secções acima) é um gesto posterior: dizer em que objectivos o exercício
+   * entra. Incluir no CONTEÚDO da Turma é outro, e mais cedo. Antes desta correção, o segundo não
+   * mexia em documento nenhum — o `repertorio` do plano só crescia pela declaração, e o diálogo que
+   * cria a aula lê-o dali. O exercício ficava a existir na Turma e a não existir em sítio nenhum
+   * que o oferecesse. */
+  console.log('\n8. O repertório do plano acompanha a lista da Turma');
+  {
+    const antes = umPlano();
+    const r = obj.sincronizarRepertorio({
+      respostas: antes.respostas,
+      repertorio: ['Battement tendu', 'Plié', 'Battement fondu'],
+    });
+    igual('o exercício que a Turma passou a ensinar ENTRA no repertório do plano',
+      obj.valorDaResposta(r.respostas, 'repertorio'),
+      ['Battement tendu', 'Plié', 'Battement fondu']);
+    igual('…e é ele que a função diz ter acrescentado', r.acrescentados, ['Battement fondu']);
+    igual('…mas o PARÂMETRO não se toca — dizer em que objectivos entra é a declaração, e não se inventa',
+      obj.valorDaResposta(r.respostas, 'aula-1-parametro'),
+      [{ marco: 1, marcados: ['Battement tendu', 'Plié'] }, { marco: 2, marcados: ['Plié'] }]);
+    /* A ORDEM: os que já estavam ficam onde estavam, e o novo entra no fim. Reordenar o repertório
+     * impresso por causa de uma inclusão que não lhe diz respeito seria mudar o documento à toa. */
+    const comOrdemTrocada = obj.sincronizarRepertorio({
+      respostas: umPlano().respostas,
+      repertorio: ['Battement fondu', 'Plié', 'Battement tendu'],
+    });
+    igual('…e a ordem dos que já estavam NÃO muda (o novo entra no fim)',
+      obj.valorDaResposta(comOrdemTrocada.respostas, 'repertorio'),
+      ['Battement tendu', 'Plié', 'Battement fondu']);
+    igual('nada a acrescentar quando o plano já tem a lista toda', (() => {
+      const r2 = obj.sincronizarRepertorio({
+        respostas: umPlano().respostas, repertorio: ['Plié', 'Battement tendu'],
+      });
+      return [r2.acrescentados, obj.valorDaResposta(r2.respostas, 'repertorio')];
+    })(), [[], ['Battement tendu', 'Plié']]);
+    /* O VAZIO NÃO JULGA — a mesma defesa da poda: uma Turma de antes do campo existir não pode
+     * apagar o repertório do plano. */
+    const semLista = obj.sincronizarRepertorio({
+      respostas: umPlano().respostas, repertorio: [],
+    });
+    igual('Turma sem lista declarada não acrescenta nada (nem apaga)',
+      [semLista.acrescentados, obj.valorDaResposta(semLista.respostas, 'repertorio')],
+      [[], ['Battement tendu', 'Plié']]);
+  }
+
   console.log('\n' + (falhas === 0 ? 'TUDO CERTO' : 'FALHOU') + ' — ' + n + ' asserções: a'
     + ' declaração do objetivo entra no parâmetro E no repertório do plano, uma vez só; o que a'
     + ' Turma já não ensina sai dos dois, e a Turma sem lista declarada não apaga nada; não se'
     + ' aplica o que a Turma não acordou nem o que o plano não sabe medir; e o impacto diz, antes'
     + ' de perguntar, a linha que ganha o termo, os objetivos todos sem pré-seleção, e as linhas'
     + ' do item 10 que já citam o exercício. E a soma por bloco: o que o filtro esconde hoje'
-    + ' volta quando o exercício entra na lista acordada, e é isso que a janela mostra.');
+    + ' volta quando o exercício entra na lista acordada, e é isso que a janela mostra. E o'
+    + ' repertório do plano acompanha a lista da Turma: o exercício incluído no conteúdo entra no'
+    + ' plano (é de lá que o diálogo que cria a aula o oferece), sem tocar no parâmetro nem na'
+    + ' ordem dos que já estavam.');
   process.exit(falhas === 0 ? 0 : 1);
 })();

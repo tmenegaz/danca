@@ -329,6 +329,44 @@ function efeitoNaSoma({ respostas, termo, repertorio }) {
 }
 
 /**
+ * O REPERTÓRIO DO PLANO ACOMPANHA A TURMA — a metade que faltava da sincronização (22/11/2026).
+ *
+ * O DEFEITO, dito por ela: «eu quero incluir fondue aqui como exercício também, eu preciso ir lá nos
+ * bastidores e fazer essa inclusão. E aí eu volto aqui e ele tem que estar disponível aqui para
+ * poder então eu incluir esse exercício.» Medido antes desta correção: acrescentar um exercício ao
+ * conteúdo da Turma **sem lhe declarar objectivos** não mudava nada no plano — o `repertorio` do
+ * plano é uma CÓPIA semeada pela curadoria, e só `aplicarDeclaracoes` a fazia crescer, e só para os
+ * termos DECLARADOS. O exercício novo nunca aparecia no plano, logo nunca aparecia no diálogo que
+ * cria a aula — e a aula não podia trabalhá-lo. O caminho existia (a janela da declaração), mas
+ * exigia uma decisão que a pessoa podia não estar a tomar naquele momento: incluir o exercício no
+ * conteúdo da turma é um gesto, dizer em que objectivos ele entra é outro.
+ *
+ * A REGRA É A MESMA DA PODA, ao contrário: `podarForaDoRepertorio` já tira do plano o que a Turma
+ * deixou de ensinar, em TODA a derivação e não só no gesto que mexeu na lista. A inclusão tem de
+ * andar pelo mesmo caminho, ou o plano fica a dizer um repertório que não é o da Turma.
+ *
+ * O QUE NÃO SE TOCA: a ordem. Os termos que já estavam ficam onde estavam, e os novos entram no fim
+ * — reordenar o repertório do plano mudaria a lista impressa no documento por causa de uma inclusão
+ * que a ela não diz respeito. E o `aula-1-parametro` NÃO se mexe: marcar um exercício num objectivo
+ * continua a ser a declaração, e essa não se inventa.
+ */
+function sincronizarRepertorio({ respostas, repertorio }) {
+  const saida = respostas || {};
+  const acordado = termosLimpios(repertorio);
+  /* O VAZIO NÃO JULGA — a convenção de sempre, e a mesma defesa da poda: uma Turma sem `repertorio`
+   * declarado é de antes do campo existir, e sincronizar contra uma lista vazia apagaria o plano. */
+  if (!acordado.length) return { respostas: saida, acrescentados: [] };
+
+  const doPlano = termosLimpios(valorDaResposta(saida, 'repertorio'));
+  const acrescentados = [];
+  for (const t of acordado) {
+    if (doPlano.indexOf(t) === -1) { doPlano.push(t); acrescentados.push(t); }
+  }
+  if (acrescentados.length) comValor(saida, 'repertorio', doPlano);
+  return { respostas: saida, acrescentados };
+}
+
+/**
  * A DECLARAÇÃO APLICADA AO PLANO — o elo novo nasce com o exercício no parâmetro.
  *
  * Chamada pela derivação da cadeia, com as `respostas` do elo anterior já copiadas. Muda o objecto
@@ -468,6 +506,7 @@ module.exports = {
   estadoDaDeclaracao,
   impactoDaInclusao,
   aplicarDeclaracoes,
+  sincronizarRepertorio,
   podarForaDoRepertorio,
   somaPorBloco,
   efeitoNaSoma,
