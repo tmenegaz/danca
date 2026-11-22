@@ -18,7 +18,7 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 | Item | Definição |
 |:--|:--|
 | **Objetivo específico** | reconhecer o apoio e alinhar o eixo vertical |
-| **Parâmetro de medição** | **1** reconhecer o apoio e alinhar o eixo vertical — observa: Battement tendu · Plié · Relevé · Battement jeté · **2** transferir o peso entre os pés sem perder o alinhamento — observa: Plié · Relevé · Battement jeté · **3** sustentar a transferência com musicalidade e controle do movimento — observa: Battement tendu · Relevé · Battement jeté |
+| **Parâmetro de medição** | **1** reconhecer o apoio e alinhar o eixo vertical — observa: Battement tendu · Plié · Relevé · Battement jeté |
 | **Duração** | 120 minutos (Pré-requisito 4) |
 | **Volume ativo** | 175 tempos (faixa 150–200 da duração de 120 min — Regra 9, etapa 1) |
 
@@ -50,10 +50,10 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 
 ## 5. Guia de observação do professor
 
-> Os itens vêm do **Itens de cada dimensão** no Plano de Observação, e o corpo vem do que a
-> turma mostra nos aspectos que a linha de base escolheu. O ponto de partida de cada aluna
-> fica no Plano de Observação, que é onde se declara — e é ele que a Captura pede, aluna a
-> aluna: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não observei.
+> Os itens vêm do **Itens de cada dimensão** no Plano de Observação, e o que se observa vem
+> do que a turma mostra nos aspectos que a linha de base escolheu. O ponto de partida de cada
+> aluna fica no Plano de Observação — é ele que a Captura pede, aluna a aluna —, e o que se
+> anota é o **nível da régua desta turma**: Satisfatório · Razoável · Em desenvovimento · Não se aplica.
 
 ### Corpo
 

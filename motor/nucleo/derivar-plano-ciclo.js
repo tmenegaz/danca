@@ -129,16 +129,36 @@ function tabelaDeMarcos(valor, objetivos) {
  * é a lista ACORDADA do envelope; sem ela, não se julga nada (apagar o que não se pode conferir
  * seria a limpeza a destruir o dado).
  */
-function parametroEmLinhas(valor, marcos, repertorio) {
+function parametroEmLinhas(valor, marcos, repertorio, marcosDaAulaEscolhida) {
   const objetos = Array.isArray(valor)
     ? valor.filter((l) => l && typeof l === 'object' && !Array.isArray(l))
     : [];
   if (!objetos.length) {
     return sequenciaDoPlano.termosDoRepertorio(emLista(valor).filter(Boolean), repertorio);
   }
+  /* CADA AULA MOSTRA O SEU MARCO, E SÓ O SEU (22/11/2026).
+   *
+   * A matriz do «Parâmetro de medição» é do CICLO — uma linha por objetivo, e o formulário grava-a
+   * inteira na chave da aula. O documento da Aula 01 lia-a inteira, e imprimia os três marcos do
+   * ciclo no §1 de uma aula que tem um: palavras dela, «aqui diz respeito apenas à aula um, não
+   * diz respeito às outras aulas. Então cada aula tem o seu objetivo específico, ou seja, cada
+   * aula com o seu próprio marco».
+   *
+   * O ESCOPO É DADO, NÃO PRESUMIDO. `marcosDaAulaEscolhida` são os objetivos que o plano declara
+   * para esta aula (`aula-de-cada-objetivo`, com a reserva 1:1 da Regra 2). Sem ele — a chamada
+   * antiga, de três argumentos — nada se filtra, e é o que a bancada do exercício novo mede: ela
+   * quer ver a matriz do ciclo. Filtrar por ausência seria inventar um escopo.
+   *
+   * E SE NADA SOBRAR, o resultado é vazio, não a matriz toda: uma aula cujo marco não está na
+   * matriz fica com a lacuna DECLARADA (quem chama nomeia a chave), em vez de receber de empréstimo
+   * o parâmetro de outra aula. */
+  const escopo = Array.isArray(marcosDaAulaEscolhida) && marcosDaAulaEscolhida.length
+    ? new Set(marcosDaAulaEscolhida.map((n) => Number(n)).filter(Number.isFinite))
+    : null;
   const linhas = [];
   for (const linha of objetos) {
     const n = Number(linha.marco);
+    if (escopo && !escopo.has(n)) continue;
     const texto = Number.isFinite(n) ? (marcos[n - 1] || '') : '';
     const itens = sequenciaDoPlano.termosDoRepertorio(
       (Array.isArray(linha.marcados) ? linha.marcados : [])
@@ -318,6 +338,28 @@ function objetivoDaAula(envelope, nn) {
   const chave = 'aula-' + (numero || 1) + '-objetivo';
   const declarado = String(respostaDo(envelope, chave) || '').trim();
   return declarado || null;
+}
+
+/**
+ * OS MARCOS DE UMA AULA (22/11/2026) — quais objetivos específicos esta aula trabalha.
+ *
+ * A RELAÇÃO É DECLARADA, e a reserva é a Regra 2. O plano guarda `aula-de-cada-objetivo`
+ * (`{objetivo, aulas}`), porque um objetivo pode atravessar duas aulas e duas aulas podem
+ * partilhar um objetivo. Sem esse mapa — envelopes anteriores —, vale o padrão 1:1: **o marco N é
+ * o objetivo da Aula N**.
+ *
+ * É o que o §1 da aula usa para não imprimir o parâmetro das outras aulas. Devolve uma lista de
+ * números porque é isso que o escopo do parâmetro precisa; a lista vazia quando não há nem mapa
+ * nem posição — e aí quem chama declara a lacuna.
+ */
+function marcosDaAula(envelope, nn) {
+  const numero = Number(String(nn == null ? '' : nn).replace(/^(?:aula-?)?0*/, '') || 0);
+  if (!(numero >= 1)) return [];
+  const daAula = objetivosDoEnvelope(envelope)
+    .filter((o) => (o.aulas || []).some((a) => Number(String(a).replace(/\D/g, '')) === numero))
+    .map((o) => Number(o.n))
+    .filter(Number.isFinite);
+  return daAula.length ? daAula : [numero];
 }
 
 /* A ORIGEM DECLARADA em texto — a lista marcada vira a frase do documento. Mais de uma
@@ -1219,6 +1261,7 @@ module.exports = {
   BLOCOS_DA_AULA,
   provenienciaEmTexto,
   niveisDaRubrica,
+  marcosDaAula,
   linhasDaRubrica,
   sequenciaEmLinhas,
   tabelaDeMarcos,

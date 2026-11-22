@@ -8,10 +8,10 @@ title: "Captura em aula — Aula 02 — para impressão"
 subtitle: "Folha de marcação para uso durante a aula"
 ---
 
-> **Durante a aula, marque; depois, escreva** — as marcas são âncoras de memória, não
-> classificação. Os CRITÉRIOS medem-se pela **régua da turma** (anote o nível —
-> ex.: satisfatório · razoável · em desenvolvimento · não se aplica); o que só se OBSERVA
-> (a linha de base) marca-se com: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não observei.
+> **Durante a aula, marque; depois, escreva** — o que se anota é o NÍVEL da **régua
+> desta turma**: Satisfatório · Razoável · Em desenvovimento · Não se aplica.
+> O critério que ainda não foi alcançado fica em branco, e em branco também fica o que
+> não se observou: vazio = não observei, e não é o mesmo que o nível mais baixo.
 
 **Data:** `___/___/____` · **Presentes:** ☐ Aluna A ☐ Aluna B · **Início:** `__:__` · **Fim:** `__:__` · **Duração efetiva:** `___ min`
 

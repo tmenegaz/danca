@@ -44,10 +44,10 @@ Sem música declarada na sequência: Barra — Battement tendu · Barra — Batt
 
 ## 5. Guia de observação do professor
 
-> Os itens vêm do **Itens de cada dimensão** no Plano de Observação, e o corpo vem do que a
-> turma mostra nos aspectos que a linha de base escolheu. O ponto de partida de cada aluna
-> fica no Plano de Observação, que é onde se declara — e é ele que a Captura pede, aluna a
-> aluna: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não observei.
+> Os itens vêm do **Itens de cada dimensão** no Plano de Observação, e o que se observa vem
+> do que a turma mostra nos aspectos que a linha de base escolheu. O ponto de partida de cada
+> aluna fica no Plano de Observação — é ele que a Captura pede, aluna a aluna —, e o que se
+> anota é o **nível da régua desta turma**: Satisfatório · Razoável · Em desenvovimento · Não se aplica.
 
 ### Corpo
 

@@ -1860,3 +1860,8 @@ experimentos/modelo-formulario/*
 # duas linhas e duas colunas — a `.secao` é uma grade de duas colunas. A prova mede a geometria da
 # secção em quatro larguras, e o controle negativo traz o defeito medido.
 !experimentos/provar-o-painel-empilhado.js
+
+# A PROVA DE QUE A AULA DIZ SÓ O QUE É DELA (22/11/2026): cada aula imprime o marco que o plano lhe
+# dá — e não a matriz inteira do ciclo —, e o guia mede pela régua da turma em vez das cinco marcas
+# que o produto abandonou. Tem controle negativo contra o código de antes.
+!experimentos/provar-a-aula-diz-so-o-que-e-dela.js

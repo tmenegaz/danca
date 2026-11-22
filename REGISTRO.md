@@ -58439,3 +58439,67 @@ coluna, os quatro blocos com a mesma borda esquerda e a largura da secção, top
 da leitura (identidade → salas → elencos → modalidades). Com o **controle negativo**
 `--contra=a61d4ddb`, as mesmas asserções reprovam **8 de 20** e mostram o defeito: bordas
 `[288,748,288,748]`, topos `[471,471,669,669]`.
+
+## 22/11/2026 — A aula diz só o que é dela: o §1 imprime o seu marco, o §5 mede pela régua da turma
+
+**O que motivou.** Ela abriu a Aula 01 da `breu` e viu duas coisas que não são daquela aula:
+
+1. «na linha que fala parâmetro de medição, tá aparecendo aqui todos os objetivos específicos, os
+   marcos estão todos e aqui tem que ter apenas o marco que diz respeito a essa aula, que neste caso
+   é o marco um […] os outros marcos que estão aqui, o dois e o três, não deveriam estar aqui […]
+   cada aula tem o seu objetivo específico, ou seja, cada aula com o seu próprio marco.»
+2. «no item cinco, guia de observação do professor […] tá usando uma matriz de medição que não
+   existe mais. Aconteceu, parcial, não aconteceu, não vi. Isso aqui é texto escrito duro, não é
+   criado dinamicamente […] quando o professor cria a matriz lá em bastidores, ele tem a própria
+   rubrica, e a matriz de rubrica dele é outra.»
+
+**As duas têm a mesma forma: o documento da aula a dizer o que não é dela.** E as causas são
+diferentes, o que é o que faz valer a pena escrevê-las:
+
+- **O §1 herdava a matriz do CICLO.** O «Parâmetro de medição» é um quadro objetivo × exercício, e
+  o formulário grava-o inteiro na chave da aula (`aula-1-parametro` traz os marcos **1, 2 e 3**).
+  O derivador lia-o inteiro e imprimia os três no §1 de uma aula que tem um. Um documento que
+  imprime o objetivo da Aula 03 na Aula 01 é o mesmo defeito do `estrutura-de-cada-aula` a dizer
+  quais blocos a aula tem: o dado de um lugar a responder por outro.
+- **O §5 trazia a régua do CÓDIGO.** A nota dizia «✓ aconteceu · ~ parcial · X não aconteceu · ? não
+  vi», texto fixo — a matriz que o produto abandonou quando a folha de captura passou a medir cada
+  critério pela **régua da turma** (entrada de 22/11/2026, «uma régua só»). A aula ficou a ensinar
+  uma escala que já não existe, e a legenda da folha de captura dizia os níveis «por exemplo»
+  (`satisfatório · razoável · …`) escritos à mão.
+
+**O que foi decidido.**
+- **O escopo do §1 é DADO, não presumido.** `marcosDaAula(plano, nn)` lê `aula-de-cada-objetivo`
+  (`{objetivo, aulas}`) — porque um objetivo pode atravessar duas aulas — e cai na Regra 2 (marco N
+  → Aula N) quando o plano não declara o mapa. `parametroEmLinhas` ganha um quarto argumento
+  opcional com esse escopo: **sem ele nada se filtra** (a bancada do exercício novo quer ver a
+  matriz do ciclo), **com ele filtra** — e quando nada sobra, o resultado é vazio, não a matriz
+  toda: a aula declara a lacuna em vez de receber de empréstimo o parâmetro de outra.
+- **A régua é a mesma do plano de ensino, e a mesma função a lê.** O §5 passa a dizer «o que se
+  anota é o **nível da régua desta turma**: <os níveis>», com `niveisDaRubrica(resp(plano,
+  'rubrica'))` — que é exactamente o que a secção «Régua da rubrica» do plano imprime. Uma régua,
+  um leitor: a aula não abre uma segunda lista de níveis nem uma segunda regra para quando eles
+  faltam (a falta já está dita no plano).
+- **A legenda da folha de captura mudou com ela**, pela mesma razão: dizia os níveis «por exemplo»
+  e mandava marcar o corpo pelas cinco marcas, quando o corpo já se mede pela régua como todo o
+  resto (`declaracaoDeCaptura`, `TIPO_DO_CRITERIO`). Passa a dizer os níveis declarados e a
+  distinguir «não alcançado» de «não observei» com a única escala que existe.
+
+**Com o quê.** `motor/nucleo/derivar-plano-ciclo.js` (`marcosDaAula`, e o escopo em
+`parametroEmLinhas`), `motor/nucleo/derivar-ciclo.js` (o §1 e as duas notas do §5 e da captura), as
+fontes derivadas e o pacote da `breu-rosa` regerados, a âncora recalculada,
+`experimentos/provar-a-aula-diz-so-o-que-e-dela.js` (**novo**), `experimentos/provar-aula-prosa.js`
+(a asserção que fixava o texto morto passa a medir a régua), `.gitignore`, `ESTADO-ATUAL.md`.
+
+**MEDIDO.** `provar-a-aula-diz-so-o-que-e-dela` **25/25**. O §1 da Aula 01 passou de «**1**… · **2**…
+· **3**…» a «**1** reconhecer o apoio e alinhar o eixo vertical — observa: Battement tendu · Plié ·
+Relevé · Battement jeté»; o da Aula 02 já estava certo (o formulário grava-a certa para a aula 2) e
+recebeu só a nota nova; o §5 das duas e as duas folhas de captura passam a nomear «Satisfatório ·
+Razoável · Em desenvovimento · Não se aplica» — os níveis que **a turma declarou**, com o erro de
+grafia dela preservado (o dado não se corrige por baixo). Com o **controle negativo**
+`--contra=070415c2`, as mesmas asserções reprovam **16 de 25** e mostram o defeito: `["1","2","3"]`
+no §1, e as marcas mortas nos quatro documentos. `check-pacote` 0 erros, `hash-ciclo --check`
+íntegro, `check-identidade` 0 problemas, `provar-cadeia-automatica` 135/135,
+`provar-o-exercicio-novo` 55/55, `provar-estante-do-po` 33/33, `provar-uma-regua-so` 17/17.
+**`provar-aula-prosa` cai** numa asserção anterior (`resposta ao pulso na marcação` não existe no
+`.md` deste ciclo, e não existia antes desta mudança) — verificado com o `.md` de `HEAD`: falha no
+mesmo sítio.

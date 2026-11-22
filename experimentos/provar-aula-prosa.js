@@ -70,9 +70,22 @@ for (const criterio of [
 }
 assert(!/alinhamento do pé de apoio; eixo do corpo/.test(gerada),
   'os critérios não podem voltar a partilhar uma célula');
-assert(gerada.replace(/\s+/g, ' ')
-  .includes('✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não observei'),
-  'a forma de registro deve corresponder à legenda da Captura para impressão');
+/* A FORMA DE REGISTRO MUDOU A 22/11/2026, e a prova mudou com ela. Exigia-se aqui a frase
+ * «✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não observei» — a matriz que o
+ * produto ABANDONOU: a folha de captura passou a medir cada critério pela régua da turma, e a
+ * nota do guia dizia uma escala que já não existe («texto escrito duro, não é criado
+ * dinamicamente», nas palavras dela). O que se exige agora é a régua DECLARADA no plano — a mesma
+ * frase que a Captura imprime —, e a ausência da matriz morta. */
+{
+  const { niveisDaRubrica } = require('../motor/nucleo/derivar-plano-ciclo.js');
+  const niveis = niveisDaRubrica(
+    require('../motor/nucleo/derivar-po.js')
+      .respostaDo(JSON.parse(fs.readFileSync(path.join(raiz,
+        'escola/breu/envelopes/plano-20261122-0849.json'), 'utf8')), 'rubrica'));
+  assert(gerada.replace(/\s+/g, ' ').includes('nível da régua desta turma: ' + niveis.join(' · ')),
+    'a forma de registro deve ser a régua da turma, como a Captura para impressão a imprime');
+  assert(!/✓ aconteceu/.test(gerada), 'a matriz de cinco marcas não pode voltar ao documento');
+}
 
 /* A AULA É REPRODUZÍVEL — a prova que faltava (01/11/2026).
  *

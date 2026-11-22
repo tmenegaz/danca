@@ -26,7 +26,7 @@ const { respostaDo, emLista, itensDaDimensao, itensComObjetivos, turmaDoDocument
 // O MOTOR DO REGISTRO DE NOTAÇÃO — o alfabeto é dado, e é ele que compõe a grade (20/10/2026).
 const moduloNotacao = require('./notacao.js');
 const sequenciaDoPlano = require('./sequencia.js');
-const { marcosEmTexto, parametroEmLinhas, blocosDaEstrutura, objetivoDaAula1, objetivoDaAula, BLOCOS_DA_AULA, sequenciaEmLinhas, linhasDaTabela } = require('./derivar-plano-ciclo.js');
+const { marcosEmTexto, parametroEmLinhas, blocosDaEstrutura, objetivoDaAula1, objetivoDaAula, marcosDaAula, niveisDaRubrica, BLOCOS_DA_AULA, sequenciaEmLinhas, linhasDaTabela } = require('./derivar-plano-ciclo.js');
 /* O NÚMERO DA AULA E AS CHAVES DELA (21/11/2026) — a mesma regra que tranca a aula dada. */
 const { numeroDaAula, aulaSeguinte, chaveDaAula } = require('./aulas-do-ciclo.js');
 
@@ -677,8 +677,13 @@ function derivarAula({ nn = '01', plano, po, contexto, calibracao, linhaDeBase, 
    * ela, a matriz do parâmetro publicava «observa: … · Port de bras» numa aula cuja curadoria
    * tem dois verbetes (ver `motor/nucleo/sequencia.js`). */
   const chaveDoParametro = chaveDaAula(numero, 'parametro');
+  /* O ESCOPO DO §1 É ESTA AULA (22/11/2026). A matriz do parâmetro é do CICLO — uma linha por
+   * objetivo —, e o documento lia-a inteira: a Aula 01 imprimia os marcos 1, 2 e 3 no seu §1,
+   * quando tem um. O escopo vem do que o plano declara para esta aula (`aula-de-cada-objetivo`,
+   * com a reserva 1:1 da Regra 2), e é o MESMO que decide o objetivo da linha de cima: uma aula,
+   * um marco. */
   const parametroLinhas = parametroEmLinhas(resp(plano, chaveDoParametro),
-    marcosEmTexto(resp(plano, 'marcos-por-aula')), resp(plano, 'repertorio'));
+    marcosEmTexto(resp(plano, 'marcos-por-aula')), resp(plano, 'repertorio'), marcosDaAula(plano, numero));
   /*
    * UMA LINHA, NÃO VÁRIAS (20/10/2026). O parâmetro vira uma CÉLULA de tabela, e uma célula de
    * tabela Markdown não atravessa linhas: escrita com `\n`, a linha partia-se em três, o parser
@@ -697,7 +702,9 @@ function derivarAula({ nn = '01', plano, po, contexto, calibracao, linhaDeBase, 
   const parametro = parametroLinhas.length
     ? parametroLinhas.join(' · ')
     : '[Preencher: parâmetro de medição da Aula ' + numero + ' — o plano não respondeu «'
-      + chaveDoParametro + '»]';
+      + chaveDoParametro + '» para o ' + (marcosDaAula(plano, numero).length === 1
+        ? 'marco ' + marcosDaAula(plano, numero)[0]
+        : 'nenhum marco') + ' desta aula]';
   /* OS BLOCOS DA AULA VÊM DA ESTRUTURA, NÃO DOS OBJETIVOS (26/10/2026).
    *
    * Aqui lia-se `estrutura-de-cada-aula` — a relação objetivo × bloco —, e os blocos da aula
@@ -1085,11 +1092,27 @@ function derivarAula({ nn = '01', plano, po, contexto, calibracao, linhaDeBase, 
      * o passo 4 da linha de base já tinham resolvido. Opcional, como no `derivarPlano` — sem ela,
      * o eixo declara a lacuna em vez de inventar. */
     const eixos = eixosDaObservacao(dims, plano, po, linhaDeBase);
+    /* A NOTA DO GUIA DIZIA UMA RÉGUA QUE NÃO EXISTE (22/11/2026).
+     *
+     * Ela era texto FIXO — «aluna: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio =
+     * não observei» —, e essa é a matriz que o produto abandonou: a folha de captura deixou de ter
+     * as cinco marcas e passou a medir cada critério pela RÉGUA DA TURMA, a que o professor declara
+     * nos bastidores e adopta no plano. Palavras dela: «tá usando uma matriz de medição que não
+     * existe mais […] isso aqui é texto escrito duro, não é criado dinamicamente […] quando o
+     * professor cria a matriz lá em bastidores, ele tem a própria rubrica, e a matriz de rubrica
+     * dele é outra.»
+     *
+     * O QUE A NOTA PASSA A DIZER: o que se anota é o NÍVEL, e os níveis são os que a turma
+     * declarou — lidos do plano (`rubrica`), pela MESMA função que o plano de ensino usa
+     * (`niveisDaRubrica`, que traz o padrão do produto quando o plano não declara nenhum). Uma
+     * régua, um leitor: a aula não abre uma segunda lista de níveis nem uma segunda regra para
+     * quando eles faltam — a falta já está dita na secção «Régua da rubrica» do plano. */
+    const reguaDaTurma = niveisDaRubrica(resp(plano, 'rubrica'));
     const corpo = [
-      '> Os itens vêm do **Itens de cada dimensão** no Plano de Observação, e o corpo vem do que a',
-      '> turma mostra nos aspectos que a linha de base escolheu. O ponto de partida de cada aluna',
-      '> fica no Plano de Observação, que é onde se declara — e é ele que a Captura pede, aluna a',
-      '> aluna: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não observei.',
+      '> Os itens vêm do **Itens de cada dimensão** no Plano de Observação, e o que se observa vem',
+      '> do que a turma mostra nos aspectos que a linha de base escolheu. O ponto de partida de cada',
+      '> aluna fica no Plano de Observação — é ele que a Captura pede, aluna a aluna —, e o que se',
+      '> anota é o **nível da régua desta turma**: ' + reguaDaTurma.join(' · ') + '.',
       '',
     ];
     /* AS TRÊS FRENTES SÃO TRÊS TABELAS (04/11/2026).
@@ -2409,10 +2432,21 @@ function derivarCaptura({ nn = '01', po, plano, contexto, linhaDeBase, anamneses
   saida.push('subtitle: "Folha de marcação para uso durante a aula"');
   saida.push('---');
   saida.push('');
-  saida.push('> **Durante a aula, marque; depois, escreva** — as marcas são âncoras de memória, não');
-  saida.push('> classificação. Os CRITÉRIOS medem-se pela **régua da turma** (anote o nível —');
-  saida.push('> ex.: satisfatório · razoável · em desenvolvimento · não se aplica); o que só se OBSERVA');
-  saida.push('> (a linha de base) marca-se com: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não observei.');
+  /* A LEGENDA DA FOLHA TINHA A RÉGUA MORTA (22/11/2026) — a MESMA da nota do guia.
+   *
+   * Ela dizia os níveis «por exemplo» (`satisfatório · razoável · em desenvolvimento · não se
+   * aplica`), escritos à mão, e mandava marcar «o que só se OBSERVA» com as cinco marcas. Duas
+   * coisas erradas na mesma linha: os níveis não eram os da turma (eram um exemplo que ficou), e
+   * as cinco marcas são a matriz que o produto abandonou — o corpo da linha de base passou a
+   * medir-se pela régua, como todo o resto (`declaracaoDeCaptura`, `TIPO_DO_CRITERIO`).
+   *
+   * A folha passa a dizer os níveis DECLARADOS, ou a lacuna que os nomeia. E é a mesma frase para
+   * os critérios e para a linha de base, porque passou a haver uma régua só. */
+  const reguaDaFolha = niveisDaRubrica(resp(plano, 'rubrica'));
+  saida.push('> **Durante a aula, marque; depois, escreva** — o que se anota é o NÍVEL da **régua');
+  saida.push('> desta turma**: ' + reguaDaFolha.join(' · ') + '.');
+  saida.push('> O critério que ainda não foi alcançado fica em branco, e em branco também fica o que');
+  saida.push('> não se observou: vazio = não observei, e não é o mesmo que o nível mais baixo.');
   saida.push('');
 
   const presentes = sujeitos.length ? sujeitos.join(' ☐ ') : '☐ [Preencher: alunas]';
