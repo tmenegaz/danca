@@ -6018,7 +6018,9 @@ function lateralDaProducao(opcoes) {
  * das Aulas dadas lê para declarar o prazo, e é a única que sabe o que foi lançado sem decifrar o
  * `-dados.json`. Sem `ASSETS` (as bancadas), o número não se inventa: a sala diz «sem leitura».
  */
+let DIAGNOSTICO = null;
 async function painelDoEstudio({ env, escola, aluns, profs, dono, trms, linhas, matriculasDaEscola, dadosDaEscola }) {
+  DIAGNOSTICO = { prefixo: null, env: { assets: !!(env && env.ASSETS), partilhado: env && env.PACOTE_PARTILHADO, slug: env && env.ESCOLA_SLUG } };
   const norm = (v) => String(v == null ? '' : v).trim();
   const ativas = (Array.isArray(aluns) ? aluns : []).filter((a) => a && !a.desligadaEm);
   const apelidosAtivos = new Set(ativas.map((a) => norm(a.apelido).toLowerCase()).filter(Boolean));
@@ -6054,14 +6056,14 @@ async function painelDoEstudio({ env, escola, aluns, profs, dono, trms, linhas, 
   const prefixo = prefixoDaArvore(env);
   const lerCiclosDoPacote = async (variante) => {
     if (!variante || !env || !env.ASSETS || typeof env.ASSETS.fetch !== 'function') return null;
+    const alvo = 'https://assets.local' + prefixo + '/' + encodeURIComponent(variante) + '/ciclos.json';
     try {
-      const r = await env.ASSETS.fetch('https://assets.local' + prefixo + '/'
-        + encodeURIComponent(variante) + '/ciclos.json');
-      if (!r || !r.ok) return null;
+      const r = await env.ASSETS.fetch(alvo);
+      if (!r || !r.ok) { DIAGNOSTICO = { alvo, status: r && r.status, motivo: 'nao-ok' }; return null; }
       const d = await r.json();
       const c = d && Array.isArray(d.ciclos) ? d.ciclos[0] : null;
       return c && Array.isArray(c.aulas) ? c : null;
-    } catch (erro) { return null; }
+    } catch (erro) { DIAGNOSTICO = { alvo, status: 0, motivo: String(erro && erro.message || erro) }; return null; }
   };
 
   const salas = [];
@@ -6212,7 +6214,7 @@ function painelInicial(p) {
           + ' é o número certo, e não uma falha.</p>';
       }
     }
-    return '<div class="sala-do-painel">' +
+    return '<div class="sala-do-painel" data-leitura="' + esc(JSON.stringify(DIAGNOSTICO)) + '">' +
       '<p class="painel-linha"><strong>' + esc(s.nome) + '</strong>' +
       (s.modalidade ? ' <span class="selo livre">' + esc(s.modalidade) + '</span>' : '') + '</p>' +
       (ritmo.length ? '<p class="sub">' + esc(ritmo.join(' · ')) + '</p>' : '') +
