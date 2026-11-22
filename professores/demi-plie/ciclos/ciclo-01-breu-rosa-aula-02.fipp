@@ -10,11 +10,11 @@ professor: demi-plie
 ciclo: 01
 variante: breu-rosa
 aula: 02
-hash_conteudo: 2ce89281c3d08cf815941ad39892c89a1ca45f22bbde79a85c31e52ee1341d5b
+hash_conteudo: dfaceef511a68fde1d3ff9a331727fd7b5fc98040ebae7bc95d37b2a44158524
 parentHash: 
-hash: ef9bca8051cd9e7a885b363a8ed9399c6d48f0ef301c3fc78a1eee821185420b
+hash: 1f25297029d92c136b470ae5d76e3b93c4087e325a652685fa5becd53aed7ae7
 algoritmo: SHA-256
-ancorado_em: 2026-11-21
+ancorado_em: 2026-11-22
 cobertura:
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-02.md
   - professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-02.md

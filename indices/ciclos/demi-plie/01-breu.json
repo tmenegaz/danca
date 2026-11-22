@@ -1,7 +1,7 @@
 {
   "ancora": {
     "algoritmo": "SHA-256",
-    "ancorado_em": "2026-11-21",
+    "ancorado_em": "2026-11-22",
     "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-rosa.fipp",
     "cobertura": [
       "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
@@ -18,8 +18,8 @@
       "professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
       "professores/demi-plie/ciclos/ciclo-01.conf"
     ],
-    "hash": "a644780d1d20950580055f3be2f476e68f4810efb2f3cbd47d78d099f107115b",
-    "hash_conteudo": "9ee2522b461027432765befcdc76076a7d2b2b9d44f3c62ce7bbeb76fdc2157f",
+    "hash": "9d9135f6f244acc649e4344a106357a36531db2c65904f98c67a6f80ccb48d7a",
+    "hash_conteudo": "858cd558c9c54af948d65a74819ae0ca0d9cbd15e87f68fb1689c2973d378d3b",
     "id": "ciclo-01-breu-rosa",
     "lida": true,
     "parent_hash": ""
@@ -121,7 +121,7 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "dddf46c"
+    "commit": "88893d5"
   },
   "gerado_em": "2026-11-22T11:49",
   "id": "ciclo:demi-plie/01/breu",
