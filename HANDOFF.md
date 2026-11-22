@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T14:01:31-0300`
-Commit atual: `ba571849` — fix(estrutura): o painel pede o pacote através do prefixo da árvore
+Gerado em: `2026-11-22T14:17:39-0300`
+Commit atual: `2c336cb0` — fix(estrutura): o id da turma tem carimbo, a pasta dela não
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,10 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+2c336cb0 fix(estrutura): o id da turma tem carimbo, a pasta dela não
+ef7d25ee chore(estrutura): diagnóstico temporário da leitura do pacote no painel
+831f6f6f fix(estrutura): a regra do prefixo muda de casa, e o painel passa a lê-la
+e0b3aab6 docs(estrutura): a fotografia regista o caminho do pacote e o `lancada` da breu
 ba571849 fix(estrutura): o painel pede o pacote através do prefixo da árvore
 b189d776 docs(estrutura): a fotografia do painel, da coluna e do KV
 d1127afd fix(estrutura): um elo que nunca olhou não é um elo limpo
@@ -98,10 +102,6 @@ feac5b03 fix(estrutura): o nome da turma não é do sistema — e a metade do KV
 144115fc fix(experimentos): três provas que mediam o mundo de antes passam a medir o de hoje
 255100db feat(estrutura): o expurgo ganha conferidor, e o fluxo da Aula 02 fica escrito
 35d1c7fa feat(ciclo-01): a listagem da anamnese diz quem a fez e quando
-37a511cd fix(tools): o `regerar-derivados` não apaga o que não consegue reproduzir
-e83ad10e chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
-a2bb9231 chore(estrutura): fechar os derivados — âncoras e índices
-4f16c4c5 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
 ```
 
 ## Por professor
@@ -213,8 +213,27 @@ de caminho, um sítio só; uma segunda cópia envelhece a primeira.
 li» de «li e não havia». De caminho, a data do elenco («desde 2026-11-22») passou a `dd/mm/aaaa`,
 como as da sala.
 
-**MEDIDO.** `provar-o-painel-do-estudio` **34/34** (duas asserções novas: o caminho com prefixo, e a
-leitura que ele permite). Ao vivo, a mesma carga passou a dizer o que se sabe: o período da sala
+**Foram precisas três tentativas, e cada uma mediu uma coisa diferente.**
+
+1. O prefixo da árvore (`prefixoDaArvore`). Não resolveu — e a carga seguinte, com a data do elenco
+   já corrigida, provou que o código novo **estava** publicado: o que falhava era outra coisa.
+2. A regra do prefixo mudou de casa, para `motor/nucleo/arvore-de-assets.js`. Havia uma hipótese
+   boa: `producao.js` requer `bastidores.js` na primeira linha, e o `require('./producao.js')` de
+   dentro dos Bastidores fechava o ciclo — em Node resolve-se (a chamada é tardia), num bundle
+   poderia não resolver. A mudança de casa é correta de qualquer maneira (`producao.js` reexporta-a;
+   verificado no bundle: **uma** definição, **sete** usos) — mas **não era a causa**.
+3. O **URL pedido**, lido no `data-leitura` do cartão da sala, com um commit de diagnóstico que saiu
+   no seguinte. A resposta: `https://assets.local/breu/rosa-2026-11-20-11/ciclos.json` → **404**.
+
+**A causa verdadeira: o id da turma não é a pasta dela.** O id ganha um **carimbo a cada versão** —
+`rosa-2026-11-20-11`, com data **e contador** — e o código tirava só o carimbo de data, de modo que
+o `-11` ficava. A pasta publicada é a da **turma**: a variante (`breu-rosa`) sem o prefixo da escola
+→ `rosa`. E essa regra já estava escrita, em `motor/servidor/aulas-dadas.js`: «a pasta que a
+publicação dá à turma é o que vem DEPOIS do nome da escola». Faltava segui-la, e a prova passou a
+usar o **id real** da `breu` (`rosa-2026-11-20-11`).
+
+**MEDIDO.** `provar-o-painel-do-estudio` **36/36** (quatro asserções novas: o caminho com prefixo, a
+leitura que ele permite, e o id carimbado a pedir a pasta dele). Ao vivo, a mesma carga passou a dizer o que se sabe: o período da sala
 começa a **14/12/2026**, e «0 de 15» é o número certo — dito na própria página, para não se ler como
 falha.
 

@@ -3218,6 +3218,11 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      `aula-02.html` existam no pacote — pelo critério do próprio sistema (a chave `aulas['NN']` no
      JSON de dados) **nenhuma aula desta escola foi lançada**, e o `-dados.json` do repositório tem
      `aulas: []`. O painel não interpreta: diz zero onde o registo diz zero, e diz porquê.
+     E o caminho até este número custou três correções medidas ao vivo: o prefixo da árvore de
+     assets, a regra desse prefixo a mudar de casa (`motor/nucleo/arvore-de-assets.js`, para não
+     fechar o ciclo de `require` entre `producao.js` e `bastidores.js`), e a verdadeira causa — o
+     **id da turma tem carimbo** (`rosa-2026-11-20-11`) e a **pasta** dela não (`rosa`). As três
+     ficam no `REGISTRO.md`, com o URL que o diagnóstico leu.
 145. **A COLUNA DOS BASTIDORES ABRE E FECHA A PARTIR DOS 769 — O ACORDEÃO SEGUE O CORTE DA COLUNA.**
      Palavras dela: «quando eu entro, por exemplo, em produção e depois eu vou para aparência […]
      o menu ele fica expandido […] e essa parte que devia acompanhar o tamanho do menu não
@@ -4061,7 +4066,7 @@ recorta» como «a rota está fechada».
 
 | Verificação | Resultado |
 |:--|:--|
-| `node experimentos/provar-o-painel-do-estudio.js` | **34/34** — alunas ativas e não registos (2 de 5), professores com o principal (2), salas vigentes (1 de 23), elenco pela versão de hoje, ocupação pela agenda, «sem leitura» quando não há `ASSETS`, datas em `dd/mm/aaaa`, a peça na folha, e — acrescentado depois da primeira carga ao vivo — o **URL pedido** do pacote (`/breu/rosa/ciclos.json`, com o prefixo da árvore). Controle `--contra=de95569a`: **o painel é o parágrafo antigo, e não há número nenhum** |
+| `node experimentos/provar-o-painel-do-estudio.js` | **36/36** — alunas ativas e não registos (2 de 5), professores com o principal (2), salas vigentes (1 de 23), elenco pela versão de hoje, ocupação pela agenda, «sem leitura» quando não há `ASSETS`, datas em `dd/mm/aaaa`, a peça na folha, e — acrescentado depois da primeira carga ao vivo — o **URL pedido** do pacote (`/breu/rosa/ciclos.json`, com o prefixo da árvore, e a pasta da turma a partir do id **carimbado** `rosa-2026-11-20-11`). Controle `--contra=de95569a`: **o painel é o parágrafo antigo, e não há número nenhum** |
 | `node experimentos/provar-a-coluna-da-vertical.js` | **32/32** — em 1280×800, 1024×640 e 900×700 os grupos nascem fechados, a seta aparece, o último abre a 168px e o último item cabe no ecrã (436px); a 760×900 continua a folha, com tudo à vista. Controle `--contra=de95569a`: a 1024 os quatro grupos nascem **abertos** (`max-height: none`), a seta escondida, e o último item a **671px** num ecrã de 640 — o defeito, medido |
 | `node experimentos/provar-limpeza-do-kv.js` | **14/14** — o elo da `calango` (namespace nulo, `ok: true`) é pendente e o `porque` diz «nunca chegou a olhar»; o elo que falhou mantém o erro; a `retomada` cala; a recriação encerra; fechar grava `namespaceId` e o expurgo de 16/11 não é reescrito. Controle `--contra=de95569a`: o mesmo elo é dado como **«nada pendente»** — 7 falhas |
 | `node experimentos/provar-o-estudio.js` | 33/33 |
