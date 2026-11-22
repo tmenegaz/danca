@@ -46,9 +46,14 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 
 ## 4. Bloco de musicalidade
 
-Nenhum exercício desta aula tem tempos e compasso declarados na sequência — sem eles não há música a consolidar.
+**Os compassos desta aula.** 2/4.
 
-Sem música declarada na sequência: Barra — Battement tendu · Barra — Battement jeté · Centro — Battement tendu · Centro — Battement jeté.
+| Compasso | Exercício | Tempos | Contagem |
+|:--|:--|--:|:--|
+| 2/4 | Battement tendu | 8 | 1–2 |
+| 2/4 | Battement jeté | 8 | 1–2 |
+
+Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e Expressão tem a **mesma** música — ela é do exercício, não do bloco. Os tempos e o compasso vêm da sequência do plano e, quando ela não os declara, do verbete de cada exercício — que é onde a música se declara; a contagem, sempre do verbete.
 
 ## 5. Guia de observação do professor
 

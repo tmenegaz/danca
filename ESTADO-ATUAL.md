@@ -4,8 +4,19 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 22/11/2026 (commit `d562534a`, e a **música no diálogo que cria a aula** a
-> seguir). Ainda neste dia, **o diálogo que cria a aula passou a perguntar a música dela**: criava
+> **Última fotografia:** 22/11/2026 (commit `3673d403`, e a **música a ser a da escola** a seguir).
+> Ainda neste dia, **a música deixou de vir das outras escolas**: o alfabeto guarda o registo do
+> catálogo e o de cada escola, e a lista que alimenta o diálogo e a grelha tirava o dono e juntava
+> tudo — o Battement jeté saía com duas músicas (a da `batata` e a da `breu`) e a tela pedia uma
+> escolha onde a escola tem uma. E a música passou a **subir do verbete** quando a linha da sequência
+> não a copiou: o §4 da Aula 02 dizia «nenhum exercício tem tempos e compasso» e passou a compor.
+>
+> **Fotografia anterior (22/11/2026 — commit `d562534a`).** Ainda neste dia, **a música no diálogo
+> que cria a aula**: ele criava a aula com `Tempos` e `Compasso` vazios, e o §4 do documento saía a
+> dizer «nenhum exercício desta aula tem tempos e compasso declarados na sequência». A música é do
+> **exercício** e o verbete já a declara.
+>
+> **Fotografia anterior (22/11/2026 — commit `d562534a`, a aula que lê a aula anterior).** Ainda neste dia, **o diálogo que cria a aula passou a perguntar a música dela**: criava
 > a aula com `Tempos` e `Compasso` vazios, e o §4 do documento saía a dizer «nenhum exercício desta
 > aula tem tempos e compasso declarados na sequência» — medido na Aula 02 da `rosa`, publicada. A
 > música é do **exercício** e o verbete já a declara: uma música → leitura; várias → escolha, e só
@@ -3365,6 +3376,21 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      (`notacao.js`) e o servidor delega nela. **As aulas já criadas não se reescrevem** — a Aula 02
      da `rosa` continua sem música até que a grelha da sequência a receba, porque o Battement jeté
      declara **duas** e escolher por ela seria decidir no lugar dela. **DECIDIDO** 22/11/2026.
+153. **A MÚSICA É A DA ESCOLA — E SOBE DO VERBETE QUANDO A LINHA NÃO A COPIOU.** Palavras dela: «o
+     Batman GT apareceu opções para eu escolher o tempo e opções para eu escolher o compasso. Está
+     errado isso, porque o Batman GT já tem isso definido. Por que é que não está atualizado do
+     mesmo lugar onde você pegou para os outros exercícios?» O alfabeto guarda o registo do catálogo
+     e o de **cada escola** (`8|2/4@breu`, `4|4/4@batata`), e a lista que alimentava o diálogo e a
+     grelha tirava o dono e juntava as de todas: o Battement jeté saía com duas músicas e a tela
+     pedia uma escolha onde a `breu` tem uma. A lista passa a usar a regra que já existia e que
+     compõe os documentos (`registosDaEscola`): **o registo de outra escola não entra**. E a segunda
+     metade: `compor` levanta a música do verbete quando a linha da sequência não a declara e a
+     escola declara **uma só** — a música é do exercício, e a linha é uma cópia; quando o verbete
+     declara várias, a frase diz isso e a decisão fica com a professora. **DECIDIDO** 22/11/2026.
+     *E uma lição de método*: duas provas (`provar-compasso-limpo`, `provar-derivados-da-sequencia`)
+     estavam a morrer com «Markdown is not defined» porque as bancadas serviam a porta em
+     `/plano-ensino/` e a página pede o `markdown.js` num caminho **absoluto** — uma fixture que não
+     serve o que a página pede não mede nada, e o silêncio dela lia-se como «não há nada a medir».
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
@@ -4181,7 +4207,18 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (22/11/2026 — a música no diálogo que cria a aula)
+### Executado nesta fotografia (22/11/2026 — a música é a da escola)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-a-musica-do-modal.js` | **26/26**: o Battement jeté da `breu` com UMA música (`8|2/4`), preenchida e em leitura, e o `4|4/4` da `batata` ausente do diálogo; duas músicas da MESMA escola continuam a dar escolha, com o compasso a seguir os tempos; a sequência grava `"Tempos": "8", "Compasso": "2/4"` |
+| `node experimentos/provar-compasso-limpo.js` | **verde** (§A–§E) — deixou de morrer na fixture do `markdown.js`; a §E mede a vista da escola: jeté → `8|2/4`, `4|4/4` fora, `Plié` do catálogo, `fondu` da `calango` ausente, e a `batata` a ver o dela |
+| `node experimentos/provar-derivados-da-sequencia.js` | **26/26** (a mesma fixture) |
+| `provar-a-dobra-e-a-aula-anterior` · `provar-a-identidade-da-aula` · `provar-criar-aula` | 31/31 · 26/26 · 53/53 |
+| §4 da Aula 02 do ciclo da `rosa`, no pacote publicado | `| 2/4 | Battement tendu | 8 | 1–2 |` e `| 2/4 | Battement jeté | 8 | 1–2 |` — antes: «nenhum exercício tem tempos e compasso» |
+| `node tools/check-pacote.js` · `hash-ciclo --check` · `check-identidade` | 0 erros · íntegro · **0 problemas** |
+
+### Executado na fotografia anterior (22/11/2026 — a música no diálogo que cria a aula)
 
 | Verificação | Resultado |
 |:--|:--|

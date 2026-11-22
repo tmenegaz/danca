@@ -145,7 +145,7 @@ Plano derivado da metodologia RAD, adaptado ao âmbito da turma; Plano derivado 
 </div>
 </div>
 </div>
-<script type="application/json" id="dados-criar-aula">{"id":"plano-20261122-0849","ciclo":"01","professor":"demi-plie","escola":"breu","turma":"Rosa","marcos":["reconhecer o apoio e alinhar o eixo vertical","transferir o peso entre os pés sem perder o alinhamento","sustentar a transferência com musicalidade e controle do movimento"],"repertorio":["Battement tendu","Plié","Relevé","Battement jeté"],"blocos":["Solo","Barra","Centro","Musicalidade"],"temRepertorio":true,"musicas":{"Battement tendu":["8|2/4"],"Plié":["4|2/4"],"Relevé":["8|2/4"],"Battement jeté":["4|4/4","8|2/4"]}}</script>
+<script type="application/json" id="dados-criar-aula">{"id":"plano-20261122-0849","ciclo":"01","professor":"demi-plie","escola":"breu","turma":"Rosa","marcos":["reconhecer o apoio e alinhar o eixo vertical","transferir o peso entre os pés sem perder o alinhamento","sustentar a transferência com musicalidade e controle do movimento"],"repertorio":["Battement tendu","Plié","Relevé","Battement jeté"],"blocos":["Solo","Barra","Centro","Musicalidade"],"temRepertorio":true,"musicas":{"Battement tendu":["8|2/4"],"Plié":["4|2/4"],"Relevé":["8|2/4"],"Battement jeté":["8|2/4"]}}</script>
 <script>
   var PORTA = "/plano-ensino/";
   function pedir(caminho, init) {

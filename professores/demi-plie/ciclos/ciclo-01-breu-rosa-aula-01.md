@@ -48,7 +48,7 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 | 2/4 | Plié | 4 | 1–2 |
 | 2/4 | Relevé | 8 | 1–2 |
 
-Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e Expressão tem a **mesma** música — ela é do exercício, não do bloco. Os tempos e o compasso vêm da sequência do plano; a contagem, do verbete de cada exercício.
+Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e Expressão tem a **mesma** música — ela é do exercício, não do bloco. Os tempos e o compasso vêm da sequência do plano e, quando ela não os declara, do verbete de cada exercício — que é onde a música se declara; a contagem, sempre do verbete.
 
 ## 5. Guia de observação do professor
 

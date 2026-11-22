@@ -86,22 +86,82 @@ function slug(texto) {
  *
  * A LEITURA É LOCAL — o alfabeto que o bundle já traz (zero KV, zero ida ao GitHub).
  */
-function musicasDosExercicios() {
+function musicasDosExercicios(escola) {
   const mapa = new Map();
   for (const { alfabeto } of alfabetos()) {
     const verbetes = (alfabeto && alfabeto.verbetes) || {};
     for (const nome of Object.keys(verbetes)) {
       if (nome.startsWith('_')) continue;
-      const vistas = [];
-      for (const k of Object.keys(verbetes[nome] || {})) {
-        if (!/^\d+\|/.test(k)) continue;
-        const limpa = musicaDaChave(k);
-        if (limpa && vistas.indexOf(limpa) === -1) vistas.push(limpa);
-      }
+      /* A VISTA É A DA ESCOLA (22/11/2026) — e esta era a metade que faltava.
+       *
+       * O QUE ELA VIU, no diálogo que cria a aula: «o Batman GT apareceu opções para eu escolher
+       * o tempo e opções para eu escolher o compasso. Está errado isso, porque o Batman GT já tem
+       * isso definido. Por que é que não está atualizado do mesmo lugar onde você pegou para os
+       * outros exercícios?»
+       *
+       * A CAUSA, medida: esta função percorria as chaves do alfabeto em CRU e tirava-lhes o dono.
+       * O alfabeto guarda o registo do catálogo e o de CADA escola (`8|2/4@breu`, `4|4/4@batata`),
+       * e depois de tirar o dono as duas ficavam a mesma coisa — «as músicas deste exercício».
+       * Medido na `breu`: o Battement jeté saía com DUAS (`4|4/4` da `batata` e `8|2/4` da `breu`),
+       * e a tela, vendo duas, oferecia escolha onde a escola tem uma resposta só. O Battement
+       * tendu saía certo por acidente — as duas declarações dizem a mesma música, e a dedução
+       * deixava uma.
+       *
+       * A REGRA JÁ EXISTIA ESCRITA, três funções acima: `registosDaEscola` — «um registo de OUTRA
+       * escola não entra: não é do catálogo nem desta escola». É a mesma que compõe os documentos
+       * (`verbetePara`) e a mesma que o dicionário usa. O que faltava era esta leitura passar por
+       * ela, em vez de ter uma regra própria — mais pobre — para o mesmo facto.
+       *
+       * SEM ESCOLA, O CATÁLOGO: é o que a assinatura diz e o que `registosDaEscola` já faz com o
+       * dono vazio. Não é «todas» — uma lista que mistura as escolas de todo mundo não é a vista de
+       * ninguém. */
+      const vistas = Object.keys(registosDaEscola(verbetes[nome], escola))
+        .filter((musica) => /^\d+\|/.test(musica));
       if (vistas.length) mapa.set(nome, vistas);
     }
   }
   return mapa;
+}
+
+/**
+ * A NOTAÇÃO DO CICLO — o código que este produto escreve, e o único nome que procura alfabeto.
+ *
+ * MOROU EM `derivar-ciclo.js` ATÉ 22/11/2026, e mudou de casa quando passou a ser precisa em DOIS
+ * derivadores: a aula (§4, que compõe a música) e o plano (a lista «Música e vídeo de referência»,
+ * que levanta a música do verbete quando a linha da sequência não a declara). O plano não pode
+ * importar o derivador da aula — a aula é que importa o plano —, e por isso a constante vive onde
+ * as duas a podem ler: aqui, ao lado de `paraNotacao`, que é quem a usa.
+ *
+ * A RESPOSTA DO PLANO NÃO MANDA NISTO (18/11/2026): um plano antigo traz `contexto-notacao:
+ * «Benesh»`, que não é o nome do alfabeto (`aplicaseA: ['codigo-de-danca']`), e procurá-lo daria
+ * `null` — um documento sem notação por causa de um rótulo velho.
+ */
+const NOTACAO_DO_CICLO = 'Código de dança';
+
+/** O alfabeto que este produto usa, dentro de uma modalidade. `null` quando não há. */
+function alfabetoDoCiclo(modalidade) {
+  return paraNotacao(NOTACAO_DO_CICLO, modalidade) || null;
+}
+
+/**
+ * A MÚSICA QUE A ESCOLA DECLARA PARA UM EXERCÍCIO — e só quando ela é UMA.
+ *
+ * Existe por causa da terceira coluna do diálogo e da quarta do plano: quando o verbete declara
+ * uma música só, não há o que escolher, e o campo vem preenchido. Quando declara várias, quem
+ * escolhe é a professora — o motor nunca decide por ela, e `null` é a resposta honesta.
+ *
+ * Devolve `{tempos, compasso}` (a forma da LINHA da sequência, com os dois em texto, como o
+ * verbete os declara) ou `null`.
+ */
+function musicaUnicaDoExercicio(alfabeto, exercicio, escola) {
+  const doExercicio = (alfabeto && alfabeto.verbetes && alfabeto.verbetes[exercicio]) || null;
+  if (!doExercicio) return null;
+  const vistas = Object.keys(registosDaEscola(doExercicio, escola))
+    .filter((musica) => /^\d+\|/.test(musica));
+  if (vistas.length !== 1) return null;
+  const partes = vistas[0].split('|');
+  if (partes.length !== 2 || !partes[0] || !partes[1]) return null;
+  return { tempos: partes[0], compasso: partes[1] };
 }
 
 /** Todos os alfabetos publicados, por modalidade — para a Produção listar o que existe. */
@@ -728,10 +788,41 @@ function compor(linha, alfabeto, data, escola) {
       detalhe: 'a linha não declara o exercício' });
   }
 
-  const musica = lerMusica(bruto.tempos, bruto.compasso);
+  /* A MÚSICA QUE A LINHA NÃO DECLARA SAI DO VERBETE — QUANDO ELE DECLARA UMA SÓ (22/11/2026).
+   *
+   * O QUE ELA VIU: «no item 10 também está errado, ele não preencheu aqui tempos e compassos no
+   * plano de ensino». E o documento dizia o mesmo, por outra boca: o §4 da Aula 02 saía a dizer
+   * «nenhum exercício desta aula tem tempos e compasso declarados na sequência», e a lista de
+   * «Música e vídeo de referência» do plano dizia «tempos e compasso por declarar no verbete» —
+   * uma frase que manda procurar no sítio ERRADO, porque o verbete os declara.
+   *
+   * A REGRA JÁ ESTAVA ESCRITA NO PLANO, desde 01/11/2026: «a música não se escreve, ela sobe». A
+   * música é uma propriedade do EXERCÍCIO (é o mesmo exercício em Barra, Centro e Expressão), e o
+   * verbete é onde ela se declara. A linha da sequência é uma cópia — e uma cópia que ainda não
+   * foi feita não é uma ausência de música: é uma ausência de cópia.
+   *
+   * QUANDO O VERBETE DECLARA VÁRIAS, NÃO SE ESCOLHE POR NINGUÉM: aí sim é lacuna, e a frase que a
+   * declara passa a dizer que há mais de uma à espera de decisão. O que não se faz, em caso
+   * nenhum, é deixar o documento a acusar o verbete por uma falta que é da linha. */
+  const daLinha = lerMusica(bruto.tempos, bruto.compasso);
+  const doVerbete = daLinha ? null : musicaUnicaDoExercicio(alfabeto, exercicio, escola);
+  const musica = daLinha || (doVerbete
+    ? lerMusica(doVerbete.tempos, doVerbete.compasso)
+    : null);
   if (!musica) {
+    /* SEM MÚSICA, A FRASE DIZ QUAL DOS TRÊS CASOS É — e são três, não um: a linha não declarou e
+     * o verbete não tem nada; a linha não declarou e o verbete declara VÁRIAS (aí há uma decisão à
+     * espera, e ela é da professora); ou a linha declarou meio par. Uma frase só para os três
+     * manda procurar sempre no mesmo sítio, e num deles o sítio está errado. */
+    const vistas = Object.keys(registosDaEscola(
+      (alfabeto.verbetes && alfabeto.verbetes[exercicio]) || {}, escola))
+      .filter((m) => /^\d+\|/.test(m));
+    const detalhe = !bruto.tempos && !bruto.compasso && vistas.length > 1
+      ? 'o verbete de «' + exercicio + '» declara ' + vistas.length + ' músicas ('
+        + vistas.join(' · ') + '), e a sequência não escolheu nenhuma — a decisão é da professora'
+      : 'os tempos e o compasso ainda não estão declarados no plano — sem eles não há grade';
     return Object.assign(base, { estado: 'lacuna', motivo: 'sem-musica', segmentos: [], restoTempos: 0,
-      detalhe: 'os tempos e o compasso ainda não estão declarados no plano — sem eles não há grade' });
+      detalhe });
   }
 
   const escolhido = verbetePara(alfabeto, exercicio, musica, data, escola);
@@ -945,6 +1036,9 @@ module.exports = {
   escolaDoRegisto,
   musicaDaChave,
   musicasDosExercicios,
+  musicaUnicaDoExercicio,
+  NOTACAO_DO_CICLO,
+  alfabetoDoCiclo,
   registosDaEscola,
   compor,
   comporTodas,

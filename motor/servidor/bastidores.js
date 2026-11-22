@@ -1507,8 +1507,8 @@ function resumosDoConteudo(escola) {
  * também no diálogo que cria a aula seguinte — que é DERIVADO (`derivar-plano-ciclo.js`) e não fala
  * com o servidor. A regra (limpar o dono, deduplicar) mora agora no núcleo, junto da
  * `musicaDaChave`; aqui fica só a porta de entrada, para os sítios deste ficheiro não mudarem. */
-function musicasDosExercicios() {
-  return require('../nucleo/notacao.js').musicasDosExercicios();
+function musicasDosExercicios(escola) {
+  return require('../nucleo/notacao.js').musicasDosExercicios(escola);
 }
 
 /**
@@ -24345,7 +24345,10 @@ async function fetch(request, env, extras) {
   // GET /api/bastidores/termos — o vocabulário técnico (Produção).
   if (path === '/api/bastidores/termos') {
     const lista = await termos(kv, escola);
-    const musica = musicasDosExercicios();
+    /* A ESCOLA VAI JUNTO (22/11/2026) — sem ela a lista misturava as músicas de todas as escolas
+     * e a coluna da sequência oferecia escolha onde esta escola tem uma resposta só. Ver
+     * `musicasDosExercicios` em `motor/nucleo/notacao.js`. */
+    const musica = musicasDosExercicios(escola);
     // AS MÚSICAS DO VERBETE VÃO JUNTO (31/10/2026). O plano de ensino pede os tempos e o
     // compasso de cada exercício, e o verbete JÁ OS DECLARA — é a chave dele, `<tempos>|<compasso>`.
     // Pedir outra vez era a redundância que a pesquisadora viu no nó «Sequência de exercícios»:

@@ -35,7 +35,7 @@ const sequenciaDoPlano = require('./sequencia.js');
  * ela já existia no núcleo. Sem isto, a aula criada nascia com `Tempos` e `Compasso` vazios e o §4
  * do documento saía a dizer «nenhum exercício desta aula tem tempos e compasso declarados na
  * sequência» — o defeito que ela viu na Aula 02 da `rosa`. */
-const { musicasDosExercicios } = require('./notacao.js');
+const { musicasDosExercicios, musicaUnicaDoExercicio, alfabetoDoCiclo } = require('./notacao.js');
 
 // OS BLOCOS DA AULA — a ordem canónica da Regra 3 (solo → barra → centro), a
 // musicalidade e a expressão. Os quatro primeiros são a estrutura espacial; a EXPRESSÃO
@@ -473,7 +473,7 @@ function sequenciaEmLinhas(valor) {
  * («Tempos» e «Compasso»), que vêm do VERBETE do exercício. Um exercício sem verbete sai dito
  * por palavras: a ausência é do dado, e um documento que a esconde mente por omissão.
  */
-function musicasDaSequencia(valor) {
+function musicasDaSequencia(valor, alfabeto, escola) {
   const objetos = Array.isArray(valor)
     ? valor.filter((l) => l && typeof l === 'object' && !Array.isArray(l))
     : [];
@@ -483,12 +483,34 @@ function musicasDaSequencia(valor) {
     const nome = String(l['Conteúdo do nível'] || l['Conteúdo'] || '').trim();
     if (!nome || vistos.indexOf(nome) !== -1) continue;
     vistos.push(nome);
-    const tempos = String(l['Tempos'] || l['Tempo'] || '').trim();
-    const compasso = String(l['Compasso'] || '').trim();
-    const medida = tempos && compasso
-      ? tempos + ' tempos em ' + compasso
-      : (tempos || compasso);
-    linhas.push(nome + ' — ' + (medida || 'tempos e compasso por declarar no verbete'));
+    let tempos = String(l['Tempos'] || l['Tempo'] || '').trim();
+    let compasso = String(l['Compasso'] || '').trim();
+    /* A MÚSICA QUE A LINHA NÃO DECLARA SAI DO VERBETE (22/11/2026) — a mesma regra da composição
+     * (`notacao.js`), e pela mesma razão: a música é do EXERCÍCIO, e a linha da sequência é uma
+     * cópia. Quando o verbete declara uma só, não há o que perguntar; quando declara várias, a
+     * frase passa a dizer ISSO, em vez de acusar o verbete por uma falta que é da linha («tempos e
+     * compasso por declarar no verbete» mandava procurar no sítio errado). */
+    let medida;
+    if (tempos && compasso) {
+      medida = tempos + ' tempos em ' + compasso;
+    } else if (tempos || compasso) {
+      medida = tempos || compasso;
+    } else {
+      const unica = alfabeto ? musicaUnicaDoExercicio(alfabeto, nome, escola) : null;
+      if (unica) {
+        medida = unica.tempos + ' tempos em ' + unica.compasso;
+      } else {
+        const declaradas = alfabeto && alfabeto.verbetes && alfabeto.verbetes[nome]
+          ? Object.keys(alfabeto.verbetes[nome]).filter((k) => /^\d+\|/.test(k)
+            && (!/@/.test(k) || k.slice(k.indexOf('@') + 1) === String(escola || '')))
+          : [];
+        medida = declaradas.length > 1
+          ? 'o verbete declara ' + declaradas.length + ' músicas (' + declaradas.join(' · ')
+            + '), e a sequência não escolheu nenhuma'
+          : 'sem música declarada — nem na sequência, nem no verbete deste exercício';
+      }
+    }
+    linhas.push(nome + ' — ' + medida);
   }
   return linhas;
 }
@@ -640,7 +662,10 @@ function dialogoDaAula(envelope, contexto) {
    *
    * A CHAVE É `tempos|compasso`, a mesma da grelha do plano e a mesma que o verbete declara — uma
    * forma só, para as duas telas não lerem o mesmo dado de duas maneiras. */
-  const catalogoDeMusicas = musicasDosExercicios();
+  /* E A ESCOLA VAI JUNTO (22/11/2026): sem ela, o diálogo oferecia as músicas que OUTRA escola
+   * declarou para o mesmo exercício — o Battement jeté da `batata` (4 em 4/4) ao lado do da `breu`
+   * (8 em 2/4) —, e onde a escola tem uma resposta o campo pedia uma escolha. */
+  const catalogoDeMusicas = musicasDosExercicios(contexto.escola);
   const musicas = {};
   for (const nome of repertorio) {
     const lista = catalogoDeMusicas.get(nome);
@@ -1416,10 +1441,16 @@ function derivarPlano(envelope, opcoes) {
    * linha cujo «Conteúdo do nível» está fora do repertório do envelope não é exercício desta aula
    * — ela entrou por uma medida marcada na matriz do parâmetro, e medir não é curar. Publicá-la
    * punha na música uma peça que o próprio «Repertório», duas linhas abaixo, não lista. */
+  /* O ALFABETO DA VEZ (22/11/2026) — a mesma escolha que a composição da aula faz: a notação
+   * declarada pelo ciclo, dentro da modalidade. Sem ele a linha não tem de onde levantar a música
+   * do verbete, e volta a dizer a lacuna. */
+  /* A MESMA NOTAÇÃO QUE A AULA USA (`NOTACAO_DO_CICLO`, em `notacao.js`) — e não a resposta do
+   * plano, que num envelope antigo diz «Benesh» e não casa com o alfabeto. */
+  const alfabetoDaMusica = alfabetoDoCiclo(contexto && contexto.modalidade);
   lista('Música e vídeo de referência',
     musicasDaSequencia(sequenciaDoPlano.linhasDoRepertorio(
       sequenciaDoPlano.linhasVivas(respostaDo(envelope, 'aula-1-sequencia'), objetivosVivos),
-      respostaDo(envelope, 'repertorio')))
+      respostaDo(envelope, 'repertorio')), alfabetoDaMusica, contexto.escola)
       .concat(emLista(respostaDo(envelope, 'musicas-videos')).filter(Boolean)));
   lista('Repertório', respostaDo(envelope, 'repertorio'));
 

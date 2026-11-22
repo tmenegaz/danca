@@ -623,7 +623,10 @@ function distribuicaoDoTempo(estrutura, volume, volumeTotal, duracaoMin) {
  * O `plano` FICA NO PARÂMETRO porque os quatro chamadores passam-no e um deles lê o envelope para
  * outras coisas; tirá-lo obrigaria a mexer em cinco sítios para não ganhar nada.
  */
-const NOTACAO_DO_CICLO = 'Código de dança';
+/* A NOTAÇÃO DO CICLO MUDOU DE CASA (22/11/2026): vive em `notacao.js`, porque o derivador do
+ * PLANO também precisa dela para levantar a música do verbete — e o plano não pode importar este
+ * ficheiro (é este que importa o plano). Uma constante, um sítio. */
+const NOTACAO_DO_CICLO = moduloNotacao.NOTACAO_DO_CICLO;
 
 function notacaoEscolhida(plano) { // eslint-disable-line no-unused-vars
   return NOTACAO_DO_CICLO;
@@ -1355,7 +1358,8 @@ function derivarAula({ nn = '01', plano, po, contexto, calibracao, linhaDeBase, 
         corpo.push('');
         corpo.push('Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e '
           + 'Expressão tem a **mesma** música — ela é do exercício, não do bloco. Os tempos e o '
-          + 'compasso vêm da sequência do plano; a contagem, do verbete de cada exercício.');
+          + 'compasso vêm da sequência do plano e, quando ela não os declara, do verbete de cada '
+          + 'exercício — que é onde a música se declara; a contagem, sempre do verbete.');
         if ([...porCompasso.values()].some((m) => [...m.values()].some((l) => l.conferir))) {
           corpo.push('', 'Onde diz **conferir**, a grade de contagens do verbete não fecha nos '
             + 'tempos que a sequência declara para aquela música. O que se corrige é o verbete, e '

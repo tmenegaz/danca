@@ -117,6 +117,13 @@ function servir(cru) {
     }
     if (rel.startsWith('api/')) return json({ ok: true, opcoes: [] });
 
+    /* O `markdown.js` DA PORTA (22/11/2026 — fixture). A página carrega-o por um caminho ABSOLUTO
+     * (`/plano-observacao/assets/markdown.js`), que é onde o produto o serve; a bancada serve a
+     * porta em `/plano-ensino/` e devolvia a própria página em vez do script, e o primeiro `md()`
+     * lançava «Markdown is not defined» — a prova morria antes de medir uma única asserção. */
+    if (rel === 'plano-observacao/assets/markdown.js') {
+      return envia(MIME['.js'], fs.readFileSync(path.join(PORTA, 'assets/markdown.js')));
+    }
     if (rel === 'assets/style.css') return envia(MIME['.css'], fs.readFileSync(path.join(RAIZ, 'tools/templates/ciclo.css')));
     if (rel === 'assets/nav.js') return envia(MIME['.js'], fs.readFileSync(path.join(RAIZ, 'tools/templates/nav.js')));
     const alvo = rel ? path.join(PORTA, rel) : path.join(PORTA, 'index.html');
@@ -290,6 +297,35 @@ const LER_LEITURA = `(function(){
   provar('…e a vista da escola resolve a música limpa para o registo DELA',
     Boolean(notacao.registosDaEscola(alfabeto.verbetes['Battement tendu'], 'breu')['8|2/4']),
     Object.keys(notacao.registosDaEscola(alfabeto.verbetes['Battement tendu'], 'breu')));
+
+  /* ---- §E: A MÚSICA É A DESTA ESCOLA (22/11/2026) --------------------------
+   *
+   * O DEFEITO, dito por ela: «o Batman GT apareceu opções para eu escolher o tempo e opções para eu
+   * escolher o compasso. Está errado isso, porque o Batman GT já tem isso definido. Por que é que
+   * não está atualizado do mesmo lugar onde você pegou para os outros exercícios?»
+   *
+   * A causa: a lista que a grelha e o diálogo recebem tirava o dono de cada registo e juntava os de
+   * TODAS as escolas. O Battement jeté tem `4|4/4@batata` e `8|2/4@breu`; sem dono, «este exercício
+   * tem duas músicas» — e a tela pedia uma escolha onde a `breu` tem uma resposta só.
+   *
+   * A vista da escola é a mesma regra que compõe os documentos (`registosDaEscola`), e é ela que a
+   * lista passa a usar. O que se mede: a lista que o SERVIDOR manda, e não uma função chamada à
+   * parte — é o caminho que a grelha percorre. */
+  console.log('\nE. A MÚSICA É A DESTA ESCOLA — o registo de outra não entra');
+  const daBreu = notacao.musicasDosExercicios('breu');
+  provar('o Battement jeté da `breu` tem UMA música, a dela (`8|2/4`)',
+    JSON.stringify(daBreu.get('Battement jeté')) === JSON.stringify(['8|2/4']),
+    daBreu.get('Battement jeté'));
+  provar('…e a música da `batata` (`4|4/4`) não está na lista da `breu`',
+    (daBreu.get('Battement jeté') || []).indexOf('4|4/4') === -1, daBreu.get('Battement jeté'));
+  provar('o exercício do catálogo continua a valer para toda a gente (`Plié` → `4|2/4`)',
+    JSON.stringify(daBreu.get('Plié')) === JSON.stringify(['4|2/4']), daBreu.get('Plié'));
+  provar('…e o registo de OUTRA escola não aparece a esta (`Battement fondu` é da `calango`)',
+    !daBreu.has('Battement fondu'), [...daBreu.keys()]);
+  const daBatata = notacao.musicasDosExercicios('batata');
+  provar('a mesma leitura, na `batata`, dá a música da `batata` (não é um caso da `breu`)',
+    JSON.stringify(daBatata.get('Battement jeté')) === JSON.stringify(['4|4/4']),
+    daBatata.get('Battement jeté'));
 
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — o compasso mostra a fórmula e só ela; o dono fica onde é útil, no armazenamento.'

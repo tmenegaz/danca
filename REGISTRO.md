@@ -58712,3 +58712,55 @@ negativo** `--contra=d562534a` (a `plano.html` DAQUELE commit, não uma reconstr
 asserções reprovam **13 de 18** — e a que importa mostra `["",""]` na sequência. `provar-criar-aula`
 continua **53/53**, `check-pacote` 0 erros, `hash-ciclo --check` íntegro, `check-identidade` **0
 problemas**.
+
+## 22/11/2026 — A música é a da escola, e sobe do verbete quando a linha não a copiou
+
+**O que ela viu.** «O Batman GT apareceu opções para eu escolher o tempo e opções para eu escolher o
+compasso. Está errado isso, porque o Batman GT já tem isso definido. Por que é que não está
+atualizado do mesmo lugar onde você pegou para os outros exercícios?» E, no plano: «no item 10
+também está errado, ele não preencheu aqui tempos e compassos no item 10 do plano de ensino».
+
+**As duas metades, e são a mesma causa.** O alfabeto guarda o registo do catálogo e o de **cada
+escola** — `8|2/4@breu`, `4|4/4@batata`. A lista que alimentava o diálogo e a grelha percorria as
+chaves em **cru** e tirava o dono, juntando as de todas as escolas: o Battement jeté saía com
+**duas** músicas (a da `batata` em 4/4 e a da `breu` em 2/4), e a tela — vendo duas — pedia uma
+escolha onde a escola tem uma resposta só. O Battement tendu saía certo por acidente: as duas
+declarações dizem a mesma música, e a dedução deixava uma.
+
+**A regra já estava escrita**, três funções acima, e é a que compõe os documentos:
+`registosDaEscola` — «um registo de OUTRA escola não entra: não é do catálogo nem desta escola». A
+lista passa a passar por ela. Medido: a `breu` vê `Battement jeté → 8|2/4` (uma, preenchida e em
+leitura), a `batata` vê `4|4/4`, `Plié` (do catálogo, sem dono) vale para todas, e o `Battement
+fondu` — declarado só pela `calango` — deixa de aparecer à `breu`, que é o que a regra diz.
+
+**A segunda metade: a música sobe.** O §4 da Aula 02 saía a dizer «Nenhum exercício desta aula tem
+tempos e compasso declarados na sequência», e a lista do plano dizia «tempos e compasso por declarar
+no verbete» — uma frase que manda procurar no sítio **errado**, porque o verbete os declara. As
+linhas da sequência foram gravadas vazias antes de existir o diálogo que as preenche, e uma cópia
+que ainda não foi feita não é ausência de música. `compor` (e a lista do plano) passam a levantar a
+música do verbete **quando ele declara uma só**; quando declara várias, a frase diz isso — «o
+verbete declara N músicas (…), e a sequência não escolheu nenhuma — a decisão é da professora». O
+motor não escolhe por ela.
+
+**Com o quê.** `motor/nucleo/notacao.js` (`musicasDosExercicios(escola)`, `musicaUnicaDoExercicio`,
+`NOTACAO_DO_CICLO`/`alfabetoDoCiclo` — a constante mudou de casa porque o derivador do **plano**
+também precisa dela, e o plano não pode importar o derivador da aula), `motor/servidor/bastidores.js`
+(a rota dos termos passa a escola), `motor/nucleo/derivar-plano-ciclo.js` (o diálogo, a lista do
+plano), `motor/nucleo/derivar-ciclo.js` (§4 lê o `NOTACAO_DO_CICLO` do núcleo e a frase da origem
+passa a ser verdadeira), as fontes derivadas e o pacote regerados, a âncora recalculada,
+`experimentos/provar-a-musica-do-modal.js` (o caso do «Batman GT»), `experimentos/provar-compasso-
+limpo.js` (§E, e a fixture do `markdown.js`), `experimentos/provar-derivados-da-sequencia.js` (a
+mesma fixture), `ESTADO-ATUAL.md`.
+
+**MEDIDO.** `provar-a-musica-do-modal` **26/26**: o Battement jeté da `breu` chega com **uma**
+música, os campos vêm preenchidos e em leitura, e o `4|4/4` da `batata` não aparece em lado nenhum do
+diálogo; o caso de duas músicas da **mesma** escola continua medido, com uma fixture que as declara
+(as duas escolhas, e o compasso a seguir os tempos); a sequência grava `"Tempos": "8", "Compasso":
+"2/4"`. `provar-compasso-limpo` **volta a correr** — estava a morrer com «Markdown is not defined»
+porque a bancada servia a porta em `/plano-ensino/` e a página pede o `markdown.js` num caminho
+absoluto; a fixture passou a servi-lo —, e a §E nova mede a vista da escola com quatro asserções.
+`provar-derivados-da-sequencia` **26/26**, também ressuscitada pela mesma fixture. O §4 da Aula 02 do
+ciclo da `rosa` passa de «nenhum exercício tem tempos e compasso» a `| 2/4 | Battement tendu | 8 |
+1–2 |` e `| 2/4 | Battement jeté | 8 | 1–2 |`. `check-pacote` 0 erros, `hash-ciclo --check`
+íntegro, `check-identidade` **0 problemas**, `provar-a-dobra-e-a-aula-anterior` 31/31,
+`provar-a-identidade-da-aula` 26/26, `provar-criar-aula` 53/53.

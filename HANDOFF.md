@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T18:37:35-0300`
-Commit atual: `d562534a` — feat(aula-02): a aula que vem depois lê o lançamento da anterior
+Gerado em: `2026-11-22T19:03:09-0300`
+Commit atual: `9d4b9744` — chore(estrutura): fechar os derivados — âncoras e índices
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,9 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+9d4b9744 chore(estrutura): fechar os derivados — âncoras e índices
+3673d403 feat(musicalidade): o diálogo que cria a aula pergunta a música dela
+e402dd50 chore(estrutura): fechar os derivados — âncoras e índices
 d562534a feat(aula-02): a aula que vem depois lê o lançamento da anterior
 4330dd32 chore(estrutura): fechar os derivados — âncoras e índices
 49fb6f87 docs(estrutura): a fotografia do §1 da aula e do guia que leva ao formulário
@@ -99,9 +102,6 @@ ef7d25ee chore(estrutura): diagnóstico temporário da leitura do pacote no pain
 e0b3aab6 docs(estrutura): a fotografia regista o caminho do pacote e o `lancada` da breu
 ba571849 fix(estrutura): o painel pede o pacote através do prefixo da árvore
 b189d776 docs(estrutura): a fotografia do painel, da coluna e do KV
-d1127afd fix(estrutura): um elo que nunca olhou não é um elo limpo
-9b415003 feat(estrutura): o painel inicial do Estúdio conta o que interessa
-dff5ccff fix(template): a coluna dos Bastidores abre e fecha a partir dos 769
 ```
 
 ## Por professor
@@ -128,7 +128,7 @@ dff5ccff fix(template): a coluna dos Bastidores abre e fecha a partir dos 769
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `59b86b60252a` | (vazio) | — |
-| breu-rosa | ciclo-01-breu-rosa.fipp | `4df281467344` | (vazio) | Input_PO_Validado |
+| breu-rosa | ciclo-01-breu-rosa.fipp | `2c0e429216b7` | (vazio) | Input_PO_Validado |
 
 ### fernando-franciose — 0 ciclo(s)
 
@@ -195,58 +195,57 @@ dff5ccff fix(template): a coluna dos Bastidores abre e fecha a partir dos 769
 
 ## Última entrada do REGISTRO
 
-## 22/11/2026 — O diálogo que cria a aula pergunta a música dela
+## 22/11/2026 — A música é a da escola, e sobe do verbete quando a linha não a copiou
 
-**O pedido.** «falta a gente colocar também tempo, a parte toda da musicalidade ali naquele modal
-quando ele abre». O segundo passo da ordem que ela deu (1.º a coluna da aula anterior, 2.º a
-musicalidade no modal, 3.º o portão da aula dada).
+**O que ela viu.** «O Batman GT apareceu opções para eu escolher o tempo e opções para eu escolher o
+compasso. Está errado isso, porque o Batman GT já tem isso definido. Por que é que não está
+atualizado do mesmo lugar onde você pegou para os outros exercícios?» E, no plano: «no item 10
+também está errado, ele não preencheu aqui tempos e compassos no item 10 do plano de ensino».
 
-**O defeito, medido no produto publicado.** O diálogo criava a aula com `"Tempos": ""` e
-`"Compasso": ""` — de propósito, à espera de um preenchimento que ninguém fazia —, e o §4 da Aula
-02 do ciclo da `rosa` saía a dizer: «Nenhum exercício desta aula tem tempos e compasso declarados
-na sequência — sem eles não há música a consolidar.» Medido no envelope (`aula-2-sequencia`, oito
-linhas, todas vazias) e no documento publicado.
+**As duas metades, e são a mesma causa.** O alfabeto guarda o registo do catálogo e o de **cada
+escola** — `8|2/4@breu`, `4|4/4@batata`. A lista que alimentava o diálogo e a grelha percorria as
+chaves em **cru** e tirava o dono, juntando as de todas as escolas: o Battement jeté saía com
+**duas** músicas (a da `batata` em 4/4 e a da `breu` em 2/4), e a tela — vendo duas — pedia uma
+escolha onde a escola tem uma resposta só. O Battement tendu saía certo por acidente: as duas
+declarações dizem a mesma música, e a dedução deixava uma.
 
-**A regra é a que a grelha do plano já pratica desde 31/10/2026**, e não uma nova: a música é do
-**exercício** (o mesmo exercício em Barra, Centro e Expressão tem a mesma música — é a regra do
-§4), o **verbete** já a declara, e o número de músicas declaradas decide a forma do campo:
-uma → vem preenchida e é leitura; várias → os dois são escolha, e só as declaradas se oferecem
-(8 em 3/4 não existe, e não se pode escrever); nenhuma → os dois em branco, à mão, com a nota a
-dizer quem ficou sem música. O compasso acompanha os tempos — escolhido o tempo, só se oferecem os
-compassos que existem para ele, e o que estava escolhido mantém-se quando continua válido.
+**A regra já estava escrita**, três funções acima, e é a que compõe os documentos:
+`registosDaEscola` — «um registo de OUTRA escola não entra: não é do catálogo nem desta escola». A
+lista passa a passar por ela. Medido: a `breu` vê `Battement jeté → 8|2/4` (uma, preenchida e em
+leitura), a `batata` vê `4|4/4`, `Plié` (do catálogo, sem dono) vale para todas, e o `Battement
+fondu` — declarado só pela `calango` — deixa de aparecer à `breu`, que é o que a regra diz.
 
-**Tempos e compasso andam juntos.** Meio par é recusado no diálogo, com o nome do exercício: a
-chave da notação é `tempos|compasso`, e meia chave não compõe nada. É a diferença entre recusar no
-sítio onde a pessoa decide e gravar uma linha que o §4 vai ter de contornar.
+**A segunda metade: a música sobe.** O §4 da Aula 02 saía a dizer «Nenhum exercício desta aula tem
+tempos e compasso declarados na sequência», e a lista do plano dizia «tempos e compasso por declarar
+no verbete» — uma frase que manda procurar no sítio **errado**, porque o verbete os declara. As
+linhas da sequência foram gravadas vazias antes de existir o diálogo que as preenche, e uma cópia
+que ainda não foi feita não é ausência de música. `compor` (e a lista do plano) passam a levantar a
+música do verbete **quando ele declara uma só**; quando declara várias, a frase diz isso — «o
+verbete declara N músicas (…), e a sequência não escolheu nenhuma — a decisão é da professora». O
+motor não escolhe por ela.
 
-**A LEITURA MUDOU DE CASA.** A lista de músicas por exercício vivia em `bastidores.js` e passou a
-ser precisa também no derivador do plano — que é puro e não fala com o servidor. A regra (limpar o
-dono `@escola`, deduplicar) mora agora em `motor/nucleo/notacao.js` (`musicasDosExercicios`), e o
-servidor delega nela: duas cópias divergiriam ao primeiro separador novo.
+**Com o quê.** `motor/nucleo/notacao.js` (`musicasDosExercicios(escola)`, `musicaUnicaDoExercicio`,
+`NOTACAO_DO_CICLO`/`alfabetoDoCiclo` — a constante mudou de casa porque o derivador do **plano**
+também precisa dela, e o plano não pode importar o derivador da aula), `motor/servidor/bastidores.js`
+(a rota dos termos passa a escola), `motor/nucleo/derivar-plano-ciclo.js` (o diálogo, a lista do
+plano), `motor/nucleo/derivar-ciclo.js` (§4 lê o `NOTACAO_DO_CICLO` do núcleo e a frase da origem
+passa a ser verdadeira), as fontes derivadas e o pacote regerados, a âncora recalculada,
+`experimentos/provar-a-musica-do-modal.js` (o caso do «Batman GT»), `experimentos/provar-compasso-
+limpo.js` (§E, e a fixture do `markdown.js`), `experimentos/provar-derivados-da-sequencia.js` (a
+mesma fixture), `ESTADO-ATUAL.md`.
 
-**O QUE ELA VAI VER, e o que ainda não.** As aulas criadas **a partir de agora** nascem com a
-música. A **Aula 02 já criada continua sem ela** — os `Tempos`/`Compasso` dela estão no envelope, e
-não se inventam: o Battement jeté declara **duas** músicas (4 em 4/4, 8 em 2/4) e escolher por ela
-seria escrever no documento o que ela não decidiu. O caminho é a grelha da sequência no plano, onde
-os dois campos se editam.
-
-**Com o quê.** `motor/nucleo/notacao.js` (`musicasDosExercicios`), `motor/servidor/bastidores.js`
-(delega), `motor/nucleo/derivar-plano-ciclo.js` (o mapa no diálogo, a tabela, o guionista, a recusa
-do meio par, a sequência com a música), as fontes derivadas e o pacote da `breu-rosa` regerados, a
-âncora recalculada, `experimentos/provar-a-musica-do-modal.js` (**novo**), `.gitignore`,
-`ESTADO-ATUAL.md`.
-
-**MEDIDO.** `provar-a-musica-do-modal` **22/22**, no navegador, sobre a página do plano que o
-pacote serve e com a escrita stubada — o POST de `api/elicitar` é capturado, e o que se lê é o
-corpo que o professor enviaria: a caixa nasce fechada e abre no primeiro exercício marcado; o
-Battement tendu (uma música) traz 8 e 2/4 em leitura, sem campo para escrever por cima; o Battement
-jeté (duas) traz dois `select`, e escolher 4 fixa o compasso em 4/4 e escolher 8 fixa-o em 2/4; o
-corpo enviado traz `"Tempos": "8", "Compasso": "2/4"` nas duas linhas; um exercício sem verbete
-ganha dois campos de escrever, e tempos sem compasso é recusado sem enviar nada. Com o **controle
-negativo** `--contra=d562534a` (a `plano.html` DAQUELE commit, não uma reconstrução), as mesmas
-asserções reprovam **13 de 18** — e a que importa mostra `["",""]` na sequência. `provar-criar-aula`
-continua **53/53**, `check-pacote` 0 erros, `hash-ciclo --check` íntegro, `check-identidade` **0
-problemas**.
+**MEDIDO.** `provar-a-musica-do-modal` **26/26**: o Battement jeté da `breu` chega com **uma**
+música, os campos vêm preenchidos e em leitura, e o `4|4/4` da `batata` não aparece em lado nenhum do
+diálogo; o caso de duas músicas da **mesma** escola continua medido, com uma fixture que as declara
+(as duas escolhas, e o compasso a seguir os tempos); a sequência grava `"Tempos": "8", "Compasso":
+"2/4"`. `provar-compasso-limpo` **volta a correr** — estava a morrer com «Markdown is not defined»
+porque a bancada servia a porta em `/plano-ensino/` e a página pede o `markdown.js` num caminho
+absoluto; a fixture passou a servi-lo —, e a §E nova mede a vista da escola com quatro asserções.
+`provar-derivados-da-sequencia` **26/26**, também ressuscitada pela mesma fixture. O §4 da Aula 02 do
+ciclo da `rosa` passa de «nenhum exercício tem tempos e compasso» a `| 2/4 | Battement tendu | 8 |
+1–2 |` e `| 2/4 | Battement jeté | 8 | 1–2 |`. `check-pacote` 0 erros, `hash-ciclo --check`
+íntegro, `check-identidade` **0 problemas**, `provar-a-dobra-e-a-aula-anterior` 31/31,
+`provar-a-identidade-da-aula` 26/26, `provar-criar-aula` 53/53.
 
 ## O que está pendente
 

@@ -131,6 +131,13 @@ function servir(semMusicas) {
     }
     if (rel.startsWith('api/')) return json({ ok: true, opcoes: [] });
 
+    /* O `markdown.js` DA PORTA (22/11/2026 — fixture). A página pede-o num caminho ABSOLUTO
+     * (`/plano-observacao/assets/markdown.js`), que é onde o produto o serve; a bancada serve a
+     * porta em `/plano-ensino/` e devolvia a própria página em vez do script — o primeiro `md()`
+     * lançava «Markdown is not defined» e a prova morria sem medir nada. */
+    if (rel === 'plano-observacao/assets/markdown.js') {
+      return envia(MIME['.js'], fs.readFileSync(path.join(PORTA, 'assets/markdown.js')));
+    }
     if (rel === 'assets/style.css') return envia(MIME['.css'], fs.readFileSync(path.join(RAIZ, 'tools/templates/ciclo.css')));
     if (rel === 'assets/nav.js') return envia(MIME['.js'], fs.readFileSync(path.join(RAIZ, 'tools/templates/nav.js')));
     const alvo = rel ? path.join(PORTA, rel) : path.join(PORTA, 'index.html');
@@ -351,8 +358,12 @@ const abrirNo = (w, id) => w.eval(`(async function(){
     (comSequencia.match(/Battement tendu — /g) || []).length);
   provar('…e o que o professor escreveu no campo vem depois, sem ser perdido',
     /- https:\/\/www\.youtube\.com\/watch\?v=prova/.test(comSequencia));
-  provar('…e o exercício sem verbete é dito por palavras',
-    /- Jeté — tempos e compasso por declarar no verbete/.test(comSequencia));
+  /* A FRASE MUDOU (22/11/2026), e a mudança é uma correção: «por declarar no verbete» mandava
+   * procurar no sítio errado quando o verbete DECLARA a música e é a linha que não a copiou. Agora
+   * a frase nomeia os dois sítios, e o exercício que não tem música em nenhum deles diz isso. */
+  provar('…e o exercício sem verbete é dito por palavras, com os dois sítios nomeados',
+    /- Jeté — sem música declarada — nem na sequência, nem no verbete deste exercício/.test(comSequencia),
+    (comSequencia.match(/- Jeté[^\n]*/) || [''])[0]);
   provar('o repertório sai como a tela o semeou', /## Repertório\n\n- Plié\n- Battement tendu\n- Jeté/.test(comSequencia),
     (comSequencia.match(/^## Repertório[\s\S]{0,200}/m) || [''])[0]);
 
@@ -363,7 +374,7 @@ const abrirNo = (w, id) => w.eval(`(async function(){
   })).markdown;
   provar('um plano antigo, sem sequência, passa como veio (nada é inventado)',
     /- Faixa de teste em 4\/4 e 3\/4\./.test(antigo)
-      && !/— tempos e compasso por declarar/.test(antigo),
+      && !/sem música declarada/.test(antigo),
     (antigo.match(/^## Músicas e vídeos[\s\S]{0,200}/m) || [''])[0]);
 
   console.log('\n' + (falhas ? 'FALHOU — ' : 'TUDO CERTO — ') + total + ' asserção(ões), ' + falhas + ' falha(s).');

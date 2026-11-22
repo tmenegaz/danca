@@ -11,8 +11,20 @@
   "sequenciaDaAula": "Bloco · Tempos · Fatia Solo · 29,17 · 20 min Barra · 65,63 · 45 min Centro · 65,63 · 45 min Musicalidade · 14,58 · 10 min **Total** · **175** · **100%**",
   "aulaAnterior": "**A Aula 01 ainda não foi lançada.** O que esta secção mostra sai do formulário de lançamento da Aula 01, e ele está vazio: não há resultado anterior para olhar. Quando esse lançamento for gravado, esta secção passa a dizê-lo.",
   "blocoDeMusicalidade": [
-    "Nenhum exercício desta aula tem tempos e compasso declarados na sequência — sem eles não há música a consolidar.",
-    "Sem música declarada na sequência: Barra — Battement tendu · Barra — Battement jeté · Centro — Battement tendu · Centro — Battement jeté."
+    "**Os compassos desta aula.** 2/4.",
+    {
+      "compasso": "2/4",
+      "exercicio": "Battement tendu",
+      "tempos": "8",
+      "contagem": "1–2"
+    },
+    {
+      "compasso": "2/4",
+      "exercicio": "Battement jeté",
+      "tempos": "8",
+      "contagem": "1–2"
+    },
+    "Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e Expressão tem a **mesma** música — ela é do exercício, não do bloco. Os tempos e o compasso vêm da sequência do plano e, quando ela não os declara, do verbete de cada exercício — que é onde a música se declara; a contagem, sempre do verbete."
   ],
   "guiaDeObservacao": {
     "Corpo": [

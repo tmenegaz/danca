@@ -184,12 +184,60 @@ function servir(html, templates) {
     uma.controles === 0 && uma.escondidos === 2, { controles: uma.controles, escondidos: uma.escondidos });
   provar('a nota diz de onde vêm', /Vêm do verbete/.test(uma.nota || ''), uma.nota);
 
-  /* ───────────────────── c) duas músicas: escolha, e o compasso segue ───────────────────── */
-  console.log('\nc) duas músicas declaradas: escolha, com o compasso a seguir os tempos');
+  /* ────────── c) O DEFEITO QUE ELA VIU: a música de OUTRA escola não entra ──────────
+   *
+   * Palavras dela: «o Batman GT apareceu opções para eu escolher o tempo e opções para eu escolher o
+   * compasso. Está errado isso, porque o Batman GT já tem isso definido. Por que é que não está
+   * atualizado do mesmo lugar onde você pegou para os outros exercícios?»
+   *
+   * A causa era a leitura: o alfabeto guarda o registo do catálogo e o de CADA escola, e a lista
+   * que alimentava o diálogo tirava o dono e juntava tudo. O Battement jeté tem `4|4/4@batata` e
+   * `8|2/4@breu`; depois de tirar o dono, «este exercício tem duas músicas» — e a tela, vendo duas,
+   * pedia uma escolha onde a `breu` tem uma resposta. */
+  console.log('\nc) a música de outra escola NÃO entra (o defecto do «Batman GT»)');
+  const doJete = await interagir(() => {
+    document.querySelector('#criar-aula-exercicios input[value="Battement jeté"]').click();
+    const tr = document.querySelectorAll('#criar-aula-musica-corpo tr')[1];
+    const tds = [...tr.querySelectorAll('td')];
+    return {
+      nome: tds[0].textContent.trim(),
+      tempos: tds[1].textContent.trim(),
+      compasso: tds[2].textContent.trim(),
+      controles: tr.querySelectorAll('select, input[type=text]').length,
+      musicasDoDado: (function () {
+        try {
+          return JSON.parse(document.getElementById('dados-criar-aula').textContent).musicas['Battement jeté'];
+        } catch (e) { return null; }
+      })(),
+    };
+  });
+  provar('o Battement jeté da `breu` vem com UMA música (a dela), e não com as duas',
+    Array.isArray(doJete.musicasDoDado) && doJete.musicasDoDado.length === 1
+    && doJete.musicasDoDado[0] === '8|2/4', doJete.musicasDoDado);
+  provar('…e por isso os campos vêm PREENCHIDOS e em leitura, como os outros exercícios',
+    doJete.tempos === '8' && doJete.compasso === '2/4' && doJete.controles === 0, doJete);
+  provar('…e a música da `batata` (4 em 4/4) não aparece em lado nenhum do diálogo',
+    JSON.stringify(doJete.musicasDoDado || null).indexOf('4|4/4') === -1, doJete.musicasDoDado);
+
+  /* O PRIMEIRO SERVIDOR FECHA, O NAVEGADOR NÃO: a página da fixture seguinte abre-se na mesma
+   * aba, e fechar o browser aqui deixava a prova a falar com um alvo morto. */
+  servico.srv.close();
+
+  /* ───────── d) DUAS músicas declaradas pela MESMA escola: aí sim, escolha ─────────
+   *
+   * A regra não desapareceu — mudou de dono. Para prová-la é preciso uma escola que declare duas
+   * músicas para o mesmo exercício, e nenhuma declara hoje. A fixture é a PÁGINA, com um `4|4/4`
+   * acrescentado ao lado do `8|2/4` da `breu`: dois registos do MESMO dono, que é o que o alfabeto
+   * permite e o que o diálogo tem de saber mostrar. */
+  console.log('\nd) duas músicas da MESMA escola: escolha, com o compasso a seguir os tempos');
+  const htmlDuas = html.replace('"Battement jeté":["8|2/4"]', '"Battement jeté":["8|2/4","4|4/4"]');
+  const temFixture = htmlDuas !== html;
+  servico = await servir(htmlDuas, templates);
+  await abrir(servico.base, '03');
   const duas = await interagir(() => {
     document.querySelector('#criar-aula-exercicios input[value="Battement jeté"]').click();
     const corpo = document.getElementById('criar-aula-musica-corpo');
-    const tr = corpo.querySelectorAll('tr')[1];
+    const tr = corpo.querySelectorAll('tr')[0];
     const tempos = tr.querySelector('select[data-qual="tempos"]');
     const compasso = tr.querySelector('select[data-qual="compasso"]');
     const antes = {
@@ -206,21 +254,38 @@ function servir(html, templates) {
     c.value = '2/4';
     return { nome: tr.querySelector('td').textContent.trim(), antes, depois4, depois8 };
   });
+  provar('a fixture das duas músicas da mesma escola foi aplicada', temFixture || Boolean(contra));
   provar('o exercício com duas músicas ganha dois campos de ESCOLHA',
     duas.nome === 'Battement jeté', duas);
   /* TUDO DEFENSIVO: no controle negativo o corpo da tabela não existe, e a prova tem de REPRODUZIR
    * o defeito em vez de estourar a meio — um controle que rebenta não é um controle. */
   const antes = (duas && duas.antes) || {};
-  provar('os tempos oferecidos são os declarados (4 e 8)',
-    (antes.opcoesTempos || []).join(',') === '4,8', antes.opcoesTempos);
+  /* A ORDEM É A DA DECLARAÇÃO do verbete, e a fixture declara o `8` primeiro (é o registo da
+   * `breu`); o que se mede é o CONJUNTO — as duas músicas declaradas, e mais nenhuma. */
+  provar('os tempos oferecidos são os declarados (4 e 8), e só eles',
+    (antes.opcoesTempos || []).slice().sort().join(',') === '4,8', antes.opcoesTempos);
   provar('escolher 4 limita o compasso a 4/4',
     ((duas && duas.depois4) || []).join(',') === '4/4', duas && duas.depois4);
   provar('escolher 8 limita o compasso a 2/4',
     ((duas && duas.depois8) || []).join(',') === '2/4', duas && duas.depois8);
 
-  /* ─────────────────── d) o que fica gravado na sequência (o corpo do POST) ─────────────────── */
-  console.log('\nd) a sequência nasce com a música');
+  /* ─────────────────── e) o que fica gravado na sequência (o corpo do POST) ─────────────────── */
+  console.log('\ne) a sequência nasce com a música');
+  /* A PÁGINA RECOMEÇA (a secção (d) deixou o Battement jeté marcado, e um segundo clique
+   * DESmarcava-o): recarregar é o que garante que esta secção mede o que diz medir. */
+  await abrir(servico.base, '03');
   await interagir(() => {
+    document.querySelector('#criar-aula-exercicios input[value="Battement tendu"]').click();
+    document.querySelector('#criar-aula-exercicios input[value="Battement jeté"]').click();
+    /* O JETÉ DESTA FIXTURE TEM DUAS MÚSICAS, e a página recarregada não traz nenhuma escolhida:
+     * escolher as duas é o gesto do professor, e é o que a linha gravada tem de reflectir. */
+    const tr = document.querySelectorAll('#criar-aula-musica-corpo tr')[1];
+    const t = tr.querySelector('select[data-qual="tempos"]');
+    t.value = '8';
+    t.dispatchEvent(new Event('change', { bubbles: true }));
+    const c = tr.querySelector('select[data-qual="compasso"]');
+    c.value = '2/4';
+    c.dispatchEvent(new Event('change', { bubbles: true }));
     const marco = document.getElementById('criar-aula-marco');
     marco.value = 'o que esta aula persegue';
     document.querySelector('#criar-aula-blocos input[value="Barra"]').click();
@@ -236,13 +301,13 @@ function servir(html, templates) {
   provar('a sequência tem uma linha por exercício escolhido', linhas.length === 2,
     linhas.map((l) => l['Conteúdo do nível']));
   const doTendu = linhas.find((l) => l['Conteúdo do nível'] === 'Battement tendu') || {};
-  const doJete = linhas.find((l) => l['Conteúdo do nível'] === 'Battement jeté') || {};
+  const doJeteGravado = linhas.find((l) => l['Conteúdo do nível'] === 'Battement jeté') || {};
   provar('o Battement tendu nasce com 8 tempos em 2/4 (do verbete)',
     doTendu['Tempos'] === '8' && doTendu['Compasso'] === '2/4',
     [doTendu['Tempos'], doTendu['Compasso']]);
   provar('o Battement jeté nasce com o que se escolheu (8 em 2/4)',
-    doJete['Tempos'] === '8' && doJete['Compasso'] === '2/4',
-    [doJete['Tempos'], doJete['Compasso']]);
+    doJeteGravado['Tempos'] === '8' && doJeteGravado['Compasso'] === '2/4',
+    [doJeteGravado['Tempos'], doJeteGravado['Compasso']]);
   provar('o bloco escolhido é o da linha', linhas.every((l) => l['Bloco'] === 'Barra'),
     linhas.map((l) => l['Bloco']));
 
@@ -250,8 +315,8 @@ function servir(html, templates) {
   servico.srv.close();
   if (temporario) fs.rmSync(temporario, { recursive: true, force: true });
 
-  /* ────────── e) um exercício sem música declarada: escreve-se à mão, e meio par não passa ────────── */
-  console.log('\ne) sem música declarada no verbete');
+  /* ────────── f) um exercício sem música declarada: escreve-se à mão, e meio par não passa ────────── */
+  console.log('\nf) sem música declarada no verbete');
   /* A PÁGINA SEM A MÚSICA DO «Plié» — é o que acontece quando o verbete não declara nenhuma. A
    * troca é no JSON que o diálogo recebe, e o resto da página fica exatamente o mesmo. */
   const semMusica = html.replace('"Plié":["4|2/4"],', '');
