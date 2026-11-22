@@ -58659,3 +58659,56 @@ apanhou.
 **Pré-existentes, verificadas iguais com e sem esta mudança** (worktree limpo do `HEAD`):
 `provar-derivador-da-aula` 34/35, `provar-escopo-da-aula` 2 falhas, `provar-eixos-e-tempo-da-aula`
 4 de 52.
+
+## 22/11/2026 — O diálogo que cria a aula pergunta a música dela
+
+**O pedido.** «falta a gente colocar também tempo, a parte toda da musicalidade ali naquele modal
+quando ele abre». O segundo passo da ordem que ela deu (1.º a coluna da aula anterior, 2.º a
+musicalidade no modal, 3.º o portão da aula dada).
+
+**O defeito, medido no produto publicado.** O diálogo criava a aula com `"Tempos": ""` e
+`"Compasso": ""` — de propósito, à espera de um preenchimento que ninguém fazia —, e o §4 da Aula
+02 do ciclo da `rosa` saía a dizer: «Nenhum exercício desta aula tem tempos e compasso declarados
+na sequência — sem eles não há música a consolidar.» Medido no envelope (`aula-2-sequencia`, oito
+linhas, todas vazias) e no documento publicado.
+
+**A regra é a que a grelha do plano já pratica desde 31/10/2026**, e não uma nova: a música é do
+**exercício** (o mesmo exercício em Barra, Centro e Expressão tem a mesma música — é a regra do
+§4), o **verbete** já a declara, e o número de músicas declaradas decide a forma do campo:
+uma → vem preenchida e é leitura; várias → os dois são escolha, e só as declaradas se oferecem
+(8 em 3/4 não existe, e não se pode escrever); nenhuma → os dois em branco, à mão, com a nota a
+dizer quem ficou sem música. O compasso acompanha os tempos — escolhido o tempo, só se oferecem os
+compassos que existem para ele, e o que estava escolhido mantém-se quando continua válido.
+
+**Tempos e compasso andam juntos.** Meio par é recusado no diálogo, com o nome do exercício: a
+chave da notação é `tempos|compasso`, e meia chave não compõe nada. É a diferença entre recusar no
+sítio onde a pessoa decide e gravar uma linha que o §4 vai ter de contornar.
+
+**A LEITURA MUDOU DE CASA.** A lista de músicas por exercício vivia em `bastidores.js` e passou a
+ser precisa também no derivador do plano — que é puro e não fala com o servidor. A regra (limpar o
+dono `@escola`, deduplicar) mora agora em `motor/nucleo/notacao.js` (`musicasDosExercicios`), e o
+servidor delega nela: duas cópias divergiriam ao primeiro separador novo.
+
+**O QUE ELA VAI VER, e o que ainda não.** As aulas criadas **a partir de agora** nascem com a
+música. A **Aula 02 já criada continua sem ela** — os `Tempos`/`Compasso` dela estão no envelope, e
+não se inventam: o Battement jeté declara **duas** músicas (4 em 4/4, 8 em 2/4) e escolher por ela
+seria escrever no documento o que ela não decidiu. O caminho é a grelha da sequência no plano, onde
+os dois campos se editam.
+
+**Com o quê.** `motor/nucleo/notacao.js` (`musicasDosExercicios`), `motor/servidor/bastidores.js`
+(delega), `motor/nucleo/derivar-plano-ciclo.js` (o mapa no diálogo, a tabela, o guionista, a recusa
+do meio par, a sequência com a música), as fontes derivadas e o pacote da `breu-rosa` regerados, a
+âncora recalculada, `experimentos/provar-a-musica-do-modal.js` (**novo**), `.gitignore`,
+`ESTADO-ATUAL.md`.
+
+**MEDIDO.** `provar-a-musica-do-modal` **22/22**, no navegador, sobre a página do plano que o
+pacote serve e com a escrita stubada — o POST de `api/elicitar` é capturado, e o que se lê é o
+corpo que o professor enviaria: a caixa nasce fechada e abre no primeiro exercício marcado; o
+Battement tendu (uma música) traz 8 e 2/4 em leitura, sem campo para escrever por cima; o Battement
+jeté (duas) traz dois `select`, e escolher 4 fixa o compasso em 4/4 e escolher 8 fixa-o em 2/4; o
+corpo enviado traz `"Tempos": "8", "Compasso": "2/4"` nas duas linhas; um exercício sem verbete
+ganha dois campos de escrever, e tempos sem compasso é recusado sem enviar nada. Com o **controle
+negativo** `--contra=d562534a` (a `plano.html` DAQUELE commit, não uma reconstrução), as mesmas
+asserções reprovam **13 de 18** — e a que importa mostra `["",""]` na sequência. `provar-criar-aula`
+continua **53/53**, `check-pacote` 0 erros, `hash-ciclo --check` íntegro, `check-identidade` **0
+problemas**.

@@ -4,8 +4,15 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 22/11/2026 (commit `49fb6f87`, e a **Aula 02 a ler a Aula 01** a seguir).
-> Ainda neste dia, **a aula que vem depois passou a ver o que a anterior deixou**: o §5 das aulas 02
+> **Última fotografia:** 22/11/2026 (commit `d562534a`, e a **música no diálogo que cria a aula** a
+> seguir). Ainda neste dia, **o diálogo que cria a aula passou a perguntar a música dela**: criava
+> a aula com `Tempos` e `Compasso` vazios, e o §4 do documento saía a dizer «nenhum exercício desta
+> aula tem tempos e compasso declarados na sequência» — medido na Aula 02 da `rosa`, publicada. A
+> música é do **exercício** e o verbete já a declara: uma música → leitura; várias → escolha, e só
+> as declaradas; nenhuma → à mão. **Tempos e compasso andam juntos**, e meio par é recusado.
+>
+> **Fotografia anterior (22/11/2026 — commit `49fb6f87`).** Ainda neste dia, **a aula que vem
+> depois passou a ver o que a anterior deixou**: o §5 das aulas 02
 > em diante ganha a coluna **Resultado na Aula N-1** (o nível que o professor marcou, agregado pela
 > régua da turma — «1 de 2 em «Satisfatório» · 1 de 2 em «Razoável»»), e o §3.1 **«O que a aula
 > anterior mostrou»** conta a presença em percentagem, o ânimo, o interesse e a harmonia, a data e a
@@ -3346,6 +3353,18 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      (o `<details>` abre sozinho no `summary`).
      **PENDENTE e declarado**: (a) a **hora de início** não é registada pelo formulário, e a linha da
          data diz isso; (b) a **sala onde a aula aconteceu** não é perguntada — é o campo que falta.
+152. **A MÚSICA DA AULA PERGUNTA-SE QUANDO A AULA NASCE — NO DIÁLOGO, E DO VERBETE.** Palavras
+     dela: «falta a gente colocar também tempo, a parte toda da musicalidade ali naquele modal
+     quando ele abre». O diálogo criava a aula com `Tempos` e `Compasso` vazios, e o §4 da Aula 02
+     da `rosa` saía a dizer «nenhum exercício desta aula tem tempos e compasso declarados na
+     sequência». A regra passa a ser a que a grelha do plano já pratica: a música é do
+     **exercício**, o **verbete** declara-a, e o número declarado decide a forma do campo — uma →
+     leitura; várias → escolha, e só as declaradas; nenhuma → à mão, com a nota. O compasso
+     acompanha os tempos, e **meio par é recusado** com o nome do exercício (a chave da notação é
+     `tempos|compasso`). A leitura mudou de casa: `musicasDosExercicios` vive no núcleo
+     (`notacao.js`) e o servidor delega nela. **As aulas já criadas não se reescrevem** — a Aula 02
+     da `rosa` continua sem música até que a grelha da sequência a receba, porque o Battement jeté
+     declara **duas** e escolher por ela seria decidir no lugar dela. **DECIDIDO** 22/11/2026.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
@@ -4162,7 +4181,17 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (22/11/2026 — a aula que lê a aula anterior)
+### Executado nesta fotografia (22/11/2026 — a música no diálogo que cria a aula)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-a-musica-do-modal.js` | **22/22**, no navegador sobre a `plano.html` do pacote com a escrita stubada: a caixa nasce fechada e abre no primeiro exercício; uma música → 8 e 2/4 em leitura, sem campo por cima; duas músicas → dois `select`, e o compasso segue os tempos (4→4/4, 8→2/4); o corpo do POST leva `"Tempos": "8", "Compasso": "2/4"`; sem verbete → dois campos de escrever; meio par recusado, nada enviado. Controle `--contra=d562534a` (a `plano.html` daquele commit): **13 de 18 reprovam**, com `["",""]` na sequência |
+| `node experimentos/provar-criar-aula.js` | **53/53** (inalterado) |
+| `node tools/check-pacote.js professores/demi-plie/ciclos/ciclo-01-breu-rosa` | 0 erros (1 aviso: o PDF, por desenho) |
+| `bash tools/hash-ciclo.sh demi-plie 01 breu-rosa --check` | íntegro, cadeia intacta |
+| `node tools/check-identidade.js` | **0 problemas** |
+
+### Executado na fotografia anterior (22/11/2026 — a aula que lê a aula anterior)
 
 | Verificação | Resultado |
 |:--|:--|

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T18:31:30-0300`
-Commit atual: `49fb6f87` — docs(estrutura): a fotografia do §1 da aula e do guia que leva ao formulário
+Gerado em: `2026-11-22T18:37:35-0300`
+Commit atual: `d562534a` — feat(aula-02): a aula que vem depois lê o lançamento da anterior
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,8 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+d562534a feat(aula-02): a aula que vem depois lê o lançamento da anterior
+4330dd32 chore(estrutura): fechar os derivados — âncoras e índices
 49fb6f87 docs(estrutura): a fotografia do §1 da aula e do guia que leva ao formulário
 62b2659c feat(aula-01): o §1 diz quem dá a aula, onde e em que dia — e o §5 leva ao formulário
 247f825f chore(estrutura): fechar os derivados — âncoras e índices
@@ -100,8 +102,6 @@ b189d776 docs(estrutura): a fotografia do painel, da coluna e do KV
 d1127afd fix(estrutura): um elo que nunca olhou não é um elo limpo
 9b415003 feat(estrutura): o painel inicial do Estúdio conta o que interessa
 dff5ccff fix(template): a coluna dos Bastidores abre e fecha a partir dos 769
-de95569a docs(estrutura): o defeito que só apareceu ao vivo, e a terceira cópia da lista
-7cbec16a fix(estrutura): o pacote da escola zero é regerado com o menu de um destino
 ```
 
 ## Por professor
@@ -128,7 +128,7 @@ de95569a docs(estrutura): o defeito que só apareceu ao vivo, e a terceira cópi
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `59b86b60252a` | (vazio) | — |
-| breu-rosa | ciclo-01-breu-rosa.fipp | `58c99300bf59` | (vazio) | Input_PO_Validado |
+| breu-rosa | ciclo-01-breu-rosa.fipp | `4df281467344` | (vazio) | Input_PO_Validado |
 
 ### fernando-franciose — 0 ciclo(s)
 
@@ -195,90 +195,58 @@ de95569a docs(estrutura): o defeito que só apareceu ao vivo, e a terceira cópi
 
 ## Última entrada do REGISTRO
 
-## 22/11/2026 — A Aula 02 lê o resultado da Aula 01, e cada secção abre e fecha
+## 22/11/2026 — O diálogo que cria a aula pergunta a música dela
 
-**O que ela pediu**, na ordem em que pediu. Primeiro a coluna: «Aí tem uma coluna a adicionar
+**O pedido.** «falta a gente colocar também tempo, a parte toda da musicalidade ali naquele modal
+quando ele abre». O segundo passo da ordem que ela deu (1.º a coluna da aula anterior, 2.º a
+musicalidade no modal, 3.º o portão da aula dada).
 
-[n]esses espaços […] uma outra coluna que pode ser o nome de resultado obtido na aula anterior […]
-Ainda não tem essa coluna porque ainda não foi dada nenhuma aula […] Só vai ter a partir da aula
-dois.» Depois o que veio do formulário: «a gente vai mostrar em percentual […] o ânimo da aula, o
-interesse da aula e a harmonia da aula […] se a aula foi dada no dia certo […] se aconteceu na sala
-correta […] o plano foi seguido? […] se algo surpreendeu […] o que que aconteceu de novo.» E, sobre
-a forma: «todos, todos eles, todos eles tem que ter isso de colapsar e expandir.»
+**O defeito, medido no produto publicado.** O diálogo criava a aula com `"Tempos": ""` e
+`"Compasso": ""` — de propósito, à espera de um preenchimento que ninguém fazia —, e o §4 da Aula
+02 do ciclo da `rosa` saía a dizer: «Nenhum exercício desta aula tem tempos e compasso declarados
+na sequência — sem eles não há música a consolidar.» Medido no envelope (`aula-2-sequencia`, oito
+linhas, todas vazias) e no documento publicado.
 
-**O dado já existia; faltava a ligação.** O `-dados.json` guarda, por aula lançada, o nível que o
-professor deu a cada aluna em cada critério. O derivador da aula não recebia esse ficheiro — agora
-recebe (`contexto.lancamentos`), e a aula N lê a N-1. O caminho é o mesmo dos dois escritores: o do
-Worker (`escrever-ciclo.js`) e o local (`tools/regerar-derivados.js`), com a mesma leitura e a
-mesma tolerância — sem ficheiro, nada se inventa.
+**A regra é a que a grelha do plano já pratica desde 31/10/2026**, e não uma nova: a música é do
+**exercício** (o mesmo exercício em Barra, Centro e Expressão tem a mesma música — é a regra do
+§4), o **verbete** já a declara, e o número de músicas declaradas decide a forma do campo:
+uma → vem preenchida e é leitura; várias → os dois são escolha, e só as declaradas se oferecem
+(8 em 3/4 não existe, e não se pode escrever); nenhuma → os dois em branco, à mão, com a nota a
+dizer quem ficou sem música. O compasso acompanha os tempos — escolhido o tempo, só se oferecem os
+compassos que existem para ele, e o que estava escolhido mantém-se quando continua válido.
 
-**O RESULTADO É AGREGADO, e não uma coluna por aluna.** Ela descreveu o caso de duas («para a
-aluna A eu marco satisfatório, para a B razoável»); com trinta, um documento com trinta colunas não
-se lê — é a mesma conta que a coluna do corpo já tinha resolvido para a anamnese a 21/11. A frase é
-a da casa: `1 de 2 em «Satisfatório» · 1 de 2 em «Razoável»`, pela ordem da régua da turma.
+**Tempos e compasso andam juntos.** Meio par é recusado no diálogo, com o nome do exercício: a
+chave da notação é `tempos|compasso`, e meia chave não compõe nada. É a diferença entre recusar no
+sítio onde a pessoa decide e gravar uma linha que o §4 vai ter de contornar.
 
-**O §3.1 — «O que a aula anterior mostrou».** Entra **depois da distribuição do tempo**, como ela o
-situou: presença **em percentagem**, ânimo/interesse/harmonia, a data e a duração conferidas contra
-o calendário (**OK** ou **não OK** — e, quando não, o dia em que aconteceu), a sala, o plano seguido
-(com a justificativa de quando não foi «sim»), a marca do «surpreendeu?» e o que aconteceu de novo.
-Cada linha tem **três estados** e diz qual é: o dado, «a aula não foi lançada», ou «o campo ficou em
-branco». Nenhum deles vira zero nem «não».
+**A LEITURA MUDOU DE CASA.** A lista de músicas por exercício vivia em `bastidores.js` e passou a
+ser precisa também no derivador do plano — que é puro e não fala com o servidor. A regra (limpar o
+dono `@escola`, deduplicar) mora agora em `motor/nucleo/notacao.js` (`musicasDosExercicios`), e o
+servidor delega nela: duas cópias divergiriam ao primeiro separador novo.
 
-**A AULA 01 NÃO TEM NADA DISTO** — nem a secção, nem a coluna. Uma coluna que se imprime sem ter o
-que dizer em todas as linhas ensina a ignorá-la, e a regra dela é explícita: a partir da aula dois.
+**O QUE ELA VAI VER, e o que ainda não.** As aulas criadas **a partir de agora** nascem com a
+música. A **Aula 02 já criada continua sem ela** — os `Tempos`/`Compasso` dela estão no envelope, e
+não se inventam: o Battement jeté declara **duas** músicas (4 em 4/4, 8 em 2/4) e escolher por ela
+seria escrever no documento o que ela não decidiu. O caminho é a grelha da sequência no plano, onde
+os dois campos se editam.
 
-**O «3.1» é 3.1 e não 4.** O contrato de extracção casa o título **literal** com o número à frente;
-meter aqui uma «4» obrigava a renumerar 4→5, 5→6, 6→7, 7→8, 8→9 no mapa, nos documentos já
-gravados de todos os ciclos e nas provas que cortam o documento por título. O 3.1 diz o mesmo —
-«logo depois da 3» — sem reescrever o passado.
+**Com o quê.** `motor/nucleo/notacao.js` (`musicasDosExercicios`), `motor/servidor/bastidores.js`
+(delega), `motor/nucleo/derivar-plano-ciclo.js` (o mapa no diálogo, a tabela, o guionista, a recusa
+do meio par, a sequência com a música), as fontes derivadas e o pacote da `breu-rosa` regerados, a
+âncora recalculada, `experimentos/provar-a-musica-do-modal.js` (**novo**), `.gitignore`,
+`ESTADO-ATUAL.md`.
 
-**A dobra de cada secção** (`.secao-dobra` + `.secao-corpo`) é criada pelo `nav.js` e não pelo HTML,
-pela mesma razão do índice: o documento é gerado, e um pacote que não se pode regerar ficaria sem o
-controle. Mora **dentro do título** — oito fileiras de botões no meio do texto seriam o contrário do
-que se pediu ao pedir menos rolagem —, nasce aberta, e o índice manda: clicar na secção fechada
-abre-a (senão metade do índice não leva a lado nenhum). No papel não há dobra: sai inteira, e o
-botão não se imprime.
-
-**Duas correções que ela pediu no mesmo acto.** O §1 já não repete o «Objetivo específico» (está no
-parâmetro, e no título do documento). E o botão «Como preencher o formulário» saiu: o texto e o
-espaço que ele abre ficam no §5, mas o `<details>` já abre sozinho no `summary` — era um segundo
-controle para a mesma coisa.
-
-**Motivo declarado — os congelados.** `tools/validar-aula-ciclo.js` (o mapa das secções, uma linha
-nova), `tools/templates/nav.js` e `tools/templates/ciclo.css` (a dobra) estão em `CONGELAMENTO.md`.
-**O que não muda**: o formato dos documentos anteriores (as oito secções continuam com o mesmo
-número e o mesmo título), as chaves exigidas pelo schema (`aulaAnterior` é opcional), o hash de
-proveniência, e as regras de `REGRAS.md` e as pétreas de `PROTOCOLO.md`.
-
-**Com o quê.** `motor/nucleo/derivar-ciclo.js` (o §3.1, a coluna, a data da aula anterior, a linha
-que saiu do §1, o botão que saiu do §5), `motor/servidor/escrever-ciclo.js` e
-`tools/regerar-derivados.js` (o lançamento no contexto), `tools/validar-aula-ciclo.js` (o mapa), os
-**15** `ciclo-01-aula-schema.json` (o campo `aulaAnterior`), `tools/templates/nav.js` e
-`tools/templates/ciclo.css` (a dobra), as fontes derivadas e os dois pacotes da `breu` regerados, a
-âncora recalculada, `experimentos/provar-a-dobra-e-a-aula-anterior.js` (**novo**),
-`experimentos/provar-a-identidade-da-aula.js` (as duas asserções dos botões, agora um só),
-`.gitignore`, `ESTADO-ATUAL.md`.
-
-**MEDIDO.** `provar-a-dobra-e-a-aula-anterior` **31/31**, em duas metades: o markdown derivado com
-um lançamento de fixture (o caso que ela descreveu — 100% de presença, ânimo 5 · interesse 4 ·
-harmonia 3, o plano «em parte» com a justificativa, a aluna A «Satisfatório» e a B «Razoável» na 1ª
-posição dos pés) e o documento publicado no navegador (9 secções, 9 botões, todos dentro do título;
-fechar, abrir, o índice a abrir o que estava fechado, e o papel a ignorar o estado). Com o **controle
-negativo** `--contra=49fb6f87`, as mesmas asserções reprovam **25 de 31**. `check-pacote` 0 erros,
-`hash-ciclo --check` íntegro, `check-identidade` **0 problemas**, `provar-a-identidade-da-aula`
-26/26, `provar-a-aula-diz-so-o-que-e-dela` 25/25. **Medido também o custo do botão**: com e sem a
-dobra, o título tem os mesmos 38px e a página os mesmos 10 166px; o alvo do dedo é 23×15px.
-
-**Um erro encontrado no caminho, e que teria passado.** A primeira versão do leitor escrevia
-`typeof porAluno` onde a variável é `porAluna` — a guarda `!porAluno || typeof porAluno !== 'object'`
-dava sempre verdadeira, a função devolvia `{}` e **todas** as linhas diziam «não marcado na Aula 01».
-É a família de defeito que a prova apanha e a leitura não: a coluna existia, o documento parecia
-certo, e o dado nunca chegava. A asserção que exige o valor («1 de 2 em «Satisfatório»») é o que o
-apanhou.
-
-**Pré-existentes, verificadas iguais com e sem esta mudança** (worktree limpo do `HEAD`):
-`provar-derivador-da-aula` 34/35, `provar-escopo-da-aula` 2 falhas, `provar-eixos-e-tempo-da-aula`
-4 de 52.
+**MEDIDO.** `provar-a-musica-do-modal` **22/22**, no navegador, sobre a página do plano que o
+pacote serve e com a escrita stubada — o POST de `api/elicitar` é capturado, e o que se lê é o
+corpo que o professor enviaria: a caixa nasce fechada e abre no primeiro exercício marcado; o
+Battement tendu (uma música) traz 8 e 2/4 em leitura, sem campo para escrever por cima; o Battement
+jeté (duas) traz dois `select`, e escolher 4 fixa o compasso em 4/4 e escolher 8 fixa-o em 2/4; o
+corpo enviado traz `"Tempos": "8", "Compasso": "2/4"` nas duas linhas; um exercício sem verbete
+ganha dois campos de escrever, e tempos sem compasso é recusado sem enviar nada. Com o **controle
+negativo** `--contra=d562534a` (a `plano.html` DAQUELE commit, não uma reconstrução), as mesmas
+asserções reprovam **13 de 18** — e a que importa mostra `["",""]` na sequência. `provar-criar-aula`
+continua **53/53**, `check-pacote` 0 erros, `hash-ciclo --check` íntegro, `check-identidade` **0
+problemas**.
 
 ## O que está pendente
 

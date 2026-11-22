@@ -67,6 +67,43 @@ function slug(texto) {
     .replace(/^-+|-+$/g, '');
 }
 
+/**
+ * AS MÚSICAS DECLARADAS DE CADA EXERCÍCIO — `{ nome → ['8|2/4', '12|4/4', …] }`.
+ *
+ * MUDOU DE CASA A 22/11/2026, e não é arrumação: a lista passou a ser precisa em DOIS sítios — a
+ * grelha do plano (que já a usava, em `bastidores.js`) e o diálogo que cria a aula seguinte, que é
+ * derivado em `derivar-plano-ciclo.js` e não fala com o servidor. Duas cópias da mesma leitura
+ * divergem ao primeiro separador novo, e a regra do dono já está escrita aqui (`musicaDaChave`).
+ *
+ * O DONO NÃO É MÚSICA, E NÃO SE MOSTRA (03/11/2026). A chave de um registo de escola é
+ * `8|2/4@breu` — o dono entra nela para o catálogo e a escola poderem declarar a mesma música sem
+ * colidir. Isso é armazenamento: o que se mostra é o COMPASSO. A limpeza é `musicaDaChave`, e não
+ * uma segunda regra escrita em cada sítio.
+ *
+ * A DEDUPLICAÇÃO É NECESSÁRIA, e não cosmética: quando o catálogo e a escola declaram a mesma
+ * música, o alfabeto tem `8|4/4` e `8|4/4@breu`; sem isto a lista oferecia a mesma música duas
+ * vezes. Quem escolhe entre as duas é `registosDaEscola` (a da escola vence), não o menu.
+ *
+ * A LEITURA É LOCAL — o alfabeto que o bundle já traz (zero KV, zero ida ao GitHub).
+ */
+function musicasDosExercicios() {
+  const mapa = new Map();
+  for (const { alfabeto } of alfabetos()) {
+    const verbetes = (alfabeto && alfabeto.verbetes) || {};
+    for (const nome of Object.keys(verbetes)) {
+      if (nome.startsWith('_')) continue;
+      const vistas = [];
+      for (const k of Object.keys(verbetes[nome] || {})) {
+        if (!/^\d+\|/.test(k)) continue;
+        const limpa = musicaDaChave(k);
+        if (limpa && vistas.indexOf(limpa) === -1) vistas.push(limpa);
+      }
+      if (vistas.length) mapa.set(nome, vistas);
+    }
+  }
+  return mapa;
+}
+
 /** Todos os alfabetos publicados, por modalidade — para a Produção listar o que existe. */
 function alfabetos() {
   return Object.keys(ALFABETOS).map((modalidade) => ({
@@ -907,6 +944,7 @@ module.exports = {
   chaveDoVerbete,
   escolaDoRegisto,
   musicaDaChave,
+  musicasDosExercicios,
   registosDaEscola,
   compor,
   comporTodas,

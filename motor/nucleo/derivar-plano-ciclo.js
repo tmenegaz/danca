@@ -31,6 +31,11 @@ const {
   COMPOR_DO_CONTEXTO,
 } = require('./derivar-po.js');
 const sequenciaDoPlano = require('./sequencia.js');
+/* A MÚSICA DE CADA EXERCÍCIO (22/11/2026) — o diálogo que cria a aula seguinte precisava dela, e
+ * ela já existia no núcleo. Sem isto, a aula criada nascia com `Tempos` e `Compasso` vazios e o §4
+ * do documento saía a dizer «nenhum exercício desta aula tem tempos e compasso declarados na
+ * sequência» — o defeito que ela viu na Aula 02 da `rosa`. */
+const { musicasDosExercicios } = require('./notacao.js');
 
 // OS BLOCOS DA AULA — a ordem canónica da Regra 3 (solo → barra → centro), a
 // musicalidade e a expressão. Os quatro primeiros são a estrutura espacial; a EXPRESSÃO
@@ -627,6 +632,20 @@ function dialogoDaAula(envelope, contexto) {
   /* SEM REPERTÓRIO NÃO HÁ O QUE MARCAR, e o diálogo diz isso em vez de mostrar uma lista vazia:
    * «o repertório da turma está no plano, e é dele que saem os exercícios». Um botão que abre uma
    * caixa sem opções ensina que o sistema está quebrado. */
+  /* A MÚSICA DECLARADA DE CADA EXERCÍCIO DO REPERTÓRIO — `{ 'Battement tendu': ['8|2/4'], … }`.
+   *
+   * SÓ OS DO REPERTÓRIO: o alfabeto tem todos os verbetes da modalidade, e mandar os 102 para uma
+   * página que mostra cinco seria payload a fingir de catálogo. O que o diálogo precisa é da música
+   * dos exercícios que ele próprio oferece.
+   *
+   * A CHAVE É `tempos|compasso`, a mesma da grelha do plano e a mesma que o verbete declara — uma
+   * forma só, para as duas telas não lerem o mesmo dado de duas maneiras. */
+  const catalogoDeMusicas = musicasDosExercicios();
+  const musicas = {};
+  for (const nome of repertorio) {
+    const lista = catalogoDeMusicas.get(nome);
+    if (lista && lista.length) musicas[nome] = lista.slice();
+  }
   const dados = {
     id,
     ciclo: String(contexto.ciclo || ''),
@@ -637,6 +656,7 @@ function dialogoDaAula(envelope, contexto) {
     repertorio,
     blocos: blocosDaAula,
     temRepertorio: repertorio.length > 0,
+    musicas,
   };
 
   const esc = (s) => String(s == null ? '' : s)
@@ -673,6 +693,33 @@ function dialogoDaAula(envelope, contexto) {
   linhas.push('<textarea id="criar-aula-marco" name="marco" rows="2" required></textarea>');
   linhas.push('<fieldset class="escolhas" id="criar-aula-exercicios"><legend>Exercícios que trabalham este objetivo</legend></fieldset>');
   linhas.push('<fieldset class="escolhas" id="criar-aula-blocos"><legend>Blocos onde ele é trabalhado</legend></fieldset>');
+  /* A MÚSICA DA AULA, NO MOMENTO EM QUE A AULA NASCE (22/11/2026).
+   *
+   * Palavras dela: «falta a gente colocar também tempo, a parte toda da musicalidade ali naquele
+   * modal quando ele abre». O diálogo criava a aula com `"Tempos": ""` e `"Compasso": ""` — de
+   * propósito, à espera de um preenchimento que ninguém fazia —, e o §4 do documento saía a dizer
+   * «nenhum exercício desta aula tem tempos e compasso declarados na sequência». Medido na Aula 02
+   * do ciclo da `rosa`, publicada.
+   *
+   * O QUE ELE PERGUNTA, E O QUE NÃO PERGUNTA. A música é do EXERCÍCIO, não do bloco (é a regra do
+   * §4: o mesmo exercício em Barra, Centro e Expressão tem a mesma música), e o verbete já a
+   * declara — então uma linha por exercício escolhido, e não uma por par (bloco, exercício):
+   *   · o verbete declara UMA música → os dois valores vêm preenchidos e são leitura;
+   *   · declara VÁRIAS → os dois viram escolha, e só as declaradas se oferecem (8 em 3/4 não
+   *     existe, e não se pode escrever);
+   *   · não declara NENHUMA → os dois ficam em branco para escrever à mão, e a nota diz que o
+   *     documento vai declarar «sem música» se ficarem assim.
+   * É a regra que a grelha do plano já pratica desde 31/10/2026 (`porta/index.html`), e a leitura é
+   * a MESMA função do núcleo (`musicasDosExercicios`) — duas telas, uma regra.
+   *
+   * AS PEÇAS SÃO AS DA CASA: a `<table>` do documento (a folha desenha `th`/`td` em todo o
+   * sistema), o `select` e o `input` dos formulários, e o `.campo-rotulo` que rotula o grupo. Nada
+   * de classe nova. */
+  linhas.push('<div id="criar-aula-musica" hidden>');
+  linhas.push('<p class="campo-rotulo" id="criar-aula-musica-rotulo">Tempos e compasso de cada exercício</p>');
+  linhas.push('<table id="criar-aula-musica-tabela"><thead><tr><th>Exercício</th><th>Tempos</th><th>Compasso</th></tr></thead><tbody id="criar-aula-musica-corpo"></tbody></table>');
+  linhas.push('<p id="criar-aula-musica-nota"></p>');
+  linhas.push('</div>');
   linhas.push('<p id="criar-aula-aviso" role="status"></p>');
   /* A FILEIRA É A DO MODAL, E O «CANCELAR» FICA À DIREITA (21/11/2026) — palavras dela: «O botão
    * cancelar ele fica do lado direito.» A ordem é a mesma dos formulários dos Bastidores: a acção
@@ -718,6 +765,9 @@ function DIALOGO_DA_AULA_JS() {
     '  var campoMarco = document.getElementById("criar-aula-marco");',
     '  var exercicios = document.getElementById("criar-aula-exercicios");',
     '  var blocos = document.getElementById("criar-aula-blocos");',
+    '  var caixaMusica = document.getElementById("criar-aula-musica");',
+    '  var corpoMusica = document.getElementById("criar-aula-musica-corpo");',
+    '  var notaMusica = document.getElementById("criar-aula-musica-nota");',
     '  var aviso = document.getElementById("criar-aula-aviso");',
     '  var quando = document.getElementById("criar-aula-quando");',
     '  var titulo = document.getElementById("criar-aula-titulo");',
@@ -763,6 +813,137 @@ function DIALOGO_DA_AULA_JS() {
     '      conjunto.appendChild(lab);',
     '    }',
     '  }',
+    /* ─────────────────────────────────────────────────────────────────────────────
+     * A MÚSICA DE CADA EXERCÍCIO ESCOLHIDO — ver a nota grande do `dialogoDaAula`.
+     *
+     * `dados.musicas` é `{ exercício: ['8|2/4', …] }`, a mesma chave da grelha do plano e do
+     * verbete. As três formas de controle (leitura, escolha, escrita) são decididas pelo NÚMERO
+     * de músicas declaradas, e não por uma configuração — é o dado que manda.
+     * ───────────────────────────────────────────────────────────────────────────── */
+    '  function paresDe(nome) {',
+    '    var l = (dados.musicas || {})[nome] || [], fora = [];',
+    '    for (var i = 0; i < l.length; i++) {',
+    '      var p = String(l[i]).split("|");',
+    '      if (p.length === 2 && p[0] && p[1]) fora.push({ tempos: p[0], compasso: p[1] });',
+    '    }',
+    '    return fora;',
+    '  }',
+    '  function valoresDe(pares, qual) {',
+    '    var vistos = [];',
+    '    for (var i = 0; i < pares.length; i++) {',
+    '      var v = pares[i][qual];',
+    '      if (v && vistos.indexOf(v) === -1) vistos.push(v);',
+    '    }',
+    '    return vistos;',
+    '  }',
+    '  function opcoes(sel, valores, escolhido) {',
+    '    while (sel.firstChild) sel.removeChild(sel.firstChild);',
+    '    var vazio = document.createElement("option");',
+    '    vazio.value = ""; vazio.textContent = "— escolher —";',
+    '    sel.appendChild(vazio);',
+    '    for (var i = 0; i < valores.length; i++) {',
+    '      var o = document.createElement("option");',
+    '      o.value = valores[i]; o.textContent = valores[i];',
+    /* UMA OPÇÃO SÓ ESCOLHE-SE SOZINHA — a mesma regra da grelha do plano: pedir um clique para
+     * confirmar o único valor que existe é pedir trabalho a fingir. */
+    '      if (valores[i] === escolhido || (!escolhido && valores.length === 1)) o.selected = true;',
+    '      sel.appendChild(o);',
+    '    }',
+    '  }',
+    '  function celula(nome, indice, qual, pares) {',
+    '    var td = document.createElement("td");',
+    '    var valor = pares.length === 1 ? pares[0][qual] : "";',
+    /* LEITURA: o verbete declara uma música só. O valor vai num `input` escondido, para o resto do
+     * código ler de um sítio só — e vai também visível, porque um campo que se lê vazio no
+     * formulário faz duvidar de que o sistema saiba a resposta. */
+    '    if (pares.length === 1) {',
+    '      var visto = document.createElement("span");',
+    '      visto.textContent = valor;',
+    '      td.appendChild(visto);',
+    '      var oculto = document.createElement("input");',
+    '      oculto.type = "hidden";',
+    '      oculto.setAttribute("data-musica", indice);',
+    '      oculto.setAttribute("data-qual", qual);',
+    '      oculto.value = valor;',
+    '      td.appendChild(oculto);',
+    '      return td;',
+    '    }',
+    '    var campo;',
+    '    if (pares.length > 1) {',
+    '      campo = document.createElement("select");',
+    '      opcoes(campo, valoresDe(pares, qual), "");',
+    '      if (qual === "tempos") {',
+    '        var paresTexto = [];',
+    '        for (var i = 0; i < pares.length; i++) paresTexto.push(pares[i].tempos + "|" + pares[i].compasso);',
+    '        campo.setAttribute("data-musicas", paresTexto.join(" "));',
+    '      }',
+    '    } else {',
+    '      campo = document.createElement("input");',
+    '      campo.type = "text";',
+    '      campo.placeholder = qual === "tempos" ? "8" : "2/4";',
+    '    }',
+    '    campo.setAttribute("data-musica", indice);',
+    '    campo.setAttribute("data-qual", qual);',
+    '    td.appendChild(campo);',
+    '    return td;',
+    '  }',
+    /* O COMPASSO ACOMPANHA OS TEMPOS — a mesma regra de `ajustarCompassoDaMusica` na grelha do
+     * plano: escolhido o tempo, só se oferecem os compassos que existem para ele, e o que estava
+     * escolhido é mantido quando continua a ser válido. */
+    '  function ajustarCompasso(sel) {',
+    '    var tr = sel.closest ? sel.closest("tr") : null;',
+    '    if (!tr) return;',
+    '    var alvo = tr.querySelector("select[data-qual=\\"compasso\\"]");',
+    '    if (!alvo) return;',
+    '    var pares = String(sel.getAttribute("data-musicas") || "").split(" ");',
+    '    var antes = alvo.value, vals = [];',
+    '    for (var i = 0; i < pares.length; i++) {',
+    '      var p = String(pares[i]).split("|");',
+    '      if (p.length === 2 && p[0] === sel.value && vals.indexOf(p[1]) === -1) vals.push(p[1]);',
+    '    }',
+    '    if (!vals.length) return;',
+    '    opcoes(alvo, vals, vals.indexOf(antes) !== -1 ? antes : "");',
+    '  }',
+    '  function pintarMusica() {',
+    '    var ex = escolhidos(exercicios);',
+    '    while (corpoMusica.firstChild) corpoMusica.removeChild(corpoMusica.firstChild);',
+    '    if (!ex.length) { caixaMusica.hidden = true; return; }',
+    '    caixaMusica.hidden = false;',
+    '    var semMusica = [];',
+    '    for (var j = 0; j < ex.length; j++) {',
+    '      var pares = paresDe(ex[j]);',
+    '      if (!pares.length) semMusica.push(ex[j]);',
+    '      var tr = document.createElement("tr");',
+    '      var nome = document.createElement("td");',
+    '      nome.textContent = ex[j];',
+    '      tr.appendChild(nome);',
+    '      tr.appendChild(celula(ex[j], j, "tempos", pares));',
+    '      tr.appendChild(celula(ex[j], j, "compasso", pares));',
+    '      corpoMusica.appendChild(tr);',
+    '    }',
+    '    notaMusica.textContent = semMusica.length',
+    '      ? "Sem música declarada no verbete: " + semMusica.join(", ")',
+    '        + ". Escreva os tempos e o compasso, ou deixe em branco — e o documento dirá que esta aula não tem música a consolidar."',
+    '      : "Vêm do verbete de cada exercício, e são a música que o plano já declarou. A contagem de cada uma sai do próprio verbete.";',
+    '  }',
+    /* O QUE FICA GRAVADO NA LINHA DA SEQUÊNCIA, lido uma vez e por exercício — a música é dele, e
+     * não do par (bloco, exercício): o mesmo exercício em três blocos leva a mesma música. */
+    '  function musicaLida(indice) {',
+    '    var trs = corpoMusica.querySelectorAll("tr");',
+    '    var tr = trs[indice], t = "", c = "";',
+    '    if (tr) {',
+    '      var a = tr.querySelector("[data-qual=\\"tempos\\"]");',
+    '      var b = tr.querySelector("[data-qual=\\"compasso\\"]");',
+    '      t = a ? String(a.value || "").trim() : "";',
+    '      c = b ? String(b.value || "").trim() : "";',
+    '    }',
+    '    return { tempos: t, compasso: c };',
+    '  }',
+    '  exercicios.addEventListener("change", pintarMusica);',
+    '  caixaMusica.addEventListener("change", function (e) {',
+    '    var s2 = e.target;',
+    '    if (s2 && s2.getAttribute && s2.getAttribute("data-qual") === "tempos") ajustarCompasso(s2);',
+    '  });',
     '  function fechar() {',
     '    caixa.hidden = true;',
     '    document.removeEventListener("keydown", aoTeclar);',
@@ -792,6 +973,9 @@ function DIALOGO_DA_AULA_JS() {
     '    campoMarco.value = marco;',
     '    listar(exercicios, dados.repertorio, "Exercícios que trabalham este objetivo");',
     '    listar(blocos, dados.blocos, "Blocos onde ele é trabalhado");',
+    /* A CAIXA DA MÚSICA NASCE FECHADA, porque nasce sem exercício escolhido: ela abre-se no
+     * primeiro que se marcar, e é o `change` do conjunto que a repinta. */
+    '    pintarMusica();',
     '    dizer(dados.temRepertorio ? "" : "O repertório da turma está vazio: declare-o no plano antes de criar a aula.");',
     '    mandado(false);',
     '    caixa.hidden = false;',
@@ -828,6 +1012,15 @@ function DIALOGO_DA_AULA_JS() {
     '    if (!ex.length) { dizer("Marque ao menos um exercício: é ele que dá o que observar."); return; }',
     '    if (!bl.length) { dizer("Marque ao menos um bloco: é onde o objetivo acontece."); return; }',
     '    if (!dados.id) { dizer("Este plano ainda não tem carimbo: grave-o primeiro, e a aula nasce dele."); return; }',
+    /* TEMPOS E COMPASSO ANDAM JUNTOS. Um sem o outro é meia música, e o documento não tem como
+     * consolidar metade: a chave da notação é `tempos|compasso`. Recusa-se aqui, com o nome do
+     * exercício, em vez de gravar uma linha que o §4 vai ter de contornar. */
+    '    var semPar = [];',
+    '    for (var q = 0; q < ex.length; q++) {',
+    '      var m = musicaLida(q);',
+    '      if ((m.tempos && !m.compasso) || (!m.tempos && m.compasso)) semPar.push(ex[q]);',
+    '    }',
+    '    if (semPar.length) { dizer("Tempos e compasso andam juntos — falta um dos dois em: " + semPar.join(", ") + "."); return; }',
     '    mandado(true); dizer("");',
     '    comVeu("A criar a aula " + alvo + ": o objetivo, os exercícios e a sequência vão para o plano, e o ciclo é gerado a seguir. Não feche esta aba.", "Criar a aula");',
     '    pedir(PORTA + "api/envelope/" + encodeURIComponent(dados.id))',
@@ -852,7 +1045,8 @@ function DIALOGO_DA_AULA_JS() {
     '    var seq = [];',
     '    for (var i = 0; i < bl.length; i++) {',
     '      for (var j = 0; j < ex.length; j++) {',
-    '        seq.push({ "Bloco": bl[i], "Objetivo específico": alvoObj, "Conteúdo do nível": ex[j], "Tempos": "", "Compasso": "" });',
+    '        var mus = musicaLida(j);',
+    '        seq.push({ "Bloco": bl[i], "Objetivo específico": alvoObj, "Conteúdo do nível": ex[j], "Tempos": mus.tempos, "Compasso": mus.compasso });',
     '      }',
     '    }',
     '    r["aula-" + n + "-sequencia"] = { valor: seq, origem: "perguntado", respondente: "professor", nota: null };',

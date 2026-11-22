@@ -1503,34 +1503,12 @@ function resumosDoConteudo(escola) {
   return porNome;
 }
 
+/* A LEITURA MUDOU DE CASA (22/11/2026): a lista de músicas por exercício passou a ser precisa
+ * também no diálogo que cria a aula seguinte — que é DERIVADO (`derivar-plano-ciclo.js`) e não fala
+ * com o servidor. A regra (limpar o dono, deduplicar) mora agora no núcleo, junto da
+ * `musicaDaChave`; aqui fica só a porta de entrada, para os sítios deste ficheiro não mudarem. */
 function musicasDosExercicios() {
-  const { alfabetos, musicaDaChave } = require('../nucleo/notacao.js');
-  const mapa = new Map();
-  for (const { alfabeto } of alfabetos()) {
-    const verbetes = (alfabeto && alfabeto.verbetes) || {};
-    for (const nome of Object.keys(verbetes)) {
-      if (nome.startsWith('_')) continue;
-      // O DONO NÃO É MÚSICA, E NÃO SE MOSTRA (03/11/2026). A chave de um registo de escola é
-      // `8|2/4@breu` — o dono entra nela para o catálogo e a escola poderem declarar a mesma
-      // música sem colidir. Isso é armazenamento. O que a tela mostra é o COMPASSO: a coluna do
-      // plano exibia «2/4@breu», e o professor não tem o que fazer com um slug de escola dentro
-      // de uma fórmula de compasso. A limpeza é a mesma função do núcleo (`musicaDaChave`), e não
-      // uma segunda regra escrita aqui — as duas divergiriam ao primeiro separador novo.
-      //
-      // A DEDUPLICAÇÃO É NECESSÁRIA, e não cosmética: quando o catálogo e a escola declaram a
-      // mesma música, o alfabeto tem `8|4/4` e `8|4/4@breu`, e sem isto a lista ofereceria a mesma
-      // música duas vezes. Quem escolhe entre as duas é `registosDaEscola` (a da escola vence),
-      // não o menu.
-      const vistas = [];
-      for (const k of Object.keys(verbetes[nome] || {})) {
-        if (!/^\d+\|/.test(k)) continue;
-        const limpa = musicaDaChave(k);
-        if (limpa && vistas.indexOf(limpa) === -1) vistas.push(limpa);
-      }
-      if (vistas.length) mapa.set(nome, vistas);
-    }
-  }
-  return mapa;
+  return require('../nucleo/notacao.js').musicasDosExercicios();
 }
 
 /**
