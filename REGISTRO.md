@@ -58574,3 +58574,88 @@ os botões, e com o `plano-aula-01.json` a declarar a lacuna. `check-pacote` 0 e
 25/25. **`provar-aula-prosa` continua a cair** na mesma asserção anterior (o critério «resposta ao
 pulso na marcação» não existe neste `.md`) — e a geração da prosa preserva os botões e o `<details>`,
 medido.
+
+## 22/11/2026 — A Aula 02 lê o resultado da Aula 01, e cada secção abre e fecha
+
+**O que ela pediu**, na ordem em que pediu. Primeiro a coluna: «Aí tem uma coluna a adicionar
+
+[n]esses espaços […] uma outra coluna que pode ser o nome de resultado obtido na aula anterior […]
+Ainda não tem essa coluna porque ainda não foi dada nenhuma aula […] Só vai ter a partir da aula
+dois.» Depois o que veio do formulário: «a gente vai mostrar em percentual […] o ânimo da aula, o
+interesse da aula e a harmonia da aula […] se a aula foi dada no dia certo […] se aconteceu na sala
+correta […] o plano foi seguido? […] se algo surpreendeu […] o que que aconteceu de novo.» E, sobre
+a forma: «todos, todos eles, todos eles tem que ter isso de colapsar e expandir.»
+
+**O dado já existia; faltava a ligação.** O `-dados.json` guarda, por aula lançada, o nível que o
+professor deu a cada aluna em cada critério. O derivador da aula não recebia esse ficheiro — agora
+recebe (`contexto.lancamentos`), e a aula N lê a N-1. O caminho é o mesmo dos dois escritores: o do
+Worker (`escrever-ciclo.js`) e o local (`tools/regerar-derivados.js`), com a mesma leitura e a
+mesma tolerância — sem ficheiro, nada se inventa.
+
+**O RESULTADO É AGREGADO, e não uma coluna por aluna.** Ela descreveu o caso de duas («para a
+aluna A eu marco satisfatório, para a B razoável»); com trinta, um documento com trinta colunas não
+se lê — é a mesma conta que a coluna do corpo já tinha resolvido para a anamnese a 21/11. A frase é
+a da casa: `1 de 2 em «Satisfatório» · 1 de 2 em «Razoável»`, pela ordem da régua da turma.
+
+**O §3.1 — «O que a aula anterior mostrou».** Entra **depois da distribuição do tempo**, como ela o
+situou: presença **em percentagem**, ânimo/interesse/harmonia, a data e a duração conferidas contra
+o calendário (**OK** ou **não OK** — e, quando não, o dia em que aconteceu), a sala, o plano seguido
+(com a justificativa de quando não foi «sim»), a marca do «surpreendeu?» e o que aconteceu de novo.
+Cada linha tem **três estados** e diz qual é: o dado, «a aula não foi lançada», ou «o campo ficou em
+branco». Nenhum deles vira zero nem «não».
+
+**A AULA 01 NÃO TEM NADA DISTO** — nem a secção, nem a coluna. Uma coluna que se imprime sem ter o
+que dizer em todas as linhas ensina a ignorá-la, e a regra dela é explícita: a partir da aula dois.
+
+**O «3.1» é 3.1 e não 4.** O contrato de extracção casa o título **literal** com o número à frente;
+meter aqui uma «4» obrigava a renumerar 4→5, 5→6, 6→7, 7→8, 8→9 no mapa, nos documentos já
+gravados de todos os ciclos e nas provas que cortam o documento por título. O 3.1 diz o mesmo —
+«logo depois da 3» — sem reescrever o passado.
+
+**A dobra de cada secção** (`.secao-dobra` + `.secao-corpo`) é criada pelo `nav.js` e não pelo HTML,
+pela mesma razão do índice: o documento é gerado, e um pacote que não se pode regerar ficaria sem o
+controle. Mora **dentro do título** — oito fileiras de botões no meio do texto seriam o contrário do
+que se pediu ao pedir menos rolagem —, nasce aberta, e o índice manda: clicar na secção fechada
+abre-a (senão metade do índice não leva a lado nenhum). No papel não há dobra: sai inteira, e o
+botão não se imprime.
+
+**Duas correções que ela pediu no mesmo acto.** O §1 já não repete o «Objetivo específico» (está no
+parâmetro, e no título do documento). E o botão «Como preencher o formulário» saiu: o texto e o
+espaço que ele abre ficam no §5, mas o `<details>` já abre sozinho no `summary` — era um segundo
+controle para a mesma coisa.
+
+**Motivo declarado — os congelados.** `tools/validar-aula-ciclo.js` (o mapa das secções, uma linha
+nova), `tools/templates/nav.js` e `tools/templates/ciclo.css` (a dobra) estão em `CONGELAMENTO.md`.
+**O que não muda**: o formato dos documentos anteriores (as oito secções continuam com o mesmo
+número e o mesmo título), as chaves exigidas pelo schema (`aulaAnterior` é opcional), o hash de
+proveniência, e as regras de `REGRAS.md` e as pétreas de `PROTOCOLO.md`.
+
+**Com o quê.** `motor/nucleo/derivar-ciclo.js` (o §3.1, a coluna, a data da aula anterior, a linha
+que saiu do §1, o botão que saiu do §5), `motor/servidor/escrever-ciclo.js` e
+`tools/regerar-derivados.js` (o lançamento no contexto), `tools/validar-aula-ciclo.js` (o mapa), os
+**15** `ciclo-01-aula-schema.json` (o campo `aulaAnterior`), `tools/templates/nav.js` e
+`tools/templates/ciclo.css` (a dobra), as fontes derivadas e os dois pacotes da `breu` regerados, a
+âncora recalculada, `experimentos/provar-a-dobra-e-a-aula-anterior.js` (**novo**),
+`experimentos/provar-a-identidade-da-aula.js` (as duas asserções dos botões, agora um só),
+`.gitignore`, `ESTADO-ATUAL.md`.
+
+**MEDIDO.** `provar-a-dobra-e-a-aula-anterior` **31/31**, em duas metades: o markdown derivado com
+um lançamento de fixture (o caso que ela descreveu — 100% de presença, ânimo 5 · interesse 4 ·
+harmonia 3, o plano «em parte» com a justificativa, a aluna A «Satisfatório» e a B «Razoável» na 1ª
+posição dos pés) e o documento publicado no navegador (9 secções, 9 botões, todos dentro do título;
+fechar, abrir, o índice a abrir o que estava fechado, e o papel a ignorar o estado). Com o **controle
+negativo** `--contra=49fb6f87`, as mesmas asserções reprovam **25 de 31**. `check-pacote` 0 erros,
+`hash-ciclo --check` íntegro, `check-identidade` **0 problemas**, `provar-a-identidade-da-aula`
+26/26, `provar-a-aula-diz-so-o-que-e-dela` 25/25. **Medido também o custo do botão**: com e sem a
+dobra, o título tem os mesmos 38px e a página os mesmos 10 166px; o alvo do dedo é 23×15px.
+
+**Um erro encontrado no caminho, e que teria passado.** A primeira versão do leitor escrevia
+`typeof porAluno` onde a variável é `porAluna` — a guarda `!porAluno || typeof porAluno !== 'object'`
+dava sempre verdadeira, a função devolvia `{}` e **todas** as linhas diziam «não marcado na Aula 01».
+É a família de defeito que a prova apanha e a leitura não: a coluna existia, o documento parecia
+certo, e o dado nunca chegava. A asserção que exige o valor («1 de 2 em «Satisfatório»») é o que o
+apanhou.
+
+**Pré-existentes, verificadas iguais com e sem esta mudança** (worktree limpo do `HEAD`):
+`provar-derivador-da-aula` 34/35, `provar-escopo-da-aula` 2 falhas, `provar-eixos-e-tempo-da-aula`
+4 de 52.

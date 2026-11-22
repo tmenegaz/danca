@@ -84,13 +84,20 @@
   "allOf": [
     {
       "if": {
-        "required": ["ESCOLA_HABILITADA"],
+        "required": [
+          "ESCOLA_HABILITADA"
+        ],
         "properties": {
-          "ESCOLA_HABILITADA": { "const": "nao" }
+          "ESCOLA_HABILITADA": {
+            "const": "nao"
+          }
         }
       },
       "then": {
-        "required": ["ESCOLA_HABILITADA_MOTIVO", "ESCOLA_HABILITADA_DESDE"]
+        "required": [
+          "ESCOLA_HABILITADA_MOTIVO",
+          "ESCOLA_HABILITADA_DESDE"
+        ]
       }
     }
   ],

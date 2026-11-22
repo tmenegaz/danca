@@ -656,6 +656,214 @@ function notacaoEscolhida(plano) { // eslint-disable-line no-unused-vars
  * `derivarAula01` continua a existir como o caso `nn = '01'`, e é o que os chamadores antigos
  * usam: um derivador só, e nenhum sítio a derivar duas vezes a mesma regra.
  */
+/* ═══════════════════════════════════════════════════════════════════════════════════════════
+ * O QUE A AULA ANTERIOR MOSTROU (22/11/2026)
+ *
+ * Palavras dela: «quando eu for lançar a aula dois […] eu sei que o resultado da aluna A por causa
+ * da aula um […] é bom, mas é com toque. Aí tenho que melhorar nisso. […] Aí eu tenho esse
+ * resultado, esse resultado de alguma maneira ele tem que aparecer na aula dois, quer dizer, a
+ * aluna já evoluiu. […] E aí a partir desse resultado obtido na aula anterior, quando vai criar a
+ * aula dois, o professor já sabe que na aula dois ele tem que olhar para essa coluna também.»
+ *
+ * O DADO JÁ EXISTE, e é o do lançamento: o `-dados.json` guarda, por aula, os blocos da folha com
+ * o nível que o professor deu a cada aluna (`aulas['01'].solo['aluna-a']['reconhecer_o_apoio']`).
+ * O que faltava era LIGAÇÃO — o derivador da aula não recebia o ficheiro. Passa a receber
+ * (`contexto.lancamentos`), e a aula N lê a aula N-1. A Aula 01 não lê nada: não há anterior.
+ *
+ * DUAS DECISÕES QUE VALEM A PENA ESCREVER:
+ *
+ *   1. O RESULTADO É AGREGADO, e não uma coluna por aluna. Ela descreveu o caso de duas alunas
+ *      («para a aluna A eu marco satisfatório, para a B razoável»), e com trinta um documento com
+ *      trinta colunas não se lê — é a mesma conta que a coluna do corpo já resolveu para a
+ *      anamnese («1 de 2 em «Bom» (com toque)»). A frase é a mesma forma: quantas alunas em cada
+ *      nível, com o total de quem foi marcado.
+ *   2. NÃO SE CONFUNDE «não marcado» com «não houve aula». São três estados e dizem-se os três: a
+ *      aula anterior não foi lançada; foi lançada e o critério ficou em branco; foi lançada com
+ *      marca, e aí a frase diz os níveis.
+ * ═══════════════════════════════════════════════════════════════════════════════════════════ */
+
+/** O lançamento da aula `numero` (o dela própria) — `null` quando não há. */
+function lancamentoDaAula(lancamentos, numero) {
+  const n = parseInt(String(numero == null ? '' : numero).replace(/\D/g, ''), 10);
+  if (!(n >= 1)) return null;
+  /* DUAS FORMAS DE CHAVE, e as duas são reais: o formulário grava `"01"` (com o zero, pela
+   * ordem da pasta) e um ficheiro escrito à mão pode trazer `"1"`. Ler só uma delas faria a
+   * coluna dizer «não lançada» sobre uma aula que está lançada — o defeito de sempre, que é o
+   * dado existir e a leitura não o ver. */
+  const aulas = (lancamentos && lancamentos.aulas) || {};
+  const bruto = aulas[String(n).padStart(2, '0')] || aulas[String(n)];
+  return bruto && typeof bruto === 'object' && !Array.isArray(bruto) ? bruto : null;
+}
+
+/**
+ * Os níveis que a aula anterior deu a UM critério — `{slugDaAluna: nível}`.
+ *
+ * Duas formas de bloco na mesma aula, e é preciso aceitar as duas:
+ *   · `{slug: {chaveDoCriterio: valor}}` — os blocos de dimensão (`solo`, `barra`, `centro`, …);
+ *   · `{slug: [{chave, item, marca}]}` — a linha de base revisitada, que guarda a lista por aluna
+ *     porque o item tem texto e chave.
+ * O critério casa pelo `slug` (sem acento, sem maiúscula, sem pontuação), que é a chave que o
+ * formulário gravou — `chaveDoItem` e `slugDe` normalizam a mesma coisa.
+ */
+function niveisDaAulaAnterior(anterior, bloco, criterio) {
+  if (!anterior || !bloco || !criterio) return {};
+  const porAluna = anterior[bloco];
+  if (!porAluna || typeof porAluna !== 'object' || Array.isArray(porAluna)) return {};
+  const alvo = slugDe(criterio);
+  if (!alvo) return {};
+  const valores = {};
+  for (const [slug, marcas] of Object.entries(porAluna)) {
+    let valor;
+    if (Array.isArray(marcas)) {
+      const achado = marcas.find((m) => m && (slugDe(m.chave) === alvo || slugDe(m.item) === alvo));
+      valor = achado ? achado.marca : undefined;
+    } else if (marcas && typeof marcas === 'object') {
+      const chave = Object.keys(marcas).find((k) => slugDe(k) === alvo);
+      valor = chave === undefined ? undefined : marcas[chave];
+    }
+    const texto = String(valor == null ? '' : valor).trim();
+    if (texto) valores[slug] = texto;
+  }
+  return valores;
+}
+
+/**
+ * `{a: 'Satisfatório', b: 'Razoável'}` → `1 de 2 em «Satisfatório» · 1 de 2 em «Razoável»`.
+ *
+ * A ORDEM É A DA RÉGUA da turma (é a escala que o professor conhece), e o que ela não declarar
+ * vem depois, por ordem alfabética — nunca desaparece: um valor antigo, de uma régua anterior,
+ * continua a ser o que foi marcado.
+ */
+function fraseDosNiveis(valores, niveisDaRegua) {
+  const contagem = new Map();
+  for (const v of Object.values(valores || {})) contagem.set(v, (contagem.get(v) || 0) + 1);
+  const total = Object.keys(valores || {}).length;
+  if (!total) return '';
+  const ordem = Array.isArray(niveisDaRegua) ? niveisDaRegua : [];
+  const peso = (v) => { const i = ordem.indexOf(v); return i === -1 ? ordem.length : i; };
+  const niveis = [...contagem.keys()].sort((a, b) => (peso(a) - peso(b)) || (a < b ? -1 : 1));
+  return niveis.map((v) => contagem.get(v) + ' de ' + total + ' em «' + v + '»').join(' · ');
+}
+
+/**
+ * As linhas do §3.1 — «O que a aula anterior mostrou», lidas do lançamento da Aula N-1.
+ *
+ * O QUE ENTRA, e é a lista que ela pediu, pela ordem em que pediu: a presença em percentagem, o
+ * ânimo, o interesse e a harmonia da aula, se aconteceu no dia e com a duração programados (OK ou
+ * não OK — e, quando não, o dia e a hora em que aconteceu), se foi na sala programada, se o plano
+ * foi seguido (sim / em parte / não, com a justificativa de quando não foi), se algo surpreendeu e
+ * o que aconteceu de novo.
+ *
+ * O QUE NÃO SE INVENTA — e é a parte que dá trabalho: cada linha tem três estados, e diz-se qual é.
+ * Ou o lançamento traz o dado; ou a aula não foi lançada; ou o campo foi deixado em branco. Nenhum
+ * dos três vira «0%» nem «não».
+ *
+ * A HORA: o formulário pergunta a data e a duração, não a hora de início. Quando o dia não bate
+ * certo, a linha diz o dia certo e diz que a hora não é registada — não inventa uma hora.
+ */
+function linhasDaAulaAnterior({ anterior, numeroAnterior, duracaoPrevista, dataPrevista, sala } = {}) {
+  const nn = String(numeroAnterior == null ? '' : numeroAnterior).padStart(2, '0');
+  if (!anterior) {
+    return ['- **A Aula ' + nn + ' ainda não foi lançada.** O que esta secção mostra sai do '
+      + 'formulário de lançamento da Aula ' + nn + ', e ele está vazio: não há resultado anterior '
+      + 'para olhar. Quando esse lançamento for gravado, esta secção passa a dizê-lo.'];
+  }
+  const linhas = [];
+  const vazio = (o) => !o || (typeof o === 'object' && !Array.isArray(o) && !Object.keys(o).length);
+
+  /* PRESENÇA, EM PERCENTAGEM — «a gente vai mostrar em percentual para não ter um número grande.
+   * 100% se estiveram todas, se for a metade 50%». */
+  const presentes = Array.isArray(anterior.presentes) ? anterior.presentes.length : null;
+  const ausentes = Array.isArray(anterior.ausentes) ? anterior.ausentes.length : null;
+  const noElenco = (presentes || 0) + (ausentes || 0);
+  linhas.push('- **Presença** — ' + (noElenco
+    ? Math.round((presentes / noElenco) * 100) + '% (' + presentes + ' de ' + noElenco + ' '
+      + (noElenco === 1 ? 'aluna do elenco' : 'alunas do elenco') + ')'
+    : 'não registada: o lançamento da Aula ' + nn + ' não trouxe a lista de presença.'));
+
+  /* O ÂNIMO, O INTERESSE E A HARMONIA — os três na mesma linha, porque são a mesma pergunta: como
+   * estava a turma naquele dia. */
+  const cc = anterior.condicoes_contorno || {};
+  const escala = (n) => (Number(n) >= 1 && Number(n) <= 5 ? Number(n) + '/5' : '');
+  const clima = [['ânimo', cc.animo], ['interesse', cc.interesse], ['harmonia', cc.harmonia]]
+    .filter(([, v]) => escala(v))
+    .map(([nome, v]) => nome + ' ' + escala(v));
+  linhas.push('- **A turma no dia** — ' + (clima.length ? clima.join(' · ')
+    : 'não registados: o lançamento da Aula ' + nn + ' não trouxe ânimo, interesse nem harmonia.'));
+
+  /* ACONTECEU NO DIA E COM A DURAÇÃO PROGRAMADOS? «uma verificação de OK ou não OK. Se for não OK,
+   * a gente diz que dia aconteceu e que horas aconteceu.» */
+  const partes = (v) => calendarioDasAulas.partesDaData(v);
+  const mesmoDia = (a, b) => {
+    const p = partes(a), q = partes(b);
+    return !!p && !!q && p.ano === q.ano && p.mes === q.mes && p.dia === q.dia;
+  };
+  const dur = Number(anterior.duracao_min) || 0;
+  const durPrevista = Number(duracaoPrevista) || 0;
+  const diaConferido = anterior.data && dataPrevista ? mesmoDia(anterior.data, dataPrevista) : null;
+  const duracaoConferida = dur && durPrevista ? dur === durPrevista : null;
+  const desvios = [];
+  if (diaConferido === false) {
+    desvios.push('aconteceu ' + calendarioDasAulas.dataEPeriodoDoDia(anterior.data)
+      + ', e não ' + calendarioDasAulas.dataBrasileira(dataPrevista)
+      + ' (a hora de início não é registada pelo formulário)');
+  }
+  if (duracaoConferida === false) desvios.push('durou ' + dur + ' min, e o plano previa ' + durPrevista);
+  if (diaConferido === null && duracaoConferida === null) {
+    linhas.push('- **Data e duração** — não conferidas: o lançamento da Aula ' + nn
+      + ' não trouxe a data nem a duração executada.');
+  } else if (desvios.length) {
+    linhas.push('- **Data e duração** — não OK: ' + desvios.join('; ') + '.');
+  } else {
+    linhas.push('- **Data e duração** — OK: ' + calendarioDasAulas.dataEPeriodoDoDia(anterior.data)
+      + ', ' + (dur || durPrevista) + ' min.');
+  }
+
+  /* A SALA: o formulário NÃO pergunta onde a aula aconteceu — e é por isso que a linha diz o que
+   * sabe e nomeia o que falta, em vez de afirmar que foi na sala do plano. */
+  linhas.push('- **Sala** — a programada era «' + (sala || '—') + '»; o formulário não pergunta '
+    + 'onde a aula aconteceu, e por isso esta linha não confirma nem desmente.');
+
+  /* O PLANO FOI SEGUIDO? — sim / em parte / não, e quando não foi, o que mudou. */
+  const plano = String(cc.plano_seguido || '').trim();
+  const rotulo = { sim: 'sim', parcial: 'em parte', nao: 'não' }[plano] || '';
+  const mudou = String(cc.mudou || '').trim();
+  linhas.push('- **O plano foi seguido?** — ' + (rotulo
+    ? rotulo + (rotulo !== 'sim' && mudou ? ': «' + mudou + '»' : '')
+    : 'não registado: o lançamento da Aula ' + nn + ' não trouxe esta resposta.'));
+
+  /* ALGO SURPREENDEU? E O QUE ACONTECEU DE NOVO. */
+  const rel = anterior.relatorio || {};
+  const surpresa = String(rel.surpresas || '').trim();
+  linhas.push('- **Algo surpreendeu?** — ' + ({ sim: 'sim', nao: 'não' }[surpresa]
+    || 'não registado: o lançamento da Aula ' + nn + ' não trouxe esta marca.'));
+  const aconteceu = String(rel.texto || '').trim();
+  linhas.push('- **O que aconteceu de novo** — ' + (aconteceu ? '«' + aconteceu + '»'
+    : 'não registado.'));
+  if (vazio(anterior)) linhas.length = 0;
+  return linhas;
+}
+
+/**
+ * O resultado da aula anterior para UMA linha do guia — a terceira coluna das tabelas do §5.
+ *
+ * A LINHA DO GUIA NÃO SABE ONDE O FORMULÁRIO GUARDOU O QUE ELA PEDE, e por isso recebe os pares
+ * (bloco, critério) por ordem de verosimilhança e fica com o primeiro que tiver marca. A ordem não
+ * é arbitrária: vem de `declaracaoDeCaptura`, que é quem DECLARA as chaves do formulário — o bloco
+ * de uma dimensão é `slugDe(dimensao)` e a coluna é `slugDe(rotuloDoItem(item))`; a linha de base
+ * revisitada guarda tudo em `linha_de_base`, com a chave de cada item. Quem mudar a declaração vê
+ * esta leitura falhar alto (a coluna diz «não marcado»), e não em silêncio.
+ */
+function resultadoDaAulaAnterior(anterior, candidatos, niveis) {
+  if (!anterior) return '';
+  for (const { bloco, chave } of candidatos || []) {
+    if (!bloco || !chave) continue;
+    const frase = fraseDosNiveis(niveisDaAulaAnterior(anterior, bloco, chave), niveis);
+    if (frase) return frase;
+  }
+  return '';
+}
+
 function derivarAula({ nn = '01', plano, po, contexto, calibracao, linhaDeBase, anamneses } = {}) {
   const numero = numeroDaAula(nn) || '01';
   const cal = calibracao || {};
@@ -774,6 +982,35 @@ function derivarAula({ nn = '01', plano, po, contexto, calibracao, linhaDeBase, 
    * herda-a. Ler os dois seria escolher entre duas respostas possíveis para a mesma pergunta. */
   const turmaDaAula = turmaDoDocumento(plano);
   if (turmaDaAula) saida.push('subtitle: "Turma: ' + turmaDaAula + '"');
+  /* QUEM DÁ A AULA, ONDE, QUANDO — E O QUE A AULA ANTERIOR DEIXOU (22/11/2026).
+   *
+   * Ficam aqui, e não dentro do §1, porque duas secções os leem: o §1 (professor, sala, data) e o
+   * §3.1 (data e duração programadas, para conferir com o que o lançamento diz que aconteceu).
+   * Duas contas da mesma data em sítios diferentes é a família de defeito que este projecto
+   * persegue: um dia uma delas muda e a outra não. */
+  const numeroInteiro = parseInt(numero, 10) || 1;
+  const docenteDaAula = String((contexto && contexto.professorNome) || '').trim()
+    || String((contexto && contexto.professor) || '').trim();
+  const calendarioDaAula = (contexto && contexto.calendario) || null;
+  const dataDaAula = calendarioDaAula
+    ? (Array.isArray(calendarioDaAula)
+      ? (calendarioDaAula[numeroInteiro - 1] || null)
+      : calendarioDasAulas.dataDaAula(numero, calendarioDaAula))
+    : null;
+  /* A DATA COM QUE SE CONFERE A AULA ANTERIOR É A DELA, e não a desta (22/11/2026). O §3.1
+   * pergunta «aconteceu no dia programado?» sobre a Aula N-1, e o dia programado da Aula N-1 é a
+   * N-1ª data do calendário — comparar com a data desta aula responderia a outra pergunta (e deu
+   * «não OK» numa aula que aconteceu exactamente no dia dela, que foi como o erro apareceu). */
+  const dataDaAulaAnterior = calendarioDaAula
+    ? (Array.isArray(calendarioDaAula)
+      ? (calendarioDaAula[numeroInteiro - 2] || null)
+      : calendarioDasAulas.dataDaAula(String(numeroInteiro - 1).padStart(2, '0'), calendarioDaAula))
+    : null;
+  const lancamentos = (contexto && contexto.lancamentos) || null;
+  const aulaAnteriorLancada = numeroInteiro > 1
+    ? lancamentoDaAula(lancamentos, numeroInteiro - 1)
+    : null;
+  const reguaDaAula = niveisDaRubrica(resp(plano, 'rubrica'));
   saida.push('objetivo-especifico: "' + (objetivoDaAula(plano, numero) || '[' + 'Preencher: marco da Aula ' + numero + ']') + '"');
   saida.push('duracao: "' + duracaoMin + ' minutos"');
   /* A CHAVE DO VOLUME LEVA A DURAÇÃO ACIMA DOS 60 MINUTOS (20/11/2026).
@@ -863,15 +1100,9 @@ function derivarAula({ nn = '01', plano, po, contexto, calibracao, linhaDeBase, 
      *   · a DATA é a da aula N no calendário do `.conf` (`contexto.calendario`), e o DIA DA SEMANA
      *     é aritmética sobre ela — não é um juízo sobre o instante, e por isso pode estar aqui.
      *     Sem calendário, as duas linhas dizem a lacuna com o nome do campo que falta. */
-    const sala = turmaDoDocumento(plano);
-    const docente = String((contexto && contexto.professorNome) || '').trim()
-      || String((contexto && contexto.professor) || '').trim();
-    const calendario = (contexto && contexto.calendario) || null;
-    const dataDaAula = calendario
-      ? (Array.isArray(calendario)
-        ? (calendario[Number(numero) - 1] || null)
-        : calendarioDasAulas.dataDaAula(numero, calendario))
-      : null;
+    /* As quatro vêm de cima: quem dá a aula, a sala, o calendário e a data desta aula. */
+    const sala = turmaDaAula;
+    const docente = docenteDaAula;
 
     const corpo = ['| Item | Definição |', '|:--|:--|'];
     corpo.push('| **Professor responsável** | ' + (docente
@@ -882,7 +1113,11 @@ function derivarAula({ nn = '01', plano, po, contexto, calibracao, linhaDeBase, 
       ? calendarioDasAulas.dataEPeriodoDoDia(dataDaAula)
       : '[Preencher: a data e o dia desta aula — o calendário do ciclo não chegou '
         + '(`DATA_INICIO`, `DIAS` e `TOTAL_AULAS` no manifesto da variante)]') + ' |');
-    corpo.push('| **Objetivo específico** | ' + objetivo + ' |');
+    /* O OBJETIVO NÃO REPETE (22/11/2026). Palavras dela: «O objetivo específico já está bem
+     * posicionado no parâmetro de medição, não precisa colocar essa linha objetivo específico — e
+     * também já está no título do plano para aula.» A linha saiu, e o dado não se perdeu: ele é o
+     * `marco` do parâmetro, na linha de baixo, e o título do documento. Uma coisa dita três vezes
+     * no mesmo bloco ensina a saltar o bloco. */
     corpo.push('| **Parâmetro de medição** | ' + parametro + ' |');
     corpo.push('| **Duração** | ' + duracaoMin + ' minutos (Pré-requisito 4) |');
     corpo.push('| **Volume ativo** | ' +
@@ -953,6 +1188,41 @@ function derivarAula({ nn = '01', plano, po, contexto, calibracao, linhaDeBase, 
      * blocos** (Regra 9, etapa 2). Um título que promete outra coisa obriga a pessoa a
      * procurar; o nome passa a ser o do conteúdo. */
     secao('3. Distribuição do tempo pelos blocos', corpo);
+  }
+
+  /* §3.1 — O QUE A AULA ANTERIOR MOSTROU (22/11/2026).
+   *
+   * Palavras dela: «a gente vai criar lá no começo, logo depois que a gente apresenta as condições
+   * preliminares da aula, a distribuição do tempo, isso, logo depois da distribuição do tempo, a
+   * gente vai colocar essas informações que foram coletadas da aula um para o professor saber do
+   * que se trata.»
+   *
+   * PORQUE É «3.1» E NÃO UM NÚMERO NOVO: o contrato de extracção casa o título LITERAL, e as oito
+   * secções desta aula estão no mapa do validador com o número à frente. Meter aqui uma «4» obrigava
+   * a renumerar 4→5, 5→6, 6→7, 7→8, 8→9 — no mapa, nos documentos já gravados de todos os ciclos e
+   * nas provas que cortam o documento por título. O 3.1 diz o mesmo («logo depois da 3») sem
+   * reescrever o passado, que é o princípio deste repositório.
+   *
+   * A AULA 01 NÃO TEM ESTA SECÇÃO, e é de propósito: não há aula anterior. Uma secção que só sabe
+   * dizer «não há nada» é ruído no documento mais longo do produto — e ela foi explícita: «Ainda
+   * não tem essa coluna porque ainda não foi dada nenhuma aula […] Só vai ter a partir da aula
+   * dois.»
+   *
+   * O QUE ELA LÊ: o `-dados.json` publicado, que o contexto traz (`contexto.lancamentos`). Não lê o
+   * KV, não adivinha, e não inventa um zero quando o ficheiro não veio. */
+  if (numeroInteiro > 1) {
+    secao('3.1 O que a aula anterior mostrou', [
+      '> Este bloco não se preenche: é o retrato da Aula '
+        + String(numeroInteiro - 1).padStart(2, '0') + ', lido do lançamento daquela aula.',
+      '',
+      ...linhasDaAulaAnterior({
+        anterior: aulaAnteriorLancada,
+        numeroAnterior: numeroInteiro - 1,
+        duracaoPrevista: duracaoMin,
+        dataPrevista: dataDaAulaAnterior,
+        sala: turmaDaAula,
+      }),
+    ]);
   }
 
   /* §4 — A MUSICALIDADE É UMA VISTA CONSOLIDADA, E NÃO UM BLOCO COM EXERCÍCIOS PRÓPRIOS
@@ -1163,11 +1433,17 @@ function derivarAula({ nn = '01', plano, po, contexto, calibracao, linhaDeBase, 
      * O QUE ESTA SECÇÃO PASSA A TER, e a ordem é a de quem lê de cima para baixo:
      *
      *   1. a frase que diz PARA QUE SERVE o guia, e que o registo se faz no formulário;
-     *   2. os DOIS BOTÕES — o que abre a explicação bloco a bloco (um `summary` de um `<details>`,
-     *      que é o controle que a casa usa para abrir e fechar) e o que leva ao formulário;
-     *   3. a explicação, um bloco por bloco do formulário, DITA em relação a este documento: «o
+     *   2. a explicação, um bloco por bloco do formulário, DITA em relação a este documento: «o
      *      Presentes é a lista das alunas que estão aqui na tabela de cada eixo»;
+     *   3. o BOTÃO que leva ao formulário;
      *   4. a nota da régua, e as três tabelas.
+     *
+     * O PRIMEIRO BOTÃO SAIU (22/11/2026). Ele chamava-se «Como preencher o formulário» e abria o
+     * `<details>` que está aqui em baixo — mas o `<details>` já abre sozinho no `summary`, que é
+     * um controle nativo. O botão era um segundo controle para a mesma coisa, e a pesquisadora
+     * cortou-o: «tira esse botão como preencher o formulário. Pode tirar isso, não tem sentido
+     * existir isso. A ideia é que esse texto que você colocou fique aqui na guia de observação do
+     * professor.» O texto fica, e o espaço que ele abre também; o que sai é o atalho redundante.
      *
      * O BOTÃO DO FORMULÁRIO É RELATIVO (`lancamento.html`), e isso é uma decisão: o formulário
      * viaja DENTRO do pacote do ciclo, ao lado deste documento (`/rosa/aula-01` e
@@ -1185,11 +1461,6 @@ function derivarAula({ nn = '01', plano, po, contexto, calibracao, linhaDeBase, 
       '> preenche — ele diz o que olhar enquanto a aula acontece.',
       '',
       '```{=html}',
-      '<div class="acoes-do-ato">',
-      '<a class="acao secundario" href="#guia-do-formulario">Como preencher o formulário</a>',
-      '<a class="acao" href="lancamento.html">Lançar os dados desta aula</a>',
-      '</div>',
-      '',
       '<details class="bloco-lista" id="guia-do-formulario">',
       '<summary class="bloco-cabeca"><span class="bloco-titulo">O que cada bloco do formulário pede</span></summary>',
       '<div class="bloco-corpo">',
@@ -1212,6 +1483,10 @@ function derivarAula({ nn = '01', plano, po, contexto, calibracao, linhaDeBase, 
       'mudou em relação ao plano. É o único bloco do formulário que não tem correspondência aqui:',
       'o guia diz o que observar, e este diz o que aconteceu ao plano.</p>',
       '</div></details>',
+      '',
+      '<div class="acoes-do-ato">',
+      '<a class="acao" href="lancamento.html">Lançar os dados desta aula</a>',
+      '</div>',
       '```',
       '',
       '> Os itens vêm do **Itens de cada dimensão** no Plano de Observação, e o que se observa vem',
@@ -1237,16 +1512,49 @@ function derivarAula({ nn = '01', plano, po, contexto, calibracao, linhaDeBase, 
      * consolidou. Sem elas o eixo existia como resumo e a tabela saltava-o — e uma tabela que
      * salta um eixo dos três ensina que ele não se observa. A restrição física vem DEPOIS da
      * tabela, numa linha só: ela não é um aspecto, e a tabela fica com os aspectos e só eles. */
+    /* A TERCEIRA COLUNA — «RESULTADO NA AULA ANTERIOR» (22/11/2026).
+     *
+     * Palavras dela: «Aí tem uma coluna a adicionar [n]esses espaços […] uma outra coluna que pode
+     * ser o nome de resultado obtido na aula anterior […] a partir desse resultado obtido na aula
+     * anterior, quando vai criar a aula dois, o professor já sabe que na aula dois ele tem que
+     * olhar para essa coluna também. […] Ainda não tem essa coluna porque ainda não foi dada nenhuma
+     * aula […] Só vai ter a partir da aula dois.»
+     *
+     * A COLUNA NÃO EXISTE NA AULA 01 — nem vazia. Uma coluna que se imprime sem nada para dizer em
+     * todas as linhas ensina a ignorar a coluna; e a regra dela é explícita: a partir da aula dois.
+     *
+     * O VALOR É AGREGADO, e a razão está escrita em `niveisDaAulaAnterior`: trinta alunas não cabem
+     * numa coluna. A frase «1 de 2 em «Satisfatório» · 1 de 2 em «Razoável»» é a mesma forma que a
+     * coluna do corpo já usa para a anamnese — e é a que ela aprovou a 21/11 para o «o que se
+     * observa». */
+    const nnAnterior = String(numeroInteiro - 1).padStart(2, '0');
+    const temAnterior = !!aulaAnteriorLancada;
+    const cabecalhoDaTabela = temAnterior
+      ? '| Critério | O que se observa | Resultado na Aula ' + nnAnterior + ' |'
+      : '| Critério | O que se observa |';
+    const separadorDaTabela = temAnterior ? '|:--|:--|:--|' : '|:--|:--|';
     for (const e of eixos) {
       corpo.push('### ' + e.rotulo, '');
-      const tabelaDe = (cabecalho, linhas) => {
-        corpo.push(cabecalho);
-        corpo.push('|:--|:--|');
-        for (const [criterio, observa] of linhas) corpo.push('| ' + criterio + ' | ' + observa + ' |');
+      /* `candidatosDe` diz ONDE procurar a marca daquela linha no lançamento: o par (bloco,
+       * critério) do formulário. A ordem é a da declaração — ver `declaracaoDeCaptura`. */
+      const tabelaDe = (linhas, candidatosDe) => {
+        corpo.push(cabecalhoDaTabela);
+        corpo.push(separadorDaTabela);
+        for (const [criterio, observa] of linhas) {
+          if (!temAnterior) {
+            corpo.push('| ' + criterio + ' | ' + observa + ' |');
+            continue;
+          }
+          const anterior = resultadoDaAulaAnterior(aulaAnteriorLancada,
+            candidatosDe ? candidatosDe(criterio) : [{ bloco: 'linha_de_base', chave: criterio }],
+            reguaDaAula);
+          corpo.push('| ' + criterio + ' | ' + observa + ' | '
+            + (anterior || 'não marcado na Aula ' + nnAnterior) + ' |');
+        }
         corpo.push('');
       };
       if (e.linhas.length) {
-        tabelaDe('| Critério | O que se observa |', e.linhas);
+        tabelaDe(e.linhas);
         /* A NOTA É CITAÇÃO, e não parágrafo — por uma razão de CONTRATO, medida: o extrator lê
          * UMA tabela por bloco, e o texto que vem DEPOIS dela, num subcampo de lista, substitui o
          * array pelo parágrafo (o `guiaDeObservacao.Corpo` do `plano-aula-01.json` virava a frase
@@ -1259,10 +1567,14 @@ function derivarAula({ nn = '01', plano, po, contexto, calibracao, linhaDeBase, 
         }
         continue;
       }
+      const cabecalhoDoBloco = temAnterior
+        ? '| Bloco | O que se observa | Resultado na Aula ' + nnAnterior + ' |'
+        : '| Bloco | O que se observa |';
+      const separadorDoBloco = temAnterior ? '|:--|:--|:--|' : '|:--|:--|';
       if (!dims.length) {
-        corpo.push('| Bloco | O que se observa |');
-        corpo.push('|:--|:--|');
-        corpo.push('| [Preencher] | [Preencher] |');
+        corpo.push(cabecalhoDoBloco);
+        corpo.push(separadorDoBloco);
+        corpo.push('| [Preencher] | [Preencher] |' + (temAnterior ? ' [Preencher] |' : ''));
         corpo.push('');
         continue;
       }
@@ -1270,14 +1582,33 @@ function derivarAula({ nn = '01', plano, po, contexto, calibracao, linhaDeBase, 
         corpo.push('Nenhuma dimensão do Plano de Observação cai neste eixo.', '');
         continue;
       }
-      corpo.push('| Bloco | O que se observa |');
-      corpo.push('|:--|:--|');
+      corpo.push(cabecalhoDoBloco);
+      corpo.push(separadorDoBloco);
       for (const d of e.dimensoes) {
         if (!d.itens.length) {
-          corpo.push('| ' + d.bloco + ' | [Preencher: os itens desta dimensão no PO] |');
+          corpo.push('| ' + d.bloco + ' | [Preencher: os itens desta dimensão no PO] |'
+            + (temAnterior ? ' [Preencher] |' : ''));
           continue;
         }
-        for (const item of d.itens) corpo.push('| ' + d.bloco + ' | ' + item + ' |');
+        for (const item of d.itens) {
+          if (!temAnterior) {
+            corpo.push('| ' + d.bloco + ' | ' + item + ' |');
+            continue;
+          }
+          /* O BLOCO DA DIMENSÃO É `slugDe(dimensao)` NA DECLARAÇÃO, e a coluna é o rótulo curto do
+           * item (`rotuloDoItem`). Os dois `bloco` possíveis entram porque o rótulo do eixo e o
+           * nome da dimensão do PO coincidem hoje mas não são a mesma coisa — e é barato tentar os
+           * dois em vez de apostar num. */
+          const candidatos = [];
+          for (const b of [d.dimensao, d.bloco]) {
+            for (const chave of [rotuloDoItem(item), item]) {
+              candidatos.push({ bloco: slugDe(b), chave });
+            }
+          }
+          const anterior = resultadoDaAulaAnterior(aulaAnteriorLancada, candidatos, reguaDaAula);
+          corpo.push('| ' + d.bloco + ' | ' + item + ' | '
+            + (anterior || 'não marcado na Aula ' + nnAnterior) + ' |');
+        }
       }
       corpo.push('');
     }

@@ -21,6 +21,10 @@
       "type": "string",
       "description": "A §3 — a sequência conectada, o fio condutor. A seção tem tabela própria (os blocos com tempos e fatia) e 5 subseções `###`; o contrato casa os `###` só quando são de UM token (tools/lib-extracao-md.js:251), e é por isso que a prosa corrida é o que sai no campo."
     },
+    "aulaAnterior": {
+      "type": "string",
+      "description": "A §3.1 — o retrato da aula anterior, lido do lançamento dela (presença em percentagem, ânimo/interesse/harmonia, data e duração conferidas, sala, plano seguido, surpresa e o que aconteceu de novo). Só existe a partir da Aula 02: a Aula 01 não tem anterior. Separador ` · ` entre os itens, como o §1."
+    },
     "blocoDeMusicalidade": {
       "type": "array",
       "items": {

@@ -20,7 +20,6 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 | **Professor responsável** | Demi Plié |
 | **Sala** | Rosa |
 | **Data e dia** | segunda-feira, 14/12/2026 |
-| **Objetivo específico** | reconhecer o apoio e alinhar o eixo vertical |
 | **Parâmetro de medição** | **1** reconhecer o apoio e alinhar o eixo vertical — observa: Battement tendu · Plié · Relevé · Battement jeté |
 | **Duração** | 120 minutos (Pré-requisito 4) |
 | **Volume ativo** | 175 tempos (faixa 150–200 da duração de 120 min — Regra 9, etapa 1) |
@@ -59,11 +58,6 @@ Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e E
 > preenche — ele diz o que olhar enquanto a aula acontece.
 
 ```{=html}
-<div class="acoes-do-ato">
-<a class="acao secundario" href="#guia-do-formulario">Como preencher o formulário</a>
-<a class="acao" href="lancamento.html">Lançar os dados desta aula</a>
-</div>
-
 <details class="bloco-lista" id="guia-do-formulario">
 <summary class="bloco-cabeca"><span class="bloco-titulo">O que cada bloco do formulário pede</span></summary>
 <div class="bloco-corpo">
@@ -86,6 +80,10 @@ preenchido.</p>
 mudou em relação ao plano. É o único bloco do formulário que não tem correspondência aqui:
 o guia diz o que observar, e este diz o que aconteceu ao plano.</p>
 </div></details>
+
+<div class="acoes-do-ato">
+<a class="acao" href="lancamento.html">Lançar os dados desta aula</a>
+</div>
 ```
 
 > Os itens vêm do **Itens de cada dimensão** no Plano de Observação, e o que se observa vem

@@ -4,12 +4,21 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 22/11/2026 (commit `e504f372`, e o §1 da aula corrigido a seguir). Ainda
-> neste dia, **a aula passou a dizer quem a dá, em que sala e em que dia**: o §1 tinha o objetivo, o
-> parâmetro, a duração e o volume, e nada de professor, sala ou data — e a data existia como lacuna
-> declarada sobre uma fonte que a tinha. E o **§5 passou a levar ao formulário**: explica para que
-> serve o guia, o que cada bloco do formulário pede, e tem os dois botões — o da explicação e o do
-> lançamento.
+> **Última fotografia:** 22/11/2026 (commit `49fb6f87`, e a **Aula 02 a ler a Aula 01** a seguir).
+> Ainda neste dia, **a aula que vem depois passou a ver o que a anterior deixou**: o §5 das aulas 02
+> em diante ganha a coluna **Resultado na Aula N-1** (o nível que o professor marcou, agregado pela
+> régua da turma — «1 de 2 em «Satisfatório» · 1 de 2 em «Razoável»»), e o §3.1 **«O que a aula
+> anterior mostrou»** conta a presença em percentagem, o ânimo, o interesse e a harmonia, a data e a
+> duração conferidas (OK / não OK), a sala, o plano seguido com a justificativa, a surpresa e o que
+> aconteceu de novo. **A Aula 01 não tem nenhum dos dois** — não há anterior. O mesmo acto cortou
+> duas repetições que ela apontou (o «Objetivo específico» do §1) e o botão redundante do §5, e deu
+> a **toda** secção do documento um botão de colapsar e expandir.
+>
+> **Fotografia anterior (22/11/2026 — commit `e504f372`).** Ainda neste dia, **a aula passou a dizer
+> quem a dá, em que sala e em que dia**: o §1 tinha o objetivo, o parâmetro, a duração e o volume, e
+> nada de professor, sala ou data — e a data existia como lacuna declarada sobre uma fonte que a
+> tinha. E o **§5 passou a levar ao formulário**: explica para que serve o guia, o que cada bloco do
+> formulário pede, e leva lá com um botão.
 >
 > **Fotografia anterior (22/11/2026 — commit `a9a62ab1`, e a aula corrigida a seguir).** Ainda neste dia,
 > **a aula deixou de dizer o que não é dela**: o §1 imprimia os três marcos do ciclo na Aula 01
@@ -3316,6 +3325,27 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      (`.acao`, o da casa): o que abre a explicação bloco a bloco e o que leva lá — **relativo**
      (`lancamento.html`), porque o formulário viaja ao lado do documento no pacote. **DECIDIDO**
      22/11/2026.
+151. **A AULA N LÊ O LANÇAMENTO DA AULA N-1 — E A COLUNA DO §5 É AGREGADA.** Palavras dela: «Aí
+     tem uma coluna a adicionar [n]esses espaços […] uma outra coluna que pode ser o nome de
+     resultado obtido na aula anterior […] Só vai ter a partir da aula dois.» O `-dados.json` já
+     guardava o nível que o professor deu a cada aluna; o derivador **não o recebia**. Passa a
+     receber (`contexto.lancamentos`, nos dois escritores: o do Worker e o `regerar-derivados`), e a
+     aula 02 em diante ganha **`Resultado na Aula N-1`** nas tabelas do §5 e o bloco **`§3.1 O que a
+     aula anterior mostrou`** logo depois da distribuição do tempo. A **Aula 01 não tem nenhum dos
+     dois** — uma coluna que se imprime vazia em todas as linhas ensina a ignorá-la. O resultado é
+     **agregado** (`1 de 2 em «Satisfatório» · 1 de 2 em «Razoável»`), pela ordem da régua da turma:
+     com trinta alunas, trinta colunas não se leem, e é a mesma conta que a coluna do corpo já faz
+     para a anamnese. Cada linha do §3.1 tem **três estados** e diz qual é — o dado, «a aula não foi
+     lançada», «o campo ficou em branco» —, e nenhum vira zero. A **sala** é o único pedido dela que
+     o formulário não pergunta: a linha diz o que sabe e nomeia o campo que falta, em vez de afirmar
+     que foi na sala do plano. **DECIDIDO** 22/11/2026.
+     *Ainda neste acto*: cada secção do documento ganhou um botão de **colapsar e expandir**
+     (`.secao-dobra`, criado pelo `nav.js`, dentro do título, aberto por omissão, o índice a abrir o
+     que estava fechado, e o papel sempre inteiro), e duas repetições saíram do §1 e do §5 —
+     `Objetivo específico` (está no parâmetro e no título) e o botão «Como preencher o formulário»
+     (o `<details>` abre sozinho no `summary`).
+     **PENDENTE e declarado**: (a) a **hora de início** não é registada pelo formulário, e a linha da
+         data diz isso; (b) a **sala onde a aula aconteceu** não é perguntada — é o campo que falta.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
@@ -4132,7 +4162,20 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (22/11/2026 — quem dá a aula, onde, e em que dia)
+### Executado nesta fotografia (22/11/2026 — a aula que lê a aula anterior)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-a-dobra-e-a-aula-anterior.js` | **31/31** — com um lançamento de fixture: a Aula 01 sem o §3.1 e sem a terceira coluna; a Aula 02 com os sete itens do §3.1 (presença **100%**, ânimo 5 · interesse 4 · harmonia 3, data e duração **OK** contra a data da Aula 01, a sala a nomear o campo que falta, o plano «em parte» com a justificativa, a surpresa e o texto dele); a coluna a agregar `1 de 2 em «Satisfatório» · 1 de 2 em «Razoável»` pela ordem da régua, na linha da anamnese **e** na de um bloco de dimensão; «não marcado» onde ninguém marcou; sem lançamento, nenhuma coluna e o §3.1 a dizer «ainda não foi lançada»; no navegador, 9 secções / 9 botões / 9 corpos e nenhuma tabela solta, fechar, abrir, o índice a abrir o que estava fechado, e no papel a secção inteira com o botão escondido. Controle `--contra=49fb6f87`: **25 de 31 reprovam** |
+| `node experimentos/provar-a-identidade-da-aula.js` | **26/26** (as duas asserções dos botões passaram a medir UM botão, como ela pediu) |
+| `node experimentos/provar-a-aula-diz-so-o-que-e-dela.js` | 25/25 (inalterado) |
+| `node tools/check-pacote.js professores/demi-plie/ciclos/ciclo-01-breu-rosa` | 0 erros (1 aviso: o PDF, por desenho) |
+| `bash tools/hash-ciclo.sh demi-plie 01 breu-rosa --check` | íntegro, cadeia intacta |
+| `node tools/check-identidade.js` | **0 problemas** |
+| **geometria do botão**, medida no navegador | com e sem a dobra: título de **38px**, página de **10166px** — o botão não custa uma linha; o alvo do dedo é **23×15px** |
+| `provar-derivador-da-aula` · `provar-escopo-da-aula` · `provar-eixos-e-tempo-da-aula` | **34/35 · 2 falhas · 4 de 52** — as três são **pré-existentes**: correm iguais num worktree limpo do `HEAD` |
+
+### Executado na fotografia anterior (22/11/2026 — quem dá a aula, onde, e em que dia)
 
 | Verificação | Resultado |
 |:--|:--|

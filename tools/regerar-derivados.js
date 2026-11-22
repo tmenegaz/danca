@@ -285,8 +285,12 @@ const fontes = [
    * entra sempre, porque todo o ciclo a tem. */
   ...aulasParaDerivar.map((nn) => ({
     sufixo: '-aula-' + nn + '.md', deAula: nn,
+    /* O LANÇAMENTO TAMBÉM (22/11/2026) — é dele que saem a coluna «Resultado na Aula N-1» e o
+     * bloco «O que a aula anterior mostrou». `dadosDoCiclo` é o mesmo ficheiro que decide quais
+     * aulas já foram lançadas, quatro ecrãs acima: uma leitura, dois usos. */
     texto: derivarAula({ nn, plano, po,
-      contexto: Object.assign({}, contexto, { aulas, calendario, professorNome }),
+      contexto: Object.assign({}, contexto,
+        { aulas, calendario, professorNome, lancamentos: dadosDoCiclo }),
       calibracao: cal, linhaDeBase, anamneses }),
   })),
   { sufixo: '-referencias.md', texto: derivarReferencias({ plano, contexto }) },

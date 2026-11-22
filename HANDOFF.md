@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T17:15:14-0300`
-Commit atual: `d958b812` — feat(aula-01): o §1 diz quem dá a aula, onde e em que dia — e o §5 leva ao formulário
+Gerado em: `2026-11-22T18:31:30-0300`
+Commit atual: `49fb6f87` — docs(estrutura): a fotografia do §1 da aula e do guia que leva ao formulário
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,7 +82,9 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
-d958b812 feat(aula-01): o §1 diz quem dá a aula, onde e em que dia — e o §5 leva ao formulário
+49fb6f87 docs(estrutura): a fotografia do §1 da aula e do guia que leva ao formulário
+62b2659c feat(aula-01): o §1 diz quem dá a aula, onde e em que dia — e o §5 leva ao formulário
+247f825f chore(estrutura): fechar os derivados — âncoras e índices
 e504f372 docs(estrutura): a fotografia da aula que diz só o que é dela
 b78a5f00 fix(po): cada aula imprime o seu marco, e mede pela régua da turma
 070415c2 docs(estrutura): a fotografia da folha que mede o conteúdo e do painel empilhado
@@ -100,8 +102,6 @@ d1127afd fix(estrutura): um elo que nunca olhou não é um elo limpo
 dff5ccff fix(template): a coluna dos Bastidores abre e fecha a partir dos 769
 de95569a docs(estrutura): o defeito que só apareceu ao vivo, e a terceira cópia da lista
 7cbec16a fix(estrutura): o pacote da escola zero é regerado com o menu de um destino
-b4ade3d6 fix(tools): o scaffold da escola também nasce com um destino em Bastidores
-1a221aae feat(estrutura): a produção passa a chamar-se estúdio — e a cena sai de Bastidores
 ```
 
 ## Por professor
@@ -128,7 +128,7 @@ b4ade3d6 fix(tools): o scaffold da escola também nasce com um destino em Bastid
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `59b86b60252a` | (vazio) | — |
-| breu-rosa | ciclo-01-breu-rosa.fipp | `ea40f934b43c` | (vazio) | Input_PO_Validado |
+| breu-rosa | ciclo-01-breu-rosa.fipp | `58c99300bf59` | (vazio) | Input_PO_Validado |
 
 ### fernando-franciose — 0 ciclo(s)
 
@@ -195,76 +195,90 @@ b4ade3d6 fix(tools): o scaffold da escola também nasce com um destino em Bastid
 
 ## Última entrada do REGISTRO
 
-## 22/11/2026 — O §1 diz quem dá a aula, onde e em que dia; o §5 leva ao formulário (motivo declarado)
+## 22/11/2026 — A Aula 02 lê o resultado da Aula 01, e cada secção abre e fecha
 
-**O que motivou.** Duas faltas no mesmo documento, na Aula 01 da `breu`:
+**O que ela pediu**, na ordem em que pediu. Primeiro a coluna: «Aí tem uma coluna a adicionar
 
-1. «falta dizer quem é o professor responsável pela aula, aonde essa aula acontece, aonde eu me
-   refiro à sala, qual é o espaço que acontece essa aula e o dia da semana que isso acontece. […]
-   Você não vai transformar isso aqui num calendário, viu? Você vai dizer o dia específico, a data e
-   o dia da semana específico.»
-2. «nesse guia de observação do professor, a gente tem que explicar para ele que ele tem que
-   preencher o formulário da aula que ele vai dar. E o que que representa aqui neste documento cada
-   um dos espaços dos blocos que expande ou colapsa […] um botão com essa explicação melhorada e um
-   botão em seguida que leva direto ao formulário.»
+[n]esses espaços […] uma outra coluna que pode ser o nome de resultado obtido na aula anterior […]
+Ainda não tem essa coluna porque ainda não foi dada nenhuma aula […] Só vai ter a partir da aula
+dois.» Depois o que veio do formulário: «a gente vai mostrar em percentual […] o ânimo da aula, o
+interesse da aula e a harmonia da aula […] se a aula foi dada no dia certo […] se aconteceu na sala
+correta […] o plano foi seguido? […] se algo surpreendeu […] o que que aconteceu de novo.» E, sobre
+a forma: «todos, todos eles, todos eles tem que ter isso de colapsar e expandir.»
 
-**O que era.** O §1 dizia o objetivo, o parâmetro, a duração e o volume — nada sobre quem, onde ou
-quando. A data existia como **lacuna declarada** (`identificacao.dataEHorarioDestaAula: «a data
-desta aula não está na fonte»`), e era **falsa**: a data estava na fonte que a própria lacuna
-nomeava — o `.conf` da variante, com `DATA_INICIO`, `DIAS` e `TOTAL_AULAS` (Regra 10, camada 2). E
-o §5 explicava o que observar, mas não dizia que o registo se faz **noutro sítio** — o formulário —,
-nem o que cada bloco dele representa.
+**O dado já existia; faltava a ligação.** O `-dados.json` guarda, por aula lançada, o nível que o
+professor deu a cada aluna em cada critério. O derivador da aula não recebia esse ficheiro — agora
+recebe (`contexto.lancamentos`), e a aula N lê a N-1. O caminho é o mesmo dos dois escritores: o do
+Worker (`escrever-ciclo.js`) e o local (`tools/regerar-derivados.js`), com a mesma leitura e a
+mesma tolerância — sem ficheiro, nada se inventa.
 
-**O que foi decidido.**
-- **A CONTA DO CALENDÁRIO PASSA A EXISTIR EM JAVASCRIPT** — `motor/nucleo/calendario-das-aulas.js`,
-  com a regra do `calendario.py` copiada e não reinventada (a primeira aula é a primeira ocorrência
-  de um dia da turma a partir do início; um dia repetido na lista gera duas aulas na mesma data). As
-  duas implementações dão as **mesmas 15 datas** — é o que a prova mede contra o `ciclos.json`
-  publicado, que o Python gerou.
-- **O §1 ganha três linhas, e uma data não é um calendário.** `Professor responsável` (o **nome do
-  perfil**, com o slug como reserva — o `PROFESSOR` do `.conf` é o slug e o `RESPONSAVEL` é o da
-  escola), `Sala` (a turma do plano — é ela que o produto chama «sala» desde 07/11/2026) e `Data e
-  dia` (`segunda-feira, 14/12/2026`). Sem calendário no contexto, a linha declara a lacuna **e
-  nomeia os três campos do manifesto** — um documento que não sabe não inventa uma data.
-- **A LACUNA DO VALIDADOR SAIU.** `tools/validar-aula-ciclo.js` declarava `dataEHorarioDestaAula`
-  como lacuna; com a linha nova, o mesmo `identificacao` dizia o dado e a lacuna sobre o mesmo
-  facto. A lista fica vazia, com o motivo escrito ao lado — e o nome do campo antigo continua no
-  comentário, porque o registo do que saiu é informação.
-- **O §5 explica o formulário e leva lá.** Uma frase que diz para que serve o guia («o registo
-  faz-se no formulário»), dois botões — `.acao` é o botão da casa, e o do formulário é
-  **relativo** (`lancamento.html`) porque o formulário viaja ao lado do documento no pacote e o
-  derivador não conhece a pasta da turma —, e a explicação bloco a bloco dentro de um `<details>`
-  (`.bloco-lista`/`.bloco-cabeca`), **dita em relação a este documento**: «o Presentes é a coluna de
-  alunas das tabelas de cada eixo», «o número ao lado do nome do eixo é o que já foi preenchido».
-  Os blocos descritos são os que o formulário desenha: Presentes · Data e duração · Ânimo,
-  interesse e harmonia · Corpo·Técnica·Poiesis · Depois da aula.
+**O RESULTADO É AGREGADO, e não uma coluna por aluna.** Ela descreveu o caso de duas («para a
+aluna A eu marco satisfatório, para a B razoável»); com trinta, um documento com trinta colunas não
+se lê — é a mesma conta que a coluna do corpo já tinha resolvido para a anamnese a 21/11. A frase é
+a da casa: `1 de 2 em «Satisfatório» · 1 de 2 em «Razoável»`, pela ordem da régua da turma.
 
-**Motivo declarado — os congelados.** `tools/validar-aula-ciclo.js` está em `CONGELAMENTO.md`, e a
-alteração muda **comportamento**: a chave `identificacao.dataEHorarioDestaAula` deixa de ser escrita
-como lacuna. Foi pedido pela proprietária («você vai colocar esses itens que estão faltando»), e vai
-no mesmo commit que a linha que a torna desnecessária. **O que não muda**: o formato dos documentos,
-as chaves que o schema exige (a antiga não é exigida), o hash de proveniência, e as regras de
-`REGRAS.md` e as pétreas de `PROTOCOLO.md`.
+**O §3.1 — «O que a aula anterior mostrou».** Entra **depois da distribuição do tempo**, como ela o
+situou: presença **em percentagem**, ânimo/interesse/harmonia, a data e a duração conferidas contra
+o calendário (**OK** ou **não OK** — e, quando não, o dia em que aconteceu), a sala, o plano seguido
+(com a justificativa de quando não foi «sim»), a marca do «surpreendeu?» e o que aconteceu de novo.
+Cada linha tem **três estados** e diz qual é: o dado, «a aula não foi lançada», ou «o campo ficou em
+branco». Nenhum deles vira zero nem «não».
 
-**Com o quê.** `motor/nucleo/calendario-das-aulas.js` (**novo**), `motor/nucleo/derivar-ciclo.js` (o
-§1 e o §5), `motor/servidor/escrever-ciclo.js` (`calendarioDoConf`, a leitura do perfil, e as duas
-coisas no contexto da derivação), `tools/regerar-derivados.js` (o mesmo, do lado local),
-`tools/validar-aula-ciclo.js` (a lacuna), as fontes derivadas e o pacote da `breu-rosa` regerados, a
-âncora recalculada, `experimentos/provar-a-identidade-da-aula.js` (**novo**), `.gitignore`,
-`ESTADO-ATUAL.md`.
+**A AULA 01 NÃO TEM NADA DISTO** — nem a secção, nem a coluna. Uma coluna que se imprime sem ter o
+que dizer em todas as linhas ensina a ignorá-la, e a regra dela é explícita: a partir da aula dois.
 
-**MEDIDO.** `provar-a-identidade-da-aula` **26/26**: as três linhas com o dado de cada uma; a data
-igual à do `ciclos.json` publicado e o dia da semana conferido pelo `Intl` do Node (uma segunda
-implementação, não a que escreveu); a Aula 02 com a data dela (quarta-feira, 16/12/2026); **uma só
-data no §1** (a asserção que impede o calendário); a lacuna a nomear `DATA_INICIO`/`DIAS`/
-`TOTAL_AULAS` quando não há calendário; os dois botões, com o `lancamento.html` ao lado do
-documento no pacote; a explicação a nomear os cinco blocos; as seis peças na folha. Com o **controle
-negativo** `--contra=e504f372`, as mesmas asserções reprovam **17 de 26** — sem as três linhas, sem
-os botões, e com o `plano-aula-01.json` a declarar a lacuna. `check-pacote` 0 erros,
-`hash-ciclo --check` íntegro, `check-identidade` **0 problemas**, `provar-a-aula-diz-so-o-que-e-dela`
-25/25. **`provar-aula-prosa` continua a cair** na mesma asserção anterior (o critério «resposta ao
-pulso na marcação» não existe neste `.md`) — e a geração da prosa preserva os botões e o `<details>`,
-medido.
+**O «3.1» é 3.1 e não 4.** O contrato de extracção casa o título **literal** com o número à frente;
+meter aqui uma «4» obrigava a renumerar 4→5, 5→6, 6→7, 7→8, 8→9 no mapa, nos documentos já
+gravados de todos os ciclos e nas provas que cortam o documento por título. O 3.1 diz o mesmo —
+«logo depois da 3» — sem reescrever o passado.
+
+**A dobra de cada secção** (`.secao-dobra` + `.secao-corpo`) é criada pelo `nav.js` e não pelo HTML,
+pela mesma razão do índice: o documento é gerado, e um pacote que não se pode regerar ficaria sem o
+controle. Mora **dentro do título** — oito fileiras de botões no meio do texto seriam o contrário do
+que se pediu ao pedir menos rolagem —, nasce aberta, e o índice manda: clicar na secção fechada
+abre-a (senão metade do índice não leva a lado nenhum). No papel não há dobra: sai inteira, e o
+botão não se imprime.
+
+**Duas correções que ela pediu no mesmo acto.** O §1 já não repete o «Objetivo específico» (está no
+parâmetro, e no título do documento). E o botão «Como preencher o formulário» saiu: o texto e o
+espaço que ele abre ficam no §5, mas o `<details>` já abre sozinho no `summary` — era um segundo
+controle para a mesma coisa.
+
+**Motivo declarado — os congelados.** `tools/validar-aula-ciclo.js` (o mapa das secções, uma linha
+nova), `tools/templates/nav.js` e `tools/templates/ciclo.css` (a dobra) estão em `CONGELAMENTO.md`.
+**O que não muda**: o formato dos documentos anteriores (as oito secções continuam com o mesmo
+número e o mesmo título), as chaves exigidas pelo schema (`aulaAnterior` é opcional), o hash de
+proveniência, e as regras de `REGRAS.md` e as pétreas de `PROTOCOLO.md`.
+
+**Com o quê.** `motor/nucleo/derivar-ciclo.js` (o §3.1, a coluna, a data da aula anterior, a linha
+que saiu do §1, o botão que saiu do §5), `motor/servidor/escrever-ciclo.js` e
+`tools/regerar-derivados.js` (o lançamento no contexto), `tools/validar-aula-ciclo.js` (o mapa), os
+**15** `ciclo-01-aula-schema.json` (o campo `aulaAnterior`), `tools/templates/nav.js` e
+`tools/templates/ciclo.css` (a dobra), as fontes derivadas e os dois pacotes da `breu` regerados, a
+âncora recalculada, `experimentos/provar-a-dobra-e-a-aula-anterior.js` (**novo**),
+`experimentos/provar-a-identidade-da-aula.js` (as duas asserções dos botões, agora um só),
+`.gitignore`, `ESTADO-ATUAL.md`.
+
+**MEDIDO.** `provar-a-dobra-e-a-aula-anterior` **31/31**, em duas metades: o markdown derivado com
+um lançamento de fixture (o caso que ela descreveu — 100% de presença, ânimo 5 · interesse 4 ·
+harmonia 3, o plano «em parte» com a justificativa, a aluna A «Satisfatório» e a B «Razoável» na 1ª
+posição dos pés) e o documento publicado no navegador (9 secções, 9 botões, todos dentro do título;
+fechar, abrir, o índice a abrir o que estava fechado, e o papel a ignorar o estado). Com o **controle
+negativo** `--contra=49fb6f87`, as mesmas asserções reprovam **25 de 31**. `check-pacote` 0 erros,
+`hash-ciclo --check` íntegro, `check-identidade` **0 problemas**, `provar-a-identidade-da-aula`
+26/26, `provar-a-aula-diz-so-o-que-e-dela` 25/25. **Medido também o custo do botão**: com e sem a
+dobra, o título tem os mesmos 38px e a página os mesmos 10 166px; o alvo do dedo é 23×15px.
+
+**Um erro encontrado no caminho, e que teria passado.** A primeira versão do leitor escrevia
+`typeof porAluno` onde a variável é `porAluna` — a guarda `!porAluno || typeof porAluno !== 'object'`
+dava sempre verdadeira, a função devolvia `{}` e **todas** as linhas diziam «não marcado na Aula 01».
+É a família de defeito que a prova apanha e a leitura não: a coluna existia, o documento parecia
+certo, e o dado nunca chegava. A asserção que exige o valor («1 de 2 em «Satisfatório»») é o que o
+apanhou.
+
+**Pré-existentes, verificadas iguais com e sem esta mudança** (worktree limpo do `HEAD`):
+`provar-derivador-da-aula` 34/35, `provar-escopo-da-aula` 2 falhas, `provar-eixos-e-tempo-da-aula`
+4 de 52.
 
 ## O que está pendente
 

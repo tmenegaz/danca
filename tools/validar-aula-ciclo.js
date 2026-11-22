@@ -68,6 +68,12 @@ const MAPA_SECOES = {
   "3. distribuição do tempo pelos blocos": "sequenciaDaAula",
   "3. a sequência conectada (fio condutor)": "sequenciaDaAula",
   "3. a sequência da aula (fio condutor)": "sequenciaDaAula",
+  // A §3.1 — O QUE A AULA ANTERIOR MOSTROU (22/11/2026). A secção entra com o número «3.1», e não
+  // com um número novo, para NÃO renumerar as oito que já existem: o mapa casa o título literal com
+  // o número à frente, e uma «4» aqui obrigaria a reescrever 4→5, 5→6, 6→7, 7→8, 8→9 nas linhas
+  // abaixo, nos documentos já gravados de todos os ciclos e nas provas que cortam o documento por
+  // título. O 3.1 diz a mesma coisa — «logo depois da 3» — sem tocar no passado.
+  "3.1 o que a aula anterior mostrou": "aulaAnterior",
   "4. bloco de musicalidade (8 tempos · 9%)": "blocoDeMusicalidade",
   "4. bloco de musicalidade (8 tempos · 10%)": "blocoDeMusicalidade",
   // O TÍTULO SEM OS TEMPOS (20/10/2026). O gerador escreve `## 4. Bloco de musicalidade`, sem o

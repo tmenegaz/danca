@@ -1870,3 +1870,4 @@ experimentos/modelo-formulario/*
 # uma data, não um calendário —, e o §5 explica o formulário e leva lá com um botão. O dia da semana
 # é conferido por FORA, com o `Intl` do Node, para a prova não perguntar ao código que o escreveu.
 !experimentos/provar-a-identidade-da-aula.js
+!experimentos/provar-a-dobra-e-a-aula-anterior.js

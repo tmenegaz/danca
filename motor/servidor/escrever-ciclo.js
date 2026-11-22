@@ -754,7 +754,13 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
         sufixo: '-aula-' + nn + '.md',
         ...daAula(nn, () => derivarAula({ nn,
           plano, po,
-          contexto: Object.assign({}, ctx, { aulas: aulasDoCiclo, calendario, professorNome }),
+          /* O LANÇAMENTO VAI TAMBÉM À AULA (22/11/2026). É dele que sai a terceira coluna do guia
+           * («Resultado na Aula 01») e o bloco «O que a aula anterior mostrou» da Aula 02 em
+           * diante. Sem ele, a Aula 02 não teria como saber o que a Aula 01 deixou — e é o mesmo
+           * ficheiro que o `derivarDados` já lê duas linhas acima, pelo mesmo caminho, com a mesma
+           * tolerância: enquanto a aula não for lançada, ele não existe e nada se inventa. */
+          contexto: Object.assign({}, ctx,
+            { aulas: aulasDoCiclo, calendario, professorNome, lancamentos: dadosAnteriores }),
           calibracao: cal, linhaDeBase, anamneses })),
       })),
       { sufixo: '-referencias.md', md: derivarReferencias({ plano, contexto: ctx }) },

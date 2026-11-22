@@ -190,7 +190,12 @@ function diaPeloNode(dataBr) {
       && /DIAS/.test(linhaSem) && /TOTAL_AULAS/.test(linhaSem), linhaSem);
 
   /* ──────────────────────────── E. O §5: para que serve, e os dois botões */
-  console.log('\nE. O §5 manda ao formulário, com os dois botões');
+  /* O SEGUNDO BOTÃO SAIU (22/11/2026), por decisão dela: «tira esse botão como preencher o
+   * formulário. Pode tirar isso, não tem sentido existir isso. A ideia é que esse texto que você
+   * colocou fique aqui na guia de observação do professor.» O texto e o espaço que ele abre
+   * ficam; o atalho redundante — um segundo controle para o mesmo `<details>`, que já abre
+   * sozinho no `summary` — saiu. O que se mede agora é isso: UM botão, e a explicação lá. */
+  console.log('\nE. O §5 manda ao formulário, com um botão e a explicação no lugar');
   /* DUAS VISTAS DO MESMO TEXTO, e cada uma serve uma pergunta diferente: `cinco` é o bloco CRU
    * (onde se procura marcação — o `<a>`, o `<details>`), e `cincoProsa` desfaz as quebras de linha
    * do Markdown («registo faz-se no\n> formulário») e o `>` das citações, para as asserções sobre
@@ -199,14 +204,16 @@ function diaPeloNode(dataBr) {
   const cincoProsa = cinco.replace(/^> ?/gm, '').replace(/\s+/g, ' ');
   provar('diz que o guia se leva para a sala e o registo se faz no formulário',
     /registo faz-se no formulário/.test(cincoProsa) && /O guia não se preenche/.test(cincoProsa), null);
-  provar('tem o botão que abre a explicação («Como preencher o formulário»)',
-    /<a class="acao secundario" href="#guia-do-formulario">Como preencher o formulário<\/a>/.test(cinco), null);
-  provar('tem o botão que leva ao formulário, em seguida ao primeiro',
-    /href="#guia-do-formulario"[^>]*>[^<]*<\/a>\s*<a class="acao" href="lancamento\.html">/.test(cinco), null);
+  provar('o botão «Como preencher o formulário» saiu (o `<details>` abre sozinho no `summary`)',
+    cinco.indexOf('Como preencher o formulário') === -1, null);
+  provar('tem UM botão só, o que leva ao formulário',
+    (cinco.match(/class="acao[^"]*"/g) || []).length === 1
+    && /<a class="acao" href="lancamento\.html">/.test(cinco), (cinco.match(/class="acao[^"]*"/g) || []));
   provar('…e o `lancamento.html` existe ao lado do documento, no pacote',
     fs.existsSync(path.join(PACOTE_BASE, 'lancamento.html')), 'lancamento.html');
-  provar('o bloco da explicação é o `<details>` que o primeiro botão abre',
-    /<details class="bloco-lista" id="guia-do-formulario">/.test(cinco), null);
+  provar('a explicação é um `<details>` que abre e fecha — o espaço dela no guia',
+    /<details class="bloco-lista" id="guia-do-formulario">/.test(cinco)
+    && /<summary class="bloco-cabeca">/.test(cinco), null);
   provar('a explicação nomeia os blocos do formulário, um a um',
     ['Presentes', 'Ânimo', 'Corpo', 'Técnica', 'Poiesis', 'Depois da aula']
       .every((b) => cincoProsa.indexOf(b) !== -1),

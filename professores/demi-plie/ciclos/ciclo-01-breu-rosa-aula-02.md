@@ -20,7 +20,6 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 | **Professor responsável** | Demi Plié |
 | **Sala** | Rosa |
 | **Data e dia** | quarta-feira, 16/12/2026 |
-| **Objetivo específico** | transferir o peso entre os pés sem perder o alinhamento |
 | **Parâmetro de medição** | **2** transferir o peso entre os pés sem perder o alinhamento — observa: Battement tendu · Battement jeté |
 | **Duração** | 120 minutos (Pré-requisito 4) |
 | **Volume ativo** | 175 tempos (faixa 150–200 da duração de 120 min — Regra 9, etapa 1) |
@@ -39,6 +38,12 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 | Musicalidade | 14,58 | 10 min |
 | **Total** | **175** | **100%** |
 
+## 3.1 O que a aula anterior mostrou
+
+> Este bloco não se preenche: é o retrato da Aula 01, lido do lançamento daquela aula.
+
+- **A Aula 01 ainda não foi lançada.** O que esta secção mostra sai do formulário de lançamento da Aula 01, e ele está vazio: não há resultado anterior para olhar. Quando esse lançamento for gravado, esta secção passa a dizê-lo.
+
 ## 4. Bloco de musicalidade
 
 Nenhum exercício desta aula tem tempos e compasso declarados na sequência — sem eles não há música a consolidar.
@@ -53,11 +58,6 @@ Sem música declarada na sequência: Barra — Battement tendu · Barra — Batt
 > preenche — ele diz o que olhar enquanto a aula acontece.
 
 ```{=html}
-<div class="acoes-do-ato">
-<a class="acao secundario" href="#guia-do-formulario">Como preencher o formulário</a>
-<a class="acao" href="lancamento.html">Lançar os dados desta aula</a>
-</div>
-
 <details class="bloco-lista" id="guia-do-formulario">
 <summary class="bloco-cabeca"><span class="bloco-titulo">O que cada bloco do formulário pede</span></summary>
 <div class="bloco-corpo">
@@ -80,6 +80,10 @@ preenchido.</p>
 mudou em relação ao plano. É o único bloco do formulário que não tem correspondência aqui:
 o guia diz o que observar, e este diz o que aconteceu ao plano.</p>
 </div></details>
+
+<div class="acoes-do-ato">
+<a class="acao" href="lancamento.html">Lançar os dados desta aula</a>
+</div>
 ```
 
 > Os itens vêm do **Itens de cada dimensão** no Plano de Observação, e o que se observa vem

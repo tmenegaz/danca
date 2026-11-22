@@ -173,6 +173,131 @@
   aplicarDobras();
   if (largo.addEventListener) largo.addEventListener('change', aplicarDobras);
 
+  /* ------------------------------------------------------------------
+   * A DOBRA DE CADA SECÇÃO DO DOCUMENTO (22/11/2026).
+   *
+   * Palavras dela: «Como o item cinco do plano da aula, guia de observação do professor,
+   * ele vai ser mais extenso, ele vai ser longo, tem que colocar um botão de colapsar e
+   * expandir nele. […] Outro campo que tem que ter isso também, na verdade todos, todos
+   * eles, todos eles tem que ter isso de colapsar e expandir para ficar melhor para o
+   * professor.»
+   *
+   * O CONTROLE É CRIADO AQUI, pela mesma razão do índice: o documento é gerado, e um
+   * documento já gerado — ou um pacote que não se pode regerar — ficaria sem controle até
+   * a geração seguinte. Criado no script, vale para todo documento que carregue
+   * `assets/nav.js`, inclusive os que já estão no ar. Sem JavaScript, o documento fica
+   * inteiro aberto, como sempre esteve: não há botão morto.
+   *
+   * O BOTÃO MORA DENTRO DO TÍTULO. O documento da aula tem oito secções: um botão em
+   * fileira própria abria oito fileiras de ar em cima do texto — o contrário do que se
+   * pediu. No fim do título ele lê-se como parte dele.
+   *
+   * O ESTADO VIVE NESTA SESSÃO (`sessionStorage`), como o do índice e o do filtro das
+   * listas: é o que a pessoa acabou de fazer. A chave é o `id` do título, que é o mesmo
+   * nas sete aulas de um ciclo — recolher o guia de observação na Aula 01 é recolhê-lo na
+   * Aula 02, que é o que se espera de quem está a ler a mesma secção sete vezes.
+   * ------------------------------------------------------------------ */
+  var CHAVE_SECOES = 'ciclo:secoes';
+
+  /* O ÍNDICE MANDA: clicar «Guia de observação» numa secção recolhida tem de a abrir. Sem
+     isto, meio índice não leva a lado nenhum — o salto pára numa âncora escondida, e nada
+     acontece. Vale para o `hash` do endereço (um favorito, um link colado) e para o clique. */
+  function abrirSeDoAlvo(alvo) {
+    if (!alvo) return;
+    /* DUAS FORMAS DE ALVO, e as duas acontecem: o link do índice aponta para o TÍTULO da
+       secção (que fica FORA do corpo — o corpo é o que vem depois dele) ou para uma
+       subsecção (`### Corpo`, `### Técnica`), que fica DENTRO. Procurar só o `closest`
+       deixava o índice sem efeito justamente no caso que importa: a secção recolhida. */
+    var corpo = alvo.tagName === 'H2'
+      ? document.getElementById('secao-corpo-' + alvo.id)
+      : (alvo.closest ? alvo.closest('.secao-corpo') : null);
+    if (!corpo) return;
+    var dono = secoesPorCorpo.get(corpo);
+    if (!dono) return;
+    mostrarSecao(dono, true);
+    guardarSecoes();
+  }
+  function abrirDoEndereco() {
+    if (!location.hash || location.hash.length < 2) return;
+    var alvo;
+    try { alvo = document.querySelector(location.hash); } catch (e) { alvo = null; }
+    abrirSeDoAlvo(alvo);
+  }
+
+  var recolhidas;
+  try { recolhidas = JSON.parse(sessionStorage.getItem(CHAVE_SECOES) || '[]'); } catch (e) { recolhidas = []; }
+  if (!Array.isArray(recolhidas)) recolhidas = [];
+
+  function guardarSecoes() {
+    try { sessionStorage.setItem(CHAVE_SECOES, JSON.stringify(recolhidas)); } catch (e) { /* modo privado */ }
+  }
+
+  var secoes = [];
+  var secoesPorCorpo = new Map();
+
+  function mostrarSecao(s, aberto) {
+    var nome = (s.h2.textContent || '').replace(/\s+/g, ' ').trim();
+    var rotulo = (aberto ? 'Recolher ' : 'Mostrar ') + nome;
+    s.corpo.setAttribute('data-recolhido', aberto ? 'nao' : 'sim');
+    s.botao.setAttribute('aria-expanded', aberto ? 'true' : 'false');
+    s.botao.setAttribute('aria-label', rotulo);
+    s.botao.title = rotulo;
+    var sinal = s.botao.querySelector('.secao-dobra-sinal');
+    if (sinal) sinal.textContent = aberto ? '\u25BE' : '\u25B8';
+  }
+
+  /* A PORTA NÃO TEM ISTO. Ela é o formulário de elicitação: recolher uma secção lá é
+     esconder perguntas que faltam responder, e a barra do topo já diz o que falta. */
+  if (document.body && document.body.getAttribute('data-tela') !== 'porta') {
+    Array.prototype.forEach.call(document.querySelectorAll('.conteudo > h2[id]'), function (h2) {
+      var pai = h2.parentNode;
+      if (!pai) return;
+      /* O CORPO É TUDO O QUE VEM DEPOIS DO TÍTULO ATÉ AO TÍTULO SEGUINTE — tabelas, listas,
+         parágrafos e os blocos `details` que a secção já tenha. Nada é interpretado: os nós
+         são mudados de pai, e o conteúdo é o mesmo. */
+      var corpo = document.createElement('div');
+      corpo.className = 'secao-corpo';
+      corpo.id = 'secao-corpo-' + h2.id;
+      var irmao = h2.nextElementSibling;
+      while (irmao && irmao.tagName !== 'H2') {
+        var seguinte = irmao.nextElementSibling;
+        corpo.appendChild(irmao);
+        irmao = seguinte;
+      }
+      pai.insertBefore(corpo, h2.nextSibling);
+      var botao = document.createElement('button');
+      botao.type = 'button';
+      botao.className = 'secao-dobra';
+      botao.setAttribute('aria-controls', corpo.id);
+      var sinal = document.createElement('span');
+      sinal.className = 'secao-dobra-sinal';
+      sinal.setAttribute('aria-hidden', 'true');
+      botao.appendChild(sinal);
+      h2.appendChild(botao);
+      var registro = { h2: h2, corpo: corpo, botao: botao, chave: h2.id };
+      secoes.push(registro);
+      secoesPorCorpo.set(corpo, registro);
+      botao.addEventListener('click', function () {
+        var aberto = corpo.getAttribute('data-recolhido') === 'sim';
+        mostrarSecao(registro, aberto);
+        var i = recolhidas.indexOf(registro.chave);
+        if (!aberto && i === -1) recolhidas.push(registro.chave);
+        else if (aberto && i !== -1) recolhidas.splice(i, 1);
+        guardarSecoes();
+      });
+    });
+    secoes.forEach(function (s) { mostrarSecao(s, recolhidas.indexOf(s.chave) === -1); });
+    abrirDoEndereco();
+    window.addEventListener('hashchange', abrirDoEndereco);
+    document.addEventListener('click', function (ev) {
+      var link = ev.target && ev.target.closest ? ev.target.closest('a[href^="#"]') : null;
+      if (!link) return;
+      var id;
+      try { id = document.querySelector(link.getAttribute('href')); } catch (e) { id = null; }
+      abrirSeDoAlvo(id);
+    });
+  }
+
   /* Página sem navegação (o arquivo é carregado pelo template, não só pelo ciclo):
      sai sem tocar em nada, em vez de estourar mais abaixo. */
   if (!navbar) return;

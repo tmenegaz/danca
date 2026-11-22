@@ -1583,6 +1583,44 @@ li { margin: 4px 0; }
   .toc-local[data-recolhido="sim"] ol { display: block !important; }
 }
 
+/* ---------- a dobra de cada SECÇÃO do documento (22/11/2026) ----------
+   O botão que recolhe e expande a secção inteira. É a MESMA PEÇA da `.toc-dobra` — o
+   pegador do índice, duas linhas acima —, e de propósito: é o mesmo gesto em dois
+   lugares, e duas peças diferentes para o mesmo gesto ensinam que são coisas diferentes.
+   O que muda é só onde ele mora: dentro do título, e não numa fileira própria.
+
+   PORQUE DENTRO DO TÍTULO. O documento da aula tem oito secções; um botão em fileira
+   própria abria oito fileiras de ar no meio do texto — o contrário do que se pediu ao
+   pedir «menos rolagem». Ao fim do título, ele lê-se como parte dele.
+
+   ELE NÃO TINHA NOME ANTES (o `.toc-dobra` só aparecia abaixo de 1200px, onde o índice
+   vira bloco do topo). Aqui aparece em qualquer largura: quem lê a aula num portátil
+   também quer fechar o guia de observação. Só o papel não tem dobra — no papel o
+   documento sai inteiro, e o botão não se imprime: um PDF com uma secção escondida
+   porque alguém tocou num botão noutro dia seria um documento que mente. */
+.secao-dobra {
+  /* O ALVO DO DEDO É MAIOR QUE O SINAL, e não custa uma linha de altura: o `padding` cresce
+     5px em cada lado e o `margin` negativo devolve os mesmos 5px ao texto. Medido: com e sem
+     o botão, o título tem os mesmos 38px e a página os mesmos 10 166px. */
+  display: inline-flex; margin: -5px 0 -5px var(--esp-1); padding: 5px 4px;
+  border: 0; border-radius: 0;
+  background: transparent; color: var(--texto-suave);
+  font: 700 13px/1 var(--ui); cursor: pointer;
+  vertical-align: middle;
+}
+.secao-dobra:hover:not(:disabled) { background: transparent; color: var(--marca); }
+.secao-dobra:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
+.secao-dobra .secao-dobra-sinal { display: block; line-height: 1; }
+
+/* RECOLHIDA, a secção é o título e mais nada. O `data-recolhido` é o mesmo atributo que o
+   índice usa — um estado, um nome. */
+.secao-corpo[data-recolhido="sim"] { display: none; }
+
+@media print {
+  .secao-dobra { display: none !important; }
+  .secao-corpo[data-recolhido="sim"] { display: block !important; }
+}
+
 /* ---------- o índice da página: coluna à DIREITA, que acompanha a rolagem ----------
    Até 1199px o índice continua sendo o bloco do topo, como sempre foi. A partir de 1200px
    há largura para duas colunas: o contêiner da página alarga, o texto mantém a medida de
