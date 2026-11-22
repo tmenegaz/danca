@@ -280,7 +280,10 @@ function desenharColuna(coluna, pedido, barra) {
       + '      <button type="button" class="coluna-titulo" aria-expanded="false"'
       + ' aria-controls="g-' + esc(chave) + '"><span>' + esc(grupo.rotulo) + '</span>'
       + '<span class="coluna-seta" aria-hidden="true">›</span></button>\n'
-      + '      <div class="coluna-itens" id="g-' + esc(chave) + '">\n' + links + '\n      </div>\n'
+      // O MIOLO: a grade de uma linha do acordeão mede este filho, e é ele que a deixa
+      // abrir até à altura do conteúdo em vez de a um valor fixo (22/11/2026).
+      + '      <div class="coluna-itens" id="g-' + esc(chave) + '"><div class="coluna-itens-miolo">\n'
+      + links + '\n      </div></div>\n'
       + '    </div>';
   };
 

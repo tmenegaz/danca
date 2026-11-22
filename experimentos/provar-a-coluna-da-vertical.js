@@ -112,17 +112,25 @@ function ler(pg) {
       })(),
       fundoAltura: Math.round(r(lat).height),
       listaAltura: Math.round(r(lista).height),
+      listaConteudo: lista.scrollHeight,
+      listaMax: getComputedStyle(lista).maxHeight,
       rola: lat.scrollHeight > lat.clientHeight + 1,
       ecra: window.innerHeight,
       grupos: grupos.map((g) => {
         const itens = g.querySelector('.coluna-itens');
+        // O MIOLO É QUEM TEM A ALTURA (22/11/2026). O acordeão deixou de ser `max-height` — um
+        // valor fixo que cortava o grupo que crescesse — e passou a ser uma grade de uma linha
+        // (`0fr` fechada, `1fr` aberta). Mede-se o filho que a grade mede, não a declaração.
+        const miolo = g.querySelector('.coluna-itens-miolo') || itens;
         const seta = g.querySelector('.coluna-seta');
         const titulo = g.querySelector('.coluna-titulo');
         return {
           nome: (titulo ? titulo.textContent : '').replace(/\u203a/g, '').trim(),
           aberto: g.getAttribute('data-aberto'),
-          maxAltura: getComputedStyle(itens).maxHeight,
-          altura: Math.round(r(itens).height),
+          // a trilha usada, como o navegador a reporta (`0px` fechada; o valor de `1fr` aberta)
+          linha: getComputedStyle(itens).gridTemplateRows,
+          altura: Math.round(r(miolo).height),
+          conteudo: Math.round(miolo.scrollHeight),
           setaVisivel: seta ? getComputedStyle(seta).display !== 'none' && r(seta).width > 0 : false,
           expandido: titulo ? titulo.getAttribute('aria-expanded') : null,
         };
@@ -191,6 +199,11 @@ const TELAS = [
       + (extra !== undefined ? '  → ' + JSON.stringify(extra).slice(0, 200) : ''));
   };
 
+  /* A FOLHA DO MENU COBRE TUDO O QUE TEM DENTRO (22/11/2026). Era `max-height: 78vh`: com os
+   * quatro grupos abertos o conteúdo tem 587px a 1024×640, e a caixa escura tinha 499px — 88px
+   * de menu FORA do fundo, a flutuar sobre a página, porque aqui o `overflow` é `visible`. É o
+   * «ela fica faltando um pedaço sempre» dela, medido. A asserção é de conteúdo, não de valor:
+   * a caixa e o conteúdo têm de coincidir enquanto couberem no ecrã. */
   for (const t of TELAS) {
     await pg.setViewport({ width: t.w, height: t.h });
     await pg.goto(base + '/bastidores/estudio', { waitUntil: 'load' });
@@ -206,16 +219,16 @@ const TELAS = [
       provar('é a folha: a barra com o «Seções» está à vista e a lateral não é fixa',
         a.barraASeitas && a.posicao === 'static', { posicao: a.posicao, barra: a.barraASeitas });
       provar('na folha não há acordeão: os grupos mostram tudo',
-        a.grupos.every((g) => g.maxAltura === 'none' && g.altura > 0),
-        a.grupos.map((g) => [g.nome, g.maxAltura, g.altura]));
+        a.grupos.every((g) => g.altura > 0 && g.altura === g.conteudo),
+        a.grupos.map((g) => [g.nome, g.altura, g.conteudo]));
       continue;
     }
 
     provar('é a coluna: `position: fixed` e o «Seções» fora de cena',
       a.posicao === 'fixed' && !a.barraASeitas, { posicao: a.posicao, barra: a.barraASeitas });
     provar('os ' + a.grupos.length + ' grupos nascem FECHADOS (é o defeito: nasciam todos abertos)',
-      a.grupos.length >= 4 && a.grupos.every((g) => g.maxAltura === '0px' && g.altura === 0),
-      a.grupos.map((g) => [g.nome, g.maxAltura, g.altura]));
+      a.grupos.length >= 4 && a.grupos.every((g) => g.altura === 0),
+      a.grupos.map((g) => [g.nome, g.linha, g.altura]));
     provar('a seta de cada grupo está à vista (no defeito não aparecia)',
       a.grupos.every((g) => g.setaVisivel), a.grupos.map((g) => [g.nome, g.setaVisivel]));
     provar('com tudo fechado, o último item do menu não sobra abaixo da dobra',
@@ -233,21 +246,31 @@ const TELAS = [
       [aberto.grupos[indice].aberto, aberto.grupos[indice].expandido]);
     provar('…e o miolo cresce (acima de 100px)',
       aberto.grupos[indice].altura > 100, aberto.grupos[indice].altura);
+    /* A ALTURA É A DO CONTEÚDO, E NÃO UM TECTO (22/11/2026). Era `max-height: 15rem`: um grupo com
+     * mais itens do que cabem em 240px ficava cortado, sem barra e sem forma de lá chegar. Mede-se
+     * que o miolo aberto mede EXACTAMENTE o que tem dentro — é a asserção que o `15rem` falharia
+     * no dia em que a Pedagogia crescesse. */
+    provar('…e aberto mede EXACTAMENTE o conteúdo (nenhum tecto a cortar)',
+      aberto.grupos[indice].altura === aberto.grupos[indice].conteudo,
+      [aberto.grupos[indice].altura, aberto.grupos[indice].conteudo]);
     provar('…e o ÚLTIMO item está à vista e cabe no ecrã — o fundo acompanha o menu',
       aberto.ultimoAlcancavel === true && aberto.ultimoItemFim <= t.h && aberto.rola === false,
       { alcancavel: aberto.ultimoAlcancavel, fim: aberto.ultimoItemFim, ecra: t.h,
         rola: aberto.rola, fundo: aberto.fundoAltura, lista: aberto.listaAltura });
+    provar('a caixa da folha mede o conteúdo (nenhum tecto a cortar) — e cabe no ecrã',
+      aberto.listaAltura === aberto.listaConteudo && aberto.listaAltura <= t.h,
+      { caixa: aberto.listaAltura, conteudo: aberto.listaConteudo, ecra: t.h, max: aberto.listaMax });
     provar('…e os outros grupos não se mexeram',
-      aberto.grupos.filter((g, i) => i !== indice).every((g) => g.maxAltura === '0px'),
-      aberto.grupos.map((g) => [g.nome, g.maxAltura]));
+      aberto.grupos.filter((g, i) => i !== indice).every((g) => g.altura === 0),
+      aberto.grupos.map((g) => [g.nome, g.altura]));
 
     await tocar(pg, indice);
     await new Promise((r) => setTimeout(r, 220));
     const fechado = await ler(pg);
     provar('…e fecha no segundo clique — o miolo volta a zero e o item sai de vista',
-      fechado.grupos[indice].maxAltura === '0px' && fechado.grupos[indice].altura === 0
+      fechado.grupos[indice].altura === 0
         && fechado.ultimoAlcancavel === false && fechado.grupos[indice].aberto !== 'sim',
-      [fechado.grupos[indice].maxAltura, fechado.grupos[indice].altura,
+      [fechado.grupos[indice].linha, fechado.grupos[indice].altura,
         fechado.ultimoAlcancavel, fechado.grupos[indice].aberto]);
   }
 

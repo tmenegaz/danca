@@ -1855,3 +1855,8 @@ experimentos/modelo-formulario/*
 # `calango` (namespace nulo, `ok: true`, e seis chaves vivas) e a recriação que encerra a pendência —
 # o caso que o botão «Terminar a limpeza do KV» respondia em silêncio.
 !experimentos/provar-limpeza-do-kv.js
+
+# A PROVA DO PAINEL EMPILHADO (22/11/2026): ela aprovou a bancada com os blocos empilhados e recebeu
+# duas linhas e duas colunas — a `.secao` é uma grade de duas colunas. A prova mede a geometria da
+# secção em quatro larguras, e o controle negativo traz o defeito medido.
+!experimentos/provar-o-painel-empilhado.js

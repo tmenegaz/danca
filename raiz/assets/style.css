@@ -742,7 +742,27 @@ body {
   background: var(--marca-fundo); color: var(--sobre-marca);
   box-shadow: var(--sombra);
   padding: 0 0 calc(var(--esp-4) + env(safe-area-inset-bottom, 0px));
-  max-height: 78vh;
+  /* A ALTURA É A DO CONTEÚDO, E O TECTO É O ECRÃ (22/11/2026).
+   *
+   * Era `max-height: 78vh` — um valor FIXO. Palavras dela: «o folha do menu tem altura máxima e
+   * ela está fixa com um valor fixo. Eu acho que tem que ser o tamanho máximo do conteúdo e não um
+   * valor fixo, porque aí ela não cobre tudo na expansão, ela fica faltando um pedaço sempre.»
+   *
+   * E ficava: medido a 1024×640, com os quatro grupos abertos, o conteúdo do menu tem **587px** e
+   * a caixa escura tinha **499px** (78vh) — **88px de menu fora do fundo**, com os últimos itens a
+   * flutuar sobre a página, porque nesta peça o `overflow` é `visible`. O `max-height` não dá
+   * altura: ele CORTA. Um tecto a 78% do ecrã é um tecto a cortar por definição — 22% do espaço
+   * que existe ficava de fora.
+   *
+   * O tecto passa a ser o ecrã inteiro, que é o único limite que a peça não pode inventar: abaixo
+   * disso o conteúdo manda (a caixa cresce com ele), e acima do ecrã a folha desliza dentro de si
+   * — `overflow-y: auto` — em vez de sair pelo topo.
+   *
+   * NAS COLUNAS (≥769) NÃO HÁ TECTO NENHUM: a coluna já tem o ecrã inteiro e rola. Ver a regra
+   * no `@media (min-width: 769px)`. */
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow-y: auto;
 }
 /* O PEGADOR — a linha que diz «isto desliza». É a mesma nos três, e por isso é um elemento só
    (`<span class="folha-puxador">`), e não três implementações: um `::before` aqui, um `<span>`
@@ -968,12 +988,24 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
    (`.lateral`), porque o pedido é que «o menu lateral… tenha o mesmo comportamento da página
    principal, não pode ser diferente». Uma declaração, dois donos: os valores moram aqui, e o
    seletor é que cresce. */
+/* O ACORDEÃO ABRE ATÉ À ALTURA DO CONTEÚDO (22/11/2026), e não até `15rem`.
+ *
+ * O mecanismo era `max-height: 0` → `15rem`, e o `15rem` é o mesmo defeito da folha um nível
+ * abaixo: um grupo com mais itens do que cabem em 240px ficava cortado — sem barra, sem aviso, e
+ * sem forma de lá chegar, porque aqui o `overflow` é `hidden`. Hoje a Pedagogia tem 168px; com
+ * mais três itens bateria no tecto.
+ *
+ * A grade de uma linha anima de `0fr` para `1fr`, e `1fr` é o tamanho do conteúdo: não há valor a
+ * escolher, e por isso não há valor a errar. O `min-height: 0` do miolo é o que permite a fração
+ * encolher até zero — é a peça que a grade mede. */
 .coluna .coluna-itens,
 .lateral .coluna-itens {
-  max-height: 0; overflow: hidden;
+  display: grid; grid-template-rows: 0fr; overflow: hidden;
   margin: 0; padding: 0;
-  transition: max-height .16s ease;
+  transition: grid-template-rows .16s ease;
 }
+.coluna .coluna-itens-miolo,
+.lateral .coluna-itens-miolo { min-height: 0; overflow: hidden; }
 .coluna .coluna-itens a,
 .lateral .coluna-itens a {
   display: flex; align-items: center; gap: .6rem;
@@ -992,8 +1024,9 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
 .coluna .coluna-itens a[aria-current="page"]::after,
 .lateral .coluna-itens a[aria-current="page"]::after { content: "✓"; margin-left: auto; }
 /* NA FOLHA NÃO HÁ ACORDEÃO. A altura é a da tela quase inteira, e um menu que abre e fecha
-   dentro de uma folha é um menu a esconder-se dentro de outro. Tudo à vista. */
-.coluna .coluna-itens, .lateral .coluna-itens { max-height: none; }
+   dentro de uma folha é um menu a esconder-se dentro de outro. Tudo à vista — e «tudo» é a linha
+   da grade aberta por inteiro, não um `max-height` que a deixe a meio. */
+.coluna .coluna-itens, .lateral .coluna-itens { grid-template-rows: 1fr; }
 
 /* ---------- o painel do Estúdio -------------------------------------------
    OS NÚMEROS DA ESCOLA, EM BLOCO (22/11/2026). A peça nasceu na bancada
@@ -1149,6 +1182,10 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
 @media (min-width: 769px) {
   /* A MESMA CARA DA COLUNA DO SISTEMA, e é de propósito: são a mesma peça em dois sítios
      («o menu lateral… tem o mesmo comportamento da página principal, não pode ser diferente»). */
+  /* A FOLHA DO MENU NÃO TEM TECTO NA COLUNA (22/11/2026). A coluna já é o ecrã inteiro e rola;
+   * um `max-height` aqui voltaria a cortar o menu quando os grupos abrem — e é isso que ela viu:
+   * o fundo a acabar antes do último item. */
+  .lateral-lista.folha-do-menu { max-height: none; overflow-y: visible; }
   .lateral .coluna-titulo {
     padding: 9px 10px; border-radius: var(--raio-2);
     font: 15px/1.25 var(--ui); letter-spacing: 0; text-transform: none;
@@ -1160,16 +1197,16 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
   }
   .lateral .coluna-seta { display: block; opacity: .75; transition: transform .16s ease; }
   .lateral .coluna-itens {
-    max-height: 0; margin: 0 0 0 10px; padding-left: 9px;
+    grid-template-rows: 0fr; margin: 0 0 0 10px; padding-left: 9px;
     border-left: 1px solid var(--ornamento);
   }
-  .lateral .coluna-grupo[data-aberto="sim"] > .coluna-itens { max-height: 15rem; }
+  .lateral .coluna-grupo[data-aberto="sim"] > .coluna-itens { grid-template-rows: 1fr; }
   .lateral .coluna-grupo[data-aberto="sim"] .coluna-seta { transform: rotate(90deg); }
   .lateral .coluna-itens a { padding: 8px 10px; border-radius: var(--raio-2); font-size: 14px; }
   .lateral .coluna-itens a[aria-current="page"]::after { content: none; }
   .lateral a.coluna-direto { padding: 9px 10px; border-radius: var(--raio-2); font-weight: 700; }
   @media (hover: hover) {
-    .lateral .coluna-grupo:hover > .coluna-itens { max-height: 15rem; }
+    .lateral .coluna-grupo:hover > .coluna-itens { grid-template-rows: 1fr; }
     .lateral .coluna-grupo:hover > .coluna-titulo { background: var(--marca-fundo-hover); }
     .lateral .coluna-grupo:hover .coluna-seta { transform: rotate(90deg); }
   }
@@ -1198,14 +1235,14 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
     box-shadow: inset 3px 0 0 var(--ornamento-forte);
   }
   .coluna .coluna-seta { display: block; opacity: .75; transition: transform .16s ease; }
-  /* O ACORDEÃO. `max-height` em vez de `display:none` porque é o que ANIMA e o que EMPURRA os
-     de baixo — abrir desce os outros, fechar recompõe. O filete à esquerda diz que os itens
-     pertencem ao título de cima. */
+  /* O ACORDEÃO. Abrir EMPURRA os de baixo e fechar recompõe — é o que a animação existe para
+     mostrar. O filete à esquerda diz que os itens pertencem ao título de cima.
+     A altura é a do CONTEÚDO (a grade de uma linha, acima): nenhum valor fixo a cortar. */
   .coluna .coluna-itens {
-    max-height: 0; margin: 0 0 0 10px; padding-left: 9px;
+    grid-template-rows: 0fr; margin: 0 0 0 10px; padding-left: 9px;
     border-left: 1px solid var(--ornamento);
   }
-  .coluna .coluna-grupo[data-aberto="sim"] > .coluna-itens { max-height: 15rem; }
+  .coluna .coluna-grupo[data-aberto="sim"] > .coluna-itens { grid-template-rows: 1fr; }
   .coluna .coluna-grupo[data-aberto="sim"] .coluna-seta { transform: rotate(90deg); }
   .coluna .coluna-itens a { padding: 8px 10px; border-radius: var(--raio-2); font-size: 14px; }
   .coluna .coluna-itens a[aria-current="page"]::after { content: none; }
@@ -1213,7 +1250,7 @@ body.coluna-aberta .veu { opacity: 1; pointer-events: auto; }
   /* SÓ ONDE HÁ PONTEIRO: num telemóvel o `:hover` fica colado ao toque e o grupo nunca mais
      fecharia. O `(hover: hover)` separa os dois mundos — e não a largura, que é outra coisa. */
   @media (hover: hover) {
-    .coluna .coluna-grupo:hover > .coluna-itens { max-height: 15rem; }
+    .coluna .coluna-grupo:hover > .coluna-itens { grid-template-rows: 1fr; }
     .coluna .coluna-grupo:hover > .coluna-titulo { background: var(--marca-fundo-hover); }
     .coluna .coluna-grupo:hover .coluna-seta { transform: rotate(90deg); }
   }

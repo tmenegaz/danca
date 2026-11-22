@@ -5162,11 +5162,15 @@ function grupoDoMenu(rotulo, itens, opcoes) {
     '<button type="button" class="coluna-titulo" aria-expanded="false" ' +
     'aria-controls="g-' + chave + '"><span>' + rotulo + '</span>' +
     '<span class="coluna-seta" aria-hidden="true">\u203a</span></button>' +
-    '<div class="coluna-itens" id="g-' + chave + '">' +
+    /* O MIOLO (22/11/2026). O acordeão deixou de ter uma altura máxima FIXA (`15rem`): o menu
+     * abre até à altura do que tem dentro. Para isso o `.coluna-itens` passou a ser uma grade de
+     * uma linha (`0fr` fechada, `1fr` aberta) e precisa do filho que ela mede — é este `<div>`.
+     * Ver o comentário na folha, secção «O ACORDEÃO». */
+    '<div class="coluna-itens" id="g-' + chave + '"><div class="coluna-itens-miolo">' +
     itens.map(([destino, secao, nome]) =>
       '<a href="' + href(destino) + '" data-secao="' + secao + '"' +
       (secao === atual ? ' class="ativo" aria-current="page"' : '') + '>' + nome + '</a>').join('') +
-    '</div></div>';
+    '</div></div></div>';
 }
 
 /**
@@ -8105,6 +8109,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * medido a 1280px, o cartão ocupava 458px de 1205, com 576px vazios ao lado. A
      * listagem passa a ocupar a largura da página, que é o que ela pediu. */
     '#sec-a-escola{grid-template-columns:minmax(0,1fr);}' +
+    /* O PAINEL INICIAL É UMA COLUNA — O EMPILHADO QUE ELA APROVOU (22/11/2026).
+     * «no painel inicial você me apresentou no experimento […] os blocos empilhados e agora você
+     * colocou o breu do lado esquerdo, as salas do lado direito, um ao lado do outro […] Então você
+     * me entregou duas linhas e duas colunas. Eu prefiro do jeito que eu aprovei.» A `.secao` é uma
+     * grade de duas colunas (formulário/lista), e os quatro cartões do painel caíam nela dois a
+     * dois. É a MESMA solução de «A escola»: a secção inteira passa a uma coluna, e o vão é o que
+     * separa os blocos — a bancada empilhava-os assim. */
+    '#sec-painel{grid-template-columns:minmax(0,1fr);gap:.9rem;}' +
     '.secao[data-recolhido="sim"]>.col-form{display:none;}' +
     '.secao[data-recolhido="sim"]>.secao-titulo{border-bottom:1px solid var(--borda-campo);' +
     'padding:0 0 .35rem;}' +
