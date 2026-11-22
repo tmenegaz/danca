@@ -194,9 +194,28 @@ async function main() {
     // o expurgo dizer «completo» sem ter certeza — ele relata a pendência da enumeração.
     // 6 do fixture + as 3 fixas que ele não tem (professores, donas, aparencia…): o expurgo
     // tenta os nomes declarados, e apagar um que não existe é um 404 do KV — não um erro.
-    // 9 fixas + o ponteiro da geração (que é tentado mesmo sem existir).
-    checar('o expurgo apaga as chaves FIXAS que conhece, mesmo sem registro',
-      kv.apagadas === 10, kv.apagadas);
+    /* O NÚMERO NÃO É O CONTRATO (22/11/2026). Esta asserção fixava `10` — as 9 fixas de então
+     * mais o ponteiro da geração —, e ficou vermelha no dia em que a lista cresceu para 16 (as
+     * chaves `comercial`, `cadastro`, `linhas-de-base`, `ensaio`, `matriculas`, `cadeia`,
+     * `conteudos-migrados` entraram para o expurgo não deixar dado para trás). Crescer a lista é
+     * o que se quer; a prova estava a punir isso. O que se mede agora é o que interessa: as
+     * chaves do FIXTURE que a lista declara foram apagadas, e o ponteiro foi tentado.
+     *
+     * A conta continua a ser verificável sem depender do tamanho da lista: são as do fixture que
+     * o expurgo conhece, mais o ponteiro da geração (que é tentado mesmo sem existir). */
+    /* `apagadas` CONTA AS TENTATIVAS, e não só o que existia — apagar um nome que não está lá é um
+     * 404 do KV, e o expurgo tenta os nomes DECLARADOS para não depender de os conhecer por
+     * enumeração. Logo: uma tentativa por chave fixa, mais o ponteiro da geração. É o número que
+     * não muda quando a lista cresce, e é a afirmação verdadeira: «tenta todos os nomes que a
+     * escola grava por construção». */
+    const { CHAVES_FIXAS_DA_ESCOLA: fixas } = require('../motor/servidor/expurgar-escola.js');
+    const doFixture = Object.keys(chavesDaEscola()).filter((k) => {
+      const m = /^bastidores\/[^/]+\/(.+)$/.exec(k);
+      return m && fixas.indexOf(m[1]) !== -1;
+    });
+    checar('o expurgo tenta TODAS as chaves fixas que conhece, mesmo sem registro',
+      kv.apagadas === fixas.length + 1 && doFixture.length > 0,
+      { apagadas: kv.apagadas, fixas: fixas.length, doFixture: doFixture.length });
     // O LIMITE, DITO: as chaves FIXAS saem por nome; as que têm nome DINÂMICO (um envelope por
     // registo, o registo de custo) não há como saber sem enumerar. Ficam — e é por isso que a
     // resposta é `ok: false`, com o caminho de volta (`POST /api/expurgar-kv`).
@@ -348,8 +367,16 @@ async function main() {
     // viva não se notava; com ela morta, o expurgo apagava o cofre, deixava os cadastros e
     // relatava pendência. A lista declarada fecha isso.
     const { chavesFixasDaEscola, CHAVES_FIXAS_DA_ESCOLA } = require('../motor/servidor/expurgar-escola.js');
-    checar('a lista declara as nove chaves que a escola grava por construção',
-      CHAVES_FIXAS_DA_ESCOLA.length === 9, CHAVES_FIXAS_DA_ESCOLA);
+    /* A LISTA CRESCE, E ISSO É O QUE SE QUER. Era `length === 9`, e a asserção ficou vermelha três
+     * vezes — cada vez que uma chave nova entrava (a última a 19/11, com `matriculas` e `cadeia`).
+     * O contrato não é o tamanho: é a COBERTURA — cada nome que o código escreve no KV tem de
+     * estar declarado. A lista inteira é comparada com o código em
+     * `provar-os-fluxos-da-derivacao.js` §D; aqui mede-se que ela não perdeu as fundadoras. */
+    const FUNDADORAS = ['professores', 'alunas', 'dono', 'turmas', 'turma-conteudos',
+      'rubricas', 'vocabulario', 'curadorias', 'aparencia'];
+    checar('a lista declara (pelo menos) as nove chaves fundadoras da escola',
+      FUNDADORAS.every((k) => CHAVES_FIXAS_DA_ESCOLA.indexOf(k) !== -1)
+        && CHAVES_FIXAS_DA_ESCOLA.length >= FUNDADORAS.length, CHAVES_FIXAS_DA_ESCOLA);
     checar('e compõe os nomes com o prefixo dos Bastidores',
       chavesFixasDaEscola('calango').every((k) => k.indexOf('bastidores/calango/') === 0)
         && chavesFixasDaEscola('calango').indexOf('bastidores/calango/turmas') !== -1);

@@ -473,11 +473,27 @@ async function principal() {
    * automática não está montada neste Worker». A bancada não via isto: ela injeta a cadeia de
    * fora, e a ponte não entra no caminho. Duas listas, o mesmo facto — a mesma família de erro do
    * `matriculas` no expurgo, e a mesma cura: comparar código com código. */
+  /* A LISTA MUDOU DE SÍTIO, E A PROVA TEM DE A SEGUIR (22/11/2026).
+   *
+   * Era uma lista de caminhos escrita DENTRO de `producao.js`; a 20/11/2026 ela passou a ser um
+   * dado exportado por `bastidores.js` (`ROTAS_QUE_PRECISAM_DA_CADEIA`), e a ponte passou a LÊ-LA
+   * em vez de a repetir. Melhor desenho — uma verdade, um sítio — e a prova ficou vermelha, porque
+   * procurava as strings no ficheiro antigo. Seis asserções a dizer «a ponte não monta a cadeia»
+   * sobre uma ponte que a monta há dois dias.
+   *
+   * Agora a prova lê a MESMA fonte que a ponte lê — o módulo —, e não o texto de um ficheiro que
+   * pode voltar a mudar de casa. A ponte é verificada por USO: ela tem de consultar a lista. */
   const ponte = fs.readFileSync(path.join(raiz, 'motor/servidor/producao.js'), 'utf8');
+  /* O módulo JÁ ESTÁ carregado no topo deste ficheiro (`bastidores`, linha 53) — redeclarar aqui
+   * dá `Cannot access before initialization`, porque a constante do topo ainda não foi inicializada
+   * quando esta função corre. Usa-se a do topo. */
+  const listaDaPonte = bastidores.ROTAS_QUE_PRECISAM_DA_CADEIA || [];
+  provar('a ponte consulta a lista de gestos exportada por `bastidores.js`',
+    /ROTAS_QUE_PRECISAM_DA_CADEIA/.test(ponte), null);
   for (const caminho of disparam) {
     if (caminho === '/api/bastidores/cadeia-pacote') continue;
     provar('a ponte monta a cadeia para ' + caminho,
-      ponte.indexOf("'" + caminho + "'") !== -1, null);
+      listaDaPonte.indexOf(caminho) !== -1, listaDaPonte);
   }
 
   /* E as que NÃO disparam, e deviam — é a lista das tarefas. Nomeadas uma a uma para que o

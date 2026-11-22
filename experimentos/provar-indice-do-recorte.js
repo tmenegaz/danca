@@ -335,14 +335,22 @@ console.log('\n7. AS ROTAS — a lista que já existe, e a rota própria');
 
   console.log('\n8. A TELA — o bloco, na secção do corpo');
 
-  ok('o bloco do índice está na página, com o alvo que o script pinta', () => {
+  /* O SÍTIO DO BLOCO MUDOU A 09/11/2026, E A ASSERÇÃO FICOU ATRÁS (medido a 22/11/2026). O índice
+   * do recorte vivia na secção do corpo; `ba76c401` levou-o para a aba 2 da Audição — «isto é a
+   * LEITURA de todos os recortes da escola juntos, é outra pergunta, e é por isso que tem aba
+   * própria» — e `38cab0e2` mudou-lhe o nome para «Recorte», porque o título era descrição minha e
+   * longa para uma aba. A prova continuava a exigir `#lb-indice` DENTRO de `sec-corpo` e o título
+   * antigo: media um ecrã que já não existe, e ficou vermelha durante treze dias sem que ninguém a
+   * lesse. O que se mede agora é o sítio e o nome de hoje. */
+  ok('o bloco do índice está na página, no painel da aba «Recorte»', () => {
     const pagina = bastidores.paginaProducao(ESCOLA, { escola: ESCOLA, professor: 'rabo-gramde' },
       [{ nome: 'Rabo Grande', slug: 'rabo-gramde', principal: true }], ['Aluna A'], 'Rabo Grande',
       'rabo-gramde', [], [], {}, [], [], []);
     assert.ok(/id="lb-indice"/.test(pagina), 'o alvo do índice tem de estar na marcação');
-    assert.ok(/O que os recortes olham/.test(pagina), 'e o título que o nomeia');
-    const secao = (pagina.match(/id="sec-corpo"[\s\S]*?<\/section>/) || [''])[0];
-    assert.ok(/id="lb-indice"/.test(secao), 'o bloco é da secção do corpo, e não solto na página');
+    const painel = (pagina.match(/id="lb-painel-2"[\s\S]*?id="lb-indice"/) || [''])[0];
+    assert.ok(painel.length > 0, 'e de estar no painel 2 da Audição, e não solto na página');
+    assert.ok(/<button[^>]*data-aba="2"[^>]*>Recorte<\/button>/.test(pagina),
+      'o nome do bloco é o da aba — «Recorte» —, e não o título antigo');
   });
 
   ok('a tela NÃO recalcula o índice — lê o que o servidor mandou', () => {

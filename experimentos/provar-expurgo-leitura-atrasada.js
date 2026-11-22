@@ -291,11 +291,23 @@ const CHAVES = [
     token: 'x', accountId: 'c', slug: 'fita', worker: 'fita',
     kv: { namespaceId: NS, prefixos: prefixosDaEscola('fita') },
   });
-  igual('o subdomínio é removido primeiro',
-    /^DELETE \/workers\/scripts\/fita\/subdomain$/.test(chamadas[0]), true);
-  igual('o script do Worker vem depois', /^DELETE \/workers\/scripts\/fita$/.test(chamadas[1]), true);
-  ok('e o KV é limpo por último',
-    chamadas.slice(2).every((c) => /\/storage\/kv\/namespaces\//.test(c)), chamadas);
+  /* A ORDEM É RELATIVA, E NÃO ABSOLUTA (22/11/2026).
+   *
+   * Esta secção fixava `chamadas[0]` e `chamadas[1]` — e ficou vermelha no dia em que a limpeza do
+   * ENDEREÇO próprio entrou (`desligarDominio`, 13/11/2026): ela corre antes, e a primeira chamada
+   * passou a ser um `GET /client/v4/zones`. A ordem que a prova quer dizer nunca foi «o índice 0
+   * da lista» — é «o subdomínio sai antes do script, e o script antes do KV». Medir posição
+   * absoluta numa lista que ganha passos é medir o dia em que a prova foi escrita. */
+  const iSub = chamadas.findIndex((c) => /^DELETE \/workers\/scripts\/fita\/subdomain$/.test(c));
+  const iScript = chamadas.findIndex((c) => /^DELETE \/workers\/scripts\/fita$/.test(c));
+  const iKv = chamadas.findIndex((c) => /\/storage\/kv\/namespaces\//.test(c));
+  ok('o subdomínio é removido antes do script', iSub !== -1 && iScript !== -1 && iSub < iScript,
+    { iSub, iScript, chamadas });
+  ok('…e o KV é limpo depois dos dois',
+    iSub !== -1 && iScript !== -1 && iKv !== -1 && iKv > iScript, { iSub, iScript, iKv });
+  ok('a limpeza do ENDEREÇO próprio vem antes de tudo o que apaga — ela é a que desliga o tráfego',
+    chamadas.findIndex((c) => /^GET \/client\/v4\/zones/.test(c) || /^DELETE .*\/zones\//.test(c))
+      < iSub, chamadas.slice(0, 3));
   igual('o relatório traz as três etapas', [!!r9.subdominio, !!r9.script, !!r9.kv], [true, true, true]);
 
   global.fetch = fetchOriginal;
