@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T14:17:39-0300`
-Commit atual: `2c336cb0` — fix(estrutura): o id da turma tem carimbo, a pasta dela não
+Gerado em: `2026-11-22T15:03:30-0300`
+Commit atual: `a9a62ab1` — fix(estrutura): o painel inicial empilha os blocos, como ela aprovou
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,9 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+a9a62ab1 fix(estrutura): o painel inicial empilha os blocos, como ela aprovou
+b7162e9c fix(template): a folha do menu mede o conteúdo, e o acordeão deixa de ter tecto
+a61d4ddb docs(estrutura): a fotografia regista o id carimbado e a pasta da turma
 2c336cb0 fix(estrutura): o id da turma tem carimbo, a pasta dela não
 ef7d25ee chore(estrutura): diagnóstico temporário da leitura do pacote no painel
 831f6f6f fix(estrutura): a regra do prefixo muda de casa, e o painel passa a lê-la
@@ -99,9 +102,6 @@ b4ade3d6 fix(tools): o scaffold da escola também nasce com um destino em Bastid
 d85c42c1 fix(estrutura): a coluna do corpo nasce pela régua, e o plano de ensino da escolha passa a ser um só
 6c17f241 fix(tools): a folha de lançamento mede o corpo pela régua da turma, e não pelas marcas
 feac5b03 fix(estrutura): o nome da turma não é do sistema — e a metade do KV passa a ser lida
-144115fc fix(experimentos): três provas que mediam o mundo de antes passam a medir o de hoje
-255100db feat(estrutura): o expurgo ganha conferidor, e o fluxo da Aula 02 fica escrito
-35d1c7fa feat(ciclo-01): a listagem da anamnese diz quem a fez e quando
 ```
 
 ## Por professor
@@ -195,55 +195,32 @@ feac5b03 fix(estrutura): o nome da turma não é do sistema — e a metade do KV
 
 ## Última entrada do REGISTRO
 
-## 22/11/2026 — O painel pedia o pacote no caminho errado (e o AO VIVO é que o disse)
+## 22/11/2026 — O painel inicial empilha os blocos, como ela aprovou
 
-**O que motivou.** O painel subiu, e a primeira carga ao vivo da `breu`
-(`https://breu.padd.com.br/bastidores/estudio`) mostrou o número certo em cinco caixas e, na sala,
-«Ocupação — **sem leitura das aulas lançadas**». O pacote está publicado: `/rosa/ciclos.json`
-responde **200**. O defeito era o caminho.
+**O que motivou.** «no painel inicial você me apresentou no experimento, na parte de teste, os blocos
+empilhados e agora você colocou o breu do lado esquerdo, as salas do lado direito, um ao lado do
+outro, os elencos abaixo e as modalidades do lado direito. Então você me entregou duas linhas e duas
+colunas. Eu prefiro do jeito que eu aprovei. […] você precisa refazer isso.»
 
-**O que era.** O painel pedia `https://assets.local/<variante>/ciclos.json`. No shard o pacote vive
-debaixo do **prefixo da escola** (`PACOTE_PARTILHADO=sim` → `/breu/…`), e o pedido sem prefixo
-responde 404 — o painel concluía «o pacote não está no ar» sobre um ficheiro que estava. A regra já
-existia em `prefixoDaArvore` (`motor/servidor/producao.js`), e a lição é a de sempre: uma convenção
-de caminho, um sítio só; uma segunda cópia envelhece a primeira.
+**O que era.** A bancada é uma página própria, com os cartões no fluxo. A página real põe a secção
+dentro da `.secao`, que é uma **grade de duas colunas** (formulário à esquerda, listagem à direita),
+e os quatro cartões caíam nela dois a dois. Medido a 1440: bordas esquerdas `[288, 748, 288, 748]` e
+topos `[471, 471, 669, 669]` — exactamente as duas linhas e duas colunas que ela descreveu. O modelo
+e o produto tinham o mesmo conteúdo e uma arrumação diferente, e foi o modelo que ela aprovou.
 
-**O que mudou.** `painelDoEstudio` usa `prefixoDaArvore(env)` no URL do pacote, e a prova mede o
-**URL pedido** (`/breu/rosa/ciclos.json`) e não só o resultado — é a única coisa que distingue «não
-li» de «li e não havia». De caminho, a data do elenco («desde 2026-11-22») passou a `dd/mm/aaaa`,
-como as da sala.
+**O que foi decidido.** A secção do painel passa a **uma coluna** — `#sec-painel
+{grid-template-columns: minmax(0,1fr)}`, a mesma solução que «A escola» já usa desde 17/11 —, e o
+vão da grade (`.9rem`) é o que separa os blocos. Nenhuma peça nova: é a `.secao` a deixar de ter
+duas colunas onde só há um assunto.
 
-**Foram precisas três tentativas, e cada uma mediu uma coisa diferente.**
+**Com o quê.** `motor/servidor/bastidores.js` (a regra da secção),
+`experimentos/provar-o-painel-empilhado.js` (**novo**), `.gitignore`, `ESTADO-ATUAL.md`.
 
-1. O prefixo da árvore (`prefixoDaArvore`). Não resolveu — e a carga seguinte, com a data do elenco
-   já corrigida, provou que o código novo **estava** publicado: o que falhava era outra coisa.
-2. A regra do prefixo mudou de casa, para `motor/nucleo/arvore-de-assets.js`. Havia uma hipótese
-   boa: `producao.js` requer `bastidores.js` na primeira linha, e o `require('./producao.js')` de
-   dentro dos Bastidores fechava o ciclo — em Node resolve-se (a chamada é tardia), num bundle
-   poderia não resolver. A mudança de casa é correta de qualquer maneira (`producao.js` reexporta-a;
-   verificado no bundle: **uma** definição, **sete** usos) — mas **não era a causa**.
-3. O **URL pedido**, lido no `data-leitura` do cartão da sala, com um commit de diagnóstico que saiu
-   no seguinte. A resposta: `https://assets.local/breu/rosa-2026-11-20-11/ciclos.json` → **404**.
-
-**A causa verdadeira: o id da turma não é a pasta dela.** O id ganha um **carimbo a cada versão** —
-`rosa-2026-11-20-11`, com data **e contador** — e o código tirava só o carimbo de data, de modo que
-o `-11` ficava. A pasta publicada é a da **turma**: a variante (`breu-rosa`) sem o prefixo da escola
-→ `rosa`. E essa regra já estava escrita, em `motor/servidor/aulas-dadas.js`: «a pasta que a
-publicação dá à turma é o que vem DEPOIS do nome da escola». Faltava segui-la, e a prova passou a
-usar o **id real** da `breu` (`rosa-2026-11-20-11`).
-
-**MEDIDO.** `provar-o-painel-do-estudio` **36/36** (quatro asserções novas: o caminho com prefixo, a
-leitura que ele permite, e o id carimbado a pedir a pasta dele). Ao vivo, a mesma carga passou a dizer o que se sabe: o período da sala
-começa a **14/12/2026**, e «0 de 15» é o número certo — dito na própria página, para não se ler como
-falha.
-
-**O que continua em aberto, e agora com um dado novo.** O `lancada` de `/rosa/ciclos.json` está
-`false` nas **15** aulas, embora as páginas `aula-01.html` e `aula-02.html` existam no pacote. Pelo
-critério do próprio sistema (`ler_lancadas` em `tools/gerar-ciclo.sh`: o facto é a chave `aulas['NN']`
-no JSON de dados), **nenhuma aula desta escola foi lançada** — e o `-dados.json` do repositório tem
-`aulas: []`. Isto **não** foi interpretado nem corrigido aqui: é a pergunta da §6/143 («ocupação» é a
-agenda ou o corpo?) a encontrar um segundo facto que ela precisa de ver. O painel **não inventa**: se
-o `lancada` não for o registo que se quer, o número diz zero e a frase diz porquê.
+**MEDIDO.** `provar-o-painel-empilhado` **20/20** a 1440×900, 1280×800, 1024×700 e 390×800: uma
+coluna, os quatro blocos com a mesma borda esquerda e a largura da secção, topo a crescer pela ordem
+da leitura (identidade → salas → elencos → modalidades). Com o **controle negativo**
+`--contra=a61d4ddb`, as mesmas asserções reprovam **8 de 20** e mostram o defeito: bordas
+`[288,748,288,748]`, topos `[471,471,669,669]`.
 
 ## O que está pendente
 

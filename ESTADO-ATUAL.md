@@ -4,7 +4,15 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 22/11/2026 (commit `d1127afd`). Ainda neste dia, **o painel inicial ficou
+> **Última fotografia:** 22/11/2026 (commit `a9a62ab1`). Ainda neste dia, **a folha do menu deixou de
+> ter uma altura fixa** («ela não cobre tudo na expansão, ela fica faltando um pedaço sempre»):
+> medido a 1024×640, com os grupos abertos, 587px de conteúdo numa caixa de 499 — 88px de menu fora
+> do fundo. A folha passa a medir o conteúdo, com o ecrã como único tecto, e o acordeão abandona o
+> `15rem` por uma grade de uma linha, onde a altura é a do que está dentro. E **o painel inicial
+> passou a empilhar** os quatro blocos numa coluna, como ela aprovou na bancada — o produto tinha-os
+> em duas linhas e duas colunas.
+>
+> **Fotografia anterior (22/11/2026 — commit `d1127afd`).** Ainda neste dia, **o painel inicial ficou
 > construído** — ela viu o modelo e respondeu «Quero a opção B», o número grande —, e ele conta o que
 > interessa: alunas **ativas** (2 de 5 registos), professores **com o principal** (2), salas
 > **vigentes** (1 de 23 encarnações), elencos pela **versão de hoje** de cada, modalidades pelas
@@ -3247,6 +3255,25 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      escreveu é dado, não resíduo. As seis chaves foram apagadas (`apagadas: 6, restantes: 0`) e o
      KV das três escolas mortas lido a zero. **DECIDIDO** 22/11/2026.
 
+147. **O PAINEL INICIAL EMPILHA — A ARRUMAÇÃO QUE ELA APROVOU.** Palavras dela: «você me
+     apresentou no experimento […] os blocos empilhados e agora você colocou o breu do lado
+     esquerdo, as salas do lado direito […] Então você me entregou duas linhas e duas colunas. Eu
+     prefiro do jeito que eu aprovei.» A bancada é uma página própria com os cartões no fluxo; a
+     página real põe a secção dentro da `.secao`, que é uma grade de duas colunas. Medido a 1440:
+     bordas `[288,748,288,748]`, topos `[471,471,669,669]`. A secção passa a **uma coluna**
+     (`#sec-painel{grid-template-columns:minmax(0,1fr)}`, a mesma solução de «A escola») e o vão é
+     o que separa os blocos. **DECIDIDO** 22/11/2026.
+148. **NENHUMA ALTURA DE MENU É UM NÚMERO FIXO.** «o folha do menu tem altura máxima e ela está
+     fixa com um valor fixo […] porque aí ela não cobre tudo na expansão, ela fica faltando um
+     pedaço sempre.» Eram dois: `.folha-do-menu{max-height:78vh}` — medido a 1024×640, 587px de
+     conteúdo numa caixa de 499, **88px de menu fora do fundo** — e `.coluna-itens{max-height:15rem}`
+     — o grupo que crescesse ficava cortado sem barra. A folha passa a `100dvh` com
+     `overflow-y:auto` (o tecto é o ecrã, o único limite que a peça não inventa) e **nenhum tecto
+     nas colunas**; o acordeão passa a uma **grade de uma linha** (`0fr`/`1fr`), onde `1fr` é o
+     tamanho do conteúdo — não há valor a escolher, logo não há valor a errar. O miolo que a grade
+     mede nasce nos dois produtores (`grupoDoMenu` e `motor/nucleo/nav.js`) no mesmo commit que a
+     folha. **DECIDIDO** 22/11/2026.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -4062,7 +4089,20 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (22/11/2026 — o painel, a coluna, e o KV que dizia «nada pendente»)
+### Executado nesta fotografia (22/11/2026 — a altura da folha, o empilhado, e o caminho do pacote)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-a-coluna-da-vertical.js` | **38/38** — duas asserções novas: «aberto mede EXACTAMENTE o conteúdo» (168 de 168) e «a caixa da folha mede o conteúdo e cabe no ecrã» (436 de 436 a 1024×640). Antes da correção, a 1024×640 com tudo aberto: caixa **499** para **587** de conteúdo — 88px fora |
+| `node experimentos/provar-o-painel-empilhado.js` | **20/20** a 1440×900, 1280×800, 1024×700 e 390×800: uma coluna, mesma borda esquerda, largura da secção, topo a crescer pela ordem da leitura. Controle `--contra=a61d4ddb`: **8 de 20 reprovam**, com as bordas `[288,748,288,748]` e os topos `[471,471,669,669]` |
+| `node experimentos/provar-o-painel-do-estudio.js` | 36/36 (inalterado: a conta e o desenho do painel) |
+| `node experimentos/provar-menu-da-producao.js` | 55/55 |
+| `node experimentos/provar-a-moldura-em-todas-as-telas.js` | 111/111 |
+| `node experimentos/provar-identidade-ao-lado.js` · `provar-acoes-da-linha.js` · `provar-o-estudio.js` | 33/33 · 75/75 · 33/33 |
+| `node tools/check-identidade.js` · `check-pacote` (breu-rosa) | **0 problemas** · 0 erros (1 aviso: o PDF, por desenho) |
+| `node experimentos/provar-acordeoes.js` | **cai** numa asserção anterior a esta mudança (`#semear` ausente na fixture, linha 337) — verificado que cai **no mesmo sítio** com o código de `HEAD`: falha anterior, não custo desta |
+
+### Executado na fotografia anterior (22/11/2026 — o painel, a coluna, e o KV que dizia «nada pendente»)
 
 | Verificação | Resultado |
 |:--|:--|
