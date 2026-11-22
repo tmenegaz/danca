@@ -58362,3 +58362,34 @@ pendente» (7 falhas). `pendenciaDoKv` nos quatro elos: pendência nas três mor
 **E o que ela perguntou:** os **302 continuam**. `excluirEscola` recusa apagar um shard de confiança
 («o próprio shard NUNCA se apaga») e os redirecionamentos são código do Worker — não são artefacto
 de escola. Expurgar a `breu`, ou recriá-la com o mesmo nome, não lhes toca.
+
+## 22/11/2026 — O painel pedia o pacote no caminho errado (e o AO VIVO é que o disse)
+
+**O que motivou.** O painel subiu, e a primeira carga ao vivo da `breu`
+(`https://breu.padd.com.br/bastidores/estudio`) mostrou o número certo em cinco caixas e, na sala,
+«Ocupação — **sem leitura das aulas lançadas**». O pacote está publicado: `/rosa/ciclos.json`
+responde **200**. O defeito era o caminho.
+
+**O que era.** O painel pedia `https://assets.local/<variante>/ciclos.json`. No shard o pacote vive
+debaixo do **prefixo da escola** (`PACOTE_PARTILHADO=sim` → `/breu/…`), e o pedido sem prefixo
+responde 404 — o painel concluía «o pacote não está no ar» sobre um ficheiro que estava. A regra já
+existia em `prefixoDaArvore` (`motor/servidor/producao.js`), e a lição é a de sempre: uma convenção
+de caminho, um sítio só; uma segunda cópia envelhece a primeira.
+
+**O que mudou.** `painelDoEstudio` usa `prefixoDaArvore(env)` no URL do pacote, e a prova mede o
+**URL pedido** (`/breu/rosa/ciclos.json`) e não só o resultado — é a única coisa que distingue «não
+li» de «li e não havia». De caminho, a data do elenco («desde 2026-11-22») passou a `dd/mm/aaaa`,
+como as da sala.
+
+**MEDIDO.** `provar-o-painel-do-estudio` **34/34** (duas asserções novas: o caminho com prefixo, e a
+leitura que ele permite). Ao vivo, a mesma carga passou a dizer o que se sabe: o período da sala
+começa a **14/12/2026**, e «0 de 15» é o número certo — dito na própria página, para não se ler como
+falha.
+
+**O que continua em aberto, e agora com um dado novo.** O `lancada` de `/rosa/ciclos.json` está
+`false` nas **15** aulas, embora as páginas `aula-01.html` e `aula-02.html` existam no pacote. Pelo
+critério do próprio sistema (`ler_lancadas` em `tools/gerar-ciclo.sh`: o facto é a chave `aulas['NN']`
+no JSON de dados), **nenhuma aula desta escola foi lançada** — e o `-dados.json` do repositório tem
+`aulas: []`. Isto **não** foi interpretado nem corrigido aqui: é a pergunta da §6/143 («ocupação» é a
+agenda ou o corpo?) a encontrar um segundo facto que ela precisa de ver. O painel **não inventa**: se
+o `lancada` não for o registo que se quer, o número diz zero e a frase diz porquê.

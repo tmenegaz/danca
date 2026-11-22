@@ -179,6 +179,33 @@ function numero(html, rotulo) {
   provar('a sala traz as previstas e as dadas, do `ciclos.json` do pacote',
     sala.previstas === 3 && sala.dadas === 2, [sala.previstas, sala.dadas]);
 
+  /* O CAMINHO PASSA PELA ÁRVORE (22/11/2026) — e é isto que separa «não li» de «li». No shard o
+   * pacote vive debaixo do prefixo da escola (`PACOTE_PARTILHADO=sim` → `/breu/…`), e o painel
+   * pedia `/rosa/ciclos.json`: ao vivo a `breu` respondia 404 a esse caminho e 200 a
+   * `/rosa/ciclos.json` só fora do prefixo — o painel anunciava «o pacote não está no ar» sobre um
+   * ficheiro que está. Aqui mede-se o URL PEDIDO, que é a única coisa que distingue os dois. */
+  const pedidos = [];
+  const assetsComRegisto = {
+    async fetch(url) {
+      const caminho = String(url instanceof URL ? url.pathname
+        : String(url).replace(/^https?:\/\/[^/]+/, ''));
+      pedidos.push(caminho);
+      if (!/\/breu\/rosa\/ciclos\.json$/.test(caminho)) return new Response('', { status: 404 });
+      return new Response(JSON.stringify({ ciclos: [{ aulas: AULAS }] }), {
+        status: 200, headers: { 'Content-Type': 'application/json' },
+      });
+    },
+  };
+  const noShard = await bastidores.painelDoEstudio({
+    env: { ASSETS: assetsComRegisto, PACOTE_PARTILHADO: 'sim', ESCOLA_SLUG: 'breu' },
+    escola: 'breu', aluns: ALUNAS, profs: PROFESSORES, dono: 'Demi Plié', trms: TURMAS,
+    linhas: LINHAS, matriculasDaEscola: MATRICULAS, dadosDaEscola: null,
+  });
+  provar('no shard o painel pede o pacote ATRAVÉS do prefixo da escola',
+    pedidos.length === 1 && pedidos[0] === '/breu/rosa/ciclos.json', pedidos);
+  provar('…e por isso LÊ: as dadas e as previstas vêm do ficheiro',
+    noShard.salas[0].dadas === 2 && noShard.salas[0].previstas === 3, noShard.salas[0]);
+
   const semAssets = await bastidores.painelDoEstudio({
     env: {}, escola: 'breu', aluns: ALUNAS, profs: PROFESSORES, dono: 'Demi Plié',
     trms: TURMAS, linhas: LINHAS, matriculasDaEscola: MATRICULAS, dadosDaEscola: null,

@@ -6040,11 +6040,22 @@ async function painelDoEstudio({ env, escola, aluns, profs, dono, trms, linhas, 
 
   /* O `ciclos.json` DO PACOTE, por turma — do ASSETS, e nunca da rede. `null` quando não há
    * assets (as bancadas) ou quando o pacote daquela turma não está montado: «não li» é uma
-   * resposta, e é diferente de «zero aulas». */
+   * resposta, e é diferente de «zero aulas».
+   *
+   * O CAMINHO PASSA PELA ÁRVORE (22/11/2026). Ao vivo a escola não declara `sem leitura` por
+   * acaso: no `lastro-teste` o pacote vive debaixo do prefixo da escola (`PACOTE_PARTILHADO=sim`
+   * → `/breu/…`), e um `/<variante>/ciclos.json` sem o prefixo responde 404 — o painel lia e
+   * concluía «o pacote não está no ar» sobre um ficheiro que está. Medido na `breu`:
+   * `/rosa/ciclos.json` 200 e `/ciclos.json` 404. A regra é a de `prefixoDaArvore`, em
+   * `producao.js` — uma convenção, um sítio, e não uma segunda cópia que envelheça. */
+  const prefixo = (() => {
+    try { return require('./producao.js').prefixoDaArvore(env); } catch (erro) { return ''; }
+  })();
   const lerCiclosDoPacote = async (variante) => {
     if (!variante || !env || !env.ASSETS || typeof env.ASSETS.fetch !== 'function') return null;
     try {
-      const r = await env.ASSETS.fetch('https://assets.local/' + encodeURIComponent(variante) + '/ciclos.json');
+      const r = await env.ASSETS.fetch('https://assets.local' + prefixo + '/'
+        + encodeURIComponent(variante) + '/ciclos.json');
       if (!r || !r.ok) return null;
       const d = await r.json();
       const c = d && Array.isArray(d.ciclos) ? d.ciclos[0] : null;
@@ -6217,7 +6228,7 @@ function painelInicial(p) {
     ? '<div class="caixa painel-secao"><h3>Os elencos</h3>' + n.elencos.map((e) =>
       '<p class="painel-linha"><strong>' + esc(e.nome) + '</strong><span class="sub">' +
       plural(e.pessoas, 'aluna', 'alunas') + (e.professor ? ' · por ' + esc(e.professor) : '') +
-      (e.atualizada ? ' · desde ' + esc(String(e.atualizada).slice(0, 10)) : '') +
+      (e.atualizada ? ' · desde ' + esc(emDataFora(e.atualizada)) : '') +
       '</span></p>').join('') + '</div>'
     : '<div class="caixa painel-secao"><h3>Os elencos</h3><p class="sub">Nenhum elenco composto '
       + 'ainda — compõe-se em Pedagogia › Audição.</p></div>';
