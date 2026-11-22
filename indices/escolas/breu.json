@@ -161,8 +161,8 @@
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md"
         ],
-        "hash": "c7e40ab8a17059abf261fbba1309875b4fe0a3942ccd86e2e7a102c797b44b43",
-        "hash_conteudo": "38e10f0803ecb3b5fcb4a8495bdaab72dd432cbb998bd83658416f7b0ce5caf7",
+        "hash": "84f9bdc1e5476577d4b719e5ed9dfc32d6291f5f09865496e83e6b3a6056b876",
+        "hash_conteudo": "8c2b7b2371d913c3b72bf28ade1b71bab59599a324c2751993681f9f7755508c",
         "id": "ciclo-01-breu-rosa-aula-01",
         "lida": true,
         "parent_hash": ""
@@ -182,8 +182,8 @@
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-02.md",
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-02.md"
         ],
-        "hash": "355040d24791537f06458bd3ad7a2268e374b9c7240f673abdba4f53433b4c51",
-        "hash_conteudo": "e67fa2bde771fc8213cb8cf3d1519ab52bec4438bda7cacea7971696653ee0ee",
+        "hash": "b556c3c48cb94cea2e7fa1919bf58f1aab78c795d5f3a005bf477d0e64271634",
+        "hash_conteudo": "1133703ab030008103f67cf60b80d813ecc56b9d3d58d6e9736754c0e282a83f",
         "id": "ciclo-01-breu-rosa-aula-02",
         "lida": true,
         "parent_hash": ""
@@ -216,8 +216,8 @@
           "professores/demi-plie/ciclos/ciclo-01-breu-rosa.conf",
           "professores/demi-plie/ciclos/ciclo-01.conf"
         ],
-        "hash": "4df2814673441821ff08ebba729ab98915b59a0c8421f83701aea3ef9aa979b2",
-        "hash_conteudo": "ea4098007bee96ce2d95a3278b7707a9ef97764bbce344dd6fa49bd0c8d3d164",
+        "hash": "2c0e429216b725ff9686d58885cd80a30878ace300ababdfa42e1c5d25dc2577",
+        "hash_conteudo": "0243b0e36be7d389e9a71af5264c0d5517c2eac441f91be6a1468566b6617208",
         "id": "ciclo-01-breu-rosa",
         "lida": true,
         "parent_hash": ""
@@ -232,8 +232,8 @@
               "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-01.md",
               "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-01.md"
             ],
-            "hash": "c7e40ab8a17059abf261fbba1309875b4fe0a3942ccd86e2e7a102c797b44b43",
-            "hash_conteudo": "38e10f0803ecb3b5fcb4a8495bdaab72dd432cbb998bd83658416f7b0ce5caf7",
+            "hash": "84f9bdc1e5476577d4b719e5ed9dfc32d6291f5f09865496e83e6b3a6056b876",
+            "hash_conteudo": "8c2b7b2371d913c3b72bf28ade1b71bab59599a324c2751993681f9f7755508c",
             "id": "ciclo-01-breu-rosa-aula-01",
             "lida": true,
             "parent_hash": ""
@@ -252,8 +252,8 @@
               "professores/demi-plie/ciclos/ciclo-01-breu-rosa-aula-02.md",
               "professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-aula-02.md"
             ],
-            "hash": "355040d24791537f06458bd3ad7a2268e374b9c7240f673abdba4f53433b4c51",
-            "hash_conteudo": "e67fa2bde771fc8213cb8cf3d1519ab52bec4438bda7cacea7971696653ee0ee",
+            "hash": "b556c3c48cb94cea2e7fa1919bf58f1aab78c795d5f3a005bf477d0e64271634",
+            "hash_conteudo": "1133703ab030008103f67cf60b80d813ecc56b9d3d58d6e9736754c0e282a83f",
             "id": "ciclo-01-breu-rosa-aula-02",
             "lida": true,
             "parent_hash": ""
@@ -1006,9 +1006,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "3673d40"
+    "commit": "4c37b9e"
   },
-  "gerado_em": "2026-11-22T21:38",
+  "gerado_em": "2026-11-22T22:03",
   "nao_indexado": [
     {
       "familia": "conteudo",
