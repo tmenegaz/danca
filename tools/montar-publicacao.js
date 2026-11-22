@@ -540,10 +540,11 @@ function menuDaEscola({ turmas, blocos }) {
     if (itens.length) barra.push({ tipo: 'menu', rotulo: rotulo.trim(), itens });
   }
   if (!barra.length) {
-    // Sem pacote-zero não há bloco de onde extrair; os dois destinos são fixos no sistema.
+    /* Sem pacote-zero não há bloco de onde extrair; o destino é fixo no sistema. Era um par —
+     * «Estúdio de Dança» e «Produção» —, e a 22/11/2026 ficou um: a cena saiu, e a produção passou
+     * a chamar-se estúdio. Ver `tools/templates/nav-html.js`. */
     barra.push({ tipo: 'menu', rotulo: 'Bastidores', itens: [
-      { rotulo: 'Estúdio de Dança', href: '/bastidores/estudio' },
-      { rotulo: 'Produção', href: '/bastidores/producao' },
+      { rotulo: 'Estúdio', href: '/bastidores/estudio' },
     ] });
   }
 

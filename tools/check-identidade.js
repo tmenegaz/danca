@@ -1059,7 +1059,7 @@ function superficiesQueEmitem() {
   // único lugar onde o que se mede é o que se serve.
   try {
     const bastidores = require(path.join(raiz, 'motor/servidor/bastidores.js'));
-    lista.push(['bastidores/producao', bastidores.paginaProducao(
+    lista.push(['bastidores/estudio', bastidores.paginaProducao(
       'x', { professor: 'x', ciclo: '01', query: '' }, [], [], '', '', [], [], [], [], [], [])]);
   } catch (e) {
     erros.push('Peça: não foi possível gerar a página de Produção para medir (' + e.message + ')');

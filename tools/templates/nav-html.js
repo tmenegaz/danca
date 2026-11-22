@@ -50,7 +50,7 @@ const { SVG: MARCA } = require('./marca-lastro.js');
  *
  *   · no pacote da turma (`/aula-01`), `index.html` é o índice do ciclo;
  *   · na porta (`/plano-observacao/`), `index.html` seria a porta outra vez;
- *   · nos Bastidores (`/bastidores/producao`), seria a pasta dos Bastidores.
+ *   · nos Bastidores (`/bastidores/estudio`), seria a pasta dos Bastidores.
  *
  * `/` é a única resposta certa nas três, e é a mesma em todas: o site da escola. O href é
  * ABSOLUTO de propósito — relativo, ele levaria a três sítios diferentes.
@@ -132,7 +132,7 @@ const FECHAMENTO = ['  </div>', '</nav>'].join('\n');
  *  página rola); sem `extras` o resultado é byte a byte o de antes, e é por isso que
  *  as outras páginas não mudam. O hambúrguer continua com `margin-left:auto`: o que
  *  entra antes dele ocupa o vão, e ele NÃO anda — que é a condição da S5. */
-function navSistema({ atual = '', anamnese, plano, po, estudio = '/bastidores/estudio', producao = '/bastidores/producao', extras = '', painel = false } = {}) {
+function navSistema({ atual = '', anamnese, plano, po, estudio = '/bastidores/estudio', extras = '', painel = false } = {}) {
   const classe = (nome) => (nome === atual ? ' class="ativo"' : '');
   // O GRUPO DO PAINEL SÓ EXISTE ONDE ELE É O ASSUNTO (22/10/2026). `painel: true` acrescenta o
   // grupo; sem ele o resultado é byte a byte o de antes — e é por isso que o pacote de uma
@@ -165,8 +165,13 @@ function navSistema({ atual = '', anamnese, plano, po, estudio = '/bastidores/es
     '<details class="menu">',
     '<summary>Bastidores</summary>',
     '<div class="submenu">',
-    '<a' + classe('estudio') + ' href="' + estudio + '">Estúdio de Dança</a>',
-    '<a' + classe('producao') + ' href="' + producao + '">Produção</a>',
+    /* UM DESTINO SÓ (22/11/2026). Eram dois — «Estúdio de Dança» (a cena) e «Produção» (o
+     * gabinete) —, e a decisão dela é que a cena deixa de existir e que a produção passa a
+     * chamar-se estúdio: «Em bastidores a gente vai ter apenas a produção e tudo o que a gente já
+     * desenvolveu dentro dela. Só que nós vamos rebatizar a produção. A produção vai se chamar
+     * estúdio.» O endereço é o mesmo que o da página (`/bastidores/estudio`), e é isso que faz o
+     * item ficar aceso em todas as secções dela — a coluna, o mês a mês, e o Painel inicial. */
+    '<a' + classe('estudio') + ' href="' + estudio + '">Estúdio</a>',
     '</div>',
     '</details>',
     ...grupoDoPainel,
