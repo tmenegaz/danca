@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T13:17:51-0300`
-Commit atual: `d85c42c1` — fix(estrutura): a coluna do corpo nasce pela régua, e o plano de ensino da escolha passa a ser um só
+Gerado em: `2026-11-22T13:26:29-0300`
+Commit atual: `7cbec16a` — fix(estrutura): o pacote da escola zero é regerado com o menu de um destino
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,10 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+7cbec16a fix(estrutura): o pacote da escola zero é regerado com o menu de um destino
+b4ade3d6 fix(tools): o scaffold da escola também nasce com um destino em Bastidores
+1a221aae feat(estrutura): a produção passa a chamar-se estúdio — e a cena sai de Bastidores
+57523da5 refactor(tools): o menu de Bastidores passa a ter um destino
 d85c42c1 fix(estrutura): a coluna do corpo nasce pela régua, e o plano de ensino da escolha passa a ser um só
 6c17f241 fix(tools): a folha de lançamento mede o corpo pela régua da turma, e não pelas marcas
 feac5b03 fix(estrutura): o nome da turma não é do sistema — e a metade do KV passa a ser lida
@@ -98,10 +102,6 @@ cf5fb074 feat(acervo): envelope/po-20261122-0849.json
 225c8e3b feat(plano): o elo da cadeia automática
 bba499f8 feat(acervo): envelope/plano-20261122-0849.json
 a64cfdb5 feat(acervo): envelope/.indice.json
-dddf46cf feat(linha de base): índice — tami 20261122-1149
-5795075a feat(elenco): tami — concluído
-cdb60071 fix(po): o plano de observação mostra as dimensões, e o valor é da aula
-ddf4dd34 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
 ```
 
 ## Por professor
@@ -260,6 +260,17 @@ tocam os Bastidores medidas **contra a base** — `provar-producao` 142/159, `pr
 falhas, `provar-abas-da-audicao` 4 falhas, `provar-aparencia` 76/77 — dão **exactamente o mesmo
 número com e sem esta mudança**: são falhas anteriores, não custos desta. `check-identidade` **0
 problemas**, `check-indices` **16/16**, `check-pacote` **0 erros** (1 aviso: o PDF, por desenho).
+
+**O defeito que só apareceu ao vivo — e a terceira cópia da mesma lista.** O primeiro deploy subiu o
+Worker certo: `/bastidores/estudio` já respondia `<h1>Estúdio</h1>`. E a **coluna** continuava a
+mostrar «Estúdio de Dança · Produção». A coluna não vem do Worker: é o `nav.json` da publicação, e
+esse é extraído do bloco `<summary>Bastidores</summary>` do **pacote** — escrito por
+`tools/criar-escola.sh` quando a escola nasceu. Era a **terceira** cópia da mesma lista (a barra no
+`nav-html.js`, o menu de recurso no `montar-publicacao.js`, e esta), e a única que nenhuma prova lê.
+Corrigida no script — com o mesmo motivo declarado, em commit próprio — e o pacote regerado com
+`--somente-indice`, que por definição não toca em manifestos, documentos nem na porta: o diff são
+duas linhas de navegação. **A lição**: uma lista de destinos que se pode copiar acaba copiada num
+sítio que não se lê; e o que a tela mostra pode não vir do código que se acabou de publicar.
 
 **O que ainda não está feito.**
 - **O painel não está construído.** O que existe é o modelo, e ele espera duas decisões: o **peso do

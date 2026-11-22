@@ -58218,6 +58218,17 @@ falhas, `provar-abas-da-audicao` 4 falhas, `provar-aparencia` 76/77 — dão **e
 número com e sem esta mudança**: são falhas anteriores, não custos desta. `check-identidade` **0
 problemas**, `check-indices` **16/16**, `check-pacote` **0 erros** (1 aviso: o PDF, por desenho).
 
+**O defeito que só apareceu ao vivo — e a terceira cópia da mesma lista.** O primeiro deploy subiu o
+Worker certo: `/bastidores/estudio` já respondia `<h1>Estúdio</h1>`. E a **coluna** continuava a
+mostrar «Estúdio de Dança · Produção». A coluna não vem do Worker: é o `nav.json` da publicação, e
+esse é extraído do bloco `<summary>Bastidores</summary>` do **pacote** — escrito por
+`tools/criar-escola.sh` quando a escola nasceu. Era a **terceira** cópia da mesma lista (a barra no
+`nav-html.js`, o menu de recurso no `montar-publicacao.js`, e esta), e a única que nenhuma prova lê.
+Corrigida no script — com o mesmo motivo declarado, em commit próprio — e o pacote regerado com
+`--somente-indice`, que por definição não toca em manifestos, documentos nem na porta: o diff são
+duas linhas de navegação. **A lição**: uma lista de destinos que se pode copiar acaba copiada num
+sítio que não se lê; e o que a tela mostra pode não vir do código que se acabou de publicar.
+
 **O que ainda não está feito.**
 - **O painel não está construído.** O que existe é o modelo, e ele espera duas decisões: o **peso do
   número** (a caixinha da casa ou uma peça nova) e o que **«ocupação»** mede.

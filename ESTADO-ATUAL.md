@@ -4012,6 +4012,8 @@ recorta» como «a rota está fechada».
 | a busca do menu em 111 telas | `provar-a-moldura-em-todas-as-telas` **111/111** — a barra e a coluna continuam em todas as telas que o Worker serve, agora com o destino novo |
 | o modelo do painel, medido no navegador | `proposta-painel-do-estudio.html`: cinco números (Alunas 2 · Professores 2 · Salas 1 · Elencos 2 · Modalidades 2), a cota da sala a `0/1000` e a nota «o período ainda não começou»; a bancada troca entre «hoje» (um parágrafo, zero cotas), «caixinhas da casa» (5) e «número grande» (5 da peça nova) |
 | `check-identidade` · `check-indices` · `check-pacote` | **0 problemas** (depois de re-sincronizar as duas cópias da porta) · **16/16** · **0 erros, 1 aviso** (o PDF, por desenho) |
+| **ao vivo, fim a fim, depois do deploy** | `/bastidores/estudio` **200** com `<h1>Estúdio</h1>` e `Bastidores · Estúdio · breu` · `/bastidores/producao` **302** para ele · **0** ocorrências de «Estúdio de Dança» na página · o `nav.json` publicado com **um** item em Bastidores · `/propostas/proposta-painel-do-estudio.html` **200** |
+| **o defeito que só se viu ao vivo** | o primeiro deploy subiu o Worker CERTO e a COLUNA continuou com «Estúdio de Dança · Produção». A coluna não vem do Worker: é o `nav.json` extraído do `<summary>Bastidores</summary>` do **pacote**, e o pacote da `breu` foi escrito por `tools/criar-escola.sh` quando a escola nasceu — **a terceira cópia da mesma lista**, e a única que os testes não leem. Corrigida no script e o pacote regerado com `--somente-indice` (2 linhas de navegação) |
 
 ### Executado na fotografia anterior (22/11/2026 — uma régua só, e um plano só na escolha)
 
