@@ -58902,3 +58902,35 @@ correcção não muda o que está impresso hoje, muda o que a Aula 03 vai imprim
 aula **N** só se cria quando a **N-1** tem o registo do lançamento — e falta ela decidir se o portão
 **bloqueia** (botão desabilitado, com a razão) ou **avisa e deixa passar**. As duas são defensáveis:
 bloquear impede preparar duas aulas de uma vez. Fica em §8 do `ESTADO-ATUAL.md`, à espera.
+
+## 22/11/2026 — O portão da aula dada: bloqueia, e a decisão fica guardada antes do código
+
+**A regra, nas palavras dela.** «todas as outras aulas que estão lá no nosso calendário com o botão,
+todos os outros botões, melhor dizendo, que estão no calendário, que é criar aula, eles ficam
+desabilitados até que os dados lançados da aula dada estejam registados no sistema, aí habilita o
+próximo e assim sucessivamente.» E à pergunta «o professor pode preparar duas aulas seguidas?»:
+**não** — a aula seguinte só depois de a anterior ser dada e lançada.
+
+**DECIDIDO**: o portão **bloqueia**, e não avisa. O botão «Criar aula» da linha **N** do calendário
+fica desabilitado enquanto a aula **N-1** não tiver o registo do lançamento — o **facto**
+(`aulas[NN]` no `-dados.json`), o mesmo que `podeRegenerar` já lê, e não o relógio. Com o registo, o
+botão da aula seguinte acende, um de cada vez.
+
+**E NÃO SE IMPLEMENTOU, por ordem dela**: «não implementa ainda, mas já guarda essas informações que
+eu te passei aqui com as respostas que eu te dei.» A razão prática está dita: a Aula 02 da `rosa` foi
+criada **fora da regra**, de propósito, para testar; um portão ligado hoje bloquearia a Aula 03 — que
+é exactamente de onde ela está a testar o modal —, porque a 02 ainda não foi lançada.
+
+**O que fica escrito, para o código não ter de adivinhar**: o sítio é a quinta coluna do calendário
+(`tools/calendario.py`, `celula_da_coluna_criar`); o facto que abre o botão é o registo do lançamento,
+não a data; e o comportamento é o **bloqueio** — não o aviso.
+
+**Com o quê.** `ESTADO-ATUAL.md` (§8, a pendência passa de «o que trava» a «decisão tomada, código por
+fazer»). Nenhum ficheiro de motor foi tocado, e é isso que se está a declarar.
+
+**MEDIDO, e é uma correcção minha.** Eu tinha escrito que a rota ao vivo
+`/api/bastidores/impacto-da-inclusao` «pede a senha da direção, que eu não tenho» — **falso**: a senha
+está em `tools/.senhas-locais` (`LOGIN_BREU`), e ela existe precisamente para isto. Com ela a rota
+responde **200**: `{"ok":true,"precisaDecisao":null,"motivo":"ja-na-aula"}` para o `Plié`, que é o
+certo (o `Plié` está na matriz do parâmetro). Uma limitação que eu **não** medi foi apresentada como
+limitação do sistema; era do meu lado.

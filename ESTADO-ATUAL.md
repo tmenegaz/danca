@@ -3791,24 +3791,33 @@ repositório; o vocabulário do repositório tem hoje **93 termos**, e o ar só 
 
 ## 8. Pendências e dúvidas
 
-### O portão da aula dada — o que falta, e a pergunta que o trava (22/11/2026)
+### O portão da aula dada — DECIDIDO e ainda não implementado (22/11/2026)
 
-**DECIDIDO pela ordem dela**: «primeiro a tabela que falta para a aula dois […] depois, segundo
-passo, no modal a parte da musicalidade […] e aí no passo três a gente faz o portão da aula dada».
-Os passos 1 e 2 estão feitos (decisões 151-156); o **passo 3 não começou**, e é de propósito.
+**A ordem dela**: «primeiro a tabela que falta para a aula dois […] depois, segundo passo, no modal a
+parte da musicalidade […] e aí no passo três a gente faz o portão da aula dada». Os passos 1 e 2 estão
+feitos (decisões 151-157); o **passo 3 tem a decisão tomada e o código por fazer**, e ela foi
+explícita: «não implementa ainda, mas já guarda essas informações».
 
-**O que é:** a aula **N** só pode ser criada quando a aula **N-1** tem o **registo do lançamento** —
-o mesmo facto que a guarda de regeneração já lê (`podeRegenerar`). Hoje o formulário de criar aula
-oferece a Aula 03 com a Aula 02 por lançar, e nada o impede.
+**A REGRA, nas palavras dela.** «todas as outras aulas que estão lá no nosso calendário com o botão,
+todos os outros botões, melhor dizendo, que estão no calendário, que é criar aula, eles ficam
+desabilitados até que os dados lançados da aula dada estejam registados no sistema, aí habilita o
+próximo e assim sucessivamente.» **DECIDIDO**: **bloquear**, e não avisar. E à pergunta «o professor
+pode preparar duas aulas seguidas?» a resposta foi a **opção 2** — não, a aula seguinte só depois de
+a anterior ser dada e lançada.
+
+**O que isso significa em concreto:** o botão «Criar aula» da linha **N** do calendário fica
+**desabilitado** enquanto a aula **N-1** não tiver o **registo do lançamento** — o mesmo facto que
+`podeRegenerar` já lê (`aulas[NN]` no `-dados.json`), e não o relógio. Com o registo feito, o botão da
+aula seguinte acende, um de cada vez, até ao fim do ciclo.
 
 **Onde ele vive:** a quinta coluna do calendário (`tools/calendario.py`, `celula_da_coluna_criar`), que
-já desenha o botão de criar e já sabe qual é a aula seguinte.
+já desenha o botão e já sabe qual é a aula seguinte.
 
-**O que o trava, e é uma decisão dela:** **bloquear** (o botão desabilitado, com a razão escrita) ou
-**avisar e deixar passar** (o aviso diz «a Aula 02 ainda não foi lançada», e ela decide). As duas são
-defensáveis e produzem produtos diferentes: bloquear impede o professor de preparar a aula seguinte
-antes de fechar a anterior — e há quem prepare duas de uma vez. **PENDENTE** até ela escolher.
-
+**O estado de teste dela, que explica o que se vê hoje — e que o portão não pode confundir com
+defeito.** A Aula 02 foi criada **fora da regra**, de propósito, «porque estamos testando». E como a
+Aula 02 já existe, ela **perdeu o botão de criar**: o modal da aula 02 não está lá, e é por isso que o
+teste do modal se faz a partir da **Aula 03**. Um portão implementado hoje bloquearia a Aula 03 (a 02
+não foi lançada) e travaria o teste em curso — é a razão de ele esperar, e não um esquecimento.
 
 ### O plano de observação em `/rosa/` não carrega o formulário (21/11/2026) — medido, não corrigido
 

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T19:57:27-0300`
-Commit atual: `c9a4168c` — feat(aula-03): a aula decide a sua música, e o repertório do plano acompanha a Turma
+Gerado em: `2026-11-22T20:17:00-0300`
+Commit atual: `cbd1aa66` — feat(aula-03): a mudança chega à aula vigente, e as dadas ficam iguais ao último registro
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,8 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+cbd1aa66 feat(aula-03): a mudança chega à aula vigente, e as dadas ficam iguais ao último registro
+e08b9b7b chore(estrutura): fechar os derivados — âncoras e índices
 c9a4168c feat(aula-03): a aula decide a sua música, e o repertório do plano acompanha a Turma
 d2bbab1b chore(estrutura): fechar os derivados — âncoras e índices
 4c37b9ef fix(musicalidade): a música é a da escola, e sobe do verbete quando a linha não a copiou
@@ -100,8 +102,6 @@ a9a62ab1 fix(estrutura): o painel inicial empilha os blocos, como ela aprovou
 b7162e9c fix(template): a folha do menu mede o conteúdo, e o acordeão deixa de ter tecto
 a61d4ddb docs(estrutura): a fotografia regista o id carimbado e a pasta da turma
 2c336cb0 fix(estrutura): o id da turma tem carimbo, a pasta dela não
-ef7d25ee chore(estrutura): diagnóstico temporário da leitura do pacote no painel
-831f6f6f fix(estrutura): a regra do prefixo muda de casa, e o painel passa a lê-la
 ```
 
 ## Por professor
@@ -195,73 +195,37 @@ ef7d25ee chore(estrutura): diagnóstico temporário da leitura do pacote no pain
 
 ## Última entrada do REGISTRO
 
-## 22/11/2026 — A mudança chega à aula que vem, e às aulas dadas não chega nada
+## 22/11/2026 — O portão da aula dada: bloqueia, e a decisão fica guardada antes do código
 
-**O pedido, nas palavras dela.** «seja qual for o exercício […] no momento que isso for feito, então é
-para a aula vigente. Ah, e se eu trocar de sala? A mesma coisa. E se trocar de professor? A mesma
-coisa. E se entrar ou sair alguma aluna do elenco? A mesma coisa.» E a outra metade: «aquelas que já
-foram concluídas nas aulas dadas […] têm que ser igualzinhas ao último registro.» O «fondue» é
-**exemplo**, e a resposta negativa sobre ele já estava dada (decisão 156): não tem notação na `breu`,
-logo não entra.
+**A regra, nas palavras dela.** «todas as outras aulas que estão lá no nosso calendário com o botão,
+todos os outros botões, melhor dizendo, que estão no calendário, que é criar aula, eles ficam
+desabilitados até que os dados lançados da aula dada estejam registados no sistema, aí habilita o
+próximo e assim sucessivamente.» E à pergunta «o professor pode preparar duas aulas seguidas?»:
+**não** — a aula seguinte só depois de a anterior ser dada e lançada.
 
-**A metade que já existia, e não se tocou.** `motor/nucleo/aulas-do-ciclo.js` (`aulasLancadas`,
-`podeRegenerar`) lê o **registo do lançamento** — o facto, não o juízo, e não o relógio —, e o
-escritor recusa reescrever o que já é facto (`escrever-ciclo.js:918`, com a excepção declarada da
-fonte que falta). `provar-aula-dada` já a media: **34/34**, e continua.
+**DECIDIDO**: o portão **bloqueia**, e não avisa. O botão «Criar aula» da linha **N** do calendário
+fica desabilitado enquanto a aula **N-1** não tiver o registo do lançamento — o **facto**
+(`aulas[NN]` no `-dados.json`), o mesmo que `podeRegenerar` já lê, e não o relógio. Com o registo, o
+botão da aula seguinte acende, um de cada vez.
 
-**A metade que faltava, e o primeiro defeito.** A aula **N** lia só `aula-N-parametro`. Enquanto a
-aula não é criada, essa chave **não existe**, e o §1 da Aula 03 dizia
-`[Preencher: parâmetro de medição da Aula 03 — o plano não respondeu «aula-3-parametro» para o marco 3
-desta aula]` sobre um plano que **tinha** respondido — na matriz do ciclo (`aula-1-parametro`, marco
-3, quatro exercícios). O sintoma é o pior dos dois mundos: o documento não mente, mas acusa o plano
-por uma falta que é da **chave**. `derivar-ciclo.js` passa a cair para a matriz do ciclo quando a
-chave da aula não existe; a chave própria, **mesmo vazia**, não cai — senão apagar a resposta de uma
-aula passaria a mostrar a do ciclo, e o vazio é uma resposta.
+**E NÃO SE IMPLEMENTOU, por ordem dela**: «não implementa ainda, mas já guarda essas informações que
+eu te passei aqui com as respostas que eu te dei.» A razão prática está dita: a Aula 02 da `rosa` foi
+criada **fora da regra**, de propósito, para testar; um portão ligado hoje bloquearia a Aula 03 — que
+é exactamente de onde ela está a testar o modal —, porque a 02 ainda não foi lançada.
 
-**O segundo defeito, e este era meu.** A decisão 156 pôs `sincronizarRepertorio` a encher o
-`repertorio` do plano com a lista da Turma. O `estadoDaDeclaracao` — a regra do `ja-na-aula`, que
-impede uma declaração de se aplicar duas vezes — lia **esse campo**. Medido: incluir o exercício no
-conteúdo da Turma e declará-lo num objectivo respondia `ja-na-aula`; a janela do «a que objectivo
-serve este exercício?» **não abria**; o exercício nunca entrava na matriz, e o documento nunca o
-imprimia. A premissa do guarda («esta lista só cresce pela declaração») morreu no dia em que a lista
-passou a ser sincronizada. A identidade passou a ser o **arranjo** — alguma linha da matriz do
-parâmetro e alguma linha de sequência.
+**O que fica escrito, para o código não ter de adivinhar**: o sítio é a quinta coluna do calendário
+(`tools/calendario.py`, `celula_da_coluna_criar`); o facto que abre o botão é o registo do lançamento,
+não a data; e o comportamento é o **bloqueio** — não o aviso.
 
-**O preço, declarado e medido nas duas direcções.** Quem desmarcar o exercício na matriz **e** ele não
-estiver na sequência vê a declaração voltar na derivação seguinte — a asserção que dizia o contrário
-foi **invertida**, com o motivo escrito no corpo. Quem desmarcar só na matriz continua protegido
-enquanto a sequência o citar, e num ciclo real ela cita: é a sequência que o documento imprime.
+**Com o quê.** `ESTADO-ATUAL.md` (§8, a pendência passa de «o que trava» a «decisão tomada, código por
+fazer»). Nenhum ficheiro de motor foi tocado, e é isso que se está a declarar.
 
-**E a lição de arquitectura.** As três coisas que a Turma faz ao plano — a declaração, a poda e a
-sincronização — viviam soltas no `cadeia.js`, uma a seguir à outra, com a **ordem** num comentário. A
-primeira versão da prova nova copiou-as **pela ordem errada** (sincronizar primeiro) e concluiu que a
-declaração estava morta: a prova mediu o defeito dela própria. A ordem passou a ser código, em
-`objetivos-do-repertorio.aplicarAoPlano`, e a cadeia passou a chamar a porta única.
-
-**Com o quê.** `motor/nucleo/derivar-ciclo.js` (a queda para a matriz do ciclo),
-`motor/nucleo/objetivos-do-repertorio.js` (a identidade do `ja-na-aula` e o `aplicarAoPlano`),
-`motor/servidor/cadeia.js` (a porta única),
-`experimentos/provar-a-aula-que-vem.js` (**novo**: a chegada, o congelamento das quatro mudanças, o
-controlo negativo, a âncora), `experimentos/provar-o-exercicio-novo.js` (as duas asserções da
-identidade, com o controlo e o motivo da inversão), `.gitignore`, `ESTADO-ATUAL.md`.
-
-**MEDIDO.** `provar-a-aula-que-vem` **70/70** — as quatro mudanças chegam à Aula 03 e as Aulas 01 e 02
-ficam **byte a byte** iguais, com a âncora igual e nenhum elo novo em `historico/`; o presente
-continua a corrigir-se. Controlo `--contra=c9a4168c`: **4 de 70 reprovam**, e são exactamente as
-quatro asserções do §1 da Aula 03 — a lacuna «não respondeu `aula-3-parametro`». A §C, sem o registo
-do lançamento, mostra as mesmas aulas **a serem reescritas** e o elo a abrir.
-`provar-o-exercicio-novo` **65/65**, controlo `--contra=c9a4168c` a reprovar **2 de 65** — as duas da
-identidade. `provar-cadeia-automatica` **136/136** pela porta única. `provar-aula-dada` 34/34,
-`provar-criar-aula` 53/53, `provar-a-musica-do-modal` 26/26, `provar-derivados-da-sequencia` 27/27,
-`provar-compasso-limpo` verde, `provar-a-dobra-e-a-aula-anterior` 31/31,
-`provar-a-identidade-da-aula` 26/26. `regerar-derivados` da `breu`: **9 ficheiros `igual`** — a
-correcção não muda o que está impresso hoje, muda o que a Aula 03 vai imprimir quando nascer.
-`check-pacote` 0 erros, `check-identidade` 0 problemas.
-
-**O que NÃO se fez, e tem pergunta.** O **portão da aula dada** (passo 3 da ordem dela) não começou: a
-aula **N** só se cria quando a **N-1** tem o registo do lançamento — e falta ela decidir se o portão
-**bloqueia** (botão desabilitado, com a razão) ou **avisa e deixa passar**. As duas são defensáveis:
-bloquear impede preparar duas aulas de uma vez. Fica em §8 do `ESTADO-ATUAL.md`, à espera.
+**MEDIDO, e é uma correcção minha.** Eu tinha escrito que a rota ao vivo
+`/api/bastidores/impacto-da-inclusao` «pede a senha da direção, que eu não tenho» — **falso**: a senha
+está em `tools/.senhas-locais` (`LOGIN_BREU`), e ela existe precisamente para isto. Com ela a rota
+responde **200**: `{"ok":true,"precisaDecisao":null,"motivo":"ja-na-aula"}` para o `Plié`, que é o
+certo (o `Plié` está na matriz do parâmetro). Uma limitação que eu **não** medi foi apresentada como
+limitação do sistema; era do meu lado.
 
 ## O que está pendente
 
