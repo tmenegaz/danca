@@ -1170,17 +1170,41 @@ function scriptDoPainel(chave, escola) {
       PLANOS = (r.dados && (r.dados.opcoes || r.dados.planos)) || [];
       /* SÓ O VIGENTE SE OFERECE (07/11/2026). O plano original e o seu ajuste apareciam os dois,
        * com o mesmo nome — escolher entre eles era escolher entre a mesma coisa e a mais velha.
-       * A estante marca cada plano substituído ('anterior'); aqui esconde-se o substituído, com
-       * uma excepção declarada: o que ESTE documento já aponta tem de continuar na lista, senão
-       * o campo aparece sem marcação e a gravação seguinte perde a referência em silêncio. Ele
-       * fica, dito por extenso, para não se confundir com o vigente. */
+       * A estante marca cada plano substituído ('anterior') e aqui esconde-se o substituído.
+       *
+       * E A EXCEPÇÃO QUE HAVIA SAIU (22/11/2026), pela palavra dela: «você preencheu com dois
+       * planos de ensino. A gente tem uma correção documentada a respeito disso […] que não é
+       * para ter dois aqui dentro do mesmo ciclo.» A excepção deixava ficar o plano que o
+       * documento apontava, dito «(versão anterior)» — e o campo voltava a mostrar dois planos
+       * com o mesmo objetivo. Agora a lista segue a CADEIA (o campo «ajuste_de») até ao topo e o
+       * campo fica no VIGENTE. O elo antigo não se perde: continua na estante, e é o histórico
+       * que o lê. A mesma regra da porta (porta/index.html, gradeDeOpcoesDinamicas) — uma só,
+       * nos dois clientes. ATENÇÃO: este código vive dentro de um template literal, e um
+       * backtick num comentário fecha-o. */
       var atual = String(valor('plano') || ATOS.plano || '').trim();
+      var porCarimbo = {};
+      PLANOS.forEach(function (p) { porCarimbo[String(p.carimbo || p.valor)] = p; });
+      var topoDaCadeia = function (id) {
+        var v = id;
+        for (var passo = 0; passo < 200; passo++) {
+          var sucessor = null;
+          for (var i = 0; i < PLANOS.length; i++) {
+            if (String(PLANOS[i].ajuste_de || '') === v) { sucessor = PLANOS[i]; break; }
+          }
+          if (!sucessor) break;
+          v = String(sucessor.carimbo || sucessor.valor);
+        }
+        return v;
+      };
+      if (porCarimbo[atual] && porCarimbo[atual].anterior === true) {
+        var vigente = topoDaCadeia(atual);
+        if (porCarimbo[vigente]) atual = vigente;
+      }
       encher(campo('plano'), PLANOS.filter(function (p) {
-        return !p.anterior || String(p.carimbo || p.valor) === atual;
+        return !p.anterior;
       }).map(function (p) {
         var turma = p.turma ? ' · ' + p.turma : '';
         var nome = p.rotulo || p.carimbo;
-        if (p.anterior && String(p.carimbo || p.valor) === atual) nome += ' (versão anterior)';
         return { valor: p.carimbo || p.valor, rotulo: nome + turma };
       }), null, atual);
       pintarDoPlano();

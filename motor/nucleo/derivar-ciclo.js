@@ -2244,8 +2244,21 @@ const TIPO_DO_CRITERIO = 'rubrica';
  *
  * O TIPO de cada coluna é declarado, e não presumido: o ITEM DE UMA DIMENSÃO é um CRITÉRIO — a
  * folha rotula essas linhas «Critério» — e o critério se mede pela RÉGUA DA TURMA (14/10/2026:
- * `rubrica`), não pelas cinco marcas. A LINHA DE BASE é a exceção, e por isso tem o `tipo`
- * escrito à mão: «observado na aula» responde «aconteceu?», e não «em que nível ficou?».
+ * `rubrica`), não pelas cinco marcas.
+ *
+ * A LINHA DE BASE DEIXOU DE SER EXCEÇÃO (22/11/2026). Ela era a única coluna em `marca`
+ * (`ok / parcial / nao / nao_vi`), escrita à mão com o argumento de que «observado na aula»
+ * responde «aconteceu?» e não «em que nível ficou?». O argumento é razoável e a decisão estava
+ * errada, com a palavra dela: «Nós temos duas matrizes, está errado isso. A régua da turma é só
+ * uma, não pode ser duas […] a parte do corpo está com uma régua que ela está chumbada no código.
+ * Ela é OK, parcial, não aconteceu e não vi. Está errado isso. Tem que ser a régua que foi
+ * definida lá pelo professor em bastidores.» O efeito medido no formulário eram DUAS réguas na
+ * mesma página — uma legenda «Régua desta turma: …» e outra «Marcas: ✓ aconteceu · ~ parcial · X
+ * não aconteceu · ? não vi» — para medir critérios da mesma aula. Passa a haver uma: a da turma.
+ *
+ * E isso não perde dado: o valor gravado é uma STRING nos dois casos, e um valor antigo que a
+ * régua já não declara continua a aparecer (a tela mostra-o como opção extra e marca-o como fora
+ * da régua) — é a mesma regra de sempre, o registo não se reescreve.
  */
 function declaracaoDeCaptura({ po, plano, escola }) {
   const dims = dimensoesEItens(po, plano);
@@ -2270,7 +2283,7 @@ function declaracaoDeCaptura({ po, plano, escola }) {
     chave: 'linha_de_base',
     rotulo: 'Linha de base',
     grao: 'aluna',
-    colunas: { 'Observado na aula': { chave: 'observado_na_aula', tipo: 'marca' } },
+    colunas: { 'Observado na aula': { chave: 'observado_na_aula', tipo: TIPO_DO_CRITERIO } },
   };
   return { escola: escola || 'Escola', blocos };
 }
@@ -2288,7 +2301,15 @@ function declaracaoDeCaptura({ po, plano, escola }) {
  * O QUE NÃO SE PODE PERDER. A `chave` de uma coluna é o que o lançamento usa para guardar a
  * marca. Renomeá-la reescreveria o passado — é a mesma regra do resto do sistema: o registo
  * acrescenta, não se reescreve. Por isso a actualização é um MERGE **por rótulo**: o que já
- * estava declarado conserva `chave` e `tipo`; o que é novo ganha a chave derivada do rótulo.
+ * estava declarado conserva a `chave`; o que é novo ganha a chave derivada do rótulo.
+ *
+ * O `tipo` PASSOU A VIR DA DERIVAÇÃO (22/11/2026). Ele era conservado junto com a `chave`, e isso
+ * fazia a correção de hoje não chegar às variantes que já existiam: a coluna «Observado na aula»
+ * continuava `marca` em todo schema já gravado, e o formulário continuava com as duas réguas. O
+ * `tipo` não é identidade de dado — a chave é —, é o modo de LEITURA da coluna, e o seu dono é a
+ * derivação, que é quem sabe a régua da turma. Conservar a `chave` e adotar o `tipo` derivado não
+ * reinterpreta nada: o valor gravado é uma string, e um valor que a régua já não declara continua
+ * visível (opção extra no formulário, `nivel-fora` na leitura). O passado fica onde está.
  *
  * O QUE SAI. Bloco ou coluna que o PO já não produz sai da declaração — senão o ficheiro cresce
  * com fantasmas e um rótulo reutilizado mais tarde herdaria a chave de outro contexto. As chaves
@@ -2322,7 +2343,9 @@ function mesclarDeclaracao(anterior, derivada) {
     const colunas = {};
     for (const [rotulo, coluna] of Object.entries(bloco.colunas || {})) {
       const jaEra = velho.colunas && velho.colunas[rotulo];
-      colunas[rotulo] = jaEra ? { chave: jaEra.chave, tipo: jaEra.tipo } : coluna;
+      colunas[rotulo] = jaEra
+        ? { chave: jaEra.chave, tipo: (coluna && coluna.tipo) || jaEra.tipo }
+        : coluna;
     }
     blocos[tituloFinal] = {
       // A chave e o rótulo do BLOCO também se conservam: é debaixo dela que a marca é guardada.

@@ -1825,3 +1825,14 @@ experimentos/modelo-formulario/*
 # expurgada e uma com resíduo —, para que «o que fica depois do expurgo» seja medido e não afirmado.
 # É a prova de `escola/conferir-expurgo.js`, que lê o repositório local e não fala com ninguém.
 !experimentos/provar-conferir-expurgo.js
+
+# A PROVA DA RÉGUA ÚNICA (22/11/2026): a folha de lançamento mede o corpo pela régua da turma, e a
+# página mostra UMA escala. Substitui, como prova da mesma pergunta, o que estava espalhado; e é
+# ela que separa «a declaração nasce certa» de «a página não mistura duas escalas».
+!experimentos/provar-uma-regua-so.js
+
+# A PROVA DA ESTANTE DO PO (07/11/2026) NUNCA ESTEVE NO REPOSITÓRIO. Ela era citada pelo REGISTRO
+# como a prova do «só o plano vigente se oferece» e nenhum clone a tinha — a mesma armadilha que o
+# `provar-barra-unica` pagou. Em 22/11/2026 ela foi reaberta (a fixture apontava para a `batata`,
+# expurgada, e morria com ENOENT) e corrigida para a regra nova: um plano só, o vigente da cadeia.
+!experimentos/provar-estante-do-po.js

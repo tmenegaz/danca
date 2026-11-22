@@ -58070,3 +58070,84 @@ sobreviver a um expurgo incompleto, a geração seguinte escreve por cima. **O n
 de quem a cria.** O que pode morder é diferente e está dito no ponto 5 da conferência: com o KV por
 limpar, a sala velha **existe**, e a recusa que aparece é a verdadeira; o remédio é terminar o
 expurgo, nunca renomear a turma.
+
+## 22/11/2026 — Uma régua só, e um plano só na escolha
+
+**O que motivou.** Três coisas na mesma mensagem, e as três arestas do mesmo problema — dois nomes
+para a mesma coisa. (1) A **régua**: a folha de lançamento media os critérios pela régua da turma e
+a matriz do corpo («linha de base revisitada») pelas cinco marcas chumbadas no template
+(`ok / parcial / nao / nao_vi`), com as duas legendas na mesma página. (2) O **plano de ensino**: o
+PO oferecia dois planos com o mesmo objetivo, o segundo dito «(versão anterior)», por causa de uma
+excepção que deixava ficar o elo que o documento já apontava. (3) A **chave do cofre** que ela deu
+para medir a metade do KV do expurgo não era o que eu tinha pedido.
+
+**O que foi decidido.**
+- **A régua da turma é uma só, e o corpo mede-se por ela.** A correção tem duas metades, e as duas
+  são necessárias: a **declaração** (`declaracaoDeCaptura` passa a declarar a coluna do corpo como
+  `rubrica`, e `mesclarDeclaracao` passa a **adoptar o `tipo` derivado** conservando a `chave` —
+  sem isso os schemas já gravados continuavam a dizer `marca`) e a **página** (a folha é servida
+  sozinha, de um pacote que pode ser de ontem: se a folha em cena mede critérios pela régua, o
+  corpo mede-se pela MESMA, declarada ou de recurso).
+- **O passado não se reescreve.** O `tipo` é modo de leitura, não identidade de dado: o valor
+  gravado é uma string nos dois casos, e um valor que a régua já não declara continua visível
+  (opção extra no formulário, `nivel-fora` na leitura). Uma folha inteira em marcas — o ciclo
+  antigo — fica exatamente como estava.
+- **Um plano de ensino por ciclo, na escolha.** A excepção de 07/11 saiu. Quando o documento
+  aponta um elo que já foi ajustado, a lista segue a cadeia (`ajuste_de`) até ao topo, abre no
+  vigente, e uma **nota** diz que a referência mudou. A âncora de 07/11 era boa — a gravação
+  seguinte não podia perder a referência em silêncio — e o que a substitui é a nota. A mesma regra
+  nos dois clientes: a porta e o painel do acervo.
+- **A chave que ela deu é a `SENHA_MESTRA`, e não um token do Cloudflare.** Medido: 64 caracteres
+  (um token de API da Cloudflare tem 40), `verify` → **401**. A mestra é a chave de que se deriva a
+  de cada escola — `HMAC(SENHA_MESTRA, «lastro/escola/<slug>»)`, também 64 hex —, e não uma
+  credencial da Cloudflare. O conferidor do KV passou a consultá-lo quando há
+  `CLOUDFLARE_API_TOKEN` no ambiente, e a dizer «NÃO MEDI o KV: <motivo>» quando não há.
+
+**Onde entrou.**
+- `motor/nucleo/derivar-ciclo.js` — `declaracaoDeCaptura` (a coluna do corpo é `rubrica`) e
+  `mesclarDeclaracao` (adopta o `tipo` derivado, conserva a `chave`).
+- `tools/templates/lancamento.html` — `medePelaRegua` + `tipoDaColuna`; a matriz do corpo, a
+  leitura do que foi lançado e a legenda passam todos pela mesma função.
+- `porta/index.html` — a excepção do plano sai; `topoDaCadeia` e a nota.
+- `motor/servidor/listas-do-acervo.js` — a mesma regra no painel do acervo (o código vive dentro de
+  um template literal: um backtick num comentário fecha-o).
+- `escola/conferir-expurgo.js` — a secção 5 consulta o KV pelo leitor do `conferir-kv.js`, quando há
+  token; sem token, diz que não mediu.
+- `professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-declaracao.json` — a coluna do corpo
+  passa a `rubrica`, com a mesma regra que a próxima gravação do PO aplicaria (o ficheiro é
+  derivado, e a derivação é a mesma).
+- As provas: `provar-uma-regua-so` (**novo**), `provar-estante-do-po` (**reaberta**).
+
+**Motivo declarado — os congelados.** `tools/templates/lancamento.html` está em `CONGELAMENTO.md`, e
+esta alteração muda **comportamento** na tela: a matriz do corpo deixa de oferecer as cinco marcas
+quando a turma declara uma régua. A alteração foi pedida pela proprietária, com a regra dita
+(«a régua da turma é só uma»), e é feita em **commit próprio**. **O que não muda**: formato de
+dados, chaves gravadas, hash de proveniência, cobertura de validação e as regras de `REGRAS.md` e
+`PROTOCOLO.md`. O valor gravado continua a ser uma string, e um valor fora da régua continua a ser
+lido e mostrado — não há migração, e nada do que já foi lançado se perde.
+
+**Com o quê.** `tools/templates/lancamento.html`, `motor/nucleo/derivar-ciclo.js`,
+`motor/servidor/listas-do-acervo.js`, `porta/index.html`, `escola/conferir-expurgo.js`,
+`experimentos/provar-uma-regua-so.js`, `experimentos/provar-estante-do-po.js`,
+`experimentos/provar-conferir-expurgo.js`,
+`professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-declaracao.json`, o pacote `breu-rosa`
+regerado, `.gitignore`, `ESTADO-ATUAL.md`.
+
+**Referências.** `IDENTIDADE-VISUAL.md` (nenhuma peça nova: a nota usa `.caixa.nota`, que já existe);
+`CONGELAMENTO.md`; `PLANO-CICLO-DA-TURMA.md` §3.1 (a régua da turma e o seu caminho);
+`motor/nucleo/chave-mestra.js` (a derivação da chave da escola).
+
+**MEDIDO.** `provar-uma-regua-so` **17/17** (com dois controlos); `provar-estante-do-po` **33/33**;
+`provar-declaracao-da-captura` 12; `provar-regua-do-professor` 44; `provar-janela-do-lancamento` 11;
+`provar-corpo-da-linha-de-base` 30. No navegador, sobre o pacote regenerado: o campo do corpo passou
+de `✓ ok | ~ parcial | X não aconteceu | ? não vi` a `Satisfatório | Razoável | Em desenvovimento |
+Não se aplica`, e a legenda das marcas desapareceu. `check-identidade` **0 problemas**,
+`check-indices` **16/16**, `check-pacote` **0 erros** (1 aviso: o PDF, por desenho), `hash-ciclo
+--check` **cadeia intacta**.
+
+**O que ainda não está feito.**
+- **A metade do KV do expurgo continua por medir**: a chave recebida é a mestra, e não um token da
+  Cloudflare. Falta um token de API (`Workers KV Storage: Edit`) ou uma corrida do workflow com o
+  segredo do repositório.
+- **`provar-lancamento`** morre com `ENOENT` no fixture `ciclo-01-maria` — a escola foi expurgada e a
+  prova lê o pacote dela. Mesma família da `provar-estante-do-po`; não foi tocada hoje.

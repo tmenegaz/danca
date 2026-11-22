@@ -111,7 +111,7 @@
       "colunas": {
         "Observado na aula": {
           "chave": "observado_na_aula",
-          "tipo": "marca"
+          "tipo": "rubrica"
         }
       }
     }

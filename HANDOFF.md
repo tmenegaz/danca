@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T09:32:08-0300`
-Commit atual: `144115fc` — fix(experimentos): três provas que mediam o mundo de antes passam a medir o de hoje
+Gerado em: `2026-11-22T13:02:55-0300`
+Commit atual: `feac5b03` — fix(estrutura): o nome da turma não é do sistema — e a metade do KV passa a ser lida
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+feac5b03 fix(estrutura): o nome da turma não é do sistema — e a metade do KV passa a ser lida
 144115fc fix(experimentos): três provas que mediam o mundo de antes passam a medir o de hoje
 255100db feat(estrutura): o expurgo ganha conferidor, e o fluxo da Aula 02 fica escrito
 35d1c7fa feat(ciclo-01): a listagem da anamnese diz quem a fez e quando
@@ -101,7 +102,6 @@ cdb60071 fix(po): o plano de observação mostra as dimensões, e o valor é da 
 ddf4dd34 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
 ed509ab1 chore(estrutura): fechar os derivados — âncoras e índices
 4f389278 chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
-4eecbcc5 chore(estrutura): fechar os derivados — âncoras e índices
 ```
 
 ## Por professor
@@ -195,125 +195,88 @@ ed509ab1 chore(estrutura): fechar os derivados — âncoras e índices
 
 ## Última entrada do REGISTRO
 
-## 22/11/2026 — O fluxo da Aula 02 escrito, e o expurgo com um conferidor
+## 22/11/2026 — Uma régua só, e um plano só na escolha
 
-**O que motivou.** Duas perguntas dela, na mesma frase: «nós criamos os documentos, junto com os
-documentos já nasce a aula um […] agora eu preciso entender do fluxo como é que nasce a aula dois» e
-«o expurgo está correto, já está validado, já atende sumir com todas as escolas, com tudo?». A
-segunda não admitia «sim»: o expurgo tem **duas metades** — o repositório e o KV/Cloudflare — e só a
-primeira se mede daqui. Responder «está validado» sobre a metade que não se mediu seria a mesma
-família de erro que este projeto persegue: afirmar um facto que ninguém leu.
+**O que motivou.** Três coisas na mesma mensagem, e as três arestas do mesmo problema — dois nomes
+para a mesma coisa. (1) A **régua**: a folha de lançamento media os critérios pela régua da turma e
+a matriz do corpo («linha de base revisitada») pelas cinco marcas chumbadas no template
+(`ok / parcial / nao / nao_vi`), com as duas legendas na mesma página. (2) O **plano de ensino**: o
+PO oferecia dois planos com o mesmo objetivo, o segundo dito «(versão anterior)», por causa de uma
+excepção que deixava ficar o elo que o documento já apontava. (3) A **chave do cofre** que ela deu
+para medir a metade do KV do expurgo não era o que eu tinha pedido.
 
 **O que foi decidido.**
-- **O fluxo passa a estar escrito, e não na cabeça de quem o construiu.** `ARQUITETURA-AULA.md`
-  §4.5 — «O fluxo inteiro, do zero à Aula 02» — com os oito passos e o que cada um **escreve**,
-  os **cinco factos** que fazem uma Aula 02 existir (a linha do calendário, o marco e os exercícios
-  colhidos no «Criar», o `ajuste_de` no envelope, `aula-N-*` dentro do `contexto-total-aulas`, e os
-  três escritores do `DOCS`), e a pendência declarada: **não há portão N-1** — a Aula N nasce sem a
-  N-1 ter os dados do formulário.
-- **O expurgo tem um conferidor, e ele é de leitura.** `escola/conferir-expurgo.js` responde, para
-  uma escola: o que o elo diz (último expurgo, última recriação, VIVA ou EXPURGADA); quantos
-  arquivos o expurgo **ainda** apagaria, por família; o que fica **com a razão declarada**; qualquer
-  **resíduo sem razão** (✗); se `criar-escola.sh` recusaria o nome; e **o que ela não alcança**.
-  Usa o **mesmo** `escolaDosCaminhos` do expurgo — a autoridade sobre o que uma escola possui —, em
-  vez de uma segunda regra que divergiria.
-- **«Sumir com tudo» não é o desenho.** Ficam três coisas, e cada uma por uma razão: o **elo**
-  (`escola/<slug>/indice.json` — a proveniência acrescenta, não edita), a **fixture**
-  (`teste/<slug>.json` — dados sintéticos, ligados à *palavra* do nome e não a dado de ninguém) e o
-  **índice derivado** (`indices/**`, que o `orfaosNoDisco` limpa). Apagá-las seria apagar a memória
-  de que a escola existiu — e é o elo que a próxima escola com o mesmo nome lê.
-- **A metade do KV não se afirma.** A autoridade é o relatório da página, que confere **por leitura
-  de cada chave** (`kv.restantes`/`kv.ficaram`) e não pela listagem, e que oferece «Terminar a
-  limpeza do KV», gravando a pendência no elo. Como o **prefixo do KV é o nome**, uma pendência tem
-  de ser resolvida **antes** de criar a escola nova com o mesmo nome.
-- **Sem cadastro não se afirma estado.** `POST /api/apagar-escola` respondia «A escola está
-  habilitada» a uma escola **sem registo comercial** — um estado que ninguém leu, e sobre uma escola
-  cuja morada a raiz não conhece. `lerComercial` marca `semRegisto: true` e `estadoDoExpurgo` tem
-  frase própria. A recusa continua a ser recusa.
+- **A régua da turma é uma só, e o corpo mede-se por ela.** A correção tem duas metades, e as duas
+  são necessárias: a **declaração** (`declaracaoDeCaptura` passa a declarar a coluna do corpo como
+  `rubrica`, e `mesclarDeclaracao` passa a **adoptar o `tipo` derivado** conservando a `chave` —
+  sem isso os schemas já gravados continuavam a dizer `marca`) e a **página** (a folha é servida
+  sozinha, de um pacote que pode ser de ontem: se a folha em cena mede critérios pela régua, o
+  corpo mede-se pela MESMA, declarada ou de recurso).
+- **O passado não se reescreve.** O `tipo` é modo de leitura, não identidade de dado: o valor
+  gravado é uma string nos dois casos, e um valor que a régua já não declara continua visível
+  (opção extra no formulário, `nivel-fora` na leitura). Uma folha inteira em marcas — o ciclo
+  antigo — fica exatamente como estava.
+- **Um plano de ensino por ciclo, na escolha.** A excepção de 07/11 saiu. Quando o documento
+  aponta um elo que já foi ajustado, a lista segue a cadeia (`ajuste_de`) até ao topo, abre no
+  vigente, e uma **nota** diz que a referência mudou. A âncora de 07/11 era boa — a gravação
+  seguinte não podia perder a referência em silêncio — e o que a substitui é a nota. A mesma regra
+  nos dois clientes: a porta e o painel do acervo.
+- **A chave que ela deu é a `SENHA_MESTRA`, e não um token do Cloudflare.** Medido: 64 caracteres
+  (um token de API da Cloudflare tem 40), `verify` → **401**. A mestra é a chave de que se deriva a
+  de cada escola — `HMAC(SENHA_MESTRA, «lastro/escola/<slug>»)`, também 64 hex —, e não uma
+  credencial da Cloudflare. O conferidor do KV passou a consultá-lo quando há
+  `CLOUDFLARE_API_TOKEN` no ambiente, e a dizer «NÃO MEDI o KV: <motivo>» quando não há.
 
 **Onde entrou.**
-- `ARQUITETURA-AULA.md` — §4.5, o fluxo do zero à Aula 02.
-- `escola/conferir-expurgo.js` — **novo**, só leitura, sem rede. Aceita `--raiz=<dir>` para ser
-  provável.
-- `experimentos/provar-conferir-expurgo.js` — **novo**, **24** asserções sobre três árvores sintéticas
-  (viva, expurgada, com resíduo).
-- `motor/servidor/raiz.js` — `lerComercial` passa `semRegisto`; `estadoDoExpurgo` ganha o ramo da
-  ausência de cadastro.
-- Três provas que mediam o mundo de antes, e passaram a medir o de hoje: `provar-expurgo-sem-listagem`
-  (a lista de chaves fixas cresceu de 9 para 16 — a asserção deixou de fixar o número e passou a
-  medir **cobertura** e **tentativas**), `provar-expurgo-raiz` (a carência e a auditoria da
-  proveniência vêm **antes** da morada; o cenário passou a ter uma escola suspensa com a carência
-  vencida, e o caminho até à morada passou a ser o do `forcar` declarado) e `provar-indice-do-recorte`
-  (o bloco mudou para a aba 2 da Audição em `ba76c401` e o título foi corrigido para «Recorte» em
-  `38cab0e2`; a prova ficou treze dias a exigir o ecrã antigo).
-- `experimentos/provar-expurgo-leitura-atrasada.js` e `provar-os-fluxos-da-derivacao.js` — as duas
-  passaram a ler o que **é** em vez do que era (ordem relativa dos passos; a lista de rotas vem do
-  módulo que a exporta desde 20/11).
+- `motor/nucleo/derivar-ciclo.js` — `declaracaoDeCaptura` (a coluna do corpo é `rubrica`) e
+  `mesclarDeclaracao` (adopta o `tipo` derivado, conserva a `chave`).
+- `tools/templates/lancamento.html` — `medePelaRegua` + `tipoDaColuna`; a matriz do corpo, a
+  leitura do que foi lançado e a legenda passam todos pela mesma função.
+- `porta/index.html` — a excepção do plano sai; `topoDaCadeia` e a nota.
+- `motor/servidor/listas-do-acervo.js` — a mesma regra no painel do acervo (o código vive dentro de
+  um template literal: um backtick num comentário fecha-o).
+- `escola/conferir-expurgo.js` — a secção 5 consulta o KV pelo leitor do `conferir-kv.js`, quando há
+  token; sem token, diz que não mediu.
+- `professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-declaracao.json` — a coluna do corpo
+  passa a `rubrica`, com a mesma regra que a próxima gravação do PO aplicaria (o ficheiro é
+  derivado, e a derivação é a mesma).
+- As provas: `provar-uma-regua-so` (**novo**), `provar-estante-do-po` (**reaberta**).
 
-**Com o quê.** `ARQUITETURA-AULA.md`, `escola/conferir-expurgo.js`,
-`experimentos/provar-conferir-expurgo.js`, `experimentos/provar-expurgo-sem-listagem.js`,
-`experimentos/provar-expurgo-raiz.js`, `experimentos/provar-indice-do-recorte.js`,
-`experimentos/provar-expurgo-leitura-atrasada.js`, `experimentos/provar-os-fluxos-da-derivacao.js`,
-`motor/servidor/raiz.js`, `.gitignore`, `ESTADO-ATUAL.md`.
+**Motivo declarado — os congelados.** `tools/templates/lancamento.html` está em `CONGELAMENTO.md`, e
+esta alteração muda **comportamento** na tela: a matriz do corpo deixa de oferecer as cinco marcas
+quando a turma declara uma régua. A alteração foi pedida pela proprietária, com a regra dita
+(«a régua da turma é só uma»), e é feita em **commit próprio**. **O que não muda**: formato de
+dados, chaves gravadas, hash de proveniência, cobertura de validação e as regras de `REGRAS.md` e
+`PROTOCOLO.md`. O valor gravado continua a ser uma string, e um valor fora da régua continua a ser
+lido e mostrado — não há migração, e nada do que já foi lançado se perde.
 
-**Referências.** `CONGELAMENTO.md` (nenhum congelado tocado — `escola/` não está na lista, e
-`experimentos/` é demonstrativo); `ARQUITETURA-AULA.md` §4.5; `ARQUITETURA-GERAL.md` §4;
-`IDENTIDADE-VISUAL.md` (nenhuma peça nova na tela — o conferidor é de consola).
+**Com o quê.** `tools/templates/lancamento.html`, `motor/nucleo/derivar-ciclo.js`,
+`motor/servidor/listas-do-acervo.js`, `porta/index.html`, `escola/conferir-expurgo.js`,
+`experimentos/provar-uma-regua-so.js`, `experimentos/provar-estante-do-po.js`,
+`experimentos/provar-conferir-expurgo.js`,
+`professores/demi-plie/ciclos/ciclo-01-breu-rosa-captura-declaracao.json`, o pacote `breu-rosa`
+regerado, `.gitignore`, `ESTADO-ATUAL.md`.
 
-**MEDIDO.** A bateria do expurgo, **14 provas verdes**: `bancadas-e-expurgo` 16, `cartas-do-expurgo`
-25, `dono-do-expurgo` 11, `elo-do-expurgo` ok, `expurgo-do-professor-compartilhado` 13,
-`expurgo-por-carencia` 34, `lista-do-expurgo` 26, `o-expurgo-do-financeiro` 15,
-`proveniencia-do-expurgo` 38, `expurgo-sem-listagem` 49, `expurgo-raiz` ok,
-`expurgo-leitura-atrasada` 45, `conferir-expurgo` **24**, `os-fluxos-da-derivacao` 74. As que atravessam
-o mesmo caminho: `a-carencia-nao-se-burla` 58, `conciliacao-do-painel` 35, `financeiro` 58,
-`financeiro-da-escola` 135, `cofre-e-shard` 138, `indice-do-recorte` 24. Nas quatro escolas:
-`batata` **0** arquivos, `calango` **0**, `duo` **0** — último acto é o expurgo, nenhum resíduo sem
-razão, o nome **livre** para criar; `breu` **266** arquivos e **viva**.
+**Referências.** `IDENTIDADE-VISUAL.md` (nenhuma peça nova: a nota usa `.caixa.nota`, que já existe);
+`CONGELAMENTO.md`; `PLANO-CICLO-DA-TURMA.md` §3.1 (a régua da turma e o seu caminho);
+`motor/nucleo/chave-mestra.js` (a derivação da chave da escola).
 
-**Correção do mesmo dia — o conferidor passou a ver a metade do KV.** A primeira redação dizia que a
-metade do KV não se mede daqui e ponto. Com a chave que ela deu para o teste (`62960bc8…`), **mediu-se
-que ela não autentica**: `GET /user/tokens/verify` → **401**; `GET /accounts/<id>/storage/kv/namespaces`
-→ `code 10000 Authentication error`; e o `escola/conferir-kv.js --escola breu` respondeu
-`::warning::não conferi o KV da escola «breu» — não consegui listar «breu/»: Authentication error`.
-A string tem **64** caracteres e um token de API do Cloudflare tem **40**. O que se fez com isso: em
-vez de deixar a metade do KV fora do alcance, o `conferir-expurgo.js` passou a **consultá-la** pelo
-mesmo leitor (`chavesDaEscola`), quando `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` existem no
-ambiente — e, quando não existem ou a leitura falha, imprime **«NÃO MEDI o KV: <motivo>»**, que nunca
-é «está limpo». A classificação ficou provada sem rede: `--kv-de=<arquivo>` lê uma leitura gravada, e a
-prova mede os três casos (falhou / vazio conferido / chaves que sobraram, com os nomes e sem os
-valores).
+**MEDIDO.** `provar-uma-regua-so` **17/17** (com dois controlos); `provar-estante-do-po` **33/33**;
+`provar-declaracao-da-captura` 12; `provar-regua-do-professor` 44; `provar-janela-do-lancamento` 11;
+`provar-corpo-da-linha-de-base` 30. No navegador, sobre o pacote regenerado: o campo do corpo passou
+de `✓ ok | ~ parcial | X não aconteceu | ? não vi` a `Satisfatório | Razoável | Em desenvovimento |
+Não se aplica`, e a legenda das marcas desapareceu. `check-identidade` **0 problemas**,
+`check-indices` **16/16**, `check-pacote` **0 erros** (1 aviso: o PDF, por desenho), `hash-ciclo
+--check` **cadeia intacta**.
 
 **O que ainda não está feito.**
-- **A metade do KV não foi medida daqui.** `provar-expurgo-kv` exige `CLOUDFLARE_API_TOKEN` e o
-  namespace real (11 asserções, todas `HTTP 401` sem ele). Fica a autoridade do relatório da página.
-- **Não há portão N-1**: a Aula N pode nascer antes de a N-1 ter os dados do formulário. Ela disse
-  «por enquanto não faz, mas tome nota disso».
-- **O pacote da turma `rosa` da `breu`** colide com uma escola nova com o mesmo nome: a escola passa,
-  a **turma** é que recusa. Criar com **outro nome de turma**, ou deixar o expurgo levar o pacote.
-
-**Correção de 22/11/2026 (mesmo dia).** O parágrafo acima está **errado**, e ela apanhou-o:
-«não pode ser assim. não tem-se controle sobre as turmas que uma escola quer adotar.» Tem razão. A
-afirmação de que a turma recusa não vinha do código — veio de mim, por analogia com a recusa da
-escola. Medido: o `criar-escola.sh` recusa pela **variante** (`ciclo-NN-<escola>.conf`), pelo
-**pacote da escola** (`ciclo-NN-<escola>/`) e pelo **wrangler** — um `ciclo-NN-<escola>-<turma>/`
-não está em nenhuma das três; o `gerar-ciclo.sh` escreve por cima (`mkdir -p`) e nunca pergunta se a
-pasta existe; e a **única** recusa por nome de turma é `turmaVigentePorNome` — duas salas **vivas**
-com o mesmo nome na **mesma** escola, que diz «já existe uma sala com o nome «X» — abra-a em Editar
-para a corrigir». O pacote da turma é **artefacto da escola** — o slug está no caminho, e o
-`escolaDosCaminhos` apanha-o (é o que a prova nova mede) —, portanto o expurgo leva-o; e se algum
-sobreviver a um expurgo incompleto, a geração seguinte escreve por cima. **O nome da turma é escolha
-de quem a cria.** O que pode morder é diferente e está dito no ponto 5 da conferência: com o KV por
-limpar, a sala velha **existe**, e a recusa que aparece é a verdadeira; o remédio é terminar o
-expurgo, nunca renomear a turma.
+- **A metade do KV do expurgo continua por medir**: a chave recebida é a mestra, e não um token da
+  Cloudflare. Falta um token de API (`Workers KV Storage: Edit`) ou uma corrida do workflow com o
+  segredo do repositório.
+- **`provar-lancamento`** morre com `ENOENT` no fixture `ciclo-01-maria` — a escola foi expurgada e a
+  prova lê o pacote dela. Mesma família da `provar-estante-do-po`; não foi tocada hoje.
 
 ## O que está pendente
-
-## 20/11/2026 — Duas provas apagadas: as que mediam um mundo que já não existe
-
-Nada pendente destas duas. O que **continua** por tratar são os
-fixtures das provas que ainda leem a `breu` por caminhos que mudam (o `provar-turmas-do-professor`
-está em 16/17 por um achado de produto — com um professor que tem curadoria e nenhuma turma, o
-cabeçalho não desenha aviso nenhum; a decisão é de produto, não de prova).
 
 ## 20/11/2026 — «Curadoria» saiu da tela, e a prova que media uma Turma sem Sala
 
@@ -341,6 +304,14 @@ ela melhora com a mesma fusão, mas só quando for re-derivada com o elenco cert
   «por enquanto não faz, mas tome nota disso».
 - **O pacote da turma `rosa` da `breu`** colide com uma escola nova com o mesmo nome: a escola passa,
   a **turma** é que recusa. Criar com **outro nome de turma**, ou deixar o expurgo levar o pacote.
+
+## 22/11/2026 — Uma régua só, e um plano só na escolha
+
+- **A metade do KV do expurgo continua por medir**: a chave recebida é a mestra, e não um token da
+  Cloudflare. Falta um token de API (`Workers KV Storage: Edit`) ou uma corrida do workflow com o
+  segredo do repositório.
+- **`provar-lancamento`** morre com `ENOENT` no fixture `ciclo-01-maria` — a escola foi expurgada e a
+  prova lê o pacote dela. Mesma família da `provar-estante-do-po`; não foi tocada hoje.
 
 ## Pendências anteriores (índice)
 
@@ -829,6 +800,7 @@ ela melhora com a mesma fusão, mas só quando for re-derivada com o elenco cert
 - **20/11/2026** — O «Professor responsável» sai da Audição, e a anamnese leva… → `REGISTRO.md` L55629
 - **20/11/2026** — O PDF sai do fluxo: quem imprime é o navegador → `REGISTRO.md` L55683
 - **20/11/2026** — O estudo do modal do Estilo, corrigido por ela: é na… → `REGISTRO.md` L56004
+- **20/11/2026** — Duas provas apagadas: as que mediam um mundo que já não… → `REGISTRO.md` L56921
 - **demi-plie · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

@@ -4,7 +4,22 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 22/11/2026 (commit `35d1c7fa`). Nesta entrega, **o fluxo da Aula 02 ficou
+> **Última fotografia:** 22/11/2026 (commit `144115fc`). Ainda neste dia, **a régua da turma passou a
+> ser uma só** — e o corpo da folha de lançamento media-se por outra, chumbada no template
+> (`ok / parcial / nao / nao_vi`). Palavras dela: «Nós temos duas matrizes, está errado isso. A
+> régua da turma é só uma […] a parte do corpo está com uma régua que ela está chumbada no código.
+> Está errado isso. Tem que ser a régua que foi definida lá pelo professor em bastidores.» A
+> correção tem duas metades — a **declaração** (a coluna do corpo nasce `rubrica`, e o merge adopta
+> o `tipo` derivado para os schemas já gravados deixarem de dizer `marca`) e a **página** (que,
+> servida sozinha de um pacote de ontem, mede o corpo pela mesma escala que usa nos critérios). Uma
+> folha inteira em marcas — o ciclo antigo — fica como estava. E **a escolha do plano de ensino
+> passou a ter um só**: a excepção que deixava ficar o plano já apontado, dito «(versão anterior)»,
+> punha dois planos com o mesmo objetivo no mesmo ciclo. Agora a lista segue a cadeia até ao topo,
+> abre no vigente, e uma nota diz que a referência mudou. Medido em `provar-uma-regua-so` (**novo**,
+> 17/17) e em `provar-estante-do-po` — que estava **morta desde o expurgo da `batata`** e **nunca
+> esteve no repositório**; hoje corre, **33/33**, sobre a escola viva.
+>
+> **Fotografia anterior (22/11/2026 — commit `35d1c7fa`).** Nesta entrega, **o fluxo da Aula 02 ficou
 > escrito e o expurgo ganhou um conferidor**. As duas perguntas dela eram «como é que nasce a aula
 > dois» e «o expurgo atende o projeto?» — e a segunda **não admitia um sim**: o expurgo tem duas
 > metades e só uma se mede daqui. A do repositório passou a ser medida por
@@ -3093,6 +3108,39 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      nome «Rosa»», o que é verdade. O remédio é **terminar o expurgo** («Terminar a limpeza do KV»),
      nunca renomear a turma. **DECIDIDO** 22/11/2026.
 
+140. **A RÉGUA DA TURMA É UMA SÓ — E O CORPO DA FOLHA DE LANÇAMENTO TAMBÉM MEDE POR ELA.** Palavras
+     dela: «Nós temos duas matrizes, está errado isso. A régua da turma é só uma, não pode ser
+     duas, não pode ser duas matrizes para essa régua. Então a parte do corpo eu acho que está com
+     uma régua que ela está chumbada no código. Ela é OK, parcial, não aconteceu e não vi. Está
+     errado isso. Tem que ser a régua que foi definida lá pelo professor em bastidores […] Então já
+     tem que nascer certo o formulário.» Estava exatamente assim: os blocos de critério mediam-se
+     pela régua (`rubrica`), e a matriz do corpo — a «linha de base revisitada» — pelas cinco
+     marcas escritas no template. Na tela eram **duas legendas** («Régua desta turma: …» e «Marcas:
+     ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi») para os critérios da mesma aula. A
+     correção tem **duas metades**, e as duas são medidas: (a) a **declaração** passa a dizer
+     `rubrica` na coluna do corpo, e o merge passa a **adoptar o `tipo` derivado** conservando a
+     `chave` — sem isso os schemas já gravados continuavam a dizer `marca`; (b) a **página** —
+     que é servida sozinha, de um pacote que pode ser de ontem — mede o corpo pela mesma escala
+     que ela usa nos critérios, declarada ou de recurso. **Uma folha inteira em marcas (o ciclo
+     antigo) fica como estava**: não se inventa escala nova em cima de um ciclo que nunca a teve.
+     **O `tipo` é modo de leitura, não identidade de dado** — o valor gravado é uma string nos dois
+     casos, e um valor que a régua já não declara continua visível (opção extra no formulário,
+     `nivel-fora` na leitura). **DECIDIDO** 22/11/2026.
+
+141. **UM PLANO DE ENSINO POR CICLO, NA ESCOLHA — A EXCEPÇÃO DE 07/11 SAIU.** Palavras dela: «o item
+     dois do plano de observação aqui nos formulários, você preencheu com dois planos de ensino. A
+     gente tem uma correção documentada a respeito disso do plano de ensino, que não é para ter
+     dois aqui dentro do mesmo ciclo. E você colocou o mesmo objetivo deles, mas você tomou uma nota
+     no segundo que diz versão anterior. E não pode ser assim, isso está errado.» O remédio de
+     07/11 escondia os planos substituídos, **com uma excepção**: o que o documento já apontava
+     ficava, dito «(versão anterior)», para a gravação seguinte não perder a referência em
+     silêncio. Quando o documento aponta um elo que já foi ajustado, a lista mostra dois planos com
+     o mesmo objetivo — que é precisamente o que ela recusa. Agora a lista segue a **cadeia**
+     (`ajuste_de`) até ao topo e o campo abre no **vigente**, com uma **nota** que diz o que
+     aconteceu: a referência muda À VISTA, e não em silêncio. O elo antigo não se perde — continua
+     na estante, e é o histórico que o lê. A mesma regra nos **dois** clientes (a porta e o painel
+     do acervo). **DECIDIDO** 22/11/2026.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -3908,7 +3956,18 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (22/11/2026 — o fluxo da Aula 02, e a conferência do expurgo)
+### Executado nesta fotografia (22/11/2026 — uma régua só, e um plano só na escolha)
+
+| Verificação | Resultado |
+|:--|:--|
+| `provar-uma-regua-so` (**novo**, 17/17) | a coluna do corpo nasce `rubrica` na declaração; o merge conserva a `chave` e adopta o `tipo`; na tela, os campos do corpo oferecem os **níveis da turma** e **nenhum** oferece as cinco marcas; a página tem **uma** legenda. Dois controlos: com a folha inteira em marcas (o ciclo antigo) o corpo mede-se pelas marcas e a legenda é uma só; com o **config antigo** a dizer `marca` e a turma a declarar régua, mede-se pela régua — o pacote de ontem não reabre o defeito |
+| medido no navegador, sobre o pacote regenerado | `lb-aluna_a-0` passou de `não observei | ✓ ok | ~ parcial | X não aconteceu | ? não vi` a `não medido | Satisfatório | Razoável | Em desenvovimento | Não se aplica`; a legenda das marcas desapareceu, ficando só «Critério: um nível da RÉGUA desta turma» |
+| `provar-estante-do-po` (**reaberta**, 33/33) | estava **morta desde o expurgo da `batata`** (lia `escola/batata/envelopes` e morria com `ENOENT`) e **nunca esteve no repositório** — o `.gitignore` fechava a pasta e nenhum `!` a abria, a mesma armadilha do `provar-barra-unica`. Fixture passada para a escola viva, e a regra nova medida em três pontos: um plano só; nenhuma opção diz «versão anterior»; o campo passa a apontar o **vigente da mesma cadeia** e uma **nota** diz que o plano foi ajustado |
+| `provar-declaracao-da-captura` · `provar-regua-do-professor` · `provar-janela-do-lancamento` · `provar-corpo-da-linha-de-base` | **12/12** · **44/44** · **11/11** · **30/30** |
+| `check-identidade` · `check-indices` · `check-pacote` · `hash-ciclo --check` | **0 problemas** · **16/16** · **0 erros, 1 aviso** (o PDF, por desenho) · **cadeia intacta** |
+| a chave do cofre **não é** um token do Cloudflare — medido | `GET /user/tokens/verify` → **401**; `GET /accounts/<id>/storage/kv/namespaces` → `code 10000 Authentication error`. Ela tem **64** caracteres e um token de API do Cloudflare tem **40**. É a `SENHA_MESTRA` — a chave de que se deriva a de cada escola (`HMAC(SENHA_MESTRA, «lastro/escola/<slug>»)`, também 64 hex), e não uma credencial da Cloudflare. O conferidor do KV passou a **consultar** o KV quando há `CLOUDFLARE_API_TOKEN` no ambiente, e a dizer **«NÃO MEDI o KV: <motivo>»** quando não há — nunca «está limpo» |
+
+### Executado na fotografia anterior (22/11/2026 — o fluxo da Aula 02, e a conferência do expurgo)
 
 | Verificação | Resultado |
 |:--|:--|
