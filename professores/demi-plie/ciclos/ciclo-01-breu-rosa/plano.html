@@ -634,7 +634,7 @@ professora escreveu: a faixa ou o vídeo de referência.</p>
 derivado de literatura de apoio sobre corpo e aula</p>
 <div class="modal" id="criar-aula" role="dialog" aria-modal="true" aria-labelledby="criar-aula-titulo" hidden>
 <div class="modal-fundo" data-criar-fechar></div>
-<div class="modal-caixa">
+<div class="modal-caixa modal-largo">
 <div class="modal-cab">
 <h2 id="criar-aula-titulo">Criar a aula</h2>
 <button type="button" class="modal-x" data-criar-fechar aria-label="Fechar">×</button>
@@ -646,7 +646,7 @@ derivado de literatura de apoio sobre corpo e aula</p>
 <fieldset class="escolhas" id="criar-aula-blocos"><legend>Blocos onde ele é trabalhado</legend></fieldset>
 <div id="criar-aula-musica" hidden>
 <p class="campo-rotulo" id="criar-aula-musica-rotulo">Tempos e compasso de cada exercício</p>
-<table id="criar-aula-musica-tabela"><thead><tr><th>Exercício</th><th>Tempos</th><th>Compasso</th></tr></thead><tbody id="criar-aula-musica-corpo"></tbody></table>
+<table id="criar-aula-musica-tabela"><thead><tr><th>Exercício</th><th>Tempos</th><th>Compasso</th><th>Ações</th></tr></thead><tbody id="criar-aula-musica-corpo"></tbody></table>
 <p id="criar-aula-musica-nota"></p>
 </div>
 <p id="criar-aula-aviso" role="status"></p>
@@ -735,25 +735,41 @@ derivado de literatura de apoio sobre corpo e aula</p>
     }
     return fora;
   }
-  function celula(nome, indice, qual, pares) {
+  function celula(qual, pares) {
     var td = document.createElement("td");
-    var campo = document.createElement("input");
-    campo.type = "text";
-    campo.placeholder = qual === "tempos" ? "8" : "2/4";
-    campo.setAttribute("data-musica", indice);
-    campo.setAttribute("data-qual", qual);
-    campo.value = pares.length ? String(pares[0][qual] || "") : "";
+    var valor = pares.length ? String(pares[0][qual] || "") : "";
+    td.textContent = valor || "—";
     if (pares.length === 1) {
-      campo.title = "declarado no verbete: " + pares[0].tempos + " em " + pares[0].compasso;
+      td.title = "declarado no verbete: " + pares[0].tempos + " em " + pares[0].compasso;
     } else if (pares.length > 1) {
       var lista = [];
       for (var i = 0; i < pares.length; i++) lista.push(pares[i].tempos + " em " + pares[i].compasso);
-      campo.title = "o verbete declara " + lista.join(" · ");
+      td.title = "o verbete declara " + lista.join(" · ");
     } else {
-      campo.title = "o verbete não declara música para este exercício";
+      td.title = "o verbete não declara música para este exercício";
     }
-    td.appendChild(campo);
     return td;
+  }
+  function acoesDoExercicio(nome, pares) {
+    var td = document.createElement("td");
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "acao pequena";
+    b.textContent = "Derivar";
+    b.setAttribute("data-derivar", nome);
+    if (pares.length) b.setAttribute("data-musica", pares[0].tempos + "|" + pares[0].compasso);
+    b.title = pares.length > 1
+      ? "abrir o Estilo neste exercício, para escolher qual das músicas declaradas vale"
+      : (pares.length ? "abrir o Estilo neste exercício, para ajustar a música dele"
+        : "abrir o Estilo neste exercício, que ainda não declara música");
+    td.appendChild(b);
+    return td;
+  }
+  function derivar(nome, chave) {
+    var alvo = "/bastidores/estudio?derivar=" + encodeURIComponent(nome)
+      + (chave ? "&musica=" + encodeURIComponent(chave) : "") + "#estilo";
+    fechar();
+    window.location.href = alvo;
   }
   function pintarMusica() {
     var ex = escolhidos(exercicios);
@@ -761,36 +777,42 @@ derivado de literatura de apoio sobre corpo e aula</p>
     if (!ex.length) { caixaMusica.hidden = true; return; }
     caixaMusica.hidden = false;
     var semMusica = [];
+    var muitas = [];
     for (var j = 0; j < ex.length; j++) {
       var pares = paresDe(ex[j]);
       if (!pares.length) semMusica.push(ex[j]);
+      if (pares.length > 1) muitas.push(ex[j]);
       var tr = document.createElement("tr");
       var nome = document.createElement("td");
       nome.textContent = ex[j];
       tr.appendChild(nome);
-      tr.appendChild(celula(ex[j], j, "tempos", pares));
-      tr.appendChild(celula(ex[j], j, "compasso", pares));
+      tr.appendChild(celula("tempos", pares));
+      tr.appendChild(celula("compasso", pares));
+      tr.appendChild(acoesDoExercicio(ex[j], pares));
       corpoMusica.appendChild(tr);
     }
-    var base = "O que está carregado é a música que o verbete declara. O que ficar gravado é o que você decidir para esta aula — e só para esta: o verbete não muda.";
+    var base = "O que está aqui é a música que o verbete declara — ela não se escreve por cima: a contagem do compasso sai dos trechos da decomposição, no Estilo. Para trabalhar outro tempo neste exercício, derive e ajuste lá; esta aula nasce depois, com o que ficar gravado.";
+    if (muitas.length) {
+      base += " O verbete declara mais de uma música em: " + muitas.join(", ")
+NaN
+    }
     if (semMusica.length) {
       base += " Sem música declarada no verbete: " + semMusica.join(", ")
-NaN
 NaN
     }
     notaMusica.textContent = base;
   }
-  function musicaLida(indice) {
-    var trs = corpoMusica.querySelectorAll("tr");
-    var tr = trs[indice], t = "", c = "";
-    if (tr) {
-      var a = tr.querySelector("[data-qual=\"tempos\"]");
-      var b = tr.querySelector("[data-qual=\"compasso\"]");
-      t = a ? String(a.value || "").trim() : "";
-      c = b ? String(b.value || "").trim() : "";
-    }
-    return { tempos: t, compasso: c };
+  function musicaDaVez(nome) {
+    var pares = paresDe(nome);
+    return pares.length === 1 ? { tempos: String(pares[0].tempos), compasso: String(pares[0].compasso) }
+      : { tempos: "", compasso: "" };
   }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest ? e.target.closest("button[data-derivar]") : null;
+    if (!b) return;
+    e.preventDefault();
+    derivar(b.getAttribute("data-derivar"), b.getAttribute("data-musica") || "");
+  });
   exercicios.addEventListener("change", pintarMusica);
   function fechar() {
     caixa.hidden = true;
@@ -848,12 +870,6 @@ NaN
     if (!ex.length) { dizer("Marque ao menos um exercício: é ele que dá o que observar."); return; }
     if (!bl.length) { dizer("Marque ao menos um bloco: é onde o objetivo acontece."); return; }
     if (!dados.id) { dizer("Este plano ainda não tem carimbo: grave-o primeiro, e a aula nasce dele."); return; }
-    var semPar = [];
-    for (var q = 0; q < ex.length; q++) {
-      var m = musicaLida(q);
-      if ((m.tempos && !m.compasso) || (!m.tempos && m.compasso)) semPar.push(ex[q]);
-    }
-    if (semPar.length) { dizer("Tempos e compasso andam juntos — falta um dos dois em: " + semPar.join(", ") + "."); return; }
     mandado(true); dizer("");
     comVeu("A criar a aula " + alvo + ": o objetivo, os exercícios e a sequência vão para o plano, e o ciclo é gerado a seguir. Não feche esta aba.", "Criar a aula");
     pedir(PORTA + "api/envelope/" + encodeURIComponent(dados.id))
@@ -878,7 +894,7 @@ NaN
     var seq = [];
     for (var i = 0; i < bl.length; i++) {
       for (var j = 0; j < ex.length; j++) {
-        var mus = musicaLida(j);
+        var mus = musicaDaVez(ex[j]);
         seq.push({ "Bloco": bl[i], "Objetivo específico": alvoObj, "Conteúdo do nível": ex[j], "Tempos": mus.tempos, "Compasso": mus.compasso });
       }
     }

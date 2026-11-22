@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T20:17:00-0300`
-Commit atual: `cbd1aa66` — feat(aula-03): a mudança chega à aula vigente, e as dadas ficam iguais ao último registro
+Gerado em: `2026-11-22T20:48:23-0300`
+Commit atual: `f4ec34e1` — docs(estrutura): o portão da aula dada bloqueia, e a decisão fica guardada antes do código
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+f4ec34e1 docs(estrutura): o portão da aula dada bloqueia, e a decisão fica guardada antes do código
 cbd1aa66 feat(aula-03): a mudança chega à aula vigente, e as dadas ficam iguais ao último registro
 e08b9b7b chore(estrutura): fechar os derivados — âncoras e índices
 c9a4168c feat(aula-03): a aula decide a sua música, e o repertório do plano acompanha a Turma
@@ -101,7 +102,6 @@ b78a5f00 fix(po): cada aula imprime o seu marco, e mede pela régua da turma
 a9a62ab1 fix(estrutura): o painel inicial empilha os blocos, como ela aprovou
 b7162e9c fix(template): a folha do menu mede o conteúdo, e o acordeão deixa de ter tecto
 a61d4ddb docs(estrutura): a fotografia regista o id carimbado e a pasta da turma
-2c336cb0 fix(estrutura): o id da turma tem carimbo, a pasta dela não
 ```
 
 ## Por professor
@@ -128,7 +128,7 @@ a61d4ddb docs(estrutura): a fotografia regista o id carimbado e a pasta da turma
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `59b86b60252a` | (vazio) | — |
-| breu-rosa | ciclo-01-breu-rosa.fipp | `cefa6a9edecc` | (vazio) | Input_PO_Validado |
+| breu-rosa | ciclo-01-breu-rosa.fipp | `fad15a04c024` | (vazio) | Input_PO_Validado |
 
 ### fernando-franciose — 0 ciclo(s)
 
@@ -195,37 +195,67 @@ a61d4ddb docs(estrutura): a fotografia regista o id carimbado e a pasta da turma
 
 ## Última entrada do REGISTRO
 
-## 22/11/2026 — O portão da aula dada: bloqueia, e a decisão fica guardada antes do código
+## 22/11/2026 — A música do exercício não se escreve no plano: deriva-se no Estilo
 
-**A regra, nas palavras dela.** «todas as outras aulas que estão lá no nosso calendário com o botão,
-todos os outros botões, melhor dizendo, que estão no calendário, que é criar aula, eles ficam
-desabilitados até que os dados lançados da aula dada estejam registados no sistema, aí habilita o
-próximo e assim sucessivamente.» E à pergunta «o professor pode preparar duas aulas seguidas?»:
-**não** — a aula seguinte só depois de a anterior ser dada e lançada.
+**O defeito, na letra dela.** «tem um problema. Você precisa verificar que lá em bastidores, no
+estilo, tem uma regra para a decomposição, que é o step cinco, que a conta dos tempos e compassos
+precisa estar correta no lançamento da decomposição, lembra? […] a gente tem que ter uma outra solução
+aqui no modal. Essa solução não serve.»
 
-**DECIDIDO**: o portão **bloqueia**, e não avisa. O botão «Criar aula» da linha **N** do calendário
-fica desabilitado enquanto a aula **N-1** não tiver o registo do lançamento — o **facto**
-(`aulas[NN]` no `-dados.json`), o mesmo que `podeRegenerar` já lê, e não o relógio. Com o registo, o
-botão da aula seguinte acende, um de cada vez.
+**A regra que ele mandou olhar, e ela é a que decide.** No Estilo, o passo 5 mostra a decomposição do
+exercício em trechos, e **a coluna do compasso não se escreve: é calculada somando os tempos na
+ordem** — o comentário do próprio formulário di-lo desde 31/10/2026: «a contagem reinicia em cada
+compasso, e o número do compasso é conta do sistema». A chave do verbete é exactamente
+`tempos|compasso` (`8|2/4@breu`), e o desacordo entre a música declarada e o que os trechos ocupam é
+um **estado do dado**, com selo próprio na listagem («tempos em desacordo»). Ou seja: um tempo escrito
+no plano que o verbete não cobre é uma música **sem decomposição nenhuma**. Não é uma decisão da aula
+— é um verbete que falta.
 
-**E NÃO SE IMPLEMENTOU, por ordem dela**: «não implementa ainda, mas já guarda essas informações que
-eu te passei aqui com as respostas que eu te dei.» A razão prática está dita: a Aula 02 da `rosa` foi
-criada **fora da regra**, de propósito, para testar; um portão ligado hoje bloquearia a Aula 03 — que
-é exactamente de onde ela está a testar o modal —, porque a 02 ainda não foi lançada.
+**A solução é a que ela indicou, e é o fluxo que já existe.** A tabela volta a ser **leitura** e ganha
+a coluna **Ações**, com um **Derivar** por exercício. O botão fecha o modal e leva a
+`/bastidores/estudio?derivar=<exercício>&musica=<tempos|compasso>#estilo`, onde os Bastidores abrem o
+Estilo e o `editarVerbete` daquele verbete. Lá ela compõe os trechos, grava — e volta a criar a aula,
+que nasce com o que ficou gravado. Palavras dela: «a gente não precisa ficar reinventando fluxos e a
+gente aproveita o fluxo que já temos.»
 
-**O que fica escrito, para o código não ter de adivinhar**: o sítio é a quinta coluna do calendário
-(`tools/calendario.py`, `celula_da_coluna_criar`); o facto que abre o botão é o registo do lançamento,
-não a data; e o comportamento é o **bloqueio** — não o aviso.
+**O padrão do modal voltou a ser um só.** «Tem o padrão de modal que a gente usa na sala […] A gente
+tem aqui um modal e esse modal tem um padrão, tem as dimensões dele, da largura. Então tem que ser
+esse mesmo padrão, não pode ser diferente.» O «na sala» é o `#modal-duracao` dos Bastidores, e o
+padrão é a modificação `.modal-largo` da folha: `modal-caixa modal-largo`, 880px em vez dos 440 de uma
+pergunta de sim/não. Medido: 880, contra 440 antes.
 
-**Com o quê.** `ESTADO-ATUAL.md` (§8, a pendência passa de «o que trava» a «decisão tomada, código por
-fazer»). Nenhum ficheiro de motor foi tocado, e é isso que se está a declarar.
+**O que a sequência grava, e o que não grava.** A música que o verbete declara **sem dúvida** (uma).
+Com nenhuma ou com **várias**, a linha nasce sem música e é o núcleo (`compor`, em `notacao.js`) que
+declara a lacuna — «não se escolhe por ninguém», e escolher a primeira de duas seria uma escolha feita
+onde a decomposição não está à vista. A recusa do meio par («Tempos e compasso andam juntos») morreu
+com o campo que a justificava: ninguém pode escrever meia música onde não há campo.
 
-**MEDIDO, e é uma correcção minha.** Eu tinha escrito que a rota ao vivo
-`/api/bastidores/impacto-da-inclusao` «pede a senha da direção, que eu não tenho» — **falso**: a senha
-está em `tools/.senhas-locais` (`LOGIN_BREU`), e ela existe precisamente para isto. Com ela a rota
-responde **200**: `{"ok":true,"precisaDecisao":null,"motivo":"ja-na-aula"}` para o `Plié`, que é o
-certo (o `Plié` está na matriz do parâmetro). Uma limitação que eu **não** medi foi apresentada como
-limitação do sistema; era do meu lado.
+**O endereço é um gesto, não um estado.** O `?derivar=` sai do endereço depois de usado
+(`replaceState`), como o `?abrir=` do Pagar: a página repinta-se a cada operação, e um parâmetro
+esquecido reabriria o formulário no exercício de antes a cada gravação. O `#estilo` fica — é a
+posição. E quando o exercício ainda não tem verbete, a página **diz** («nasce no Dicionário»), em vez
+de um botão que não faz nada.
+
+**Com o quê.** `motor/nucleo/derivar-plano-ciclo.js` (a célula de leitura, a coluna das acções, o
+`derivar`, a nota, a música que a sequência leva, e a saída da recusa do meio par),
+`motor/servidor/bastidores.js` (`abrirOPedidoDoEndereco`, chamado no fim do `carregarVerbetes`),
+`experimentos/provar-a-musica-do-modal.js`, `experimentos/provar-o-derivar-do-estilo.js` (**novo**),
+`.gitignore`, o `plano.md` e o pacote regerados, a âncora recalculada, `ESTADO-ATUAL.md`.
+
+**MEDIDO.** `provar-a-musica-do-modal` **42/42**, com o controlo `--contra=c9a4168c` a reprovar
+**22 de 35**. `provar-o-derivar-do-estilo` **12/12**, controlo `--contra=cbd1aa66` a reprovar **5 de
+12**. As vizinhas: `provar-cadeia-automatica` 136/136, `provar-a-aula-que-vem` 70/70,
+`provar-o-exercicio-novo` 65/65, `provar-aula-dada` 34/34, `provar-criar-aula` 53/53,
+`provar-compasso-limpo` verde, `provar-derivados-da-sequencia` 27/27,
+`provar-a-dobra-e-a-aula-anterior` 31/31, `provar-o-estilo-regera` 19/19. `regerar-derivados` e
+`gerar-ciclo` refeitos, `hash-ciclo --check` íntegro, `check-pacote` 0 erros, `check-identidade`
+**0 problemas**.
+
+**E uma nota de método, porque foi uma volta atrás no mesmo dia.** Os dois campos chegaram a ser de
+**escrever**, com o argumento de que «o que a aula trabalha é uma decisão da aula». O argumento é bom e
+a conclusão era falsa: a decisão da aula é **que exercício**; a música do exercício é do exercício, e
+o sítio de a compor é onde os trechos estão à vista. Um campo que aceita qualquer tempo produz uma
+chave de verbete que não existe — e o erro aparece depois, no documento, sem se saber de onde veio.
 
 ## O que está pendente
 

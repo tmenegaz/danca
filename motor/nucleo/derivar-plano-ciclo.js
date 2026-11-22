@@ -657,7 +657,7 @@ function dialogoDaAula(envelope, contexto) {
    * `.escolhas` para as listas de marcar). */
   linhas.push('<div class="modal" id="criar-aula" role="dialog" aria-modal="true" aria-labelledby="criar-aula-titulo" hidden>');
   linhas.push('<div class="modal-fundo" data-criar-fechar></div>');
-  linhas.push('<div class="modal-caixa">');
+  linhas.push('<div class="modal-caixa modal-largo">');
   linhas.push('<div class="modal-cab">');
   linhas.push('<h2 id="criar-aula-titulo">Criar a aula</h2>');
   linhas.push('<button type="button" class="modal-x" data-criar-fechar aria-label="Fechar">×</button>');
@@ -695,7 +695,7 @@ function dialogoDaAula(envelope, contexto) {
    * de classe nova. */
   linhas.push('<div id="criar-aula-musica" hidden>');
   linhas.push('<p class="campo-rotulo" id="criar-aula-musica-rotulo">Tempos e compasso de cada exercício</p>');
-  linhas.push('<table id="criar-aula-musica-tabela"><thead><tr><th>Exercício</th><th>Tempos</th><th>Compasso</th></tr></thead><tbody id="criar-aula-musica-corpo"></tbody></table>');
+  linhas.push('<table id="criar-aula-musica-tabela"><thead><tr><th>Exercício</th><th>Tempos</th><th>Compasso</th><th>Ações</th></tr></thead><tbody id="criar-aula-musica-corpo"></tbody></table>');
   linhas.push('<p id="criar-aula-musica-nota"></p>');
   linhas.push('</div>');
   linhas.push('<p id="criar-aula-aviso" role="status"></p>');
@@ -806,50 +806,90 @@ function DIALOGO_DA_AULA_JS() {
     '    }',
     '    return fora;',
     '  }',
-    /* TEMPOS E COMPASSO SÃO CAMPOS DE FORMULÁRIO — CARREGADOS COM O VALOR REAL E EDITÁVEIS
-     * (22/11/2026).
+    /* TEMPOS E COMPASSO SÃO DO VERBETE — AQUI SÓ SE LEEM, E QUEM QUER OUTROS DERIVA (22/11/2026).
      *
-     * Palavras dela: «a tabela tempos e compassos de cada exercício vai abrir como um formulário.
-     * Tempos e compassos são editáveis, vão abrir como campos de formulário carregados com os
-     * valores reais, mas também editáveis, para que o professor possa editar. E aí ele vai decidir
-     * se realmente ele quer trabalhar nesse tempo e com esses compassos.»
+     * Palavras dela: «tem um problema. Você precisa verificar que lá em bastidores, no estilo, tem
+     * uma regra para a decomposição, que é o step cinco, que a conta dos tempos e compassos precisa
+     * estar correta no lançamento da decomposição […] Então você tem que olhar essa regra ali e a
+     * gente tem que ter uma outra solução aqui no modal. Essa solução não serve.»
      *
-     * O QUE ESTAVA AQUI, e porquê estava errado. Quando o verbete declarava UMA música, a célula
-     * era um `span` de LEITURA com um `input` escondido — «vem do verbete» queria dizer «não é
-     * para escrever por cima». A regra está certa para o ESTILO (o verbete declara a música do
-     * exercício) e errada para AQUI: o que a aula trabalha é uma decisão da AULA, e quem a toma é
-     * a professora, no momento em que cria a aula. Um campo travado obrigava-a a ir ao Estilo
-     * mudar a música do exercício — e isso mudaria a música de todas as aulas do ciclo.
+     * A REGRA QUE DESMANCHA O CAMPO DE ESCREVER, e é ela que manda. No Estilo, o passo 5 mostra a
+     * decomposição do exercício em trechos, e **a coluna do compasso não se escreve: é calculada
+     * somando os tempos na ordem** («a contagem reinicia em cada compasso, e o número do compasso é
+     * conta do sistema»). A chave do verbete é exactamente `tempos|compasso` (`8|2/4@breu`), e o
+     * desacordo entre a música declarada e os trechos é um **estado do dado** que a listagem do
+     * Estilo mostra com um selo («tempos em desacordo»).
      *
-     * O CAMPO ABRE PREENCHIDO («carregados com os valores reais», que foi o que ela pediu) e o
-     * `title` nomeia a origem: «declarado no verbete: 8 em 2/4». Quando o verbete declara mais de
-     * uma, abre com a primeira e o `title` lista todas — a escolha é informada em vez de às cegas,
-     * e nenhuma opção lhe é escondida.
+     * Ou seja: um tempo escrito aqui, que o verbete não cobre, é uma música que **não tem
+     * decomposição nenhuma**. Não é uma decisão da aula — é um verbete que falta. E o sítio de o
+     * compor é o passo 5 do Estilo, onde os trechos estão à vista e a soma fecha.
      *
-     * O QUE NÃO MUDA: o que fica gravado é a linha da sequência DESTA aula (`aula-N-sequencia`), e
-     * o verbete não se toca. Se ela escrever um tempo que o verbete não cobre, o §4 da aula di-lo
-     * («conferir»), porque não há grade para o que não foi composto — o documento não inventa. */
-    '  function celula(nome, indice, qual, pares) {',
+     * O QUE ISTO FOI, para não se repetir: os dois campos chegaram a ser de escrever (mesmo dia,
+     * algumas horas antes), com o argumento de que «o que a aula trabalha é uma decisão da aula».
+     * O argumento é bom e a conclusão era falsa — a decisão da aula é **que exercício**, e a música
+     * do exercício é do exercício. Escrever por cima criava uma linha cuja chave não existe em
+     * lado nenhum: o §4 da aula não a consegue compor, e o professor fica a olhar para um erro que
+     * ele mesmo escreveu.
+     *
+     * A SAÍDA É O FLUXO QUE JÁ EXISTE (palavras dela: «a gente não precisa ficar reinventando
+     * fluxos e a gente aproveita o fluxo que já temos»): a coluna «Ações» leva cada exercício ao
+     * **Derivar** do Estilo, com o exercício já aberto; o professor compõe lá, grava, e volta a
+     * criar a aula. O modal fecha-se antes de sair — um modal aberto por cima de uma página que
+     * mudou é o resto de um gesto que já não está a acontecer. */
+    '  function celula(qual, pares) {',
     '    var td = document.createElement("td");',
-    '    var campo = document.createElement("input");',
-    '    campo.type = "text";',
-    '    campo.placeholder = qual === "tempos" ? "8" : "2/4";',
-    '    campo.setAttribute("data-musica", indice);',
-    '    campo.setAttribute("data-qual", qual);',
-    /* O VALOR REAL, quando há um: o do verbete. Com vários, o primeiro — e a lista inteira no
-     * `title`, já que o campo é de escrever e não de escolher. */
-    '    campo.value = pares.length ? String(pares[0][qual] || "") : "";',
+    '    var valor = pares.length ? String(pares[0][qual] || "") : "";',
+    /* O QUE NÃO EXISTE LÊ-SE «—», e não vazio: uma célula em branco numa tabela não se distingue
+     * de uma célula que falhou a carregar. O `title` diz de onde vem o valor — é a única coisa que
+     * a leitura não consegue mostrar sozinha. */
+    '    td.textContent = valor || "—";',
     '    if (pares.length === 1) {',
-    '      campo.title = "declarado no verbete: " + pares[0].tempos + " em " + pares[0].compasso;',
+    '      td.title = "declarado no verbete: " + pares[0].tempos + " em " + pares[0].compasso;',
     '    } else if (pares.length > 1) {',
     '      var lista = [];',
     '      for (var i = 0; i < pares.length; i++) lista.push(pares[i].tempos + " em " + pares[i].compasso);',
-    '      campo.title = "o verbete declara " + lista.join(" · ");',
+    '      td.title = "o verbete declara " + lista.join(" · ");',
     '    } else {',
-    '      campo.title = "o verbete não declara música para este exercício";',
+    '      td.title = "o verbete não declara música para este exercício";',
     '    }',
-    '    td.appendChild(campo);',
     '    return td;',
+    '  }',
+    /* A COLUNA DAS AÇÕES — UM BOTÃO POR EXERCÍCIO, e ele leva ao DERIVAR do Estilo.
+     *
+     * O ENDEREÇO CARREGA O EXERCÍCIO E A MÚSICA. Sem o exercício, o Estilo abria na listagem e o
+     * professor tinha de o procurar — «derivar cada um deles» passa a ser um clique, e não uma
+     * caça. A música é a chave do verbete (`8|2/4`); quando o verbete declara mais de uma, a
+     * primeira vai como ponto de partida e o Estilo abre nela (o `editarVerbete` já escolhe a
+     * primeira quando a chave pedida não existe).
+     *
+     * `#estilo` é o apelido que o `mostrarSecao` dos Bastidores conhece (`estilo → verbetes`), e é
+     * o que faz a secção abrir já na certa em vez de aterrar no painel. */
+    '  function acoesDoExercicio(nome, pares) {',
+    '    var td = document.createElement("td");',
+    '    var b = document.createElement("button");',
+    '    b.type = "button";',
+    '    b.className = "acao pequena";',
+    '    b.textContent = "Derivar";',
+    '    b.setAttribute("data-derivar", nome);',
+    '    if (pares.length) b.setAttribute("data-musica", pares[0].tempos + "|" + pares[0].compasso);',
+    '    b.title = pares.length > 1',
+    '      ? "abrir o Estilo neste exercício, para escolher qual das músicas declaradas vale"',
+    '      : (pares.length ? "abrir o Estilo neste exercício, para ajustar a música dele"',
+    '        : "abrir o Estilo neste exercício, que ainda não declara música");',
+    '    td.appendChild(b);',
+    '    return td;',
+    '  }',
+    /* A SAÍDA PARA O ESTILO — o modal fecha e o browser vai.
+     *
+     * O `fechar()` ANTES DE SAIR é o que ela pediu: «o modal fecha e direciona ele lá para os
+     * bastidores». Não é decoração: se a navegação falhar (rede, um endereço que não existe), o que
+     * fica à vista é a página do plano com o modal FECHADO — o gesto terminou, e não uma janela
+     * aberta sobre nada. */
+    '  function derivar(nome, chave) {',
+    '    var alvo = "/bastidores/estudio?derivar=" + encodeURIComponent(nome)',
+    '      + (chave ? "&musica=" + encodeURIComponent(chave) : "") + "#estilo";',
+    '    fechar();',
+    '    window.location.href = alvo;',
     '  }',
     '  function pintarMusica() {',
     '    var ex = escolhidos(exercicios);',
@@ -857,43 +897,51 @@ function DIALOGO_DA_AULA_JS() {
     '    if (!ex.length) { caixaMusica.hidden = true; return; }',
     '    caixaMusica.hidden = false;',
     '    var semMusica = [];',
+    '    var muitas = [];',
     '    for (var j = 0; j < ex.length; j++) {',
     '      var pares = paresDe(ex[j]);',
     '      if (!pares.length) semMusica.push(ex[j]);',
+    '      if (pares.length > 1) muitas.push(ex[j]);',
     '      var tr = document.createElement("tr");',
     '      var nome = document.createElement("td");',
     '      nome.textContent = ex[j];',
     '      tr.appendChild(nome);',
-    '      tr.appendChild(celula(ex[j], j, "tempos", pares));',
-    '      tr.appendChild(celula(ex[j], j, "compasso", pares));',
+    '      tr.appendChild(celula("tempos", pares));',
+    '      tr.appendChild(celula("compasso", pares));',
+    '      tr.appendChild(acoesDoExercicio(ex[j], pares));',
     '      corpoMusica.appendChild(tr);',
     '    }',
-    /* A NOTA DIZ O QUE O CAMPO É — e o que passa a ser, agora que se escreve (22/11/2026). O que
-     * está carregado é a música que o VERBETE declara; o que fica gravado é o que ela decidir para
-     * ESTA aula. Sem esta frase, um campo que abre preenchido e aceita outro valor não diz qual
-     * dos dois vale — e a pessoa tem de adivinhar. */
-    '    var base = "O que está carregado é a música que o verbete declara. O que ficar gravado é o'
-    + ' que você decidir para esta aula — e só para esta: o verbete não muda.";',
+    /* A NOTA DIZ O QUE A CÉLULA É, e o que fazer quando ela não serve. Três frases, uma por
+     * estado do dado — e a terceira é a que dá sentido ao botão que está na mesma linha. */
+    '    var base = "O que está aqui é a música que o verbete declara — ela não se escreve por cima:'
+    + ' a contagem do compasso sai dos trechos da decomposição, no Estilo. Para trabalhar outro'
+    + ' tempo neste exercício, derive e ajuste lá; esta aula nasce depois, com o que ficar gravado.";',
+    '    if (muitas.length) {',
+    '      base += " O verbete declara mais de uma música em: " + muitas.join(", ")',
+    + ' + " — a aula só sabe consolidar uma, e é no Estilo que se escolhe qual.";',
+    '    }',
     '    if (semMusica.length) {',
     '      base += " Sem música declarada no verbete: " + semMusica.join(", ")',
-    + ' — escreva os tempos e o compasso, ou deixe em branco, e o documento dirá que esta',
-    + ' aula não tem música a consolidar.";',
+    + ' + " — derive para a declarar, ou a aula dirá que não há música a consolidar.";',
     '    }',
     '    notaMusica.textContent = base;',
     '  }',
-    /* O QUE FICA GRAVADO NA LINHA DA SEQUÊNCIA, lido uma vez e por exercício — a música é dele, e
-     * não do par (bloco, exercício): o mesmo exercício em três blocos leva a mesma música. */
-    '  function musicaLida(indice) {',
-    '    var trs = corpoMusica.querySelectorAll("tr");',
-    '    var tr = trs[indice], t = "", c = "";',
-    '    if (tr) {',
-    '      var a = tr.querySelector("[data-qual=\\"tempos\\"]");',
-    '      var b = tr.querySelector("[data-qual=\\"compasso\\"]");',
-    '      t = a ? String(a.value || "").trim() : "";',
-    '      c = b ? String(b.value || "").trim() : "";',
-    '    }',
-    '    return { tempos: t, compasso: c };',
+    /* O QUE FICA GRAVADO NA LINHA DA SEQUÊNCIA — e agora é só a música que o verbete declara SEM
+     * DÚVIDA (uma). Com nenhuma ou com várias, a linha nasce sem música e é o núcleo (`compor`, em
+     * `notacao.js`) que diz o que fazer com isso: sobe do verbete quando ele declara uma, e declara
+     * a lacuna quando declara várias — «não se escolhe por ninguém». Escrever aqui a primeira de
+     * duas seria escolher por ela no sítio onde ela não pode ver a decomposição. */
+    '  function musicaDaVez(nome) {',
+    '    var pares = paresDe(nome);',
+    '    return pares.length === 1 ? { tempos: String(pares[0].tempos), compasso: String(pares[0].compasso) }',
+    '      : { tempos: "", compasso: "" };',
     '  }',
+    '  document.addEventListener("click", function (e) {',
+    '    var b = e.target.closest ? e.target.closest("button[data-derivar]") : null;',
+    '    if (!b) return;',
+    '    e.preventDefault();',
+    '    derivar(b.getAttribute("data-derivar"), b.getAttribute("data-musica") || "");',
+    '  });',
     '  exercicios.addEventListener("change", pintarMusica);',
     '  function fechar() {',
     '    caixa.hidden = true;',
@@ -963,15 +1011,12 @@ function DIALOGO_DA_AULA_JS() {
     '    if (!ex.length) { dizer("Marque ao menos um exercício: é ele que dá o que observar."); return; }',
     '    if (!bl.length) { dizer("Marque ao menos um bloco: é onde o objetivo acontece."); return; }',
     '    if (!dados.id) { dizer("Este plano ainda não tem carimbo: grave-o primeiro, e a aula nasce dele."); return; }',
-    /* TEMPOS E COMPASSO ANDAM JUNTOS. Um sem o outro é meia música, e o documento não tem como
-     * consolidar metade: a chave da notação é `tempos|compasso`. Recusa-se aqui, com o nome do
-     * exercício, em vez de gravar uma linha que o §4 vai ter de contornar. */
-    '    var semPar = [];',
-    '    for (var q = 0; q < ex.length; q++) {',
-    '      var m = musicaLida(q);',
-    '      if ((m.tempos && !m.compasso) || (!m.tempos && m.compasso)) semPar.push(ex[q]);',
-    '    }',
-    '    if (semPar.length) { dizer("Tempos e compasso andam juntos — falta um dos dois em: " + semPar.join(", ") + "."); return; }',
+    /* NÃO HÁ MAIS NADA A RECUSAR AQUI, e a recusa que existia era do campo que já não há.
+     *
+     * Era ela: «Tempos e compasso andam juntos — falta um dos dois em: …», a guarda do meio par que
+     * protegia a chave `tempos|compasso` de nascer pela metade. Com os campos de escrever fora,
+     * ninguém pode escrever meia música: o que a linha leva é o que o verbete declara, inteiro, ou
+     * nada. Manter a guarda seria um `if` que nunca corre a explicar um campo que já não existe. */
     '    mandado(true); dizer("");',
     '    comVeu("A criar a aula " + alvo + ": o objetivo, os exercícios e a sequência vão para o plano, e o ciclo é gerado a seguir. Não feche esta aba.", "Criar a aula");',
     '    pedir(PORTA + "api/envelope/" + encodeURIComponent(dados.id))',
@@ -996,7 +1041,7 @@ function DIALOGO_DA_AULA_JS() {
     '    var seq = [];',
     '    for (var i = 0; i < bl.length; i++) {',
     '      for (var j = 0; j < ex.length; j++) {',
-    '        var mus = musicaLida(j);',
+    '        var mus = musicaDaVez(ex[j]);',
     '        seq.push({ "Bloco": bl[i], "Objetivo específico": alvoObj, "Conteúdo do nível": ex[j], "Tempos": mus.tempos, "Compasso": mus.compasso });',
     '      }',
     '    }',

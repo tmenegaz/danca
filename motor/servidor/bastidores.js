@@ -19405,7 +19405,45 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      });' +
     '    });' +
     '    lista.innerHTML = linhas.join("") || "<li>Nenhum exercício com verbete.</li>";' +
+    /* O PEDIDO DO ENDEREÇO SÓ SE ATENDE DEPOIS DE OS VERBETES EXISTIREM (22/11/2026).
+     * `editarVerbete` desiste em silêncio quando `VERBETES` ainda está a caminho — e é por isso que
+     * a chamada vive AQUI, e não no arranque da página: quem chega de fora não pode aterrar num
+     * Estilo que abre na listagem por a resposta ainda não ter chegado. */
+    '    abrirOPedidoDoEndereco();' +
     '  }).catch(function(e){ lista.innerHTML = "<li>Erro: " + e.message + "</li>"; });' +
+    '}' +
+    /* O ENDEREÇO ABRE O DERIVAR DE UM EXERCÍCIO — `?derivar=<exercício>&musica=<tempos|compasso>`
+     * (22/11/2026).
+     *
+     * DE ONDE VEM. Do diálogo que cria a aula, no plano de ensino: a tabela «Tempos e compasso de
+     * cada exercício» deixou de ser um formulário (a música é do verbete, e a contagem do compasso
+     * sai dos trechos da decomposição), e a coluna «Ações» passou a ter um «Derivar» por exercício.
+     * Palavras dela: «quando clicar em derivar, vai direto para bastidores e em bastidores é direto
+     * no estilo e no estilo já aberto o derivar do que eu quero fazer o ajuste.»
+     *
+     * PORQUE O PARÂMETRO SAI DO ENDEREÇO. A página é repintada a cada operação, e este pedido não é
+     * um estado — é um gesto. Deixá-lo no endereço faria o formulário reabrir sozinho no exercício
+     * de antes cada vez que ela gravasse outro; é a mesma disciplina do `?abrir=` do Pagar.
+     *
+     * E QUANDO O EXERCÍCIO NÃO TEM VERBETE, DIZ-SE. `editarVerbete` recusaria em silêncio, e um
+     * botão que não faz nada parece avaria — a frase manda-a ao sítio onde o exercício nasce (o
+     * Dicionário), que é a informação que ela precisa. */
+    'function abrirOPedidoDoEndereco(){' +
+    '  var pedido = null;' +
+    '  try { pedido = new URLSearchParams(location.search).get("derivar"); } catch (err) { return; }' +
+    '  if (!pedido) return;' +
+    '  var chave = "";' +
+    '  try { chave = new URLSearchParams(location.search).get("musica") || ""; } catch (err) {}' +
+    '  if (!VERBETES || !VERBETES.verbetes || !VERBETES.verbetes[pedido]) {' +
+    '    recado("erro", "«" + pedido + "» ainda não tem verbete para derivar — o exercício nasce no' +
+    ' Dicionário, e a música compõe-se aqui no Estilo, no passo da decomposição.");' +
+    '    return;' +
+    '  }' +
+    '  editarVerbete(pedido, chave);' +
+    /* O `#estilo` fica: é a posição na página, e uma posição não é um pedido. */
+    '  try {' +
+    '    if (history.replaceState) history.replaceState(null, "", location.pathname + location.hash);' +
+    '  } catch (err) {}' +
     '}' +
     // O «editar» preenche o formulário a partir do que já está no alfabeto: quem edita não
     // reescreve o verbete todo à mão, e o que não mudou não se perde.

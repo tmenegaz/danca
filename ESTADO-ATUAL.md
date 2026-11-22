@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 22/11/2026 (commit `c9a4168c`, e **a mudança que chega à aula vigente** a seguir).
+> **Última fotografia:** 22/11/2026 (commit `f4ec34e1`, e **a música do exercício deriva-se no Estilo** a seguir).
 > Ainda neste dia, **o modal passou a deixar escrever**: os tempos e o compasso de cada exercício
 > abrem preenchidos com o que o verbete declara e são editáveis — a música do verbete é a da escola,
 > a da aula é decisão de quem a dá, e essas duas coisas estavam a ser a mesma. A secção «Música e
@@ -3455,6 +3455,30 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      `aplicarAoPlano`, com a ordem dentro: duas cópias da mesma sequência divergem à primeira
      correcção.
 
+158. **A MÚSICA DO EXERCÍCIO NÃO SE ESCREVE NO PLANO — DERIVA-SE, E O MODAL ABRE LARGO.** Palavras
+     dela: «tem uma regra para a decomposição, que é o step cinco, que a conta dos tempos e compassos
+     precisa estar correta no lançamento da decomposição […] a gente tem que ter uma outra solução
+     aqui no modal. Essa solução não serve.» E a solução: «colocar um botão de derivar aqui no
+     exercício […] vai direto para bastidores e em bastidores é direto no estilo e no estilo já
+     aberto o derivar do que eu quero fazer o ajuste. […] O modal fecha.»
+     **A REGRA QUE DESMANCHA O CAMPO DE ESCREVER**, e é ela que manda: no Estilo, a coluna do
+     **compasso é calculada somando os trechos da decomposição** (passo 5), e a chave do verbete é
+     `tempos|compasso` (`8|2/4@breu`); o desacordo entre a música declarada e os trechos é um
+     **estado do dado**, com selo próprio na listagem («tempos em desacordo»). Um tempo escrito no
+     plano que o verbete não cobre é uma música **sem decomposição nenhuma** — não é uma decisão da
+     aula, é um verbete que falta.
+     **DECIDIDO** 22/11/2026, e a solução é a que já existe: a tabela volta a ser **leitura**, ganha
+     a coluna **Ações** com um **Derivar** por exercício, e o botão fecha o modal e leva a
+     `/bastidores/estudio?derivar=<exercício>&musica=<tempos|compasso>#estilo`, onde o verbete abre
+     no `editarVerbete`. O modal passa a usar a modificação **larga** da folha (`.modal-largo`, a do
+     modal da duração: 880px, medidos) — «tem que ser esse mesmo padrão, não pode ser diferente».
+     **O que a sequência grava:** a música que o verbete declara **sem dúvida** (uma). Com nenhuma
+     ou com várias a linha nasce sem música, e é o núcleo (`compor`) que declara a lacuna — «não se
+     escolhe por ninguém». A recusa do meio par morreu com o campo que a justificava.
+     *E o registo de uma volta atrás:* os campos chegaram a ser de escrever nesse mesmo dia, com o
+     argumento de que «o que a aula trabalha é uma decisão da aula». O argumento era bom e a
+     conclusão falsa — a decisão da aula é **que exercício**.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -4298,7 +4322,17 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (22/11/2026 — a mudança chega à aula vigente)
+### Executado nesta fotografia (22/11/2026 — a música do exercício deriva-se no Estilo)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-a-musica-do-modal.js` | **42/42**: as quatro colunas (Exercício · Tempos · Compasso · **Ações**); a tabela **não tem um único campo** de escrever; as células leem 8 e 2/4 do verbete, com o `title` a nomear a origem; o «Derivar» leva `data-derivar="Battement tendu"` e `data-musica="8|2/4"`; o clique **pede** `/bastidores/estudio?derivar=Battement%20tendu&musica=8%7C2%2F4#estilo` (o pedido é interceptado e respondido com 204, para o documento não mudar antes de se medir) e **o modal está fechado**; o modal mede **880px** — o mesmo que o da duração, contra os 440 de antes; a tabela cabe na caixa (830 de 880). Com duas músicas o jeté grava-se **sem música**. Controle `--contra=c9a4168c`: **22 de 35 reprovam** |
+| `node experimentos/provar-o-derivar-do-estilo.js` (**nova**) | **12/12**: o endereço abre o Estilo no exercício pedido, com a música pedida, no modo «atualizar»; o `?derivar` **sai** do endereço e o `#estilo` fica; **sem** o parâmetro a mesma página não abre verbete nenhum (é o parâmetro que abre); um exercício sem verbete é **dito**, com o Dicionário nomeado, e não abre o formulário em cima de outro. Controle `--contra=cbd1aa66`: **5 de 12 reprovam** |
+| `provar-cadeia-automatica` · `provar-a-aula-que-vem` · `provar-o-exercicio-novo` · `provar-aula-dada` | 136/136 · 70/70 · 65/65 · 34/34 |
+| `provar-criar-aula` · `provar-compasso-limpo` · `provar-derivados-da-sequencia` · `provar-a-dobra-e-a-aula-anterior` · `provar-o-estilo-regera` | 53/53 · verde · 27/27 · 31/31 · 19/19 |
+| `regerar-derivados` · `gerar-ciclo` · `hash-ciclo --check` · `check-pacote` · `check-identidade` | o `plano.md` reescrito · 0 erros (1 aviso de PDF) · íntegro · 0 erros · **0 problemas** |
+
+### Executado na fotografia anterior (22/11/2026 — a mudança chega à aula vigente)
 
 | Verificação | Resultado |
 |:--|:--|
