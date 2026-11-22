@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T08:58:39-0300`
-Commit atual: `37a511cd` — fix(tools): o `regerar-derivados` não apaga o que não consegue reproduzir
+Gerado em: `2026-11-22T09:18:49-0300`
+Commit atual: `35d1c7fa` — feat(ciclo-01): a listagem da anamnese diz quem a fez e quando
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+35d1c7fa feat(ciclo-01): a listagem da anamnese diz quem a fez e quando
 37a511cd fix(tools): o `regerar-derivados` não apaga o que não consegue reproduzir
 e83ad10e chore(entrega): gerar o pacote de demi-plie/01/breu-rosa
 a2bb9231 chore(estrutura): fechar os derivados — âncoras e índices
@@ -101,7 +102,6 @@ ed509ab1 chore(estrutura): fechar os derivados — âncoras e índices
 4eecbcc5 chore(estrutura): fechar os derivados — âncoras e índices
 dcef471b feat(ciclo): o «Guardar» do PO grava as fontes de breu-rosa num commit só
 6708e7f8 feat(acervo): envelope/po-20261121-1955.json
-e4736aa0 feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -195,62 +195,90 @@ e4736aa0 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 22/11/2026 — a listagem da anamnese diz quem a fez e quando
+## 22/11/2026 — O fluxo da Aula 02 escrito, e o expurgo com um conferidor
 
-**O PEDIDO DELA.** «Quando a gente entra no plano para a aula, seja o um ou seja o dois […] nós temos
-a parte da anamnese de cada aluna. Aí nós temos aqui uma lista que tem a aluna […] Tem que dizer aqui
-nessa listagem, ao lado do nome da aluna, quem é o que fez a anamnese e a data em que essa anamnese
-foi feita. […] A gente já tem isso nos arquivos de chave e valor, então é fácil colocar aqui.»
+**O que motivou.** Duas perguntas dela, na mesma frase: «nós criamos os documentos, junto com os
+documentos já nasce a aula um […] agora eu preciso entender do fluxo como é que nasce a aula dois» e
+«o expurgo está correto, já está validado, já atende sumir com todas as escolas, com tudo?». A
+segunda não admitia «sim»: o expurgo tem **duas metades** — o repositório e o KV/Cloudflare — e só a
+primeira se mede daqui. Responder «está validado» sobre a metade que não se mediu seria a mesma
+família de erro que este projeto persegue: afirmar um facto que ninguém leu.
 
-Tem, e é essa a razão de não se inventar nada:
+**O que foi decidido.**
+- **O fluxo passa a estar escrito, e não na cabeça de quem o construiu.** `ARQUITETURA-AULA.md`
+  §4.5 — «O fluxo inteiro, do zero à Aula 02» — com os oito passos e o que cada um **escreve**,
+  os **cinco factos** que fazem uma Aula 02 existir (a linha do calendário, o marco e os exercícios
+  colhidos no «Criar», o `ajuste_de` no envelope, `aula-N-*` dentro do `contexto-total-aulas`, e os
+  três escritores do `DOCS`), e a pendência declarada: **não há portão N-1** — a Aula N nasce sem a
+  N-1 ter os dados do formulário.
+- **O expurgo tem um conferidor, e ele é de leitura.** `escola/conferir-expurgo.js` responde, para
+  uma escola: o que o elo diz (último expurgo, última recriação, VIVA ou EXPURGADA); quantos
+  arquivos o expurgo **ainda** apagaria, por família; o que fica **com a razão declarada**; qualquer
+  **resíduo sem razão** (✗); se `criar-escola.sh` recusaria o nome; e **o que ela não alcança**.
+  Usa o **mesmo** `escolaDosCaminhos` do expurgo — a autoridade sobre o que uma escola possui —, em
+  vez de uma segunda regra que divergiria.
+- **«Sumir com tudo» não é o desenho.** Ficam três coisas, e cada uma por uma razão: o **elo**
+  (`escola/<slug>/indice.json` — a proveniência acrescenta, não edita), a **fixture**
+  (`teste/<slug>.json` — dados sintéticos, ligados à *palavra* do nome e não a dado de ninguém) e o
+  **índice derivado** (`indices/**`, que o `orfaosNoDisco` limpa). Apagá-las seria apagar a memória
+  de que a escola existiu — e é o elo que a próxima escola com o mesmo nome lê.
+- **A metade do KV não se afirma.** A autoridade é o relatório da página, que confere **por leitura
+  de cada chave** (`kv.restantes`/`kv.ficaram`) e não pela listagem, e que oferece «Terminar a
+  limpeza do KV», gravando a pendência no elo. Como o **prefixo do KV é o nome**, uma pendência tem
+  de ser resolvida **antes** de criar a escola nova com o mesmo nome.
+- **Sem cadastro não se afirma estado.** `POST /api/apagar-escola` respondia «A escola está
+  habilitada» a uma escola **sem registo comercial** — um estado que ninguém leu, e sobre uma escola
+  cuja morada a raiz não conhece. `lerComercial` marca `semRegisto: true` e `estadoDoExpurgo` tem
+  frase própria. A recusa continua a ser recusa.
 
-| o dado | de onde vem | e o que se vê |
-|:--|:--|:--|
-| **quem** | o `professor` do envelope da anamnese — quem a **respondeu**, e não quem dirige a sala | «Aluna A · por demi-plie» |
-| **quando** | o **carimbo**, que é o nome do próprio ficheiro (`anamnese-20261118-1737`) | «em 18/11/2026» |
+**Onde entrou.**
+- `ARQUITETURA-AULA.md` — §4.5, o fluxo do zero à Aula 02.
+- `escola/conferir-expurgo.js` — **novo**, só leitura, sem rede. Aceita `--raiz=<dir>` para ser
+  provável.
+- `experimentos/provar-conferir-expurgo.js` — **novo**, 15 asserções sobre três árvores sintéticas
+  (viva, expurgada, com resíduo).
+- `motor/servidor/raiz.js` — `lerComercial` passa `semRegisto`; `estadoDoExpurgo` ganha o ramo da
+  ausência de cadastro.
+- Três provas que mediam o mundo de antes, e passaram a medir o de hoje: `provar-expurgo-sem-listagem`
+  (a lista de chaves fixas cresceu de 9 para 16 — a asserção deixou de fixar o número e passou a
+  medir **cobertura** e **tentativas**), `provar-expurgo-raiz` (a carência e a auditoria da
+  proveniência vêm **antes** da morada; o cenário passou a ter uma escola suspensa com a carência
+  vencida, e o caminho até à morada passou a ser o do `forcar` declarado) e `provar-indice-do-recorte`
+  (o bloco mudou para a aba 2 da Audição em `ba76c401` e o título foi corrigido para «Recorte» em
+  `38cab0e2`; a prova ficou treze dias a exigir o ecrã antigo).
+- `experimentos/provar-expurgo-leitura-atrasada.js` e `provar-os-fluxos-da-derivacao.js` — as duas
+  passaram a ler o que **é** em vez do que era (ordem relativa dos passos; a lista de rotas vem do
+  módulo que a exporta desde 20/11).
 
-E o dado distingue o que interessa: nesta turma as duas anamneses foram feitas por **professores
-diferentes** — a da Aluna A por `demi-plie` a 18/11, a da Aluna B por `bom-bom` a 19/11. Até hoje as
-duas linhas diziam só o nome da aluna, e essa diferença não estava em sítio nenhum do documento.
+**Com o quê.** `ARQUITETURA-AULA.md`, `escola/conferir-expurgo.js`,
+`experimentos/provar-conferir-expurgo.js`, `experimentos/provar-expurgo-sem-listagem.js`,
+`experimentos/provar-expurgo-raiz.js`, `experimentos/provar-indice-do-recorte.js`,
+`experimentos/provar-expurgo-leitura-atrasada.js`, `experimentos/provar-os-fluxos-da-derivacao.js`,
+`motor/servidor/raiz.js`, `.gitignore`, `ESTADO-ATUAL.md`.
 
-**ONDE.** Na **opção** do selector (é o que se lê ao escolher, e a escolha é o gesto de quem vai abrir
-a anamnese) e na **linha das acções** daquela aluna (para quem não tem JavaScript, que vê as três ao
-mesmo tempo). A frase entra no `<span class="origem-da-aluna">` que já existia, com um ponto médio a
-separar os três metadados do mesmo retrato — de quem é, de quando, por que método. Nenhuma peça nova
-no catálogo: a frase ninguém a pediu como componente, e uma classe inventada seria a que o
-`IDENTIDADE-VISUAL.md` proíbe.
+**Referências.** `CONGELAMENTO.md` (nenhum congelado tocado — `escola/` não está na lista, e
+`experimentos/` é demonstrativo); `ARQUITETURA-AULA.md` §4.5; `ARQUITETURA-GERAL.md` §4;
+`IDENTIDADE-VISUAL.md` (nenhuma peça nova na tela — o conferidor é de consola).
 
-**SEM AUTOR NÃO SE INVENTA UM.** Um envelope anterior a este campo existir não declara quem o fez: a
-frase fica só com a data, que o carimbo garante. E sem carimbo legível não fica nada — a lista diz
-«sem anamnese registada», como já dizia.
+**MEDIDO.** A bateria do expurgo, **14 provas verdes**: `bancadas-e-expurgo` 16, `cartas-do-expurgo`
+25, `dono-do-expurgo` 11, `elo-do-expurgo` ok, `expurgo-do-professor-compartilhado` 13,
+`expurgo-por-carencia` 34, `lista-do-expurgo` 26, `o-expurgo-do-financeiro` 15,
+`proveniencia-do-expurgo` 38, `expurgo-sem-listagem` 49, `expurgo-raiz` ok,
+`expurgo-leitura-atrasada` 45, `conferir-expurgo` 15, `os-fluxos-da-derivacao` 74. As que atravessam
+o mesmo caminho: `a-carencia-nao-se-burla` 58, `conciliacao-do-painel` 35, `financeiro` 58,
+`financeiro-da-escola` 135, `cofre-e-shard` 138, `indice-do-recorte` 24. Nas quatro escolas:
+`batata` **0** arquivos, `calango` **0**, `duo` **0** — último acto é o expurgo, nenhum resíduo sem
+razão, o nome **livre** para criar; `breu` **266** arquivos e **viva**.
 
-**O CAMINHO DO DADO.** `porta.anamneses` já devolvia `professorNome` desde 20/11; o que faltava era
-chegar ao documento. `rotas.anamnesesDaTurma` e `producao.anamnesesDaTurma` — os dois sítios que
-compõem o mesmo mapa — passam a levar `autor`, e o derivador compõe a frase. A data sai do carimbo **no
-derivador**, e não é uma segunda cópia: é o mesmo carimbo que nomeia o ficheiro.
-
-**PROVA.** `provar-proveniencia-e-turma` ganhou **3 asserções**: a opção da Aluna A diz «por demi-plie
-em 05/11/2026»; a da Aluna B — sem autor no fixture — diz só «em 05/11/2026», sem nome inventado; e a
-mesma frase está na linha das acções. **53 de 56**, e as 3 falhas são **as mesmas da linha de base**
-(medido com o worktree em `stash`): a notação não é o que a prova espera desde 15/11, e a verificação
-de classes «inventadas» reprova o `origem-da-aluna`, que existe desde 18/11 e nunca foi desenhado na
-folha. Nenhuma delas é desta entrega.
-
-**MEDIDO no navegador**, sobre o pacote montado e servido em `127.0.0.1`: `/rosa/aula-01.html` tem o
-`<select>` com as duas opções («Aluna A · por demi-plie em 18/11/2026», «Aluna B · por bom-bom em
-19/11/2026»), nada visível antes de escolher, e escolher a Aluna B mostra as acções dela com
-«anamnese por bom-bom em 19/11/2026 · origem metodológica não declarada».
-
-`provar-derivador-da-aula` 35/35, `provar-corpo-da-linha-de-base` 30/30; `check-identidade` 22 ok / 0
-reprovações, `check-indices` 16/16, `check-pacote` 0 erros (1 aviso: o PDF, por desenho),
-`hash-ciclo --check` cadeia intacta, pacote da `breu-rosa` regerado.
+**O que ainda não está feito.**
+- **A metade do KV não foi medida daqui.** `provar-expurgo-kv` exige `CLOUDFLARE_API_TOKEN` e o
+  namespace real (11 asserções, todas `HTTP 401` sem ele). Fica a autoridade do relatório da página.
+- **Não há portão N-1**: a Aula N pode nascer antes de a N-1 ter os dados do formulário. Ela disse
+  «por enquanto não faz, mas tome nota disso».
+- **O pacote da turma `rosa` da `breu`** colide com uma escola nova com o mesmo nome: a escola passa,
+  a **turma** é que recusa. Criar com **outro nome de turma**, ou deixar o expurgo levar o pacote.
 
 ## O que está pendente
-
-## 20/11/2026 — O estudo do modal do Estilo, corrigido por ela: é na INCLUSÃO, e a pergunta é o objectivo
-
-O modal não foi construído: primeiro decide-se onde a declaração é
-escrita, porque as duas opções têm consequências diferentes na proveniência.
 
 ## 20/11/2026 — Duas provas apagadas: as que mediam um mundo que já não existe
 
@@ -276,6 +304,15 @@ estavam antes desta mudança** (conferido em worktree): `provar-lancamento` e
 
 A `-aula-01.md` continua com as linhas de técnica repetidas na §5 —
 ela melhora com a mesma fusão, mas só quando for re-derivada com o elenco certo (ver acima).
+
+## 22/11/2026 — O fluxo da Aula 02 escrito, e o expurgo com um conferidor
+
+- **A metade do KV não foi medida daqui.** `provar-expurgo-kv` exige `CLOUDFLARE_API_TOKEN` e o
+  namespace real (11 asserções, todas `HTTP 401` sem ele). Fica a autoridade do relatório da página.
+- **Não há portão N-1**: a Aula N pode nascer antes de a N-1 ter os dados do formulário. Ela disse
+  «por enquanto não faz, mas tome nota disso».
+- **O pacote da turma `rosa` da `breu`** colide com uma escola nova com o mesmo nome: a escola passa,
+  a **turma** é que recusa. Criar com **outro nome de turma**, ou deixar o expurgo levar o pacote.
 
 ## Pendências anteriores (índice)
 
@@ -763,6 +800,7 @@ ela melhora com a mesma fusão, mas só quando for re-derivada com o elenco cert
 - **20/11/2026** — «Recorte» e «Transferência» fecham enquanto há um elenco em… → `REGISTRO.md` L55582
 - **20/11/2026** — O «Professor responsável» sai da Audição, e a anamnese leva… → `REGISTRO.md` L55629
 - **20/11/2026** — O PDF sai do fluxo: quem imprime é o navegador → `REGISTRO.md` L55683
+- **20/11/2026** — O estudo do modal do Estilo, corrigido por ela: é na… → `REGISTRO.md` L56004
 - **demi-plie · ciclo 01:** aulas escritas em detalhe: 2 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

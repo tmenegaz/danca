@@ -4,7 +4,26 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 21/11/2026 (commit `4809fb09`). Nesta entrega, **a fonte do projeto é
+> **Última fotografia:** 22/11/2026 (commit `35d1c7fa`). Nesta entrega, **o fluxo da Aula 02 ficou
+> escrito e o expurgo ganhou um conferidor**. As duas perguntas dela eram «como é que nasce a aula
+> dois» e «o expurgo atende o projeto?» — e a segunda **não admitia um sim**: o expurgo tem duas
+> metades e só uma se mede daqui. A do repositório passou a ser medida por
+> `escola/conferir-expurgo.js` (**novo**, só leitura, com o **mesmo** `escolaDosCaminhos` do
+> expurgo — a autoridade sobre o que uma escola possui), e o resultado está na §9: `batata`,
+> `calango` e `duo` com **0 arquivos**, **nenhum resíduo sem razão declarada** e o nome **livre**
+> para criar; `breu` **viva**, com 266. O que fica depois de um expurgo fica por **três** razões, e
+> as três são do desenho: o **elo** (a proveniência acrescenta, não edita), a **fixture** (dados
+> sintéticos, ligados à *palavra* do nome) e o **índice derivado** (é saída). A metade do
+> **KV/Cloudflare** não se mede sem token: a autoridade é o relatório da página, que confere **por
+> leitura de cada chave** e oferece «Terminar a limpeza do KV». O fluxo, do zero à Aula 02, está em
+> `ARQUITETURA-AULA.md` §4.5. Pelo caminho, **três provas vermelhas** passaram a medir o mundo de
+> hoje: duas do expurgo (a lista de chaves cresceu de 9 para 16; a carência e a auditoria vêm antes
+> da morada) e uma do índice do recorte (o bloco mudou de secção e de nome a 09/11 e a prova ficou
+> treze dias a exigir o ecrã antigo). E uma frase deixou de afirmar o que ninguém mediu:
+> `POST /api/apagar-escola` sobre uma escola **sem cadastro comercial** dizia «A escola está
+> habilitada» — agora diz que não há cadastro, e recusa.
+>
+> **Fotografia anterior (21/11/2026 — commit `4809fb09`).** Nesta entrega, **a fonte do projeto é
 > a Open Sans, e passa a ser ENTREGUE**. A alteração dela — `'Open Sans'` à frente na pilha —
 > estava certa e **não era verdadeira**: não havia `@font-face`, nenhum `.woff2` no repositório e
 > nenhum `<link>` para uma CDN, portanto o navegador só a usava se ela estivesse instalada na
@@ -3035,6 +3054,24 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      eixo **Poiesis** da aula os lê. Um aspecto com nota e sem nível **não** é «sem registo» — foi
      observado, e entra em «o que precisa de ser trabalhado». **DECIDIDO** 21/11/2026.
 
+138. **O EXPURGO TEM UM CONFERIDOR, E «SUMIU TUDO» DEIXOU DE SER UMA AFIRMAÇÃO.** Palavras dela:
+     «Eu vou expurgar essa escola e vou recomeçar os testes dela. Eu preciso saber também se o
+     expurgo está correto, já está validado, já atende sumir com todas as escolas, com tudo […]
+     Se os resíduos que nós movemos não vão ficar de novo como resíduo.» A resposta não podia ser
+     «sim»: o expurgo tem **duas metades** e só uma delas é medível daqui. A do **repositório**
+     passou a ser medida por `escola/conferir-expurgo.js` — só leitura, sem rede, que usa o
+     **mesmo** `escolaDosCaminhos` do expurgo (a autoridade sobre o que uma escola possui) e diz,
+     por família: quantos arquivos ainda seriam apagados, o que fica **com a razão declarada**, e
+     qualquer **resíduo sem razão** (✗). A do **KV/Cloudflare** não se mede sem o token, e a
+     autoridade lá é o relatório da página, que confere **por leitura de cada chave** e oferece
+     «Terminar a limpeza do KV», gravando a pendência no elo. Medido a 22/11/2026: `batata`,
+     `calango` e `duo` com **0 arquivos**, último acto = expurgo, **nenhum resíduo sem razão**, e a
+     criação do nome **livre**; `breu` **viva**, com 266 arquivos. **O que fica, fica por uma de
+     três razões, e as três são do desenho**: o **elo** (`escola/<slug>/indice.json` — a
+     proveniência acrescenta, não edita), a **fixture** (`teste/<slug>.json` — dados sintéticos,
+     ligados à *palavra* do nome, não a dado de ninguém) e o **índice derivado** (`indices/**` — é
+     saída, e o `orfaosNoDisco` apaga o que já não corresponde). **DECIDIDO** 22/11/2026.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -3850,7 +3887,17 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (22/11/2026 — quem fez a anamnese, e quando)
+### Executado nesta fotografia (22/11/2026 — o fluxo da Aula 02, e a conferência do expurgo)
+
+| Verificação | Resultado |
+|:--|:--|
+| a bateria do expurgo, inteira | **14 provas verdes**: `bancadas-e-expurgo` 16 · `cartas-do-expurgo` 25 · `dono-do-expurgo` 11 · `elo-do-expurgo` ok · `expurgo-do-professor-compartilhado` 13 · `expurgo-por-carencia` 34 · `lista-do-expurgo` 26 · `o-expurgo-do-financeiro` 15 · `proveniencia-do-expurgo` 38 · `expurgo-sem-listagem` **49** · `expurgo-raiz` **ok** · `expurgo-leitura-atrasada` **45** · `conferir-expurgo` **15** · `os-fluxos-da-derivacao` **74** |
+| o que estava vermelho, e porquê | três provas mediam o mundo de antes. (a) `expurgo-sem-listagem` fixava **9** chaves fixas — a lista tem **16** desde 17/11 e 19/11, e crescer a lista é o que se quer: a asserção passou a medir **cobertura** (as nove fundadoras continuam lá) e o número de **tentativas** (`fixas.length + 1`, o ponteiro da geração), que é o que não muda quando a lista cresce. (b) `expurgo-raiz` esperava a mensagem da **morada** em dois sítios onde hoje responde passo anterior: a **carência** (16/11) e a **auditoria da proveniência** (07/11) vêm antes. O cenário passou a ter o que precisa para medir o que diz medir — uma escola suspensa com a carência vencida —, e o caminho até à morada passou a ser o do **`forcar` declarado** (com o token real, uma leitura da árvore). (c) `indice-do-recorte` exigia `#lb-indice` **dentro de `sec-corpo`** e o título «O que os recortes olham»: o bloco mudou para a **aba 2 da Audição** em `ba76c401` (09/11) e o título foi corrigido para «Recorte» em `38cab0e2`. Estava vermelha há treze dias |
+| a conferência do expurgo, medida nas quatro escolas | `batata` **0** arquivos · `calango` **0** · `duo` **0** · `breu` **266**. Nas três expurgadas o último acto é o expurgo, **nenhum resíduo sem razão declarada**, e `criar-escola.sh` **não recusa** o nome. Na `breu`, a criação é recusada por `ciclo-01-breu.conf` e `ciclo-01-breu/`, e há pacote da turma `rosa` — a turma nova precisa de **outro nome** |
+| a frase da recusa sem cadastro | `POST /api/apagar-escola` para uma escola **sem registo comercial** dizia «A escola está habilitada» — uma afirmação sobre um estado que ninguém leu, e sobre uma escola cuja morada a raiz não conhece. `lerComercial` passou a marcar `semRegisto: true` e `estadoDoExpurgo` tem frase própria. A recusa continua a ser recusa (`pode: false`), e a prova mede as duas: a frase nova e o silêncio sobre «habilitada» |
+| `provar-a-carencia-nao-se-burla` · `provar-conciliacao-do-painel` · `provar-financeiro` · `provar-financeiro-da-escola` · `provar-cofre-e-shard` · `provar-indice-do-recorte` | **58/58** · **35/35** · **58/58** · **135/135** · **138/138** · **24/24** |
+
+### Executado na fotografia anterior (22/11/2026 — quem fez a anamnese, e quando)
 
 | Verificação | Resultado |
 |:--|:--|

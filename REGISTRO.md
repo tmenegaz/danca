@@ -57959,3 +57959,86 @@ folha. Nenhuma delas é desta entrega.
 `provar-derivador-da-aula` 35/35, `provar-corpo-da-linha-de-base` 30/30; `check-identidade` 22 ok / 0
 reprovações, `check-indices` 16/16, `check-pacote` 0 erros (1 aviso: o PDF, por desenho),
 `hash-ciclo --check` cadeia intacta, pacote da `breu-rosa` regerado.
+
+## 22/11/2026 — O fluxo da Aula 02 escrito, e o expurgo com um conferidor
+
+**O que motivou.** Duas perguntas dela, na mesma frase: «nós criamos os documentos, junto com os
+documentos já nasce a aula um […] agora eu preciso entender do fluxo como é que nasce a aula dois» e
+«o expurgo está correto, já está validado, já atende sumir com todas as escolas, com tudo?». A
+segunda não admitia «sim»: o expurgo tem **duas metades** — o repositório e o KV/Cloudflare — e só a
+primeira se mede daqui. Responder «está validado» sobre a metade que não se mediu seria a mesma
+família de erro que este projeto persegue: afirmar um facto que ninguém leu.
+
+**O que foi decidido.**
+- **O fluxo passa a estar escrito, e não na cabeça de quem o construiu.** `ARQUITETURA-AULA.md`
+  §4.5 — «O fluxo inteiro, do zero à Aula 02» — com os oito passos e o que cada um **escreve**,
+  os **cinco factos** que fazem uma Aula 02 existir (a linha do calendário, o marco e os exercícios
+  colhidos no «Criar», o `ajuste_de` no envelope, `aula-N-*` dentro do `contexto-total-aulas`, e os
+  três escritores do `DOCS`), e a pendência declarada: **não há portão N-1** — a Aula N nasce sem a
+  N-1 ter os dados do formulário.
+- **O expurgo tem um conferidor, e ele é de leitura.** `escola/conferir-expurgo.js` responde, para
+  uma escola: o que o elo diz (último expurgo, última recriação, VIVA ou EXPURGADA); quantos
+  arquivos o expurgo **ainda** apagaria, por família; o que fica **com a razão declarada**; qualquer
+  **resíduo sem razão** (✗); se `criar-escola.sh` recusaria o nome; e **o que ela não alcança**.
+  Usa o **mesmo** `escolaDosCaminhos` do expurgo — a autoridade sobre o que uma escola possui —, em
+  vez de uma segunda regra que divergiria.
+- **«Sumir com tudo» não é o desenho.** Ficam três coisas, e cada uma por uma razão: o **elo**
+  (`escola/<slug>/indice.json` — a proveniência acrescenta, não edita), a **fixture**
+  (`teste/<slug>.json` — dados sintéticos, ligados à *palavra* do nome e não a dado de ninguém) e o
+  **índice derivado** (`indices/**`, que o `orfaosNoDisco` limpa). Apagá-las seria apagar a memória
+  de que a escola existiu — e é o elo que a próxima escola com o mesmo nome lê.
+- **A metade do KV não se afirma.** A autoridade é o relatório da página, que confere **por leitura
+  de cada chave** (`kv.restantes`/`kv.ficaram`) e não pela listagem, e que oferece «Terminar a
+  limpeza do KV», gravando a pendência no elo. Como o **prefixo do KV é o nome**, uma pendência tem
+  de ser resolvida **antes** de criar a escola nova com o mesmo nome.
+- **Sem cadastro não se afirma estado.** `POST /api/apagar-escola` respondia «A escola está
+  habilitada» a uma escola **sem registo comercial** — um estado que ninguém leu, e sobre uma escola
+  cuja morada a raiz não conhece. `lerComercial` marca `semRegisto: true` e `estadoDoExpurgo` tem
+  frase própria. A recusa continua a ser recusa.
+
+**Onde entrou.**
+- `ARQUITETURA-AULA.md` — §4.5, o fluxo do zero à Aula 02.
+- `escola/conferir-expurgo.js` — **novo**, só leitura, sem rede. Aceita `--raiz=<dir>` para ser
+  provável.
+- `experimentos/provar-conferir-expurgo.js` — **novo**, 15 asserções sobre três árvores sintéticas
+  (viva, expurgada, com resíduo).
+- `motor/servidor/raiz.js` — `lerComercial` passa `semRegisto`; `estadoDoExpurgo` ganha o ramo da
+  ausência de cadastro.
+- Três provas que mediam o mundo de antes, e passaram a medir o de hoje: `provar-expurgo-sem-listagem`
+  (a lista de chaves fixas cresceu de 9 para 16 — a asserção deixou de fixar o número e passou a
+  medir **cobertura** e **tentativas**), `provar-expurgo-raiz` (a carência e a auditoria da
+  proveniência vêm **antes** da morada; o cenário passou a ter uma escola suspensa com a carência
+  vencida, e o caminho até à morada passou a ser o do `forcar` declarado) e `provar-indice-do-recorte`
+  (o bloco mudou para a aba 2 da Audição em `ba76c401` e o título foi corrigido para «Recorte» em
+  `38cab0e2`; a prova ficou treze dias a exigir o ecrã antigo).
+- `experimentos/provar-expurgo-leitura-atrasada.js` e `provar-os-fluxos-da-derivacao.js` — as duas
+  passaram a ler o que **é** em vez do que era (ordem relativa dos passos; a lista de rotas vem do
+  módulo que a exporta desde 20/11).
+
+**Com o quê.** `ARQUITETURA-AULA.md`, `escola/conferir-expurgo.js`,
+`experimentos/provar-conferir-expurgo.js`, `experimentos/provar-expurgo-sem-listagem.js`,
+`experimentos/provar-expurgo-raiz.js`, `experimentos/provar-indice-do-recorte.js`,
+`experimentos/provar-expurgo-leitura-atrasada.js`, `experimentos/provar-os-fluxos-da-derivacao.js`,
+`motor/servidor/raiz.js`, `.gitignore`, `ESTADO-ATUAL.md`.
+
+**Referências.** `CONGELAMENTO.md` (nenhum congelado tocado — `escola/` não está na lista, e
+`experimentos/` é demonstrativo); `ARQUITETURA-AULA.md` §4.5; `ARQUITETURA-GERAL.md` §4;
+`IDENTIDADE-VISUAL.md` (nenhuma peça nova na tela — o conferidor é de consola).
+
+**MEDIDO.** A bateria do expurgo, **14 provas verdes**: `bancadas-e-expurgo` 16, `cartas-do-expurgo`
+25, `dono-do-expurgo` 11, `elo-do-expurgo` ok, `expurgo-do-professor-compartilhado` 13,
+`expurgo-por-carencia` 34, `lista-do-expurgo` 26, `o-expurgo-do-financeiro` 15,
+`proveniencia-do-expurgo` 38, `expurgo-sem-listagem` 49, `expurgo-raiz` ok,
+`expurgo-leitura-atrasada` 45, `conferir-expurgo` 15, `os-fluxos-da-derivacao` 74. As que atravessam
+o mesmo caminho: `a-carencia-nao-se-burla` 58, `conciliacao-do-painel` 35, `financeiro` 58,
+`financeiro-da-escola` 135, `cofre-e-shard` 138, `indice-do-recorte` 24. Nas quatro escolas:
+`batata` **0** arquivos, `calango` **0**, `duo` **0** — último acto é o expurgo, nenhum resíduo sem
+razão, o nome **livre** para criar; `breu` **266** arquivos e **viva**.
+
+**O que ainda não está feito.**
+- **A metade do KV não foi medida daqui.** `provar-expurgo-kv` exige `CLOUDFLARE_API_TOKEN` e o
+  namespace real (11 asserções, todas `HTTP 401` sem ele). Fica a autoridade do relatório da página.
+- **Não há portão N-1**: a Aula N pode nascer antes de a N-1 ter os dados do formulário. Ela disse
+  «por enquanto não faz, mas tome nota disso».
+- **O pacote da turma `rosa` da `breu`** colide com uma escola nova com o mesmo nome: a escola passa,
+  a **turma** é que recusa. Criar com **outro nome de turma**, ou deixar o expurgo levar o pacote.

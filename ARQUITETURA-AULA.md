@@ -563,6 +563,75 @@ acervo.
 > **O que falta:** `Tempos` e `Compasso` nascem vazios no documento da aula nova. O lugar deles é o
 > verbete do exercício — é de lá que a música vem —, e é a peça seguinte.
 
+### 4.5 O fluxo inteiro, do zero à Aula 02 — medido a 22/11/2026
+
+> **Para quem vai expurgar a escola e recomeçar.** Esta secção é a ordem completa, e cada passo diz
+> **o que fica escrito** — ficheiro e chave — para se poder conferir onde parou. É a resposta à
+> pergunta dela: «Eu preciso entender do fluxo como é que nasce a aula dois.»
+
+**As quatro coisas que já existem antes de qualquer aula**, e nenhuma delas é um campo que se
+digite à mão:
+
+| o que | onde vive | de onde vem |
+|:--|:--|:--|
+| o **acervo** | `escola/<escola>/envelopes/*.json` | cada resposta elicitada, um envelope com carimbo |
+| o **calendário** | `contexto-calendario` (início, fim) e `contexto-frequencia` (dias e hora), no plano | **da Turma** — `periodoInicio`, `periodoFim`, `dias`, `horarios` |
+| o **contador de aulas** | `contexto-total-aulas`, no plano | **calculado**: `aulasNoPeriodo()` conta os dias da semana da Turma que caem dentro do período (`motor/servidor/compor-conf.js:85`). O professor pode corrigir — feriado, recesso —, e o valor corrigido é o que vale |
+| a **Aula 01** | `ciclo-NN-<escola>-<turma>-aula-01.md` | derivada sempre que o ciclo é escrito: `aulasParaDerivar` começa em `01`, e o ciclo não existe sem ela |
+
+**A ordem, e o que cada passo escreve.**
+
+| # | quem | o gesto | o que fica escrito |
+|:--|:--|:--|:--|
+| 1 | ela | cria a escola (`tools/criar-escola.sh`, ou a página de criação) | `wrangler.<escola>.jsonc` · `escola/<escola>/indice.json` (o **elo**, que sobrevive a tudo) · `professores/<p>/ciclos/ciclo-NN-<escola>.conf` · o pacote-zero `ciclo-NN-<escola>/` |
+| 2 | ela | **Salas** → cadastra a turma: período, dias da semana, hora e duração | KV `bastidores/<escola>/turmas` — é o **ritmo**, e é de lá que o plano lê calendário, frequência, duração e o contador |
+| 3 | ela | faz a **anamnese** de cada aluna | `escola/<escola>/envelopes/anamnese-<carimbo>.json` — respostas **cifradas**, metadado em claro |
+| 4 | ela | **Audição**: escolhe as alunas (passo 2), carrega em **«Ler as anamneses»** (passo 3), escolhe o **recorte** (passo 4) e conclui o elenco | `escola/<escola>/linhas-de-base/<id>--<carimbo>.json`, com `leitura` (o nível e o apoio de cada aspecto) e `campos` (o recorte) |
+| 5 | ela | **Plano de ensino**: responde o plano — com os quatro dados do ritmo já preenchidos da Turma | `escola/<escola>/envelopes/plano-<carimbo>.json` |
+| 6 | ela | **Plano de Observação**: responde o PO daquele plano | `escola/<escola>/envelopes/po-<carimbo>.json` |
+| 7 | o sistema | o **«Guardar»** do PO → `concluirPO` → `escreverCiclo` | as fontes: `<…>-plano.md`, `<…>-aula-01.md`, `<…>-captura-aula-01.md`, `<…>-po.md`, `<…>-dados.json` — e o `DOCS` do `.conf` cresce com `aula-01` e `captura-aula-01` |
+| 8 | a geração | o ciclo é gerado e publicado | `ciclo-NN-<escola>-<turma>/aula-01.html`, `/aulas/`, o menu |
+
+**É aqui que a Aula 02 nasce, e são cinco factos em cadeia** — nenhum deles é pedido a ninguém:
+
+1. **A linha do calendário existe.** O plano declara `contexto-total-aulas` ≥ 2; a tabela da página
+   do plano mostra uma linha por aula (data, dia, duração) e a quinta coluna, **«Ação»**. As aulas
+   `01..N` que já têm documento mostram **«Abrir»**; a `02`, que ainda não tem, mostra **«Criar»**.
+2. **O gesto recolhe o que falta para AQUELA aula.** A janela pede o objetivo (o marco, se o plano
+   já o declara), os **exercícios** que o trabalham e os **blocos** onde ele acontece, e manda
+   `POST /plano-ensino/api/elicitar` com o plano anterior como `ajuste_de`. O botão leva só
+   `data-criar-aula="02"`; a data, o dia e a duração ficam na linha da tabela — uma segunda cópia
+   seria uma segunda verdade.
+3. **A elicitação aceita as chaves da família.** `lerChaveDaAula` reconhece
+   `aula-N-<parametro|sequencia|objetivo>`, e o número tem de caber no `contexto-total-aulas` do
+   plano. É o que faz `aula-2-parametro` e `aula-2-sequencia` **entrarem** no envelope — o conteúdo
+   do plano declara só a família da Aula 01, e sem esta regra a resposta era descartada em silêncio.
+4. **O manifesto cresce pela regra derivada.** `aulasDeclaradasPeloPlano(plano)` devolve
+   `['01','02']`, e `docsComAsAulas(docs, plano)` põe `aula-02` e `captura-aula-02` na posição da
+   família. A mesma função serve os **três** caminhos de escrita (`escrever-plano.js`,
+   `escrever-ciclo.js`, `compor-conf.js`) — foi a cópia à mão no terceiro que fez a aula existir no
+   acervo e não no pacote.
+5. **O derivador escreve o documento dela.** `aulasParaDerivar` inclui as aulas do `DOCS` e as que
+   o plano declara; `derivarAula({nn:'02'})` escreve `-aula-02.md` e `-captura-aula-02.md` com o
+   número dela dentro, e a página passa a oferecer **«Abrir»** na linha da 02 e em `/aulas/`.
+
+**Uma coisa que o fluxo NÃO faz ainda, e é declarada.** Não há trava entre a aula N-1 e a aula N: o
+botão «Criar» da aula 02 está habilitado enquanto a 01 não tiver os dados do formulário recolhidos.
+Ela pediu a regra e pediu para tomar nota — «por enquanto não faz, mas tome nota disso, porque
+nenhuma aula pode ser criada antes da aula anterior ter sido dada». Fica aqui, ao lado do resto, para
+não se perder. (`Tempos` e `Compasso` vazios na aula nova são a outra pendência, e a casa deles é o
+verbete do exercício.)
+
+**A conferência, depois de recriar a escola.** Cada passo acima deixa um rasto que se mede:
+
+```bash
+node escola/conferir-expurgo.js <escola>        # o que resta de uma escola expurgada, e por quê
+node tools/regerar-derivados.js <p> <NN> <escola>-<turma> --elenco=<id>   # as fontes derivadas
+node tools/check-pacote.js professores/<p>/ciclos/ciclo-NN-<escola>-<turma>
+bash tools/hash-ciclo.sh <p> <NN> <escola>-<turma> --check
+node experimentos/provar-criar-aula.js          # o gesto da Aula 02, com Chrome
+```
+
 ## 5. A âncora por aula
 
 ### 5.1 O que existe hoje

@@ -1820,3 +1820,8 @@ experimentos/modelo-formulario/*
 # cada aluna registou e a frase que a AULA vai imprimir na coluna «o que se observa». Só faz `GET`;
 # não escreve nada e não deixa saída em ficheiro.
 !experimentos/mostrar-o-que-se-observa.js
+
+# A PROVA DO CONFERIDOR DO EXPURGO (22/11/2026): três árvores sintéticas — uma escola viva, uma
+# expurgada e uma com resíduo —, para que «o que fica depois do expurgo» seja medido e não afirmado.
+# É a prova de `escola/conferir-expurgo.js`, que lê o repositório local e não fala com ninguém.
+!experimentos/provar-conferir-expurgo.js

@@ -1604,14 +1604,26 @@ async function regimeDeTeste(kv, agora) {
 function estadoDoExpurgo(comercial, opcoes) {
   const agora = (opcoes && opcoes.agora) || Date.now();
   const regimeDesde = (opcoes && opcoes.regimeDesde) || null;
+  const semCadastro = !comercial || typeof comercial !== 'object' || comercial.semRegisto === true;
   const c = comercial || {};
   const estado = String(c.estado || ESTADOS_COMERCIAL[1] || 'ativa');
   const desabilitadaEm = c.desabilitadaEm || null;
   const base = {
-    pode: false, estado, desabilitadaEm,
+    pode: false, estado, desabilitadaEm, semCadastro,
     carenciaAte: carenciaAte(desabilitadaEm), restanteMs: null,
     regimeDesde,
   };
+  /* SEM CADASTRO NÃO SE AFIRMA ESTADO (22/11/2026). Antes, a ausência de registo comercial caía no
+   * `|| 'ativa'` e a resposta dizia «A escola está habilitada» — uma afirmação sobre um facto que
+   * ninguém mediu. Aconteceu a medir com o nome que não existe: a rota recusava bem (pode: false)
+   * mas pelo motivo errado, e o motivo é o que o professor lê. Um registo ausente tem a sua
+   * própria frase, e a recusa continua a ser recusa. */
+  if (semCadastro) {
+    return Object.assign(base, {
+      motivo: 'Não há cadastro comercial desta escola — e sem cadastro não há como saber que ela '
+        + 'está suspensa.',
+    });
+  }
   if (estado !== 'suspensa') {
     return Object.assign(base, {
       motivo: estado === 'aguardando'
@@ -1897,7 +1909,10 @@ async function lerEnsaio(kv, escola) {
 }
 
 async function lerComercial(kv, escola) {
-  const vazio = { estado: 'ativa', motivo: 'sem registo comercial', plano: null, valor: null };
+  /* `semRegisto` NÃO É DECORAÇÃO (22/11/2026): é o que permite a `estadoDoExpurgo` dizer «não há
+   * cadastro desta escola» em vez de «a escola está habilitada» — a segunda frase afirma um estado
+   * que ninguém leu. `estado: 'ativa'` fica por compatibilidade com quem já o lê. */
+  const vazio = { estado: 'ativa', motivo: 'sem registo comercial', semRegisto: true, plano: null, valor: null };
   if (!kv || typeof kv.get !== 'function' || !escola) return vazio;
   try {
     const texto = await kv.get(chaveComercial(escola));
