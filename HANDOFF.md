@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T15:52:31-0300`
-Commit atual: `b78a5f00` — fix(po): cada aula imprime o seu marco, e mede pela régua da turma
+Gerado em: `2026-11-22T17:15:14-0300`
+Commit atual: `d958b812` — feat(aula-01): o §1 diz quem dá a aula, onde e em que dia — e o §5 leva ao formulário
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,8 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+d958b812 feat(aula-01): o §1 diz quem dá a aula, onde e em que dia — e o §5 leva ao formulário
+e504f372 docs(estrutura): a fotografia da aula que diz só o que é dela
 b78a5f00 fix(po): cada aula imprime o seu marco, e mede pela régua da turma
 070415c2 docs(estrutura): a fotografia da folha que mede o conteúdo e do painel empilhado
 a9a62ab1 fix(estrutura): o painel inicial empilha os blocos, como ela aprovou
@@ -100,8 +102,6 @@ de95569a docs(estrutura): o defeito que só apareceu ao vivo, e a terceira cópi
 7cbec16a fix(estrutura): o pacote da escola zero é regerado com o menu de um destino
 b4ade3d6 fix(tools): o scaffold da escola também nasce com um destino em Bastidores
 1a221aae feat(estrutura): a produção passa a chamar-se estúdio — e a cena sai de Bastidores
-57523da5 refactor(tools): o menu de Bastidores passa a ter um destino
-d85c42c1 fix(estrutura): a coluna do corpo nasce pela régua, e o plano de ensino da escolha passa a ser um só
 ```
 
 ## Por professor
@@ -128,7 +128,7 @@ d85c42c1 fix(estrutura): a coluna do corpo nasce pela régua, e o plano de ensin
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `59b86b60252a` | (vazio) | — |
-| breu-rosa | ciclo-01-breu-rosa.fipp | `741fdb26d079` | (vazio) | Input_PO_Validado |
+| breu-rosa | ciclo-01-breu-rosa.fipp | `ea40f934b43c` | (vazio) | Input_PO_Validado |
 
 ### fernando-franciose — 0 ciclo(s)
 
@@ -195,69 +195,76 @@ d85c42c1 fix(estrutura): a coluna do corpo nasce pela régua, e o plano de ensin
 
 ## Última entrada do REGISTRO
 
-## 22/11/2026 — A aula diz só o que é dela: o §1 imprime o seu marco, o §5 mede pela régua da turma
+## 22/11/2026 — O §1 diz quem dá a aula, onde e em que dia; o §5 leva ao formulário (motivo declarado)
 
-**O que motivou.** Ela abriu a Aula 01 da `breu` e viu duas coisas que não são daquela aula:
+**O que motivou.** Duas faltas no mesmo documento, na Aula 01 da `breu`:
 
-1. «na linha que fala parâmetro de medição, tá aparecendo aqui todos os objetivos específicos, os
-   marcos estão todos e aqui tem que ter apenas o marco que diz respeito a essa aula, que neste caso
-   é o marco um […] os outros marcos que estão aqui, o dois e o três, não deveriam estar aqui […]
-   cada aula tem o seu objetivo específico, ou seja, cada aula com o seu próprio marco.»
-2. «no item cinco, guia de observação do professor […] tá usando uma matriz de medição que não
-   existe mais. Aconteceu, parcial, não aconteceu, não vi. Isso aqui é texto escrito duro, não é
-   criado dinamicamente […] quando o professor cria a matriz lá em bastidores, ele tem a própria
-   rubrica, e a matriz de rubrica dele é outra.»
+1. «falta dizer quem é o professor responsável pela aula, aonde essa aula acontece, aonde eu me
+   refiro à sala, qual é o espaço que acontece essa aula e o dia da semana que isso acontece. […]
+   Você não vai transformar isso aqui num calendário, viu? Você vai dizer o dia específico, a data e
+   o dia da semana específico.»
+2. «nesse guia de observação do professor, a gente tem que explicar para ele que ele tem que
+   preencher o formulário da aula que ele vai dar. E o que que representa aqui neste documento cada
+   um dos espaços dos blocos que expande ou colapsa […] um botão com essa explicação melhorada e um
+   botão em seguida que leva direto ao formulário.»
 
-**As duas têm a mesma forma: o documento da aula a dizer o que não é dela.** E as causas são
-diferentes, o que é o que faz valer a pena escrevê-las:
-
-- **O §1 herdava a matriz do CICLO.** O «Parâmetro de medição» é um quadro objetivo × exercício, e
-  o formulário grava-o inteiro na chave da aula (`aula-1-parametro` traz os marcos **1, 2 e 3**).
-  O derivador lia-o inteiro e imprimia os três no §1 de uma aula que tem um. Um documento que
-  imprime o objetivo da Aula 03 na Aula 01 é o mesmo defeito do `estrutura-de-cada-aula` a dizer
-  quais blocos a aula tem: o dado de um lugar a responder por outro.
-- **O §5 trazia a régua do CÓDIGO.** A nota dizia «✓ aconteceu · ~ parcial · X não aconteceu · ? não
-  vi», texto fixo — a matriz que o produto abandonou quando a folha de captura passou a medir cada
-  critério pela **régua da turma** (entrada de 22/11/2026, «uma régua só»). A aula ficou a ensinar
-  uma escala que já não existe, e a legenda da folha de captura dizia os níveis «por exemplo»
-  (`satisfatório · razoável · …`) escritos à mão.
+**O que era.** O §1 dizia o objetivo, o parâmetro, a duração e o volume — nada sobre quem, onde ou
+quando. A data existia como **lacuna declarada** (`identificacao.dataEHorarioDestaAula: «a data
+desta aula não está na fonte»`), e era **falsa**: a data estava na fonte que a própria lacuna
+nomeava — o `.conf` da variante, com `DATA_INICIO`, `DIAS` e `TOTAL_AULAS` (Regra 10, camada 2). E
+o §5 explicava o que observar, mas não dizia que o registo se faz **noutro sítio** — o formulário —,
+nem o que cada bloco dele representa.
 
 **O que foi decidido.**
-- **O escopo do §1 é DADO, não presumido.** `marcosDaAula(plano, nn)` lê `aula-de-cada-objetivo`
-  (`{objetivo, aulas}`) — porque um objetivo pode atravessar duas aulas — e cai na Regra 2 (marco N
-  → Aula N) quando o plano não declara o mapa. `parametroEmLinhas` ganha um quarto argumento
-  opcional com esse escopo: **sem ele nada se filtra** (a bancada do exercício novo quer ver a
-  matriz do ciclo), **com ele filtra** — e quando nada sobra, o resultado é vazio, não a matriz
-  toda: a aula declara a lacuna em vez de receber de empréstimo o parâmetro de outra.
-- **A régua é a mesma do plano de ensino, e a mesma função a lê.** O §5 passa a dizer «o que se
-  anota é o **nível da régua desta turma**: <os níveis>», com `niveisDaRubrica(resp(plano,
-  'rubrica'))` — que é exactamente o que a secção «Régua da rubrica» do plano imprime. Uma régua,
-  um leitor: a aula não abre uma segunda lista de níveis nem uma segunda regra para quando eles
-  faltam (a falta já está dita no plano).
-- **A legenda da folha de captura mudou com ela**, pela mesma razão: dizia os níveis «por exemplo»
-  e mandava marcar o corpo pelas cinco marcas, quando o corpo já se mede pela régua como todo o
-  resto (`declaracaoDeCaptura`, `TIPO_DO_CRITERIO`). Passa a dizer os níveis declarados e a
-  distinguir «não alcançado» de «não observei» com a única escala que existe.
+- **A CONTA DO CALENDÁRIO PASSA A EXISTIR EM JAVASCRIPT** — `motor/nucleo/calendario-das-aulas.js`,
+  com a regra do `calendario.py` copiada e não reinventada (a primeira aula é a primeira ocorrência
+  de um dia da turma a partir do início; um dia repetido na lista gera duas aulas na mesma data). As
+  duas implementações dão as **mesmas 15 datas** — é o que a prova mede contra o `ciclos.json`
+  publicado, que o Python gerou.
+- **O §1 ganha três linhas, e uma data não é um calendário.** `Professor responsável` (o **nome do
+  perfil**, com o slug como reserva — o `PROFESSOR` do `.conf` é o slug e o `RESPONSAVEL` é o da
+  escola), `Sala` (a turma do plano — é ela que o produto chama «sala» desde 07/11/2026) e `Data e
+  dia` (`segunda-feira, 14/12/2026`). Sem calendário no contexto, a linha declara a lacuna **e
+  nomeia os três campos do manifesto** — um documento que não sabe não inventa uma data.
+- **A LACUNA DO VALIDADOR SAIU.** `tools/validar-aula-ciclo.js` declarava `dataEHorarioDestaAula`
+  como lacuna; com a linha nova, o mesmo `identificacao` dizia o dado e a lacuna sobre o mesmo
+  facto. A lista fica vazia, com o motivo escrito ao lado — e o nome do campo antigo continua no
+  comentário, porque o registo do que saiu é informação.
+- **O §5 explica o formulário e leva lá.** Uma frase que diz para que serve o guia («o registo
+  faz-se no formulário»), dois botões — `.acao` é o botão da casa, e o do formulário é
+  **relativo** (`lancamento.html`) porque o formulário viaja ao lado do documento no pacote e o
+  derivador não conhece a pasta da turma —, e a explicação bloco a bloco dentro de um `<details>`
+  (`.bloco-lista`/`.bloco-cabeca`), **dita em relação a este documento**: «o Presentes é a coluna de
+  alunas das tabelas de cada eixo», «o número ao lado do nome do eixo é o que já foi preenchido».
+  Os blocos descritos são os que o formulário desenha: Presentes · Data e duração · Ânimo,
+  interesse e harmonia · Corpo·Técnica·Poiesis · Depois da aula.
 
-**Com o quê.** `motor/nucleo/derivar-plano-ciclo.js` (`marcosDaAula`, e o escopo em
-`parametroEmLinhas`), `motor/nucleo/derivar-ciclo.js` (o §1 e as duas notas do §5 e da captura), as
-fontes derivadas e o pacote da `breu-rosa` regerados, a âncora recalculada,
-`experimentos/provar-a-aula-diz-so-o-que-e-dela.js` (**novo**), `experimentos/provar-aula-prosa.js`
-(a asserção que fixava o texto morto passa a medir a régua), `.gitignore`, `ESTADO-ATUAL.md`.
+**Motivo declarado — os congelados.** `tools/validar-aula-ciclo.js` está em `CONGELAMENTO.md`, e a
+alteração muda **comportamento**: a chave `identificacao.dataEHorarioDestaAula` deixa de ser escrita
+como lacuna. Foi pedido pela proprietária («você vai colocar esses itens que estão faltando»), e vai
+no mesmo commit que a linha que a torna desnecessária. **O que não muda**: o formato dos documentos,
+as chaves que o schema exige (a antiga não é exigida), o hash de proveniência, e as regras de
+`REGRAS.md` e as pétreas de `PROTOCOLO.md`.
 
-**MEDIDO.** `provar-a-aula-diz-so-o-que-e-dela` **25/25**. O §1 da Aula 01 passou de «**1**… · **2**…
-· **3**…» a «**1** reconhecer o apoio e alinhar o eixo vertical — observa: Battement tendu · Plié ·
-Relevé · Battement jeté»; o da Aula 02 já estava certo (o formulário grava-a certa para a aula 2) e
-recebeu só a nota nova; o §5 das duas e as duas folhas de captura passam a nomear «Satisfatório ·
-Razoável · Em desenvovimento · Não se aplica» — os níveis que **a turma declarou**, com o erro de
-grafia dela preservado (o dado não se corrige por baixo). Com o **controle negativo**
-`--contra=070415c2`, as mesmas asserções reprovam **16 de 25** e mostram o defeito: `["1","2","3"]`
-no §1, e as marcas mortas nos quatro documentos. `check-pacote` 0 erros, `hash-ciclo --check`
-íntegro, `check-identidade` 0 problemas, `provar-cadeia-automatica` 135/135,
-`provar-o-exercicio-novo` 55/55, `provar-estante-do-po` 33/33, `provar-uma-regua-so` 17/17.
-**`provar-aula-prosa` cai** numa asserção anterior (`resposta ao pulso na marcação` não existe no
-`.md` deste ciclo, e não existia antes desta mudança) — verificado com o `.md` de `HEAD`: falha no
-mesmo sítio.
+**Com o quê.** `motor/nucleo/calendario-das-aulas.js` (**novo**), `motor/nucleo/derivar-ciclo.js` (o
+§1 e o §5), `motor/servidor/escrever-ciclo.js` (`calendarioDoConf`, a leitura do perfil, e as duas
+coisas no contexto da derivação), `tools/regerar-derivados.js` (o mesmo, do lado local),
+`tools/validar-aula-ciclo.js` (a lacuna), as fontes derivadas e o pacote da `breu-rosa` regerados, a
+âncora recalculada, `experimentos/provar-a-identidade-da-aula.js` (**novo**), `.gitignore`,
+`ESTADO-ATUAL.md`.
+
+**MEDIDO.** `provar-a-identidade-da-aula` **26/26**: as três linhas com o dado de cada uma; a data
+igual à do `ciclos.json` publicado e o dia da semana conferido pelo `Intl` do Node (uma segunda
+implementação, não a que escreveu); a Aula 02 com a data dela (quarta-feira, 16/12/2026); **uma só
+data no §1** (a asserção que impede o calendário); a lacuna a nomear `DATA_INICIO`/`DIAS`/
+`TOTAL_AULAS` quando não há calendário; os dois botões, com o `lancamento.html` ao lado do
+documento no pacote; a explicação a nomear os cinco blocos; as seis peças na folha. Com o **controle
+negativo** `--contra=e504f372`, as mesmas asserções reprovam **17 de 26** — sem as três linhas, sem
+os botões, e com o `plano-aula-01.json` a declarar a lacuna. `check-pacote` 0 erros,
+`hash-ciclo --check` íntegro, `check-identidade` **0 problemas**, `provar-a-aula-diz-so-o-que-e-dela`
+25/25. **`provar-aula-prosa` continua a cair** na mesma asserção anterior (o critério «resposta ao
+pulso na marcação» não existe neste `.md`) — e a geração da prosa preserva os botões e o `<details>`,
+medido.
 
 ## O que está pendente
 

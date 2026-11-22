@@ -4,7 +4,14 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 22/11/2026 (commit `a9a62ab1`, e a aula corrigida a seguir). Ainda neste dia,
+> **Última fotografia:** 22/11/2026 (commit `e504f372`, e o §1 da aula corrigido a seguir). Ainda
+> neste dia, **a aula passou a dizer quem a dá, em que sala e em que dia**: o §1 tinha o objetivo, o
+> parâmetro, a duração e o volume, e nada de professor, sala ou data — e a data existia como lacuna
+> declarada sobre uma fonte que a tinha. E o **§5 passou a levar ao formulário**: explica para que
+> serve o guia, o que cada bloco do formulário pede, e tem os dois botões — o da explicação e o do
+> lançamento.
+>
+> **Fotografia anterior (22/11/2026 — commit `a9a62ab1`, e a aula corrigida a seguir).** Ainda neste dia,
 > **a aula deixou de dizer o que não é dela**: o §1 imprimia os três marcos do ciclo na Aula 01
 > («cada aula tem o seu objetivo específico, ou seja, cada aula com o seu próprio marco») e o §5
 > ensinava a matriz que o produto abandonou («✓ aconteceu · ~ parcial · …», texto fixo). O §1 passa
@@ -3296,6 +3303,20 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      «por exemplo» e mandava o corpo pelas cinco marcas quando o corpo já se mede pela régua.
      **DECIDIDO** 22/11/2026.
 
+150. **A AULA DIZ QUEM A DÁ, ONDE E EM QUE DIA — E O GUIA LEVA AO FORMULÁRIO.** Palavras dela: «falta
+     dizer quem é o professor responsável pela aula, aonde essa aula acontece, aonde eu me refiro à
+     sala […] e o dia da semana […] Você não vai transformar isso aqui num calendário, viu?» O §1
+     ganha três linhas — `Professor responsável` (o nome do **perfil**, com o slug como reserva: o
+     `PROFESSOR` do `.conf` é o slug e o `RESPONSAVEL` é o da escola), `Sala` (a turma do plano) e
+     `Data e dia` (`segunda-feira, 14/12/2026`) —, e **uma data não é um calendário**. A conta do
+     calendário passa a existir em JavaScript (`motor/nucleo/calendario-das-aulas.js`), com a regra
+     do `calendario.py` copiada: as duas dão as mesmas 15 datas, medido contra o `ciclos.json`. A
+     **lacuna `dataEHorarioDestaAula` saiu** do validador — era falsa: a data estava no `.conf` que
+     a própria lacuna nomeava. E o §5 diz que o registo se faz no formulário, com **dois botões**
+     (`.acao`, o da casa): o que abre a explicação bloco a bloco e o que leva lá — **relativo**
+     (`lancamento.html`), porque o formulário viaja ao lado do documento no pacote. **DECIDIDO**
+     22/11/2026.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -4111,7 +4132,18 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (22/11/2026 — a aula diz só o que é dela)
+### Executado nesta fotografia (22/11/2026 — quem dá a aula, onde, e em que dia)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-a-identidade-da-aula.js` | **26/26** — as três linhas do §1 com o dado de cada uma (o nome do perfil, a turma do plano, a data da aula); a data igual à do `ciclos.json` publicado e o dia da semana conferido pelo `Intl` do Node; a Aula 02 com a data dela; **uma só data no §1**; a lacuna a nomear `DATA_INICIO`/`DIAS`/`TOTAL_AULAS` quando não há calendário; os dois botões, com o `lancamento.html` ao lado do documento; a explicação a nomear os cinco blocos; as seis peças na folha. Controle `--contra=e504f372`: **17 de 26 reprovam** |
+| `node experimentos/provar-a-aula-diz-so-o-que-e-dela.js` | 25/25 (inalterado) |
+| `node tools/check-pacote.js professores/demi-plie/ciclos/ciclo-01-breu-rosa` | 0 erros (1 aviso: o PDF, por desenho) |
+| `bash tools/hash-ciclo.sh demi-plie 01 breu-rosa --check` | íntegro, cadeia intacta |
+| `node tools/check-identidade.js` | **0 problemas** |
+| `node experimentos/provar-aula-prosa.js` | **cai** na mesma asserção anterior (o critério «resposta ao pulso na marcação» não existe neste `.md`); a geração da prosa preserva os botões e o `<details>`, medido |
+
+### Executado na fotografia anterior (22/11/2026 — a aula diz só o que é dela)
 
 | Verificação | Resultado |
 |:--|:--|
