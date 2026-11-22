@@ -4,7 +4,14 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 22/11/2026 (commit `a9a62ab1`). Ainda neste dia, **a folha do menu deixou de
+> **Última fotografia:** 22/11/2026 (commit `a9a62ab1`, e a aula corrigida a seguir). Ainda neste dia,
+> **a aula deixou de dizer o que não é dela**: o §1 imprimia os três marcos do ciclo na Aula 01
+> («cada aula tem o seu objetivo específico, ou seja, cada aula com o seu próprio marco») e o §5
+> ensinava a matriz que o produto abandonou («✓ aconteceu · ~ parcial · …», texto fixo). O §1 passa
+> a ler o marco **declarado** para aquela aula, e o §5 a nomear a **régua da turma**. E a escola
+> `breu` continua a ser o campo de prova: os dois defeitos foram vistos no documento publicado.
+>
+> **Fotografia anterior (22/11/2026 — commit `a9a62ab1`).** Ainda neste dia, **a folha do menu deixou de
 > ter uma altura fixa** («ela não cobre tudo na expansão, ela fica faltando um pedaço sempre»):
 > medido a 1024×640, com os grupos abertos, 587px de conteúdo numa caixa de 499 — 88px de menu fora
 > do fundo. A folha passa a medir o conteúdo, com o ecrã como único tecto, e o acordeão abandona o
@@ -3274,6 +3281,21 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      mede nasce nos dois produtores (`grupoDoMenu` e `motor/nucleo/nav.js`) no mesmo commit que a
      folha. **DECIDIDO** 22/11/2026.
 
+149. **CADA AULA IMPRIME O SEU MARCO, E MEDE PELA RÉGUA DA TURMA.** Palavras dela, na Aula 01 da
+     `breu`: «na linha que fala parâmetro de medição, tá aparecendo aqui todos os objetivos
+     específicos […] aqui tem que ter apenas o marco que diz respeito a essa aula […] cada aula tem
+     o seu objetivo específico». E, no §5: «tá usando uma matriz de medição que não existe mais.
+     Aconteceu, parcial, não aconteceu, não vi. Isso aqui é texto escrito duro, não é criado
+     dinamicamente.» Duas causas diferentes, uma forma só — o documento da aula a dizer o que não é
+     dela. O §1 lia a matriz do CICLO inteira (o formulário grava os três marcos na chave da aula):
+     passa a ler o escopo declarado — `marcosDaAula` lê `aula-de-cada-objetivo`, com a reserva da
+     Regra 2, e `parametroEmLinhas` filtra por ele; **sem escopo não se filtra** (a bancada quer a
+     matriz do ciclo) e **sem marco, a lacuna nomeia a aula em vez de herdar**. O §5 passa a dizer
+     «o nível da régua desta turma: <níveis>», por `niveisDaRubrica` — a MESMA função e a mesma
+     fonte do plano de ensino. A legenda da folha de captura muda com ela, porque dizia os níveis
+     «por exemplo» e mandava o corpo pelas cinco marcas quando o corpo já se mede pela régua.
+     **DECIDIDO** 22/11/2026.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -4089,7 +4111,18 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (22/11/2026 — a altura da folha, o empilhado, e o caminho do pacote)
+### Executado nesta fotografia (22/11/2026 — a aula diz só o que é dela)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-a-aula-diz-so-o-que-e-dela.js` | **25/25** — o §1 da Aula 01 passa de três marcos a um; a Aula 02 mostra o 2; o escopo segue `aula-de-cada-objetivo` (objetivo em duas aulas aparece nas duas); sem escopo a matriz inteira continua a sair; sem parâmetro a lacuna nomeia o marco e não herda; o §5 nomeia os níveis declarados, e com outra régua no plano é a outra que imprime; a matriz morta não está em documento nenhum. Controle `--contra=070415c2`: **16 de 25 reprovam**, com `["1","2","3"]` no §1 e as marcas mortas nos quatro documentos |
+| `node tools/check-pacote.js professores/demi-plie/ciclos/ciclo-01-breu-rosa` | 0 erros (1 aviso: o PDF, por desenho) |
+| `bash tools/hash-ciclo.sh demi-plie 01 breu-rosa --check` | íntegro, cadeia intacta (`741fdb26…`) |
+| `node tools/check-identidade.js` | **0 problemas** |
+| `provar-cadeia-automatica` · `provar-o-exercicio-novo` · `provar-estante-do-po` · `provar-uma-regua-so` | 135/135 · 55/55 · 33/33 · 17/17 |
+| `node experimentos/provar-aula-prosa.js` | **cai** numa asserção anterior (`resposta ao pulso na marcação` não existe no `.md` deste ciclo) — verificado com o `.md` de `HEAD`: falha no mesmo sítio |
+
+### Executado na fotografia anterior (22/11/2026 — a altura da folha, o empilhado, e o caminho do pacote)
 
 | Verificação | Resultado |
 |:--|:--|

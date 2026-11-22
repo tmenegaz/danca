@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T15:03:30-0300`
-Commit atual: `a9a62ab1` — fix(estrutura): o painel inicial empilha os blocos, como ela aprovou
+Gerado em: `2026-11-22T15:52:31-0300`
+Commit atual: `b78a5f00` — fix(po): cada aula imprime o seu marco, e mede pela régua da turma
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,8 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+b78a5f00 fix(po): cada aula imprime o seu marco, e mede pela régua da turma
+070415c2 docs(estrutura): a fotografia da folha que mede o conteúdo e do painel empilhado
 a9a62ab1 fix(estrutura): o painel inicial empilha os blocos, como ela aprovou
 b7162e9c fix(template): a folha do menu mede o conteúdo, e o acordeão deixa de ter tecto
 a61d4ddb docs(estrutura): a fotografia regista o id carimbado e a pasta da turma
@@ -100,8 +102,6 @@ b4ade3d6 fix(tools): o scaffold da escola também nasce com um destino em Bastid
 1a221aae feat(estrutura): a produção passa a chamar-se estúdio — e a cena sai de Bastidores
 57523da5 refactor(tools): o menu de Bastidores passa a ter um destino
 d85c42c1 fix(estrutura): a coluna do corpo nasce pela régua, e o plano de ensino da escolha passa a ser um só
-6c17f241 fix(tools): a folha de lançamento mede o corpo pela régua da turma, e não pelas marcas
-feac5b03 fix(estrutura): o nome da turma não é do sistema — e a metade do KV passa a ser lida
 ```
 
 ## Por professor
@@ -128,7 +128,7 @@ feac5b03 fix(estrutura): o nome da turma não é do sistema — e a metade do KV
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `59b86b60252a` | (vazio) | — |
-| breu-rosa | ciclo-01-breu-rosa.fipp | `8f01f98fc765` | (vazio) | Input_PO_Validado |
+| breu-rosa | ciclo-01-breu-rosa.fipp | `741fdb26d079` | (vazio) | Input_PO_Validado |
 
 ### fernando-franciose — 0 ciclo(s)
 
@@ -195,32 +195,69 @@ feac5b03 fix(estrutura): o nome da turma não é do sistema — e a metade do KV
 
 ## Última entrada do REGISTRO
 
-## 22/11/2026 — O painel inicial empilha os blocos, como ela aprovou
+## 22/11/2026 — A aula diz só o que é dela: o §1 imprime o seu marco, o §5 mede pela régua da turma
 
-**O que motivou.** «no painel inicial você me apresentou no experimento, na parte de teste, os blocos
-empilhados e agora você colocou o breu do lado esquerdo, as salas do lado direito, um ao lado do
-outro, os elencos abaixo e as modalidades do lado direito. Então você me entregou duas linhas e duas
-colunas. Eu prefiro do jeito que eu aprovei. […] você precisa refazer isso.»
+**O que motivou.** Ela abriu a Aula 01 da `breu` e viu duas coisas que não são daquela aula:
 
-**O que era.** A bancada é uma página própria, com os cartões no fluxo. A página real põe a secção
-dentro da `.secao`, que é uma **grade de duas colunas** (formulário à esquerda, listagem à direita),
-e os quatro cartões caíam nela dois a dois. Medido a 1440: bordas esquerdas `[288, 748, 288, 748]` e
-topos `[471, 471, 669, 669]` — exactamente as duas linhas e duas colunas que ela descreveu. O modelo
-e o produto tinham o mesmo conteúdo e uma arrumação diferente, e foi o modelo que ela aprovou.
+1. «na linha que fala parâmetro de medição, tá aparecendo aqui todos os objetivos específicos, os
+   marcos estão todos e aqui tem que ter apenas o marco que diz respeito a essa aula, que neste caso
+   é o marco um […] os outros marcos que estão aqui, o dois e o três, não deveriam estar aqui […]
+   cada aula tem o seu objetivo específico, ou seja, cada aula com o seu próprio marco.»
+2. «no item cinco, guia de observação do professor […] tá usando uma matriz de medição que não
+   existe mais. Aconteceu, parcial, não aconteceu, não vi. Isso aqui é texto escrito duro, não é
+   criado dinamicamente […] quando o professor cria a matriz lá em bastidores, ele tem a própria
+   rubrica, e a matriz de rubrica dele é outra.»
 
-**O que foi decidido.** A secção do painel passa a **uma coluna** — `#sec-painel
-{grid-template-columns: minmax(0,1fr)}`, a mesma solução que «A escola» já usa desde 17/11 —, e o
-vão da grade (`.9rem`) é o que separa os blocos. Nenhuma peça nova: é a `.secao` a deixar de ter
-duas colunas onde só há um assunto.
+**As duas têm a mesma forma: o documento da aula a dizer o que não é dela.** E as causas são
+diferentes, o que é o que faz valer a pena escrevê-las:
 
-**Com o quê.** `motor/servidor/bastidores.js` (a regra da secção),
-`experimentos/provar-o-painel-empilhado.js` (**novo**), `.gitignore`, `ESTADO-ATUAL.md`.
+- **O §1 herdava a matriz do CICLO.** O «Parâmetro de medição» é um quadro objetivo × exercício, e
+  o formulário grava-o inteiro na chave da aula (`aula-1-parametro` traz os marcos **1, 2 e 3**).
+  O derivador lia-o inteiro e imprimia os três no §1 de uma aula que tem um. Um documento que
+  imprime o objetivo da Aula 03 na Aula 01 é o mesmo defeito do `estrutura-de-cada-aula` a dizer
+  quais blocos a aula tem: o dado de um lugar a responder por outro.
+- **O §5 trazia a régua do CÓDIGO.** A nota dizia «✓ aconteceu · ~ parcial · X não aconteceu · ? não
+  vi», texto fixo — a matriz que o produto abandonou quando a folha de captura passou a medir cada
+  critério pela **régua da turma** (entrada de 22/11/2026, «uma régua só»). A aula ficou a ensinar
+  uma escala que já não existe, e a legenda da folha de captura dizia os níveis «por exemplo»
+  (`satisfatório · razoável · …`) escritos à mão.
 
-**MEDIDO.** `provar-o-painel-empilhado` **20/20** a 1440×900, 1280×800, 1024×700 e 390×800: uma
-coluna, os quatro blocos com a mesma borda esquerda e a largura da secção, topo a crescer pela ordem
-da leitura (identidade → salas → elencos → modalidades). Com o **controle negativo**
-`--contra=a61d4ddb`, as mesmas asserções reprovam **8 de 20** e mostram o defeito: bordas
-`[288,748,288,748]`, topos `[471,471,669,669]`.
+**O que foi decidido.**
+- **O escopo do §1 é DADO, não presumido.** `marcosDaAula(plano, nn)` lê `aula-de-cada-objetivo`
+  (`{objetivo, aulas}`) — porque um objetivo pode atravessar duas aulas — e cai na Regra 2 (marco N
+  → Aula N) quando o plano não declara o mapa. `parametroEmLinhas` ganha um quarto argumento
+  opcional com esse escopo: **sem ele nada se filtra** (a bancada do exercício novo quer ver a
+  matriz do ciclo), **com ele filtra** — e quando nada sobra, o resultado é vazio, não a matriz
+  toda: a aula declara a lacuna em vez de receber de empréstimo o parâmetro de outra.
+- **A régua é a mesma do plano de ensino, e a mesma função a lê.** O §5 passa a dizer «o que se
+  anota é o **nível da régua desta turma**: <os níveis>», com `niveisDaRubrica(resp(plano,
+  'rubrica'))` — que é exactamente o que a secção «Régua da rubrica» do plano imprime. Uma régua,
+  um leitor: a aula não abre uma segunda lista de níveis nem uma segunda regra para quando eles
+  faltam (a falta já está dita no plano).
+- **A legenda da folha de captura mudou com ela**, pela mesma razão: dizia os níveis «por exemplo»
+  e mandava marcar o corpo pelas cinco marcas, quando o corpo já se mede pela régua como todo o
+  resto (`declaracaoDeCaptura`, `TIPO_DO_CRITERIO`). Passa a dizer os níveis declarados e a
+  distinguir «não alcançado» de «não observei» com a única escala que existe.
+
+**Com o quê.** `motor/nucleo/derivar-plano-ciclo.js` (`marcosDaAula`, e o escopo em
+`parametroEmLinhas`), `motor/nucleo/derivar-ciclo.js` (o §1 e as duas notas do §5 e da captura), as
+fontes derivadas e o pacote da `breu-rosa` regerados, a âncora recalculada,
+`experimentos/provar-a-aula-diz-so-o-que-e-dela.js` (**novo**), `experimentos/provar-aula-prosa.js`
+(a asserção que fixava o texto morto passa a medir a régua), `.gitignore`, `ESTADO-ATUAL.md`.
+
+**MEDIDO.** `provar-a-aula-diz-so-o-que-e-dela` **25/25**. O §1 da Aula 01 passou de «**1**… · **2**…
+· **3**…» a «**1** reconhecer o apoio e alinhar o eixo vertical — observa: Battement tendu · Plié ·
+Relevé · Battement jeté»; o da Aula 02 já estava certo (o formulário grava-a certa para a aula 2) e
+recebeu só a nota nova; o §5 das duas e as duas folhas de captura passam a nomear «Satisfatório ·
+Razoável · Em desenvovimento · Não se aplica» — os níveis que **a turma declarou**, com o erro de
+grafia dela preservado (o dado não se corrige por baixo). Com o **controle negativo**
+`--contra=070415c2`, as mesmas asserções reprovam **16 de 25** e mostram o defeito: `["1","2","3"]`
+no §1, e as marcas mortas nos quatro documentos. `check-pacote` 0 erros, `hash-ciclo --check`
+íntegro, `check-identidade` 0 problemas, `provar-cadeia-automatica` 135/135,
+`provar-o-exercicio-novo` 55/55, `provar-estante-do-po` 33/33, `provar-uma-regua-so` 17/17.
+**`provar-aula-prosa` cai** numa asserção anterior (`resposta ao pulso na marcação` não existe no
+`.md` deste ciclo, e não existia antes desta mudança) — verificado com o `.md` de `HEAD`: falha no
+mesmo sítio.
 
 ## O que está pendente
 
