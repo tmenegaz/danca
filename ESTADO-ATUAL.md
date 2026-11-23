@@ -4,8 +4,19 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 23/11/2026 — **a identidade fiscal entra à mão no ambiente de teste, e a
-> criação também a herda**. As duas escolas de teste que ela vai recriar — `calango` e `batata` —
+> **Última fotografia:** 23/11/2026 — **a senha do professor não se esconde com o modo do
+> professor**. Ela foi criar uma escola, escolheu «um professor que já existe», clicou em continuar e
+> leu «informe a senha do professor» — com o campo **dentro** do bloco do professor novo, que naquele
+> modo está escondido. A regra pedia um valor que a tela não deixava escrever. O campo passou a ser
+> **um só, visível nos dois caminhos**, com o recado a mudar de dono — porque a senha do professor é
+> **por escola** (`senhaDoProfessorOk` responde «é DESTE professor NESTA escola») e reutilizar a
+> pessoa não é reutilizar a senha dela noutra. A nota é a peça `.aviso` já catalogada: um `span.sub`
+> novo reprovou a checagem 8 (Peça). E o controle negativo ganhou âncora escolhível
+> (`--controle-negativo=<sha>`) — contra o formulário de antes das etapas, a asserção principal
+> passava **por ausência**.
+>
+> **Fotografia anterior (23/11/2026 — a identidade fiscal entra à mão no ambiente de teste, e a
+> criação também a herda).** As duas escolas de teste que ela vai recriar — `calango` e `batata` —
 > passaram a ter CNPJ e e-mail **no registo que sobrevive ao expurgo** (`cadastros/<slug>`), com o
 > motivo honesto do que são; o `breu` fica **sem cadastro** de propósito, porque ela quer preenchê-lo
 > à mão para testar o caminho. Os dois CNPJ foram conferidos pelo dígito verificador antes de entrar.
@@ -3768,6 +3779,23 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      pelo próprio número**: `cnpjJaUsado` varre `bastidores/*/cadastro`, e criar um `calango` com o
      CNPJ escrito no formulário responderia **409** — «o CNPJ já é da escola «calango»» — sobre a
      escola que se está a criar.
+169. **A SENHA DO PROFESSOR NÃO SE ESCONDE COM O MODO DO PROFESSOR — E ELA É POR ESCOLA.** Palavras
+     dela: «Como não tem campo aqui quando eu pego essa opção de um professor que já existe, não tem
+     como eu inserir a senha do professor. […] Permitir que a senha do professor seja digitada.»
+     **A causa era de marcação:** o `#senha-professor` vivia dentro de `#bloco-novo`, que
+     `pintarModo()` esconde no modo «já existe», e a validação pergunta pela senha **antes** de olhar
+     para o modo. A regra pedia um valor que a tela não deixava escrever.
+     **A CORRECÇÃO É MOSTRAR O CAMPO, e não afrouxar a regra**, porque a senha é **por escola**:
+     `senhaDoProfessorOk(env, kv, escola, senha)` responde «esta senha é DESTE professor NESTA
+     escola» — reutilizar a pessoa não é reutilizar a senha dela noutra. O campo saiu dos dois
+     blocos, ficou visível em ambos, e o recado muda de dono: no professor novo é a senha de estreia;
+     num que já existe é a senha **desta** escola. A nota é a peça `.aviso` já catalogada — um
+     `span.sub` novo reprovou a checagem 8 (Peça) do `check-identidade`, e a peça não se inventa.
+     **E o controle negativo precisou de outra âncora:** contra `a4676abe` (o formulário sem etapas),
+     «o campo não vive dentro de `#bloco-novo`» passava **por o bloco não existir**. A prova passou a
+     aceitar `--controle-negativo=<sha>`, e contra `bd87f249` reprovam exactamente as quatro
+     asserções que descrevem o defeito. **A mensagem «informe a senha» nunca foi o defeito** — o
+     defeito era o campo ausente.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
@@ -4680,7 +4708,17 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (23/11/2026 — o CNPJ entra à mão, e a criação herda)
+### Executado nesta fotografia (23/11/2026 — a senha do professor não se esconde com o modo)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-cadastro-em-etapas.js` (secção **D** com sete asserções novas) | **49/50**, e a única falha é **anterior** a esta mudança: «o público deixa de ter «Ver só as vivas»» — a string `/escolas-vivas` sobrevive dentro do `<script>` do «apagar escola», que `removerDoPainel` não reescreve (é um `href` que já não tem alvo: o `<a data-dono>` sai). O mesmo em `bd87f249`, com **42/49**. As novas: o campo existe; **não** vive dentro de `#bloco-novo` nem de `#bloco-existente`; com «já existe» escolhido o bloco do professor novo está escondido **e o campo da senha não tem nenhum avô escondido**; o recado diz «ESTA escola» nesse modo e muda de texto no modo «novo»; com a senha vazia a etapa pede a senha do professor (e não o professor); preenchida, a etapa 2 vai à 3 |
+| a **árvore**, e não o `hidden` do elemento | é a forma do defeito: um campo pode ter `hidden = false` e estar dentro de um avô escondido. A asserção sobe pelos ancestrais à procura do primeiro escondido, e mede-se **com a etapa 2 à vista** — na etapa 1 o avô escondido seria a própria `#etapa-2`, e a prova mediria a etapa em que se está |
+| controle negativo, com a âncora escolhida | `--controle-negativo=bd87f249` (o estado imediatamente antes) reprova **exactamente as quatro** asserções que descrevem o defeito: o campo dentro de `#bloco-novo`, o avô escondido `bloco-novo`, e o recado (duas). Contra a âncora antiga (`a4676abe`, o formulário sem etapas) a asserção principal passava **por ausência** — e uma asserção que passa por o bloco não existir não prova nada |
+| `provar-form-escola` · `provar-pagina-publica` · `provar-painel` · `check-identidade` | 36 verificações, todas verdes · 79/79 · verde · **0 problemas** (23 verificações) |
+| a peça, e o desvio que ela barrou | o `span.sub` usado para a nota reprovou a **checagem 8 (Peça)** — «a classe `sub` é usada em `raiz/index.html` e não é desenhada em lugar nenhum». A nota passou a ser a peça `.aviso` já catalogada, que a linha imediatamente abaixo já usava |
+
+### Executado na fotografia anterior (23/11/2026 — o CNPJ entra à mão, e a criação herda)
 
 | Verificação | Resultado |
 |:--|:--|

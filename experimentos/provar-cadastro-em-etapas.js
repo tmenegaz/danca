@@ -43,8 +43,15 @@ const os = require('os');
 const path = require('path');
 
 const RAIZ = path.resolve(__dirname, '..');
-const NEGATIVO = process.argv.includes('--controle-negativo');
-const REFERENCIA_DO_CONTROLE = 'a4676abe';
+const NEGATIVO = process.argv.some((a) => a === '--controle-negativo' || a.startsWith('--controle-negativo='));
+/* A ÂNCORA PADRÃO é o formulário de uma coluna, sem etapas — serve às secções A, B e D.
+ *
+ * `--controle-negativo=<sha>` aponta-a a OUTRO sítio, e é o que se usa quando o defeito a provar
+ * é mais recente do que a âncora: a senha do professor dentro do bloco do professor novo viveu
+ * até 23/11/2026, e medir a correcção dela contra um código onde o bloco ainda não existia dava
+ * asserções a passar por ausência — a prova não provava nada. */
+const ANCORA = (process.argv.find((a) => a.startsWith('--controle-negativo=')) || '').split('=')[1];
+const REFERENCIA_DO_CONTROLE = ANCORA || 'a4676abe';
 
 function raizDoCodigo() {
   if (!NEGATIVO) return { raiz: RAIZ, referencia: null };
@@ -520,12 +527,88 @@ async function medirReusoDoProfessor() {
   if (radioExistente) {
     radioExistente.checked = true;
     radioExistente.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+
+    /* ── O CAMPO DA SENHA DO PROFESSOR NÃO SE ESCONDE COM O MODO (23/11/2026) ──────────────
+     *
+     * O defeito que ela viu: escolheu «um professor que já existe», clicou em continuar, e leu
+     * «informe a senha do professor» — com o campo DENTRO do bloco do professor novo, que naquele
+     * modo está `hidden`. A regra pedia um valor que a tela não deixava escrever.
+     *
+     * A asserção é de ÁRVORE, e não de `hidden` num elemento: um campo pode ter `hidden = false` e
+     * estar dentro de um avô escondido — que é exactamente a forma deste defeito. Sobe-se pelos
+     * ancestrais à procura do primeiro que esteja escondido. */
+    const escondidoPor = (el) => {
+      for (let no = el; no && no.nodeType === 1; no = no.parentElement) {
+        if (no.hidden || (no.getAttribute && no.getAttribute('hidden') !== null)) return no.id || no.tagName;
+      }
+      return null;
+    };
+
     doc.getElementById('escola-cnpj').value = '11222333000181';
     doc.getElementById('escola-email').value = 'e@x.com';
     doc.getElementById('escola-telefone').value = '(51) 99999-0000';
     doc.getElementById('senha').value = 'segredo-da-direcao';
     clicar('btn-continuar');
-    await espera(50);
+    await espera(60);
+
+    /* AS ASSERÇÕES SÃO FEITAS COM A ETAPA 2 À VISTA. Medir isto na etapa 1 daria «escondido»
+     * para tudo — o avô escondido seria a própria `#etapa-2`, e a prova passaria a medir a etapa
+     * em que se está, e não o modo do professor. */
+    const aVista = (el) => Boolean(el) && !el.hidden;
+    conferir('…e a etapa 1 leva à etapa 2', aVista(doc.getElementById('etapa-2')), texto('res'));
+
+    const campoDaSenha = doc.getElementById('senha-professor');
+    conferir('o campo da senha do professor existe no formulário do painel',
+      Boolean(campoDaSenha), null);
+
+    const dentroDe = (el, id) => {
+      const caixa = doc.getElementById(id);
+      return Boolean(caixa) && Boolean(el) && caixa.contains(el);
+    };
+    conferir('…e NÃO vive dentro do bloco do professor novo — é de onde ele desaparecia',
+      !dentroDe(campoDaSenha, 'bloco-novo'), 'dentro de #bloco-novo');
+    conferir('…nem dentro do bloco do professor que já existe (o outro lado do mesmo erro)',
+      !dentroDe(campoDaSenha, 'bloco-existente'), 'dentro de #bloco-existente');
+
+    // Com o professor EXISTENTE escolhido, o bloco dele está à vista e o do novo não — e a senha
+    // continua visível. É esta a combinação que estava partida.
+    conferir('escolhido «já existe», o bloco do professor novo está escondido',
+      escondidoPor(doc.getElementById('bloco-novo')) !== null, null);
+    conferir('…e o campo da senha NÃO tem nenhum avô escondido — pode ser preenchido',
+      escondidoPor(campoDaSenha) === null, escondidoPor(campoDaSenha));
+
+    const dicaExistente = texto('dica-senha-professor');
+    conferir('…e o recado diz que é a senha dele NESTA escola, não a de outra',
+      /ESTA escola/i.test(dicaExistente) && /não serve aqui/i.test(dicaExistente), dicaExistente);
+
+    // O outro lado: no professor NOVO o campo também está à vista, e o recado muda de dono.
+    const radioNovo = doc.getElementById('modo-novo');
+    if (radioNovo) {
+      radioNovo.checked = true;
+      radioNovo.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+      await espera(30);
+      conferir('escolhido «professor novo», o campo da senha continua à vista',
+        escondidoPor(doc.getElementById('senha-professor')) === null,
+        escondidoPor(doc.getElementById('senha-professor')));
+      conferir('…e o recado passa a ser o da estreia — o texto MUDOU com o modo',
+        texto('dica-senha-professor') !== dicaExistente &&
+        /vai abrir a escola/i.test(texto('dica-senha-professor')),
+        texto('dica-senha-professor'));
+      radioExistente.checked = true;
+      radioExistente.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+      await espera(30);
+    }
+
+    /* A SENHA VAZIA TEM DE NOMEAR O CAMPO QUE AGORA SE VÊ — e não ser uma parede.
+     *
+     * O clique é LIDO ANTES DE QUALQUER ESPERA: a mensagem é escrita por `continuar()` e a etapa
+     * não muda, mas quem a lê é o mesmo ciclo — e uma asserção que dependesse de `setTimeout` mediria
+     * o relógio, não o formulário. */
+    clicar('btn-continuar');
+    const recusaDaSenha = texto('res');
+    conferir('com a senha vazia, a etapa 2 pede a senha do professor — e não o professor',
+      /senha do professor/i.test(recusaDaSenha) && !/escolha o professor/i.test(recusaDaSenha),
+      recusaDaSenha);
     doc.getElementById('senha-professor').value = 'senha-do-professor';
     clicar('btn-continuar');
     await espera(50);
@@ -554,8 +637,8 @@ async function medirReusoDoProfessor() {
 
   console.log('');
   if (referencia) {
-    console.log('CONTROLE NEGATIVO: ' + ok + ' passaram, ' + ko + ' falharam — o formulário de '
-      + 'uma coluna, de ' + referencia + ', tem de reprovar.');
+    console.log('CONTROLE NEGATIVO: ' + ok + ' passaram, ' + ko + ' falharam — o código de '
+      + referencia + ', de antes da correcção, tem de reprovar.');
     console.log(ko > 0 ? 'CONTROLE CERTO — o código de antes reprova.' : 'A PROVA NÃO PROVA NADA.');
     process.exit(ko > 0 ? 0 : 1);
   }

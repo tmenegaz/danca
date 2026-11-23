@@ -195,10 +195,6 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                   <label class="campo-rotulo" for="professor-modalidade">Habilidade (o que ele ensina)</label>
                   <select id="professor-modalidade" name="professor-modalidade"></select>
                 </p>
-                <p class="etapa-campo">
-                  <label class="campo-rotulo" for="senha-professor">Senha do professor</label>
-                  <input id="senha-professor" name="senha-professor" type="password" autocomplete="new-password">
-                </p>
               </div>
 
               <!-- O BLOCO INTEIRO É DO PAINEL (16/11/2026). Houve aqui um campo escrito, para o
@@ -211,6 +207,34 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                   <label class="campo-rotulo" for="professor-existente">Professor</label>
                   <select id="professor-existente" name="professor-existente"></select>
                 </p>
+              </div>
+
+              <!-- ── A SENHA DO PROFESSOR É DO ACESSO A ESTA ESCOLA, E NÃO DO MODO ──────
+                   (23/11/2026). Ela vivia DENTRO do bloco do professor novo, e o bloco do
+                   professor que já existe não a tinha. O resultado era o pior tipo de defeito: a
+                   validação exigia-a (`informe a senha do professor`), a mensagem aparecia, e não
+                   havia campo nenhum para a escrever — porque o campo estava num bloco `hidden`.
+                   Ela viu-o em «criar nova escola», passo 2, com o professor «Demi Plié».
+
+                   PORQUE É QUE ELA É PRECISA NOS DOIS CAMINHOS: a senha do professor é POR ESCOLA
+                   (`senhaDoRegistoDaEscola(env, kv, escola, senha)`, em `bastidores.js`). Reutilizar
+                   a PESSOA não é reutilizar a senha dela noutra escola — cada escola tem a sua, e a
+                   da escola antiga não abre esta. Por isso o campo fica fora dos dois blocos, e o
+                   recado ao lado diz de que senha se trata em cada um.
+
+                   E ELA NÃO LEVA `data-dono`: o público também cria escola, o professor lá é sempre
+                   novo, e o servidor exige a senha nas duas portas. -->
+              <div class="etapa-campos largo" id="bloco-senha-professor">
+                <p class="etapa-campo largo">
+                  <label class="campo-rotulo" for="senha-professor">Senha do professor</label>
+                  <input id="senha-professor" name="senha-professor" type="password" autocomplete="new-password">
+                </p>
+                <!-- A NOTA É A PEÇA `.aviso` — a faixa de prosa que explica antes de agir —, e não
+                     uma classe nova: a linha de baixo (`#aviso-escola-existente`) já a usa assim.
+                     E ela mora DENTRO do bloco do campo: fora dele caía na primeira coluna da
+                     grelha da etapa, do outro lado da caixa de que fala. -->
+                <p class="aviso etapa-campo largo" id="dica-senha-professor">A senha com que ele
+                  vai abrir esta escola.</p>
               </div>
 
               <p class="aviso alerta etapa-campo largo" id="aviso-escola-existente" hidden></p>
@@ -1198,6 +1222,20 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
             var blocoExistente = document.getElementById("bloco-existente");
             if (blocoNovo) blocoNovo.hidden = !novo;
             if (blocoExistente) blocoExistente.hidden = novo;
+            /* A SENHA DO PROFESSOR NÃO SE ESCONDE COM O MODO (23/11/2026). Ela esteve dentro do
+             * bloco do professor novo, e no modo «já existe» o campo desaparecia — com a validação
+             * a continuar a exigi-lo. Um campo que a regra pede e a tela esconde é o formulário a
+             * contradizer-se.
+             *
+             * O RECADO MUDA COM O MODO, porque a senha muda de dono: no professor novo é a senha
+             * de estreia dele; num que já existe é a senha DELE NESTA ESCOLA, e não a da escola
+             * onde ele já dava aula — cada escola guarda a sua. */
+            var dicaSenha = document.getElementById("dica-senha-professor");
+            if (dicaSenha) {
+              dicaSenha.textContent = novo
+                ? "A senha com que este professor vai abrir a escola."
+                : "A senha com que ele vai abrir ESTA escola — cada escola tem a sua, e a de outra não serve aqui.";
+            }
           }
           for (var m = 0; m < radiosModo.length; m++) radiosModo[m].addEventListener("change", pintarModo);
           // O nome da escola é o que decide a lista e o aviso: digitar reavalia os dois. O

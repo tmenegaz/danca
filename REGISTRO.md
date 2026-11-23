@@ -59676,3 +59676,59 @@ falhas de antes.
 **E um erro meu, corrigido no mesmo dia:** a entrada anterior deste ficheiro estava datada de
 **24/11/2026** e a data é **23/11**. O `REGISTRO` é a memória do que aconteceu, e uma data inventada é
 a primeira coisa que se perde.
+
+## 23/11/2026 — A senha do professor não se esconde com o modo do professor
+
+**O DEFEITO, nas palavras dela, e ele é de uma exactidão que dispensa diagnóstico:**
+
+> «Eu escolhi o professor demi plié e aí cliquei em continuar. Apareceu a mensagem informe a senha
+> do professor. Como não tem campo aqui quando eu pego essa opção de um professor que já existe, não
+> tem como eu inserir a senha do professor. Isso é um bug que tem que ser corrigido: Permitir que a
+> senha do professor seja digitada.»
+
+**A CAUSA É UMA LINHA DE MARCAÇÃO E UMA DE ORDEM.** O `#senha-professor` vivia **dentro** de
+`#bloco-novo`, e `pintarModo()` esconde esse bloco inteiro quando a pessoa escolhe «um professor que
+já existe». A validação, porém, pergunta pela senha **antes** de olhar para o modo
+(`raiz/index.html`: `if (!v("senha-professor")) return "informe a senha do professor"`). O resultado
+era o pior tipo de defeito de formulário: **a regra pedia um valor que a tela não deixava escrever**,
+e a mensagem apontava para um campo que não estava lá.
+
+**A CORRECÇÃO NÃO É AFROUXAR A REGRA — é mostrar o campo.** A senha do professor é **por escola**:
+`senhaDoProfessorOk(env, kv, escola, senha)` responde «esta senha é DESTE professor NESTA escola», e
+num shard o par hash+sal é gravado no registo da escola (`provisionarDentroDoShard`, decisão de
+24/11). Reutilizar a **pessoa** não é reutilizar a **senha** dela noutra escola — a da escola antiga
+não abre esta. Por isso o campo saiu dos dois blocos e passou a ser um só, visível em ambos, com o
+recado a mudar de dono:
+
+- professor **novo** — «A senha com que ele vai abrir a escola.»;
+- professor **que já existe** — «A senha com que ele vai abrir ESTA escola — cada escola tem a sua, e
+  a de outra não serve aqui.»
+
+**A nota é a peça `.aviso`, e não uma classe nova.** A tentativa de a desenhar com um `span.sub`
+reprovou a **checagem 8 (Peça)** do `check-identidade`: uma classe usada e não desenhada não entra no
+`main`. A faixa de prosa que explica antes de agir já existe (`IDENTIDADE-VISUAL.md`, quadro 2), e a
+linha logo abaixo (`#aviso-escola-existente`) já a usa exactamente assim.
+
+**Com o quê.** `raiz/index.html` (o campo fora dos dois blocos, `pintarModo()` a escrever o recado,
+e o comentário que diz por que razão a senha é precisa nos dois caminhos) e
+`experimentos/provar-cadastro-em-etapas.js` (secção D, sete asserções novas).
+
+**MEDIDO.** `provar-cadastro-em-etapas` **49/50** — e a única falha é anterior a esta mudança
+(«o público deixa de ter «Ver só as vivas»»: a string `/escolas-vivas` sobrevive dentro do `<script>`,
+que `removerDoPainel` não reescreve; conferido igual em `bd87f249`, **42/49**). A asserção nova mede a
+**árvore**, e não o `hidden` de um elemento: um campo pode ter `hidden = false` e estar dentro de um
+avô escondido, e era essa a forma do defeito — sobe-se pelos ancestrais à procura do primeiro
+escondido.
+
+**O CONTROLE NEGATIVO PRECISOU DE OUTRA ÂNCORA, e é uma lição.** A âncora da prova (`a4676abe`) é o
+formulário de uma coluna, sem etapas: contra ela, «o campo não vive dentro de `#bloco-novo`» passava
+**por o bloco não existir** — uma asserção que passa por ausência não prova nada. `--controle-negativo=<sha>`
+passou a apontar a âncora a outro sítio, e contra `bd87f249` — o estado imediatamente antes desta
+correcção — reprovam **exactamente as quatro** asserções que descrevem o defeito: o campo dentro de
+`#bloco-novo`, o avô escondido (`bloco-novo`), e o recado (duas). A mensagem «informe a senha» passava
+já antes, e passa hoje: **a mensagem nunca foi o defeito** — o defeito era o campo ausente.
+
+**E o que fica declarado, sem conserto neste commit:** o `/escolas-vivas` que sobrevive no `<script>`
+do público. Não é um botão à vista (o `<a data-dono>` sai), é uma atribuição de `href` que já não tem
+alvo — mas a asserção que a apanha continua vermelha, e uma prova com uma linha vermelha conhecida é
+melhor do que uma prova que se cala.

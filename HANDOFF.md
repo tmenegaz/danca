@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-23T07:09:11-0300`
-Commit atual: `870895ce` — docs(estrutura): a recriação traz os dados da escola, e o convite deixa de prometer o que não tem
+Gerado em: `2026-11-23T07:19:00-0300`
+Commit atual: `bd87f249` — docs(estrutura): o CNPJ das escolas de teste, e a data que eu tinha escrito errada
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -83,6 +83,8 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+bd87f249 docs(estrutura): o CNPJ das escolas de teste, e a data que eu tinha escrito errada
+c24e4636 feat(estrutura): a criação também herda a identidade fiscal, e não só a recriação
 870895ce docs(estrutura): a recriação traz os dados da escola, e o convite deixa de prometer o que não tem
 c71eefe2 fix(estrutura): recriar a escola traz os dados dela de volta, marcados como herdados
 b39c3bf4 docs(estrutura): os dados da escola, o CNPJ que ficava pelo caminho, e o que «outra Breu» quer dizer
@@ -101,8 +103,6 @@ e73342a6 fix(estrutura): a dica do apagar muda com o motivo — quem não tem ca
 7ee95a91 fix(estrutura): a campanha não tem a seta de colapsar, e o vazio do apagar diz a verdade
 02f53906 feat(template): a seta de abrir e fechar é uma peça só, e o documento abre com o primeiro
 22354d71 feat(estrutura): o portão da aula dada — o botão abre depois do lançamento da anterior
-6c24ee55 chore(estrutura): fechar os derivados — âncoras e índices
-22b99699 fix(musicalidade): a música do exercício não se escreve no plano — deriva-se no Estilo
 ```
 
 ## Por professor
@@ -184,80 +184,61 @@ e73342a6 fix(estrutura): a dica do apagar muda com o motivo — quem não tem ca
 
 ## Última entrada do REGISTRO
 
-## 23/11/2026 — O CNPJ das escolas de teste entra à mão, e a criação também herda
+## 23/11/2026 — A senha do professor não se esconde com o modo do professor
 
-**O PEDIDO DELA, e o contexto é o de sempre: ambiente de teste e pressa.**
+**O DEFEITO, nas palavras dela, e ele é de uma exactidão que dispensa diagnóstico:**
 
-> «A gente está em ambiente de teste, né? Então inclui, para a gente continuar fazendo os testes e
-> facilitar as coisas, no cadastro dessas escolas o CNPJ e o e-mail. […] porque a gente está em
-> ambiente de teste mesmo e eu não quero ter que preencher de novo um formulário. Exceto o do breu,
-> que daí eu vou preencher de novo a mão só para ver se funciona, mas os outros dois, calango e
-> batata, pode incluir ali porque se funcionar no breu vai funcionar no calango e no batata.»
+> «Eu escolhi o professor demi plié e aí cliquei em continuar. Apareceu a mensagem informe a senha
+> do professor. Como não tem campo aqui quando eu pego essa opção de um professor que já existe, não
+> tem como eu inserir a senha do professor. Isso é um bug que tem que ser corrigido: Permitir que a
+> senha do professor seja digitada.»
 
-```
-calango  37.455.854/0001-72  grimpacia@gmail.com
-batata   62.728.967/0001-41  grimpacia@gmail.com
-```
+**A CAUSA É UMA LINHA DE MARCAÇÃO E UMA DE ORDEM.** O `#senha-professor` vivia **dentro** de
+`#bloco-novo`, e `pintarModo()` esconde esse bloco inteiro quando a pessoa escolhe «um professor que
+já existe». A validação, porém, pergunta pela senha **antes** de olhar para o modo
+(`raiz/index.html`: `if (!v("senha-professor")) return "informe a senha do professor"`). O resultado
+era o pior tipo de defeito de formulário: **a regra pedia um valor que a tela não deixava escrever**,
+e a mensagem apontava para um campo que não estava lá.
 
-**Os dois CNPJ foram conferidos pelo dígito verificador antes de entrarem** — um número com um dígito
-trocado seria recusado pelo formulário e, pior, ficaria a parecer um dado bom. Os dois são **válidos**.
+**A CORRECÇÃO NÃO É AFROUXAR A REGRA — é mostrar o campo.** A senha do professor é **por escola**:
+`senhaDoProfessorOk(env, kv, escola, senha)` responde «esta senha é DESTE professor NESTA escola», e
+num shard o par hash+sal é gravado no registo da escola (`provisionarDentroDoShard`, decisão de
+24/11). Reutilizar a **pessoa** não é reutilizar a **senha** dela noutra escola — a da escola antiga
+não abre esta. Por isso o campo saiu dos dois blocos e passou a ser um só, visível em ambos, com o
+recado a mudar de dono:
 
-**ONDE ENTRARAM, E PORQUÊ.** Em `cadastros/<slug>` — o registo que sobrevive ao expurgo (decisão 165)
-—, e **não** em `bastidores/<slug>/cadastro`. A segunda chave parece a mais directa e é a errada por
-duas razões, e a segunda é a que morde:
+- professor **novo** — «A senha com que ele vai abrir a escola.»;
+- professor **que já existe** — «A senha com que ele vai abrir ESTA escola — cada escola tem a sua, e
+  a de outra não serve aqui.»
 
-1. **É onde o dado pertence.** As duas escolas estão **expurgadas**: o cadastro vivo delas foi
-   apagado pelo expurgo, e o registo histórico é exactamente o sítio do dado fiscal de uma escola que
-   já não existe. A aba mostra-as com a origem «guardado no expurgo», que é a verdade.
-2. **`bastidores/<slug>/cadastro` faria a criação ser RECUSADA.** A regra de unicidade (`cnpjJaUsado`)
-   varre `bastidores/*/cadastro`: com o CNPJ lá, criar uma escola chamada `calango` **com o CNPJ
-   escrito no formulário** responderia 409 — «o CNPJ já é da escola «calango»» —, sobre a própria
-   escola que se está a criar. Em `cadastros/` o número não entra nessa varredura, e a herança faz o
-   resto.
+**A nota é a peça `.aviso`, e não uma classe nova.** A tentativa de a desenhar com um `span.sub`
+reprovou a **checagem 8 (Peça)** do `check-identidade`: uma classe usada e não desenhada não entra no
+`main`. A faixa de prosa que explica antes de agir já existe (`IDENTIDADE-VISUAL.md`, quadro 2), e a
+linha logo abaixo (`#aviso-escola-existente`) já a usa exactamente assim.
 
-Cada elo regista o **motivo honesto** do que é: «identidade fiscal (CNPJ e e-mail) inserida à mão no
-ambiente de teste, a pedido dela — o registo original desta escola foi apagado pelo expurgo». Não se
-escreveu uma data de expurgo que não houve, nem um nome de professor que não fosse o do elo.
+**Com o quê.** `raiz/index.html` (o campo fora dos dois blocos, `pintarModo()` a escrever o recado,
+e o comentário que diz por que razão a senha é precisa nos dois caminhos) e
+`experimentos/provar-cadastro-em-etapas.js` (secção D, sete asserções novas).
 
-**O CÓDIGO QUE FALTAVA, e ele é uma decisão, não um remendo.** A decisão 167 punha a **recriação** a
-repor o cadastro guardado. Faltava a outra porta: **a criação com o mesmo nome**, que é o que ela vai
-fazer («vou continuar criando escola breu ou calango ou batata»). Sem isso, a escola nascia outra vez
-sem o CNPJ — e ela teria de o escrever à mão, que é o que pediu para não ter de fazer.
+**MEDIDO.** `provar-cadastro-em-etapas` **49/50** — e a única falha é anterior a esta mudança
+(«o público deixa de ter «Ver só as vivas»»: a string `/escolas-vivas` sobrevive dentro do `<script>`,
+que `removerDoPainel` não reescreve; conferido igual em `bd87f249`, **42/49**). A asserção nova mede a
+**árvore**, e não o `hidden` de um elemento: um campo pode ter `hidden = false` e estar dentro de um
+avô escondido, e era essa a forma do defeito — sobe-se pelos ancestrais à procura do primeiro
+escondido.
 
-- `identidadeDoExpurgo({env, slug, cnpj, email, telefone})` é a **conta única**: devolve o que falta,
-  vindo do registo guardado, com o CNPJ **conferido** contra as outras escolas — e `null` quando não
-  há nada para herdar. Os dois chamadores são `herdarCadastroDoExpurgo` (a recriação) e
-  `gravarCadastro` (a criação). Duas cópias da regra divergiriam na primeira correcção, e é ela que
-  decide se nascem duas escolas com o mesmo número.
-- **O que a escola declarou agora manda sempre.** A herança só preenche o que veio vazio.
-- **Sem CNPJ duplicado:** se o número guardado já for de outra escola, herda-se o resto e o número
-  fica `null`, com a escola que o tem nomeada. Um CNPJ é uma escola.
-- O que foi herdado vai marcado — `herdadoDe: { em, motivo }` —, e a aba diz **«herdado do expurgo»**,
-  nunca «cadastro». O e-mail é a excepção declarada à unicidade: dois e-mails iguais não são duas
-  pessoas.
+**O CONTROLE NEGATIVO PRECISOU DE OUTRA ÂNCORA, e é uma lição.** A âncora da prova (`a4676abe`) é o
+formulário de uma coluna, sem etapas: contra ela, «o campo não vive dentro de `#bloco-novo`» passava
+**por o bloco não existir** — uma asserção que passa por ausência não prova nada. `--controle-negativo=<sha>`
+passou a apontar a âncora a outro sítio, e contra `bd87f249` — o estado imediatamente antes desta
+correcção — reprovam **exactamente as quatro** asserções que descrevem o defeito: o campo dentro de
+`#bloco-novo`, o avô escondido (`bloco-novo`), e o recado (duas). A mensagem «informe a senha» passava
+já antes, e passa hoje: **a mensagem nunca foi o defeito** — o defeito era o campo ausente.
 
-**Com o quê.** `motor/servidor/raiz.js` (`identidadeDoExpurgo`, `gravarCadastro`,
-`herdarCadastroDoExpurgo` a usá-la), `experimentos/provar-os-dados-da-escola.js` (secção **G**), e o
-KV de produção (`cadastros/calango`, `cadastros/batata`).
-
-**MEDIDO.** `provar-os-dados-da-escola` **76/76** (a secção G tem 15 asserções novas), controle
-`--contra=f0186400` a reprovar **19 de 28**. `provar-o-financeiro-que-fica` 30/30,
-`provar-recriar-escola` 94/94, `provar-painel` verde, `provar-pagina-publica` 79/79,
-`check-identidade` 0 problemas (23 verificações). `provar-financeiro-da-escola` 129/136 — as mesmas 7
-falhas de antes.
-
-**AO VIVO, no painel de produção**, depois de as duas chaves entrarem e sem deploy:
-
-| escola | CNPJ | e-mail | origem |
-|:--|:--|:--|:--|
-| `calango` | 37.455.854/0001-72 | grimpacia@gmail.com | guardado no expurgo |
-| `batata` | 62.728.967/0001-41 | grimpacia@gmail.com | guardado no expurgo |
-| `breu` | — | — | sem cadastro (ela preenche à mão, para testar) |
-| `duo` | — | — | sem cadastro |
-
-**E um erro meu, corrigido no mesmo dia:** a entrada anterior deste ficheiro estava datada de
-**24/11/2026** e a data é **23/11**. O `REGISTRO` é a memória do que aconteceu, e uma data inventada é
-a primeira coisa que se perde.
+**E o que fica declarado, sem conserto neste commit:** o `/escolas-vivas` que sobrevive no `<script>`
+do público. Não é um botão à vista (o `<a data-dono>` sai), é uma atribuição de `href` que já não tem
+alvo — mas a asserção que a apanha continua vermelha, e uma prova com uma linha vermelha conhecida é
+melhor do que uma prova que se cala.
 
 ## O que está pendente
 
