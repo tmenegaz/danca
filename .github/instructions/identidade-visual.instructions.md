@@ -96,7 +96,7 @@ tem no contexto […] E aí começa com todos eles colapsados, exceto o primeiro
 |:--|:--|
 | a peça | **`.secao-dobra`**, dentro do `<h2>` do documento (criada pelo `assets/nav.js`). É a **mesma** `.alternar-form` dos Bastidores: **2rem × 2rem**, `border-radius: 999px`, `1px solid var(--borda-campo)`, fundo `--superficie`, glifo `700 .9rem/1 var(--ui)` |
 | onde vale | os títulos de secção do **plano**, das **aulas**, da **notação** e do **glossário** |
-| onde **não** vale | o índice da página (`.toc-dobra`) e o menu da coluna (`.coluna-seta`) — esses ficam pequenos, e é decisão dela |
+| onde **não** vale | o índice da página (`.toc-dobra`) e o menu da coluna (`.coluna-seta`) — esses ficam pequenos, e é decisão dela. **E nenhuma página que não seja um documento de leitura**: a campanha (`data-tela="raiz"`), a elicitação (`porta`), o **índice de uma escola** (`escola`) e a **apresentação do sistema** (`sistema`). A lista é por nome — `TELAS_SEM_DOBRA`, em `assets/nav.js` —, e uma página que se declara `data-tela` entra nela porque alguém decidiu que sim |
 | o estado inicial | **todos recolhidos, excepto o primeiro**. A memória é da sessão (`ciclo:secoes-abertas`, a lista das **abertas** — e um `[]` guardado é uma escolha, não a ausência dela) |
 | o que a guarda | a checagem **20 (Seta)** compara a geometria das duas declarações (a da folha e a do HTML que o motor serve) e reprova se se afastarem; `experimentos/provar-a-seta-redonda.js` mede a peça num navegador |
 | o que **não** fazer | não se cria uma terceira classe para «abrir e fechar»; não se troca o glifo por uma palavra; não se põe um botão em fileira própria (ele mora dentro do título, senão são oito fileiras de ar em cima do texto) |

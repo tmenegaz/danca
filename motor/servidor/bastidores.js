@@ -13418,9 +13418,32 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    .then(function(d){' +
     '      liberarBotao(antes);' +
     '      if (d && d.ok) {' +
-    '        recado("ok", "habilitações gravadas" + (d.descontinuadas && d.descontinuadas.length' +
-    '          ? " — " + d.descontinuadas.length + " turma(s) marcada(s) como descontinuada(s)" : "") + ".");' +
+    /* GRAVAR FECHA O FORMULÁRIO (23/11/2026).
+     *
+     * «quando eu vou em habilitações e eu troco a habilitação e clico em gravar, tem que fechar, tem
+     * que colapsar e limpar. […] A única coisa é que quando clicar em gravar, tem que colapsar.»
+     *
+     * E O QUE ELA DISSE ESTAR CERTO FICA: as caixas continuam a mostrar o que o professor declara
+     * — é o estado de agora, relido —, e não um formulário esvaziado. «Fica habilitado os que
+     * existem para o professor: aqui está certo.» O «limpar» é o da moldura: fecha o processo,
+     * como nos outros cinco formulários da página.
+     *
+     * A MENSAGEM VAI PARA O AVISO DO GESTO, e não para o `.res` de dentro do formulário. Escrita
+     * no `.res`, ela ficaria dentro do miolo que acabou de recolher — o gesto ficava feito,
+     * gravado, e sem resposta visível. É a regra que a casa já escreveu: o aviso sai primeiro,
+     * depois arruma-se a tela.
+     *
+     * A ORDEM É A DE `cancelarAsHabilitacoes`: relê primeiro (é a leitura que repinta as caixas) e
+     * fecha depois. E `cancelarOFormularioDe` é quem fecha — não um `hidden` à mão, que deixaria a
+     * seta e o «Cancelar» a dizer o contrário do que a tela mostra. */
+    '        if (typeof avisar === "function") {' +
+    '          avisar("ok", "Habilitações gravadas" + (d.descontinuadas && d.descontinuadas.length' +
+    '            ? " — " + d.descontinuadas.length + " turma(s) marcada(s) como descontinuada(s)" : "") + ".");' +
+    '        }' +
     '        carregarHabilitacoes();' +
+    '        recado("", "");' +
+    '        cancelarOFormularioDe("sec-professores");' +
+    '        if (typeof pintarCancelares === "function") pintarCancelares();' +
     '      } else {' +
     '        recado("erro", "Erro: " + ((d && d.erro) || "desconhecido"));' +
     '      }' +

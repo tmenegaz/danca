@@ -1878,6 +1878,9 @@ experimentos/modelo-formulario/*
 !experimentos/provar-o-portao-da-aula-dada.js
 !experimentos/provar-a-seta-redonda.js
 !experimentos/provar-a-raiz-sem-dobra-e-o-vazio-do-apagar.js
+# A mesma família, um dia depois: a seta fora do índice da escola e da apresentação, e o
+# gravar das habilitações que fecha o formulário.
+!experimentos/provar-a-dobra-so-onde-ela-pediu.js
 !experimentos/provar-o-cadastro-comercial-nao-se-perde.js
 !experimentos/provar-a-musica-do-modal.js
 

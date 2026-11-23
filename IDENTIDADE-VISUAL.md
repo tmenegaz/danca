@@ -772,8 +772,16 @@ coisa, um deles fora do contrato. Agora está declarada, e a regra tem quatro pa
 |:--|:--|
 | **A geometria** | `2rem × 2rem`, `border-radius: 999px` (redonda), `1px solid var(--borda-campo)`, fundo `--superficie`, glifo `700 .9rem/1 var(--ui)`. No ponteiro, `--fundo-hover` e `--marca-texto` |
 | **Onde vale** | os **títulos de secção do documento**: o plano do ciclo (o contexto, o objetivo geral, o objetivo específico), as aulas (todos os títulos), a notação e o glossário |
-| **Onde NÃO vale** | o índice da página (`.toc-dobra`) e o menu da coluna (`.coluna-seta`) — estão certos pequenos, e ela disse-o |
+| **Onde NÃO vale** | o índice da página (`.toc-dobra`) e o menu da coluna (`.coluna-seta`) — estão certos pequenos, e ela disse-o. **E não vale em página que não seja documento de leitura** (23/11/2026): a campanha, a elicitação, o **índice da escola** e a **apresentação do sistema**. A exclusão é uma lista por nome em `assets/nav.js` (`TELAS_SEM_DOBRA`), e a página declara-se no `<body data-tela="…">` — as duas metades têm de continuar casadas |
 | **O estado inicial** | **todos recolhidos, excepto o primeiro** título do documento. Depois do primeiro gesto, a memória da sessão manda — e um `[]` guardado é uma escolha (fechou tudo), não a ausência dela |
+
+**A seta é para LER, e não para toda a página que tem títulos** (23/11/2026). Palavras dela: «Você
+colocou o botão de expandir de forma indiscriminada e não só onde eu te pedi ontem». A dobra nasce em
+qualquer `.conteudo > h2[id]`, e isso é o que a torna universal nos documentos do pacote — mas o
+índice de uma escola tem **um** título e um parágrafo, e a apresentação é um texto que se lê de cima
+abaixo. Recolher o primeiro esconde a página inteira; recolher a segunda lê-se como um formulário. São
+duas telas a mais na lista das excepções, e a prova `provar-a-dobra-so-onde-ela-pediu` mede as duas
+metades: **zero** setas lá, e as **nove** de volta quando o atributo é retirado.
 
 **A peça é desenhada em duas folhas, e é isso que a checagem 20 guarda.** A `.alternar-form` vive
 no `<style>` da Produção; a `.secao-dobra`, em `tools/templates/ciclo.css`. As duas superfícies não

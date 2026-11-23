@@ -289,11 +289,21 @@
    * O contrário — exigir `data-tela` para ter dobra — deixaria uma página nova sem ela em silêncio,
    * e um botão que falta não se anuncia.
    *
-   *   · `porta`   — o formulário de elicitação: recolher uma secção é esconder perguntas que faltam
-   *                 responder, e a barra do topo já diz o que falta;
-   *   · `raiz`    — a campanha (o «como o sistema funciona»): vende-se lendo, não se navega por
-   *                 partes. Vale nos DOIS endereços que a servem, porque é a mesma página. */
-  var TELAS_SEM_DOBRA = { porta: 1, raiz: 1 };
+   *   · `porta`    — o formulário de elicitação: recolher uma secção é esconder perguntas que
+   *                  faltam responder, e a barra do topo já diz o que falta;
+   *   · `raiz`     — a campanha (o «como o sistema funciona»): vende-se lendo, não se navega por
+   *                  partes. Vale nos DOIS endereços que a servem, porque é a mesma página;
+   *   · `escola`   — o índice de uma escola (`breu.padd.com.br/`). Ele tem UM título de secção e
+   *                  um parágrafo: uma seta para recolher isso é uma seta para esconder a página
+   *                  inteira. Palavras dela, a 23/11/2026: «quando uma escola nasce, ela traz uma
+   *                  informação dizendo que as turmas desta escola […] você colocou um botão de
+   *                  expandir e colapsar. Tira esse botão daqui, ele não existe aqui»;
+   *   · `sistema`  — a apresentação do sistema dentro da escola (`/sistema`). É a MESMA peça da
+   *                  campanha: um texto que se lê de cima abaixo, e não um documento que se
+   *                  estuda por partes. A regra não podia depender do endereço, e é por isso que a
+   *                  página se declara — «no endereço breu.padd.com.br/sistema você também colocou
+   *                  botão de colapsar e expandir em todos os títulos. Tira.» */
+  var TELAS_SEM_DOBRA = { porta: 1, raiz: 1, escola: 1, sistema: 1 };
   var telaDaPagina = document.body ? document.body.getAttribute('data-tela') : null;
   if (document.body && !TELAS_SEM_DOBRA[telaDaPagina]) {
     Array.prototype.forEach.call(document.querySelectorAll('.conteudo > h2[id]'), function (h2) {

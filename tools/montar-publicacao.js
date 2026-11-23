@@ -323,7 +323,7 @@ function indiceDaEscola({ escola, nome, professor, turmas, nav }) {
 <script>/* Anti-flash: aplica o modo ANTES de a página pintar. */
 try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.setAttribute('data-modo','noturna');}catch(e){}</script>
 </head>
-<body id="top">
+<body id="top" data-tela="escola">
 
 ${nav}
 
@@ -334,12 +334,14 @@ ${nav}
 
 <main>
 <div class="conteudo">
-<h2 id="turmas">As turmas desta escola</h2>
+<h2 id="turmas">Turmas</h2>
 <p>Cada turma tem o seu ciclo: o plano de ensino, as aulas, a notação e as referências. O que se
-planeja para uma não vale para a outra — o ritmo é de cada uma, e é dele que sai o calendário.</p>
+planeja para uma serve de base para a outra — é o lastro da próxima.</p>
 ${lista}
 <p class="subtitulo">O que é o Sistema Lastro, como se usa e o que ele ajuda a resolver:
 <a href="sistema.html">a apresentação do sistema</a>.</p>
+<p class="subtitulo">E para começar a trabalhar: <a href="/bastidores/estudio">comece por aqui</a> —
+Bastidores &rarr; Estúdio. É o painel da escola, e é por ele que se entra.</p>
 </div>
 </main>
 
@@ -1403,8 +1405,16 @@ function principal() {
   const apresentacaoAlvo = path.join(destino, 'sistema.html');
   if (fs.existsSync(apresentacaoAlvo)) {
     const html = fs.readFileSync(apresentacaoAlvo, 'utf8');
-    const trocado = nav.enquadrar(html, menu, '/sistema');
-    if (trocado && trocado !== html) fs.writeFileSync(apresentacaoAlvo, trocado, 'utf8');
+    /* A APRESENTAÇÃO NÃO SE RECOLHE POR PARTES (23/11/2026). «No endereço breu.padd.com.br/sistema
+     * você também colocou botão de colapsar e expandir em todos os títulos. Tira, não precisa disso
+     * aqui.» Ela é a MESMA peça da campanha — um texto que se lê de cima abaixo —, e o `nav.js` a
+     * exclui pelo nome (`TELAS_SEM_DOBRA.sistema`). O nome tem de ir no `<body>`, e é aqui que ele
+     * entra: no pacote-zero essa página é o `index.html`, e um `data-tela` lá seria o da escola. */
+    const comTela = html.replace(/<body([^>]*)>/, (todo, atributos) => (/data-tela=/.test(atributos)
+      ? todo : '<body' + atributos + ' data-tela="sistema">'));
+    const trocado = nav.enquadrar(comTela, menu, '/sistema');
+    if (trocado && trocado !== comTela) fs.writeFileSync(apresentacaoAlvo, trocado, 'utf8');
+    else if (comTela !== html) fs.writeFileSync(apresentacaoAlvo, comTela, 'utf8');
   }
 
   /* A PORTA TAMBÉM NASCE ENQUADRADA (05/11/2026), e não só ao servir.

@@ -59884,3 +59884,79 @@ passa a **80/80**. A porta do Estúdio é a outra metade, e está medida em
 **E ao vivo, sem mais nada:** a página em `danca.padd.com.br/professores` mostra os quatro CPF que
 existem no KV e o contacto deles — e o `breu` recriado por ela hoje já aparece como **botão** na
 coluna Ações, com o título «professor responsável por esta escola».
+
+## 23/11/2026 — A seta só está onde ela a pediu, e gravar as habilitações fecha o formulário
+
+**A FRASE DELA É O DIAGNÓSTICO:** «Você colocou o botão de expandir de forma indiscriminada e não só
+onde eu te pedi ontem, então vamos ajustar isso.»
+
+**O DEFEITO É O DE 22/11 OUTRA VEZ, com outra roupa.** A dobra nasce em qualquer `.conteudo > h2[id]`
+de uma página que não se declare — é o que a torna universal nos documentos do pacote —, e a lista das
+excepções era `{raiz, porta}`. O **índice de uma escola** e a **apresentação dela** não são documentos
+de leitura: são a porta de entrada e o texto que se lê de cima abaixo. Ganharam a seta por omissão.
+Medido: **1 seta** no índice da `breu` e **9** na apresentação.
+
+**A REGRA NÃO MUDOU — a lista cresceu.** `TELAS_SEM_DOBRA` passa a `{porta, raiz, escola, sistema}`, e
+as duas páginas declaram-se no `<body data-tela="…">`. A alternativa — exigir `data-tela` para ter
+dobra — deixaria uma página nova sem ela em silêncio, e um botão que falta não se anuncia; é o
+raciocínio que a 22/11 já tinha escrito, e ele continua bom. **A apresentação é declarada no
+`montar-publicacao`, e não no pacote-zero:** lá essa página é o `index.html` da escola, e um
+`data-tela` no ficheiro de origem seria o da escola.
+
+**E O CONTROLE NEGATIVO APANHOU-ME A MEDIR O NADA.** A primeira execução da prova deu «zero setas»
+nas duas páginas — e passava, porque o `jsdom` **não carrega `<script src>` externos** sem
+`resources: 'usable'`. O `nav.js` nunca tinha corrido. É a família que este repositório persegue: uma
+leitura vazia que passa em silêncio, e uma asserção «não lançou» que é verdadeira por o script não
+existir. A prova passou a exigir uma **marca do script** — a coluna da navegação, que só ele desenha —,
+e o controle a retirar o atributo e ver as nove setas voltarem.
+
+**O ÍNDICE DA ESCOLA, e o que ela mandou dizer.**
+
+| o que | antes | agora |
+|:--|:--|:--|
+| o título | «As turmas desta escola» | **«Turmas»** — a página JÁ é a da escola, e «desta escola» era a redundância que ela leu |
+| a frase | «O que se planeja para uma não vale para a outra — o ritmo é de cada uma, e é dele que sai o calendário.» | «O que se planeja para uma **serve de base para a outra — é o lastro da próxima**.» |
+| o aviso do ciclo | «Ainda não há ciclo gerado…» | **fica, palavra por palavra** — «Isso está certo, tá? Isso pode deixar.» |
+| o atalho | — | «**comece por aqui** — Bastidores → Estúdio», logo abaixo do link da apresentação |
+
+O atalho leva a `/bastidores/estudio`, **absoluto** como os da Área do Professor no rodapé: a escola é
+servida na raiz do próprio host, e um caminho relativo partiria de onde a página estivesse.
+
+**O GRAVAR DAS HABILITAÇÕES.** «quando eu vou em habilitações e eu troco a habilitação e clico em
+gravar, tem que fechar, tem que colapsar e limpar. […] A única coisa é que quando clicar em gravar,
+tem que colapsar.»
+
+O que ela disse estar certo **fica**: as caixas continuam a mostrar o que o professor declara — é o
+estado de agora, relido por `carregarHabilitacoes`. O «limpar» é o da moldura: `recado("", "")` e
+`cancelarOFormularioDe("sec-professores")`, que é quem fecha — nunca um `hidden` à mão, que deixaria a
+seta e o «Cancelar» a dizer o contrário do que a tela mostra.
+
+**E A MENSAGEM MUDOU DE SÍTIO, senão era escrita para ser escondida.** No `.res` de dentro do
+formulário, «Habilitações gravadas» ficaria dentro do miolo que acabou de recolher: o gesto feito,
+gravado, e sem resposta visível. Passa para o **aviso do gesto** (`avisar`), que vive fora da secção e
+sobrevive à recolha — a mesma regra de 19/11, que já está escrita na casa: o aviso sai primeiro,
+depois arruma-se a tela.
+
+**Com o quê.** `tools/templates/nav.js` (+ a cópia em `raiz/assets/nav.js` e a do pacote),
+`tools/montar-publicacao.js` (o índice e a declaração da apresentação),
+`motor/servidor/bastidores.js` (o `submit` das habilitações),
+`experimentos/provar-a-dobra-so-onde-ela-pediu.js` (**novo**), `IDENTIDADE-VISUAL.md` e o resumo
+executável das instruções.
+
+**MEDIDO.** `provar-a-dobra-so-onde-ela-pediu` **35/35**; controle `--contra=2741f55d` reprova **9** —
+a seta do índice, as nove da apresentação, e o gravar que não fecha (4). Num Chrome, com o pacote
+montado: índice **0 setas / 1 título**, apresentação **0 setas / 9 títulos**, e a coluna da navegação
+desenhada nas duas. `provar-pagina-publica` 79/79, `provar-painel` verde,
+`provar-habilitacao-do-professor` verde, `provar-o-painel-do-estudio` 36/36,
+`provar-ficha-na-listagem` 35/35, `provar-cadastro-do-professor` 87/87, `check-identidade` **0
+problemas**, `hash-ciclo --check` íntegro (os assets não entram na âncora).
+
+**E TRÊS PROVAS DA DOBRA ESTÃO MORTAS, e é o expurgo que as matou.** `provar-a-seta-redonda`,
+`provar-dobra-do-indice` e `provar-a-raiz-sem-dobra-e-o-vazio-do-apagar` medem
+`professores/demi-plie/ciclos/ciclo-01-breu-rosa/` — o pacote que o expurgo da `breu` levou (e que a
+recriação não trouxe, porque a escola recriada é a `breu`, sem turma). Elas explodem em `ENOENT` antes
+de medir, e explodem igual **sem** esta mudança (conferido com o trabalho em `stash`). O ciclo que
+existe hoje não tem documentos (`DOCS=""`), portanto não há plano nem aula para medir: a regra fica
+medida pela prova nova — que usa a apresentação, nove títulos, e o controle que os devolve. Quando
+houver um ciclo com documentos, as três revivem; até lá ficam declaradas em `ESTADO-ATUAL` §9 como
+**não medidas**, e não como verdes.

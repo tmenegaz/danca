@@ -4,7 +4,19 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 23/11/2026 — **o documento do professor pode ser CNPJ.** A entrada
+> **Última fotografia:** 23/11/2026 — **a seta só está onde ela a pediu, e gravar as habilitações
+> fecha o formulário.** Palavras dela: «Você colocou o botão de expandir de forma indiscriminada e não
+> só onde eu te pedi ontem.» A dobra nascia em qualquer `.conteudo > h2[id]`, e o **índice de uma
+> escola** (1 título) e a **apresentação do sistema** (9) ganhavam a seta por omissão — recolher o
+> primeiro esconde a página inteira. `TELAS_SEM_DOBRA` passou a `{porta, raiz, escola, sistema}`, com
+> as duas páginas a declararem-se no `<body data-tela>`. O **índice da escola** deixou de dizer «As
+> turmas desta escola» (a redundância que ela leu), a frase passou a «o que se planeja para uma serve
+> de base para a outra — é o lastro da próxima», a do ritmo e do calendário saiu, o aviso do ciclo
+> ficou, e entrou o atalho «**comece por aqui** — Bastidores → Estúdio». E **gravar as habilitações
+> fecha o formulário**, com a confirmação no aviso do gesto — escrita no `.res` de dentro, ela ficaria
+> escondida pela própria recolha.
+>
+> **Fotografia anterior (23/11/2026 — o documento do professor pode ser CNPJ).** A entrada
 > anterior pôs a lista a ler o documento pelo comprimento, mas não havia porta por onde um CNPJ
 > entrasse: o Estúdio pedia «CPF do professor», onze dígitos. O campo passou a dizer **«CPF ou CNPJ do
 > professor»** e quem decide é o número; gravar um **limpa** o outro (um documento, um sítio); a
@@ -3853,6 +3865,29 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      **O QUE CONTINUA A PEDIR CPF:** o formulário de criar escola (é a ordem dela na decisão 170), e
      o CPF do **proprietário** não é obrigatório — «não é obrigatório isso, é apenas uma sugestão».
 
+172. **A SETA É PARA LER, E NÃO PARA TODA A PÁGINA QUE TEM TÍTULOS — E GRAVAR FECHA O FORMULÁRIO.**
+     Palavras dela: «Você colocou o botão de expandir de forma indiscriminada e não só onde eu te pedi
+     ontem.» […] «quando uma escola nasce […] Você colocou um botão de expandir e colapsar. Tira esse
+     botão daqui, ele não existe aqui.» […] «quando clicar em gravar, tem que colapsar.»
+     **O DEFEITO É O DE 22/11 OUTRA VEZ:** a dobra nasce em qualquer `.conteudo > h2[id]` de uma
+     página que não se declare, e a lista das excepções só tinha `raiz` e `porta`. O índice de uma
+     escola (1 título) e a apresentação dela (9) não são documentos de leitura — recolher o primeiro
+     esconde a página inteira.
+     **A REGRA NÃO MUDOU, A LISTA CRESCEU:** `TELAS_SEM_DOBRA = {porta, raiz, escola, sistema}`, e as
+     duas páginas declaram-se no `<body data-tela="…">`. Exigir `data-tela` para ter dobra deixaria
+     uma página nova sem ela em silêncio — o raciocínio de 22/11 continua bom.
+     **O ÍNDICE DA ESCOLA** passou a «Turmas» (a página já é a da escola), a frase a «o que se planeja
+     para uma **serve de base para a outra — é o lastro da próxima**», a do ritmo e do calendário
+     saiu, o aviso do ciclo **ficou** («Isso está certo, tá? Isso pode deixar»), e entrou o atalho
+     «**comece por aqui** — Bastidores → Estúdio».
+     **GRAVAR AS HABILITAÇÕES FECHA** o formulário: as caixas ficam com o que o professor declara
+     (é o estado certo, e ela disse-o), a moldura recolhe — e **a confirmação vai para o aviso do
+     gesto**, porque escrita no `.res` de dentro ficaria escondida pela própria recolha.
+     **E UMA LIÇÃO DE MEDIÇÃO:** a primeira execução da prova deu «zero setas» porque o `jsdom` não
+     carrega `<script src>` sem `resources: 'usable'` — o `nav.js` nunca tinha corrido, e a asserção
+     «não lançou» era verdadeira por o script não existir. A prova passou a exigir **uma marca do
+     script** (a coluna que só ele desenha).
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -4764,7 +4799,18 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (23/11/2026 — o documento do professor pode ser CNPJ)
+### Executado nesta fotografia (23/11/2026 — a seta só onde ela a pediu, e o gravar que fecha)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-a-dobra-so-onde-ela-pediu.js` (**nova**) | **35/35**. §A o índice da escola (`data-tela="escola"`, 1 título) e a apresentação (`data-tela="sistema"`, 9 títulos) ficam com **zero setas**, e o `nav.js` **correu de facto** — a marca é a coluna da navegação, que só ele desenha. §B o **controle no próprio ficheiro**: a mesma página sem o atributo devolve as **9** setas (e a do índice, 1) — sem isso, «zero setas» provaria o nada. §C o título «Turmas», a frase do lastro, a ausência das duas frases recusadas, o aviso intacto, e o atalho para `/bastidores/estudio` **depois** do link da apresentação. §D gravar as habilitações **fecha** a secção, esconde o formulário, volta a seta a «Abrir o formulário», limpa o `.res` de dentro e põe a confirmação no **aviso do gesto** |
+| controle negativo | `--contra=2741f55d` reprova **9**: 1 seta no índice, 9 na apresentação, e o gravar que não fecha (4) |
+| num Chrome, com o pacote montado | índice **0 setas / 1 título**; apresentação **0 setas / 9 títulos**; a coluna da navegação desenhada nas duas |
+| `provar-pagina-publica` · `provar-painel` · `provar-habilitacao-do-professor` · `provar-o-painel-do-estudio` · `provar-ficha-na-listagem` · `provar-cadastro-do-professor` | 79/79 · verde · verde · 36/36 · 35/35 · 87/87 |
+| `check-identidade` · `hash-ciclo --check` | **0 problemas** (23 verificações) · íntegro (as âncoras não incluem `assets/`) |
+| **NÃO MEDIDO, e é o expurgo que o explica** | `provar-a-seta-redonda`, `provar-dobra-do-indice` e `provar-a-raiz-sem-dobra-e-o-vazio-do-apagar` medem `ciclo-01-breu-rosa/`, o pacote que o expurgo da `breu` levou — explodem em `ENOENT` **antes** de medir, e explodem igual sem esta mudança (conferido em `stash`). O ciclo que existe hoje não tem documentos (`DOCS=""`), logo não há plano nem aula. A regra fica medida pela prova nova; quando houver um ciclo com documentos, as três revivem |
+
+### Executado na fotografia anterior (23/11/2026 — o documento do professor pode ser CNPJ)
 
 | Verificação | Resultado |
 |:--|:--|
