@@ -1567,6 +1567,85 @@ function conferirRespiro() {
 }
 conferirRespiro();
 
+// ------------------------------------------- 20) a seta de abrir e fechar
+//
+// O QUE ESTA CHECAGEM IMPEDE (22/11/2026). Ela viu a seta grande e redonda nos Bastidores — nas
+// Salas, nos Professores, nas Alunas, na Audição — e disse: «Vamos adotar isso como padrão […]
+// onde é que vai ser padrão esse botão? Nesses títulos que a gente tem no contexto […] e nos
+// demais títulos. Padroniza isso para deixar do mesmo jeito». E pediu que ficasse registado:
+// «isso é algo que tem que ser preservado para a gente não estar toda hora ajustando de novo a
+// identidade visual».
+//
+// A PEÇA EXISTE EM DUAS FOLHAS, e é essa a razão da checagem. Ela é `.alternar-form` no
+// `<style>` da Produção (os Bastidores) e `.secao-dobra` em `tools/templates/ciclo.css` (o
+// pacote). São duas folhas porque as duas superfícies não partilham ficheiro de estilo — a
+// Produção injeta o seu. Duas declarações da mesma peça é exactamente o que diverge à primeira
+// correcção: alguém arredonda uma e não a outra, e passam a existir duas setas parecidas no
+// mesmo produto.
+//
+// A REGRA QUE SE MEDE são os QUATRO números que fazem a peça ser a peça: o lado (2rem), o raio
+// (999px), o filete (1px) e o glifo (.9rem). O resto — as cores — sai dos tokens da folha, e o
+// `--borda-campo` já é o mesmo dos dois lados. Não se comparam classes nem nomes: compara-se o
+// que a pessoa vê.
+const GEOMETRIA_DA_SETA = ['width', 'height', 'border-radius', 'border', 'font'];
+function geometriaDa(classe, css) {
+  /* TODAS as regras da classe, somadas na ordem — é o que o browser faz. Ler só a primeira
+     encontrava o `.alternar-form{margin-top:.3rem}` (o ajuste fino, que não traz a geometria) e
+     comparava cinco campos vazios contra cinco certos: a checagem reprovava o próprio produto
+     que ela existe para defender. */
+  const re = new RegExp('\\.' + classe + '\\s*\\{([^}]*)\\}', 'g');
+  const lido = {};
+  let m;
+  let achou = false;
+  while ((m = re.exec(css)) !== null) {
+    achou = true;
+    for (const par of m[1].split(';')) {
+      const i = par.indexOf(':');
+      if (i < 0) continue;
+      lido[par.slice(0, i).trim()] = par.slice(i + 1).trim();
+    }
+  }
+  if (!achou) return null;
+  const saida = {};
+  for (const chave of GEOMETRIA_DA_SETA) saida[chave] = lido[chave] == null ? '' : lido[chave];
+  return saida;
+}
+function conferirSeta() {
+  const problemas = [];
+  const daFolha = geometriaDa('secao-dobra', fs.readFileSync(fonte, 'utf8'));
+  if (!daFolha) {
+    problemas.push('Seta: a folha não declara `.secao-dobra` — é a peça que abre e fecha as '
+      + 'secções do documento, e sem ela o botão fica sem desenho');
+  }
+  // A declaração dos Bastidores vem do que o motor SERVE, e não de um comentário: é a única
+  // forma de medir o que a página dele usa.
+  let daProducao = null;
+  try {
+    const bastidores = require(path.join(raiz, 'motor/servidor/bastidores.js'));
+    const html = bastidores.paginaProducao(
+      'x', { professor: 'x', ciclo: '01', query: '' }, [], [], '', '', [], [], [], [], [], []);
+    daProducao = geometriaDa('alternar-form', html);
+  } catch (e) {
+    problemas.push('Seta: não foi possível ler a página de Produção para medir a `.alternar-form` ('
+      + e.message + ')');
+  }
+  if (daFolha && daProducao) {
+    const divergentes = GEOMETRIA_DA_SETA.filter((k) => daFolha[k] !== daProducao[k]);
+    if (divergentes.length) {
+      problemas.push('Seta: a peça diverge entre as duas folhas — '
+        + divergentes.map((k) => `${k}: «${daFolha[k]}» na folha e «${daProducao[k]}» nos Bastidores`).join('; ')
+        + '. A seta de abrir e fechar é UMA: 2rem de lado, redonda, filete de 1px e o glifo em '
+        + '.9rem. Uma peça desenhada duas vezes é a que diverge à primeira correcção');
+    }
+  }
+  for (const p of problemas) erros.push(p);
+  if (!problemas.length) {
+    ok.push('Seta: a `.secao-dobra` da folha e a `.alternar-form` dos Bastidores são a MESMA peça — '
+      + GEOMETRIA_DA_SETA.map((k) => `${k} ${daFolha[k]}`).join(', '));
+  }
+}
+conferirSeta();
+
 // -------------------------------------------------------------------- saída
 
 for (const l of ok) console.log(`ok: ${l}`);

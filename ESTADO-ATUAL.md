@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 22/11/2026 (commit `22b99699`, e **o portão da aula dada** a seguir).
+> **Última fotografia:** 22/11/2026 (commit `22354d71`, e **a seta de abrir e fechar como peça única** a seguir).
 > Ainda neste dia, **o modal passou a deixar escrever**: os tempos e o compasso de cada exercício
 > abrem preenchidos com o que o verbete declara e são editáveis — a música do verbete é a da escola,
 > a da aula é decisão de quem a dá, e essas duas coisas estavam a ser a mesma. A secção «Música e
@@ -3492,6 +3492,32 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      `api/elicitar` passam ao lado do botão. Fechar a segunda porta é uma recusa no **servidor** —
      decisão dela, não minha. **PENDENTE**.
 
+160. **A SETA DE ABRIR E FECHAR É UMA PEÇA SÓ — E O DOCUMENTO ABRE COM O PRIMEIRO TÍTULO.** Palavras
+     dela: «Ele é maior, ele é grande, ele é redondo, tem uma borda redonda e tal. Vamos adotar isso
+     como padrão […] onde é que vai ser padrão esse botão? Nesses títulos que a gente tem no
+     contexto […] E aí começa com todos eles colapsados, exceto o primeiro […] registra isso,
+     documenta isso, porque a gente vai seguir fazendo mudanças e isso é algo que tem que ser
+     preservado.»
+     **DECIDIDO e IMPLEMENTADO** 22/11/2026. A `.secao-dobra` dos títulos do pacote passa a ser a
+     **mesma** `.alternar-form` dos Bastidores — **2rem × 2rem, `border-radius: 999px`, filete de
+     1px, fundo de superfície, glifo `▸`/`▾`** —, e vale no **plano**, nas **aulas**, na **notação**
+     e no **glossário**. Ficam pequenas, por decisão dela, a seta do índice (`.toc-dobra`) e a do
+     menu (`.coluna-seta`). O documento abre com **todos os títulos recolhidos, excepto o
+     primeiro**; do primeiro gesto em diante manda a memória da sessão.
+     **O QUE A GUARDA, e é o que ela pediu que ficasse preservado:** a checagem **20 (Seta)** de
+     `tools/check-identidade.js` lê as duas declarações — a da folha e a do HTML que o motor serve —
+     e reprova se `width`, `height`, `border-radius`, `border` ou `font` se afastarem. Uma peça
+     desenhada em duas folhas é a que diverge à primeira correcção; deixou de poder.
+     **E dois defeitos medidos, os dois meus.** (1) O clique gravava a secção errada: o nome da
+     variável dizia «aberto» quando queria dizer «estava fechada», e com a lista invertida clicar na
+     segunda guardava a primeira. (2) A **janela de criar a aula era engolida pela última secção** —
+     ela é a última coisa do plano, e a dobra apanha tudo o que vem depois do título; com as secções
+     a nascer fechadas, o diálogo ficou dentro de uma caixa `display:none` e o botão «Criar» deixou
+     de ser clicável. O sintoma, lido em voz alta, é «o modal abriu e não responde». O `.modal` não
+     é conteúdo de secção: fica onde está.
+     *Medido:* o título **não cresce** — 38px com e sem a peça (o `h2` tem 23px de tipo e a redonda
+     de 32 cabe na linha), o mesmo número do pacote anterior.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -4337,7 +4363,19 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (22/11/2026 — o portão da aula dada)
+### Executado nesta fotografia (22/11/2026 — a seta de abrir e fechar, peça única)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-a-seta-redonda.js` (**nova**) | **21/21**: a peça mede **32×32** com raio de 16, filete de 1px e fundo de superfície; o plano, a aula, a notação e o glossário abrem com o **primeiro** título aberto e todos os outros fechados; o gesto abre e fecha, a memória sobrevive ao recarregamento, um link do índice abre a secção fechada; o **diálogo de criar a aula não está dentro de nenhuma secção** e o «Criar» tem tamanho na tela; no papel a peça não se imprime e as secções saem inteiras. Controle `--contra=22354d71`: **15 de 21 reprovam** |
+| `node tools/check-identidade.js` (checagem **20, Seta**, nova) | **0 problemas**, 23 verificações. A comparação das duas declarações reprova de facto: com a folha alterada para `1.9rem`, o erro é «a peça diverge entre as duas folhas — width: «1.9rem» na folha e «2rem» nos Bastidores» |
+| o título com a peça, medido | **38px**, o mesmo do pacote anterior (onde a seta era um glifo de 13px) — a seta cresceu sem custar uma linha de altura |
+| `provar-a-musica-do-modal` · `provar-criar-aula` · `provar-a-dobra-e-a-aula-anterior` | 42/42 · 53/53 · 31/31 (a asserção «todas as secções nascem ABERTAS» virou «FECHADAS menos a primeira», com o motivo escrito) |
+| `provar-celular` | **14 de 15** — e a que passou a passar é «todo botão visível tem os quatro lados com a mesma espessura»: o glifo de antes não tinha moldura nenhuma, a redonda tem. A que falha («quando os botões descem, o nome ocupa a linha») já falhava antes |
+| `provar-derivados-da-sequencia` · `provar-o-derivar-do-estilo` · `provar-a-aula-que-vem` | 27/27 · 12/12 · 70/70 |
+| `gerar-ciclo` · `hash-ciclo --check` · `check-pacote` | 0 erros (1 aviso de PDF) · íntegro · 0 erros |
+
+### Executado na fotografia anterior (22/11/2026 — o portão da aula dada)
 
 | Verificação | Resultado |
 |:--|:--|

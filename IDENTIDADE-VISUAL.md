@@ -568,6 +568,7 @@ desenho.
 | **Uma janela por cima** | `.modal` (+ `.modal-fundo`, `.modal-caixa`, `.modal-cab`, `.modal-x`, `.modal-acoes`, e `.modal-largo` para o que não cabe em 440px) | decidir algo cuja consequência não se vê — a duração em minutos, o objetivo a que serve um exercício novo, uma exclusão. **É o último recurso**: abre só quando há decisão, e não para explicar, listar ou confirmar o que o sistema resolve sozinho | `modal-fundo` + `modal-caixa`; os botões são `.acao` dentro de `.modal-acoes`, **secundário primeiro** |
 | **A barra do sistema** | `.topnav` | — | gerada por `nav-html.js`; **não** se escreve à mão |
 | **O índice da página** | `.toc-local` (+ `.toc-dobra`) | — | gerado; no celular recolhe |
+| **Abrir e fechar uma secção do documento** | `.secao-dobra` (a **seta redonda**) | os títulos de secção do plano, das aulas, da notação e do glossário. **Não** no índice (`.toc-dobra`), nem no menu (`.coluna-seta`), que estão certos pequenos | `<button class="secao-dobra">` dentro do `<h2>`, criado pelo `nav.js`; o glifo vive num `.secao-dobra-sinal` (`aria-hidden`). A geometria é a **mesma** `.alternar-form` dos Bastidores: 2rem, redonda, filete de 1px — a checagem **20 (Seta)** compara as duas a cada commit |
 | **O menu de trabalho (a coluna)** | `.coluna` + `.folha-do-menu` (+ `.coluna-grupo`, `.coluna-titulo`, `.coluna-itens`, `.coluna-seta`, `.coluna-direto`, `.folha-puxador`) | o menu da escola: quatro destinos, e cada um leva a uma lista | gerado por `nav.js`; **não** se escreve à mão. Compacto: os grupos abrem no ponteiro; no celular é folha inferior. O menu dos Bastidores (`.lateral`) usa **as mesmas classes** — os dois são a mesma peça, e é por isso que se comportam e se vestem igual |
 | **Uma folha que sobe** | `.folha-do-menu` + `.folha-puxador` | um menu que aparece por cima da página, no telemóvel: a navegação do ☰, o «Seções» da Produção e o «Ações» da Área do Professor | a **identidade** (fundo bordô, canto de 20px, sombra para cima, medida, e o pegador de 36×4) mora aqui, uma vez. Quem a usa diz só o lugar e a transição. Medido: as três devolvem os mesmos valores computados, e é isso que a prova 16 compara |
 | **A pílula secundária** | `.pilula-do-menu` | o controle que ABRE uma folha, ao lado do conteúdo | o par do ☰, e não o principal: **vazada** (fundo de superfície, filete de campo, raio de 999px), nunca cheia. Usada pelo «Seções» e pelo «Ações» |
@@ -730,6 +731,7 @@ numa página: quem carrega a folha já as recebe desenhadas.
 | `.explica` | `porta/index.html` | `hidden` (fechada), `aberto` (à vista; folha fixa ≤768px), e o «Fechar» que só existe dentro da folha |
 | `[hidden]` | `ciclo.css`, na base | esconde **sempre** — é a única linha da folha com `!important`, e a razão está na proibição 4 |
 | `.topnav` / `.toc-local` / `.toc-dobra` | `ciclo.css` | aberto, recolhido, impressão |
+| `.secao-dobra` / `.secao-dobra-sinal` / `.secao-corpo` | `ciclo.css` (o desenho) + `assets/nav.js` (a criação e o estado) | base; `:hover`; `:focus-visible`; `[aria-expanded="true"]`/`"false"` com o glifo `▾`/`▸` e o rótulo («Recolher …»/«Mostrar …»); `.secao-corpo[data-recolhido="sim"]` fechado; impressão (a peça não se imprime e o corpo sai inteiro). **A peça é a mesma dos Bastidores** (`.alternar-form`), e a checagem 20 mede as duas |
 | `.veu` | `ciclo.css` | `display: none` por omissão; `[data-ocupado="sim"]` mostra (fixo, `inset: 0`, **translúcido** — `color-mix` do papel a 45%, com `var(--veu)` como rede —, `pointer-events: auto`). O que se lê está **sem caixa**: `.veu-cartao` sem fundo/filete/sombra/ar, a `.veu-etiqueta` é palavra em versalete bordô (`--marca`, sem a pílula do `.selo`) e a `.veu-texto` é serifa com `clamp` (23,2 px no ecrã largo, 18,4 px no telemóvel), ambas com `text-shadow` em três/quatro camadas de `--fundo` — é o halo que faz o trabalho da caixa. O giro é do `.veu-cartao::before` (anel de 2 px com halo de papel), e `prefers-reduced-motion` desliga-o. `[data-remota="sim"]` mostra a `.veu-nota`. `z-index: 120` — acima do `.modal` (100) |
 | `.coluna` | `ciclo.css` | coluna fixa ≥1141px (`data-aberta` irrelevante), folha ≤1140 (`data-aberta="sim"/"nao"`), impressão |
 | `.coluna-grupo` | `ciclo.css` | fechado (`data-aberto="nao"`), aberto (`"sim"`), e o grupo do documento actual (`data-atual="sim"` — o filete de ouro) |
@@ -752,6 +754,52 @@ numa página: quem carrega a folha já as recebe desenhadas.
 | `.par-botoes` | **a página da Produção** (`motor/servidor/bastidores.js`), no `<style>` dela — não na folha | fileira que quebra (`flex-wrap`), com o vão de `.55rem` acima. Carrega **sempre** uma `.acao` (e o `secundario` do cancelar, quando há). Medido: 9px entre o campo e o botão, o mesmo nos cinco formulários |
 | `.passos` / `.passo` / `.passo-n` / `.passo-t` / `.passo-alerta` / `.turmas-faixa` | **a página da Produção** (`motor/servidor/bastidores.js`), no `<style>` dela | base; `:hover`; `:focus-visible`; `[aria-current="step"]` (o `.ativo`: fundo de superfície e filete na cor dele); `[disabled]` (o passo que ainda não pode abrir); `.passo-alerta` (o «!» do que falta); e, no embrulho, `.turmas-faixa[hidden]` e `.secao[data-recolhido="sim"] .turmas-faixa` (recolhe com o corpo). Abaixo de 560px o rótulo encurta com reticências (`text-overflow`) e os conectores entre passos desaparecem |
 | `.ficha` / `.cartao` / `.acoes` (raiz) | **a própria página**, que não carrega a folha | ver a checagem 4 |
+
+### A seta de abrir e fechar — a peça, e o primeiro aberto *(22/11/2026)*
+
+Ela viu a seta das Salas, dos Professores, das Alunas e da Audição e nomeou-a padrão:
+
+> «Ele é maior, ele é grande, ele é redondo, tem uma borda redonda e tal. Vamos adotar isso como
+> padrão […] onde é que vai ser padrão esse botão? Nesses títulos que a gente tem no contexto […]
+> E aí começa com todos eles colapsados, exceto o primeiro […] Faz esse ajuste que ele é
+> importante para nossa identidade visual e registra isso, documenta isso, porque a gente vai
+> seguir fazendo mudanças e isso é algo que tem que ser preservado.»
+
+**A peça existia e não estava no catálogo** — outra vez o mesmo defeito: dois desenhos para a mesma
+coisa, um deles fora do contrato. Agora está declarada, e a regra tem quatro partes:
+
+| O quê | A regra |
+|:--|:--|
+| **A geometria** | `2rem × 2rem`, `border-radius: 999px` (redonda), `1px solid var(--borda-campo)`, fundo `--superficie`, glifo `700 .9rem/1 var(--ui)`. No ponteiro, `--fundo-hover` e `--marca-texto` |
+| **Onde vale** | os **títulos de secção do documento**: o plano do ciclo (o contexto, o objetivo geral, o objetivo específico), as aulas (todos os títulos), a notação e o glossário |
+| **Onde NÃO vale** | o índice da página (`.toc-dobra`) e o menu da coluna (`.coluna-seta`) — estão certos pequenos, e ela disse-o |
+| **O estado inicial** | **todos recolhidos, excepto o primeiro** título do documento. Depois do primeiro gesto, a memória da sessão manda — e um `[]` guardado é uma escolha (fechou tudo), não a ausência dela |
+
+**A peça é desenhada em duas folhas, e é isso que a checagem 20 guarda.** A `.alternar-form` vive
+no `<style>` da Produção; a `.secao-dobra`, em `tools/templates/ciclo.css`. As duas superfícies não
+partilham ficheiro de estilo, portanto a mesma peça aparece duas vezes — e é exactamente assim que
+duas cópias divergem à primeira correcção. A checagem **20 (Seta)** lê as duas declarações (a
+segunda, do HTML que o motor **serve**) e reprova se `width`, `height`, `border-radius`, `border` ou
+`font` se afastarem. Não compara nomes nem classes: compara o que a pessoa vê.
+
+**O título não cresce, e foi medido.** O `h2` tem 23px de tipo e a sua linha já dava **38px**; a
+redonda de 32px cabe dentro desses 38, e o título fica com os **mesmos 38px** com e sem a peça — o
+mesmo número do pacote anterior, onde a seta era um glifo de 13px. A seta ficou maior sem custar
+uma linha de altura ao documento.
+
+**O gesto que a memória não pode perder.** A lista guardada passou a ser a das **abertas**
+(`ciclo:secoes-abertas`), e não a das recolhidas: a chave mudou de nome porque o **sentido** mudou,
+e ler a chave velha com o sentido novo abriria o documento inteiro para quem tem a sessão de antes.
+E o clique tem de gravar a secção **certa** — o nome antigo da variável dizia «aberto» quando
+queria dizer «estava fechada», e com a lista invertida isso gravava a primeira secção ao clicar na
+segunda (medido, e corrigido; ver `provar-a-seta-redonda`, secção C).
+
+**Prova.** `node experimentos/provar-a-seta-redonda.js` — 18 asserções num navegador: a peça mede
+32×32 com raio de 16 e filete de 1px; os quatro documentos abrem com o primeiro título aberto e o
+resto fechado; o gesto abre, fecha e sobrevive ao recarregamento; um link do índice abre a secção
+que estava fechada; no papel a peça não se imprime e as secções saem inteiras. Controle
+`--contra=22354d71`: **14 de 18 reprovam** (a peça de lá tinha 23px de altura, «0px none» de
+moldura e fundo transparente, e tudo abria aberto).
 
 ### A matriz que não cabe rola dentro de si — e as setas dizem-no *(06/11/2026)*
 

@@ -314,8 +314,12 @@ function servir(pacote, templates) {
     provar('o corpo de cada secção é um bloco só, e nada ficou solto no documento',
       forma.corpos === forma.titulos && forma.tabelasSoltas === 0,
       { corpos: forma.corpos, soltas: forma.tabelasSoltas });
-    provar('todas as secções nascem ABERTAS',
-      forma.abertas === forma.titulos, { abertas: forma.abertas });
+    /* AS SECÇÕES NASCEM FECHADAS, MENOS A PRIMEIRA (22/11/2026) — a asserção era «todas ABERTAS»
+     * e virou com a decisão dela: «começa com todos eles colapsados, exceto o primeiro». O que se
+     * mede aqui é o NÚMERO; quem mede qual é o primeiro, e a geometria da seta, é a
+     * `provar-a-seta-redonda`, que é a prova dona dessa regra. */
+    provar('as secções nascem FECHADAS, menos a primeira (a regra de 22/11/2026)',
+      forma.abertas === 1 && forma.titulos > 5, { abertas: forma.abertas, titulos: forma.titulos });
 
     /* CADA PASSO É TOLERANTE À AUSÊNCIA DO BOTÃO. No controle negativo não há botão nenhum, e
      * sem isto a prova estourava a meio em vez de REPRODUZIR o defeito que tem de reproduzir —

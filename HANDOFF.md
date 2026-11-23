@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T21:02:48-0300`
-Commit atual: `6c24ee55` — chore(estrutura): fechar os derivados — âncoras e índices
+Gerado em: `2026-11-22T21:16:16-0300`
+Commit atual: `22354d71` — feat(estrutura): o portão da aula dada — o botão abre depois do lançamento da anterior
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+22354d71 feat(estrutura): o portão da aula dada — o botão abre depois do lançamento da anterior
 6c24ee55 chore(estrutura): fechar os derivados — âncoras e índices
 22b99699 fix(musicalidade): a música do exercício não se escreve no plano — deriva-se no Estilo
 f4ec34e1 docs(estrutura): o portão da aula dada bloqueia, e a decisão fica guardada antes do código
@@ -101,7 +102,6 @@ d562534a feat(aula-02): a aula que vem depois lê o lançamento da anterior
 e504f372 docs(estrutura): a fotografia da aula que diz só o que é dela
 b78a5f00 fix(po): cada aula imprime o seu marco, e mede pela régua da turma
 070415c2 docs(estrutura): a fotografia da folha que mede o conteúdo e do painel empilhado
-a9a62ab1 fix(estrutura): o painel inicial empilha os blocos, como ela aprovou
 ```
 
 ## Por professor
@@ -195,59 +195,75 @@ a9a62ab1 fix(estrutura): o painel inicial empilha os blocos, como ela aprovou
 
 ## Última entrada do REGISTRO
 
-## 22/11/2026 — O portão da aula dada: o botão abre depois do lançamento da anterior
+## 22/11/2026 — A seta de abrir e fechar é uma peça só, e o documento abre com o primeiro título
 
-**A regra, na letra dela.** «todas as outras aulas que estão lá no nosso calendário com o botão,
-todos os outros botões, melhor dizendo, que estão no calendário, que é criar aula, eles ficam
-desabilitados até que os dados lançados da aula dada estejam registados no sistema, aí habilita o
-próximo e assim sucessivamente.» E à pergunta «o professor pode preparar duas aulas seguidas?»: **não**
-— a aula seguinte só depois de a anterior ser dada e lançada.
+**A decisão, na letra dela.** «Nos bastidores, tem nas salas, no professores, alunos, na audição, nós
+temos a seta […] Ele é maior, ele é grande, ele é redondo, tem uma borda redonda e tal. Vamos adotar
+isso como padrão […] onde é que vai ser padrão esse botão? Nesses títulos que a gente tem no
+contexto […] E aí começa com todos eles colapsados, exceto o primeiro […] registra isso, documenta
+isso, porque a gente vai seguir fazendo mudanças e isso é algo que tem que ser preservado para a
+gente não estar toda hora ajustando de novo a identidade visual.»
 
-**O FACTO QUE ABRE O BOTÃO, e não é a data.** É o **registro do lançamento** — `aulas[NN]` no
-`-dados.json` —, a mesma chave que a guarda da regeneração já lê (`aulasLancadas`, em
-`motor/nucleo/aulas-do-ciclo.js`) e a mesma que o índice deste gerador lê (`ler_lancadas`). Uma aula
-que aconteceu e ainda não foi lançada tem o registro ausente, e o portão continua fechado: é a
-§1.2 do `ARQUITETURA-AULA.md` — os dois relógios fecham no lançamento.
+**MOTIVO DECLARADO — e este arquivo está congelado.** `tools/templates/ciclo.css`,
+`tools/templates/nav.js` e `tools/check-identidade.js` mudam por decisão de identidade da
+proprietária, tomada a 22/11/2026: a peça que abre e fecha as secções deixa de ser um glifo solto de
+13px e passa a ser a redonda de 2rem que já existia nos Bastidores, e o estado inicial do documento
+passa a ser «todos recolhidos, excepto o primeiro». É a primeira metade do pedido dela — a segunda é
+que fique **preservado**, e é por isso que a checagem 20 nasce neste mesmo commit.
 
-**Onde, e o que se mede.** `tools/calendario.py` (`celula_da_coluna_criar` com o parâmetro novo,
-`lancadas_do_dados`, o `--dados`) e `tools/gerar-ciclo.sh` (passa `--dados "$(fonte_dados)"`). A aula
-que **já tem documento** continua a ser a ligação «Abrir» — o portão não lhe toca. A **Aula 01 nunca
-espera**: não há aula anterior cujo lançamento lhe falte, e um portão que travasse a primeira não
-deixaria nada começar. Sem `--dados` nada é travado — «não sei» não é «não», e é o que mantém as provas
-de datas iguais ao que eram.
+**A PEÇA, e o que ela mede.** `2rem × 2rem`, `border-radius: 999px`, `1px solid var(--borda-campo)`,
+fundo `--superficie`, glifo `700 .9rem/1 var(--ui)`, e no ponteiro o `--fundo-hover` com a cor de
+`--marca-texto`. Vale nos **títulos de secção** do plano, das aulas, da notação e do glossário — e
+**não** no índice (`.toc-dobra`) nem no menu (`.coluna-seta`), que por decisão dela ficam pequenos.
 
-**UM BOTÃO TRAVADO TEM DE DIZER PORQUÊ, e diz-se uma vez.** O `title` de cada botão nomeia a aula que
-falta («A Aula 02 ainda não foi lançada: o registro do lançamento dela é o que abre este botão»), e a
-**regra** aparece numa linha por baixo da tabela. Treze linhas a repetir a mesma explicação seriam
-ruído; um botão `disabled` sem nada visível seria a «avaria» que a casa já nomeou em 03/11/2026.
+**PORQUE UMA CHECAGEM E NÃO SÓ UM COMENTÁRIO.** A peça é desenhada em **duas folhas** — a
+`.alternar-form` no `<style>` da Produção, a `.secao-dobra` em `ciclo.css` — porque as duas
+superfícies não partilham ficheiro de estilo. Duas declarações da mesma peça é exactamente o que
+diverge à primeira correcção. A checagem **20 (Seta)** lê as duas (a segunda, do HTML que o motor
+**serve**) e compara `width`, `height`, `border-radius`, `border` e `font` — o que a pessoa vê, não
+nomes de classe. Testada a recusar: com a folha em `1.9rem`, o erro sai e nomeia os dois valores.
 
-**AS DUAS PORTAS QUE ELE NÃO FECHA, declaradas.** (1) O endereço `?criar-aula=NN` abre o diálogo sem
-passar pelo botão — é o gancho da prova e da partilha de ligação. (2) Um `POST` directo a
-`api/elicitar` cria a aula sem passar pela página. Fechar a primeira exige levar o estado do
-lançamento até ao diálogo, que é derivado **antes** de o calendário existir; fechar a segunda exige
-uma recusa no **servidor**, e uma recusa no servidor é **decisão dela** — a diferença entre um botão
-que não se clica e uma API que responde 409. Fica `PENDENTE` e dito, em vez de uma trava que se
-contorna em silêncio.
+**O ESTADO INICIAL, e a chave que mudou de nome.** O documento abre com o **primeiro** título aberto
+e todos os outros fechados. A memória passou a guardar as **abertas** (`ciclo:secoes-abertas`), e a
+chave é nova porque o **sentido** mudou: ler `ciclo:secoes` (que guardava as recolhidas) com o
+sentido novo abriria o documento inteiro para quem tem a sessão de antes. Um `[]` guardado é uma
+escolha — a pessoa fechou tudo —, e distingue-se de «não há memória».
 
-**Com o quê.** `tools/calendario.py`, `tools/gerar-ciclo.sh`,
-`experimentos/provar-o-portao-da-aula-dada.js` (**novo**), `.gitignore`, o `plano.html` do pacote da
-`breu` regerado, `ESTADO-ATUAL.md`.
+**DOIS DEFEITOS MEDIDOS, os dois meus, e os dois apanhados pela prova.**
+1. **O clique gravava a secção errada.** A variável chamava-se `aberto` e era verdadeira quando a
+   secção estava **fechada**; com a lista das recolhidas a troca passava despercebida, com a das
+   abertas gravava a primeira ao clicar na segunda. Medido: `["contexto"]` depois de clicar em
+   «Objetivo geral». Passou a `eraFechada`.
+2. **A janela de criar a aula era engolida pela última secção.** O diálogo é a última coisa do
+   plano, e a dobra apanha «tudo o que vem depois do título até ao título seguinte». Com as secções
+   a nascer abertas, não se notava; a nascer fechadas, `#criar-aula` ficou dentro de uma caixa
+   `display:none` e o botão «Criar» deixou de ser clicável — «o modal abriu e não responde». O
+   `.modal` não é conteúdo de secção: fica onde está, e a secção recolhe à volta dele.
 
-**MEDIDO.** `provar-o-portao-da-aula-dada` **35/35** — a célula em oito casos (incluindo os extremos:
-a Aula 01 nunca espera, e com tudo lançado nada está travado), a tabela do gerador de verdade com uma
-fixture de `aulas`, e o pacote publicado. Controlo: o `plano.html` e o `calendario.py` de `22b99699`
-**não travam nada**, e o gerador antigo **recusa** o `--dados` — a flag é nova, e antes não havia como
-saber o facto. A §E mede a concordância entre as duas leituras: `lancadas_do_dados` e `aulasLancadas`
-dão a mesma lista para o `-dados.json` real da `breu` — **vazia** —, e tratam o lixo da mesma maneira
-(uma entrada `null` não é lançamento). As vizinhas: `provar-a-musica-do-modal` 42/42,
-`provar-o-derivar-do-estilo` 12/12, `provar-criar-aula` 53/53, `provar-a-identidade-da-aula` 26/26,
-`provar-cadeia-automatica` 136/136, `provar-a-aula-que-vem` 70/70. `gerar-ciclo` 0 erros,
-`hash-ciclo --check` íntegro, `check-pacote` 0 erros, `check-identidade` **0 problemas**.
+**O QUE NÃO CRESCE, e foi medido contra a expectativa.** O título fica com **38px** com e sem a
+peça — o mesmo número do pacote anterior. O `h2` tem 23px de tipo, a linha já dava 38, e a redonda
+de 32 cabe dentro. A seta ficou maior **sem custar uma linha de altura**.
 
-**E o efeito no ciclo dela, medido no pacote:** a Aula 02 da `rosa` existe e não foi lançada, portanto
-a **Aula 03 fica travada** e as seguintes esperam a sua própria anterior. É a regra a funcionar sobre
-o ciclo que ela criou fora dela de propósito — e a razão de ela expurgar a escola para testar o portão
-a partir de um ciclo limpo.
+**Com o quê.** `tools/templates/ciclo.css` (a peça), `tools/templates/nav.js` (o estado inicial, a
+memória e a guarda do `.modal`), `tools/check-identidade.js` (a checagem 20),
+`experimentos/provar-a-seta-redonda.js` (**novo**), `experimentos/provar-a-dobra-e-a-aula-anterior.js`
+(a asserção invertida, com o motivo), `IDENTIDADE-VISUAL.md` (o Quadro 1, o Quadro 2 e a secção
+nova), `.github/instructions/identidade-visual.instructions.md`, o pacote da `rosa` e os assets do
+pacote `breu` regerados, a raiz regerada, `ESTADO-ATUAL.md`.
+
+**MEDIDO.** `provar-a-seta-redonda` **21/21**, controle `--contra=22354d71` a reprovar **15 de 21**.
+`check-identidade` **0 problemas** (23 verificações), com a checagem 20 a recusar de facto quando a
+geometria diverge. `provar-a-musica-do-modal` 42/42 (era o que apanhava o modal engolido),
+`provar-criar-aula` 53/53, `provar-a-dobra-e-a-aula-anterior` 31/31,
+`provar-derivados-da-sequencia` 27/27, `provar-o-derivar-do-estilo` 12/12,
+`provar-a-aula-que-vem` 70/70, `provar-celular` **14 de 15** — e a que passou a passar é «todo botão
+visível tem os quatro lados com a mesma espessura», porque o glifo de antes não tinha moldura
+nenhuma. `gerar-ciclo` 0 erros, `hash-ciclo --check` íntegro, `check-pacote` 0 erros.
+
+**E o registo para o futuro, que é o que ela pediu.** A partir daqui, quem mexer numa seta de abrir e
+fechar — em qualquer das duas superfícies — encontra a regra no catálogo (`IDENTIDADE-VISUAL.md`,
+secção «A seta de abrir e fechar»), no resumo executável das instruções, na folha, na prova e na
+checagem. Cinco sítios, uma regra: é o que impede o ajuste de ser refeito a cada mudança.
 
 ## O que está pendente
 

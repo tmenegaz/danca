@@ -197,7 +197,22 @@
    * nas sete aulas de um ciclo — recolher o guia de observação na Aula 01 é recolhê-lo na
    * Aula 02, que é o que se espera de quem está a ler a mesma secção sete vezes.
    * ------------------------------------------------------------------ */
-  var CHAVE_SECOES = 'ciclo:secoes';
+  /* TODOS RECOLHIDOS, EXCETO O PRIMEIRO (22/11/2026).
+   *
+   * Palavras dela: «começa com todos eles colapsados, exceto o primeiro, tá? E aí o professor vai
+   * expandindo e lendo e vendo o que que ele precisa saber a respeito das coisas.»
+   *
+   * A CHAVE MUDOU DE NOME porque o SIGNIFICADO mudou: `ciclo:secoes` guardava as RECOLHIDAS
+   * (abrindo por omissão tudo o resto); `ciclo:secoes-abertas` guarda as ABERTAS (fechando por
+   * omissão tudo o resto). Ler a chave velha com o sentido novo abriria o documento inteiro para
+   * quem tem a sessão de antes — o contrário do que se pediu —, e é por isso que a chave é nova
+   * em vez de reaproveitada. Uma chave é um contrato: mudar-lhe o sentido por baixo é o defeito
+   * que o `--dados` do portão também evitou.
+   *
+   * O PRIMEIRO NÃO É «A SECÇÃO 1»: é o primeiro `<h2>` DESTE documento. Num plano é o contexto;
+   * numa aula é a validação dos objetivos; no glossário é o índice de símbolos. Quem abre o
+   * documento tem sempre um pedaço de texto à frente, e não um índice de títulos fechados. */
+  var CHAVE_SECOES = 'ciclo:secoes-abertas';
 
   /* O ÍNDICE MANDA: clicar «Guia de observação» numa secção recolhida tem de a abrir. Sem
      isto, meio índice não leva a lado nenhum — o salto pára numa âncora escondida, e nada
@@ -215,6 +230,10 @@
     var dono = secoesPorCorpo.get(corpo);
     if (!dono) return;
     mostrarSecao(dono, true);
+    /* A MEMÓRIA ACOMPANHA O GESTO. O índice abre a secção; se ela não entrar na lista, o próximo
+       recarregamento volta a fechá-la — e o `guardarSecoes` gravaria uma lista que não tem o que
+       está à vista. É a mesma regra do clique na seta, escrita uma vez. */
+    if (abertas.indexOf(dono.chave) === -1) abertas.push(dono.chave);
     guardarSecoes();
   }
   function abrirDoEndereco() {
@@ -224,12 +243,17 @@
     abrirSeDoAlvo(alvo);
   }
 
-  var recolhidas;
-  try { recolhidas = JSON.parse(sessionStorage.getItem(CHAVE_SECOES) || '[]'); } catch (e) { recolhidas = []; }
-  if (!Array.isArray(recolhidas)) recolhidas = [];
+  /* `null` = ninguém mexeu ainda nesta sessão, e é aí que vale a regra do primeiro aberto.
+     Um `[]` guardado é uma ESCOLHA — a pessoa fechou tudo, e ela manda. A diferença entre os dois
+     é a diferença entre «não há memória» e «a memória diz que não há nada aberto». */
+  var abertas = null;
+  try {
+    var guardado = JSON.parse(sessionStorage.getItem(CHAVE_SECOES) || 'null');
+    if (Array.isArray(guardado)) abertas = guardado;
+  } catch (e) { abertas = null; }
 
   function guardarSecoes() {
-    try { sessionStorage.setItem(CHAVE_SECOES, JSON.stringify(recolhidas)); } catch (e) { /* modo privado */ }
+    try { sessionStorage.setItem(CHAVE_SECOES, JSON.stringify(abertas || [])); } catch (e) { /* modo privado */ }
   }
 
   var secoes = [];
@@ -261,6 +285,18 @@
       var irmao = h2.nextElementSibling;
       while (irmao && irmao.tagName !== 'H2') {
         var seguinte = irmao.nextElementSibling;
+        /* A JANELA NÃO É CONTEÚDO DE SECÇÃO (22/11/2026) — e este `if` foi um defeito medido.
+         *
+         * O DIÁLOGO QUE CRIA A AULA é a última coisa do plano, e vem depois do último `<h2>`: sem
+         * esta guarda ele era engolido pelo corpo da ÚLTIMA secção. Enquanto as secções nasciam
+         * abertas isso não se via; quando passaram a nascer fechadas, `#criar-aula` ficou dentro de
+         * uma caixa `display:none` — e o botão «Criar» do diálogo deixou de ser clicável. O
+         * sintoma lido em voz alta é «o modal abriu e não responde», e a causa é a dobra.
+         *
+         * Um `.modal` não pertence a nenhuma secção: é uma janela por cima do documento, e fica
+         * onde está. O corpo da secção continua a ser recolhido à volta dele — ele não é movido,
+         * apenas não é apanhado. */
+        if (irmao.classList && irmao.classList.contains('modal')) { irmao = seguinte; continue; }
         corpo.appendChild(irmao);
         irmao = seguinte;
       }
@@ -278,15 +314,23 @@
       secoes.push(registro);
       secoesPorCorpo.set(corpo, registro);
       botao.addEventListener('click', function () {
-        var aberto = corpo.getAttribute('data-recolhido') === 'sim';
-        mostrarSecao(registro, aberto);
-        var i = recolhidas.indexOf(registro.chave);
-        if (!aberto && i === -1) recolhidas.push(registro.chave);
-        else if (aberto && i !== -1) recolhidas.splice(i, 1);
+        /* O NOME DIZ O QUE A COISA É (22/11/2026). Aqui esteve `var aberto = corpo.getAttribute(
+           'data-recolhido') === 'sim'` — verdadeiro quando a secção estava FECHADA —, e a lista
+           antiga era a das recolhidas, portanto a troca de sentido passava despercebida. Com a
+           lista das abertas, o mesmo nome invertido gravava a secção errada: medido, clicar na
+           segunda guardava a primeira. `eraFechada` não tem como enganar. */
+        var eraFechada = corpo.getAttribute('data-recolhido') === 'sim';
+        mostrarSecao(registro, eraFechada);
+        var i = abertas.indexOf(registro.chave);
+        if (eraFechada && i === -1) abertas.push(registro.chave);
+        else if (!eraFechada && i !== -1) abertas.splice(i, 1);
         guardarSecoes();
       });
     });
-    secoes.forEach(function (s) { mostrarSecao(s, recolhidas.indexOf(s.chave) === -1); });
+    /* A REGRA DO PRIMEIRO, e ela vale uma vez por documento: sem memória, abre o primeiro e mais
+       nada. Com memória, a memória manda — inclusive quando diz «nenhuma». */
+    if (!abertas) abertas = secoes.length ? [secoes[0].chave] : [];
+    secoes.forEach(function (s) { mostrarSecao(s, abertas.indexOf(s.chave) !== -1); });
     abrirDoEndereco();
     window.addEventListener('hashchange', abrirDoEndereco);
     document.addEventListener('click', function (ev) {

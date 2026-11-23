@@ -28,6 +28,7 @@ escrever o primeiro `<div>`.
 | resultado de uma ação | `.res` (`ok`/`erro`) |
 | alerta no meio do conteúdo | `.aviso` |
 | janela por cima | `.modal` |
+| **abrir e fechar uma secção do documento** | `.secao-dobra` — a **seta redonda** de 2rem, a mesma dos Bastidores |
 | barra do sistema, índice da página | gerados (`nav.js`) — **não** se escreve à mão |
 
 O quadro completo, com marcação e estados, é a secção **«O catálogo das peças»** de
@@ -84,6 +85,25 @@ fecha»): esse erro pertence ao campo que o resolve.
 E a listagem do Estilo dá o gesto **também à versão do catálogo** — «Derivar», que cria a versão da
 escola. O que a versão do catálogo **não** tem é «Excluir» (apagá-la tirá-la-ia a todas), e a
 ausência é a regra de 03/11/2026: um botão que recusa é pior do que a sua ausência.
+
+## A seta de abrir e fechar — a peça, e o primeiro aberto *(22/11/2026)*
+
+Ela nomeou padrão a seta grande e redonda das Salas, dos Professores, das Alunas e da Audição:
+*«Vamos adotar isso como padrão […] onde é que vai ser padrão esse botão? Nesses títulos que a gente
+tem no contexto […] E aí começa com todos eles colapsados, exceto o primeiro.»*
+
+| O quê | A regra |
+|:--|:--|
+| a peça | **`.secao-dobra`**, dentro do `<h2>` do documento (criada pelo `assets/nav.js`). É a **mesma** `.alternar-form` dos Bastidores: **2rem × 2rem**, `border-radius: 999px`, `1px solid var(--borda-campo)`, fundo `--superficie`, glifo `700 .9rem/1 var(--ui)` |
+| onde vale | os títulos de secção do **plano**, das **aulas**, da **notação** e do **glossário** |
+| onde **não** vale | o índice da página (`.toc-dobra`) e o menu da coluna (`.coluna-seta`) — esses ficam pequenos, e é decisão dela |
+| o estado inicial | **todos recolhidos, excepto o primeiro**. A memória é da sessão (`ciclo:secoes-abertas`, a lista das **abertas** — e um `[]` guardado é uma escolha, não a ausência dela) |
+| o que a guarda | a checagem **20 (Seta)** compara a geometria das duas declarações (a da folha e a do HTML que o motor serve) e reprova se se afastarem; `experimentos/provar-a-seta-redonda.js` mede a peça num navegador |
+| o que **não** fazer | não se cria uma terceira classe para «abrir e fechar»; não se troca o glifo por uma palavra; não se põe um botão em fileira própria (ele mora dentro do título, senão são oito fileiras de ar em cima do texto) |
+
+O título **não cresce**: medidos 38px com e sem a peça (o `h2` tem 23px de tipo e a redonda de 32px
+cabe na linha). A secção **«A seta de abrir e fechar — a peça, e o primeiro aberto»** de
+`IDENTIDADE-VISUAL.md` tem o porquê e as medidas.
 
 ## As seis regras que não se negociam
 
@@ -171,7 +191,7 @@ Enquanto faltar qualquer um dos quatro, a peça **não existe**.
 ## O que rodar antes de dizer «pronto»
 
 ```bash
-node tools/check-identidade.js      # 8 checagens: contraste, cópia, papel, forma, peça…
+node tools/check-identidade.js      # as checagens: contraste, cópia, papel, forma, peça, seta…
 node experimentos/provar-celular.js # geometria em 320/360/390/414/768/1024
 node experimentos/provar-producao.js
 node experimentos/provar-vao-do-botao.js   # o vão e a cor de cada ação de formulário

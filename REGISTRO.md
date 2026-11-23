@@ -59050,3 +59050,73 @@ dão a mesma lista para o `-dados.json` real da `breu` — **vazia** —, e trat
 a **Aula 03 fica travada** e as seguintes esperam a sua própria anterior. É a regra a funcionar sobre
 o ciclo que ela criou fora dela de propósito — e a razão de ela expurgar a escola para testar o portão
 a partir de um ciclo limpo.
+
+## 22/11/2026 — A seta de abrir e fechar é uma peça só, e o documento abre com o primeiro título
+
+**A decisão, na letra dela.** «Nos bastidores, tem nas salas, no professores, alunos, na audição, nós
+temos a seta […] Ele é maior, ele é grande, ele é redondo, tem uma borda redonda e tal. Vamos adotar
+isso como padrão […] onde é que vai ser padrão esse botão? Nesses títulos que a gente tem no
+contexto […] E aí começa com todos eles colapsados, exceto o primeiro […] registra isso, documenta
+isso, porque a gente vai seguir fazendo mudanças e isso é algo que tem que ser preservado para a
+gente não estar toda hora ajustando de novo a identidade visual.»
+
+**MOTIVO DECLARADO — e este arquivo está congelado.** `tools/templates/ciclo.css`,
+`tools/templates/nav.js` e `tools/check-identidade.js` mudam por decisão de identidade da
+proprietária, tomada a 22/11/2026: a peça que abre e fecha as secções deixa de ser um glifo solto de
+13px e passa a ser a redonda de 2rem que já existia nos Bastidores, e o estado inicial do documento
+passa a ser «todos recolhidos, excepto o primeiro». É a primeira metade do pedido dela — a segunda é
+que fique **preservado**, e é por isso que a checagem 20 nasce neste mesmo commit.
+
+**A PEÇA, e o que ela mede.** `2rem × 2rem`, `border-radius: 999px`, `1px solid var(--borda-campo)`,
+fundo `--superficie`, glifo `700 .9rem/1 var(--ui)`, e no ponteiro o `--fundo-hover` com a cor de
+`--marca-texto`. Vale nos **títulos de secção** do plano, das aulas, da notação e do glossário — e
+**não** no índice (`.toc-dobra`) nem no menu (`.coluna-seta`), que por decisão dela ficam pequenos.
+
+**PORQUE UMA CHECAGEM E NÃO SÓ UM COMENTÁRIO.** A peça é desenhada em **duas folhas** — a
+`.alternar-form` no `<style>` da Produção, a `.secao-dobra` em `ciclo.css` — porque as duas
+superfícies não partilham ficheiro de estilo. Duas declarações da mesma peça é exactamente o que
+diverge à primeira correcção. A checagem **20 (Seta)** lê as duas (a segunda, do HTML que o motor
+**serve**) e compara `width`, `height`, `border-radius`, `border` e `font` — o que a pessoa vê, não
+nomes de classe. Testada a recusar: com a folha em `1.9rem`, o erro sai e nomeia os dois valores.
+
+**O ESTADO INICIAL, e a chave que mudou de nome.** O documento abre com o **primeiro** título aberto
+e todos os outros fechados. A memória passou a guardar as **abertas** (`ciclo:secoes-abertas`), e a
+chave é nova porque o **sentido** mudou: ler `ciclo:secoes` (que guardava as recolhidas) com o
+sentido novo abriria o documento inteiro para quem tem a sessão de antes. Um `[]` guardado é uma
+escolha — a pessoa fechou tudo —, e distingue-se de «não há memória».
+
+**DOIS DEFEITOS MEDIDOS, os dois meus, e os dois apanhados pela prova.**
+1. **O clique gravava a secção errada.** A variável chamava-se `aberto` e era verdadeira quando a
+   secção estava **fechada**; com a lista das recolhidas a troca passava despercebida, com a das
+   abertas gravava a primeira ao clicar na segunda. Medido: `["contexto"]` depois de clicar em
+   «Objetivo geral». Passou a `eraFechada`.
+2. **A janela de criar a aula era engolida pela última secção.** O diálogo é a última coisa do
+   plano, e a dobra apanha «tudo o que vem depois do título até ao título seguinte». Com as secções
+   a nascer abertas, não se notava; a nascer fechadas, `#criar-aula` ficou dentro de uma caixa
+   `display:none` e o botão «Criar» deixou de ser clicável — «o modal abriu e não responde». O
+   `.modal` não é conteúdo de secção: fica onde está, e a secção recolhe à volta dele.
+
+**O QUE NÃO CRESCE, e foi medido contra a expectativa.** O título fica com **38px** com e sem a
+peça — o mesmo número do pacote anterior. O `h2` tem 23px de tipo, a linha já dava 38, e a redonda
+de 32 cabe dentro. A seta ficou maior **sem custar uma linha de altura**.
+
+**Com o quê.** `tools/templates/ciclo.css` (a peça), `tools/templates/nav.js` (o estado inicial, a
+memória e a guarda do `.modal`), `tools/check-identidade.js` (a checagem 20),
+`experimentos/provar-a-seta-redonda.js` (**novo**), `experimentos/provar-a-dobra-e-a-aula-anterior.js`
+(a asserção invertida, com o motivo), `IDENTIDADE-VISUAL.md` (o Quadro 1, o Quadro 2 e a secção
+nova), `.github/instructions/identidade-visual.instructions.md`, o pacote da `rosa` e os assets do
+pacote `breu` regerados, a raiz regerada, `ESTADO-ATUAL.md`.
+
+**MEDIDO.** `provar-a-seta-redonda` **21/21**, controle `--contra=22354d71` a reprovar **15 de 21**.
+`check-identidade` **0 problemas** (23 verificações), com a checagem 20 a recusar de facto quando a
+geometria diverge. `provar-a-musica-do-modal` 42/42 (era o que apanhava o modal engolido),
+`provar-criar-aula` 53/53, `provar-a-dobra-e-a-aula-anterior` 31/31,
+`provar-derivados-da-sequencia` 27/27, `provar-o-derivar-do-estilo` 12/12,
+`provar-a-aula-que-vem` 70/70, `provar-celular` **14 de 15** — e a que passou a passar é «todo botão
+visível tem os quatro lados com a mesma espessura», porque o glifo de antes não tinha moldura
+nenhuma. `gerar-ciclo` 0 erros, `hash-ciclo --check` íntegro, `check-pacote` 0 erros.
+
+**E o registo para o futuro, que é o que ela pediu.** A partir daqui, quem mexer numa seta de abrir e
+fechar — em qualquer das duas superfícies — encontra a regra no catálogo (`IDENTIDADE-VISUAL.md`,
+secção «A seta de abrir e fechar»), no resumo executável das instruções, na folha, na prova e na
+checagem. Cinco sítios, uma regra: é o que impede o ajuste de ser refeito a cada mudança.

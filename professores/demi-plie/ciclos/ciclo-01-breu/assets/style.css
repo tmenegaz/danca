@@ -1598,18 +1598,50 @@ li { margin: 4px 0; }
    também quer fechar o guia de observação. Só o papel não tem dobra — no papel o
    documento sai inteiro, e o botão não se imprime: um PDF com uma secção escondida
    porque alguém tocou num botão noutro dia seria um documento que mente. */
+/* A SETA DE ABRIR E FECHAR — A PEÇA, E ELA É UMA SÓ (22/11/2026).
+ *
+ * Palavras dela: «Nos bastidores, tem nas salas, no professores, alunos, na audição, nós temos a
+ * seta, essa flecha, que é o botão de expandir o formulário ou colapsar o formulário. Ele é maior,
+ * ele é grande, ele é redondo, tem uma borda redonda e tal. Vamos adotar isso como padrão.»
+ *
+ * ONDE ELA VALE: os títulos de secção dos documentos do pacote — o plano do ciclo (o contexto, o
+ * objetivo geral, o objetivo específico), as aulas (a validação, a distribuição do tempo, o guia de
+ * observação…), a notação e o glossário. Onde NÃO vale, e por decisão dela: as setas pequenas do
+ * menu da coluna (`.coluna-seta`) e a do índice (`.toc-dobra`), que estão certas como estão.
+ *
+ * A GEOMETRIA É A DA `.alternar-form` DOS BASTIDORES, e não uma parecida: 2rem de lado, raio de
+ * 999px (redonda), filete de `--borda-campo`, fundo de `--superficie`, glifo em `--texto-suave`,
+ * e no ponteiro o fundo de `--fundo-hover` com a cor de `--marca-texto`. Uma peça que existe em
+ * duas superfícies e é desenhada duas vezes é a que diverge à primeira correcção — a checagem 19
+ * (`Seta`) compara as duas declarações a cada commit, e reprova se as medidas se afastarem.
+ *
+ * PORQUE É `inline-grid` E NÃO `flex`: o título é texto e o botão vai DEPOIS dele, no fluxo. Um
+ * `flex` no `h2` faria do título um item de uma caixa flex e mudaria o embrulho de todos os
+ * títulos longos do pacote; o `inline-grid` centra o glifo na caixa sem tocar no texto.
+ *
+ * O `margin-left` é o vão entre o fim do título e a seta — `--esp-2`, o mesmo que a folha usa
+ * entre um rótulo e o seu controle. O `vertical-align: middle` alinha a seta com a linha do
+ * texto, e não com a caixa toda: num título de duas linhas ela fica na última, que é onde o olho
+ * a procura.
+ *
+ * E O TÍTULO NÃO CRESCE — MEDIDO, e contra o que eu esperava. O `h2` tem 23px de tipo e a sua
+ * linha já dava 38px; a redonda de 32px cabe dentro desses 38, e o título fica com os MESMOS 38px
+ * com e sem a peça nova (medido no `provar-a-seta-redonda`, e o mesmo número no pacote anterior,
+ * onde a peça era um glifo de 13px). Ou seja: a seta ficou maior sem custar uma linha de altura ao
+ * documento. O `padding` de 5px que aqui estava servia para o alvo do dedo ser maior que o sinal;
+ * com a moldura à vista, quem dá o alvo é a própria caixa. */
 .secao-dobra {
-  /* O ALVO DO DEDO É MAIOR QUE O SINAL, e não custa uma linha de altura: o `padding` cresce
-     5px em cada lado e o `margin` negativo devolve os mesmos 5px ao texto. Medido: com e sem
-     o botão, o título tem os mesmos 38px e a página os mesmos 10 166px. */
-  display: inline-flex; margin: -5px 0 -5px var(--esp-1); padding: 5px 4px;
-  border: 0; border-radius: 0;
-  background: transparent; color: var(--texto-suave);
-  font: 700 13px/1 var(--ui); cursor: pointer;
+  display: inline-grid; place-items: center;
+  flex: 0 0 auto;
+  width: 2rem; height: 2rem;
+  margin: 0 0 0 var(--esp-2); padding: 0;
+  border: 1px solid var(--borda-campo); border-radius: 999px;
+  background: var(--superficie); color: var(--texto-suave);
+  font: 700 .9rem/1 var(--ui); cursor: pointer;
   vertical-align: middle;
 }
-.secao-dobra:hover:not(:disabled) { background: transparent; color: var(--marca); }
-.secao-dobra:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
+.secao-dobra:hover:not(:disabled) { background: var(--fundo-hover); color: var(--marca-texto); }
+.secao-dobra:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
 .secao-dobra .secao-dobra-sinal { display: block; line-height: 1; }
 
 /* RECOLHIDA, a secção é o título e mais nada. O `data-recolhido` é o mesmo atributo que o
