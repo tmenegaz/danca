@@ -1425,6 +1425,29 @@ async function gravarCadastro({ env, escola, professor, cadastro, origem }) {
       criadoEm: registo.criadoEm || quando,
       atualizadoEm: quando,
     });
+    /* O QUE O FORMULÁRIO NÃO TROUXE, E A ESCOLA JÁ TINHA (23/11/2026).
+     *
+     * «inclui, para a gente continuar fazendo os testes e facilitar as coisas, no cadastro dessas
+     * escolas o CNPJ e o e-mail […] eu não quero ter que preencher de novo um formulário.»
+     *
+     * A ESCOLA QUE VOLTA É A MESMA ESCOLA, e ela já teve número e endereço. Quando o formulário
+     * vem com os campos em branco — o caso de quem recria um `calango` ou uma `batata` para testar
+     * —, o que o expurgo guardou preenche o resto. É a MESMA conta da recriação
+     * (`identidadeDoExpurgo`), e não uma segunda: o que a escola declarar agora manda sempre, e o
+     * CNPJ só é herdado se ainda não for de outra escola.
+     *
+     * NADA AQUI FAZ FALHAR NADA: se a herança não der nada, o cadastro grava-se como ia gravar. */
+    const daCasa = await identidadeDoExpurgo({
+      env, slug: escola, cnpj: novo.cnpj, email: novo.email, telefone: novo.telefone,
+    });
+    if (daCasa) {
+      novo.cnpj = daCasa.cnpj;
+      novo.email = daCasa.email;
+      novo.telefone = daCasa.telefone;
+      novo.herdadoDe = daCasa.herdadoDe;
+      if (daCasa.cnpjNaoHerdado) novo.cnpjNaoHerdado = daCasa.cnpjNaoHerdado;
+      resultado.herdado = { cnpj: Boolean(daCasa.cnpj), de: daCasa.herdadoDe };
+    }
     await kv.put(chave, JSON.stringify(novo));
     resultado.escola = chave;
   } catch (erro) {
@@ -3194,6 +3217,59 @@ async function guardarCadastroDoExpurgo({ env, slug, elo, motivo, quando }) {
  * NUNCA LANÇA: a recriação já está feita, e uma falha a restaurar o cadastro é um facto do
  * relatório, não uma razão para dizer que a escola não voltou.
  */
+/**
+ * O QUE FALTA NO CADASTRO, VINDO DO REGISTO QUE O EXPURGO GUARDOU — uma conta só, dois chamadores
+ * (23/11/2026).
+ *
+ * OS DOIS CHAMADORES SÃO AS DUAS PORTAS POR ONDE UMA ESCOLA VOLTA: a **recriação** (o convite) e a
+ * **criação** com o mesmo nome (o formulário). Sem isto na criação, a escola nascia outra vez sem o
+ * CNPJ que o expurgo tinha guardado — e ela teria de o escrever à mão, que é exactamente o que
+ * pediu para não ter de fazer.
+ *
+ * O CNPJ É CONFERIDO ANTES DE SER HERDADO, e é a regra de 25/11 a mandar: **um CNPJ é uma escola**.
+ * Depois de um expurgo o número fica livre, e alguém pode ter criado outra escola com ele. Herdar
+ * sem perguntar criaria dois registos com o mesmo número — o defeito que a regra existe para
+ * impedir. Quando isso acontece, herda-se o resto e o número fica `null`, com a escola que o tem
+ * nomeada no desfecho.
+ *
+ * NÃO SE HERDA O QUE JÁ VEIO: o que a escola declarou agora é mais recente do que o guardado, e
+ * substituí-lo seria fazer a escola mentir sobre o que declarou.
+ *
+ * Devolve `null` quando não há nada para herdar — sem registo, ou com todos os campos já presentes.
+ * Nunca lança: o chamador está a meio de uma operação que não pode cair por isto.
+ */
+async function identidadeDoExpurgo({ env, slug, cnpj, email, telefone }) {
+  const falta = (v) => v === null || v === undefined || String(v).trim() === '';
+  if (!falta(cnpj) && !falta(email) && !falta(telefone)) return null;
+  try {
+    const guardado = await lerCadastroHistorico(env, slug);
+    if (!guardado) return null;
+    let cnpjFinal = falta(cnpj) ? (guardado.cnpj || null) : cnpj;
+    let cnpjNaoHerdado = null;
+    if (falta(cnpj) && cnpjFinal) {
+      const dono = await cnpjJaUsado(env, cnpjFinal, slug);
+      if (dono) { cnpjNaoHerdado = { cnpj: cnpjFinal, escola: dono }; cnpjFinal = null; }
+    }
+    const emailFinal = falta(email) ? (guardado.email || null) : email;
+    const telefoneFinal = falta(telefone) ? (guardado.telefone || null) : telefone;
+    /* SE NADA FOI ACRESCENTADO, NÃO HÁ HERANÇA. Sem esta guarda, um registo guardado sem dados
+     * escreveria `herdadoDe` num cadastro que não herdou nada — e a aba passaria a dizer «herdado
+     * do expurgo» sobre três traços. */
+    const acrescentou = (falta(cnpj) && cnpjFinal) || (falta(email) && emailFinal)
+      || (falta(telefone) && telefoneFinal);
+    if (!acrescentou && !cnpjNaoHerdado) return null;
+    return {
+      cnpj: cnpjFinal,
+      email: emailFinal,
+      telefone: telefoneFinal,
+      herdadoDe: { em: guardado.em || null, motivo: guardado.motivo || null },
+      ...(cnpjNaoHerdado ? { cnpjNaoHerdado } : {}),
+    };
+  } catch (erro) {
+    return null;
+  }
+}
+
 async function herdarCadastroDoExpurgo({ env, slug, quando }) {
   const kv = env && env.PADD_KV;
   const quandoIso = quando || new Date().toISOString();
@@ -3209,17 +3285,16 @@ async function herdarCadastroDoExpurgo({ env, slug, quando }) {
     if (vivo && (vivo.cnpj || vivo.email || vivo.telefone)) {
       return { ok: true, herdado: false, motivo: 'a escola já tem cadastro próprio — não se sobrepõe' };
     }
-    let cnpj = guardado.cnpj || null;
-    let cnpjNaoHerdado = null;
-    if (cnpj) {
-      const dono = await cnpjJaUsado(env, cnpj, slug);
-      if (dono) { cnpjNaoHerdado = { cnpj, escola: dono }; cnpj = null; }
-    }
+    /* A CONTA É A MESMA DA CRIAÇÃO (`identidadeDoExpurgo`): o que falta vem do registo guardado, e
+     * o CNPJ é conferido contra as outras escolas antes de ser herdado. Uma segunda cópia da regra
+     * divergiria na primeira correcção — e é ela que decide se nascem duas escolas com o mesmo
+     * número. */
+    const daCasa = await identidadeDoExpurgo({ env, slug, cnpj: null, email: null, telefone: null });
     const novo = {
       escolaNome: guardado.escolaNome || null,
-      cnpj,
-      email: guardado.email || null,
-      telefone: guardado.telefone || null,
+      cnpj: daCasa ? daCasa.cnpj : (guardado.cnpj || null),
+      email: daCasa ? daCasa.email : (guardado.email || null),
+      telefone: daCasa ? daCasa.telefone : (guardado.telefone || null),
       origem: 'recriacao',
       /* DE QUANDO SÃO ESTES DADOS — e é o que impede a tela de dizer que a escola os declarou
        * agora. `criadoEm` é quando esta linha foi escrita; `herdadoDe` é de onde vieram. */
@@ -3229,8 +3304,8 @@ async function herdarCadastroDoExpurgo({ env, slug, quando }) {
     };
     await kv.put('bastidores/' + slug + '/cadastro', JSON.stringify(novo));
     return {
-      ok: true, herdado: true, cnpj: Boolean(cnpj),
-      ...(cnpjNaoHerdado ? { cnpjNaoHerdado } : {}),
+      ok: true, herdado: true, cnpj: Boolean(novo.cnpj),
+      ...(daCasa && daCasa.cnpjNaoHerdado ? { cnpjNaoHerdado: daCasa.cnpjNaoHerdado } : {}),
     };
   } catch (erro) {
     return { ok: false, herdado: false, erro: (erro && erro.message) || String(erro) };
@@ -5308,7 +5383,7 @@ module.exports = {
    * nova do Financeiro mostra. Exportadas porque são regra — e a prova tem de as exercer sem subir
    * o Worker nem tocar no Cloudflare. */
   guardarCadastroDoExpurgo, lerCadastroHistorico, chaveDoCadastroHistorico, dadosDasEscolas,
-  herdarCadastroDoExpurgo,
+  herdarCadastroDoExpurgo, identidadeDoExpurgo,
   lerContatoDoProfessor,
   // AS DUAS PORTAS E O QUE AS SEPARA (25/11/2026). Exportadas porque são a REGRA que a prova tem
   // de medir sem um Worker à frente: «este pedido é do público ou do proprietário?» decide o que

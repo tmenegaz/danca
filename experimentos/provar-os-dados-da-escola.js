@@ -421,6 +421,93 @@ const ELO = {
   }
 
   console.log('');
+  console.log('G. A CRIAÇÃO também herda — o formulário que vem sem os campos');
+  /* «inclui, para a gente continuar fazendo os testes e facilitar as coisas, no cadastro dessas
+   * escolas o CNPJ e o e-mail […] eu não quero ter que preencher de novo um formulário.»
+   *
+   * As duas portas por onde uma escola volta são a RECRIAÇÃO (o convite) e a CRIAÇÃO com o mesmo
+   * nome (o formulário). A herança da secção F só cobria a primeira; esta cobre a segunda, pela
+   * MESMA conta (`identidadeDoExpurgo`) — uma segunda cópia divergiria na primeira correcção. */
+  const identidade = raiz.identidadeDoExpurgo;
+  provar('G0. `identidadeDoExpurgo` existe', typeof identidade === 'function');
+  if (typeof identidade === 'function') {
+    const REGISTO = JSON.stringify({ escola: 'calango', expurgos: [{
+      em: '2026-11-23T10:00:00.000Z', motivo: 'identidade inserida à mão no ambiente de teste',
+      cnpj: '37.455.854/0001-72', email: 'grimpacia@gmail.com', telefone: null,
+      professor: { slug: 'pe-pequeno', nome: 'Pé Pequeno' },
+    }] });
+
+    // G1. o que falta vem do registo; o que veio fica.
+    {
+      const kv = kvDeBolso({ 'cadastros/calango': REGISTO });
+      const r = await identidade({ env: { PADD_KV: kv }, slug: 'calango', cnpj: null, email: null, telefone: null });
+      provar('G1. o CNPJ e o e-mail guardados preenchem o que o formulário não trouxe',
+        r && r.cnpj === '37.455.854/0001-72' && r.email === 'grimpacia@gmail.com', r);
+      provar('G1. …e a herança diz de onde veio', r && r.herdadoDe
+        && r.herdadoDe.em === '2026-11-23T10:00:00.000Z', r && r.herdadoDe);
+      const soEmail = await identidade({ env: { PADD_KV: kv }, slug: 'calango', cnpj: '99.999.999/0001-99', email: null, telefone: null });
+      provar('G2. o que a escola declarou AGORA manda: o CNPJ novo não é substituído',
+        soEmail && soEmail.cnpj === '99.999.999/0001-99', soEmail);
+      const nadaFalta = await identidade({
+        env: { PADD_KV: kv }, slug: 'calango', cnpj: '1', email: 'e@x', telefone: '5',
+      });
+      provar('G3. com tudo declarado, não há herança nenhuma', nadaFalta === null, nadaFalta);
+      const semRegisto = await identidade({ env: { PADD_KV: kvDeBolso({}) }, slug: 'duo', cnpj: null, email: null, telefone: null });
+      provar('G3. sem registo guardado, devolve `null` — não se inventa', semRegisto === null, semRegisto);
+      const vazio = await identidade({
+        env: { PADD_KV: kvDeBolso({ 'cadastros/x': JSON.stringify({ escola: 'x', expurgos: [{ em: '1', cnpj: null, email: null, telefone: null }] }) }) },
+        slug: 'x', cnpj: null, email: null, telefone: null,
+      });
+      provar('G3. um registo guardado sem dados não escreve herança', vazio === null, vazio);
+    }
+    // G4. a criação grava o que herdou, e diz que herdou.
+    {
+      const kv = kvDeBolso({ 'cadastros/calango': REGISTO });
+      const res = await raiz.gravarCadastro({
+        env: { PADD_KV: kv }, escola: 'calango', professor: 'pe-pequeno',
+        cadastro: { escolaNome: 'Calango' }, origem: 'painel',
+      });
+      const vivo = JSON.parse(kv.dados.get('bastidores/calango/cadastro') || 'null');
+      provar('G4. a criação grava o CNPJ e o e-mail herdados', vivo
+        && vivo.cnpj === '37.455.854/0001-72' && vivo.email === 'grimpacia@gmail.com', vivo);
+      provar('G4. …e marca-os como herdados, para a aba não dizer que foram declarados hoje',
+        vivo && vivo.herdadoDe && vivo.herdadoDe.em === '2026-11-23T10:00:00.000Z', vivo && vivo.herdadoDe);
+      provar('G4. …e o desfecho conta-o', res && res.herdado && res.herdado.cnpj === true, res);
+    }
+    // G5. o formulário que TROUXE os campos não é sobreposto.
+    {
+      const kv = kvDeBolso({ 'cadastros/calango': REGISTO });
+      await raiz.gravarCadastro({
+        env: { PADD_KV: kv }, escola: 'calango', professor: 'pe-pequeno',
+        cadastro: { escolaNome: 'Calango', cnpj: '98.765.432/0001-10', escolaEmail: 'outro@x.exemplo' },
+        origem: 'publico',
+      });
+      const vivo = JSON.parse(kv.dados.get('bastidores/calango/cadastro'));
+      provar('G5. o que o formulário trouxe fica, e não é trocado pelo guardado',
+        vivo.cnpj === '98.765.432/0001-10' && vivo.email === 'outro@x.exemplo', vivo);
+      provar('G5. …e nada é marcado como herdado (não houve herança)',
+        !vivo.herdadoDe, vivo.herdadoDe);
+    }
+    // G6. um CNPJ guardado que já é de OUTRA escola não é herdado na criação.
+    {
+      const kv = kvDeBolso({
+        'cadastros/calango': REGISTO,
+        'bastidores/outra/cadastro': JSON.stringify({ escolaNome: 'Outra', cnpj: '37455854000172' }),
+      });
+      const res = await raiz.gravarCadastro({
+        env: { PADD_KV: kv }, escola: 'calango', professor: 'pe-pequeno',
+        cadastro: { escolaNome: 'Calango' }, origem: 'painel',
+      });
+      const vivo = JSON.parse(kv.dados.get('bastidores/calango/cadastro'));
+      provar('G6. o CNPJ ocupado por outra escola não é herdado', vivo && vivo.cnpj === null, vivo && vivo.cnpj);
+      provar('G6. …e o e-mail herdado fica, porque o e-mail não é único', vivo
+        && vivo.email === 'grimpacia@gmail.com', vivo && vivo.email);
+      provar('G6. …e o desfecho nomeia a escola que tem o número',
+        vivo && vivo.cnpjNaoHerdado && vivo.cnpjNaoHerdado.escola === 'outra', vivo && vivo.cnpjNaoHerdado);
+    }
+  }
+
+  console.log('');
   console.log('E. A CRIAÇÃO — a pergunta dela, medida');
   /* A RESPOSTA, e ela tem duas metades que não se confundem: o CNPJ é o registo COMERCIAL (um CNPJ
    * é uma escola), e o SLUG é a identidade da máquina (a pasta, o prefixo do KV, o endereço). */
