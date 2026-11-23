@@ -3,14 +3,11 @@
   "slug": "demi-plie",
   "nome": "Demi Plié",
   "modalidades": [
-    "bale-classico",
-    "jazz"
+    "bale-classico"
   ],
   "tradicoes": {
-    "bale-classico": [
-      "Vaganova"
-    ]
+    "bale-classico": []
   },
   "criado": "2026-11-15",
-  "atualizado": "2026-11-20"
+  "atualizado": "2026-11-23"
 }
