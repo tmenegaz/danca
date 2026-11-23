@@ -4,8 +4,20 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 22/11/2026 (commit `e73342a6`, e **o registo comercial que não se perde** a seguir).
-> Ainda neste dia, **o modal passou a deixar escrever**: os tempos e o compasso de cada exercício
+> **Última fotografia:** 23/11/2026 (commits `edab6ae5`, `14d20091` e `3a29feee` — **o expurgo da
+> `breu` deixa de deixar restos**). Ela expurgou a escola e pediu «verifique se nada sobrou». O
+> expurgo correu (`3ffa914f`: 267 arquivos no elo, 0 chaves no KV, o endereço morto), e ficaram três
+> restos, nenhum deles sob um prefixo: o **derivado** continuava a dizer `expurgada: false` com 76
+> registos que o repositório já não tinha — o workflow «Fechar os derivados» **falhou** no commit do
+> expurgo, em `fatal: pathspec '*.fipp' did not match any files`, porque o expurgo levou a **última
+> âncora** e um pathspec vazio é um erro (exit 128) e não um no-op; o **livro do financeiro** ficou
+> com as 7 linhas da escola, porque a limpeza dele só era chamada na **retomada** e não na rota que
+> expurga; e a **cache do monitor** guardava `"breu"`, porque o mapa só acrescentava. Os três estão
+> corrigidos, medidos e verificados ao vivo — o «Fechar os derivados» passou a verde **na mesma
+> árvore sem âncoras**, o livro está `{"lista":[]}` e a raiz não devolve «breu» em sítio nenhum.
+>
+> **Fotografia anterior (22/11/2026 — commit `e73342a6`, o registo comercial que não se perde).**
+> Ainda nesse dia, **o modal passou a deixar escrever**: os tempos e o compasso de cada exercício
 > abrem preenchidos com o que o verbete declara e são editáveis — a música do verbete é a da escola,
 > a da aula é decisão de quem a dá, e essas duas coisas estavam a ser a mesma. A secção «Música e
 > vídeo de referência» do plano perdeu a lista derivada (é o campo da professora, não o repertório),
@@ -3574,6 +3586,32 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      **O registo da `breu` foi REPARADO**, com os valores que eu tinha medido nesta sessão antes do
      defeito (plano, valor, capacidade, datas e os 6 elos) mais o elo real da suspensão — nada
      inventado, e o estado `suspensa` que ela criou ficou. Verificado: `pode apagar? true`.
+163. **O QUE O PREFIXO NÃO ALCANÇA, O EXPURGO LIMPA AO LADO — E UM PATHSPEC VAZIO É UM ERRO.**
+     Palavras dela: «fiz o expurgo da escola breu. verifique se nada sobrou».
+     **MEDIDO nos dois lados.** O expurgo em si correu (`3ffa914f`, **267 arquivos** registados um a
+     um no elo, proveniência auditada antes de apagar, `0` chaves no KV sob os dois prefixos,
+     `breu.padd.com.br` sem resolver, sem registo DNS e sem rota). Ficaram **três restos**, e nenhum
+     estava onde se olhou primeiro: o **derivado** (a `breu` ainda `expurgada: false` com 76 registos
+     que o repositório já não tinha), o **livro do financeiro** (7 linhas, as 7 dela) e a **cache do
+     monitor** (`"breu": {…}`).
+     1. **Um pathspec que não casa com nada é um ERRO, e não um no-op.** O workflow «Fechar os
+        derivados» morreu em `fatal: pathspec '*.fipp' did not match any files` (exit 128): o expurgo
+        levou a **última âncora do repositório**, e o passo começava por `git add -A -- '*.fipp'`.
+        **Um repositório com zero ciclos ancorados é um estado LEGÍTIMO** — é o que o expurgo da
+        última escola produz —, e a condição passa a ser **perguntada** (`acrescentar_ancoras`:
+        `git ls-files -c -o` antes do `git add`), nunca suposta.
+     2. **Uma regra que existe numa porta e não na outra é meia regra.** A limpeza do livro
+        (`apagarEscolaDoLivro`, 17/11/2026, com as palavras dela) só era chamada na **retomada**; a
+        rota que faz o expurgo nunca a chamou, e o livro é **uma chave de todas as escolas** — nenhum
+        prefixo a alcança. Passa a haver um sítio só (`limparOLivroDaEscola`), o desfecho leva o
+        livro e a conta do `ok` inclui-o.
+     3. **Uma cache que só acrescenta guarda o parque que já não existe.** A conta estava certa
+        (`resumirCloudflare` soma sobre as escolas vivas); o **valor guardado** é que não. Três
+        estados, e confundi-los seria o defeito novo: `null` = «não perguntei» (não risca nada),
+        `[]` = «perguntei e não há» (risca tudo).
+     **O QUE FICA, de propósito:** `escola/breu/indice.json` (a memória: 14 expurgos, 13 recriações,
+     o elo com os 267 ficheiros e as âncoras), `indices/escolas/breu.json` (uma linha do acervo com
+     **zero registos** e `expurgada: true`) e `teste/breu.json` (fixture sintética, sem dado pessoal).
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
@@ -3931,7 +3969,10 @@ não é «não», e é o que mantém as provas de datas iguais.
 
 **O estado da `breu`, medido no pacote:** a Aula 02 existe e **não** foi lançada, portanto a Aula 03
 está travada e as seguintes esperam a sua própria anterior. É a regra a funcionar sobre o ciclo que
-ela criou fora dela de propósito, para testar.
+ela criou fora dela de propósito, para testar. **Nota de 23/11/2026:** a `breu` foi **expurgada**, e
+esta medição pertence a um pacote que já não existe — o que fica dela é o elo (267 ficheiros, as
+âncoras e a impressão) e o índice do acervo com zero registos. O portão continua a valer para a
+próxima escola.
 
 **AS DUAS PORTAS QUE ELE NÃO FECHA — declaradas, porque uma trava que se contorna em silêncio é uma
 promessa.** (1) O endereço `?criar-aula=NN` abre o diálogo sem passar pelo botão — é o gancho que a
@@ -4420,7 +4461,20 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (22/11/2026 — o registo comercial não se perde ao desabilitar)
+### Executado nesta fotografia (23/11/2026 — o expurgo da `breu` não deixa restos)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-os-restos-do-expurgo.js` (**nova**) | **25/25**. **A.** O passo do `derivados.yml` é **extraído do arquivo** e corrido num repositório de verdade: sem âncora nenhuma não morre (era exit 128) e o índice entra no commit; uma âncora solta entra; uma âncora **apagada** entra como apagamento (o `-A`). **B.** O livro perde as linhas da expurgada e **nenhuma outra**, reescreve o carimbo, devolve `removidas: 0` sem trabalho e `ok:false` quando não há KV ou quando o KV explode. **C.** O desfecho leva o livro; um livro falhado põe o bloco a `ok:false` (inclusive sem namespace declarado, onde antes o bloco era `null` e a falha desaparecia); a cache perde a morta, guarda a viva, não muta o mapa de entrada, e distingue `null` (não perguntei) de `[]` (perguntei e não há). Controle `--contra=8b877844`: **8 de 12 reprovam**, e o `A1` reproduz o `fatal: pathspec '*.fipp'` |
+| `node tools/check-indices.js`, depois de regerar | **16/16** — antes: 2 falhas na verificação 1 (os dois mapas de relações órfãos). A `breu` passa a `expurgada: true` com **0 registos** e `expurgada_em` lido do elo, e saem `indices/ciclos/demi-plie/01-breu.json` e os dois `indices/relacoes/demi-plie/01-breu*.json` |
+| a árvore, depois do expurgo | `268` arquivos no commit; **267** no elo (`apagado`), com `commit_antes`, `kv.ok` e a proveniência auditada (4 âncoras, impressão `04055f36…`). Ficam `escola/breu/indice.json`, `indices/escolas/breu.json` e `teste/breu.json` (fixture), e do professor fica o `perfil.json` e os 5 schemas |
+| o KV, nos três namespaces | **0** chaves com «breu» no nome em `ciclos-escolas`, `ciclos-escolas-plano-b` e `ciclos-escolas-maria`; `escolas/por-host` e `contatos/entradas` sem o nome |
+| o Cloudflare | scripts: só `danca` e `lastro-teste` · nenhuma rota de zona com «breu» · nenhum registo DNS com «breu» · `breu.padd.com.br` → `curl` exit **6** («could not resolve host») |
+| **ao vivo**, depois do deploy `3a29feee` | «Fechar os derivados» **success** às 01:12:08 — na **mesma árvore sem âncoras** em que tinha falhado às 01:00:57 · «Publicar o sistema» success, script de 01:12:28Z com as funções novas · `financeiro/mensalidades` = `{"lista":[],"atualizadoEm":"2026-11-23T01:13:18.670Z"}` (as 7 linhas saíram pelo `limparOLivroDaEscola` do motor, aplicado com `experimentos/limpar-os-restos-da-breu.js --aplicar`) · `monitor/cache` = `chaves: {}` · `GET /api/escolas` devolve **lista vazia** e **nenhuma** ocorrência de «breu» no corpo |
+| `provar-o-cadastro-comercial-nao-se-perde` · `provar-bancadas-e-expurgo` · `provar-lista-do-expurgo` · `check-identidade` | 29/29 · 22/22 · 26/26 · 0 problemas (23 verificações) |
+| as duas que reprovam **antes e depois** | `provar-a-carencia-nao-se-burla` **50/58** e `provar-financeiro-da-escola` **128/135** — medido com `git stash`: idênticas com e sem esta mudança, portanto **anteriores** e não causadas por ela |
+
+### Executado na fotografia anterior (22/11/2026 — o registo comercial não se perde ao desabilitar)
 
 | Verificação | Resultado |
 |:--|:--|

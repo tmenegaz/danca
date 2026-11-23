@@ -59271,3 +59271,90 @@ escola sem como voltar a ser apagada — o defeito desta entrada, visto de fora.
 
 **O que NÃO se fez:** não se apagou a escola. O expurgo é decisão dela, e o botão está a um clique —
 foi para isso que o passo de recuperação foi feito e medido.
+
+---
+
+## 23/11/2026 — O expurgo da `breu` deixa de deixar restos: o derivado, o livro e a cache
+
+**O pedido, na letra dela.** «fiz o expurgo da escola breu. verifique se nada sobrou».
+
+**O QUE SOBROU, medido no repositório e nos três namespaces do KV.** O expurgo em si correu: `3ffa914f`,
+**267 arquivos** apagados e registados um a um no elo (`escola/breu/indice.json`, catorze expurgos e
+treze recriações), com a proveniência auditada antes de apagar (`auditada: true`, quatro âncoras, a
+impressão `04055f36…`). O KV ficou com **zero chaves** sob `breu/` e sob `bastidores/breu/`, e o
+endereço `breu.padd.com.br` **deixou de resolver** (`curl` → `6`, «could not resolve host»). Sem
+registos DNS com o nome, sem rota de Worker, e o script publicado é só `danca` e `lastro-teste`.
+
+Ficaram **três restos**, e nenhum deles estava no lugar onde se olhou primeiro:
+
+| onde | o que dizia |
+|:--|:--|
+| `indices/**` | a `breu` **`expurgada: false`**, com **76 registos** — 36 planos, 36 POs, 4 anamneses — que o repositório já não tinha; e três ficheiros que deixaram de derivar de nada |
+| `financeiro/mensalidades` | **7 linhas, as 7 da `breu`** (2026-11 a 2027-05) |
+| `monitor/cache` | `"breu": {"total":1,"bytes":0}` |
+
+**1. O derivado — uma condição suposta em vez de perguntada.** O workflow «Fechar os derivados» correu
+no commit do expurgo e **falhou**, textualmente:
+
+```
+fatal: pathspec '*.fipp' did not match any files
+##[error]Process completed with exit code 128
+```
+
+O passo começava em `git add -A -- '*.fipp' indices/`. O expurgo levou a **última âncora do
+repositório** — a `breu` era a única escola com ciclo —, e um pathspec que não casa com nada é um
+**erro** para o `git add`, não um no-op: `128`, com `set -e`, antes de tocar em nada. Nunca se commitou
+o índice. **Um repositório com zero ciclos ancorados é um estado legítimo** — é o que o expurgo da
+última escola produz —, e a condição passa a ser perguntada: `acrescentar_ancoras` pergunta
+`git ls-files -c -o` (o índice apanha os apagamentos, que é o que o `-A` existe para somar) e só então
+chama o `git add`. As duas chamadas do passo usam a mesma função.
+
+**2. O livro do financeiro — a regra existia e só numa porta.** `mensalidades.apagarEscolaDoLivro` foi
+escrito a 17/11/2026 com as palavras dela — «essa parte toda de pagamento e financeiro […] tem que
+deixar de existir» — e passou a ser chamado **só** em `POST /api/expurgar-kv`, a retomada. A rota que
+faz o expurgo, `POST /api/apagar-escola`, nunca o chamou. O livro é **uma chave com a lista de todas as
+escolas**: um prefixo não a alcança, por construção. `limparOLivroDaEscola` passa a ser o único sítio
+que limpa o livro, as duas rotas chamam-na, o resultado entra no relatório, no elo e na conta do `ok`
+— e `desfechoDoKvParaOElo` leva o livro dentro do bloco, com um livro falhado a pôr o bloco a
+`ok:false`. Sem namespace declarado o bloco era `null` («não havia o que limpar»), e por ali a falha do
+livro desaparecia: agora a pendência nasce com o namespace a `null`.
+
+**3. A cache do monitor — só acrescentava.** O mapa era um `Object.assign({}, cache.chaves)`, e a
+escola expurgada ficava lá para sempre. A conta estava certa (`resumirCloudflare` soma sobre as escolas
+vivas); o **valor guardado** é que descrevia um parque que já não existe, e é ele que a abertura
+seguinte lê primeiro. `podarChavesDeEscolasMortas` distingue os três estados da lista, e confundi-los
+seria o defeito novo: `null` é «não consegui perguntar» e não risca nada; `[]` é «perguntei e não há
+nenhuma» e risca tudo.
+
+**Com o quê.** `.github/workflows/derivados.yml` (`acrescentar_ancoras`), `motor/servidor/raiz.js`
+(`limparOLivroDaEscola`, `podarChavesDeEscolasMortas`, `desfechoDoKvParaOElo`, as duas rotas, a conta
+do `ok`), `experimentos/provar-os-restos-do-expurgo.js` (**novo**),
+`experimentos/limpar-os-restos-da-breu.js` (**novo**), `indices/**` regerado, `.gitignore`.
+
+**MEDIDO.** `provar-os-restos-do-expurgo` **25/25**; controle `--contra=8b877844` a reprovar **8 de
+12** (o `A1` morre com `fatal: pathspec '*.fipp'`, o `B0` e o `C4.0` não encontram as funções, o `C1`,
+`C2` e `C3` medem o desfecho sem o livro). `provar-o-cadastro-comercial-nao-se-perde` 29/29,
+`provar-bancadas-e-expurgo` 22/22, `provar-lista-do-expurgo` 26/26, `check-indices` **16/16** (antes:
+2 falhas na verificação 1, os dois mapas de relações órfãos), `check-identidade` 0 problemas.
+`provar-a-carencia-nao-se-burla` (50/58) e `provar-financeiro-da-escola` (128/135) reprovam **igual
+com e sem esta mudança** — medido com `git stash`, são anteriores.
+
+**VERIFICADO AO VIVO, no sistema de produção.**
+
+| o que se mediu | resultado |
+|:--|:--|
+| «Fechar os derivados» em `3a29feee` | **success** — e a árvore **não tem nenhuma âncora**: o mesmo passo que morreu às 01:00:57 correu às 01:12:08 |
+| «Publicar o sistema» em `3a29feee` | success, `01:12:28Z`; o script publicado contém as funções novas |
+| `financeiro/mensalidades` | `{"lista":[],"atualizadoEm":"2026-11-23T01:13:18.670Z"}` — as 7 linhas saíram, pelo `limparOLivroDaEscola` do motor |
+| `monitor/cache` | `chaves: {}` — e nenhuma ocorrência de «breu» no valor |
+| `GET /api/escolas` | lista **vazia** (o parque inteiro está expurgado), e **nenhuma** ocorrência de «breu» no corpo |
+
+**O QUE FICA, e fica de propósito.** `escola/breu/indice.json` — a memória (14 expurgos, 13
+recriações, o elo com os 267 arquivos, as âncoras e a impressão). `indices/escolas/breu.json` — uma
+linha do acervo com **zero registos** e `expurgada: true`: uma escola expurgada continua a ser uma
+linha do acervo. `teste/breu.json` — fixture sintética, sem dado pessoal, lida só pelos bancos de
+prova. `professores/demi-plie/` — o `perfil.json` e os cinco schemas, que são o modelo de toda escola
+nova.
+
+**O QUE NÃO se fez:** não se apagou a escola — foi ela quem o fez, e o elo diz isso («expurgada pela
+página «Sistema Lastro»»).
