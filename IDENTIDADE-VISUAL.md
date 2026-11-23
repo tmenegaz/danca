@@ -1665,6 +1665,66 @@ texto, digitar sobre ela não muda nada, o valor da tela é o do envelope, e no 
 `ESCOLA_SLUG`) o `?escola=` da URL volta a valer. O controle negativo roda contra
 `git show HEAD:porta/index.html` e **reprova as 30**.
 
+## O «Gravar» que só acende quando algo muda *(23/11/2026)*
+
+> «Quando eu abro a aba habilitações, ela já carrega as habilitações iniciais do professor. Ela já
+> tem um estado próprio quando carrega e o botão gravar fica habilitado. Vamos fazer o seguinte,
+> quando carregar as habilitações com esse estado inicial, para evitar custo, só vai habilitar o
+> botão gravar quando mudar alguma coisa. […] se eu marcar as mesmas de novo, aí o gravar fica
+> desabilitado de novo. […] Nessas situações em que não tem o botão de editar, a gente vai adotar
+> isso como padrão.»
+>
+> — a proprietária, 23/11/2026
+
+**O CUSTO NÃO É O CLIQUE, é a gravação.** Cada «Gravar» desta página escreve um ficheiro no
+repositório e move a cadeia. Um botão aceso sobre um estado que já está gravado é um convite a
+escrever o que já lá está — e a pagar por isso.
+
+**A REGRA, e ela vale para todo o formulário que já abre editável.** A página tem dois géneros de
+formulário, e eles não se tratam da mesma maneira:
+
+| género | como abre | o «Gravar» |
+|:--|:--|:--|
+| **com «Editar»** | fechado, a mostrar o registo; «Editar» abre-o para escrever | acende ao abrir — quem abriu foi para mudar |
+| **sem «Editar»** | **aberto, já com o estado carregado** | **apagado**; acende só quando o que se gravaria **difere** do que está gravado |
+
+**A CONTA É O PEDIDO, e não o ecrã.** A comparação faz-se entre o que o formulário **mandaria** e o
+que o servidor diz que tem — com a **mesma função** que monta o corpo do pedido. Duas contas (uma
+para comparar, outra para gravar) divergem no dia em que uma delas aprende um campo, e o sintoma é
+o pior: um botão apagado sobre uma diferença que existe, ou aceso sobre uma que não existe.
+
+**Cinco consequências, e cada uma já custou um defeito em algum sítio:**
+
+1. **Voltar ao estado de origem apaga-o** — mexer e desmexer tem de devolver o botão ao apagado, ou
+   a pessoa grava sem saber o quê.
+2. **Cancelar apaga-o**, e devolve o estado do servidor (é o mesmo gesto dos outros cancelares).
+3. **Gravar faz do que foi gravado a nova base** — sem esperar pela releitura, senão há um instante
+   com o botão aceso sobre um estado que já está gravado.
+4. **Trocar de sujeito apaga-o antes de ler** — enquanto o estado do outro não chega, o ecrã mostra
+   o anterior, e um «Gravar» aceso nesse instante gravaria um sobre o registo do outro.
+5. **Um estado que não se conseguiu ler não se grava por cima**: o botão fica apagado e a tela diz
+   porquê. Uma leitura que falhou deixa as caixas no vazio, e gravar esse vazio apagaria a
+   declaração que lá está — o silêncio seria uma perda de dado com aparência de sucesso.
+
+**O BOTÃO NASCE APAGADO na marcação**, e não se apaga quando a leitura chega: entre uma coisa e a
+outra há um instante em que se pode carregar sem saber o que se está a gravar. Sem JavaScript não há
+gravação nenhuma (é o `submit` que manda o pedido), portanto um botão apagado não tira nada a
+ninguém — ao contrário do aceso, que parece pronto.
+
+**O `title` DIZ PORQUE ESTÁ APAGADO** quando a razão não é óbvia («nada mudou» / «o estado ainda não
+foi lido»). Um botão desligado sem explicação é a mesma família do botão que falta: a pessoa fica a
+procurar o que fez de errado.
+
+**Onde já vale:** as **Habilitações** do Estúdio (o primeiro, e o que a fez pedir a regra). **Onde
+passa a valer:** todo formulário que se acrescentar sem «Editar» — a regra é do género, não do ecrã.
+
+**Prova.** `node experimentos/provar-o-gravar-que-so-acende.js` — **42 asserções** em jsdom, com o
+`fetch` de bolso: o botão nasce apagado e fica apagado com o estado do professor à vista; acende com
+uma modalidade nova e apaga quando ela sai; as duas caixas que se desmentem contam nos dois sentidos;
+cancelar devolve e apaga; gravar torna o gravado na base; trocar de professor apaga antes de ler; a
+leitura que falha deixa-o apagado **e diz porquê**; e o perfil sem mapa de tradições (13 dos 15
+reais) acende ao marcar «não ensina nenhuma». Controle `--contra=305171e6`: **19 de 42 reprovam**.
+
 ## O arranjo do cabeçalho é o MESMO nos três documentos *(18/10/2026)*
 
 O cartão de identidade (H2) é a mesma peça na anamnese, no plano de ensino e no plano de

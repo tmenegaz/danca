@@ -1881,6 +1881,8 @@ experimentos/modelo-formulario/*
 # A mesma família, um dia depois: a seta fora do índice da escola e da apresentação, e o
 # gravar das habilitações que fecha o formulário.
 !experimentos/provar-a-dobra-so-onde-ela-pediu.js
+# O mesmo formulário, um passo adiante: o «Gravar» que só acende quando o pedido mudaria.
+!experimentos/provar-o-gravar-que-so-acende.js
 !experimentos/provar-o-cadastro-comercial-nao-se-perde.js
 !experimentos/provar-a-musica-do-modal.js
 

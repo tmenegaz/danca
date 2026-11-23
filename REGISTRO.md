@@ -59960,3 +59960,66 @@ existe hoje não tem documentos (`DOCS=""`), portanto não há plano nem aula pa
 medida pela prova nova — que usa a apresentação, nove títulos, e o controle que os devolve. Quando
 houver um ciclo com documentos, as três revivem; até lá ficam declaradas em `ESTADO-ATUAL` §9 como
 **não medidas**, e não como verdes.
+
+## 23/11/2026 — O «Gravar» das habilitações só acende quando o pedido mudaria
+
+**O PEDIDO, e o motivo está na primeira linha:** «para evitar custo, só vai habilitar o botão gravar
+quando mudar alguma coisa». O custo não é o clique — é a gravação: cada «Gravar» escreve
+`professores/<slug>/perfil.json` no repositório e move a cadeia.
+
+**A CONTA É O PEDIDO, NÃO O ECRÃ.** `retratoDasHabilitacoes()` devolve o que o formulário mandaria
+agora, na mesma forma em que o pedido o manda — e `tradicoesDasHabilitacoes()` passou a ser a conta
+única do `submit` e da comparação. Duas contas divergiriam no dia em que uma delas aprendesse um
+campo, e o sintoma seria o pior: um botão apagado sobre uma diferença que existe.
+
+**E ESSA CONTA OBRIGOU A FECHAR UM BURACO QUE JÁ LÁ ESTAVA.** O perfil guarda **três** estados por
+modalidade desde 18/11 — chave ausente («ainda não foi perguntado»), chave vazia («não ensina
+nenhuma») e chave com nomes —, mas o pedido só sabia exprimir dois: mandava `[]` também quando
+ninguém tinha respondido. Medido no repositório: **13 dos 15** perfis têm `modalidades` e **nenhum
+mapa de tradições**. Nesse estado a caixa do generalista aparece desmarcada; marcá-la era, no ecrã,
+uma declaração — e no pedido, nada. O `submit` passou a **calar a chave** quando nem o generalista
+nem uma tradição estão marcados, e é isso que faz a terceira linha do modelo existir de facto.
+
+**A BASE VEM DO SERVIDOR, com uma marca para o que o ecrã não sabe exprimir.** `retratoDoServidor(d)`
+usa `~` para a chave declarada e vazia e `''` para a ausente. Uma base calculada do que ficou pintado
+perdia exactamente o caso mais comum — o perfil nunca perguntado — e teria deixado o botão apagado
+sobre uma declaração verdadeira. Foi a primeira versão, e a prova apanhou-a.
+
+**Cinco consequências, e cada uma é uma asserção:** voltar ao estado de origem apaga o botão;
+cancelar apaga-o e devolve o estado; gravar faz do gravado a nova base (sem esperar pela releitura —
+senão há um instante aceso sobre um estado já gravado); trocar de professor apaga-o **antes** de
+ler; e **um estado que não se conseguiu ler não se grava por cima** — o botão fica apagado e a nota
+diz porquê, porque as caixas de um professor que não se leu estão vazias e gravá-las apagaria a
+declaração.
+
+**O BOTÃO NASCE APAGADO NA MARCAÇÃO.** Nascer aceso e apagar-se à chegada da leitura daria um
+instante em que se pode gravar sem saber o quê; e sem JavaScript não há gravação nenhuma — o pedido
+é o `submit`. O `title` diz a razão («nada mudou» / «o estado ainda não foi lido»): um botão
+desligado sem explicação é a mesma família do botão que falta.
+
+**E FICOU DOCUMENTADO COMO PADRÃO, que foi o que ela pediu:** «Nessas situações em que não tem o
+botão de editar, a gente vai adotar isso como padrão.»
+
+| género | como abre | o «Gravar» |
+|:--|:--|:--|
+| com «Editar» | fechado, a mostrar o registo | acende ao abrir |
+| **sem «Editar»** | aberto, já com o estado carregado | **apagado**; acende só com uma diferença |
+
+Está em `IDENTIDADE-VISUAL.md` (capítulo «O «Gravar» que só acende quando algo muda») e no resumo
+executável das instruções, que é o sítio que os agentes leem antes de escrever marcação.
+
+**Com o quê.** `motor/servidor/bastidores.js` (`blocoDasTradicoes`, `tradicoesDasHabilitacoes`,
+`retratoDasHabilitacoes`, `retratoDoServidor`, `pintarGravarDasHabilitacoes`,
+`marcarBaseDasHabilitacoes`, `dizerQueNaoSeLeuAsHabilitacoes`, a marca `data-a-gravar` no
+`ocuparBotao`/`liberarBotao`, os dois handlers de mudança, o `submit` e a marcação do botão),
+`experimentos/provar-o-gravar-que-so-acende.js` (**novo**), `IDENTIDADE-VISUAL.md` e o resumo das
+instruções.
+
+**MEDIDO.** `provar-o-gravar-que-so-acende` **42/42**; controle `--contra=305171e6` reprova **19**.
+Num Chrome, com a página real e o `fetch` de bolso: `disabled` à chegada com `opacity 0.4` e
+`cursor: not-allowed`, aceso (`opacity 1`, `pointer`) ao marcar o jazz, e apagado outra vez ao
+desmarcá-lo. `provar-habilitacao-do-professor` verde, `provar-cadastro-do-professor` 87/87,
+`provar-a-dobra-so-onde-ela-pediu` 35/35, `provar-o-painel-do-estudio` 36/36,
+`provar-ficha-na-listagem` 35/35, `provar-professor-secundario` 19/19, `check-identidade` **0
+problemas** (23 verificações). `provar-editar-professor-principal` 32/33 — a falha é anterior e
+igual sem esta mudança.

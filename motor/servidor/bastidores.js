@@ -9348,7 +9348,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *
      * A ORDEM DOS BOTÕES É O QUE SE LÊ PRIMEIRO à direita: quem chega ao fim de um formulário
      * encontra «Gravar» debaixo do polegar e «Cancelar» ao lado, para o recuo. */
-    '<button type="submit" class="acao grande" id="hab-enviar">' + ROTULO_DO_GRAVAR + '</button>' +
+    /* O BOTÃO NASCE APAGADO (23/11/2026) — «só vai habilitar o botão gravar quando mudar alguma
+     * coisa». Nascer aceso e apagar-se quando a leitura chega daria um instante em que se pode
+     * gravar sem saber o que se está a gravar; e sem JavaScript o formulário não grava de todo (é o
+     * `submit` que manda o pedido), portanto um botão apagado não tira nada a ninguém — ao
+     * contrário do aceso, que pareceria pronto. Quem o acende é `pintarGravarDasHabilitacoes`, e só
+     * quando o retrato do formulário difere do que o servidor diz que está gravado. */
+    '<button type="submit" class="acao grande" id="hab-enviar" disabled' +
+    ' title="Nada mudou desde que as habilitações abriram — não há nada a gravar.">' +
+    ROTULO_DO_GRAVAR + '</button>' +
     '<button type="button" class="acao secundario" id="hab-cancelar" hidden>Cancelar</button>' +
     '</span>' +
     '</form>' +
@@ -12580,6 +12588,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         '    : alvo.querySelector("button[type=submit]");' +
         '  if (!botao) return null;' +
         '  var antes = {botao: botao, rotulo: botao.textContent};' +
+        /* O BOTÃO MARCA QUE HÁ UM PEDIDO A CORRER (23/11/2026). Enquanto a marca está, ninguém lhe
+         * mexe — nem o `pintarGravarDasHabilitacoes`, que corre a cada mudança de uma caixa. Sem
+         * isto, mexer numa caixa com o pedido a caminho voltava a acender o botão, e o segundo clique
+         * era uma segunda gravação. A marca é genérica (qualquer formulário a tem), e só o «Gravar»
+         * das habilitações a lê. */
+        '  botao.setAttribute("data-a-gravar", "sim");' +
         '  botao.disabled = true; botao.textContent = rotulo;' +
         '  ocupar(frase || rotulo, etiqueta || "Gravação");' +
         '  return antes;' +
@@ -12588,7 +12602,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // (sucesso e erro); este é o par. Quando o sucesso recarrega a página, ninguém o chama — e é o
     // que se quer: o véu fica de pé a cobrir a recarga, e não se vê a página velha destrancada.
     'function liberarBotao(antes) {' +
-        '  if (antes && antes.botao) { antes.botao.disabled = false; antes.botao.textContent = antes.rotulo; }' +
+        '  if (antes && antes.botao) {' +
+        '    antes.botao.removeAttribute("data-a-gravar");' +
+        '    antes.botao.disabled = false; antes.botao.textContent = antes.rotulo;' +
+        '  }' +
         '  liberar();' +
     '}' +
     /* O CADASTRO DO PROFESSOR PASSA AO PASSO 2 (19/11/2026) — e a passagem sobrevive à recarga.
@@ -13285,6 +13302,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    nota.textContent += " Turma(s) que ficam DESCONTINUADAS (não se apagam): " +' +
     '      fora.map(function(t){ return t.nome; }).join(", ") + ".";' +
     '  }' +
+    /* O QUE ACABOU DE SER PINTADO É A BASE (23/11/2026) — e é por isso que abrir a aba deixa o
+     * «Gravar» apagado. A marca vai no FIM, depois de as caixas e os blocos de tradição estarem no
+     * estado do servidor: marcá-la antes seria comparar com um ecrã a meio de pintar. */
+    '  marcarBaseDasHabilitacoes(d);' +
     '}' +
     /* Pinta as tradições de cada modalidade que ele declara (18/11/2026).
      *
@@ -13313,6 +13334,131 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    if (sem) sem.checked = temChave && lista.length === 0;' +
     '  });' +
     '}' +
+    /* ── O «GRAVAR» SÓ ACENDE QUANDO ALGO MUDOU (23/11/2026) ─────────────────────────────────
+     *
+     * Palavras dela: «quando carregar as habilitações com esse estado inicial, para evitar custo, só
+     * vai habilitar o botão gravar quando mudar alguma coisa. […] Se for a mesma, se eu ficar
+     * passeando por aqui e decidir que é a mesma coisa, ou eu clico em cancelar ou se eu marcar as
+     * mesmas de novo, aí o gravar fica desabilitado de novo.»
+     *
+     * O CUSTO NÃO É O CLIQUE — é a gravação: cada «Gravar» escreve `professores/<slug>/perfil.json`
+     * no repositório e move a cadeia. Um botão que se pode carregar quando o estado é o mesmo é um
+     * convite a gravar o que já lá está.
+     *
+     * A CONTA É UMA SÓ. `retratoDasHabilitacoes()` devolve o que o formulário diria AGORA, na mesma
+     * forma em que o pedido o manda — o mesmo `tradicoesDasHabilitacoes()` que o `submit` usa. Duas
+     * contas diferentes (uma para comparar, outra para gravar) divergiriam no dia em que uma delas
+     * aprendesse um campo novo, e o sintoma seria o pior: um botão apagado sobre uma diferença que
+     * existe, ou aceso sobre uma que não existe.
+     *
+     * `habBase` é o estado que o servidor diz que está gravado. `null` = AINDA NÃO SE SABE — e não
+     * saber é razão para NÃO gravar: as caixas de um professor que não se conseguiu ler estão todas
+     * vazias, e gravar por cima apagaria o que lá está. É a diferença entre «não há diferença» e
+     * «não sei se há» — e ela decide se se escreve ou não. */
+    'var habBase = null;' +
+    /* O BLOCO DE TRADIÇÕES DE UMA MODALIDADE, lido do ecrã. Devolve `null` quando a modalidade não
+     * tem como declarar tradições — as que ainda não têm catálogo próprio não têm caixas, e o
+     * pedido não leva chave nenhuma para elas (é a regra de 18/11, intacta). */
+    'function blocoDasTradicoes(m){' +
+    '  var b = document.getElementById("hab-trad-" + m);' +
+    '  if (!b) return null;' +
+    '  var caixas = b.querySelectorAll("input[name=hab-tradicao]");' +
+    '  var sem = b.querySelector("input[name=hab-sem-tradicao]");' +
+    '  if (!caixas.length && !sem) return null;' +
+    '  var lista = [];' +
+    '  Array.prototype.slice.call(caixas).forEach(function(x){ if (x.checked) lista.push(x.value); });' +
+    '  return {caixas: caixas.length, sem: sem, lista: lista.sort()};' +
+    '}' +
+    /* O QUE SE GRAVARIA, e ele tem TRÊS ESTADOS por modalidade — os mesmos três que o perfil guarda
+     * e que o ecrã mostra (18/11/2026):
+     *
+     *   · «não ensina nenhuma» marcada  → a chave existe e vazia (`[]`) — uma DECLARAÇÃO;
+     *   · tradições marcadas            → a chave existe com os nomes;
+     *   · nem uma nem outra             → a chave NÃO entra — «ainda não foi perguntado».
+     *
+     * A TERCEIRA LINHA É NOVA (23/11/2026), e é ela que faz o botão dizer a verdade: a caixa do
+     * generalista desmarcada sempre foi, no ecrã, «não foi perguntado» — mas o pedido mandava `[]`
+     * na mesma, e as duas coisas ficavam indistinguíveis. Com o pedido a calar a chave, desmarcá-la
+     * passa a ser uma diferença de verdade, e o «Gravar» acende por uma razão que se pode ler. */
+    'function tradicoesDasHabilitacoes(){' +
+    '  var mapa = {};' +
+    '  var mods = marcados("hab-modalidade");' +
+    '  for (var i = 0; i < mods.length; i++) {' +
+    '    var m = mods[i];' +
+    '    var b = blocoDasTradicoes(m);' +
+    '    if (!b) continue;' +
+    '    if (b.lista.length) { mapa[m] = b.lista; continue; }' +
+    '    if (b.sem && b.sem.checked) { mapa[m] = []; }' +
+    '  }' +
+    '  return mapa;' +
+    '}' +
+    /* O RETRATO É O PEDIDO, na mesma forma — e é isso que o torna comparável. Uma conta para
+     * comparar e outra para gravar divergiriam no dia em que uma delas aprendesse um campo, e o
+     * sintoma seria o pior: um botão apagado sobre uma diferença que existe, ou aceso sobre uma que
+     * não existe.
+     *
+     * AS TRÊS FORMAS, e a do meio é a que se lê mal: `m=t1|t2` são as tradições; `m=~` é «declarou
+     * que não ensina nenhuma»; `m=` é «não foi perguntado». O `~` não é decoração — é o que separa
+     * a declaração do silêncio, e sem ele desmarcar o generalista não se notava. */
+    'function retratoDasHabilitacoes(){' +
+    '  var mods = marcados("hab-modalidade").slice().sort();' +
+    '  var linhas = [];' +
+    '  for (var i = 0; i < mods.length; i++) {' +
+    '    var m = mods[i];' +
+    '    var b = blocoDasTradicoes(m);' +
+    '    if (!b) { linhas.push(m + "="); continue; }' +
+    '    if (b.lista.length) { linhas.push(m + "=" + b.lista.join("|")); continue; }' +
+    '    linhas.push(m + "=" + (b.sem && b.sem.checked ? "~" : ""));' +
+    '  }' +
+    '  return linhas.join(";");' +
+    '}' +
+    /* O MESMO RETRATO, DO LADO DO SERVIDOR — é a base. `~` para a chave declarada e vazia, `m=` para
+     * a que não existe, e `m=` também para a modalidade que o ecrã não sabe exprimir (sem caixas):
+     * ela não entra no pedido, portanto não há diferença a assinalar. */
+    'function retratoDoServidor(d){' +
+    '  var mods = ((d && d.modalidades) || []).map(String).slice().sort();' +
+    '  var mapa = (d && d.tradicoes) || {};' +
+    '  var linhas = [];' +
+    '  for (var i = 0; i < mods.length; i++) {' +
+    '    var m = mods[i];' +
+    '    if (!blocoDasTradicoes(m)) { linhas.push(m + "="); continue; }' +
+    '    var tem = Object.prototype.hasOwnProperty.call(mapa, m);' +
+    '    var lista = tem && Array.isArray(mapa[m]) ? mapa[m].map(String).filter(Boolean) : [];' +
+    '    linhas.push(m + "=" + (tem ? (lista.length ? lista.slice().sort().join("|") : "~") : ""));' +
+    '  }' +
+    '  return linhas.join(";");' +
+    '}' +
+    'function pintarGravarDasHabilitacoes(){' +
+    '  var botao = document.getElementById("hab-enviar");' +
+    '  if (!botao) return;' +
+    // Enquanto o pedido corre, `ocuparBotao` é dono do botão: não se mexe por baixo dele.
+    '  if (botao.getAttribute("data-a-gravar") === "sim") return;' +
+    '  if (habBase === null) {' +
+    '    botao.disabled = true;' +
+    '    botao.title = "O estado atual deste professor ainda não foi lido: gravar agora poderia ' +
+    'apagar o que lá está.";' +
+    '    return;' +
+    '  }' +
+    '  var igual = retratoDasHabilitacoes() === habBase;' +
+    '  botao.disabled = igual;' +
+    '  botao.title = igual' +
+    '    ? "Nada mudou desde que as habilitações abriram — não há nada a gravar." : "";' +
+    '}' +
+    /* A BASE VEM DO SERVIDOR, não do que ficou pintado — e a diferença entre as duas importa: o ecrã
+     * não sabe dizer «não foi perguntado» sem uma convenção, e uma base calculada do ecrã perdia
+     * exactamente o caso mais comum (13 dos perfis reais têm `tradicoes` ausente). */
+    'function marcarBaseDasHabilitacoes(d){' +
+    '  habBase = retratoDoServidor(d);' +
+    '  pintarGravarDasHabilitacoes();' +
+    '}' +
+    'function dizerQueNaoSeLeuAsHabilitacoes(){' +
+    '  var nota = document.getElementById("hab-nota");' +
+    '  if (nota) nota.textContent = "Não foi possível ler o que este professor declara agora — e é ' +
+    'por isso que o Gravar está apagado: gravar por cima de um estado que não se leu apagaria o que ' +
+    'lá está. Volte a abrir a aba para tentar de novo.";' +
+    '  habBase = null;' +
+    '  pintarGravarDasHabilitacoes();' +
+    '}' +
     /* MARCAR/DESMARCAR UMA MODALIDADE ABRE/FECHA O BLOCO DELA, sem pedir nada ao servidor. O que
      * já estava marcado nas tradições dessa modalidade NÃO se apaga ao fechá-la: o bloco esconde-se,
      * e voltar a marcá-la devolve as marcas. Apagar seria perder o trabalho por um clique de
@@ -13327,6 +13473,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'var caixaHab = document.getElementById("hab-modalidades");' +
     'if (caixaHab) caixaHab.addEventListener("change", function(e){' +
     '  if (e.target && e.target.name === "hab-modalidade") sincronizarBlocosDeTradicao();' +
+    '  pintarGravarDasHabilitacoes();' +
     '});' +
     /* «GENERALISTA» E UMA TRADIÇÃO DA MESMA MODALIDADE SÃO EXCLUSIVOS (18/11/2026): «não ensina
      * nenhuma» e «ensina esta» não podem ser verdade ao mesmo tempo. Marcar uma desmarca a outra —
@@ -13346,14 +13493,32 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    var sem = doBloco.querySelector("input[name=hab-sem-tradicao]");' +
     '    if (sem) sem.checked = false;' +
     '  }' +
+    /* A ÚLTIMA PALAVRA É DESTE HANDLER, e é de propósito: ele corre DEPOIS do da caixa (o evento
+     * sobe ao `document` depois de passar pela `#hab-modalidades`) e é ele que desfaz a marca
+     * concorrente — «não ensina nenhuma» e «ensina esta» não podem estar as duas assinaladas. Ler o
+     * retrato antes disso daria um «mudou» que já não é verdade no instante seguinte. */
+    '  pintarGravarDasHabilitacoes();' +
     '});' +
     'function carregarHabilitacoes(){' +
     '  var sel = document.getElementById("hab-professor");' +
-    '  if (!sel || !sel.value) return;' +
+    '  if (!sel || !sel.value) {' +
+    // Sem professor escolhido não há estado a ler — e sem estado lido não há o que gravar.
+    '    habBase = null;' +
+    '    pintarGravarDasHabilitacoes();' +
+    '    return;' +
+    '  }' +
+    /* ENQUANTO SE LÊ, NÃO SE GRAVA (23/11/2026). A base é posta a `null` antes do pedido: as caixas
+     * ainda mostram o professor ANTERIOR, e um «Gravar» aceso nesse instante gravaria as
+     * habilitações de um sobre o registo do outro. A releitura repõe a base quando chega. */
+    '  habBase = null;' +
+    '  pintarGravarDasHabilitacoes();' +
     '  fetch("/api/bastidores/perfil?professor=" + encodeURIComponent(sel.value))' +
     '    .then(function(r){ return r.json(); })' +
-    '    .then(function(d){ if (d && d.ok !== false) pintarHabilitacoes(d); })' +
-    '    .catch(function(){});' +
+    '    .then(function(d){' +
+    '      if (d && d.ok !== false) pintarHabilitacoes(d);' +
+    '      else dizerQueNaoSeLeuAsHabilitacoes();' +
+    '    })' +
+    '    .catch(function(){ dizerQueNaoSeLeuAsHabilitacoes(); });' +
     '}' +
     /* CANCELAR AS HABILITAÇÕES — o mesmo gesto dos outros, com uma peça a mais: DEVOLVER.
      *
@@ -13392,23 +13557,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * as que ele declarou que não ensina (`[]`). Um bloco por modalidade declarada; um sem a chave
      * é «ainda não foi perguntado» e não entra. É o que faz o generalista ser distinguível do
      * silêncio. */
-    '    tradicoes: (function(){' +
-    '      var mapa = {};' +
-    '      var mods = marcados("hab-modalidade");' +
-    '      for (var i = 0; i < mods.length; i++) {' +
-    '        var m = mods[i];' +
-    '        var doBloco = document.getElementById("hab-trad-" + m);' +
-    '        if (!doBloco) continue;' +
-    // Uma modalidade sem catálogo próprio não tem caixas: nada se declara, e a chave não entra.
-    '        var caixas = doBloco.querySelectorAll("input[name=hab-tradicao]");' +
-    '        var semCaixa = doBloco.querySelector("input[name=hab-sem-tradicao]");' +
-    '        if (!caixas.length && !semCaixa) continue;' +
-    '        var lista = [];' +
-    '        Array.prototype.slice.call(caixas).forEach(function(x){ if (x.checked) lista.push(x.value); });' +
-    '        mapa[m] = lista;' +
-    '      }' +
-    '      return mapa;' +
-    '    })(),' +
+    '    tradicoes: tradicoesDasHabilitacoes(),' +
     '    token: TOKEN' +
     '  };' +
     '  var antes = ocuparBotao(formHab, "gravando...", "Habilitações");' +
@@ -13436,6 +13585,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * A ORDEM É A DE `cancelarAsHabilitacoes`: relê primeiro (é a leitura que repinta as caixas) e
      * fecha depois. E `cancelarOFormularioDe` é quem fecha — não um `hidden` à mão, que deixaria a
      * seta e o «Cancelar» a dizer o contrário do que a tela mostra. */
+    /* O QUE ACABOU DE SER GRAVADO PASSA A SER A BASE (23/11/2026). Sem isto, entre o
+     * `liberarBotao` — que acende o botão — e a resposta da releitura havia um instante com o
+     * «Gravar» aceso sobre um estado que já está gravado; e se a releitura falhasse, o botão ficava
+     * aceso para sempre. A base é o que o formulário diz AGORA, porque é isso que o servidor acabou
+     * de aceitar — a releitura que vem a seguir confirma-a (ou corrige-a, e repinta). */
+    '        habBase = retratoDasHabilitacoes();' +
+    '        pintarGravarDasHabilitacoes();' +
     '        if (typeof avisar === "function") {' +
     '          avisar("ok", "Habilitações gravadas" + (d.descontinuadas && d.descontinuadas.length' +
     '            ? " — " + d.descontinuadas.length + " turma(s) marcada(s) como descontinuada(s)" : "") + ".");' +
@@ -13446,9 +13602,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '        if (typeof pintarCancelares === "function") pintarCancelares();' +
     '      } else {' +
     '        recado("erro", "Erro: " + ((d && d.erro) || "desconhecido"));' +
+    /* A GRAVAÇÃO QUE FALHOU DEIXA O BOTÃO ACESO, e é o que se quer: o estado continua diferente do
+     * que está gravado, e a pessoa tem de poder tentar outra vez. A base NÃO se toca — ela é o que
+     * o servidor tem, e o servidor não mudou. */
+    '        pintarGravarDasHabilitacoes();' +
     '      }' +
     '    })' +
-    '    .catch(function(err){ liberarBotao(antes); recado("erro", "Erro: " + err.message); });' +
+    '    .catch(function(err){' +
+    '      liberarBotao(antes);' +
+    '      recado("erro", "Erro: " + err.message);' +
+    '      pintarGravarDasHabilitacoes();' +
+    '    });' +
     '});' +
     /* O DESLIGAMENTO — a confirmação é o MOTIVO, e não um `confirm()` (08/11/2026). O campo
      * obrigatório já obriga a parar e a escrever; um `confirm()` por cima seria um segundo "tem

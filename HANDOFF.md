@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-23T07:52:49-0300`
-Commit atual: `2741f55d` — audit(experimentos): a criação da escola alimenta a lista dos professores
+Gerado em: `2026-11-23T10:44:59-0300`
+Commit atual: `f40dc797` — feat(estrutura): habilitar demi-plie em bale-classico
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,8 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+f40dc797 feat(estrutura): habilitar demi-plie em bale-classico
+305171e6 fix(template): a seta só está onde ela a pediu, e gravar as habilitações fecha o formulário
 2741f55d audit(experimentos): a criação da escola alimenta a lista dos professores
 453d6f08 feat(estrutura): o documento do professor pode ser CNPJ, e não só CPF
 9aa12256 feat(estrutura): os professores têm Ações, documento e contacto — e o Financeiro manda o professor para lá
@@ -100,8 +102,6 @@ f0186400 fix(estrutura): um mês que foi pago nunca se esconde do extrato
 96535aaf docs(estrutura): a regra do financeiro que fica, e o que «Recriar» significa
 1dc07e2a fix(estrutura): o financeiro de uma escola expurgada não se apaga — é história
 838938c2 docs(estrutura): a fotografia do expurgo da breu, e o que ele deixou para trás
-3a29feee chore(estrutura): fechar os derivados do expurgo da breu
-14d20091 fix(estrutura): o expurgo limpa o livro do financeiro e a cache do monitor
 ```
 
 ## Por professor
@@ -193,81 +193,68 @@ f0186400 fix(estrutura): um mês que foi pago nunca se esconde do extrato
 
 ## Última entrada do REGISTRO
 
-## 23/11/2026 — A seta só está onde ela a pediu, e gravar as habilitações fecha o formulário
+## 23/11/2026 — O «Gravar» das habilitações só acende quando o pedido mudaria
 
-**A FRASE DELA É O DIAGNÓSTICO:** «Você colocou o botão de expandir de forma indiscriminada e não só
-onde eu te pedi ontem, então vamos ajustar isso.»
+**O PEDIDO, e o motivo está na primeira linha:** «para evitar custo, só vai habilitar o botão gravar
+quando mudar alguma coisa». O custo não é o clique — é a gravação: cada «Gravar» escreve
+`professores/<slug>/perfil.json` no repositório e move a cadeia.
 
-**O DEFEITO É O DE 22/11 OUTRA VEZ, com outra roupa.** A dobra nasce em qualquer `.conteudo > h2[id]`
-de uma página que não se declare — é o que a torna universal nos documentos do pacote —, e a lista das
-excepções era `{raiz, porta}`. O **índice de uma escola** e a **apresentação dela** não são documentos
-de leitura: são a porta de entrada e o texto que se lê de cima abaixo. Ganharam a seta por omissão.
-Medido: **1 seta** no índice da `breu` e **9** na apresentação.
+**A CONTA É O PEDIDO, NÃO O ECRÃ.** `retratoDasHabilitacoes()` devolve o que o formulário mandaria
+agora, na mesma forma em que o pedido o manda — e `tradicoesDasHabilitacoes()` passou a ser a conta
+única do `submit` e da comparação. Duas contas divergiriam no dia em que uma delas aprendesse um
+campo, e o sintoma seria o pior: um botão apagado sobre uma diferença que existe.
 
-**A REGRA NÃO MUDOU — a lista cresceu.** `TELAS_SEM_DOBRA` passa a `{porta, raiz, escola, sistema}`, e
-as duas páginas declaram-se no `<body data-tela="…">`. A alternativa — exigir `data-tela` para ter
-dobra — deixaria uma página nova sem ela em silêncio, e um botão que falta não se anuncia; é o
-raciocínio que a 22/11 já tinha escrito, e ele continua bom. **A apresentação é declarada no
-`montar-publicacao`, e não no pacote-zero:** lá essa página é o `index.html` da escola, e um
-`data-tela` no ficheiro de origem seria o da escola.
+**E ESSA CONTA OBRIGOU A FECHAR UM BURACO QUE JÁ LÁ ESTAVA.** O perfil guarda **três** estados por
+modalidade desde 18/11 — chave ausente («ainda não foi perguntado»), chave vazia («não ensina
+nenhuma») e chave com nomes —, mas o pedido só sabia exprimir dois: mandava `[]` também quando
+ninguém tinha respondido. Medido no repositório: **13 dos 15** perfis têm `modalidades` e **nenhum
+mapa de tradições**. Nesse estado a caixa do generalista aparece desmarcada; marcá-la era, no ecrã,
+uma declaração — e no pedido, nada. O `submit` passou a **calar a chave** quando nem o generalista
+nem uma tradição estão marcados, e é isso que faz a terceira linha do modelo existir de facto.
 
-**E O CONTROLE NEGATIVO APANHOU-ME A MEDIR O NADA.** A primeira execução da prova deu «zero setas»
-nas duas páginas — e passava, porque o `jsdom` **não carrega `<script src>` externos** sem
-`resources: 'usable'`. O `nav.js` nunca tinha corrido. É a família que este repositório persegue: uma
-leitura vazia que passa em silêncio, e uma asserção «não lançou» que é verdadeira por o script não
-existir. A prova passou a exigir uma **marca do script** — a coluna da navegação, que só ele desenha —,
-e o controle a retirar o atributo e ver as nove setas voltarem.
+**A BASE VEM DO SERVIDOR, com uma marca para o que o ecrã não sabe exprimir.** `retratoDoServidor(d)`
+usa `~` para a chave declarada e vazia e `''` para a ausente. Uma base calculada do que ficou pintado
+perdia exactamente o caso mais comum — o perfil nunca perguntado — e teria deixado o botão apagado
+sobre uma declaração verdadeira. Foi a primeira versão, e a prova apanhou-a.
 
-**O ÍNDICE DA ESCOLA, e o que ela mandou dizer.**
+**Cinco consequências, e cada uma é uma asserção:** voltar ao estado de origem apaga o botão;
+cancelar apaga-o e devolve o estado; gravar faz do gravado a nova base (sem esperar pela releitura —
+senão há um instante aceso sobre um estado já gravado); trocar de professor apaga-o **antes** de
+ler; e **um estado que não se conseguiu ler não se grava por cima** — o botão fica apagado e a nota
+diz porquê, porque as caixas de um professor que não se leu estão vazias e gravá-las apagaria a
+declaração.
 
-| o que | antes | agora |
+**O BOTÃO NASCE APAGADO NA MARCAÇÃO.** Nascer aceso e apagar-se à chegada da leitura daria um
+instante em que se pode gravar sem saber o quê; e sem JavaScript não há gravação nenhuma — o pedido
+é o `submit`. O `title` diz a razão («nada mudou» / «o estado ainda não foi lido»): um botão
+desligado sem explicação é a mesma família do botão que falta.
+
+**E FICOU DOCUMENTADO COMO PADRÃO, que foi o que ela pediu:** «Nessas situações em que não tem o
+botão de editar, a gente vai adotar isso como padrão.»
+
+| género | como abre | o «Gravar» |
 |:--|:--|:--|
-| o título | «As turmas desta escola» | **«Turmas»** — a página JÁ é a da escola, e «desta escola» era a redundância que ela leu |
-| a frase | «O que se planeja para uma não vale para a outra — o ritmo é de cada uma, e é dele que sai o calendário.» | «O que se planeja para uma **serve de base para a outra — é o lastro da próxima**.» |
-| o aviso do ciclo | «Ainda não há ciclo gerado…» | **fica, palavra por palavra** — «Isso está certo, tá? Isso pode deixar.» |
-| o atalho | — | «**comece por aqui** — Bastidores → Estúdio», logo abaixo do link da apresentação |
+| com «Editar» | fechado, a mostrar o registo | acende ao abrir |
+| **sem «Editar»** | aberto, já com o estado carregado | **apagado**; acende só com uma diferença |
 
-O atalho leva a `/bastidores/estudio`, **absoluto** como os da Área do Professor no rodapé: a escola é
-servida na raiz do próprio host, e um caminho relativo partiria de onde a página estivesse.
+Está em `IDENTIDADE-VISUAL.md` (capítulo «O «Gravar» que só acende quando algo muda») e no resumo
+executável das instruções, que é o sítio que os agentes leem antes de escrever marcação.
 
-**O GRAVAR DAS HABILITAÇÕES.** «quando eu vou em habilitações e eu troco a habilitação e clico em
-gravar, tem que fechar, tem que colapsar e limpar. […] A única coisa é que quando clicar em gravar,
-tem que colapsar.»
+**Com o quê.** `motor/servidor/bastidores.js` (`blocoDasTradicoes`, `tradicoesDasHabilitacoes`,
+`retratoDasHabilitacoes`, `retratoDoServidor`, `pintarGravarDasHabilitacoes`,
+`marcarBaseDasHabilitacoes`, `dizerQueNaoSeLeuAsHabilitacoes`, a marca `data-a-gravar` no
+`ocuparBotao`/`liberarBotao`, os dois handlers de mudança, o `submit` e a marcação do botão),
+`experimentos/provar-o-gravar-que-so-acende.js` (**novo**), `IDENTIDADE-VISUAL.md` e o resumo das
+instruções.
 
-O que ela disse estar certo **fica**: as caixas continuam a mostrar o que o professor declara — é o
-estado de agora, relido por `carregarHabilitacoes`. O «limpar» é o da moldura: `recado("", "")` e
-`cancelarOFormularioDe("sec-professores")`, que é quem fecha — nunca um `hidden` à mão, que deixaria a
-seta e o «Cancelar» a dizer o contrário do que a tela mostra.
-
-**E A MENSAGEM MUDOU DE SÍTIO, senão era escrita para ser escondida.** No `.res` de dentro do
-formulário, «Habilitações gravadas» ficaria dentro do miolo que acabou de recolher: o gesto feito,
-gravado, e sem resposta visível. Passa para o **aviso do gesto** (`avisar`), que vive fora da secção e
-sobrevive à recolha — a mesma regra de 19/11, que já está escrita na casa: o aviso sai primeiro,
-depois arruma-se a tela.
-
-**Com o quê.** `tools/templates/nav.js` (+ a cópia em `raiz/assets/nav.js` e a do pacote),
-`tools/montar-publicacao.js` (o índice e a declaração da apresentação),
-`motor/servidor/bastidores.js` (o `submit` das habilitações),
-`experimentos/provar-a-dobra-so-onde-ela-pediu.js` (**novo**), `IDENTIDADE-VISUAL.md` e o resumo
-executável das instruções.
-
-**MEDIDO.** `provar-a-dobra-so-onde-ela-pediu` **35/35**; controle `--contra=2741f55d` reprova **9** —
-a seta do índice, as nove da apresentação, e o gravar que não fecha (4). Num Chrome, com o pacote
-montado: índice **0 setas / 1 título**, apresentação **0 setas / 9 títulos**, e a coluna da navegação
-desenhada nas duas. `provar-pagina-publica` 79/79, `provar-painel` verde,
-`provar-habilitacao-do-professor` verde, `provar-o-painel-do-estudio` 36/36,
-`provar-ficha-na-listagem` 35/35, `provar-cadastro-do-professor` 87/87, `check-identidade` **0
-problemas**, `hash-ciclo --check` íntegro (os assets não entram na âncora).
-
-**E TRÊS PROVAS DA DOBRA ESTÃO MORTAS, e é o expurgo que as matou.** `provar-a-seta-redonda`,
-`provar-dobra-do-indice` e `provar-a-raiz-sem-dobra-e-o-vazio-do-apagar` medem
-`professores/demi-plie/ciclos/ciclo-01-breu-rosa/` — o pacote que o expurgo da `breu` levou (e que a
-recriação não trouxe, porque a escola recriada é a `breu`, sem turma). Elas explodem em `ENOENT` antes
-de medir, e explodem igual **sem** esta mudança (conferido com o trabalho em `stash`). O ciclo que
-existe hoje não tem documentos (`DOCS=""`), portanto não há plano nem aula para medir: a regra fica
-medida pela prova nova — que usa a apresentação, nove títulos, e o controle que os devolve. Quando
-houver um ciclo com documentos, as três revivem; até lá ficam declaradas em `ESTADO-ATUAL` §9 como
-**não medidas**, e não como verdes.
+**MEDIDO.** `provar-o-gravar-que-so-acende` **42/42**; controle `--contra=305171e6` reprova **19**.
+Num Chrome, com a página real e o `fetch` de bolso: `disabled` à chegada com `opacity 0.4` e
+`cursor: not-allowed`, aceso (`opacity 1`, `pointer`) ao marcar o jazz, e apagado outra vez ao
+desmarcá-lo. `provar-habilitacao-do-professor` verde, `provar-cadastro-do-professor` 87/87,
+`provar-a-dobra-so-onde-ela-pediu` 35/35, `provar-o-painel-do-estudio` 36/36,
+`provar-ficha-na-listagem` 35/35, `provar-professor-secundario` 19/19, `check-identidade` **0
+problemas** (23 verificações). `provar-editar-professor-principal` 32/33 — a falha é anterior e
+igual sem esta mudança.
 
 ## O que está pendente
 

@@ -41,6 +41,28 @@ saíram **encostados** no campo, e que «Atribuir curadoria», sem `.acao`, saiu
 mesma página. O modelo é o «Cadastrar professor»: `.acao grande` dentro da fileira
 `.par-botoes`. Quem guarda isso é a `experimentos/provar-vao-do-botao.js`.
 
+## O «Gravar» só acende quando algo muda *(23/11/2026)*
+
+**A regra, e ela é do GÉNERO do formulário, não de um ecrã.** Há dois géneros, e o botão trata-se
+de maneira diferente:
+
+| género | como abre | o «Gravar» |
+| --- | --- | --- |
+| **com «Editar»** | fechado, a mostrar o registo | acende ao abrir — quem abriu foi para mudar |
+| **sem «Editar»** | aberto, já com o estado carregado | **apagado**; acende só quando o que se gravaria **difere** do que está gravado |
+
+**A conta é o PEDIDO, não o ecrã.** Compare-se o corpo que o formulário **mandaria** com o que o
+servidor diz que tem, usando a **mesma** função que monta o corpo. Duas contas divergem à primeira
+correção, e o sintoma é o pior: botão apagado sobre uma diferença que existe.
+
+Cinco consequências, todas já pagas: **voltar ao estado de origem apaga-o**; **cancelar apaga-o**;
+**gravar faz do gravado a nova base** (sem esperar pela releitura); **trocar de sujeito apaga-o antes
+de ler**; e **um estado que não se conseguiu ler não se grava por cima** — botão apagado, e a tela
+diz porquê. O botão **nasce apagado na marcação**, e o `title` explica a razão quando não é óbvia.
+
+Vale hoje nas **Habilitações** do Estúdio; passa a valer em todo o formulário que se acrescentar sem
+«Editar». A prova é `experimentos/provar-o-gravar-que-so-acende.js`.
+
 ## A lista de cartões — contentor, ordem e paginação *(19/11/2026)*
 
 Três armadilhas que já custaram um ecrã errado, e as três são de vocabulário:

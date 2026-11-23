@@ -4,9 +4,20 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 23/11/2026 — **a seta só está onde ela a pediu, e gravar as habilitações
-> fecha o formulário.** Palavras dela: «Você colocou o botão de expandir de forma indiscriminada e não
-> só onde eu te pedi ontem.» A dobra nascia em qualquer `.conteudo > h2[id]`, e o **índice de uma
+> **Última fotografia:** 23/11/2026 — **o «Gravar» só acende quando o pedido mudaria.** Nas
+> Habilitações do Estúdio, o botão nasce **apagado** e acende só quando o que se gravaria difere do
+> que o servidor diz que está gravado — «para evitar custo», porque cada gravação escreve
+> `professores/<slug>/perfil.json` e move a cadeia. A conta é **o pedido**, não o ecrã: a mesma
+> função que monta o corpo é a que compara. E ela obrigou a fechar um buraco que já lá estava: o
+> perfil tem **três** estados por modalidade desde 18/11 (chave ausente / vazia / com nomes) e o
+> pedido só sabia exprimir dois — **13 dos 15 perfis reais** têm `tradicoes` ausente, e marcar «não
+> ensina nenhuma» nesse estado não mudava o que se gravava. O `submit` passou a calar a chave quando
+> ninguém respondeu. **E ficou declarado como padrão** («nessas situações em que não tem o botão de
+> editar»): formulário **sem «Editar»** abre com o Gravar apagado; com «Editar», acende ao abrir.
+>
+> **Fotografia anterior (23/11/2026 — a seta só está onde ela a pediu, e gravar fecha o
+> formulário).** Palavras dela: «Você colocou o botão de expandir de forma indiscriminada e não só
+> onde eu te pedi ontem.» A dobra nascia em qualquer `.conteudo > h2[id]`, e o **índice de uma
 > escola** (1 título) e a **apresentação do sistema** (9) ganhavam a seta por omissão — recolher o
 > primeiro esconde a página inteira. `TELAS_SEM_DOBRA` passou a `{porta, raiz, escola, sistema}`, com
 > as duas páginas a declararem-se no `<body data-tela>`. O **índice da escola** deixou de dizer «As
@@ -3888,6 +3899,32 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      «não lançou» era verdadeira por o script não existir. A prova passou a exigir **uma marca do
      script** (a coluna que só ele desenha).
 
+173. **O «GRAVAR» SÓ ACENDE QUANDO O PEDIDO MUDARIA — E O PERFIL PASSA A TER OS TRÊS ESTADOS QUE
+     JÁ DIZIA TER.** Palavras dela: «para evitar custo, só vai habilitar o botão gravar quando mudar
+     alguma coisa. […] se eu marcar as mesmas de novo, aí o gravar fica desabilitado de novo. […]
+     Nessas situações em que não tem o botão de editar, a gente vai adotar isso como padrão.»
+     **O CUSTO É A GRAVAÇÃO**, não o clique: escreve `professores/<slug>/perfil.json` e move a
+     cadeia.
+     **A CONTA É O PEDIDO, não o ecrã** — `tradicoesDasHabilitacoes()` é a conta única do `submit` e
+     da comparação. Duas contas divergem à primeira correcção, e o sintoma é o pior: botão apagado
+     sobre uma diferença que existe.
+     **A BASE VEM DO SERVIDOR** (`retratoDoServidor`), com `~` para a chave declarada e vazia e `''`
+     para a ausente. Calculada do que ficou pintado, perdia o caso mais comum — **13 dos 15 perfis
+     reais** têm `tradicoes` ausente — e deixava o botão apagado sobre uma declaração verdadeira. Foi
+     a primeira versão, e a prova apanhou-a.
+     **E O PEDIDO APRENDEU O TERCEIRO ESTADO:** quando nem o generalista nem uma tradição estão
+     marcados, a chave **não entra** — «ainda não foi perguntado». Antes mandava `[]` e as duas
+     coisas ficavam indistinguíveis. O consumidor (`tradicoesDoPerfil`) já devolvia `null` para a
+     chave ausente, portanto nada muda do lado de lá.
+     **CINCO CONSEQUÊNCIAS, cada uma com asserção:** voltar ao estado de origem apaga o botão;
+     cancelar apaga-o e devolve o estado; gravar faz do gravado a nova base (sem esperar pela
+     releitura); trocar de professor apaga-o **antes** de ler; e **um estado que não se leu não se
+     grava por cima** — botão apagado e a nota diz porquê. O botão **nasce apagado na marcação**, e
+     o `title` explica a razão quando não é óbvia.
+     **O PADRÃO, declarado:** formulário **sem «Editar»** abre com o Gravar apagado (acende com uma
+     diferença); **com «Editar»**, acende ao abrir. Em `IDENTIDADE-VISUAL.md` e no resumo executável
+     das instruções.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -4799,7 +4836,18 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (23/11/2026 — a seta só onde ela a pediu, e o gravar que fecha)
+### Executado nesta fotografia (23/11/2026 — o «Gravar» que só acende quando o pedido mudaria)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-o-gravar-que-so-acende.js` (**nova**) | **42/42**. §A o botão nasce `disabled` na marcação e fica apagado com o estado do professor à vista (ballet + «não ensina nenhuma»), e o `title` diz porquê. §B acende com uma modalidade nova, apaga ao desmarcá-la, e duas voltas completas devolvem-no ao apagado. §C as duas caixas que se desmentem contam nos dois sentidos. §D cancelar apaga-o e devolve as caixas. §E gravar: o pedido sai uma vez, o botão apaga-se **sem esperar pela releitura**, e mexer outra vez acende-o. §F trocar de professor apaga-o **antes** de ler; a leitura que falha deixa-o apagado com a nota e o `title` a dizer porquê. §G o mapa das tradições vai no pedido e a base acompanha. §H o perfil **sem mapa de tradições** (13 dos 15 reais): marcar «não ensina nenhuma» acende, o pedido leva a chave vazia, e desmarcá-la volta a acendê-lo com a chave ausente |
+| controle negativo | `--contra=305171e6` reprova **19 de 42** |
+| num Chrome, com a página real e o `fetch` de bolso | à chegada `disabled:true`, `opacity 0.4`, `cursor: not-allowed`, `title` «Nada mudou…»; ao marcar o jazz `disabled:false`, `opacity 1`, `pointer`, sem `title`; ao desmarcar volta ao apagado |
+| `provar-habilitacao-do-professor` · `provar-cadastro-do-professor` · `provar-a-dobra-so-onde-ela-pediu` · `provar-o-painel-do-estudio` · `provar-ficha-na-listagem` · `provar-professor-secundario` | verde · 87/87 · 35/35 · 36/36 · 35/35 · 19/19 |
+| `provar-editar-professor-principal` | 32/33 — a falha é **anterior** e igual sem esta mudança (o recado do servidor que não aparece na secção, em jsdom) |
+| `check-identidade` | **0 problemas** (23 verificações) |
+
+### Executado na fotografia anterior (23/11/2026 — a seta só onde ela a pediu, e o gravar que fecha)
 
 | Verificação | Resultado |
 |:--|:--|
