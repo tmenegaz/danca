@@ -1788,13 +1788,38 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                   listaApagar.appendChild(el("p", "nota",
                     "…e mais " + (todas.length - MAXIMO) + ", todas pelo mesmo tipo de motivo."));
                 }
-                var caminho = el("p");
-                caminho.appendChild(document.createTextNode(
-                  "Para apagar uma escola é preciso desabilitá-la primeiro: "));
-                var lig = el("a", "acao secundario", "Ver as escolas vivas");
-                lig.setAttribute("href", "/escolas-vivas");
-                caminho.appendChild(lig);
-                listaApagar.appendChild(caminho);
+                /* A DICA É DA ESCOLA QUE TEM CADASTRO (22/11/2026). «Desabilite primeiro» é o
+                 * caminho certo para a escola que está habilitada — e é MENTIRA para a que não tem
+                 * cadastro comercial nenhum, porque não há estado para desabilitar. Mandá-la
+                 * procurar um botão que não existe é a mesma família do «não há escola para
+                 * apagar»: uma frase que parece informação e não serve para agir.
+                 *
+                 * Medido no sistema real a 22/11/2026: `breu` tem cadastro (`ativa`) e
+                 * `batata`/`calango`/`duo` não têm — as três aparecem no índice e já não têm
+                 * registo no KV. São dois motivos diferentes, e a tela diz qual é qual. */
+                var comCadastro = todas.filter(function (e) { return !!e.estadoComercial; });
+                var semCadastro = todas.length - comCadastro.length;
+                if (comCadastro.length) {
+                  var caminho = el("p");
+                  caminho.appendChild(document.createTextNode(
+                    "Para apagar uma escola é preciso desabilitá-la primeiro: "));
+                  var lig = el("a", "acao secundario", "Ver as escolas vivas");
+                  lig.setAttribute("href", "/escolas-vivas");
+                  caminho.appendChild(lig);
+                  listaApagar.appendChild(caminho);
+                }
+                if (semCadastro && !comCadastro.length) {
+                  listaApagar.appendChild(el("p", "nota",
+                    "Nenhuma destas escolas tem cadastro comercial — sem cadastro não há estado a "
+                    + "desabilitar. É o que fica de uma escola expurgada: o índice ainda a nomeia, "
+                    + "e o registo comercial já não existe."));
+                } else if (semCadastro) {
+                  listaApagar.appendChild(el("p", "nota",
+                    semCadastro === 1
+                      ? "Uma delas não tem cadastro comercial: sem registo não há estado a desabilitar."
+                      : semCadastro + " delas não têm cadastro comercial: sem registo não há estado a "
+                        + "desabilitar."));
+                }
                 return;
               }
               expurgaveis.forEach(function (e) { listaApagar.appendChild(cartao(e)); });

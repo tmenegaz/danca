@@ -59182,3 +59182,11 @@ verde, `provar-a-seta-redonda` 21/21, `provar-a-musica-do-modal` 42/42. `gerar-r
 **minutos**, portanto o caminho para expurgar a `breu` é desabilitá-la (escolas vivas) → esperar a
 carência → e o botão de apagar passa a oferecê-la. Nada disto é novo: é a regra de 16/11 a funcionar,
 agora com a tela a dizer o que fazer em vez de dizer que não há nada.
+
+**E a dica mudou com o motivo, porque há dois — medido no sistema real.** «Desabilite primeiro» é o
+caminho da escola que tem cadastro, e é **mentira** para a que não tem: não há estado a desabilitar.
+A 22/11/2026 o KV mostra `breu` com cadastro (`ativa`) e `batata`, `calango` e `duo` **sem registo** —
+as três continuam no `indices/escolas/` e já não têm `bastidores/<escola>/comercial`. São o que fica
+de uma escola expurgada, e a tela passa a dizê-lo em vez de as mandar procurar um botão que não
+existe. Quando os dois motivos coexistem, a dica geral aparece (há uma que se desabilita) e um rodapé
+conta as outras («2 delas não têm cadastro comercial»).

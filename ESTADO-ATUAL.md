@@ -3542,6 +3542,11 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      **O corte de 16/11 continua**, e a distinção é o que o salva: na LISTA com cartões não se explica
      escola a escola («imagina quando eu tiver 20.000 escolas»); no VAZIO não há lista para poluir, e
      o motivo é a única coisa que há para ler. Com muitas travadas, corta em 8 e diz «…e mais N».
+     **E a dica muda com o motivo, porque há dois.** «Desabilite primeiro» é o caminho da escola que
+     tem cadastro — e é mentira para a que não tem, porque não há estado a desabilitar. Medido no
+     sistema real a 22/11/2026: a `breu` tem cadastro (`ativa`) e a `batata`, a `calango` e a `duo`
+     **não têm** — as três continuam no índice e já não têm registo no KV. São o que fica de uma
+     escola expurgada, e a tela diz isso em vez de as mandar procurar um botão que não existe.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
@@ -4392,7 +4397,7 @@ recorta» como «a rota está fechada».
 
 | Verificação | Resultado |
 |:--|:--|
-| `node experimentos/provar-a-raiz-sem-dobra-e-o-vazio-do-apagar.js` (**nova**) | **16/16**: a raiz (que serve `danca` e `lastro`) declara-se `data-tela="raiz"`, tem **10 títulos** de secção e **0 botões** de dobra e **0 corpos** de secção — o mesmo `nav.js` continua a dar os botões a um documento do pacote (o controle que impede «zero por a página não correr o script»). O vazio do apagar em quatro casos: sem escola → «não há escola nenhuma»; uma travada → nomeia-a, repete o motivo **do servidor** e liga às escolas vivas; 12 travadas → conta-as e corta em 8 com «…e mais 4»; uma expurgável → o cartão aparece e **nenhum** motivo se imprime (a regra de 16/11). Controle `--contra=02f53906`: **9 de 16 reprovam** — a campanha tinha **9 botões** e o vazio dizia «Não há escola para apagar» sobre uma escola que existe |
+| `node experimentos/provar-a-raiz-sem-dobra-e-o-vazio-do-apagar.js` (**nova**) | **21/21**: a raiz (que serve `danca` e `lastro`) declara-se `data-tela="raiz"`, tem **10 títulos** de secção e **0 botões** de dobra e **0 corpos** de secção — o mesmo `nav.js` continua a dar os botões a um documento do pacote (o controle que impede «zero por a página não correr o script»). O vazio do apagar em quatro casos: sem escola → «não há escola nenhuma»; uma travada → nomeia-a, repete o motivo **do servidor** e liga às escolas vivas; 12 travadas → conta-as e corta em 8 com «…e mais 4»; sem cadastro comercial → o motivo do servidor é dito e **não** se manda desabilitar (não há estado); os dois motivos na mesma lista → a dica de desabilitar aparece e o rodapé conta as sem cadastro; uma expurgável → o cartão aparece e **nenhum** motivo se imprime (a regra de 16/11). Controle `--contra=02f53906`: **13 de 21 reprovam** — a campanha tinha **9 botões** e o vazio dizia «Não há escola para apagar» sobre uma escola que existe |
 | `node tools/check-identidade.js` (checagem **20, Seta**, ampliada) | **0 problemas**, 23 verificações. Além de comparar a geometria das duas declarações, passou a exigir que `TELAS_SEM_DOBRA` exclua `raiz` e `porta` e que a raiz se declare `data-tela="raiz"`. Testada a recusar: sem `raiz` na lista, o erro nomeia a tela |
 | o estado real da `breu`, medido no KV | `{"estado":"ativa","habilitadaEm":"2026-11-17T00:41:26.797Z"}` — **sem `desabilitadaEm`**. É por isso que ela não aparecia para expurgo: a regra de 16/11, não um defeito do modal. A carência em regime de teste é de **minutos**, portanto o caminho é desabilitar → esperar → apagar |
 | `provar-pagina-publica` · `provar-painel` · `provar-a-seta-redonda` · `provar-a-musica-do-modal` | 79/79 · verde · 21/21 · 42/42 |

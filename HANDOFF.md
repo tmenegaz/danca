@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T21:27:37-0300`
-Commit atual: `02f53906` — feat(template): a seta de abrir e fechar é uma peça só, e o documento abre com o primeiro
+Gerado em: `2026-11-22T21:30:52-0300`
+Commit atual: `7ee95a91` — fix(estrutura): a campanha não tem a seta de colapsar, e o vazio do apagar diz a verdade
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+7ee95a91 fix(estrutura): a campanha não tem a seta de colapsar, e o vazio do apagar diz a verdade
 02f53906 feat(template): a seta de abrir e fechar é uma peça só, e o documento abre com o primeiro
 22354d71 feat(estrutura): o portão da aula dada — o botão abre depois do lançamento da anterior
 6c24ee55 chore(estrutura): fechar os derivados — âncoras e índices
@@ -101,7 +102,6 @@ d562534a feat(aula-02): a aula que vem depois lê o lançamento da anterior
 62b2659c feat(aula-01): o §1 diz quem dá a aula, onde e em que dia — e o §5 leva ao formulário
 247f825f chore(estrutura): fechar os derivados — âncoras e índices
 e504f372 docs(estrutura): a fotografia da aula que diz só o que é dela
-b78a5f00 fix(po): cada aula imprime o seu marco, e mede pela régua da turma
 ```
 
 ## Por professor
@@ -256,6 +256,14 @@ verde, `provar-a-seta-redonda` 21/21, `provar-a-musica-do-modal` 42/42. `gerar-r
 **minutos**, portanto o caminho para expurgar a `breu` é desabilitá-la (escolas vivas) → esperar a
 carência → e o botão de apagar passa a oferecê-la. Nada disto é novo: é a regra de 16/11 a funcionar,
 agora com a tela a dizer o que fazer em vez de dizer que não há nada.
+
+**E a dica mudou com o motivo, porque há dois — medido no sistema real.** «Desabilite primeiro» é o
+caminho da escola que tem cadastro, e é **mentira** para a que não tem: não há estado a desabilitar.
+A 22/11/2026 o KV mostra `breu` com cadastro (`ativa`) e `batata`, `calango` e `duo` **sem registo** —
+as três continuam no `indices/escolas/` e já não têm `bastidores/<escola>/comercial`. São o que fica
+de uma escola expurgada, e a tela passa a dizê-lo em vez de as mandar procurar um botão que não
+existe. Quando os dois motivos coexistem, a dica geral aparece (há uma que se desabilita) e um rodapé
+conta as outras («2 delas não têm cadastro comercial»).
 
 ## O que está pendente
 

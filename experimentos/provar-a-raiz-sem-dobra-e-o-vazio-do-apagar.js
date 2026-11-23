@@ -234,6 +234,42 @@ const TRAVADA = (slug, motivo) => ({
   }
 
   {
+    /* SEM CADASTRO COMERCIAL — o caso real das escolas que ficaram no índice depois de expurgadas
+     * (`batata`, `calango`, `duo` a 22/11/2026). «Desabilite primeiro» não é caminho nenhum para
+     * elas: não há estado para desabilitar. A dica tem de mudar com o motivo, senão manda-a procurar
+     * um botão que não existe. */
+    const sCadastro = {
+      slug: 'batata', expurgavel: false, motivoDoExpurgo:
+        'Não há cadastro comercial desta escola — e sem cadastro não há como saber que ela está suspensa.',
+      url: 'https://batata.padd.com.br/',
+    };
+    const semRegisto = await abrirApagar([sCadastro]);
+    provar('sem cadastro comercial, o motivo do servidor é dito',
+      /Não há cadastro comercial/.test(semRegisto.texto), semRegisto.texto.slice(0, 200));
+    provar('…e NÃO se manda desabilitar uma escola que não tem estado para desabilitar',
+      semRegisto.temLigacao === false, semRegisto.texto.slice(-160));
+    provar('…e diz-se o que aquilo é («o que fica de uma escola expurgada»)',
+      /o que fica de uma escola expurgada/.test(semRegisto.texto), semRegisto.texto.slice(-200));
+    semRegisto.w.close();
+  }
+
+  {
+    /* OS DOIS MOTIVOS NA MESMA LISTA — é o estado real do sistema: `breu` habilitada, e as três
+     * antigas sem cadastro. A dica geral aparece (há uma que se desabilita) e o rodapé conta as
+     * outras. */
+    const misto = await abrirApagar([
+      TRAVADA('breu', 'A escola está habilitada: apagá-la seria apagar o que está a ser usado.'),
+      { slug: 'batata', expurgavel: false, motivoDoExpurgo: 'Não há cadastro comercial desta escola.' },
+      { slug: 'calango', expurgavel: false, motivoDoExpurgo: 'Não há cadastro comercial desta escola.' },
+    ]);
+    provar('com os dois motivos, a dica de desabilitar aparece (há uma que se desabilita)',
+      misto.temLigacao === true, misto.texto.slice(-160));
+    provar('…e o rodapé conta as sem cadastro («2 delas não têm cadastro comercial»)',
+      /2 delas não têm cadastro comercial/.test(misto.texto), misto.texto.slice(-200));
+    misto.w.close();
+  }
+
+  {
     const pode = Object.assign(TRAVADA('duo', 'irrelevante'), { expurgavel: true });
     const r = await abrirApagar([pode]);
     provar('quando ALGUMA pode ser apagada, o cartão dela aparece',
