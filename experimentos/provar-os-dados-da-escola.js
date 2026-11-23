@@ -494,6 +494,32 @@ const ELO = {
         vivo && vivo.herdadoDe && vivo.herdadoDe.em === '2026-11-23T10:00:00.000Z', vivo && vivo.herdadoDe);
       provar('G4. …e o desfecho conta-o', res && res.herdado && res.herdado.cnpj === true, res);
     }
+    /* G4b. A CRIAÇÃO ALIMENTA A LISTA DOS PROFESSORES (23/11/2026).
+     *
+     * Ela disse as duas portas e o destino: «é a partir desse formulário que é preenchido em criar
+     * nova escola ou lá em bastidores Estúdio, professores, se for criado um professor novo ali,
+     * também tem que alimentar as informações para mim aqui em dança.padd.com.br/professores».
+     *
+     * O sítio é o MESMO nas duas portas (`professores/<slug>/contato`), e é dele que a página lê
+     * o documento e o contacto. A asserção fecha o circuito: o que o formulário de criação recolhe
+     * chega à chave que a lista consome — e não a uma chave paralela que a lista não conhece. */
+    {
+      const kv = kvDeBolso({});
+      await raiz.gravarCadastro({
+        env: { PADD_KV: kv }, escola: 'calango', professor: 'pe-pequeno',
+        cadastro: {
+          escolaNome: 'Calango', cpf: '52998224725',
+          professorNomeCompleto: 'Pé Pequeno', professorEmail: 'pe@x.exemplo',
+          professorTelefone: '(51) 98888-0000',
+        },
+        origem: 'painel',
+      });
+      const ficha = JSON.parse(kv.dados.get('professores/pe-pequeno/contato') || 'null');
+      provar('G4b. a criação da escola grava a ficha do professor na chave que a lista lê',
+        ficha && ficha.cpf === '52998224725' && ficha.email === 'pe@x.exemplo'
+        && ficha.telefone === '(51) 98888-0000', ficha);
+    }
+
     // G5. o formulário que TROUXE os campos não é sobreposto.
     {
       const kv = kvDeBolso({ 'cadastros/calango': REGISTO });

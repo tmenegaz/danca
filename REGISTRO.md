@@ -59867,3 +59867,20 @@ mudança (conferido com o trabalho em `stash`). `provar-professor-secundario` 19
 `provar-estrutura-ao-criar-professor`, `provar-ficha-na-listagem` 35/35, `provar-ficha-visual` 21/21,
 `provar-o-painel-do-estudio` 36/36, `provar-uma-linha-por-professor` 19/19, `check-schemas` verde,
 `check-identidade` 0 problemas.
+
+## 23/11/2026 — A porta da criação também alimenta a lista dos professores (medido)
+
+**O QUE FALTAVA MEDIR, e não era código.** Ela nomeou **duas** portas para o cadastro da pessoa — «a
+partir desse formulário que é preenchido em criar nova escola ou lá em bastidores Estúdio,
+professores» —, e as duas escrevem a **mesma** chave (`professores/<slug>/contato`). A lista passou a
+lê-la. O que não estava provado era o circuito fechado: que o que o formulário de criação recolhe
+chega à chave que a lista consome, e não a uma chave paralela que ninguém lê.
+
+**A asserção é uma só e mede o fim do percurso:** `gravarCadastro` com um CPF, um e-mail e um telefone
+de professor deixa-os em `professores/<slug>/contato`. **G4b** em `provar-os-dados-da-escola`, que
+passa a **80/80**. A porta do Estúdio é a outra metade, e está medida em
+`provar-cadastro-do-professor` (a ficha do professor, escrita e lida pela mesma chave).
+
+**E ao vivo, sem mais nada:** a página em `danca.padd.com.br/professores` mostra os quatro CPF que
+existem no KV e o contacto deles — e o `breu` recriado por ela hoje já aparece como **botão** na
+coluna Ações, com o título «professor responsável por esta escola».

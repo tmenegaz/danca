@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-23T07:36:41-0300`
-Commit atual: `29071b87` — feat(estrutura): os professores têm Ações, documento e contacto — e o Financeiro manda o professor para lá
+Gerado em: `2026-11-23T07:40:26-0300`
+Commit atual: `453d6f08` — feat(estrutura): o documento do professor pode ser CNPJ, e não só CPF
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -64,8 +64,7 @@ rabo-gramde
 redinha-rosa
 rimel-preto
 sapatilha-de-ponta (15)
-- **Ciclos com manifesto:** 0
-0 variante(s)
+- **Ciclos com manifesto:** 1 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -83,7 +82,12 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
-29071b87 feat(estrutura): os professores têm Ações, documento e contacto — e o Financeiro manda o professor para lá
+453d6f08 feat(estrutura): o documento do professor pode ser CNPJ, e não só CPF
+9aa12256 feat(estrutura): os professores têm Ações, documento e contacto — e o Financeiro manda o professor para lá
+6f11507e feat(estrutura): habilitar demi-plie em bale-classico
+99e9edb8 feat(estrutura): habilitar demi-plie em bale-classico
+ddbee1d5 feat(acervo): envelope/.indice.json
+abbe291c feat(estrutura): criar a escola breu (motor completo)
 c7b1ee0f fix(estrutura): a senha do professor não se esconde com o modo do professor
 bd87f249 docs(estrutura): o CNPJ das escolas de teste, e a data que eu tinha escrito errada
 c24e4636 feat(estrutura): a criação também herda a identidade fiscal, e não só a recriação
@@ -98,11 +102,6 @@ f0186400 fix(estrutura): um mês que foi pago nunca se esconde do extrato
 3a29feee chore(estrutura): fechar os derivados do expurgo da breu
 14d20091 fix(estrutura): o expurgo limpa o livro do financeiro e a cache do monitor
 edab6ae5 fix(estrutura): o commit dos derivados sobrevive a um repositório sem âncoras
-3ffa914f chore(estrutura): expurgar a escola breu
-8b877844 docs(estrutura): a verificação ao vivo do expurgo — 1 minuto no ar, e a breu expurgável
-2b8df0ba fix(estrutura): o registo comercial não se perde ao desabilitar, e o expurgo volta a passar
-e73342a6 fix(estrutura): a dica do apagar muda com o motivo — quem não tem cadastro não desabilita
-7ee95a91 fix(estrutura): a campanha não tem a seta de colapsar, e o vazio do apagar diz a verdade
 ```
 
 ## Por professor
@@ -117,7 +116,17 @@ e73342a6 fix(estrutura): a dica do apagar muda com o motivo — quem não tem ca
 
 ### dedao-aberto — 0 ciclo(s)
 
-### demi-plie — 0 ciclo(s)
+### demi-plie — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): breu
+
+| Escola | PO | state | Marcadores [Preencher] |
+|:--|:--|:--|--:|
+| breu | (sem PO) | — | — |
+
+| Variante | .fipp | hash (12) | parentHash | po_state |
+|:--|:--|:--|:--|:--|
+| breu | ciclo-01-breu.fipp | `e81a3e1cf08c` | (vazio) | — |
 
 ### fernando-franciose — 0 ciclo(s)
 
@@ -184,60 +193,22 @@ e73342a6 fix(estrutura): a dica do apagar muda com o motivo — quem não tem ca
 
 ## Última entrada do REGISTRO
 
-## 23/11/2026 — O documento do professor pode ser CNPJ, e não só CPF
+## 23/11/2026 — A porta da criação também alimenta a lista dos professores (medido)
 
-**O QUE FALTAVA PARA A REGRA SER VERDADEIRA.** A entrada anterior pôs a lista a mostrar o documento
-da pessoa com o rótulo certo — «CPF» ou «CNPJ», decidido pelo comprimento. Mas não havia **porta**
-por onde um CNPJ entrasse: o formulário do Estúdio pedia «CPF do professor», e onze dígitos. Uma
-regra de leitura sem sítio de escrita é uma regra que nunca se aplica — e o ramo do CNPJ ficaria a
-esperar por um dado que ninguém podia escrever.
+**O QUE FALTAVA MEDIR, e não era código.** Ela nomeou **duas** portas para o cadastro da pessoa — «a
+partir desse formulário que é preenchido em criar nova escola ou lá em bastidores Estúdio,
+professores» —, e as duas escrevem a **mesma** chave (`professores/<slug>/contato`). A lista passou a
+lê-la. O que não estava provado era o circuito fechado: que o que o formulário de criação recolhe
+chega à chave que a lista consome, e não a uma chave paralela que ninguém lê.
 
-**Palavras dela:** «O CNPJ ou CPF que o professor tenha, né, também vai estar lá. Professor pode ter
-CNPJ ou CPF, tá? Não necessariamente só CPF.»
+**A asserção é uma só e mede o fim do percurso:** `gravarCadastro` com um CPF, um e-mail e um telefone
+de professor deixa-os em `professores/<slug>/contato`. **G4b** em `provar-os-dados-da-escola`, que
+passa a **80/80**. A porta do Estúdio é a outra metade, e está medida em
+`provar-cadastro-do-professor` (a ficha do professor, escrita e lida pela mesma chave).
 
-**UM CAMPO, E O COMPRIMENTO DECIDE.** O campo do Estúdio passou a dizer **«CPF ou CNPJ do
-professor»**, e quem escolhe é o número: catorze dígitos são um CNPJ, onze são um CPF. Dois campos —
-um para cada — obrigariam quem preenche a saber qual deixar em branco, e o sistema a decidir qual
-acreditar quando os dois viessem preenchidos. **Um número é uma pessoa**, e o formulário pergunta
-pelo número.
-
-**UM DOCUMENTO, UM SÍTIO.** Gravar um CNPJ põe o número em `cnpj` e **limpa o `cpf`**; gravar um CPF
-faz o inverso. Sem isso a ficha passaria a ter dois documentos e a lista escolheria um deles por
-conta própria. O «em branco não apaga» continua a valer para os dois — em branco significa «não
-mexi», e apagar o documento de uma pessoa não é um efeito de não o escrever.
-
-**A UNICIDADE É POR DOCUMENTO**, e não entre documentos: `quemTemEsteNumero` com
-`professores/<slug>/contato` e `campo: 'cnpj'`. Um CNPJ de professor não colide com um CPF de
-professor (são universos de números diferentes), e **nenhum dos dois é comparado com o CNPJ de uma
-escola** — uma pessoa pode ser sócia de uma escola sem ser a escola, e recusar esse caso seria
-inventar uma regra que ninguém pediu.
-
-**O `normalizarCnpj` ganhou o `de`,** como o `normalizarCpf` já tinha desde 18/11: sem ele, um número
-inválido no campo do professor respondia «o CNPJ da escola tem de ter 14 dígitos», e uma mensagem que
-nomeia a entidade errada manda corrigir o campo errado. O valor por omissão é o de sempre, e nenhum
-chamador antigo muda.
-
-**E A FICHA DEVOLVE OS DOIS CAMPOS.** `/api/bastidores/ficha-do-professor` passou a devolver `cnpj`
-ao lado de `cpf`, e a tela preenche o campo com `cnpj || cpf`: um CNPJ lido como CPF vazio faria o
-«Editar» parecer uma ficha sem documento — e a pessoa escreveria o número outra vez.
-
-**O QUE CONTINUA A PEDIR CPF, E DE PROPÓSITO:** o formulário de **criar escola** — «continua do jeito
-que está o formulário de criar nova escola, não tem nenhuma alteração nele». Quem é uma empresa
-declara o CNPJ no Estúdio, que é o sítio do cadastro da pessoa. **E o CPF do professor proprietário
-não se tornou obrigatório:** «Mas não é obrigatório isso, é apenas uma sugestão.»
-
-**Com o quê.** `motor/servidor/bastidores.js` (`conferirAFichaDoProfessor`, `gravarAFichaDoProfessor`,
-a ficha lida pela tela, o campo do formulário), `motor/nucleo/cadastro-da-escola.js` (`normalizarCnpj`
-com `de`) e `experimentos/provar-cadastro-do-professor.js` (secção D, cinco asserções novas).
-
-**MEDIDO.** `provar-cadastro-do-professor` **87/87** — e as três que mordem: o CNPJ é aceite e vai
-para a chave dele com o `cpf` limpo; a ficha devolve-o no campo próprio; voltar a um CPF **limpa** o
-CNPJ, para a troca não deixar os dois. Um CNPJ já usado por outro professor é recusado com o nome de
-quem o tem. `provar-editar-professor-principal` 32/33 — a falha é **anterior** e igual sem esta
-mudança (conferido com o trabalho em `stash`). `provar-professor-secundario` 19/19,
-`provar-estrutura-ao-criar-professor`, `provar-ficha-na-listagem` 35/35, `provar-ficha-visual` 21/21,
-`provar-o-painel-do-estudio` 36/36, `provar-uma-linha-por-professor` 19/19, `check-schemas` verde,
-`check-identidade` 0 problemas.
+**E ao vivo, sem mais nada:** a página em `danca.padd.com.br/professores` mostra os quatro CPF que
+existem no KV e o contacto deles — e o `breu` recriado por ela hoje já aparece como **botão** na
+coluna Ações, com o título «professor responsável por esta escola».
 
 ## O que está pendente
 
@@ -767,6 +738,7 @@ ela melhora com a mesma fusão, mas só quando for re-derivada com o elenco cert
 - **20/11/2026** — O estudo do modal do Estilo, corrigido por ela: é na… → `REGISTRO.md` L56004
 - **20/11/2026** — Duas provas apagadas: as que mediam um mundo que já não… → `REGISTRO.md` L56921
 - **20/11/2026** — «Curadoria» saiu da tela, e a prova que media uma Turma sem… → `REGISTRO.md` L56965
+- **demi-plie · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
 
