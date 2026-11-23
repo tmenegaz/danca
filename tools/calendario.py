@@ -46,6 +46,8 @@ aulas do sábado.
 
 import argparse
 import datetime as dt
+import json
+import os
 import re
 import sys
 
@@ -122,17 +124,71 @@ def br(d: dt.date) -> str:
     return d.strftime('%d/%m/%Y')
 
 
-def celula_da_coluna_criar(nn: int, prontas: set, criar: bool) -> str:
+def lancadas_do_dados(caminho: str) -> set:
+    """AS AULAS COM REGISTRO DE LANÇAMENTO — `aulas[NN]` no `-dados.json` (22/11/2026).
+
+    É o FACTO, e não o juízo. Não se pergunta à data se a aula já aconteceu: pergunta-se se o
+    lançamento dela foi registrado. Um derivador não tem relógio, e não deve ter — a mesma regra
+    que `motor/nucleo/aulas-do-ciclo.js` (`aulasLancadas`) escreve para a regeneração, e a mesma
+    chave que o índice deste gerador já lê (`ler_lancadas`, no bloco do `ciclos.json`).
+
+    AUSENTE NÃO É ERRO. Um ciclo que nasce não tem `-dados.json`, e a resposta é o vazio — que
+    aqui quer dizer «nenhuma aula lançada», e é a verdade. Um ficheiro ilegível cai na mesma
+    resposta pela mesma razão que o índice: o portão não pode travar o ciclo inteiro por causa de
+    um JSON que ainda está a ser escrito.
+    """
+    if not caminho or not os.path.exists(caminho):
+        return set()
+    try:
+        with open(caminho, encoding='utf-8') as f:
+            aulas = (json.load(f) or {}).get('aulas') or {}
+    except (ValueError, OSError):
+        return set()
+    saida = set()
+    for nn, aula in (aulas.items() if isinstance(aulas, dict) else []):
+        # Uma entrada sem objecto não é um lançamento: é lixo de uma escrita interrompida.
+        if not isinstance(aula, dict):
+            continue
+        try:
+            numero = int(str(nn).strip())
+        except ValueError:
+            continue
+        if numero > 0:
+            saida.add(f'{numero:02d}')
+    return saida
+
+
+def celula_da_coluna_criar(nn: int, prontas: set, criar: bool, lancadas=None) -> str:
     """A quinta coluna: o botão que CRIA a aula, ou a ligação para a que já existe.
 
-    AS DUAS FORMAS, e porquê:
+    AS TRÊS FORMAS, e porquê:
 
       · a aula que já tem documento → uma LIGAÇÃO para ele. O botão não faz sentido numa aula
         que existe, e escondê-lo sem dizer nada faria a coluna parecer quebrada naquela linha;
-      · a aula que ainda não tem → um BOTÃO, com o número DELA (`02`) e nada mais. Quem sabe o
-        resto — a data, o dia, a duração — é a linha da tabela em que ele está, e o script da
-        página lê-a daí. Não se copia o dado para o atributo: uma segunda cópia é uma segunda
-        verdade, e a data que o calendário calcula é a única.
+      · a aula que ainda não tem, e cuja ANTERIOR já foi lançada → um BOTÃO, com o número DELA
+        (`02`) e nada mais. Quem sabe o resto — a data, o dia, a duração — é a linha da tabela em
+        que ele está, e o script da página lê-a daí. Não se copia o dado para o atributo: uma
+        segunda cópia é uma segunda verdade, e a data que o calendário calcula é a única;
+      · a aula que ainda não tem, e cuja anterior NÃO tem lançamento → o MESMO botão, `disabled`.
+
+    O PORTÃO (22/11/2026) — a terceira forma, e é a regra que ela pediu: «todas as outras aulas
+    que estão lá no nosso calendário com o botão, todos os outros botões, que é criar aula, eles
+    ficam desabilitados até que os dados lançados da aula dada estejam registados no sistema, aí
+    habilita o próximo e assim sucessivamente.»
+
+    PORQUE O BOTÃO FICA, EM VEZ DE SUMIR. Um botão que desaparece não diz que existe uma regra:
+    diz que a linha não tem acção, e a linha anterior tem. O que explica é o `title` — a peça que
+    o resto do sistema já usa para dizer o que um botão desabilitado espera (`Excluir`, no
+    Estilo: «Não se exclui: o exercício está no repertório de uma turma»). E o motivo de a
+    coluna inteira estar travada diz-se UMA vez, na nota por baixo da tabela, em vez de se
+    repetir em treze linhas: quem lê a regra precisa dela uma vez.
+
+    A AULA 01 NUNCA ESPERA: não há aula anterior cujo lançamento lhe falte. É o arranque do
+    ciclo, e um portão que travasse a primeira não deixaria nada começar.
+
+    `lancadas` AUSENTE É «NÃO SEI» — e «não sei» não tranca. É o caso das provas que só querem as
+    datas, e o de quem chama o gerador sem os dados: fechar tudo por omissão seria transformar
+    uma falta de argumento numa regra.
 
     A CLASSE É A MESMA DAS OUTRAS ACÇÕES (`.acao secundario pequena`), que é a peça do botão na
     folha — nenhuma classe nova nasce aqui. `data-criar-aula` é GANCHO de JavaScript: não pinta
@@ -147,6 +203,12 @@ def celula_da_coluna_criar(nn: int, prontas: set, criar: bool) -> str:
     if dois in prontas:
         return (f'<a class="acao secundario pequena" href="aula-{dois}.html">'
                 f'Abrir</a>')
+    if lancadas is not None and nn > 1 and f'{nn - 1:02d}' not in lancadas:
+        anterior = f'{nn - 1:02d}'
+        return (f'<button type="button" class="acao secundario pequena" disabled '
+                f'data-criar-aula="{dois}" '
+                f'title="A Aula {anterior} ainda não foi lançada: o registro do lançamento '
+                f'dela é o que abre este botão">Criar aula</button>')
     return (f'<button type="button" class="acao secundario pequena" '
             f'data-criar-aula="{dois}">Criar aula</button>')
 
@@ -186,10 +248,23 @@ def main() -> int:
     p.add_argument('--aulas-prontas', default='',
                    help='as aulas que JÁ têm documento, separadas por espaço ou vírgula (ex.: '
                         '"01 02"); só é lida com --criar-aula')
+    # O PORTÃO DA AULA DADA (22/11/2026) — o facto, lido da fonte. Ver `celula_da_coluna_criar`
+    # e `lancadas_do_dados`. AUSENTE NÃO TRANCA: quem não passa o `--dados` recebe os botões todos
+    # abertos, que é o comportamento de antes desta regra e o que as provas de datas esperam.
+    p.add_argument('--dados', default='',
+                   help='o `-dados.json` FONTE do ciclo: dele se lê `aulas[NN]`, o registro do '
+                        'lançamento, que abre o botão «Criar aula» da aula seguinte (só com '
+                        '--criar-aula)')
     a = p.parse_args()
 
     prontas = {n for n in re.split(r'[^0-9]+', a.aulas_prontas or '') if n}
     prontas = {f'{int(n):02d}' for n in prontas if int(n) > 0}
+
+    # O FACTO DO PORTÃO, e o «não sei» que não tranca: sem `--dados` a lista é `None`, e
+    # `celula_da_coluna_criar` desenha os botões como antes. Com o caminho — mesmo que o ficheiro
+    # ainda não exista, que é o caso do ciclo que nasce —, a lista é o conjunto (vazio) das
+    # lançadas, e o portão vale.
+    lancadas = lancadas_do_dados(a.dados) if a.dados else None
 
     try:
         dias = parse_dias(a.dias)
@@ -348,10 +423,22 @@ def main() -> int:
                              f'aulas-{formativa + 1:02d}-{a.total:02d}')
         marco = ' *(formativa)*' if i == formativa else (' *(somativa)*' if i == a.total else '')
         L.append(f'| {i:02d}{marco} | {br(d)} | {rotulo_do_dia(d)} | {dur} min | '
-                 f'{celula_da_coluna_criar(i, prontas, a.criar_aula)} |')
+                 f'{celula_da_coluna_criar(i, prontas, a.criar_aula, lancadas)} |')
     L.append('')
     L.append('> O volume de trabalho ativo de cada aula está na própria aula; o volume '
              'semanal acima é calculado sobre o volume declarado na Aula 01 (Regra 9).')
+    # O MOTIVO DIZ-SE UMA VEZ, E NÃO TREZE (22/11/2026). Um botão desabilitado sem explicação
+    # visível parece avaria — é a mesma lição do «um botão que recusa é pior do que a sua
+    # ausência» (Estilo, 03/11/2026). O `title` de cada linha diz QUAL é a aula que falta; esta
+    # nota diz a REGRA, e é aqui que ela se lê sem passar o rato por treze botões.
+    if a.criar_aula and lancadas is not None:
+        travadas = [i for i in range(2, a.total + 1)
+                    if f'{i:02d}' not in prontas and f'{i - 1:02d}' not in lancadas]
+        if travadas:
+            L.append('')
+            L.append(f'> O botão «Criar aula» abre depois do **registro do lançamento** da aula '
+                     f'anterior — o facto, e não a data. Hoje está à espera do lançamento da '
+                     f'**Aula {travadas[0] - 1:02d}**, e as seguintes abrem uma de cada vez.')
 
     texto = '\n'.join(L) + '\n'
     if a.saida == '-':

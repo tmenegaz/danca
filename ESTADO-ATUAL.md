@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 22/11/2026 (commit `f4ec34e1`, e **a música do exercício deriva-se no Estilo** a seguir).
+> **Última fotografia:** 22/11/2026 (commit `22b99699`, e **o portão da aula dada** a seguir).
 > Ainda neste dia, **o modal passou a deixar escrever**: os tempos e o compasso de cada exercício
 > abrem preenchidos com o que o verbete declara e são editáveis — a música do verbete é a da escola,
 > a da aula é decisão de quem a dá, e essas duas coisas estavam a ser a mesma. A secção «Música e
@@ -3479,6 +3479,19 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      argumento de que «o que a aula trabalha é uma decisão da aula». O argumento era bom e a
      conclusão falsa — a decisão da aula é **que exercício**.
 
+159. **O PORTÃO DA AULA DADA — O BOTÃO ABRE DEPOIS DO LANÇAMENTO DA ANTERIOR.** Palavras dela:
+     «todas as outras aulas que estão lá no nosso calendário com o botão […] ficam desabilitados até
+     que os dados lançados da aula dada estejam registados no sistema, aí habilita o próximo e assim
+     sucessivamente.» E, à pergunta «duas aulas seguidas?», **não**.
+     **DECIDIDO e IMPLEMENTADO** 22/11/2026: o botão «Criar aula» da linha **N** nasce `disabled`
+     enquanto a aula **N-1** não tiver o **registro do lançamento** (`aulas[NN]` no `-dados.json`) —
+     o facto, e não a data, como na guarda da regeneração. A Aula 01 nunca espera. O `title` nomeia
+     a aula que falta, e a regra diz-se uma vez por baixo da tabela. Sem `--dados`, nada é travado:
+     «não sei» não é «não».
+     **O QUE ELE NÃO FECHA, e fica dito:** o endereço `?criar-aula=NN` e um `POST` directo a
+     `api/elicitar` passam ao lado do botão. Fechar a segunda porta é uma recusa no **servidor** —
+     decisão dela, não minha. **PENDENTE**.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -3815,33 +3828,35 @@ repositório; o vocabulário do repositório tem hoje **93 termos**, e o ar só 
 
 ## 8. Pendências e dúvidas
 
-### O portão da aula dada — DECIDIDO e ainda não implementado (22/11/2026)
-
-**A ordem dela**: «primeiro a tabela que falta para a aula dois […] depois, segundo passo, no modal a
-parte da musicalidade […] e aí no passo três a gente faz o portão da aula dada». Os passos 1 e 2 estão
-feitos (decisões 151-157); o **passo 3 tem a decisão tomada e o código por fazer**, e ela foi
-explícita: «não implementa ainda, mas já guarda essas informações».
+### O portão da aula dada — IMPLEMENTADO a 22/11/2026, com duas portas que ele não fecha
 
 **A REGRA, nas palavras dela.** «todas as outras aulas que estão lá no nosso calendário com o botão,
 todos os outros botões, melhor dizendo, que estão no calendário, que é criar aula, eles ficam
 desabilitados até que os dados lançados da aula dada estejam registados no sistema, aí habilita o
-próximo e assim sucessivamente.» **DECIDIDO**: **bloquear**, e não avisar. E à pergunta «o professor
-pode preparar duas aulas seguidas?» a resposta foi a **opção 2** — não, a aula seguinte só depois de
-a anterior ser dada e lançada.
+próximo e assim sucessivamente.» **DECIDIDO**: **bloquear**, e não avisar; e a aula seguinte só
+depois de a anterior ser dada e lançada (a opção 2 dela).
 
-**O que isso significa em concreto:** o botão «Criar aula» da linha **N** do calendário fica
-**desabilitado** enquanto a aula **N-1** não tiver o **registo do lançamento** — o mesmo facto que
-`podeRegenerar` já lê (`aulas[NN]` no `-dados.json`), e não o relógio. Com o registo feito, o botão da
-aula seguinte acende, um de cada vez, até ao fim do ciclo.
+**CONFIRMADO por medição.** O botão «Criar aula» da linha **N** nasce `disabled` enquanto a aula
+**N-1** não tiver o **registro do lançamento** — `aulas[NN]` no `-dados.json`, o facto e não a data,
+a mesma chave que a guarda da regeneração (`aulasLancadas`) e o índice do gerador já leem. A Aula 01
+**nunca espera**. O `title` de cada botão nomeia a aula que falta, e a regra diz-se **uma vez** por
+baixo da tabela — um botão desabilitado sem explicação visível parece avaria.
 
-**Onde ele vive:** a quinta coluna do calendário (`tools/calendario.py`, `celula_da_coluna_criar`), que
-já desenha o botão e já sabe qual é a aula seguinte.
+**Onde:** `tools/calendario.py` (`celula_da_coluna_criar`, `lancadas_do_dados`, `--dados`) e
+`tools/gerar-ciclo.sh` (passa `--dados "$(fonte_dados)"`). Sem `--dados` nada é travado — «não sei»
+não é «não», e é o que mantém as provas de datas iguais.
 
-**O estado de teste dela, que explica o que se vê hoje — e que o portão não pode confundir com
-defeito.** A Aula 02 foi criada **fora da regra**, de propósito, «porque estamos testando». E como a
-Aula 02 já existe, ela **perdeu o botão de criar**: o modal da aula 02 não está lá, e é por isso que o
-teste do modal se faz a partir da **Aula 03**. Um portão implementado hoje bloquearia a Aula 03 (a 02
-não foi lançada) e travaria o teste em curso — é a razão de ele esperar, e não um esquecimento.
+**O estado da `breu`, medido no pacote:** a Aula 02 existe e **não** foi lançada, portanto a Aula 03
+está travada e as seguintes esperam a sua própria anterior. É a regra a funcionar sobre o ciclo que
+ela criou fora dela de propósito, para testar.
+
+**AS DUAS PORTAS QUE ELE NÃO FECHA — declaradas, porque uma trava que se contorna em silêncio é uma
+promessa.** (1) O endereço `?criar-aula=NN` abre o diálogo sem passar pelo botão — é o gancho que a
+prova e a partilha de ligação usam. (2) Um `POST` directo a `api/elicitar` cria a aula sem passar pela
+página. Fechar a primeira exige levar o estado do lançamento até ao diálogo (que é derivado antes de o
+calendário existir); fechar a segunda exige uma recusa no servidor — e uma recusa no servidor é
+**decisão dela**, não minha: é a diferença entre um botão que não se clica e uma API que responde 409.
+**PENDENTE** enquanto ela não disser.
 
 ### O plano de observação em `/rosa/` não carrega o formulário (21/11/2026) — medido, não corrigido
 
@@ -4322,7 +4337,18 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (22/11/2026 — a música do exercício deriva-se no Estilo)
+### Executado nesta fotografia (22/11/2026 — o portão da aula dada)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-o-portao-da-aula-dada.js` (**nova**) | **35/35**: a Aula 01 nunca espera; sem lançamento a 02 fica `disabled` com o `title` a nomear a 01; com a 01 lançada a 02 abre e a 03 espera; com tudo lançado nada está travado; `None` («não sei») não tranca; a aula com documento continua a ser uma ligação «Abrir». No gerador de verdade, a tabela nasce com a 01 aberta e a 02–05 travadas, e a nota diz a regra uma vez («à espera do lançamento da **Aula 02**»). No pacote publicado, a 03 está travada. Controlo: o `plano.html` e o `calendario.py` de `22b99699` não travam nada, e o gerador antigo **recusa** o `--dados` (a flag é nova) |
+| …a §E da mesma prova | o `lancadas_do_dados` do calendário e o `aulasLancadas` do núcleo dão a **mesma lista** para o `-dados.json` real da `breu` (**vazia**), e concordam no lixo: uma entrada `null` não é lançamento |
+| `bash tools/gerar-ciclo.sh demi-plie 01 breu-rosa` | 0 erros (1 aviso de PDF). O `plano.html` passa a trazer a Aula 03 travada com `title="A Aula 02 ainda não foi lançada…"`, e a nota da regra |
+| `provar-a-musica-do-modal` · `provar-o-derivar-do-estilo` · `provar-criar-aula` · `provar-a-identidade-da-aula` | 42/42 · 12/12 · 53/53 · 26/26 |
+| `provar-cadeia-automatica` · `provar-a-aula-que-vem` · `provar-derivados-da-sequencia` · `provar-o-estilo-regera` | 136/136 · 70/70 · 27/27 · 19/19 |
+| `hash-ciclo --check` · `check-pacote` · `check-identidade` | íntegro · 0 erros · **0 problemas** (22 verificações) |
+
+### Executado na fotografia anterior (22/11/2026 — a música do exercício deriva-se no Estilo)
 
 | Verificação | Resultado |
 |:--|:--|

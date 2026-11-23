@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T20:48:23-0300`
-Commit atual: `f4ec34e1` — docs(estrutura): o portão da aula dada bloqueia, e a decisão fica guardada antes do código
+Gerado em: `2026-11-22T21:02:48-0300`
+Commit atual: `6c24ee55` — chore(estrutura): fechar os derivados — âncoras e índices
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,8 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+6c24ee55 chore(estrutura): fechar os derivados — âncoras e índices
+22b99699 fix(musicalidade): a música do exercício não se escreve no plano — deriva-se no Estilo
 f4ec34e1 docs(estrutura): o portão da aula dada bloqueia, e a decisão fica guardada antes do código
 cbd1aa66 feat(aula-03): a mudança chega à aula vigente, e as dadas ficam iguais ao último registro
 e08b9b7b chore(estrutura): fechar os derivados — âncoras e índices
@@ -100,8 +102,6 @@ e504f372 docs(estrutura): a fotografia da aula que diz só o que é dela
 b78a5f00 fix(po): cada aula imprime o seu marco, e mede pela régua da turma
 070415c2 docs(estrutura): a fotografia da folha que mede o conteúdo e do painel empilhado
 a9a62ab1 fix(estrutura): o painel inicial empilha os blocos, como ela aprovou
-b7162e9c fix(template): a folha do menu mede o conteúdo, e o acordeão deixa de ter tecto
-a61d4ddb docs(estrutura): a fotografia regista o id carimbado e a pasta da turma
 ```
 
 ## Por professor
@@ -195,67 +195,59 @@ a61d4ddb docs(estrutura): a fotografia regista o id carimbado e a pasta da turma
 
 ## Última entrada do REGISTRO
 
-## 22/11/2026 — A música do exercício não se escreve no plano: deriva-se no Estilo
+## 22/11/2026 — O portão da aula dada: o botão abre depois do lançamento da anterior
 
-**O defeito, na letra dela.** «tem um problema. Você precisa verificar que lá em bastidores, no
-estilo, tem uma regra para a decomposição, que é o step cinco, que a conta dos tempos e compassos
-precisa estar correta no lançamento da decomposição, lembra? […] a gente tem que ter uma outra solução
-aqui no modal. Essa solução não serve.»
+**A regra, na letra dela.** «todas as outras aulas que estão lá no nosso calendário com o botão,
+todos os outros botões, melhor dizendo, que estão no calendário, que é criar aula, eles ficam
+desabilitados até que os dados lançados da aula dada estejam registados no sistema, aí habilita o
+próximo e assim sucessivamente.» E à pergunta «o professor pode preparar duas aulas seguidas?»: **não**
+— a aula seguinte só depois de a anterior ser dada e lançada.
 
-**A regra que ele mandou olhar, e ela é a que decide.** No Estilo, o passo 5 mostra a decomposição do
-exercício em trechos, e **a coluna do compasso não se escreve: é calculada somando os tempos na
-ordem** — o comentário do próprio formulário di-lo desde 31/10/2026: «a contagem reinicia em cada
-compasso, e o número do compasso é conta do sistema». A chave do verbete é exactamente
-`tempos|compasso` (`8|2/4@breu`), e o desacordo entre a música declarada e o que os trechos ocupam é
-um **estado do dado**, com selo próprio na listagem («tempos em desacordo»). Ou seja: um tempo escrito
-no plano que o verbete não cobre é uma música **sem decomposição nenhuma**. Não é uma decisão da aula
-— é um verbete que falta.
+**O FACTO QUE ABRE O BOTÃO, e não é a data.** É o **registro do lançamento** — `aulas[NN]` no
+`-dados.json` —, a mesma chave que a guarda da regeneração já lê (`aulasLancadas`, em
+`motor/nucleo/aulas-do-ciclo.js`) e a mesma que o índice deste gerador lê (`ler_lancadas`). Uma aula
+que aconteceu e ainda não foi lançada tem o registro ausente, e o portão continua fechado: é a
+§1.2 do `ARQUITETURA-AULA.md` — os dois relógios fecham no lançamento.
 
-**A solução é a que ela indicou, e é o fluxo que já existe.** A tabela volta a ser **leitura** e ganha
-a coluna **Ações**, com um **Derivar** por exercício. O botão fecha o modal e leva a
-`/bastidores/estudio?derivar=<exercício>&musica=<tempos|compasso>#estilo`, onde os Bastidores abrem o
-Estilo e o `editarVerbete` daquele verbete. Lá ela compõe os trechos, grava — e volta a criar a aula,
-que nasce com o que ficou gravado. Palavras dela: «a gente não precisa ficar reinventando fluxos e a
-gente aproveita o fluxo que já temos.»
+**Onde, e o que se mede.** `tools/calendario.py` (`celula_da_coluna_criar` com o parâmetro novo,
+`lancadas_do_dados`, o `--dados`) e `tools/gerar-ciclo.sh` (passa `--dados "$(fonte_dados)"`). A aula
+que **já tem documento** continua a ser a ligação «Abrir» — o portão não lhe toca. A **Aula 01 nunca
+espera**: não há aula anterior cujo lançamento lhe falte, e um portão que travasse a primeira não
+deixaria nada começar. Sem `--dados` nada é travado — «não sei» não é «não», e é o que mantém as provas
+de datas iguais ao que eram.
 
-**O padrão do modal voltou a ser um só.** «Tem o padrão de modal que a gente usa na sala […] A gente
-tem aqui um modal e esse modal tem um padrão, tem as dimensões dele, da largura. Então tem que ser
-esse mesmo padrão, não pode ser diferente.» O «na sala» é o `#modal-duracao` dos Bastidores, e o
-padrão é a modificação `.modal-largo` da folha: `modal-caixa modal-largo`, 880px em vez dos 440 de uma
-pergunta de sim/não. Medido: 880, contra 440 antes.
+**UM BOTÃO TRAVADO TEM DE DIZER PORQUÊ, e diz-se uma vez.** O `title` de cada botão nomeia a aula que
+falta («A Aula 02 ainda não foi lançada: o registro do lançamento dela é o que abre este botão»), e a
+**regra** aparece numa linha por baixo da tabela. Treze linhas a repetir a mesma explicação seriam
+ruído; um botão `disabled` sem nada visível seria a «avaria» que a casa já nomeou em 03/11/2026.
 
-**O que a sequência grava, e o que não grava.** A música que o verbete declara **sem dúvida** (uma).
-Com nenhuma ou com **várias**, a linha nasce sem música e é o núcleo (`compor`, em `notacao.js`) que
-declara a lacuna — «não se escolhe por ninguém», e escolher a primeira de duas seria uma escolha feita
-onde a decomposição não está à vista. A recusa do meio par («Tempos e compasso andam juntos») morreu
-com o campo que a justificava: ninguém pode escrever meia música onde não há campo.
+**AS DUAS PORTAS QUE ELE NÃO FECHA, declaradas.** (1) O endereço `?criar-aula=NN` abre o diálogo sem
+passar pelo botão — é o gancho da prova e da partilha de ligação. (2) Um `POST` directo a
+`api/elicitar` cria a aula sem passar pela página. Fechar a primeira exige levar o estado do
+lançamento até ao diálogo, que é derivado **antes** de o calendário existir; fechar a segunda exige
+uma recusa no **servidor**, e uma recusa no servidor é **decisão dela** — a diferença entre um botão
+que não se clica e uma API que responde 409. Fica `PENDENTE` e dito, em vez de uma trava que se
+contorna em silêncio.
 
-**O endereço é um gesto, não um estado.** O `?derivar=` sai do endereço depois de usado
-(`replaceState`), como o `?abrir=` do Pagar: a página repinta-se a cada operação, e um parâmetro
-esquecido reabriria o formulário no exercício de antes a cada gravação. O `#estilo` fica — é a
-posição. E quando o exercício ainda não tem verbete, a página **diz** («nasce no Dicionário»), em vez
-de um botão que não faz nada.
+**Com o quê.** `tools/calendario.py`, `tools/gerar-ciclo.sh`,
+`experimentos/provar-o-portao-da-aula-dada.js` (**novo**), `.gitignore`, o `plano.html` do pacote da
+`breu` regerado, `ESTADO-ATUAL.md`.
 
-**Com o quê.** `motor/nucleo/derivar-plano-ciclo.js` (a célula de leitura, a coluna das acções, o
-`derivar`, a nota, a música que a sequência leva, e a saída da recusa do meio par),
-`motor/servidor/bastidores.js` (`abrirOPedidoDoEndereco`, chamado no fim do `carregarVerbetes`),
-`experimentos/provar-a-musica-do-modal.js`, `experimentos/provar-o-derivar-do-estilo.js` (**novo**),
-`.gitignore`, o `plano.md` e o pacote regerados, a âncora recalculada, `ESTADO-ATUAL.md`.
+**MEDIDO.** `provar-o-portao-da-aula-dada` **35/35** — a célula em oito casos (incluindo os extremos:
+a Aula 01 nunca espera, e com tudo lançado nada está travado), a tabela do gerador de verdade com uma
+fixture de `aulas`, e o pacote publicado. Controlo: o `plano.html` e o `calendario.py` de `22b99699`
+**não travam nada**, e o gerador antigo **recusa** o `--dados` — a flag é nova, e antes não havia como
+saber o facto. A §E mede a concordância entre as duas leituras: `lancadas_do_dados` e `aulasLancadas`
+dão a mesma lista para o `-dados.json` real da `breu` — **vazia** —, e tratam o lixo da mesma maneira
+(uma entrada `null` não é lançamento). As vizinhas: `provar-a-musica-do-modal` 42/42,
+`provar-o-derivar-do-estilo` 12/12, `provar-criar-aula` 53/53, `provar-a-identidade-da-aula` 26/26,
+`provar-cadeia-automatica` 136/136, `provar-a-aula-que-vem` 70/70. `gerar-ciclo` 0 erros,
+`hash-ciclo --check` íntegro, `check-pacote` 0 erros, `check-identidade` **0 problemas**.
 
-**MEDIDO.** `provar-a-musica-do-modal` **42/42**, com o controlo `--contra=c9a4168c` a reprovar
-**22 de 35**. `provar-o-derivar-do-estilo` **12/12**, controlo `--contra=cbd1aa66` a reprovar **5 de
-12**. As vizinhas: `provar-cadeia-automatica` 136/136, `provar-a-aula-que-vem` 70/70,
-`provar-o-exercicio-novo` 65/65, `provar-aula-dada` 34/34, `provar-criar-aula` 53/53,
-`provar-compasso-limpo` verde, `provar-derivados-da-sequencia` 27/27,
-`provar-a-dobra-e-a-aula-anterior` 31/31, `provar-o-estilo-regera` 19/19. `regerar-derivados` e
-`gerar-ciclo` refeitos, `hash-ciclo --check` íntegro, `check-pacote` 0 erros, `check-identidade`
-**0 problemas**.
-
-**E uma nota de método, porque foi uma volta atrás no mesmo dia.** Os dois campos chegaram a ser de
-**escrever**, com o argumento de que «o que a aula trabalha é uma decisão da aula». O argumento é bom e
-a conclusão era falsa: a decisão da aula é **que exercício**; a música do exercício é do exercício, e
-o sítio de a compor é onde os trechos estão à vista. Um campo que aceita qualquer tempo produz uma
-chave de verbete que não existe — e o erro aparece depois, no documento, sem se saber de onde veio.
+**E o efeito no ciclo dela, medido no pacote:** a Aula 02 da `rosa` existe e não foi lançada, portanto
+a **Aula 03 fica travada** e as seguintes esperam a sua própria anterior. É a regra a funcionar sobre
+o ciclo que ela criou fora dela de propósito — e a razão de ela expurgar a escola para testar o portão
+a partir de um ciclo limpo.
 
 ## O que está pendente
 

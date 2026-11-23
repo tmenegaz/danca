@@ -255,6 +255,12 @@ for _doc in ${DOCS:-}; do
     aula-[0-9]*) AULAS_PRONTA="$AULAS_PRONTA ${_doc#aula-}" ;;
   esac
 done
+# O PORTÃO DA AULA DADA (22/11/2026) — o `-dados.json` FONTE vai junto, e o `calendario.py` lê dele
+# o `aulas[NN]`: o registro do lançamento é o que abre o botão «Criar aula» da aula seguinte. É o
+# MESMO facto que a guarda da regeneração lê (`motor/nucleo/aulas-do-ciclo.js`) e o mesmo que o
+# índice lê mais abaixo (`ler_lancadas`): uma aula é «dada» quando o lançamento dela está gravado,
+# e não quando a data passou. Um ciclo que nasce não tem o ficheiro — o `fonte_dados` devolve o
+# caminho na mesma, e o calendário trata a ausência como «nenhuma lançada».
 python3 "$RAIZ/tools/calendario.py" \
   --escola "$ESCOLA" \
   --responsavel "${RESPONSAVEL:-}" \
@@ -267,6 +273,7 @@ python3 "$RAIZ/tools/calendario.py" \
   ${EXTRA[@]+"${EXTRA[@]}"} \
   --criar-aula \
   --aulas-prontas "$AULAS_PRONTA" \
+  --dados "$(fonte_dados)" \
   --saida "$TMP/calendario.md" \
   --vars-arquivo "$TMP/calendario.vars" \
   --aulas-arquivo "$TMP/aulas.tsv"

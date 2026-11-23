@@ -58996,3 +58996,57 @@ de um botão que não faz nada.
 a conclusão era falsa: a decisão da aula é **que exercício**; a música do exercício é do exercício, e
 o sítio de a compor é onde os trechos estão à vista. Um campo que aceita qualquer tempo produz uma
 chave de verbete que não existe — e o erro aparece depois, no documento, sem se saber de onde veio.
+
+## 22/11/2026 — O portão da aula dada: o botão abre depois do lançamento da anterior
+
+**A regra, na letra dela.** «todas as outras aulas que estão lá no nosso calendário com o botão,
+todos os outros botões, melhor dizendo, que estão no calendário, que é criar aula, eles ficam
+desabilitados até que os dados lançados da aula dada estejam registados no sistema, aí habilita o
+próximo e assim sucessivamente.» E à pergunta «o professor pode preparar duas aulas seguidas?»: **não**
+— a aula seguinte só depois de a anterior ser dada e lançada.
+
+**O FACTO QUE ABRE O BOTÃO, e não é a data.** É o **registro do lançamento** — `aulas[NN]` no
+`-dados.json` —, a mesma chave que a guarda da regeneração já lê (`aulasLancadas`, em
+`motor/nucleo/aulas-do-ciclo.js`) e a mesma que o índice deste gerador lê (`ler_lancadas`). Uma aula
+que aconteceu e ainda não foi lançada tem o registro ausente, e o portão continua fechado: é a
+§1.2 do `ARQUITETURA-AULA.md` — os dois relógios fecham no lançamento.
+
+**Onde, e o que se mede.** `tools/calendario.py` (`celula_da_coluna_criar` com o parâmetro novo,
+`lancadas_do_dados`, o `--dados`) e `tools/gerar-ciclo.sh` (passa `--dados "$(fonte_dados)"`). A aula
+que **já tem documento** continua a ser a ligação «Abrir» — o portão não lhe toca. A **Aula 01 nunca
+espera**: não há aula anterior cujo lançamento lhe falte, e um portão que travasse a primeira não
+deixaria nada começar. Sem `--dados` nada é travado — «não sei» não é «não», e é o que mantém as provas
+de datas iguais ao que eram.
+
+**UM BOTÃO TRAVADO TEM DE DIZER PORQUÊ, e diz-se uma vez.** O `title` de cada botão nomeia a aula que
+falta («A Aula 02 ainda não foi lançada: o registro do lançamento dela é o que abre este botão»), e a
+**regra** aparece numa linha por baixo da tabela. Treze linhas a repetir a mesma explicação seriam
+ruído; um botão `disabled` sem nada visível seria a «avaria» que a casa já nomeou em 03/11/2026.
+
+**AS DUAS PORTAS QUE ELE NÃO FECHA, declaradas.** (1) O endereço `?criar-aula=NN` abre o diálogo sem
+passar pelo botão — é o gancho da prova e da partilha de ligação. (2) Um `POST` directo a
+`api/elicitar` cria a aula sem passar pela página. Fechar a primeira exige levar o estado do
+lançamento até ao diálogo, que é derivado **antes** de o calendário existir; fechar a segunda exige
+uma recusa no **servidor**, e uma recusa no servidor é **decisão dela** — a diferença entre um botão
+que não se clica e uma API que responde 409. Fica `PENDENTE` e dito, em vez de uma trava que se
+contorna em silêncio.
+
+**Com o quê.** `tools/calendario.py`, `tools/gerar-ciclo.sh`,
+`experimentos/provar-o-portao-da-aula-dada.js` (**novo**), `.gitignore`, o `plano.html` do pacote da
+`breu` regerado, `ESTADO-ATUAL.md`.
+
+**MEDIDO.** `provar-o-portao-da-aula-dada` **35/35** — a célula em oito casos (incluindo os extremos:
+a Aula 01 nunca espera, e com tudo lançado nada está travado), a tabela do gerador de verdade com uma
+fixture de `aulas`, e o pacote publicado. Controlo: o `plano.html` e o `calendario.py` de `22b99699`
+**não travam nada**, e o gerador antigo **recusa** o `--dados` — a flag é nova, e antes não havia como
+saber o facto. A §E mede a concordância entre as duas leituras: `lancadas_do_dados` e `aulasLancadas`
+dão a mesma lista para o `-dados.json` real da `breu` — **vazia** —, e tratam o lixo da mesma maneira
+(uma entrada `null` não é lançamento). As vizinhas: `provar-a-musica-do-modal` 42/42,
+`provar-o-derivar-do-estilo` 12/12, `provar-criar-aula` 53/53, `provar-a-identidade-da-aula` 26/26,
+`provar-cadeia-automatica` 136/136, `provar-a-aula-que-vem` 70/70. `gerar-ciclo` 0 erros,
+`hash-ciclo --check` íntegro, `check-pacote` 0 erros, `check-identidade` **0 problemas**.
+
+**E o efeito no ciclo dela, medido no pacote:** a Aula 02 da `rosa` existe e não foi lançada, portanto
+a **Aula 03 fica travada** e as seguintes esperam a sua própria anterior. É a regra a funcionar sobre
+o ciclo que ela criou fora dela de propósito — e a razão de ela expurgar a escola para testar o portão
+a partir de um ciclo limpo.
