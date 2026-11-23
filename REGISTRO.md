@@ -59252,3 +59252,22 @@ comercial, portanto **um expurgo falhado deixa a escola sem cadastro**. A recupe
 ela vai usar (desabilitar outra vez → 1 minuto → apagar), mas a alternativa — excluir
 `bastidores/<slug>/comercial` do prefixo até o expurgo concluir — é uma decisão sobre o que o expurgo
 pode apagar, e não a tomo sozinho.
+
+**VERIFICADO AO VIVO, depois do deploy (`2b8df0ba`), contra o sistema de produção.**
+
+| o que se mediu | resultado |
+|:--|:--|
+| `GET /api/escolas` com a senha da raiz | `carencia: "1 minutos (regime de teste)"` — **o prazo novo está no ar** |
+| o estado da `breu` antes do passo de recuperação | `expurgavel: false`, motivo «Não há cadastro comercial desta escola» — **verdadeiro**, porque o KV dela estava vazio: o expurgo correu do lado do Cloudflare e limpou o prefixo `bastidores/breu/` |
+| `POST /api/escola/comercial` (re-desabilitar) | `200`, `estado: suspensa`, `desabilitadaEm: 2026-11-23T00:52:58.321Z`, e **`semRegisto` NÃO foi gravado** — a correcção da escrita, no código que está a servir |
+| 68 segundos depois, `GET /api/escolas` | `breu · expurgavel: true · "A carência venceu em 22/11/2026 às 21:53."` |
+
+**E o estado da escola, medido nos dois lados:** o expurgo correu do lado do Cloudflare (o
+`breu.padd.com.br` **deixou de resolver** — `curl` devolve `000`, «could not resolve host») e o KV está
+vazio (`0` chaves com o prefixo `bastidores/breu`), mas o **repositório continua inteiro**:
+`escola/breu/`, `professores/demi-plie/ciclos/ciclo-01-breu*` e `indices/escolas/breu.json` estão lá.
+Foi um expurgo **pela metade**, e é exactamente a situação que apaga o registo comercial e deixa a
+escola sem como voltar a ser apagada — o defeito desta entrada, visto de fora.
+
+**O que NÃO se fez:** não se apagou a escola. O expurgo é decisão dela, e o botão está a um clique —
+foi para isso que o passo de recuperação foi feito e medido.

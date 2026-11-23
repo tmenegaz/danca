@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T21:49:51-0300`
-Commit atual: `e73342a6` — fix(estrutura): a dica do apagar muda com o motivo — quem não tem cadastro não desabilita
+Gerado em: `2026-11-22T21:54:19-0300`
+Commit atual: `2b8df0ba` — fix(estrutura): o registo comercial não se perde ao desabilitar, e o expurgo volta a passar
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+2b8df0ba fix(estrutura): o registo comercial não se perde ao desabilitar, e o expurgo volta a passar
 e73342a6 fix(estrutura): a dica do apagar muda com o motivo — quem não tem cadastro não desabilita
 7ee95a91 fix(estrutura): a campanha não tem a seta de colapsar, e o vazio do apagar diz a verdade
 02f53906 feat(template): a seta de abrir e fechar é uma peça só, e o documento abre com o primeiro
@@ -101,7 +102,6 @@ d562534a feat(aula-02): a aula que vem depois lê o lançamento da anterior
 4330dd32 chore(estrutura): fechar os derivados — âncoras e índices
 49fb6f87 docs(estrutura): a fotografia do §1 da aula e do guia que leva ao formulário
 62b2659c feat(aula-01): o §1 diz quem dá a aula, onde e em que dia — e o §5 leva ao formulário
-247f825f chore(estrutura): fechar os derivados — âncoras e índices
 ```
 
 ## Por professor
@@ -256,6 +256,25 @@ comercial, portanto **um expurgo falhado deixa a escola sem cadastro**. A recupe
 ela vai usar (desabilitar outra vez → 1 minuto → apagar), mas a alternativa — excluir
 `bastidores/<slug>/comercial` do prefixo até o expurgo concluir — é uma decisão sobre o que o expurgo
 pode apagar, e não a tomo sozinho.
+
+**VERIFICADO AO VIVO, depois do deploy (`2b8df0ba`), contra o sistema de produção.**
+
+| o que se mediu | resultado |
+|:--|:--|
+| `GET /api/escolas` com a senha da raiz | `carencia: "1 minutos (regime de teste)"` — **o prazo novo está no ar** |
+| o estado da `breu` antes do passo de recuperação | `expurgavel: false`, motivo «Não há cadastro comercial desta escola» — **verdadeiro**, porque o KV dela estava vazio: o expurgo correu do lado do Cloudflare e limpou o prefixo `bastidores/breu/` |
+| `POST /api/escola/comercial` (re-desabilitar) | `200`, `estado: suspensa`, `desabilitadaEm: 2026-11-23T00:52:58.321Z`, e **`semRegisto` NÃO foi gravado** — a correcção da escrita, no código que está a servir |
+| 68 segundos depois, `GET /api/escolas` | `breu · expurgavel: true · "A carência venceu em 22/11/2026 às 21:53."` |
+
+**E o estado da escola, medido nos dois lados:** o expurgo correu do lado do Cloudflare (o
+`breu.padd.com.br` **deixou de resolver** — `curl` devolve `000`, «could not resolve host») e o KV está
+vazio (`0` chaves com o prefixo `bastidores/breu`), mas o **repositório continua inteiro**:
+`escola/breu/`, `professores/demi-plie/ciclos/ciclo-01-breu*` e `indices/escolas/breu.json` estão lá.
+Foi um expurgo **pela metade**, e é exactamente a situação que apaga o registo comercial e deixa a
+escola sem como voltar a ser apagada — o defeito desta entrada, visto de fora.
+
+**O que NÃO se fez:** não se apagou a escola. O expurgo é decisão dela, e o botão está a um clique —
+foi para isso que o passo de recuperação foi feito e medido.
 
 ## O que está pendente
 
