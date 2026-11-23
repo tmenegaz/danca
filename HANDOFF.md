@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-23T06:50:59-0300`
-Commit atual: `b39c3bf4` — docs(estrutura): os dados da escola, o CNPJ que ficava pelo caminho, e o que «outra Breu» quer dizer
+Gerado em: `2026-11-23T07:09:11-0300`
+Commit atual: `870895ce` — docs(estrutura): a recriação traz os dados da escola, e o convite deixa de prometer o que não tem
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -83,6 +83,8 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+870895ce docs(estrutura): a recriação traz os dados da escola, e o convite deixa de prometer o que não tem
+c71eefe2 fix(estrutura): recriar a escola traz os dados dela de volta, marcados como herdados
 b39c3bf4 docs(estrutura): os dados da escola, o CNPJ que ficava pelo caminho, e o que «outra Breu» quer dizer
 3b4e9746 feat(estrutura): a identidade fiscal sobrevive ao expurgo, e os dados da escola têm aba
 f0186400 fix(estrutura): um mês que foi pago nunca se esconde do extrato
@@ -101,8 +103,6 @@ e73342a6 fix(estrutura): a dica do apagar muda com o motivo — quem não tem ca
 22354d71 feat(estrutura): o portão da aula dada — o botão abre depois do lançamento da anterior
 6c24ee55 chore(estrutura): fechar os derivados — âncoras e índices
 22b99699 fix(musicalidade): a música do exercício não se escreve no plano — deriva-se no Estilo
-f4ec34e1 docs(estrutura): o portão da aula dada bloqueia, e a decisão fica guardada antes do código
-cbd1aa66 feat(aula-03): a mudança chega à aula vigente, e as dadas ficam iguais ao último registro
 ```
 
 ## Por professor
@@ -184,76 +184,80 @@ cbd1aa66 feat(aula-03): a mudança chega à aula vigente, e as dadas ficam iguai
 
 ## Última entrada do REGISTRO
 
-## 24/11/2026 — Recriar traz os dados da escola de volta: herdados, e com o CNPJ conferido
+## 23/11/2026 — O CNPJ das escolas de teste entra à mão, e a criação também herda
 
-**A PERGUNTA DELA, e é a que abriu isto.**
+**O PEDIDO DELA, e o contexto é o de sempre: ambiente de teste e pressa.**
 
-> «O CNPJ a partir de então vai surgir junto? Quer dizer, os dados da escola eles vão ser recriados
-> também? Porque, afinal de contas, nunca foram apagados, né? Então recriar é aquela escola que a
-> gente já já tinha antes, mas aí com os dados da escola também. É isso mesmo? O recriar já está
-> alinhado com essa nossa nova diretriz?»
+> «A gente está em ambiente de teste, né? Então inclui, para a gente continuar fazendo os testes e
+> facilitar as coisas, no cadastro dessas escolas o CNPJ e o e-mail. […] porque a gente está em
+> ambiente de teste mesmo e eu não quero ter que preencher de novo um formulário. Exceto o do breu,
+> que daí eu vou preencher de novo a mão só para ver se funciona, mas os outros dois, calango e
+> batata, pode incluir ali porque se funcionar no breu vai funcionar no calango e no batata.»
 
-**NÃO ESTAVA — e a pergunta apanhou um trabalho a meio.** A véspera (decisão 165) pôs o cadastro a
-**sobreviver** ao expurgo, em `cadastros/<slug>`. Faltava o caminho de volta, e as consequências eram
-quatro, todas medidas:
+```
+calango  37.455.854/0001-72  grimpacia@gmail.com
+batata   62.728.967/0001-41  grimpacia@gmail.com
+```
 
-| o que acontecia | porquê |
-|:--|:--|
-| a escola recriada ficava **sem CNPJ, sem e-mail e sem telefone** | nada lia o registo guardado |
-| o e-mail de boas-vindas saía **só para o professor** | o da escola vivia no cadastro, que o expurgo levou |
-| a aba mostrava **«guardado no expurgo» sobre uma escola viva** | o cadastro vivo não existia, e a leitura caía no histórico |
-| o nome voltava **«Breu»** em vez de «Escola Breu» | o nome sai do cadastro, e o cadastro estava vazio |
+**Os dois CNPJ foram conferidos pelo dígito verificador antes de entrarem** — um número com um dígito
+trocado seria recusado pelo formulário e, pior, ficaria a parecer um dado bom. Os dois são **válidos**.
 
-E a página do convite prometia, desde 16/11: «os dados de identificação dela ficaram guardados». Era
-**falsa** — e continuaria a ser se a recriação não os repusesse.
+**ONDE ENTRARAM, E PORQUÊ.** Em `cadastros/<slug>` — o registo que sobrevive ao expurgo (decisão 165)
+—, e **não** em `bastidores/<slug>/cadastro`. A segunda chave parece a mais directa e é a errada por
+duas razões, e a segunda é a que morde:
 
-**A CORRECÇÃO, e a ordem dela é a parte que importa.**
+1. **É onde o dado pertence.** As duas escolas estão **expurgadas**: o cadastro vivo delas foi
+   apagado pelo expurgo, e o registo histórico é exactamente o sítio do dado fiscal de uma escola que
+   já não existe. A aba mostra-as com a origem «guardado no expurgo», que é a verdade.
+2. **`bastidores/<slug>/cadastro` faria a criação ser RECUSADA.** A regra de unicidade (`cnpjJaUsado`)
+   varre `bastidores/*/cadastro`: com o CNPJ lá, criar uma escola chamada `calango` **com o CNPJ
+   escrito no formulário** responderia 409 — «o CNPJ já é da escola «calango»» —, sobre a própria
+   escola que se está a criar. Em `cadastros/` o número não entra nessa varredura, e a herança faz o
+   resto.
 
-- **A leitura é cedo, a escrita é tarde.** A recriação **lê** o registo guardado no passo do nome (é
-  dele que saem o nome, o nome de exibição e os endereços da mensagem) e só o **repõe depois de a
-  escola existir de facto** — depois do `disparo` do motor e do registo comercial. Gravá-lo no
-  princípio deixaria um cadastro a apontar para uma escola que uma recusa (plano inválido, 409)
-  ainda podia não criar — e o CNPJ passaria a parecer ocupado por uma escola que não voltou.
-- **O `criarConvite` também lê o registo guardado.** O convite leva o nome da escola e os contactos
-  que o recebem, e os dois viviam no cadastro: o convite de uma escola purgada saía com o nome do
-  slug e só para o professor. Não escreve nada — o convite não muda o cadastro de ninguém.
-- **A promessa do convite passou a ser condicionada.** Com registo: «o nome, o CNPJ e os contactos
-  ficaram guardados, e voltam com a escola». Sem CNPJ: «o CNPJ não está entre eles: a escola não o
-  tinha declarado». Sem registo nenhum: «o expurgo dela é anterior a 23/11/2026, e nessa altura o
-  cadastro ia com ele» — a frase certa para as escolas que já não têm como recuperar.
+Cada elo regista o **motivo honesto** do que é: «identidade fiscal (CNPJ e e-mail) inserida à mão no
+ambiente de teste, a pedido dela — o registo original desta escola foi apagado pelo expurgo». Não se
+escreveu uma data de expurgo que não houve, nem um nome de professor que não fosse o do elo.
 
-**AS DUAS GUARDAS, e nenhuma é decoração.**
+**O CÓDIGO QUE FALTAVA, e ele é uma decisão, não um remendo.** A decisão 167 punha a **recriação** a
+repor o cadastro guardado. Faltava a outra porta: **a criação com o mesmo nome**, que é o que ela vai
+fazer («vou continuar criando escola breu ou calango ou batata»). Sem isso, a escola nascia outra vez
+sem o CNPJ — e ela teria de o escrever à mão, que é o que pediu para não ter de fazer.
 
-1. **Não se sobrepõe um cadastro que já existe com conteúdo.** Se a escola declarou os dados agora
-   (uma criação que passou pelo formulário), o que está lá é mais recente do que o guardado.
-2. **O CNPJ não se herda se já for de outra escola.** Depois de um expurgo o número fica livre, e
-   alguém pode ter criado uma escola nova com ele — herdar sem perguntar criaria **dois registos com
-   o mesmo número**, que é exactamente o defeito que a regra de 25/11 («um CNPJ é uma escola»)
-   existe para impedir. O resto herda-se, e o desfecho diz qual é a escola que tem o número.
+- `identidadeDoExpurgo({env, slug, cnpj, email, telefone})` é a **conta única**: devolve o que falta,
+  vindo do registo guardado, com o CNPJ **conferido** contra as outras escolas — e `null` quando não
+  há nada para herdar. Os dois chamadores são `herdarCadastroDoExpurgo` (a recriação) e
+  `gravarCadastro` (a criação). Duas cópias da regra divergiriam na primeira correcção, e é ela que
+  decide se nascem duas escolas com o mesmo número.
+- **O que a escola declarou agora manda sempre.** A herança só preenche o que veio vazio.
+- **Sem CNPJ duplicado:** se o número guardado já for de outra escola, herda-se o resto e o número
+  fica `null`, com a escola que o tem nomeada. Um CNPJ é uma escola.
+- O que foi herdado vai marcado — `herdadoDe: { em, motivo }` —, e a aba diz **«herdado do expurgo»**,
+  nunca «cadastro». O e-mail é a excepção declarada à unicidade: dois e-mails iguais não são duas
+  pessoas.
 
-**O QUE FICA ESCRITO NO DADO, e é a parte que se lê meses depois:** `origem: 'recriacao'` e
-`herdadoDe: { em, motivo }`. A aba diz **«herdado do expurgo»**, com a data — e não «cadastro»: um
-CNPJ herdado é o da encarnação anterior, e quem o lê tem de o saber **antes** de emitir uma cobrança
-com ele. Um cadastro vivo mas vazio (três traços escritos pela criação do painel) deixou de contar
-como cadastro: a aba cai no registo guardado em vez de esconder o CNPJ atrás de um traço.
+**Com o quê.** `motor/servidor/raiz.js` (`identidadeDoExpurgo`, `gravarCadastro`,
+`herdarCadastroDoExpurgo` a usá-la), `experimentos/provar-os-dados-da-escola.js` (secção **G**), e o
+KV de produção (`cadastros/calango`, `cadastros/batata`).
 
-**Com o quê.** `motor/servidor/raiz.js` (`herdarCadastroDoExpurgo`, a leitura no `criarConvite` e no
-passo 3 da recriação, a escrita no 8-bis, a releitura do cadastro para o correio, `dadosDasEscolas`
-com `temConteudo` e a fonte `herdado`, `respostaDoConvite` a passar a identidade),
-`motor/servidor/painel-html.js` (a célula «herdado do expurgo», o aviso da origem, a frase do convite
-condicionada), `experimentos/provar-os-dados-da-escola.js` (secção **F**, nova).
+**MEDIDO.** `provar-os-dados-da-escola` **76/76** (a secção G tem 15 asserções novas), controle
+`--contra=f0186400` a reprovar **19 de 28**. `provar-o-financeiro-que-fica` 30/30,
+`provar-recriar-escola` 94/94, `provar-painel` verde, `provar-pagina-publica` 79/79,
+`check-identidade` 0 problemas (23 verificações). `provar-financeiro-da-escola` 129/136 — as mesmas 7
+falhas de antes.
 
-**MEDIDO.** `provar-os-dados-da-escola` **61/61**; controle `--contra=f0186400` a reprovar **18 de
-27**. O ciclo completo num KV de bolso: expurgo guarda (`cnpj:true`) → a limpeza apaga o cadastro vivo
-→ a recriação herda → a aba lê `herdado` com o CNPJ e os contactos → um segundo expurgo deixa 2 elos
-com o mesmo CNPJ em cada. `provar-o-financeiro-que-fica` 30/30, `provar-recriar-escola` 94/94,
-`provar-painel` verde, `check-identidade` 0 problemas. `provar-financeiro-da-escola` 129/136 — as
-mesmas 7 falhas de antes.
+**AO VIVO, no painel de produção**, depois de as duas chaves entrarem e sem deploy:
 
-**O QUE NÃO SE RESOLVE COM ISTO, e é dela.** As escolas expurgadas **antes** de 23/11 não têm registo
-guardado: o CNPJ delas não existe em sítio nenhum, e a recriação não o pode trazer. A aba di-lo
-(«sem cadastro») e a página do convite também. A partir de agora, cada expurgo guarda o que a escola
-era.
+| escola | CNPJ | e-mail | origem |
+|:--|:--|:--|:--|
+| `calango` | 37.455.854/0001-72 | grimpacia@gmail.com | guardado no expurgo |
+| `batata` | 62.728.967/0001-41 | grimpacia@gmail.com | guardado no expurgo |
+| `breu` | — | — | sem cadastro (ela preenche à mão, para testar) |
+| `duo` | — | — | sem cadastro |
+
+**E um erro meu, corrigido no mesmo dia:** a entrada anterior deste ficheiro estava datada de
+**24/11/2026** e a data é **23/11**. O `REGISTRO` é a memória do que aconteceu, e uma data inventada é
+a primeira coisa que se perde.
 
 ## O que está pendente
 

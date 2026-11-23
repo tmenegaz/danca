@@ -4,7 +4,18 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 24/11/2026 — **a recriação traz os dados da escola de volta**. A pergunta
+> **Última fotografia:** 23/11/2026 — **a identidade fiscal entra à mão no ambiente de teste, e a
+> criação também a herda**. As duas escolas de teste que ela vai recriar — `calango` e `batata` —
+> passaram a ter CNPJ e e-mail **no registo que sobrevive ao expurgo** (`cadastros/<slug>`), com o
+> motivo honesto do que são; o `breu` fica **sem cadastro** de propósito, porque ela quer preenchê-lo
+> à mão para testar o caminho. Os dois CNPJ foram conferidos pelo dígito verificador antes de entrar.
+> E o código que faltava: a **criação** com o mesmo nome herda o que o formulário não trouxe, pela
+> mesma conta da recriação (`identidadeDoExpurgo`) — o CNPJ conferido contra as outras escolas, o que
+> a escola declarou a mandar sempre, e o que foi herdado marcado como herdado. A chave escolhida
+> (`cadastros/` e não `bastidores/<slug>/cadastro`) não é indiferente: a segunda faria a criação ser
+> **recusada** pelo próprio número, porque `cnpjJaUsado` varre `bastidores/*/cadastro`.
+>
+> **Fotografia anterior (23/11/2026 — a recriação traz os dados da escola de volta).** A pergunta
 > dela foi certeira: «O CNPJ a partir de então vai surgir junto? […] recriar é aquela escola que a
 > gente já tinha antes, mas aí com os dados da escola também. É isso mesmo? O recriar já está
 > alinhado com essa nossa nova diretriz?» **Não estava.** A véspera tinha posto o cadastro a
@@ -3735,6 +3746,28 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      **O QUE FICA ESCRITO NO DADO:** `origem: 'recriacao'` e `herdadoDe: { em, motivo }`. A aba diz
      **«herdado do expurgo»**, com a data — e não «cadastro»: um CNPJ herdado é o da encarnação
      anterior, e quem o lê tem de o saber antes de emitir uma cobrança com ele.
+168. **A IDENTIDADE FISCAL HERDA-SE NAS DUAS PORTAS, E SÓ PREENCHE O QUE VEM VAZIO.** Palavras dela:
+     «A gente está em ambiente de teste […] inclui […] no cadastro dessas escolas o CNPJ e o e-mail
+     […] eu não quero ter que preencher de novo um formulário.»
+     **A DECISÃO 167 cobria a recriação; faltava a criação com o mesmo nome** — que é o que ela vai
+     fazer («vou continuar criando escola breu ou calango ou batata»). Sem isto, a escola nascia
+     outra vez sem o CNPJ guardado e ela teria de o escrever à mão.
+     **A CONTA É UMA** — `identidadeDoExpurgo({env, slug, cnpj, email, telefone})` —, e os dois
+     chamadores são `herdarCadastroDoExpurgo` (recriação) e `gravarCadastro` (criação). Duas cópias
+     divergiriam na primeira correcção, e é esta conta que decide se nascem duas escolas com o mesmo
+     número.
+     **TRÊS REGRAS, e cada uma tem a sua asserção:** (1) **o que a escola declarou agora manda** — a
+     herança só preenche o vazio; (2) **o CNPJ não se herda se já for de outra escola** — um CNPJ é
+     uma escola (regra de 25/11), e depois de um expurgo o número fica livre para outra; (3) **nada
+     herdado, nada marcado** — um registo guardado sem dados não escreve `herdadoDe`, senão a aba
+     diria «herdado do expurgo» sobre três traços. O **e-mail** é a excepção declarada: dois e-mails
+     iguais não são duas pessoas.
+     **ONDE O DADO MORA, e a escolha não é indiferente.** O CNPJ das escolas de teste entrou em
+     **`cadastros/<slug>`** — o registo que sobrevive ao expurgo —, e **não** em
+     `bastidores/<slug>/cadastro`. A segunda parece a mais directa e faria a criação ser **recusada
+     pelo próprio número**: `cnpjJaUsado` varre `bastidores/*/cadastro`, e criar um `calango` com o
+     CNPJ escrito no formulário responderia **409** — «o CNPJ já é da escola «calango»» — sobre a
+     escola que se está a criar.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
@@ -4116,7 +4149,7 @@ exactamente o que que significa recriar.»
 o mesmo nome** e devolve-lhe os **documentos que foram preenchidos** e a **identidade fiscal** — não o
 sistema como estava.
 
-> **Nota de 24/11/2026 — a pergunta seguinte dela, e a resposta mudou.** «O CNPJ a partir de então vai
+> **Nota de 23/11/2026 — a pergunta seguinte dela, e a resposta mudou.** «O CNPJ a partir de então vai
 > surgir junto? Quer dizer, os dados da escola eles vão ser recriados também? […] recriar é aquela
 > escola que a gente já tinha antes, mas aí com os dados da escola também. É isso mesmo?»
 > **Era não, e passou a ser sim** (decisão 167): até aqui o cadastro guardado não voltava — a escola
@@ -4647,7 +4680,17 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (24/11/2026 — a recriação traz os dados da escola)
+### Executado nesta fotografia (23/11/2026 — o CNPJ entra à mão, e a criação herda)
+
+| Verificação | Resultado |
+|:--|:--|
+| os dois CNPJ, antes de entrarem | conferidos pelo **dígito verificador**, em código: `37.455.854/0001-72` **VÁLIDO** e `62.728.967/0001-41` **VÁLIDO**. Um número com um dígito trocado seria recusado pelo formulário e ficaria a parecer um dado bom |
+| **ao vivo**, no painel de produção, sem deploy | `calango` · 37.455.854/0001-72 · grimpacia@gmail.com · **guardado no expurgo** · `batata` · 62.728.967/0001-41 · grimpacia@gmail.com · **guardado no expurgo** · `breu` e `duo` continuam **sem cadastro** (o `breu` de propósito, para ela testar o preenchimento à mão) |
+| `node experimentos/provar-os-dados-da-escola.js` (secção **G** nova) | **76/76**. G1 o que falta vem do registo guardado e diz de onde veio; G2 o que a escola declarou agora **não** é substituído; G3 com tudo declarado não há herança, sem registo devolve `null`, e um registo sem dados não escreve `herdadoDe`; G4 a criação grava o CNPJ e o e-mail herdados, marca-os e conta-o no desfecho; G5 o formulário que trouxe os campos não é sobreposto e nada fica marcado; G6 um CNPJ ocupado por **outra** escola não é herdado (o e-mail fica) e o desfecho nomeia a escola que o tem. Controle `--contra=f0186400`: **19 de 28 reprovam** |
+| `provar-o-financeiro-que-fica` · `provar-recriar-escola` · `provar-painel` · `provar-pagina-publica` · `check-identidade` | 30/30 · 94/94 · verde · 79/79 · **0 problemas** (23 verificações) |
+| `provar-financeiro-da-escola` | 129/136 — **as mesmas 7 falhas de antes** desta mudança |
+
+### Executado na fotografia anterior (23/11/2026 — a recriação traz os dados da escola)
 
 | Verificação | Resultado |
 |:--|:--|
