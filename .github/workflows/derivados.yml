@@ -217,9 +217,29 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
 
-          # O `-A` no pathspec das âncoras: uma reancoragem pode APAGAR um `-aula-NN.fipp` que
-          # deixou de existir, e um `git add` sem `-A` deixaria o apagamento fora do commit.
-          git add -A -- '*.fipp' indices/
+          # UM PATHSPEC QUE NÃO CASA COM NADA É UM ERRO, E NÃO UM NO-OP (23/11/2026).
+          #
+          # Medido no expurgo da `breu`: ele levou a ÚLTIMA âncora do repositório (a escola era a
+          # única com ciclo), e este passo morreu em
+          #   fatal: pathspec '*.fipp' did not match any files   (exit 128)
+          # Antes de tocar em nada. O índice derivado não foi commitado, e a `breu` continuou
+          # `expurgada: false` com 76 registros no acervo depois de o repositório já não ter nenhum
+          # — «nada sobrou» e «o derivado diz que sobrou» passaram a ser coisas diferentes.
+          #
+          # Um repositório com ZERO ciclos ancorados é um estado LEGÍTIMO (o expurgo da última
+          # escola produz exactamente isso). A condição é «há âncora?», e ela passa a ser
+          # PERGUNTADA em vez de suposta: `git ls-files -c -o` responde pelo que está no índice
+          # (apanha os apagamentos, que é o que o `-A` existe para somar) e pelo que está solto.
+          acrescentar_ancoras() {
+            if [ -n "$(git ls-files -c -o --exclude-standard -- '*.fipp')" ]; then
+              # O `-A`: uma reancoragem pode APAGAR um `-aula-NN.fipp` que deixou de existir, e um
+              # `git add` sem `-A` deixaria o apagamento fora do commit.
+              git add -A -- '*.fipp'
+            fi
+          }
+
+          acrescentar_ancoras
+          git add -A -- indices/
 
           if git diff --cached --quiet; then
             echo "nada a commitar — os derivados já estavam em dia"
@@ -268,7 +288,7 @@ jobs:
             # mudado o acervo por outro caminho (o expurgo pela página, o cadastro de professor).
             # O `--check` não é usado aqui de propósito — depois de um rebase a árvore tem de
             # ficar derivada, não «provavelmente derivada».
-            git add -A -- '*.fipp'
+            acrescentar_ancoras
             node tools/gerar-indices.js || return 1
             node tools/gerar-relacoes.js || return 1
             git add -A -- indices/
