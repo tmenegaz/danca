@@ -4,8 +4,18 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 23/11/2026, à noite — **os dados da escola sobrevivem ao expurgo, e há uma
-> aba que os mostra**. Ela pediu duas coisas na mesma mensagem: saber, antes de criar, se uma «Breu»
+> **Última fotografia:** 24/11/2026 — **a recriação traz os dados da escola de volta**. A pergunta
+> dela foi certeira: «O CNPJ a partir de então vai surgir junto? […] recriar é aquela escola que a
+> gente já tinha antes, mas aí com os dados da escola também. É isso mesmo? O recriar já está
+> alinhado com essa nossa nova diretriz?» **Não estava.** A véspera tinha posto o cadastro a
+> sobreviver ao expurgo, mas nada o trazia de volta: a escola recriada ficava sem CNPJ, sem e-mail e
+> sem telefone, o e-mail de boas-vindas saía só para o professor, e a aba mostrava «guardado no
+> expurgo» sobre uma escola viva. A recriação passou a repor o cadastro (decisão 167), marcado como
+> **«herdado do expurgo»** com a data — e **não herda um CNPJ que já seja de outra escola**, porque um
+> CNPJ é uma escola.
+>
+> **Fotografia anterior (23/11/2026, à noite — os dados da escola sobrevivem ao expurgo, e há uma
+> aba que os mostra).** Ela pediu duas coisas na mesma mensagem: saber, antes de criar, se uma «Breu»
 > nova com outro CNPJ é outra escola; e ter no Financeiro os dados de cada escola para poder cobrar
 > ou acionar quem deve. A resposta medida é que o **CNPJ** é outro registo e o **slug** é a mesma
 > identidade da máquina (`breu`: mesma pasta, mesmo prefixo de KV, mesmo endereço, mesmo elo — e
@@ -3664,10 +3674,11 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      **A COLUNA CHAMA-SE «AÇÕES»**, no plural: «a última coluna tem que se chamar ação. Ações, né?»
      A regra está em [IDENTIDADE-VISUAL.md](IDENTIDADE-VISUAL.md) — o nome da coluna diz o que ali
      vive, não o rótulo do único botão que ela tem hoje.
-     **A RECRIAÇÃO NÃO É UM «DESFAZER»** (medido, ver §8): ela devolve a escola, o contrato e as
-     senhas, e traz de volta os **envelopes** (as anamneses, os planos de ensino, os POs) filtrados
-     pela capacidade — mas **não** as aulas, a notação, as linhas de base, as âncoras nem o pacote
-     gerado, que eram fontes e foram com o expurgo.
+     **A RECRIAÇÃO NÃO É UM «DESFAZER»** (medido, ver §8): ela devolve a escola, o contrato, as
+     senhas e — desde a decisão 167 — a **identidade fiscal**, e traz de volta os **envelopes** (as
+     anamneses, os planos de ensino, os POs) filtrados pela capacidade — mas **não** as aulas, a
+     notação, as linhas de base, as âncoras nem o pacote gerado, que eram fontes e foram com o
+     expurgo.
 165. **A IDENTIDADE FISCAL DA ESCOLA SOBREVIVE AO EXPURGO — E OS DADOS DELA TÊM UMA ABA.** Palavras
      dela: «é importante lá no financeiro se, por exemplo, eu expurgar uma escola ou tiver com uma
      escola com pagamento atrasado, muito tempo atrasado e aí eu tive que expurgar ou eu vou ter que
@@ -3701,6 +3712,29 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      sem Worker próprio), `pendenciaDoKv` → nenhuma, `criar-escola.sh` → sem `.conf`, sem pacote e
      sem `wrangler.breu.jsonc`, o mapa `escolas/por-host` está `{}` e o KV tem 0 chaves nos dois
      prefixos.
+167. **RECRIAR TRAZ OS DADOS DA ESCOLA DE VOLTA — MARCADOS COMO HERDADOS, E SEM HERDAR UM CNPJ
+     OCUPADO.** Palavras dela: «O CNPJ a partir de então vai surgir junto? […] recriar é aquela
+     escola que a gente já tinha antes, mas aí com os dados da escola também. É isso mesmo? O
+     recriar já está alinhado com essa nossa nova diretriz?»
+     **NÃO ESTAVA, e a pergunta apanhou-o.** A decisão 165 pôs o cadastro a sobreviver ao expurgo,
+     mas nada o trazia de volta: a escola recriada ficava **sem CNPJ, sem e-mail e sem telefone**; a
+     aba nova mostrava-lhe «guardado no expurgo» sobre uma escola **viva**; o e-mail de boas-vindas
+     da recriação saía só para o professor; e o nome voltava derivado do slug («Breu») em vez do que
+     a escola declarou («Escola Breu»). A página do convite prometia «os dados de identificação dela
+     ficaram guardados» desde 16/11 — e era **falsa**.
+     **A CORRECÇÃO, e a ordem importa.** A recriação **lê** o registo guardado cedo (é dele que saem
+     o nome e os endereços do convite e da mensagem) e só o **repõe depois de a escola existir** —
+     depois do `disparo` do motor e do registo comercial. Gravá-lo antes deixaria um cadastro a
+     apontar para uma escola que uma recusa (plano inválido, 409) ainda pode não criar, e o CNPJ
+     passaria a parecer ocupado por uma escola que não voltou.
+     **DUAS GUARDAS.** (1) **Não se sobrepõe** um cadastro que já exista com conteúdo — o que foi
+     declarado agora é mais recente. (2) **O CNPJ não se herda se já for de outra escola**: depois de
+     um expurgo o número fica livre, e herdar sem perguntar criaria dois registos com o mesmo número,
+     que é o defeito que a regra de 25/11 existe para impedir. O resto herda-se, e o desfecho diz
+     qual é a escola que tem o número.
+     **O QUE FICA ESCRITO NO DADO:** `origem: 'recriacao'` e `herdadoDe: { em, motivo }`. A aba diz
+     **«herdado do expurgo»**, com a data — e não «cadastro»: um CNPJ herdado é o da encarnação
+     anterior, e quem o lê tem de o saber antes de emitir uma cobrança com ele.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
@@ -4079,7 +4113,17 @@ escola nova, só que a escola Breu. Ela vai recriar com os alunos que já tinha?
 exactamente o que que significa recriar.»
 
 **A RESPOSTA, e ela é de desenho:** `Recriar` **não desfaz o expurgo**. Ele cria uma escola **nova com
-o mesmo nome** e devolve-lhe os **documentos que foram preenchidos** — não o sistema como estava.
+o mesmo nome** e devolve-lhe os **documentos que foram preenchidos** e a **identidade fiscal** — não o
+sistema como estava.
+
+> **Nota de 24/11/2026 — a pergunta seguinte dela, e a resposta mudou.** «O CNPJ a partir de então vai
+> surgir junto? Quer dizer, os dados da escola eles vão ser recriados também? […] recriar é aquela
+> escola que a gente já tinha antes, mas aí com os dados da escola também. É isso mesmo?»
+> **Era não, e passou a ser sim** (decisão 167): até aqui o cadastro guardado não voltava — a escola
+> recriada ficava sem CNPJ, sem e-mail e sem telefone, o e-mail de boas-vindas saía só para o
+> professor, e a aba «Os dados da escola» mostrava «guardado no expurgo» sobre uma escola viva. A
+> recriação passa a repor o cadastro guardado, marcado como **herdado** (com a data de onde veio) e
+> **sem herdar o CNPJ se ele já for de outra escola** — um CNPJ é uma escola.
 
 **O CAMINHO, medido no código.** O botão de `/escolas-apagadas` **não recria**: manda um **convite**
 (`POST /api/recriar-convite`) com um link de uso único, e é a escola que recria do outro lado,
@@ -4088,6 +4132,7 @@ escolhendo o plano e as senhas (`POST /api/recriar/<token>` → `recriarEscola`)
 | o que | de onde |
 |:--|:--|
 | a escola existe outra vez (rota, Worker/shard, chaves do KV, senhas, contrato, Pix) | `criarEscola`, o mesmo da criação nova |
+| a **identidade fiscal** — nome, CNPJ, e-mail e telefone da escola | `cadastros/<slug>`, o registo que o expurgo guarda antes de apagar (`herdarCadastroDoExpurgo`) |
 | os **envelopes** — anamneses, planos de ensino, POs, lançamentos | `tools/restaurar-retrato.js`, a partir do `commit_antes` do elo |
 
 **O QUE VEM DE VOLTA, medido na `breu`** (`node tools/restaurar-retrato.js --escola breu
@@ -4602,7 +4647,17 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (23/11/2026 — a identidade fiscal sobrevive, e os dados têm aba)
+### Executado nesta fotografia (24/11/2026 — a recriação traz os dados da escola)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-os-dados-da-escola.js` (a secção **F** é nova) | **61/61**. **F1.** a recriação repõe o cadastro guardado — CNPJ, e-mail, telefone e nome —, com `herdadoDe` (a data do expurgo de onde veio) e `origem: 'recriacao'`. **F2.** um cadastro que já existe com conteúdo **não** é sobreposto. **F3.** um CNPJ que já é de **outra** escola **não** é herdado (o resto é), e o desfecho diz qual é a escola que o tem. **F4.** sem registo guardado não se escreve cadastro nenhum. **F5.** sem KV, `ok:false` — a recriação não cai por isso. **F6.** a escola recriada passa a ser lida como `herdado`, com a data, e a célula diz «herdado do expurgo». **F7.** um cadastro **vivo mas vazio** (três traços) não esconde o registo guardado. **F8.** `recriarEscola` chama a herança **depois** do `disparo` (a ordem está afirmada sobre o texto), e o nome sai do registo guardado quando não há vivo. **F9.** a página do convite só promete os dados quando os há. Controle `--contra=f0186400`: **18 de 27 reprovam** |
+| o ciclo completo, num KV de bolso | expurgo guarda (`expurgos:1, cnpj:true`) → a limpeza apaga `bastidores/breu/cadastro` → a recriação herda (`herdado:true, cnpj:true`) → a aba lê `fonte:'herdado'` com o CNPJ e os contactos → um segundo expurgo deixa **2 elos**, com o mesmo CNPJ em cada |
+| a promessa da página do convite, nos três casos | com registo e CNPJ: «o nome, o CNPJ e os contactos — ficaram guardados, e voltam com a escola» · com registo sem CNPJ: «o nome e os contactos… O CNPJ não está entre eles: a escola não o tinha declarado» · **sem** registo: «Não há dados de identificação desta escola guardados: o expurgo dela é anterior a 23/11/2026» |
+| `provar-o-financeiro-que-fica` · `provar-recriar-escola` · `provar-painel` · `check-identidade` | 30/30 · 94/94 · verde · **0 problemas** (23 verificações) |
+| `provar-financeiro-da-escola` | 129/136 — **as mesmas 7 falhas de antes** desta mudança (`jsdom` na página da escola) |
+
+### Executado na fotografia anterior (23/11/2026 — a identidade fiscal sobrevive, e os dados têm aba)
 
 | Verificação | Resultado |
 |:--|:--|

@@ -59521,3 +59521,76 @@ escola), `provar-painel` verde, `check-identidade` **0 problemas** (23 verifica�
 **O QUE FICA PENDENTE, e é dela.** A aba diz «sem cadastro» às escolas expurgadas antes de hoje. Não
 inventei registo nenhum: o CNPJ delas não existe em sítio nenhum, e um número reconstruído seria uma
 mentira com aparência de dado. Daqui em diante, o registo fica.
+
+---
+
+## 24/11/2026 — Recriar traz os dados da escola de volta: herdados, e com o CNPJ conferido
+
+**A PERGUNTA DELA, e é a que abriu isto.**
+
+> «O CNPJ a partir de então vai surgir junto? Quer dizer, os dados da escola eles vão ser recriados
+> também? Porque, afinal de contas, nunca foram apagados, né? Então recriar é aquela escola que a
+> gente já já tinha antes, mas aí com os dados da escola também. É isso mesmo? O recriar já está
+> alinhado com essa nossa nova diretriz?»
+
+**NÃO ESTAVA — e a pergunta apanhou um trabalho a meio.** A véspera (decisão 165) pôs o cadastro a
+**sobreviver** ao expurgo, em `cadastros/<slug>`. Faltava o caminho de volta, e as consequências eram
+quatro, todas medidas:
+
+| o que acontecia | porquê |
+|:--|:--|
+| a escola recriada ficava **sem CNPJ, sem e-mail e sem telefone** | nada lia o registo guardado |
+| o e-mail de boas-vindas saía **só para o professor** | o da escola vivia no cadastro, que o expurgo levou |
+| a aba mostrava **«guardado no expurgo» sobre uma escola viva** | o cadastro vivo não existia, e a leitura caía no histórico |
+| o nome voltava **«Breu»** em vez de «Escola Breu» | o nome sai do cadastro, e o cadastro estava vazio |
+
+E a página do convite prometia, desde 16/11: «os dados de identificação dela ficaram guardados». Era
+**falsa** — e continuaria a ser se a recriação não os repusesse.
+
+**A CORRECÇÃO, e a ordem dela é a parte que importa.**
+
+- **A leitura é cedo, a escrita é tarde.** A recriação **lê** o registo guardado no passo do nome (é
+  dele que saem o nome, o nome de exibição e os endereços da mensagem) e só o **repõe depois de a
+  escola existir de facto** — depois do `disparo` do motor e do registo comercial. Gravá-lo no
+  princípio deixaria um cadastro a apontar para uma escola que uma recusa (plano inválido, 409)
+  ainda podia não criar — e o CNPJ passaria a parecer ocupado por uma escola que não voltou.
+- **O `criarConvite` também lê o registo guardado.** O convite leva o nome da escola e os contactos
+  que o recebem, e os dois viviam no cadastro: o convite de uma escola purgada saía com o nome do
+  slug e só para o professor. Não escreve nada — o convite não muda o cadastro de ninguém.
+- **A promessa do convite passou a ser condicionada.** Com registo: «o nome, o CNPJ e os contactos
+  ficaram guardados, e voltam com a escola». Sem CNPJ: «o CNPJ não está entre eles: a escola não o
+  tinha declarado». Sem registo nenhum: «o expurgo dela é anterior a 23/11/2026, e nessa altura o
+  cadastro ia com ele» — a frase certa para as escolas que já não têm como recuperar.
+
+**AS DUAS GUARDAS, e nenhuma é decoração.**
+
+1. **Não se sobrepõe um cadastro que já existe com conteúdo.** Se a escola declarou os dados agora
+   (uma criação que passou pelo formulário), o que está lá é mais recente do que o guardado.
+2. **O CNPJ não se herda se já for de outra escola.** Depois de um expurgo o número fica livre, e
+   alguém pode ter criado uma escola nova com ele — herdar sem perguntar criaria **dois registos com
+   o mesmo número**, que é exactamente o defeito que a regra de 25/11 («um CNPJ é uma escola»)
+   existe para impedir. O resto herda-se, e o desfecho diz qual é a escola que tem o número.
+
+**O QUE FICA ESCRITO NO DADO, e é a parte que se lê meses depois:** `origem: 'recriacao'` e
+`herdadoDe: { em, motivo }`. A aba diz **«herdado do expurgo»**, com a data — e não «cadastro»: um
+CNPJ herdado é o da encarnação anterior, e quem o lê tem de o saber **antes** de emitir uma cobrança
+com ele. Um cadastro vivo mas vazio (três traços escritos pela criação do painel) deixou de contar
+como cadastro: a aba cai no registo guardado em vez de esconder o CNPJ atrás de um traço.
+
+**Com o quê.** `motor/servidor/raiz.js` (`herdarCadastroDoExpurgo`, a leitura no `criarConvite` e no
+passo 3 da recriação, a escrita no 8-bis, a releitura do cadastro para o correio, `dadosDasEscolas`
+com `temConteudo` e a fonte `herdado`, `respostaDoConvite` a passar a identidade),
+`motor/servidor/painel-html.js` (a célula «herdado do expurgo», o aviso da origem, a frase do convite
+condicionada), `experimentos/provar-os-dados-da-escola.js` (secção **F**, nova).
+
+**MEDIDO.** `provar-os-dados-da-escola` **61/61**; controle `--contra=f0186400` a reprovar **18 de
+27**. O ciclo completo num KV de bolso: expurgo guarda (`cnpj:true`) → a limpeza apaga o cadastro vivo
+→ a recriação herda → a aba lê `herdado` com o CNPJ e os contactos → um segundo expurgo deixa 2 elos
+com o mesmo CNPJ em cada. `provar-o-financeiro-que-fica` 30/30, `provar-recriar-escola` 94/94,
+`provar-painel` verde, `check-identidade` 0 problemas. `provar-financeiro-da-escola` 129/136 — as
+mesmas 7 falhas de antes.
+
+**O QUE NÃO SE RESOLVE COM ISTO, e é dela.** As escolas expurgadas **antes** de 23/11 não têm registo
+guardado: o CNPJ delas não existe em sítio nenhum, e a recriação não o pode trazer. A aba di-lo
+(«sem cadastro») e a página do convite também. A partir de agora, cada expurgo guarda o que a escola
+era.
