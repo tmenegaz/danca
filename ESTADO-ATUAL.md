@@ -4,8 +4,18 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 23/11/2026 — **a senha do professor não se esconde com o modo do
-> professor**. Ela foi criar uma escola, escolheu «um professor que já existe», clicou em continuar e
+> **Última fotografia:** 23/11/2026 — **a lista dos professores ganhou Ações, documento e contacto;
+> e o Financeiro manda o professor para lá**. A coluna «Escolas vivas» passou a chamar-se **«Ações»**:
+> quando há escola viva, cada uma é um botão com o **nome** dela que leva ao site, e o `title`
+> diz se ele é o responsável por ela; quando não há, fica a etiqueta «sem escola viva», porque um botão para
+> nenhum sítio não é uma ação. A lista passou a mostrar o **cadastro da pessoa** — documento (CPF
+> **ou** CNPJ, decidido pelo comprimento e escrito como se lê) e contactos —, lido das fichas
+> `professores/<slug>/contato` que a criação da escola e o Estúdio gravam: um `get` por professor,
+> **nunca** um `list`. E o professor na aba «Os dados da escola» passou a ser **uma ligação** para
+> esta página; o documento dele saiu do feed do Financeiro, para não haver duas cópias do mesmo dado.
+>
+> **Fotografia anterior (23/11/2026 — a senha do professor não se esconde com o modo do
+> professor).** Ela foi criar uma escola, escolheu «um professor que já existe», clicou em continuar e
 > leu «informe a senha do professor» — com o campo **dentro** do bloco do professor novo, que naquele
 > modo está escondido. A regra pedia um valor que a tela não deixava escrever. O campo passou a ser
 > **um só, visível nos dois caminhos**, com o recado a mudar de dono — porque a senha do professor é
@@ -3797,6 +3807,27 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      asserções que descrevem o defeito. **A mensagem «informe a senha» nunca foi o defeito** — o
      defeito era o campo ausente.
 
+170. **O QUE É UM GESTO É UMA AÇÃO; O QUE É UM FACTO É UM FACTO — E O CADASTRO DA PESSOA VIVE NA
+     LISTA DAS PESSOAS.** Palavras dela: «Aqui chama escolas vivas, a gente vai chamar aqui de ações.
+     […] onde está escrito sem escola viva, que é só uma etiqueta, vai virar um botão de ação. […]
+     Se tiver escola viva, aí o botão leva até a escola viva. Aí o botão vai ser o nome da escola.»
+     E, do outro lado: «Você colocou o professor com o CNPJ ou CPF dele logo abaixo, né? Você vai
+     mudar isso. Aqui você vai colocar o professor apenas como sendo um link.»
+     **AS DUAS METADES DA FRASE SÃO A REGRA.** Sem escola não há gesto a fazer — fica a etiqueta;
+     com escola há um destino — fica um botão com o **nome** dela. A peça é a `.acoes-da-linha` dos
+     botões «Habilitar»/«Desabilitar», e não um estilo novo.
+     **A ORDEM PASSA A SER A DO QUE ESTÁ ESCRITO:** a coluna ordena pelos nomes das escolas (o
+     `title` diz «Ordenar pelas escolas»), porque ordenar por uma coisa e mostrar outra é o que faz
+     uma coluna parecer desarrumada.
+     **O CADASTRO DA PESSOA LÊ-SE ONDE É ESCRITO:** as fichas `professores/<slug>/contato` — a
+     criação da escola e o Estúdio —, **um `get` por professor em paralelo e nenhum `list`** (a
+     enumeração é a operação limitada por dia). O documento é lido **pelo comprimento** (11 = CPF,
+     14 = CNPJ) e escrito como se lê; um número com forma inesperada mostra-se como está, sem rótulo.
+     **UM DADO, UM SÍTIO:** o documento do professor saiu do feed do Financeiro (`professorCpf`), e
+     não só da tela — a aba passou a ligar a esta lista. A segunda cópia é a que fica errada quando
+     só a primeira é corrigida.
+     **O QUE NÃO SE TOCA:** o formulário de criar escola — «continua do jeito que está».
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -4708,7 +4739,21 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (23/11/2026 — a senha do professor não se esconde com o modo)
+### Executado nesta fotografia (23/11/2026 — Ações, documento e contacto na lista dos professores)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-painel.js` (secções **6a** e **6b** novas) | **110/110**. 6a: um professor com duas escolas vivas sai com **uma ação por escola** (a peça `.acoes-da-linha`); o rótulo é o **nome** da escola; o `title` marca a escola de que ele é **responsável** (e só essa); quem não tem escola viva fica com a **etiqueta**, e não com um botão vazio. 6b: o CPF sai como `CPF 233.238.240-24`, um CNPJ como `CNPJ 37.455.854/0001-72`, um `cpf` de 14 dígitos **não** é lido como CPF, o e-mail e o telefone saem com `mailto:`/`wa.me`, sem ficha são dois traços, e o nome vem da ficha quando o índice não o guarda |
+| …e a **rota**, com um KV de bolso | a ficha chega do KV à página (CPF e `mailto:` à vista), o professor sem ficha fica com o traço, e **cada abertura custa um `get` por professor e nenhuma enumeração** (medido: 3 professores → 3 `get`, 0 `list`) |
+| controle negativo, que a prova não tinha | `--contra=c7b1ee0f` reprova **14** asserções, e são exactamente as desta mudança. O mecanismo teve de levar `tools/` e `biblioteca/` no `git archive`: só com `motor/` o controle morria a carregar, e um controle que não corre não prova nada |
+| `node experimentos/provar-os-dados-da-escola.js` | **79/79**. **D2b**: o nome do professor é `<a href="/professores">` e o CPF dele **já não aparece** na aba. **C4b**: `professorCpf` deixou de vir no feed — o documento mudou de casa, e a ausência é o que a mudança decidiu |
+| `provar-recriar-escola` · `provar-o-financeiro-que-fica` · `provar-os-restos-do-expurgo` · `provar-pagina-publica` · `provar-form-escola` · `provar-painel-do-estudio` | 94/94 · 30/30 · verde · 79/79 · todas verdes · 36 asserções |
+| `provar-financeiro-da-escola` | 129/136 — **as mesmas 7 falhas de antes** desta mudança |
+| `check-identidade` · `check-indices` · `check-schemas` | **0 problemas** (23 verificações) · 16/16 · verde |
+| a geometria, em Chrome, a 1366/1280/900px | cinco colunas; tabela de **900 · 900 · 852px**, sem transbordo; `Ações` com 156px e botões de 139×45, **dois empilhados** para o professor de duas escolas; **nenhuma rolagem horizontal** |
+| a página com o acervo de produção | **31 linhas, 31 «sem escola viva», 0 botões** — as quatro escolas do índice estão expurgadas hoje, e é a verdade do índice; os botões aparecem quando houver escola viva |
+
+### Executado na fotografia anterior (23/11/2026 — a senha do professor não se esconde com o modo)
 
 | Verificação | Resultado |
 |:--|:--|

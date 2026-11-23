@@ -3137,6 +3137,33 @@ async function lerContatoDoProfessor(env, professor) {
 }
 
 /**
+ * AS FICHAS DE TODOS OS PROFESSORES DA LISTA (23/11/2026) — um `get` por pessoa, em paralelo.
+ *
+ * A PÁGINA DOS PROFESSORES passou a mostrar o documento e os contactos de cada um — «o cadastro do
+ * professor vai estar sempre aqui» —, e esse dado não está no índice do acervo: o `check-indices`
+ * proíbe e-mail e telefone lá, e a ficha da pessoa vive no KV, escrita pela criação da escola e
+ * pelo Estúdio.
+ *
+ * ELE CUSTA UM `get` POR PROFESSOR, e é bom que o número esteja escrito: trinta e um professores são
+ * trinta e um `get` por abertura da página. O que NÃO se faz é `kv.list` — a enumeração é a
+ * operação limitada por dia, e esta página não é razão para gastar a cota (18/10/2026). Os slugs já
+ * vêm do índice: não há nada a enumerar.
+ *
+ * Nunca lança: uma ficha que falhe deixa a coluna com um traço, e não derruba a lista inteira.
+ */
+async function fichasDosProfessores(env, professores) {
+  const mapa = {};
+  const lista = Array.isArray(professores) ? professores : [];
+  await Promise.all(lista.map(async (p) => {
+    const slug = String((p && p.slug) || '').trim();
+    if (!slug) return;
+    const ficha = await lerContatoDoProfessor(env, slug);
+    if (ficha) mapa[slug] = ficha;
+  }));
+  return mapa;
+}
+
+/**
  * GUARDA A IDENTIDADE FISCAL ANTES DE O EXPURGO A APAGAR.
  *
  * CORRE ANTES DA LIMPEZA DO KV, e é isso que a torna possível: depois, o cadastro já não existe.
@@ -3751,7 +3778,12 @@ async function dadosDasEscolas({ env, escolas }) {
       cnpj: cadastro.cnpj || null,
       email: cadastro.email || null,
       telefone: cadastro.telefone || null,
-      professorCpf: (contato && contato.cpf) || null,
+      /* O DOCUMENTO DO PROFESSOR SAIU DAQUI (23/11/2026). Ele existia para uma coluna só — a
+       * célula do professor nesta aba —, e a coluna passou a ser uma ligação para a página dos
+       * professores, onde o cadastro dele está inteiro. Deixá-lo aqui seria manter uma segunda
+       * cópia do mesmo dado, e a segunda cópia é a que fica errada quando só a primeira é
+       * corrigida. O e-mail e o telefone FICAM: esta aba responde «como falo com quem responde
+       * pela escola», e essa pergunta é dela. */
       professorEmail: (contato && contato.email)
         || (doExpurgo && doExpurgo.professor && doExpurgo.professor.email) || null,
       professorTelefone: (contato && contato.telefone)
@@ -3939,9 +3971,15 @@ async function fetch(request, env) {
       // UMA leitura do acervo, e dele saem as duas partes: a lista de professores (que o índice
       // deriva das escolas e dos ciclos) e as escolas, para saber quais estão vivas.
       const acervo = await acervoDoIndice({ token });
+      /* AS FICHAS DA PESSOA VÊM DO KV (23/11/2026). O índice não as pode guardar (o
+       * `check-indices` proíbe e-mail e telefone lá), e é nelas que estão o documento e os
+       * contactos que a página passou a mostrar. Um `get` por professor, em paralelo — nunca um
+       * `list`, que é a operação limitada por dia. */
+      const contatos = await fichasDosProfessores(env, acervo.professores);
       return painel.resposta(painel.paginaDosProfessores({
         professores: acervo.professores || [],
         escolas: acervo.escolas || [],
+        contatos,
         // A ORDEM VEM DA URL, e a página valida-a contra a lista do que conhece. Um `?ordem=`
         // desconhecido cai na ordem padrão em vez de dar 400: a URL é um pedido de arrumação,
         // não um contrato.

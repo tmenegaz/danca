@@ -249,8 +249,15 @@ const ELO = {
     provar('C3. a expurgada sem registo nenhum traz `null` — nunca um CNPJ deduzido',
       semNada && semNada.cnpj === null && semNada.email === null && semNada.fonte === 'nenhum', semNada);
     provar('C4. o contacto do professor vem da chave da PESSOA, que o expurgo não apaga',
-      apagada && apagada.professorNome === 'Demi Plié' && apagada.professorCpf === CONTATO.cpf,
-      apagada && [apagada.professorNome, apagada.professorCpf]);
+      apagada && apagada.professorNome === 'Demi Plié'
+      && apagada.professorEmail === CONTATO.email && apagada.professorTelefone === CONTATO.telefone,
+      apagada && [apagada.professorNome, apagada.professorEmail]);
+    /* O DOCUMENTO DELE JÁ NÃO SE LÊ AQUI (23/11/2026): mudou de casa para a página dos
+     * professores, e este feed deixou de o carregar. A asserção é da AUSÊNCIA, porque é isso que a
+     * mudança decidiu — e porque uma segunda cópia do mesmo dado é a que fica errada quando só a
+     * primeira é corrigida. */
+    provar('C4b. …e o CPF dele já não vem neste feed: o documento mudou de casa',
+      apagada && apagada.professorCpf === undefined, apagada && Object.keys(apagada).join(','));
 
     /* O CADASTRO VIVO MANDA SOBRE O HISTÓRICO: uma escola RECRIADA tem os dois, e o que vale é o
      * de agora — o histórico é o que se lê quando já não há vivo. */
@@ -292,6 +299,19 @@ const ELO = {
   provar('D2. …e o telefone e o e-mail são clicáveis, como na página dos Contactos',
     /mailto:direcao@breu\.exemplo/.test(html) && /wa\.me\/555433334444/.test(html), null);
   provar('D2. …e o contacto do professor também', /mailto:professora@breu\.exemplo/.test(html), null);
+  /* ── O PROFESSOR É UMA LIGAÇÃO, E O DOCUMENTO DELE NÃO MORA AQUI (23/11/2026) ──────────
+   *
+   * Palavras dela: «Você colocou o professor com o CNPJ ou CPF dele logo abaixo, né? Você vai
+   * mudar isso. Aqui você vai colocar o professor apenas como sendo um link que leva lá para o
+   * espaço de professores.»
+   *
+   * A asserção tem de morder nos dois sentidos: a ligação EXISTE, e o número já não aparece nesta
+   * aba. Só a primeira deixaria o número lá; só a segunda passaria com o nome em texto. */
+  provar('D2b. o nome do professor é uma LIGAÇÃO para a página dos professores',
+    /<td><a href="\/professores">Demi Plié<\/a><\/td>/.test(html), null);
+  provar('D2b. …e o CPF dele já NÃO aparece nesta aba — mudou de casa',
+    html.indexOf(CONTATO.cpf) === -1 && !/CPF 226\.949\.530-69/.test(html)
+    && html.indexOf('226.949.530-69') === -1, null);
   provar('D3. a escola sem registo leva o selo «sem cadastro»', /sem cadastro/.test(bloco), null);
   provar('D3. …e o aviso diz que os expurgos anteriores a 23/11 perderam os dados, e porquê',
     /expurgos anteriores a 23\/11\/2026/.test(bloco), null);

@@ -175,13 +175,18 @@ function listaDeLigacoes(slugs, opcoes) {
  * `aria-sort` diz ao leitor de ecrã qual é a ordem em vigor. E o cabeçalho da coluna em vigor
  * NÃO é ligação: repetir a mesma ordem seria um clique que não faz nada.
  */
-function thOrdenavel(rotulo, chave, atual, base) {
+function thOrdenavel(rotulo, chave, atual, base, dica) {
   if (atual === chave) {
     return '<th aria-sort="ascending">' + esc(rotulo) + '</th>';
   }
   const alvo = base + (chave === base ? '' : '?ordem=' + encodeURIComponent(chave));
-  return '<th aria-sort="none"><a href="' + esc(alvo) + '" title="Ordenar por ' + esc(rotulo.toLowerCase()) +
-    '">' + esc(rotulo) + '</a></th>';
+  /* O `dica` EXISTE PARA AS COLUNAS CUJO TÍTULO NÃO É O QUE SE ORDENA (23/11/2026). A coluna
+   * «Ações» — um botão por escola — ordena pelas ESCOLAS: o título diz o gesto, a ordem diz o
+   * facto, e «ordenar por ações» não quer dizer nada. Ele é o `title` INTEIRO, e não um sufixo:
+   * um sufixo colado a «Ordenar por » deu «Ordenar por pelas escolas», que é o defeito a dizer o
+   * que é. Quem não o passa fica com o título, que é o caso de todas as outras colunas. */
+  return '<th aria-sort="none"><a href="' + esc(alvo) + '" title="' +
+    esc(dica || ('Ordenar por ' + rotulo.toLowerCase())) + '">' + esc(rotulo) + '</a></th>';
 }
 
 /**
@@ -518,21 +523,37 @@ function tabelaPaginada(id, tabela, rotulo) {
  * professor existe, trabalha (ou trabalhou), e uma lista chamada «Professores» que omitisse
  * metade deles mentiria sobre o que tem.
  */
-function tabelaDeProfessores(professores, escolas, ordem) {
+function tabelaDeProfessores(professores, escolas, ordem, contatos) {
   const criterio = ordemPedida(ordem, ['nome', 'escolas'], 'nome');
-  const vivas = new Set((escolas || []).filter((e) => !e.expurgada).map((e) => e.slug));
-  const ativasDe = (p) => (p && p.escolas ? p.escolas : []).filter((s) => vivas.has(s));
+  /* A ESCOLA INTEIRA, e não só o slug (23/11/2026). «Aí o botão vai ser o nome da escola e aí se
+   * clicar nele, vai para a escola.» O slug é a identidade da máquina; o nome é o que se lê. O
+   * mapa é construído uma vez, do acervo que a rota já leu — nenhuma requisição a mais. */
+  const porSlug = new Map((escolas || []).filter((e) => !e.expurgada).map((e) => [e.slug, e]));
+  const vivasDe = (p) => (p && p.escolas ? p.escolas : [])
+    .map((s) => porSlug.get(s)).filter(Boolean);
+  const rotulosDe = (p) => vivasDe(p).map((e) => String(e.nome || e.slug)).sort();
+  /* A FICHA DA PESSOA (`professores/<slug>/contato`) — o que a criação da escola e o Estúdio
+   * gravam. Chega pronta da rota; aqui só se escolhe o que mostrar. */
+  const fichaDe = (slug) => (contatos && contatos[slug]) || null;
+  /* O NOME: o do índice (o que a escola declarou) e, quando ele não existe, o da ficha (o que a
+   * própria pessoa escreveu). Sem os dois, a célula diz que não há — nunca o slug fingido de nome. */
+  const nomeDe = (p) => String(p.nome || '').trim()
+    || String((fichaDe(p.slug) || {}).nomeCompleto || '').trim();
   const lista = (professores || []).slice().sort((a, b) => {
     // ORDENAR PELAS ESCOLAS VIVAS (22/10/2026) — pedido da dona do produto: «que daí eu consigo
     // ordenar pelas mesmas escolas». É o que agrupa os professores que partilham escola, e o
     // desempate é o nome, para a ordem não depender de como o índice veio.
+    //
+    // A CHAVE É O QUE ESTÁ ESCRITO NA CÉLULA (23/11/2026): agora são os NOMES das escolas, e não
+    // os slugs, porque é o nome que o botão diz. Ordenar por uma coisa e mostrar outra faria a
+    // coluna parecer desarrumada.
     if (criterio === 'escolas') {
-      const ea = ativasDe(a).join(', ').toLowerCase();
-      const eb = ativasDe(b).join(', ').toLowerCase();
+      const ea = rotulosDe(a).join(', ').toLowerCase();
+      const eb = rotulosDe(b).join(', ').toLowerCase();
       if (ea !== eb) return ea < eb ? -1 : 1;
     }
-    const na = nomeDoProfessor(a).toLowerCase();
-    const nb = nomeDoProfessor(b).toLowerCase();
+    const na = (nomeDe(a) || nomeDoProfessor(a)).toLowerCase();
+    const nb = (nomeDe(b) || nomeDoProfessor(b)).toLowerCase();
     return na < nb ? -1 : na > nb ? 1 : 0;
   });
 
@@ -545,31 +566,58 @@ function tabelaDeProfessores(professores, escolas, ordem) {
   }
 
   const linhas = lista.map((p) => {
-    const ativas = ativasDe(p);
-    const escolasCelula = ativas.length
-      ? listaDeLigacoes(ativas, { rotulo: (s) => s })
+    const minhas = vivasDe(p);
+    /* ── A COLUNA «AÇÕES» (23/11/2026) ─────────────────────────────────────────────────────
+     *
+     * Palavras dela: «Aqui chama escolas vivas, a gente vai chamar aqui de ações. […] onde está
+     * escrito sem escola viva, que é só uma etiqueta, vai virar um botão de ação. Sem escola viva
+     * é uma etiqueta, mas se tiver escola viva, aí o botão leva até a escola viva. Aí o botão vai
+     * ser o nome da escola e aí se clicar nele, vai para a escola.»
+     *
+     * AS DUAS METADES DA FRASE, porque a diferença é a regra inteira: **sem** escola não há gesto
+     * nenhum a fazer, e por isso o que fica é a etiqueta; **com** escola há um destino, e o que
+     * fica é um botão com o NOME dela. Um botão que dissesse «sem escola viva» seria um botão para
+     * nenhum sítio — e uma etiqueta com o nome da escola esconderia que ele se clica.
+     *
+     * A MARCA DO RESPONSÁVEL vai no `title`, e não numa coluna nova: ele quer saber de quem cobrar
+     * ou contra quem acionar («se eles são professores principais, professores titulares donos da
+     * escola»), e `e.professor` é exactamente essa resposta no índice. É facto, não adjetivo.
+     */
+    const acoesCelula = minhas.length
+      ? '<div class="acoes-da-linha">' + minhas.map((e) => {
+        const nome = String(e.nome || e.slug);
+        const responsavel = p.slug && String(e.professor || '') === String(p.slug);
+        return '<a class="acao secundario" href="' + esc(urlDaEscola(e.slug)) + '"' +
+          (responsavel ? ' title="' + esc(nome + ' — professor responsável por esta escola') + '"' : '') +
+          '>' + esc(nome) + '</a>';
+      }).join('') + '</div>'
       : '<span class="selo discreto">sem escola viva</span>';
     /*
      * A COLUNA QUE FALTAVA (22/10/2026): «aqui, nessa janela de professores, eu preciso de uma
      * coluna anterior que é o nome do professor. Eu preciso saber o nome real do professor.»
      *
      * O nome vem do inventário da escola que declarou a pessoa — `professores[].nome` ou o
-     * `professor.nome` do responsável. A AUSÊNCIA É DITA, não disfarçada: quando o repositório
-     * não guarda o nome (professor antigo, de uma escola cujo KV já foi expurgado), a célula
-     * mostra um traço com o motivo no `title`, e não o slug, que já está na coluna ao lado. Pôr
-     * o slug aqui fingiria um nome que ninguém registou.
+     * `professor.nome` do responsável —, e, quando ele não existe, da ficha da pessoa (23/11/2026:
+     * é a mesma pessoa, e ela escreveu o nome dela no cadastro). A AUSÊNCIA É DITA, não
+     * disfarçada: quando nenhum dos dois sítios guarda o nome (professor antigo, de uma escola
+     * cujo KV já foi expurgado), a célula mostra um traço com o motivo no `title`, e não o slug,
+     * que já está na coluna ao lado. Pôr o slug aqui fingiria um nome que ninguém registou.
      */
-    const nome = String(p.nome || '').trim();
+    const nome = nomeDe(p);
     const nomeCelula = nome
       ? '<strong>' + esc(nome) + '</strong>'
       : '<span class="selo discreto" title="o repositório não guarda o nome deste professor: ' +
         'a escola que o cadastrou já não existe, ou ele nasceu antes de o nome se gravar. ' +
         'Editar o nome de um professor principal grava-o; um secundário ganha-o ao ser declarado ' +
         'pela escola.">sem nome registado</span>';
+    const ficha = fichaDe(p.slug) || {};
+    const documento = documentoDoProfessor(ficha);
     return '<tr>' +
       '<td>' + nomeCelula + '</td>' +
       '<td><code>' + esc(p.slug) + '</code></td>' +
-      '<td>' + escolasCelula + '</td>' +
+      '<td>' + (documento ? documento.tipo + ' ' + esc(documento.valor) : '—') + '</td>' +
+      '<td>' + (comoFalar(ficha.email, ficha.telefone) || '—') + '</td>' +
+      '<td>' + acoesCelula + '</td>' +
       '</tr>';
   }).join('');
 
@@ -581,13 +629,19 @@ function tabelaDeProfessores(professores, escolas, ordem) {
     '<thead><tr>' +
     thOrdenavel('Nome', 'nome', criterio, '/professores') +
     '<th>Pasta</th>' +
-    thOrdenavel('Escolas vivas', 'escolas', criterio, '/professores') +
+    '<th>Documento</th>' +
+    '<th>Contacto</th>' +
+    thOrdenavel('Ações', 'escolas', criterio, '/professores', 'Ordenar pelas escolas') +
     '</tr></thead>' +
     '<tbody>' + linhas + '</tbody>' +
     '</table>' +
     '<p class="aviso">A <strong>pasta</strong> é o identificador do professor — aparece nos caminhos ' +
-    'do repositório e nos documentos, e não muda quando o nome muda. Quem ordena são os títulos ' +
-    '«Nome» e «Escolas vivas»: a segunda junta quem partilha escola.</p>', 'Professores por página');
+    'do repositório e nos documentos, e não muda quando o nome muda. O <strong>documento</strong> e ' +
+    'o <strong>contacto</strong> são os do cadastro do professor: vêm de onde ele foi escrito — a ' +
+    'criação da escola ou o Estúdio —, e podem ser um CPF ou um CNPJ, conforme o que a pessoa tem. ' +
+    'Em <strong>Ações</strong>, cada botão é uma escola viva dele e leva ao site dela; o tooltip diz ' +
+    'quem é o <em>responsável</em>. «—» é ausência de dado, e não um zero.</p>',
+    'Professores por página');
 }
 
 /**
@@ -1327,13 +1381,13 @@ function blocoDoCofre() {
  * Ela lê `acervo.professores` (que o índice deriva das escolas e dos ciclos) e `acervo.escolas`
  * (para saber quais estão vivas). Uma requisição, a mesma do resto do painel.
  */
-function paginaDosProfessores({ professores, escolas, ordem }) {
+function paginaDosProfessores({ professores, escolas, ordem, contatos }) {
   return pagina({
     titulo: 'Professores',
-    subtitulo: 'Quem trabalha hoje, e as escolas vivas de cada um. Um professor pode estar em ' +
-      'mais de uma.',
+    subtitulo: 'Quem trabalha hoje, o cadastro de cada um e as escolas vivas onde dá aula. Um ' +
+      'professor pode estar em mais de uma.',
     atual: 'professores',
-    corpo: tabelaDeProfessores(professores, escolas, ordem) +
+    corpo: tabelaDeProfessores(professores, escolas, ordem, contatos) +
       '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',
   });
 }
@@ -1352,6 +1406,61 @@ function numeroDoWhatsapp(telefone) {
   if (!digitos) return '';
   if ((digitos.length === 12 || digitos.length === 13) && digitos.indexOf('55') === 0) return digitos;
   return '55' + digitos;
+}
+
+/**
+ * «COMO FALAR» — as DUAS formas de contactar alguém, e só duas (18/11/2026).
+ *
+ * Era uma função de dentro do Financeiro. Passou a ser do módulo a 23/11/2026, quando a página dos
+ * Professores passou a mostrar o contacto: duas cópias da mesma célula divergiriam na primeira vez
+ * que uma delas ganhasse uma terceira forma — e a terceira forma é sempre a que ninguém pediu.
+ *
+ * `mailto:` e `wa.me`, e não uma terceira. `—` é a ausência, nunca um número deduzido.
+ */
+function comoFalar(email, telefone) {
+  return [email
+    ? '<a href="mailto:' + esc(email) + '">' + esc(email) + '</a>' : '',
+  telefone
+    ? '<a href="https://wa.me/' + esc(numeroDoWhatsapp(telefone))
+      + '" target="_blank" rel="noopener">' + esc(telefone) + '</a>' : ''
+  ].filter(Boolean).join('<br>');
+}
+
+/** O traço quando não há dado — a ausência dita, e não um vazio que se lê como zero. */
+function semDado(v) {
+  return (v === null || v === undefined || String(v).trim() === '') ? '—' : esc(v);
+}
+
+/**
+ * O DOCUMENTO DE UMA PESSOA — CPF ou CNPJ, e o rótulo é o que ele é (23/11/2026).
+ *
+ * Palavras dela: «O CNPJ ou CPF que o professor tenha, né, também vai estar lá. Professor pode ter
+ * CNPJ ou CPF, tá? Não necessariamente só CPF.»
+ *
+ * POR ISSO A PERGUNTA É AO COMPRIMENTO, e não ao nome do campo: catorze dígitos são um CNPJ, onze
+ * são um CPF, e o rótulo sai do número, não do sítio onde ele foi parar. Um `cpf` com catorze
+ * dígitos — que é o que sai de um campo que aceita os dois — não é um CPF.
+ *
+ * A FORMATAÇÃO É DE LEITURA, e não de dado: o valor guardado são dígitos (é assim que a unicidade
+ * os compara), e aqui põem-se os pontos e o traço porque é um número que alguém vai ler para o
+ * escrever noutro sítio. Um número com forma inesperada lê-se como está — nunca se corrige.
+ */
+function documentoDoProfessor(contato) {
+  const c = contato || {};
+  const digitos = (v) => String(v || '').replace(/\D/g, '');
+  const cnpj = digitos(c.cnpj);
+  const cpf = digitos(c.cpf);
+  const porDigitos = (d) => (d.length === 14 ? 'cnpj' : d.length === 11 ? 'cpf' : null);
+  const bruto = cnpj || cpf || String(c.cnpj || c.cpf || '').trim();
+  if (!bruto) return null;
+  const tipo = porDigitos(cnpj) || porDigitos(cpf);
+  if (tipo === 'cnpj') {
+    return { tipo: 'CNPJ', valor: cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') };
+  }
+  if (tipo === 'cpf') {
+    return { tipo: 'CPF', valor: cpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4') };
+  }
+  return { tipo: 'documento', valor: bruto };
 }
 
 /**
@@ -1877,22 +1986,31 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
    * verdade; um número deduzido do slug seria uma mentira com aparência de dado.
    *
    * «COMO FALAR» usa as MESMAS duas formas da página dos Contactos — `mailto:` e `wa.me` —, e não
-   * uma terceira: quem já sabe clicar num telefone naquele ecrã sabe clicar neste. */
-  const semDado = (v) => (v === null || v === undefined || String(v).trim() === '' ? '—' : esc(v));
-  const comoFalar = (email, telefone) => [email
-    ? '<a href="mailto:' + esc(email) + '">' + esc(email) + '</a>' : '',
-  telefone
-    ? '<a href="https://wa.me/' + esc(numeroDoWhatsapp(telefone))
-      + '" target="_blank" rel="noopener">' + esc(telefone) + '</a>' : ''
-  ].filter(Boolean).join('<br>');
+   * uma terceira: quem já sabe clicar num telefone naquele ecrã sabe clicar neste. A função passou
+   * a viver fora daqui a 23/11/2026, quando a página dos Professores passou a usá-la: uma regra,
+   * um sítio (`comoFalar`, no módulo). */
 
+  /* ── O PROFESSOR É UMA LIGAÇÃO, E O DOCUMENTO DELE NÃO MORA AQUI (23/11/2026) ────────────
+   *
+   * Palavras dela: «Você colocou o professor com o CNPJ ou CPF dele logo abaixo, né? Você vai mudar
+   * isso. Aqui você vai colocar o professor apenas como sendo um link que leva lá para o espaço de
+   * professores em dança.padd.com.br/professores.»
+   *
+   * E A RAZÃO É DE ARRUMAÇÃO, não de gosto: esta aba responde «quem é a escola, e como falo com
+   * ela». O documento da PESSOA respondia a uma segunda pergunta na mesma célula, e a segunda
+   * pergunta tem casa própria — a lista dos professores, onde o cadastro dele está inteiro. Um dado
+   * em dois sítios é um dado que vai discordar de si mesmo no dia em que só um for corrigido.
+   *
+   * O NOME VEM ANTES DO SLUG: quando o cadastro não tem o nome, mostra-se o slug, que é a
+   * identidade verdadeira — e não um traço, que esconderia que há uma pessoa ali. */
   const linhaDaFicha = (f) => '<tr>' +
     '<td><strong>' + esc(f.nome || f.escola) + '</strong>' +
       (f.nome && f.escola && f.nome !== f.escola
         ? ' <span class="dono">(' + esc(f.escola) + ')</span>' : '<br><span class="dono">' +
         esc(f.escola) + '</span>') + '</td>' +
-    '<td>' + (f.professorNome ? esc(f.professorNome) : semDado(f.professor)) +
-      (f.professorCpf ? '<br><span class="dono">CPF ' + esc(f.professorCpf) + '</span>' : '') + '</td>' +
+    '<td>' + (f.professor
+      ? '<a href="/professores">' + esc(f.professorNome || f.professor) + '</a>'
+      : '—') + '</td>' +
     '<td>' + semDado(f.cnpj) + '</td>' +
     '<td>' + (comoFalar(f.email, f.telefone) || '—') + '</td>' +
     '<td>' + (comoFalar(f.professorEmail, f.professorTelefone) || '—') + '</td>' +
@@ -1915,7 +2033,8 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
   const blocoDosDados = '<h2>Os dados da escola</h2>' +
     '<p>O nome, o CNPJ e os contactos de cada escola — os dela e os do professor responsável. ' +
     'A lista tem as vivas <strong>e as expurgadas</strong>: é depois de uma escola sair que o CNPJ ' +
-    'dela faz falta, para cobrar ou para acionar quem deve.</p>' +
+    'dela faz falta, para cobrar ou para acionar quem deve. O <strong>professor</strong> é uma ' +
+    'ligação: o cadastro dele — documento e contactos — está na página dos professores.</p>' +
     (fichas.length
       ? tabelaPaginada('pa-lista-dados', '<table>' +
         '<thead><tr><th>Escola</th><th>Professor</th><th>CNPJ</th><th>Contacto da escola</th>' +

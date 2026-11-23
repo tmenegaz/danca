@@ -23,11 +23,35 @@
  *
  * Tudo corre em processo, com a API do GitHub substituída: nenhuma requisição sai.
  *
+ * CONTROLE NEGATIVO: `--contra=<sha>` carrega o `motor/` daquele commit — é assim que se mostra
+ * que as asserções desta prova MORDEM, e não passam por acaso. A âncora é o commit imediatamente
+ * anterior ao trabalho que se está a medir, e NUNCA `HEAD`: um controle ancorado em `HEAD` passa a
+ * comparar a prova com ela mesma no dia em que o trabalho é cometido.
+ *
  *   uso: node experimentos/provar-painel.js
+ *        node experimentos/provar-painel.js --contra=c7b1ee0f
  */
 
-const raiz = require('../motor/servidor/raiz.js');
-const painel = require('../motor/servidor/painel-html.js');
+const path = require('node:path');
+const fs = require('node:fs');
+const os = require('node:os');
+const { execSync } = require('node:child_process');
+
+const RAIZ_DESTA_PROVA = path.resolve(__dirname, '..');
+const CONTRA = (process.argv.find((x) => x.indexOf('--contra=') === 0) || '').split('=')[1] || '';
+let RAIZ_DO_MOTOR = RAIZ_DESTA_PROVA;
+if (CONTRA) {
+  RAIZ_DO_MOTOR = fs.mkdtempSync(path.join(os.tmpdir(), 'painel-'));
+  /* O CATÁLOGO VAI JUNTO: `motor/nucleo/comercial.js` lê `biblioteca/comercial/planos.json`, e um
+   * `motor` sem ele não carrega — o controle morreria a carregar, e um controle que não corre não
+   * prova nada (foi o que aconteceu na primeira tentativa). */
+  execSync('git archive ' + CONTRA + ' motor biblioteca modelo tools teste | tar -x -C ' + RAIZ_DO_MOTOR,
+    { cwd: RAIZ_DESTA_PROVA, stdio: 'pipe' });
+  console.log('CONTROLE NEGATIVO — o motor de ' + CONTRA + ', antes desta mudança\n');
+}
+
+const raiz = require(path.join(RAIZ_DO_MOTOR, 'motor/servidor/raiz.js'));
+const painel = require(path.join(RAIZ_DO_MOTOR, 'motor/servidor/painel-html.js'));
 const painelTabela = painel.tabelaDeProfessores;
 
 const BASE = 'https://danca.tmenegaz77.workers.dev';
@@ -310,11 +334,78 @@ async function principais() {
     /<code>so-apagadas<\/code>/.test(profs.html), null);
   conferir('…e «Voltar ao painel»', /Voltar ao painel/.test(profs.html), null);
 
-  // A REGRA QUE A LISTA TEM DE ATENDER: um professor, mais de uma escola. O caso está montado
-  // com o `sapo-bailarino` em duas vivas, e o teste é o vínculo separado por vírgula.
+  // ── 6a. A COLUNA «AÇÕES» (23/11/2026) ─────────────────────────────────────
+  //
+  // PALAVRAS DELA: «Aqui chama escolas vivas, a gente vai chamar aqui de ações. […] onde está
+  // escrito sem escola viva, que é só uma etiqueta, vai virar um botão de ação. Sem escola viva é
+  // uma etiqueta, mas se tiver escola viva, aí o botão leva até a escola viva. Aí o botão vai ser o
+  // nome da escola.»
+  //
+  // A REGRA QUE A LISTA TEM DE ATENDER: um professor, mais de uma escola. O caso está montado com
+  // o `sapo-bailarino` em duas vivas — e agora são DUAS AÇÕES, não uma vírgula entre dois links.
   const muitas = painelTabelaDeProfessoresComDuasVivas();
-  conferir('um professor com DUAS escolas vivas sai com as duas, separadas por vírgula',
-    /viva<\/a>, <a href="https:\/\/outra\.padd\.com\.br\/">outra<\/a>/.test(muitas), muitas);
+  conferir('um professor com DUAS escolas vivas sai com uma AÇÃO por escola',
+    /<div class="acoes-da-linha"><a class="acao secundario" href="https:\/\/viva\.padd\.com\.br\/">viva<\/a><a class="acao secundario" href="https:\/\/outra\.padd\.com\.br\/">outra<\/a><\/div>/.test(muitas),
+    muitas);
+  conferir('…e o rótulo de cada botão é o NOME da escola, e não o slug',
+    painelTabelaDeProfessores([
+      { slug: 'sapo-bailarino', nome: 'Sapo Bailarino', escolas: ['viva'] },
+    ], [{ slug: 'viva', nome: 'Escola Viva', expurgada: false }]).indexOf('>Escola Viva</a>') !== -1,
+    null);
+  /* O `title` DIZ QUEM É O RESPONSÁVEL — o dado que ela pediu («se eles são professores
+   * titulares donos da escola»), e que só aparece onde é verdade: na escola onde `e.professor`
+   * é esta pessoa. */
+  const responsavel = painelTabelaDeProfessores([
+    { slug: 'dona', nome: 'Dona', escolas: ['viva'] },
+    { slug: 'outra-pessoa', nome: 'Outra', escolas: ['viva'] },
+  ], [{ slug: 'viva', nome: 'Escola Viva', professor: 'dona', expurgada: false }]);
+  conferir('…e o tooltip marca a escola de que ele é RESPONSÁVEL',
+    /title="Escola Viva — professor responsável por esta escola"/.test(responsavel)
+    && /Escola Viva/.test(responsavel), responsavel.slice(0, 400));
+  /* O OUTRO LADO DA FRASE DELA: sem escola não há gesto nenhum a fazer, e o que fica é a
+   * etiqueta — não um botão para nenhum sítio. */
+  conferir('quem NÃO tem escola viva fica com a ETIQUETA, e não com um botão',
+    /<td><span class="selo discreto">sem escola viva<\/span><\/td>/.test(profs.html)
+    && !/<td><div class="acoes-da-linha"><\/div><\/td>/.test(profs.html), null);
+
+  // ── 6b. O CADASTRO NA LISTA: DOCUMENTO E CONTACTO (23/11/2026) ─────────────
+  //
+  // «aqui tem que ter também os campos de contato, que é o telefone, o e-mail e o CNPJ do
+  // professor. […] O CNPJ ou CPF que o professor tenha, né, também vai estar lá. Professor pode ter
+  // CNPJ ou CPF, tá? Não necessariamente só CPF.»
+  {
+    /* O DOCUMENTO É LIDO PELO COMPRIMENTO, e o rótulo sai do número: catorze dígitos são um CNPJ,
+     * onze são um CPF — mesmo que o campo onde ele está se chame `cpf`. É este o caso que faz a
+     * regra dela ser verdadeira, e não uma frase na documentação. */
+    const comCpf = painelTabelaDeProfessores(
+      [{ slug: 'ana', nome: 'Ana', escolas: [] }], [],
+      null, { ana: { cpf: '23323824024', email: 'ana@exemplo.com', telefone: '54991752662' } });
+    conferir('o CPF do professor sai escrito como se lê, e rotulado «CPF»',
+      /<td>CPF 233\.238\.240-24<\/td>/.test(comCpf), comCpf.slice(0, 900));
+
+    const comCnpj = painelTabelaDeProfessores(
+      [{ slug: 'escola-de-danca', nome: 'Escola De Dança', escolas: [] }], [],
+      null, { 'escola-de-danca': { cnpj: '37455854000172' } });
+    conferir('um professor com CNPJ sai rotulado «CNPJ», no formato dele',
+      /<td>CNPJ 37\.455\.854\/0001-72<\/td>/.test(comCnpj), comCnpj.slice(0, 900));
+    conferir('…e com o CNPJ presente, um `cpf` de 14 dígitos NÃO é lido como CPF',
+      /<td>CNPJ /.test(painelTabelaDeProfessores(
+        [{ slug: 'x', nome: 'X', escolas: [] }], [],
+        null, { x: { cpf: '37455854000172' } })), null);
+
+    conferir('o e-mail e o telefone saem com as duas formas de falar (`mailto:` e `wa.me`)',
+      /<a href="mailto:ana@exemplo\.com">ana@exemplo\.com<\/a><br><a href="https:\/\/wa\.me\/5554991752662"/.test(comCpf),
+      null);
+
+    const semFicha = painelTabelaDeProfessores([{ slug: 'zeca', nome: 'Zeca', escolas: [] }], []);
+    conferir('sem ficha, o documento e o contacto são um TRAÇO — e não um vazio',
+      (semFicha.match(/<td>—<\/td>/g) || []).length === 2, semFicha.slice(0, 900));
+
+    conferir('…e o NOME vem da ficha quando o índice não o guarda',
+      /<td><strong>Nome Da Ficha<\/strong><\/td>/.test(painelTabelaDeProfessores(
+        [{ slug: 'zeca', nome: null, escolas: [] }], [],
+        null, { zeca: { nomeCompleto: 'Nome Da Ficha' } })), null);
+  }
 
   // ── 6b. A COLUNA «NOME» E AS ORDENAÇÕES (22/10/2026) ──────────────────────
   //
@@ -331,8 +422,8 @@ async function principais() {
       /<td><strong>Tiago Menegaz<\/strong><\/td><td><code>tiago-menegaz<\/code><\/td>/.test(h), null);
     conferir('quem não tem nome registado mostra o SELO, e não o slug fingido de nome',
       /<span class="selo discreto" title="o repositório não guarda o nome/.test(h), null);
-    conferir('…e a coluna «Escolas vivas» ordena',
-      /<th aria-sort="none"><a href="\/professores\?ordem=escolas"/.test(h), null);
+    conferir('…e a coluna «Ações» ordena pelas escolas — a célula é o gesto, a ordem é o facto',
+      /<th aria-sort="none"><a href="\/professores\?ordem=escolas" title="Ordenar pelas escolas"/.test(h), null);
 
     // A ORDEM POR ESCOLAS agrupa quem partilha escola — é o que se pediu («ordenar pelas mesmas
     // escolas»). A tabela é exercitada DIRECTAMENTE, com dados em que as duas ordens DÃO
@@ -383,7 +474,7 @@ async function principais() {
     // O HTTP: os cabeçalhos dizem a ordem em vigor, e a ordem repetida não é clique.
     const porEscolasHttp = await semRede(async () => (await pedir(envComAssets(), '/professores?ordem=escolas')).text());
     conferir('o cabeçalho passa a dizer que a ordem EM VIGOR é a das escolas',
-      /<th aria-sort="ascending">Escolas vivas<\/th>/.test(porEscolasHttp), null);
+      /<th aria-sort="ascending">Ações<\/th>/.test(porEscolasHttp), null);
     conferir('…e «Nome» volta a ser ligação (a ordem repetida não se clica)',
       /<th aria-sort="none"><a href="\/professores\?ordem=nome" title="Ordenar por nome">Nome<\/a><\/th>/.test(porEscolasHttp), null);
 
@@ -430,6 +521,51 @@ async function principais() {
     const r = await pedir(envComAssets(), de);
     conferir('301 de ' + de, r.status === 301 && r.headers.get('Location') === para,
       { status: r.status, location: r.headers.get('Location') });
+  }
+
+  /* ── 10b. A FICHA DA PESSOA CHEGA PELA ROTA (23/11/2026) ─────────────────────
+   *
+   * A tabela já foi medida com um mapa de fichas; aqui mede-se a PORTA — que a rota as vai buscar
+   * ao KV, por slug, e que o dado mostrado é o que lá está. Uma tabela que sabe mostrar e uma rota
+   * que não entrega dariam uma coluna de traços, e a prova da tabela passaria.
+   *
+   * O KV é de bolso: nada toca no sistema ao vivo. */
+  {
+    const kv = new Map([
+      ['professores/sapo-bailarino/contato', JSON.stringify({
+        nomeCompleto: 'Sapo Bailarino', cpf: '23323824024',
+        email: 'sapo@exemplo.com', telefone: '54991752662',
+      })],
+    ]);
+    const kvDeBolso = {
+      async get(c) { return kv.has(c) ? kv.get(c) : null; },
+      async put(c, v) { kv.set(c, String(v)); },
+      async delete(c) { kv.delete(c); },
+      async list({ prefix = '' } = {}) {
+        return { keys: [...kv.keys()].filter((k) => k.startsWith(prefix)).map((name) => ({ name })) };
+      },
+    };
+    const comKv = await semRede(async () => (await pedir(
+      envComAssets({ PADD_KV: kvDeBolso }), '/professores')).text());
+    conferir('a rota vai buscar a ficha ao KV e a página mostra o CPF e o contacto',
+      /<td>CPF 233\.238\.240-24<\/td>/.test(comKv)
+      && /mailto:sapo@exemplo\.com/.test(comKv), comKv.slice(0, 1200));
+    conferir('…e o professor que NÃO tem ficha fica com o traço, sem inventar',
+      (comKv.match(/<td>—<\/td>/g) || []).length >= 2, null);
+
+    /* E O CUSTO: um `get` por professor, e ZERO `list`. A enumeração é a operação limitada por
+     * dia (18/10/2026); esta página não é razão para a gastar. */
+    const conta = { gets: 0, lists: 0 };
+    const contado = {
+      async get(c) { conta.gets += 1; return kv.has(c) ? kv.get(c) : null; },
+      async put(c, v) { kv.set(c, String(v)); },
+      async delete(c) { kv.delete(c); },
+      async list(o) { conta.lists += 1; return kvDeBolso.list(o); },
+    };
+    await semRede(async () => { await (await pedir(envComAssets({ PADD_KV: contado }), '/professores')).text(); });
+    const quantos = (ARQUIVOS['indices/acervo.json'].professores || []).length;
+    conferir('…e cada abertura custa UM `get` por professor, e nenhuma enumeração',
+      conta.gets === quantos && conta.lists === 0, { gets: conta.gets, professos: quantos, lists: conta.lists });
   }
 
   // ── 11. o slug não vira caminho arbitrário ─────────────────────────────────
@@ -490,9 +626,10 @@ function primeirasCelulas(html) {
     .filter((x, i) => i >= 0);
 }
 
-/** A tabela de professores, exercitada directamente (a rota só muda de onde vem o `ordem`). */
-function painelTabelaDeProfessores(professores, escolas, ordem) {
-  return painel.tabelaDeProfessores(professores, escolas, ordem);
+/** A tabela de professores, exercitada directamente (a rota só muda de onde vêm `ordem` e
+ * `contatos`). As fichas chegam como um mapa `slug → contato`, que é o que a rota monta do KV. */
+function painelTabelaDeProfessores(professores, escolas, ordem, contatos) {
+  return painel.tabelaDeProfessores(professores, escolas, ordem, contatos);
 }
 
 /** A tabela de escolas, idem. */

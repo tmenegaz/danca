@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-23T07:19:00-0300`
-Commit atual: `bd87f249` — docs(estrutura): o CNPJ das escolas de teste, e a data que eu tinha escrito errada
+Gerado em: `2026-11-23T07:36:11-0300`
+Commit atual: `c7b1ee0f` — fix(estrutura): a senha do professor não se esconde com o modo do professor
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -83,6 +83,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+c7b1ee0f fix(estrutura): a senha do professor não se esconde com o modo do professor
 bd87f249 docs(estrutura): o CNPJ das escolas de teste, e a data que eu tinha escrito errada
 c24e4636 feat(estrutura): a criação também herda a identidade fiscal, e não só a recriação
 870895ce docs(estrutura): a recriação traz os dados da escola, e o convite deixa de prometer o que não tem
@@ -102,7 +103,6 @@ edab6ae5 fix(estrutura): o commit dos derivados sobrevive a um repositório sem 
 e73342a6 fix(estrutura): a dica do apagar muda com o motivo — quem não tem cadastro não desabilita
 7ee95a91 fix(estrutura): a campanha não tem a seta de colapsar, e o vazio do apagar diz a verdade
 02f53906 feat(template): a seta de abrir e fechar é uma peça só, e o documento abre com o primeiro
-22354d71 feat(estrutura): o portão da aula dada — o botão abre depois do lançamento da anterior
 ```
 
 ## Por professor
@@ -184,61 +184,85 @@ e73342a6 fix(estrutura): a dica do apagar muda com o motivo — quem não tem ca
 
 ## Última entrada do REGISTRO
 
-## 23/11/2026 — A senha do professor não se esconde com o modo do professor
+## 23/11/2026 — Os professores têm Ações, documento e contacto; e o Financeiro manda o professor para lá
 
-**O DEFEITO, nas palavras dela, e ele é de uma exactidão que dispensa diagnóstico:**
+**O PEDIDO, em duas listas que são uma arrumação só.** Na página dos professores: «Aqui chama escolas
+vivas, a gente vai chamar aqui de ações.» […] «onde está escrito sem escola viva, que é só uma
+etiqueta, vai virar um botão de ação. Sem escola viva é uma etiqueta, mas se tiver escola viva, aí o
+botão leva até a escola viva. Aí o botão vai ser o nome da escola e aí se clicar nele, vai para a
+escola. E aí aqui tem que ter também os campos de contato, que é o telefone, o e-mail e o CNPJ do
+professor.» No Financeiro: «Você colocou o professor com o CNPJ ou CPF dele logo abaixo, né? Você vai
+mudar isso. Aqui você vai colocar o professor apenas como sendo um link que leva lá para o espaço de
+professores.»
 
-> «Eu escolhi o professor demi plié e aí cliquei em continuar. Apareceu a mensagem informe a senha
-> do professor. Como não tem campo aqui quando eu pego essa opção de um professor que já existe, não
-> tem como eu inserir a senha do professor. Isso é um bug que tem que ser corrigido: Permitir que a
-> senha do professor seja digitada.»
+**A COLUNA «AÇÕES», E AS DUAS METADES DA FRASE DELA.** A diferença entre «vira um botão» e «sem escola
+viva é uma etiqueta» é a regra inteira: **sem** escola não há gesto nenhum a fazer, e o que fica é a
+etiqueta; **com** escola há um destino, e o que fica é um botão com o **nome** dela. Um botão que
+dissesse «sem escola viva» seria um botão para nenhum sítio; uma etiqueta com o nome da escola
+esconderia que ele se clica. O vão entre os botões e a largura da coluna são da peça `.acoes-da-linha`
+— a mesma dos botões «Habilitar»/«Desabilitar» da lista das vivas —, e não de um estilo novo.
 
-**A CAUSA É UMA LINHA DE MARCAÇÃO E UMA DE ORDEM.** O `#senha-professor` vivia **dentro** de
-`#bloco-novo`, e `pintarModo()` esconde esse bloco inteiro quando a pessoa escolhe «um professor que
-já existe». A validação, porém, pergunta pela senha **antes** de olhar para o modo
-(`raiz/index.html`: `if (!v("senha-professor")) return "informe a senha do professor"`). O resultado
-era o pior tipo de defeito de formulário: **a regra pedia um valor que a tela não deixava escrever**,
-e a mensagem apontava para um campo que não estava lá.
+**A ORDEM DA COLUNA PASSOU A SER A ORDEM DO QUE ESTÁ ESCRITO.** A coluna ordenava por slug e agora
+escreve nomes, e por isso passa a ordenar por nomes: ordenar por uma coisa e mostrar outra faria a
+coluna parecer desarrumada. O `title` dela é **«Ordenar pelas escolas»**, e não «Ordenar por ações» —
+que não quer dizer nada: o título diz o gesto, a ordem diz o facto. Para isso o `thOrdenavel` ganhou um
+parâmetro opcional com o `title` inteiro; na primeira tentativa ele era um sufixo colado a «Ordenar
+por», e saiu **«Ordenar por pelas escolas»** — o defeito a dizer o que é.
 
-**A CORRECÇÃO NÃO É AFROUXAR A REGRA — é mostrar o campo.** A senha do professor é **por escola**:
-`senhaDoProfessorOk(env, kv, escola, senha)` responde «esta senha é DESTE professor NESTA escola», e
-num shard o par hash+sal é gravado no registo da escola (`provisionarDentroDoShard`, decisão de
-24/11). Reutilizar a **pessoa** não é reutilizar a **senha** dela noutra escola — a da escola antiga
-não abre esta. Por isso o campo saiu dos dois blocos e passou a ser um só, visível em ambos, com o
-recado a mudar de dono:
+**O RESPONSÁVEL VAI NO `title`, e não numa coluna nova.** Ela quer saber de quem cobrar ou contra quem
+acionar («se eles são professores principais, professores titulares donos da escola»), e `e.professor`
+no índice é exactamente essa resposta. É facto, e só aparece onde é verdade: na escola de que esta
+pessoa é responsável.
 
-- professor **novo** — «A senha com que ele vai abrir a escola.»;
-- professor **que já existe** — «A senha com que ele vai abrir ESTA escola — cada escola tem a sua, e
-  a de outra não serve aqui.»
+**O CADASTRO NA LISTA — e ele é lido de onde é escrito.** O documento e os contactos **não estão no
+índice**: o `check-indices` proíbe e-mail e telefone lá, e a ficha da pessoa vive no KV
+(`professores/<slug>/contato`), escrita pela criação da escola e pelo Estúdio — as duas portas que ela
+nomeou. A rota passou a ler essas fichas (`fichasDosProfessores`): **um `get` por professor, em
+paralelo, e nenhuma enumeração** — o `list` é a operação limitada por dia (18/10/2026), e esta página
+não é razão para a gastar. Medido: 31 professores, 31 `get`, 0 `list`.
 
-**A nota é a peça `.aviso`, e não uma classe nova.** A tentativa de a desenhar com um `span.sub`
-reprovou a **checagem 8 (Peça)** do `check-identidade`: uma classe usada e não desenhada não entra no
-`main`. A faixa de prosa que explica antes de agir já existe (`IDENTIDADE-VISUAL.md`, quadro 2), e a
-linha logo abaixo (`#aviso-escola-existente`) já a usa exactamente assim.
+**O DOCUMENTO É LIDO PELO COMPRIMENTO, E O RÓTULO SAI DO NÚMERO.** «Professor pode ter CNPJ ou CPF,
+tá? Não necessariamente só CPF.» Catorze dígitos são um CNPJ, onze são um CPF — e um `cpf` com catorze
+dígitos, que é o que sai de um campo que aceita os dois, **não é um CPF**. `documentoDoProfessor` põe
+os pontos e o traço (é um número que alguém vai ler para o escrever noutro sítio) e **nunca corrige**
+um número com forma inesperada: mostra-o como está, sem rótulo.
 
-**Com o quê.** `raiz/index.html` (o campo fora dos dois blocos, `pintarModo()` a escrever o recado,
-e o comentário que diz por que razão a senha é precisa nos dois caminhos) e
-`experimentos/provar-cadastro-em-etapas.js` (secção D, sete asserções novas).
+**E O NOME ganhou uma segunda fonte.** O índice tem o nome que a escola declarou; quando ele não
+existe, a ficha da pessoa tem o que ela própria escreveu. É a mesma pessoa, na mesma chave — e a
+célula deixa de dizer «sem nome registado» para quem tem nome no cadastro.
 
-**MEDIDO.** `provar-cadastro-em-etapas` **49/50** — e a única falha é anterior a esta mudança
-(«o público deixa de ter «Ver só as vivas»»: a string `/escolas-vivas` sobrevive dentro do `<script>`,
-que `removerDoPainel` não reescreve; conferido igual em `bd87f249`, **42/49**). A asserção nova mede a
-**árvore**, e não o `hidden` de um elemento: um campo pode ter `hidden = false` e estar dentro de um
-avô escondido, e era essa a forma do defeito — sobe-se pelos ancestrais à procura do primeiro
-escondido.
+**NO FINANCEIRO, O PROFESSOR É UMA LIGAÇÃO, E O DOCUMENTO SAIU DE LÁ.** A aba «Os dados da escola»
+responde «quem é a escola, e como falo com ela»; o documento da pessoa respondia a uma segunda
+pergunta na mesma célula. `professorCpf` **saiu do feed** (`dadosDasEscolas`), e não só da tela: um
+dado em dois sítios é um dado que vai discordar de si mesmo no dia em que só um for corrigido. O
+e-mail e o telefone do professor **ficam** — essa pergunta é desta aba.
 
-**O CONTROLE NEGATIVO PRECISOU DE OUTRA ÂNCORA, e é uma lição.** A âncora da prova (`a4676abe`) é o
-formulário de uma coluna, sem etapas: contra ela, «o campo não vive dentro de `#bloco-novo`» passava
-**por o bloco não existir** — uma asserção que passa por ausência não prova nada. `--controle-negativo=<sha>`
-passou a apontar a âncora a outro sítio, e contra `bd87f249` — o estado imediatamente antes desta
-correcção — reprovam **exactamente as quatro** asserções que descrevem o defeito: o campo dentro de
-`#bloco-novo`, o avô escondido (`bloco-novo`), e o recado (duas). A mensagem «informe a senha» passava
-já antes, e passa hoje: **a mensagem nunca foi o defeito** — o defeito era o campo ausente.
+`semDado` e `comoFalar` saíram de dentro de `paginaFinanceira` para o módulo: as duas páginas usam-nas
+agora, e duas cópias divergiriam na primeira vez que uma delas ganhasse uma terceira forma.
 
-**E o que fica declarado, sem conserto neste commit:** o `/escolas-vivas` que sobrevive no `<script>`
-do público. Não é um botão à vista (o `<a data-dono>` sai), é uma atribuição de `href` que já não tem
-alvo — mas a asserção que a apanha continua vermelha, e uma prova com uma linha vermelha conhecida é
-melhor do que uma prova que se cala.
+**Com o quê.** `motor/servidor/painel-html.js` (`tabelaDeProfessores`, `documentoDoProfessor`,
+`comoFalar`, `semDado`, `thOrdenavel`, `linhaDaFicha`, `paginaDosProfessores`),
+`motor/servidor/raiz.js` (`fichasDosProfessores`, a rota `/professores`, `dadosDasEscolas`),
+`experimentos/provar-painel.js` (secções 6a e 6b novas, e a rota com um KV de bolso) e
+`experimentos/provar-os-dados-da-escola.js` (D2b e C4b).
+
+**MEDIDO.** `provar-painel` **110/110** — e ganhou `--contra=<sha>`, que lhe faltava: contra
+`c7b1ee0f` reprovam **14** asserções, e são exactamente as que descrevem esta mudança (um motor sem
+`tools/` e `biblioteca/` não carrega, e o controle morreu a carregar na primeira tentativa — um
+controle que não corre não prova nada). `provar-os-dados-da-escola` **79/79**. `provar-recriar-escola`
+94/94, `provar-o-financeiro-que-fica` 30/30, `provar-os-restos-do-expurgo` verde,
+`provar-pagina-publica` 79/79, `provar-form-escola` e `provar-painel-do-estudio` verdes,
+`provar-financeiro-da-escola` 129/136 (as mesmas 7 falhas de antes), `check-identidade` **0
+problemas** (23 verificações), `check-indices` 16/16, `check-schemas` verde.
+
+**MEDIDO EM CHROME, com o acervo de produção e escolas vivas montadas.** A 1366, 1280 e 900px: cinco
+colunas, tabela de 900/900/852px sem transbordo, `Ações` com 156px e os botões a 139×45 — dois
+empilhados para o professor de duas escolas —, e **nenhuma rolagem horizontal** na página. Com o
+acervo real de hoje (as quatro escolas estão expurgadas) a página mostra 31 linhas e 31 etiquetas
+«sem escola viva»: é a verdade do índice, e os botões aparecem quando houver escola viva.
+
+**E O QUE NÃO MUDOU, de propósito:** o formulário de criar escola. «na hora do cadastro, continua do
+jeito que está o formulário de criar nova escola do jeito que está, não tem nenhuma alteração nele.»
 
 ## O que está pendente
 

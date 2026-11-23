@@ -59732,3 +59732,83 @@ já antes, e passa hoje: **a mensagem nunca foi o defeito** — o defeito era o 
 do público. Não é um botão à vista (o `<a data-dono>` sai), é uma atribuição de `href` que já não tem
 alvo — mas a asserção que a apanha continua vermelha, e uma prova com uma linha vermelha conhecida é
 melhor do que uma prova que se cala.
+
+## 23/11/2026 — Os professores têm Ações, documento e contacto; e o Financeiro manda o professor para lá
+
+**O PEDIDO, em duas listas que são uma arrumação só.** Na página dos professores: «Aqui chama escolas
+vivas, a gente vai chamar aqui de ações.» […] «onde está escrito sem escola viva, que é só uma
+etiqueta, vai virar um botão de ação. Sem escola viva é uma etiqueta, mas se tiver escola viva, aí o
+botão leva até a escola viva. Aí o botão vai ser o nome da escola e aí se clicar nele, vai para a
+escola. E aí aqui tem que ter também os campos de contato, que é o telefone, o e-mail e o CNPJ do
+professor.» No Financeiro: «Você colocou o professor com o CNPJ ou CPF dele logo abaixo, né? Você vai
+mudar isso. Aqui você vai colocar o professor apenas como sendo um link que leva lá para o espaço de
+professores.»
+
+**A COLUNA «AÇÕES», E AS DUAS METADES DA FRASE DELA.** A diferença entre «vira um botão» e «sem escola
+viva é uma etiqueta» é a regra inteira: **sem** escola não há gesto nenhum a fazer, e o que fica é a
+etiqueta; **com** escola há um destino, e o que fica é um botão com o **nome** dela. Um botão que
+dissesse «sem escola viva» seria um botão para nenhum sítio; uma etiqueta com o nome da escola
+esconderia que ele se clica. O vão entre os botões e a largura da coluna são da peça `.acoes-da-linha`
+— a mesma dos botões «Habilitar»/«Desabilitar» da lista das vivas —, e não de um estilo novo.
+
+**A ORDEM DA COLUNA PASSOU A SER A ORDEM DO QUE ESTÁ ESCRITO.** A coluna ordenava por slug e agora
+escreve nomes, e por isso passa a ordenar por nomes: ordenar por uma coisa e mostrar outra faria a
+coluna parecer desarrumada. O `title` dela é **«Ordenar pelas escolas»**, e não «Ordenar por ações» —
+que não quer dizer nada: o título diz o gesto, a ordem diz o facto. Para isso o `thOrdenavel` ganhou um
+parâmetro opcional com o `title` inteiro; na primeira tentativa ele era um sufixo colado a «Ordenar
+por», e saiu **«Ordenar por pelas escolas»** — o defeito a dizer o que é.
+
+**O RESPONSÁVEL VAI NO `title`, e não numa coluna nova.** Ela quer saber de quem cobrar ou contra quem
+acionar («se eles são professores principais, professores titulares donos da escola»), e `e.professor`
+no índice é exactamente essa resposta. É facto, e só aparece onde é verdade: na escola de que esta
+pessoa é responsável.
+
+**O CADASTRO NA LISTA — e ele é lido de onde é escrito.** O documento e os contactos **não estão no
+índice**: o `check-indices` proíbe e-mail e telefone lá, e a ficha da pessoa vive no KV
+(`professores/<slug>/contato`), escrita pela criação da escola e pelo Estúdio — as duas portas que ela
+nomeou. A rota passou a ler essas fichas (`fichasDosProfessores`): **um `get` por professor, em
+paralelo, e nenhuma enumeração** — o `list` é a operação limitada por dia (18/10/2026), e esta página
+não é razão para a gastar. Medido: 31 professores, 31 `get`, 0 `list`.
+
+**O DOCUMENTO É LIDO PELO COMPRIMENTO, E O RÓTULO SAI DO NÚMERO.** «Professor pode ter CNPJ ou CPF,
+tá? Não necessariamente só CPF.» Catorze dígitos são um CNPJ, onze são um CPF — e um `cpf` com catorze
+dígitos, que é o que sai de um campo que aceita os dois, **não é um CPF**. `documentoDoProfessor` põe
+os pontos e o traço (é um número que alguém vai ler para o escrever noutro sítio) e **nunca corrige**
+um número com forma inesperada: mostra-o como está, sem rótulo.
+
+**E O NOME ganhou uma segunda fonte.** O índice tem o nome que a escola declarou; quando ele não
+existe, a ficha da pessoa tem o que ela própria escreveu. É a mesma pessoa, na mesma chave — e a
+célula deixa de dizer «sem nome registado» para quem tem nome no cadastro.
+
+**NO FINANCEIRO, O PROFESSOR É UMA LIGAÇÃO, E O DOCUMENTO SAIU DE LÁ.** A aba «Os dados da escola»
+responde «quem é a escola, e como falo com ela»; o documento da pessoa respondia a uma segunda
+pergunta na mesma célula. `professorCpf` **saiu do feed** (`dadosDasEscolas`), e não só da tela: um
+dado em dois sítios é um dado que vai discordar de si mesmo no dia em que só um for corrigido. O
+e-mail e o telefone do professor **ficam** — essa pergunta é desta aba.
+
+`semDado` e `comoFalar` saíram de dentro de `paginaFinanceira` para o módulo: as duas páginas usam-nas
+agora, e duas cópias divergiriam na primeira vez que uma delas ganhasse uma terceira forma.
+
+**Com o quê.** `motor/servidor/painel-html.js` (`tabelaDeProfessores`, `documentoDoProfessor`,
+`comoFalar`, `semDado`, `thOrdenavel`, `linhaDaFicha`, `paginaDosProfessores`),
+`motor/servidor/raiz.js` (`fichasDosProfessores`, a rota `/professores`, `dadosDasEscolas`),
+`experimentos/provar-painel.js` (secções 6a e 6b novas, e a rota com um KV de bolso) e
+`experimentos/provar-os-dados-da-escola.js` (D2b e C4b).
+
+**MEDIDO.** `provar-painel` **110/110** — e ganhou `--contra=<sha>`, que lhe faltava: contra
+`c7b1ee0f` reprovam **14** asserções, e são exactamente as que descrevem esta mudança (um motor sem
+`tools/` e `biblioteca/` não carrega, e o controle morreu a carregar na primeira tentativa — um
+controle que não corre não prova nada). `provar-os-dados-da-escola` **79/79**. `provar-recriar-escola`
+94/94, `provar-o-financeiro-que-fica` 30/30, `provar-os-restos-do-expurgo` verde,
+`provar-pagina-publica` 79/79, `provar-form-escola` e `provar-painel-do-estudio` verdes,
+`provar-financeiro-da-escola` 129/136 (as mesmas 7 falhas de antes), `check-identidade` **0
+problemas** (23 verificações), `check-indices` 16/16, `check-schemas` verde.
+
+**MEDIDO EM CHROME, com o acervo de produção e escolas vivas montadas.** A 1366, 1280 e 900px: cinco
+colunas, tabela de 900/900/852px sem transbordo, `Ações` com 156px e os botões a 139×45 — dois
+empilhados para o professor de duas escolas —, e **nenhuma rolagem horizontal** na página. Com o
+acervo real de hoje (as quatro escolas estão expurgadas) a página mostra 31 linhas e 31 etiquetas
+«sem escola viva»: é a verdade do índice, e os botões aparecem quando houver escola viva.
+
+**E O QUE NÃO MUDOU, de propósito:** o formulário de criar escola. «na hora do cadastro, continua do
+jeito que está o formulário de criar nova escola do jeito que está, não tem nenhuma alteração nele.»
