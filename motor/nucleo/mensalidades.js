@@ -179,39 +179,23 @@ async function registarPagamento(kv, { escola, mes, valorCentavos, plano, planoN
 }
 
 /**
- * APAGA UMA ESCOLA DO LIVRO — o que o expurgo tem de fazer, e não fazia (17/11/2026).
+ * O LIVRO NÃO SE APAGA QUANDO A ESCOLA É EXPURGADA (23/11/2026, à tarde).
  *
- * O QUE ELA PEDIU, por palavras próprias: «quando você expurgar [a escola] dessa vez, essa parte
- * toda de pagamento e financeiro […] tem que deixar de existir.»
+ * Houve aqui uma `apagarEscolaDoLivro`, escrita a 17/11 com as palavras dela — «essa parte toda de
+ * pagamento e financeiro […] tem que deixar de existir» —, e foi usada até ela ver o resultado:
  *
- * O DEFEITO QUE ISTO CORRIGE, medido. O livro vive em `financeiro/mensalidades` — **uma chave
- * global**, com a lista de todas as escolas —, e o expurgo (`expurgar-escola.js`) apaga por
- * **prefixo**: `<slug>/` e `bastidores/<slug>/`, mais uma lista de chaves fixas. Nenhuma dessas
- * alcança o livro, porque o livro não é da escola: é de todas. Resultado: expurgar uma escola
- * deixava as mensalidades dela na lista, e o Financeiro passava a mostrar a conta de uma escola que
- * já não existe — a receita do parque contava-a, e o `extratoDasEscolas` procurava um contrato
- * ausente.
+ *   «O que não pode sair é a parte financeira. Tem que manter que ela é uma escola que tem um
+ *   histórico de pagamentos e de ações. […] A parte financeira não pode expurgar, ela fica para
+ *   histórico. E aí a gente diz numa linha seguinte que essa escola foi expurgada.»
  *
- * O QUE NÃO SE APAGA. Um mês de OUTRA escola não se toca. E o `atualizadoEm` fica — é o carimbo da
- * última escrita do livro, e a limpeza é uma escrita.
+ * A função saiu em vez de ficar sem chamador: um caminho de escrita que ninguém usa é código morto
+ * que parece vivo, e o próximo que o lesse acreditaria que apagar o livro é um gesto do produto.
  *
- * Devolve quantas linhas saíram, para o expurgo poder dizer o que fez — uma limpeza que não conta o
- * que limpou não se distingue de uma que não correu.
+ * O QUE ESTE MÓDULO PASSA A GARANTIR, e é a metade que faltava: uma escola **sem contrato** — é o
+ * que sobra de uma escola expurgada no KV — continua a ter as suas linhas no extrato, tiradas do
+ * livro. Ver `situacaoDaEscola`: os meses sem contrato são os meses que ela PAGOU, e não uma
+ * contagem de meses a cobrar a partir de uma adesão que já não existe.
  */
-async function apagarEscolaDoLivro(kv, escola) {
-  const slug = String(escola || '').trim();
-  if (!kv || typeof kv.put !== 'function' || !slug) return { ok: false, removidas: 0, erro: 'sem KV ou sem escola' };
-  const lista = await lerLivro(kv);
-  const ficam = lista.filter((l) => l.escola !== slug);
-  const removidas = lista.length - ficam.length;
-  if (!removidas) return { ok: true, removidas: 0 };
-  try {
-    await kv.put(CHAVE, JSON.stringify({ lista: ficam, atualizadoEm: new Date().toISOString() }));
-    return { ok: true, removidas };
-  } catch (erro) {
-    return { ok: false, removidas: 0, erro: (erro && erro.message) || String(erro) };
-  }
-}
 
 /**
  * O RELÓGIO COMPRIMIDO — um período de mensalidade que dura minutos (17/11/2026).
@@ -347,7 +331,20 @@ function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas 
    * vazia em vez de inventar um princípio. */
   const inicio = c.criadoEm || c.habilitadaEm || null;
   const dia = diaDaAdesao(inicio);
-  const meses = inicio ? mesesEntre(inicio, hojeIso) : [];
+  /* SEM CONTRATO, A LINHA DO TEMPO É O LIVRO (23/11/2026, à tarde).
+   *
+   * Uma escola expurgada perde o registo comercial — é o expurgo —, e o que sobra dela é a
+   * `financeiro/mensalidades`: os meses que ela pagou. Contar os meses a partir da adesão deixaria
+   * o extrato dela VAZIO (não há adesão que contar), e ela veria desaparecer exactamente o
+   * histórico que a decisão de hoje manda guardar.
+   *
+   * A REGRA, e ela não inventa nada: sem contrato não há o que cobrar, portanto as únicas linhas
+   * que existem são as que foram PAGAS. Elas vêm do livro, em ordem crescente — a mesma ordem que
+   * a aritmética usa —, e o `valorCentavos` de cada uma já está no registo do pagamento.
+   *
+   * Com contrato nada disto corre: a linha do tempo continua a nascer da adesão, e é ela que
+   * produz os meses em aberto. */
+  const meses = inicio ? mesesEntre(inicio, hojeIso) : Object.keys(pagamentos).sort();
 
   const linhas = meses.map((mes) => {
     const pago = pagamentos[mes] || null;
@@ -613,7 +610,6 @@ module.exports = {
   diaDaAdesao,
   lerLivro,
   registarPagamento,
-  apagarEscolaDoLivro,
   situacaoDaEscola,
   instanteDoEnsaio,
   mesInicialDoEnsaio,

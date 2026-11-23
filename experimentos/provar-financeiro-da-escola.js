@@ -133,10 +133,22 @@ function kvCom(dados) {
       depois.proximoVencimento === '2026-11-16', depois.proximoVencimento);
     conferir('…e os dias até ele são negativos (já passou)', depois.diasParaVencer < 0, depois.diasParaVencer);
 
-    /* SEM CONTRATO DATADO NÃO HÁ COBRANÇA — e a lista fica vazia em vez de inventar um princípio. */
+    /* SEM CONTRATO DATADO NÃO SE INVENTA UM PRINCÍPIO DE COBRANÇA — e, desde 23/11/2026, também
+     * não se esconde o que foi PAGO.
+     *
+     * A asserção de 16/11 dizia «a lista fica vazia», e a regra mudou por decisão dela: uma escola
+     * expurgada perde o contrato e mantém a linha do livro, e o extrato dela tem de mostrar os
+     * meses que pagou. O que continua a valer — e é o que esta asserção guarda — é que sem contrato
+     * datado NÃO se inventa mês nenhum a cobrar: as únicas linhas são as que estão no livro, e
+     * todas pagas. Ver `provar-o-financeiro-que-fica.js`. */
     const semInicio = mensalidades.situacaoDaEscola({ escola: 'teste', contrato: {}, livro, agora: '2026-11-16T12:00:00Z' });
-    conferir('uma escola sem contrato datado não tem mensalidades — e a situação é «aguardando»',
-      semInicio.meses.length === 0 && semInicio.situacao === 'aguardando', semInicio.situacao);
+    conferir('uma escola sem contrato datado não tem mês a cobrar — só os que pagou, e todos pagos',
+      semInicio.meses.length === 3 && semInicio.meses.every((m) => m.status === 'pago')
+        && semInicio.emAberto.length === 0 && semInicio.situacao === 'aguardando',
+      { meses: semInicio.meses.length, abertos: semInicio.emAberto.length, situacao: semInicio.situacao });
+    const semNada = mensalidades.situacaoDaEscola({ escola: 'teste', contrato: {}, livro: [], agora: '2026-11-16T12:00:00Z' });
+    conferir('…e sem contrato nem livro, a lista é vazia de verdade',
+      semNada.meses.length === 0 && semNada.situacao === 'aguardando', semNada.situacao);
     conferir('…e a frase diz isso em palavras, e não «em dia»',
       /Aguardando/.test(mensalidades.fraseDaSituacao(semInicio.situacao)), null);
     /* O LIVRO DE OUTRA ESCOLA NÃO ENTRA NESTE EXTRATO. */

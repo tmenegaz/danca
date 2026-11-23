@@ -569,36 +569,6 @@ function lerJsonc(texto) {
  * `comElo` marcar `pendente: true` e a retomada a encontrar.
  */
 /**
- * O LIVRO DO FINANCEIRO DE UMA ESCOLA, LIMPO — a metade que só a retomada fazia (23/11/2026).
- *
- * O DEFEITO, medido no expurgo da `breu`. `mensalidades.apagarEscolaDoLivro` foi escrito a
- * 17/11/2026 — «quando você expurgar [a escola] essa vez, essa parte toda de pagamento e
- * financeiro […] tem que deixar de existir» — e passou a ser chamado **só** em
- * `POST /api/expurgar-kv`, a rota de retomada. A rota que faz o expurgo de facto
- * (`POST /api/apagar-escola`) nunca o chamou: o livro guarda as mensalidades em UMA chave global
- * (`financeiro/mensalidades`), o expurgo limpa por PREFIXO, e um prefixo não alcança uma chave
- * que é de todas as escolas.
- *
- * Resultado: a escola saía do ar, do repositório e do KV, e o Financeiro continuava a mostrar as
- * mensalidades dela — a receita do parque contava-a. Medido depois do expurgo da `breu`: 7 linhas
- * no livro, **as 7 da `breu`**, e mais nenhuma escola.
- *
- * A limpeza é uma LEITURA-ESCRITA, e é por isso que ela não cabe no `apagarChavesDeEscola`. O
- * resultado vai para o relatório E para o elo: um expurgo que não conta o que limpou não se
- * distingue de um que não correu — e, falhando, tem de deixar pendência para a retomada terminar.
- *
- * Nunca lança: uma falha aqui é um facto do relatório, não uma excepção que mata a rota.
- */
-async function limparOLivroDaEscola(env, slug) {
-  try {
-    const r = await mensalidades.apagarEscolaDoLivro(env && env.PADD_KV, slug);
-    return r && typeof r === 'object' ? r : { ok: true, removidas: 0 };
-  } catch (err) {
-    return { ok: false, removidas: 0, erro: (err && err.message) || String(err) };
-  }
-}
-
-/**
  * A CACHE DO MONITOR NÃO GUARDA ESCOLA QUE JÁ NÃO EXISTE (23/11/2026).
  *
  * Medido no expurgo da `breu`: `monitor/cache` continuou com `"breu": {total:1, bytes:0}` depois de
@@ -629,21 +599,36 @@ function podarChavesDeEscolasMortas(chaves, escolas) {
   return limpo;
 }
 
-function desfechoDoKvParaOElo({ cloudflare, morada, slug, livro }) {
+/**
+ * O FINANCEIRO DE UMA ESCOLA EXPURGADA **NÃO SE APAGA** — é história (23/11/2026, à tarde).
+ *
+ * A REGRA ANTERIOR ERA O CONTRÁRIO, e também era dela: «quando você expurgar [a escola] essa vez,
+ * essa parte toda de pagamento e financeiro […] tem que deixar de existir» (17/11/2026). Cumpriu-se,
+ * e ela viu o resultado e corrigiu: «O que não pode sair é a parte financeira. Tem que manter que
+ * ela é uma escola que tem um histórico de pagamentos e de ações. […] A parte financeira não pode
+ * expurgar, ela fica para histórico. E aí a gente diz numa linha seguinte que essa escola foi
+ * expurgada.»
+ *
+ * O ARGUMENTO QUE FALTAVA, e é de negócio: uma escola que pagou sete meses e depois saiu é RECEITA
+ * QUE EXISTIU. Apagá-la do livro não limpa nada — falsifica o passado da operação, e o mês em que
+ * ela deixou de pagar é justamente a informação que se procura meses depois.
+ *
+ * O QUE SE APAGA E O QUE FICA, e a fronteira é precisa:
+ *   · SAI — o dado que identifica e serve a escola: o contrato, as senhas, as alunas, os
+ *     documentos, o endereço, o Worker. É o expurgo, e é irreversível.
+ *   · FICA — a linha do livro (`financeiro/mensalidades`): mês, valor, quando foi pago, por quem e
+ *     em que plano. É o registo contabilístico, e o painel passa a mostrá-la com a marca de
+ *     «expurgada».
+ *
+ * E O `apagarEscolaDoLivro` SAIU DO NÚCLEO. Ficou sem chamador, e um caminho de escrita que
+ * ninguém chama é código morto que parece vivo: o próximo que o lesse acreditaria que apagar o
+ * livro é um gesto do produto.
+ */
+
+function desfechoDoKvParaOElo({ cloudflare, morada, slug }) {
   const namespaceId = (morada && morada.kvNamespaceId) || null;
   const prefixos = prefixosDaEscola(slug);
   const kv = cloudflare && cloudflare.kv;
-  /* O LIVRO DO FINANCEIRO ENTRA NO MESMO BLOCO (23/11/2026). Ele não vive sob os prefixos da
-   * escola — é uma chave global com a lista de todas —, e por isso a limpeza dele é outro passo e
-   * o desfecho tem de viajar junto: uma escola que sai deixando as mensalidades dela no livro não
-   * foi expurgada. Falhando, `ok:false` marca a pendência e a retomada termina o que faltou. */
-  const comLivro = (bloco) => {
-    if (livro) {
-      bloco.livro = livro;
-      if (livro.ok !== true) bloco.ok = false;
-    }
-    return bloco;
-  };
   if (kv) {
     const bloco = {
       ok: kv.ok === true,
@@ -655,27 +640,11 @@ function desfechoDoKvParaOElo({ cloudflare, morada, slug, livro }) {
     // O PORQUÊ viaja com o elo. Sem ele, a pendência diz «não deu» e deixa a próxima sessão
     // a adivinhar se foi cota, permissão ou rede.
     if (kv.erro) bloco.erro = String(kv.erro);
-    return comLivro(bloco);
+    return bloco;
   }
-  if (!namespaceId) {
-    /* SEM NAMESPACE NÃO HÁ BLOCO DE KV — mas o livro pode ter sido limpo (ou ter falhado), e essa
-     * metade não pode desaparecer por não haver um namespace ao lado. Se ele falhou, a pendência
-     * nasce com o namespace a `null`: a retomada precisa de saber que há trabalho, e é ela que
-     * resolve o resto. */
-    if (livro && livro.ok !== true) {
-      return comLivro({
-        ok: false,
-        apagadas: null,
-        restantes: null,
-        namespaceId: null,
-        prefixos,
-        erro: 'o livro do financeiro não foi limpo: ' + (livro.erro || 'sem motivo registado'),
-      });
-    }
-    return null;
-  }
+  if (!namespaceId) return null;
   const doExpurgo = cloudflare && cloudflare.erro;
-  return comLivro({
+  return {
     ok: false,
     apagadas: null,
     restantes: null,
@@ -684,7 +653,7 @@ function desfechoDoKvParaOElo({ cloudflare, morada, slug, livro }) {
     erro: doExpurgo
       ? 'a metade Cloudflare falhou antes de dizer o das chaves: ' + doExpurgo
       : 'a limpeza do KV não devolveu desfecho — não se sabe o que ficou nas chaves',
-  });
+  };
 }
 
 async function moradaDaEscola({ token, slug, fetchImpl }) {
@@ -3345,7 +3314,7 @@ async function servirAPagina(request, env, { modo }) {
 }
 
 /**
- * O EXTRATO DE CADA ESCOLA VIVA — o que a página do financeiro desenha (16/11/2026).
+ * O EXTRATO DE CADA ESCOLA — o que a página do financeiro desenha (16/11/2026).
  *
  * UMA LEITURA POR ESCOLA, para o registo comercial (`bastidores/<escola>/comercial`), e UMA
  * leitura do livro para todas. É o mesmo perfil de acesso dos descontos: poucas escolas, um ecrã
@@ -3355,14 +3324,27 @@ async function servirAPagina(request, env, { modo }) {
  * `mensalidades.situacaoDaEscola`, e a página limita-se a mostrar o que ela devolve — a mesma
  * função que a escola vê no painel dela. Duas contas da mesma dívida dariam duas respostas, e a que
  * ficasse a valer seria a que ela lesse primeiro.
+ *
+ * AS APAGADAS ENTRAM, E COM A MARCA (23/11/2026, à tarde). «A parte financeira não pode expurgar,
+ * ela fica para histórico. E aí a gente diz numa linha seguinte que essa escola foi expurgada.»
+ *
+ * A lista que chega aqui traz vivas e apagadas, e uma apagada só entra se tiver HISTÓRICO no livro:
+ * uma escola que nunca pagou nada não tem conta a mostrar, e uma linha vazia com o nome de uma
+ * escola que já não existe é ruído. Cada conta leva `expurgada` e a data, e é isso que a página
+ * usa para escrever a linha do estado e para NÃO oferecer as acções de cobrança — não se cobra uma
+ * escola que não existe.
  */
 async function extratoDasEscolas({ env, escolas, agora }) {
   const kv = env && env.PADD_KV;
   const livro = await mensalidades.lerLivro(kv);
+  const temHistorico = new Set((Array.isArray(livro) ? livro : [])
+    .map((l) => String((l && l.escola) || '').trim()).filter(Boolean));
   const lista = [];
   for (const e of Array.isArray(escolas) ? escolas : []) {
     const slug = String((e && e.slug) || '').trim();
     if (!slug) continue;
+    const expurgada = Boolean(e && e.expurgada);
+    if (expurgada && !temHistorico.has(slug)) continue;
     let contrato = null;
     try { contrato = await lerComercial(kv, slug); } catch (erro) { contrato = null; }
     /* O MODO DE ENSAIO TAMBÉM AQUI (17/11/2026) — E A SUA AUSÊNCIA ERA O DEFEITO.
@@ -3395,6 +3377,11 @@ async function extratoDasEscolas({ env, escolas, agora }) {
        * no ecrã a explicar de onde vem. */
       ensaio: ensaio && Number(ensaio.minutosPorPeriodo) > 0 ? ensaio : null,
       temContrato: Boolean(contrato && contrato.plano),
+      /* A MARCA DO EXPURGO, com a data — a «linha seguinte» que ela pediu. Vem do índice do
+       * acervo, que é onde a lista das apagadas também a lê: uma segunda fonte para «foi
+       * expurgada?» responderia à mesma pergunta com outra data. */
+      expurgada,
+      expurgadaEm: expurgada ? ((e && e.expurgada_em) || null) : null,
     }));
   }
   return lista;
@@ -3862,8 +3849,13 @@ async function fetch(request, env) {
       const vivas = (escolas || []).filter((e) => !e.expurgada);
       /* O EXTRATO E O CATÁLOGO (16/11/2026). O catálogo vai junto porque o formulário do contrato
        * tem de oferecer os planos e os lotes que EXISTEM — e a fonte deles é o JSON comercial, não
-       * uma lista copiada para a página. */
-      const extrato = await extratoDasEscolas({ env, escolas: vivas });
+       * uma lista copiada para a página.
+       *
+       * O EXTRATO LEVA A LISTA INTEIRA, E O `<select>` DO DESCONTO NÃO (23/11/2026, à tarde): a
+       * conta de uma escola expurgada é história e tem de aparecer; um desconto para uma escola que
+       * já não existe não é uma oferta, é um erro à espera de ser cometido. Duas listas porque são
+       * duas perguntas: «o que entrou?» e «a quem posso conceder?». */
+      const extrato = await extratoDasEscolas({ env, escolas: escolas || [] });
       return painel.resposta(painel.paginaFinanceira({
         pix, descontos, escolas: vivas, extrato, catalogo: comercial.catalogoDaPagina(),
       }));
@@ -4746,18 +4738,16 @@ async function fetch(request, env) {
       relatorio.cloudflare = { erro: (err && err.message) || String(err), morada };
     }
 
-    // 3-bis. O LIVRO DO FINANCEIRO, QUE O PREFIXO NÃO ALCANÇA (23/11/2026).
-    //
-    // A limpeza da escola por prefixo não toca em `financeiro/mensalidades`: é UMA chave com a
-    // lista de TODAS as escolas. Sem este passo, a escola sai do ar, do repositório e do KV e as
-    // mensalidades dela continuam no Financeiro. Ver `limparOLivroDaEscola`.
-    //
-    // DEPOIS DO CLOUDFLARE E ANTES DO REPOSITÓRIO, de propósito: o resultado precisa de entrar no
-    // elo que este mesmo commit grava. E o cartão de despedida lê o desfecho, não o relatório —
-    // uma carta que dissesse «removida completamente» sobre um livro que ainda tem a escola seria
-    // uma carta falsa.
-    const livroDoExpurgo = await limparOLivroDaEscola(env, slug);
-    relatorio.livro = livroDoExpurgo;
+    /* 3-bis. O LIVRO DO FINANCEIRO **NÃO SE TOCA** (23/11/2026, à tarde).
+     *
+     * A limpeza da escola por prefixo não alcança `financeiro/mensalidades` — é uma chave com a
+     * lista de TODAS as escolas —, e é assim que deve ser: a linha do livro é o registo
+     * contabilístico, e é o que sobrevive para dizer que aquela escola pagou, quanto e até quando.
+     * O que se apaga é o dado que a serve; o que ela pagou é história da operação.
+     *
+     * Este passo existiu ao contrário durante uma tarde. Ver o cabeçalho de
+     * `desfechoDoKvParaOElo` para o que a levou a corrigir, e o `REGISTRO.md` de 23/11/2026.
+     */
 
     // 4. O REPOSITÓRIO. O desfecho do KV vai JUNTO: se a limpeza das chaves não se completou,
     // a pendência fica gravada no elo do expurgo — e é de lá que a retomada a lê, quando a
@@ -4766,9 +4756,7 @@ async function fetch(request, env) {
     // O DESFECHO SAI DE `desfechoDoKvParaOElo`, e não de um `?:` sobre `cloudflare.kv`
     // (01/11/2026): o `?:` devolvia `null` quando a metade Cloudflare LANÇAVA, e o elo ficava
     // sem bloco `kv` — indistinguível de «não havia o que limpar». Ver a função.
-    const desfechoKv = desfechoDoKvParaOElo({
-      cloudflare: relatorio.cloudflare, morada, slug, livro: livroDoExpurgo,
-    });
+    const desfechoKv = desfechoDoKvParaOElo({ cloudflare: relatorio.cloudflare, morada, slug });
     try {
       relatorio.repositorio = await apagarEscolaDoRepo({
         token: ghToken, dono: DONO, repo: REPO, ref: REF, slug, confirmacao, motivo,
@@ -4793,13 +4781,7 @@ async function fetch(request, env) {
     // E a conta passa a ser a do DESFECHO (01/11/2026), não a de `cloudflare.kv`: com a
     // metade Cloudflare lançada, `cloudflare.kv` é `undefined`, `kvFalhou` era `false` e a
     // rota respondia `ok: true` sobre chaves que ninguém tinha tocado.
-    // E O LIVRO DO FINANCEIRO ENTRA NA MESMA CONTA (23/11/2026): ele está no `desfechoKv` quando há
-    // bloco de KV, mas uma escola sem namespace declarado não tem bloco — e a limpeza do livro
-    // pode ter falhado sem que ninguém o visse. A pergunta é feita ao resultado, e não ao bloco.
-    const kvFalhou = Boolean(
-      (desfechoKv && desfechoKv.ok === false)
-      || (relatorio.livro && relatorio.livro.ok !== true)
-    );
+    const kvFalhou = Boolean(desfechoKv && desfechoKv.ok === false);
     const ok = noRepositorio && !kvFalhou;
 
     /* 5. AS DUAS CARTAS, DEPOIS DE A ESCOLA SAIR (16/11/2026).
@@ -4915,21 +4897,12 @@ async function fetch(request, env) {
         prefixo: null,
         slug,
       });
-      /* ── E O LIVRO DO FINANCEIRO, QUE O PREFIXO NÃO ALCANÇA (17/11/2026) ──────────────────
+      /* ── E O LIVRO DO FINANCEIRO NÃO ENTRA AQUI, DE PROPÓSITO (23/11/2026, à tarde) ───────
        *
-       * «Quando você expurgar [a escola] dessa vez, essa parte toda de pagamento e financeiro […]
-       * tem que deixar de existir.»
-       *
-       * A limpeza mora em `limparOLivroDaEscola` desde 23/11/2026 — a MESMA função que a rota
-       * principal do expurgo passou a chamar. Aqui ela existia sozinha, e por isso o expurgo
-       * normal deixava as mensalidades no livro; duas cópias da mesma limpeza divergiriam na
-       * primeira correcção.
-       *
-       * O resultado entra no mesmo `kv` que a retomada grava, num campo próprio — um expurgo que
-       * não conta o que limpou não se distingue de um que não correu. */
-      const doLivro = await limparOLivroDaEscola(env, slug);
-      kv.livro = doLivro;
-      if (doLivro.ok !== true) kv.ok = false;
+       * Ele esteve, entre 17 e 23/11: esta retomada apagava as linhas da escola no livro das
+       * mensalidades. A regra mudou — «A parte financeira não pode expurgar, ela fica para
+       * histórico» —, e o que a retomada termina é a limpeza das CHAVES da escola, e mais nada.
+       * A linha do livro não é chave da escola: é o registo do que ela pagou. */
     } catch (err) {
       kv = { ok: false, erro: (err && err.message) || String(err) };
     }
@@ -4994,7 +4967,7 @@ module.exports = {
    * financeiro, que é uma chave de todas as escolas, e a cache do monitor, que só acrescentava —
    * foram corrigidas por medição: a `breu` saiu e as duas continuaram a falar dela. Exportadas
    * porque são REGRA e a prova tem de as afirmar sem subir o Worker. */
-  limparOLivroDaEscola, podarChavesDeEscolasMortas,
+  podarChavesDeEscolasMortas,
   // AS DUAS PORTAS E O QUE AS SEPARA (25/11/2026). Exportadas porque são a REGRA que a prova tem
   // de medir sem um Worker à frente: «este pedido é do público ou do proprietário?» decide o que
   // se serve e o que se recusa, e uma regra que só se testa em produção descobre-se em produção.

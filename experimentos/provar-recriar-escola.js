@@ -662,7 +662,13 @@ const LOTE_ALUNO = comercial.catalogoDaPagina().lotes.alunos[0].qtd;
       professores: [],
       catalogo,
     });
-    conferir('a coluna «Recriar» existe, e é a última', /<th>Recriar<\/th><\/tr><\/thead>/.test(html), null);
+    /* A COLUNA CHAMA-SE «AÇÕES» (23/11/2026) — o nome de uma coluna não é o rótulo do único botão
+     * que ela tem hoje. Medido: «Recriar» nomeava a coluna, e ela corrigiu: «a última coluna tem que
+     * se chamar ação. Ações, né? […] é ações no plural». */
+    conferir('a coluna «Ações» existe, e é a última',
+      /<th>Ações<\/th><\/tr><\/thead>/.test(html), null);
+    conferir('…e «Recriar» deixou de ser o nome da coluna (é o do botão)',
+      !/<th>Recriar<\/th>/.test(html), null);
     conferir('…e há um botão por escola apagada', (html.match(/data-recriar="/g) || []).length === 1, null);
     conferir('a confirmação é uma janela (`.modal`) do ENVIO, e não do cadastro',
       /id="recriar-modal"/.test(html) && /Convidar a escola a voltar/.test(html), null);

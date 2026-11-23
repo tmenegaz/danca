@@ -445,7 +445,12 @@ function tabelaDeEscolas(escolas, modo, ordem, professores) {
       '<th>Acesso</th>');
   }
   colunas.push('<th>Estado</th>');
-  if (recorte !== 'vivas') colunas.push('<th>Registo</th>', '<th>Recriar</th>');
+  /* A COLUNA CHAMA-SE «AÇÕES», NO PLURAL (23/11/2026). Ela nomeava-se «Recriar» — o rótulo do
+   * único botão que tinha —, e o nome de uma acção não é o nome de uma coluna: hoje há um botão,
+   * amanhã há dois, e o cabeçalho teria de mudar outra vez. O plural é o padrão da casa (o «Ações»
+   * da Área do Professor, o da tabela da música do exercício), e é o que ela pediu por palavras:
+   * «a última coluna tem que se chamar ação. Ações, né? […] é ações no plural». */
+  if (recorte !== 'vivas') colunas.push('<th>Registo</th>', '<th>Ações</th>');
 
   /* A LISTA É PAGINADA — a regra da casa, e não uma tabela que cresce. Com treze escolas a
    * tabela ainda cabe; com as que ela criar em dois anos, não. A `.paginas` é a MESMA peça das
@@ -1592,11 +1597,23 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
      * se lê a chave outra vez aqui: duas leituras do mesmo estado dão duas respostas no dia em que
      * uma delas falhar. */
     const emEnsaio = Boolean(c.ensaio) && Number(c.ensaio.minutosPorPeriodo) > 0;
-    const seloDaEscola = c.estadoComercial === 'ativa'
-      ? '<span class="selo ok">habilitada</span>'
-      : (c.estadoComercial === 'suspensa'
-        ? '<span class="selo falha">desabilitada</span>'
-        : '<span class="selo discreto">a aguardar</span>');
+    /* A ESCOLA EXPURGADA TAMBÉM ESTÁ AQUI, E NÃO SE COBRA (23/11/2026, à tarde).
+     *
+     * «A parte financeira não pode expurgar, ela fica para histórico. E aí a gente diz numa linha
+     * seguinte que essa escola foi expurgada.»
+     *
+     * O que fica é o registo: os meses, os valores, quem pagou e quando. O que sai são as ACÇÕES —
+     * não se informa um pagamento de uma escola que já não existe, não se muda o contrato dela, não
+     * se liga um ensaio. Um botão que grava sobre um registo comercial inexistente criaria um
+     * contrato novo para uma escola morta. */
+    const expurgada = c.expurgada === true;
+    const seloDaEscola = expurgada
+      ? '<span class="selo discreto">expurgada</span>'
+      : (c.estadoComercial === 'ativa'
+        ? '<span class="selo ok">habilitada</span>'
+        : (c.estadoComercial === 'suspensa'
+          ? '<span class="selo falha">desabilitada</span>'
+          : '<span class="selo discreto">a aguardar</span>'));
     const linhas = meses.map((m) => '<tr data-mes="' + esc(m.mes) + '">' +
       '<td><strong>' + esc(m.nome || m.mes) + '</strong></td>' +
       '<td>' + seloDaEscola + '</td>' +
@@ -1610,16 +1627,20 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
           : '<span class="selo discreto">a vencer</span>')) + '</td>' +
       '<td>' + (m.status === 'pago'
         ? (m.planoNome ? esc(m.planoNome) : '—')
-        : '<button class="acao pequena" type="button" data-pagar="' + esc(c.escola) + '"'
-          + ' data-mes="' + esc(m.mes) + '">Marcar pago</button>') + '</td>' +
+        : (expurgada
+          ? '<span class="sub">—</span>'
+          : '<button class="acao pequena" type="button" data-pagar="' + esc(c.escola) + '"'
+            + ' data-mes="' + esc(m.mes) + '">Marcar pago</button>')) + '</td>' +
       '</tr>').join('');
 
     const corpoDaTabela = linhas
       ? '<div class="rolagem-caixa"><table><thead><tr><th>Mês</th><th>Escola</th>' +
         '<th>Vencimento</th><th>Valor</th><th>Situação</th><th>Pago / ação</th>' +
         '</tr></thead><tbody>' + linhas + '</tbody></table></div>'
-      : '<p class="aviso">Ainda não há mensalidade a cobrar desta escola — a contagem começa ' +
-        'quando ela é criada. Uma lista vazia quer dizer isso, e não que a leitura falhou.</p>';
+      : (expurgada
+        ? ''
+        : '<p class="aviso">Ainda não há mensalidade a cobrar desta escola — a contagem começa ' +
+          'quando ela é criada. Uma lista vazia quer dizer isso, e não que a leitura falhou.</p>');
 
     /* O QUE SAIU DAQUI A 17/11/2026 (17/11/2026): a frase «+3 professor(es) (R$ 50,00) e +30
      * aluna(s) (R$ 50,00)», o piso, o teto e o «gente». Ela foi directa: «Ah, entendi. Então quer
@@ -1636,14 +1657,31 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
      * escola a página é uma página; com vinte, o extrato de cada uma aberto é uma parede. O
      * `<details>` é a peça que a casa já usa para dobrar, e o resumo fica à vista com o que basta
      * para reconhecer a escola: o nome, o plano e a situação. */
+    /* A LINHA SEGUINTE — é assim que ela pediu, e é literal: «a gente diz numa linha seguinte que
+     * essa escola foi expurgada». Fica DEPOIS do nome e do plano, no corpo do cartão, para quem
+     * abre o extrato dela meses depois não ter de deduzir de um selo o que aconteceu. */
+    const linhaDoExpurgo = expurgada
+      ? '<p class="aviso"><strong>Escola expurgada'
+        + (c.expurgadaEm ? ' em ' + esc(quando(c.expurgadaEm)) : '')
+        + '.</strong> O histórico de pagamentos fica — é a receita que existiu. Saíram do sistema '
+        + 'o contrato, as senhas, as alunas e os documentos, e por isso não há aqui o que cobrar '
+        + 'nem o que alterar.</p>'
+      : '';
     return '<details class="acordeao" open data-conta="' + esc(c.escola) + '">' +
       '<summary><strong>' + esc(c.nome || c.escola) + '</strong> '
       + '<span class="dono">(' + esc(c.escola) + ')</span> '
       + '<span class="selo discreto">' + esc(c.planoNome || '—') + '</span> '
-      + '<span class="selo ' + (c.situacao === 'em-aberto' ? 'falha' : (c.situacao === 'em-dia' ? 'ok' : 'discreto'))
-      + '">' + esc(c.situacao === 'em-aberto' ? 'em aberto' : (c.situacao === 'em-dia' ? 'pago' : 'a aguardar'))
-      + '</span></summary>' +
-      '<p>' + esc(c.frase || '')
+      + (expurgada
+        ? '<span class="selo discreto">expurgada</span>'
+        : '<span class="selo ' + (c.situacao === 'em-aberto' ? 'falha' : (c.situacao === 'em-dia' ? 'ok' : 'discreto'))
+          + '">' + esc(c.situacao === 'em-aberto' ? 'em aberto' : (c.situacao === 'em-dia' ? 'pago' : 'a aguardar'))
+          + '</span>') + '</summary>' +
+      linhaDoExpurgo +
+      /* A FRASE DA COBRANÇA NÃO SE DIZ A UMA ESCOLA EXPURGADA (23/11/2026, à tarde): ela fala de
+       * vencimento e de mês em aberto, e de uma escola que já não existe isso não é informação —
+       * é ruído com aparência de conta. Quem lê o extrato dela quer o histórico, e o histórico
+       * está na tabela. */
+      (expurgada ? '' : '<p>' + esc(c.frase || '')
       /* O AVISO DO ENSAIO TAMBÉM NO PAINEL (17/11/2026). Os meses que aqui aparecem passam a ser os
        * que a escola vê — e em 17/11 de 2026 «dezembro» não existe. Sem esta linha, quem concilia
        * veria meses futuros a mais e não saberia de onde vêm; com ela, sabe que são de ensaio e
@@ -1651,7 +1689,7 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
       + (emEnsaio
         ? ' <span class="selo discreto">em ensaio: ' + esc(String(c.ensaio.minutosPorPeriodo))
           + ' min por período</span>' : '')
-      + '</p>' +
+      + '</p>') +
       '<div class="ficha">' +
       '<span>Plano: <strong>' + esc(c.planoNome || '—') + '</strong></span>' +
       '<span>Mensalidade: <strong>' + (c.valorCentavos ? 'R$ ' + emReais(c.valorCentavos) : '—') + '</strong></span>' +
@@ -1684,89 +1722,94 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
         : '') +
       '</div>' +
       corpoDaTabela +
-      /* INFORMAR UM PAGAMENTO — O CAMPO QUE FALTAVA (17/11/2026).
-       *
-       * «Pedi para parar porque você não colocou a conciliação no financeiro do
-       * danca.padd.com.br. Por isso não consegui informar o pagamento.»
-       *
-       * O BOTÃO DE CADA LINHA só existe para um mês QUE JÁ ESTÁ no extrato. Quando o mês que a
-       * escola está a pagar ainda não nasceu do lado de quem concilia — um pagamento adiantado, ou
-       * um mês que o relógio de ensaio abriu — não havia linha, logo não havia botão, e não havia
-       * caminho nenhum. Este campo é o caminho: escolhe-se o mês, e ele é registado com o valor e o
-       * plano do contrato em vigor — a mesma conta do servidor, não uma segunda.
-       *
-       * ELE NÃO SUBSTITUI O BOTÃO DA LINHA: os dois chamam a mesma rota. O botão da linha é o
-       * gesto rápido do caso comum; o campo é a saída quando o mês não está à vista.
-       *
-       * O `type="month"` é o campo nativo, e o seu valor é `AAAA-MM` — exactamente a competência
-       * que o livro guarda. Um campo de texto livre obrigaria a validar o formato à mão, e o
-       * formato é a única coisa que este campo tem de acertar. */
-      '<div class="caixa filtrar">' +
-      '<div class="campo-filtro">' +
-      '<label class="campo-rotulo" for="pagar-mes-' + esc(c.escola) + '">Informar um pagamento — ' +
-      'mês</label>' +
-      '<input id="pagar-mes-' + esc(c.escola) + '" type="month" data-pagamento-mes="' +
-      esc(c.escola) + '" value="' + esc(c.mesDeHoje || '') + '">' +
-      '</div>' +
-      '<button type="button" class="acao" data-pagamento-gravar="' + esc(c.escola) + '">' +
-      'Marcar como pago</button>' +
-      '</div>' +
-      '<p class="aviso" data-pagamento-recado="' + esc(c.escola) + '" hidden></p>' +
-      /* O ENSAIO — LIGAR E DESLIGAR AQUI, E NÃO NA PÁGINA DA ESCOLA (17/11/2026).
-       *
-       * «O botão de ativar ou desativar o ensaio deve ficar no danca.padd.com.br/financeiro e o
-       * tempo deve ser de 10 minutos para cada mês. Eu ativo e desativo.»
-       *
-       * O CONTROL É DE QUEM CONCILIA. Ele nasceu do outro lado, na página da escola, e o argumento
-       * era a saída de emergência — que cai quando a saída passa a ser um botão aqui. O que fica a
-       * valer é o contrário: um ensaio que a escola desliga não é um ensaio que a operação
-       * controla. A página da escola continua a DIZER que está em ensaio; deixa de o poder mudar.
-       *
-       * UM BOTÃO SÓ, QUE MUDA DE RÓTULO, e não dois: dois botões em que um está sempre inerte
-       * obrigam a ler os dois para saber em que estado se está. O rótulo diz o tempo (dez minutos)
-       * porque é isso que a pessoa precisa de saber antes de carregar. */
-      '<div class="caixa filtrar">' +
-      '<p class="campo-filtro"><span class="campo-rotulo">Relógio de ensaio</span>' +
-      '<span class="sub">' + (emEnsaio
-        ? 'ligado — cada período vale ' + esc(String(c.ensaio.minutosPorPeriodo)) + ' min, '
-          + 'e os meses que aqui aparecem são de ensaio'
-        : 'desligado — a cobrança é mensal') + '</span></p>' +
-      '<button type="button" class="acao ' + (emEnsaio ? 'secundario' : '') + '" ' +
-      (emEnsaio ? 'data-ensaio-desligar' : 'data-ensaio-ligar') + '="' + esc(c.escola) + '">' +
-      (emEnsaio ? 'Desligar o ensaio'
-        : 'Ligar o ensaio — ' + ENSAIO_PADRAO_MINUTOS + ' minutos por mês') + '</button>' +
-      '</div>' +
-      '<p class="aviso" data-ensaio-recado="' + esc(c.escola) + '" hidden></p>' +
-      /* O CONTRATO — upgrade, downgrade ou o mesmo plano com outra capacidade. As três coisas que
-       * ela pediu: «eu posso fazer upgrade ou downgrade, e posso fazer a mesma coisa na capacidade,
-       * upgrade ou downgrade ou nenhuma capacidade extra». */
-      '<details class="acordeao"><summary>Mudar o plano ou a franquia</summary>' +
-      '<div class="col-form" data-contrato="' + esc(c.escola) + '">' +
-      '<p><label class="campo-rotulo" for="plano-' + esc(c.escola) + '">Plano</label>' +
-      '<select id="plano-' + esc(c.escola) + '" data-contrato-plano>' + opcoesDoPlano(c.plano)
-      + '</select></p>' +
-      /* OS PACOTES DE AULAS — o eixo comercial de hoje (§ADITIVO §5). Cada um soma à franquia do
-       * plano e entra na mesma mensalidade, porque a extensão é recorrente e «somar-se à franquia
-       * do plano em cada renovação mensal». O rótulo diz as aulas e o preço; a regra que fixou os
-       * preços (a aula da extensão custa mais do que a do plano de cima) está no `planos.json`. */
-      '<fieldset class="escolhas"><legend class="campo-rotulo">Pacotes de aulas (na ' +
-      'mensalidade)</legend>' + caixasDePacote(c.pacotes) + '</fieldset>' +
-      /* OS LOTES DE GENTE SAÍRAM DO FORMULÁRIO (17/11/2026). «Aquele adicional antigo por lote
-       * legado que já não se vende mais, a gente também vai tirar.» Eles ficaram aqui uma tarde —
-       * o tempo de um contrato antigo poder ser reproduzido —, e ela decidiu: sai. Um campo que já
-       * não se vende, num formulário de contrato, é um convite a vendê-lo outra vez.
-       *
-       * O QUE ACONTECE A UM CONTRATO ANTIGO: os `lotesProfessores`/`lotesAlunos` que ele guarda
-       * continuam no registo (a história não se apaga), e deixam de ser reenviados quando o
-       * contrato é gravado — porque o formulário já não os tem. É a consequência declarada de os
-       * retirar, e a única escola com eles é de teste. */
-      '<p><button class="acao" type="button" data-contrato-gravar="' + esc(c.escola) + '">' +
-      'Gravar o contrato</button></p>' +
-      '<p class="aviso" data-contrato-recado hidden></p>' +
-      '<p class="sub">O mês em curso não muda por isto: o extrato guarda o que foi cobrado em cada ' +
-      'mês, e o plano novo vale a partir da próxima mensalidade.</p>' +
-      '</div></details>' +
-      '</details>';
+      /* AS ACÇÕES DE COBRANÇA NÃO EXISTEM NUMA ESCOLA EXPURGADA (23/11/2026, à tarde):
+       * informar pagamento, ligar o ensaio e mudar o contrato gravam sobre o registo
+       * comercial, e uma escola expurgada perdeu-o no expurgo. O botão gravaria um contrato
+       * novo para uma escola que já não existe — e o extrato dela passaria a ter meses a
+       * cobrar sobre um pagamento que ninguém vai fazer. */
+      (expurgada ? '' :
+        /* INFORMAR UM PAGAMENTO — O CAMPO QUE FALTAVA (17/11/2026).
+         *
+         * «Pedi para parar porque você não colocou a conciliação no financeiro do
+         * danca.padd.com.br. Por isso não consegui informar o pagamento.»
+         *
+         * O BOTÃO DE CADA LINHA só existe para um mês QUE JÁ ESTÁ no extrato. Quando o mês que a
+         * escola está a pagar ainda não nasceu do lado de quem concilia — um pagamento adiantado, ou
+         * um mês que o relógio de ensaio abriu — não havia linha, logo não havia botão, e não havia
+         * caminho nenhum. Este campo é o caminho: escolhe-se o mês, e ele é registado com o valor e o
+         * plano do contrato em vigor — a mesma conta do servidor, não uma segunda.
+         *
+         * ELE NÃO SUBSTITUI O BOTÃO DA LINHA: os dois chamam a mesma rota. O botão da linha é o
+         * gesto rápido do caso comum; o campo é a saída quando o mês não está à vista.
+         *
+         * O `type="month"` é o campo nativo, e o seu valor é `AAAA-MM` — exactamente a competência
+         * que o livro guarda. Um campo de texto livre obrigaria a validar o formato à mão, e o
+         * formato é a única coisa que este campo tem de acertar. */
+        '<div class="caixa filtrar">' +
+        '<div class="campo-filtro">' +
+        '<label class="campo-rotulo" for="pagar-mes-' + esc(c.escola) + '">Informar um pagamento — ' +
+        'mês</label>' +
+        '<input id="pagar-mes-' + esc(c.escola) + '" type="month" data-pagamento-mes="' +
+        esc(c.escola) + '" value="' + esc(c.mesDeHoje || '') + '">' +
+        '</div>' +
+        '<button type="button" class="acao" data-pagamento-gravar="' + esc(c.escola) + '">' +
+        'Marcar como pago</button>' +
+        '</div>' +
+        '<p class="aviso" data-pagamento-recado="' + esc(c.escola) + '" hidden></p>' +
+        /* O ENSAIO — LIGAR E DESLIGAR AQUI, E NÃO NA PÁGINA DA ESCOLA (17/11/2026).
+         *
+         * «O botão de ativar ou desativar o ensaio deve ficar no danca.padd.com.br/financeiro e o
+         * tempo deve ser de 10 minutos para cada mês. Eu ativo e desativo.»
+         *
+         * O CONTROL É DE QUEM CONCILIA. Ele nasceu do outro lado, na página da escola, e o argumento
+         * era a saída de emergência — que cai quando a saída passa a ser um botão aqui. O que fica a
+         * valer é o contrário: um ensaio que a escola desliga não é um ensaio que a operação
+         * controla. A página da escola continua a DIZER que está em ensaio; deixa de o poder mudar.
+         *
+         * UM BOTÃO SÓ, QUE MUDA DE RÓTULO, e não dois: dois botões em que um está sempre inerte
+         * obrigam a ler os dois para saber em que estado se está. O rótulo diz o tempo (dez minutos)
+         * porque é isso que a pessoa precisa de saber antes de carregar. */
+        '<div class="caixa filtrar">' +
+        '<p class="campo-filtro"><span class="campo-rotulo">Relógio de ensaio</span>' +
+        '<span class="sub">' + (emEnsaio
+          ? 'ligado — cada período vale ' + esc(String(c.ensaio.minutosPorPeriodo)) + ' min, '
+            + 'e os meses que aqui aparecem são de ensaio'
+          : 'desligado — a cobrança é mensal') + '</span></p>' +
+        '<button type="button" class="acao ' + (emEnsaio ? 'secundario' : '') + '" ' +
+        (emEnsaio ? 'data-ensaio-desligar' : 'data-ensaio-ligar') + '="' + esc(c.escola) + '">' +
+        (emEnsaio ? 'Desligar o ensaio'
+          : 'Ligar o ensaio — ' + ENSAIO_PADRAO_MINUTOS + ' minutos por mês') + '</button>' +
+        '</div>' +
+        '<p class="aviso" data-ensaio-recado="' + esc(c.escola) + '" hidden></p>' +
+        /* O CONTRATO — upgrade, downgrade ou o mesmo plano com outra capacidade. As três coisas que
+         * ela pediu: «eu posso fazer upgrade ou downgrade, e posso fazer a mesma coisa na capacidade,
+         * upgrade ou downgrade ou nenhuma capacidade extra». */
+        '<details class="acordeao"><summary>Mudar o plano ou a franquia</summary>' +
+        '<div class="col-form" data-contrato="' + esc(c.escola) + '">' +
+        '<p><label class="campo-rotulo" for="plano-' + esc(c.escola) + '">Plano</label>' +
+        '<select id="plano-' + esc(c.escola) + '" data-contrato-plano>' + opcoesDoPlano(c.plano)
+        + '</select></p>' +
+        /* OS PACOTES DE AULAS — o eixo comercial de hoje (§ADITIVO §5). Cada um soma à franquia do
+         * plano e entra na mesma mensalidade, porque a extensão é recorrente e «somar-se à franquia
+         * do plano em cada renovação mensal». O rótulo diz as aulas e o preço; a regra que fixou os
+         * preços (a aula da extensão custa mais do que a do plano de cima) está no `planos.json`. */
+        '<fieldset class="escolhas"><legend class="campo-rotulo">Pacotes de aulas (na ' +
+        'mensalidade)</legend>' + caixasDePacote(c.pacotes) + '</fieldset>' +
+        /* OS LOTES DE GENTE SAÍRAM DO FORMULÁRIO (17/11/2026). «Aquele adicional antigo por lote
+         * legado que já não se vende mais, a gente também vai tirar.» Eles ficaram aqui uma tarde —
+         * o tempo de um contrato antigo poder ser reproduzido —, e ela decidiu: sai. Um campo que já
+         * não se vende, num formulário de contrato, é um convite a vendê-lo outra vez.
+         *
+         * O QUE ACONTECE A UM CONTRATO ANTIGO: os `lotesProfessores`/`lotesAlunos` que ele guarda
+         * continuam no registo (a história não se apaga), e deixam de ser reenviados quando o
+         * contrato é gravado — porque o formulário já não os tem. É a consequência declarada de os
+         * retirar, e a única escola com eles é de teste. */
+        '<p><button class="acao" type="button" data-contrato-gravar="' + esc(c.escola) + '">' +
+        'Gravar o contrato</button></p>' +
+        '<p class="aviso" data-contrato-recado hidden></p>' +
+        '<p class="sub">O mês em curso não muda por isto: o extrato guarda o que foi cobrado em cada ' +
+        'mês, e o plano novo vale a partir da próxima mensalidade.</p>')
+      + '</details>';
   };
 
   /* AS CONTAS, EMPILHADAS E PAGINADAS (16/11/2026). «A gente vai ter o Breu e depois o Calango e

@@ -1583,13 +1583,15 @@ experimentos/modelo-formulario/*
 # — a prova reprova 23 de 39.
 !experimentos/provar-a-franquia-de-aulas.js
 
-# O EXPURGO DO FINANCEIRO (17/11/2026). «Quando você expurgar [a escola] dessa vez, essa parte toda
-# de pagamento e financeiro […] tem que deixar de existir.» O livro das mensalidades vive em UMA
-# chave global (`financeiro/mensalidades`), e o expurgo apaga por PREFIXO — logo nunca o alcançava:
-# as mensalidades de uma escola expurgada ficavam na lista, o Financeiro mostrava a conta de uma
-# escola que já não existe e a receita do parque contava-a. A prova mede a limpeza, a fronteira
-# entre `breu` e `breu-rosa` (igualdade do slug, não prefixo), e que a rota do expurgo a CHAMA.
-!experimentos/provar-o-expurgo-do-financeiro.js
+# O FINANCEIRO QUE FICA (23/11/2026, à tarde). A regra de 17/11 era o contrário — expurgar a escola
+# levava as mensalidades dela —, e ela corrigiu: «A parte financeira não pode expurgar, ela fica
+# para histórico. E aí a gente diz numa linha seguinte que essa escola foi expurgada.» O livro vive
+# em UMA chave global (`financeiro/mensalidades`), e o expurgo apaga por PREFIXO: a linha do livro
+# sobrevive por construção, e o que faltava era o painel MOSTRÁ-LA. A prova mede os meses de uma
+# escola sem contrato (vêm do livro, não de uma adesão que já não existe), a expurgada que entra no
+# extrato com a marca e a que fica de fora por não ter histórico, e o cartão sem as acções de
+# cobrança. Com controlo contra o código de antes, onde o extrato dela ficava vazio.
+!experimentos/provar-o-financeiro-que-fica.js
 
 # A ESCOLA QUE NASCE (17/11/2026). «Quando eu nascer a escola nova já vai estar certo? É isso que você
 # está me dizendo? Preciso saber disso.» É uma pergunta de sim ou não, e só se responde medindo: a

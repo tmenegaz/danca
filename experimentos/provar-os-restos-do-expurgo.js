@@ -203,86 +203,39 @@ const script = scriptDoPasso(textoDoWorkflow);
     fs.rmSync(dir, { recursive: true, force: true });
   }
 
-  console.log('');
-  console.log('B. O LIVRO DO FINANCEIRO — uma chave de todas as escolas que o prefixo não alcança');
-  const limpar = raiz.limparOLivroDaEscola;
-  provar('B0. a limpeza do livro existe e é uma função', typeof limpar === 'function');
-  if (typeof limpar === 'function') {
-    // B1. O caso medido: só a expurgada sai.
-    {
-      const kv = kvDeBolso({
-        [LIVRO]: livroCom([linha('breu', '2026-11'), linha('breu', '2026-12'), linha('outra', '2026-11')]),
-      });
-      const r = await limpar({ PADD_KV: kv }, 'breu');
-      const ficou = lerLivroDe(kv);
-      provar('B1. as duas linhas da expurgada saem', r.ok === true && r.removidas === 2, r);
-      provar('B1. a linha da OUTRA escola não é tocada',
-        ficou.lista.length === 1 && ficou.lista[0].escola === 'outra', ficou.lista);
-      provar('B1. o carimbo do livro é reescrito com a limpeza (a limpeza é uma escrita)',
-        ficou.atualizadoEm !== '2026-11-17T19:47:31.649Z', ficou.atualizadoEm);
-    }
-    // B2. Livro sem a escola: nada a fazer, e não é falha.
-    {
-      const kv = kvDeBolso({ [LIVRO]: livroCom([linha('outra', '2026-11')]) });
-      const r = await limpar({ PADD_KV: kv }, 'breu');
-      provar('B2. livro sem a escola: removidas 0 e ok — não se inventa trabalho',
-        r.ok === true && r.removidas === 0, r);
-      provar('B2. e o livro fica como estava',
-        lerLivroDe(kv).lista.length === 1, lerLivroDe(kv).lista);
-    }
-    // B3. Sem KV: a resposta diz que NÃO limpou. «Não havia» e «não consegui» não são o mesmo.
-    {
-      const r = await limpar({}, 'breu');
-      provar('B3. sem KV a resposta é ok:false — e não um silêncio que parece sucesso',
-        r.ok === false && Boolean(r.erro), r);
-    }
-    // B4. O KV que explode na escrita: a excepção não escapa, vira facto do relatório.
-    {
-      const kv = kvDeBolso({ [LIVRO]: livroCom([linha('breu', '2026-11')]) });
-      kv.put = async () => { throw new Error('cota do KV'); };
-      const r = await limpar({ PADD_KV: kv }, 'breu');
-      provar('B4. o KV que explode não mata a rota: devolve ok:false com o motivo',
-        r.ok === false && /cota do KV/.test(String(r.erro)), r);
-    }
-  }
+  /* A SECÇÃO QUE AQUI ESTAVA — o livro do financeiro — MUDOU DE DONO A 23/11/2026, à tarde. Ela
+   * media «o expurgo limpa as linhas da escola no livro», e a regra inverteu-se por decisão dela:
+   * «A parte financeira não pode expurgar, ela fica para histórico.» A regra nova mede-se em
+   * `provar-o-financeiro-que-fica.js`, e não aqui: um sítio, uma regra. */
 
   console.log('');
   console.log('C. O DESFECHO E A CACHE — o que a próxima sessão lê primeiro');
   const desfecho = raiz.desfechoDoKvParaOElo;
 
-  // C1. O desfecho com o livro limpo vai para o elo, e o bloco continua verde.
+  /* O DESFECHO NÃO LEVA MAIS O LIVRO (23/11/2026, à tarde): o expurgo não lhe toca, logo não há
+   * desfecho dele a registar. O que fica a valer é o das CHAVES — e é o que se mede abaixo. */
   {
     const bloco = desfecho({
       cloudflare: { kv: { ok: true, apagadas: 3, restantes: 0 } },
       morada: { kvNamespaceId: 'ns' }, slug: 'breu',
-      livro: { ok: true, removidas: 7 },
     });
-    provar('C1. o desfecho leva o livro', Boolean(bloco && bloco.livro), bloco);
-    provar('C1. e continua ok quando as duas metades fecharam',
-      bloco.ok === true && Boolean(bloco.livro) && bloco.livro.removidas === 7, bloco);
+    provar('C1. o desfecho das chaves leva o namespace, os prefixos e o desfecho',
+      Boolean(bloco) && bloco.ok === true && bloco.namespaceId === 'ns'
+      && Array.isArray(bloco.prefixos) && bloco.prefixos.length === 2, bloco);
+    provar('C1. …e NÃO leva livro nenhum: o financeiro não é chave da escola',
+      bloco && !('livro' in bloco), bloco);
   }
-  // C2. Livro falhado: o bloco FICA vermelho — a pendência nasce para a retomada encontrar.
+  // C3. Escola sem namespace declarado: não há bloco, e não se inventa pendência.
   {
-    const bloco = desfecho({
-      cloudflare: { kv: { ok: true, apagadas: 3, restantes: 0 } },
-      morada: { kvNamespaceId: 'ns' }, slug: 'breu',
-      livro: { ok: false, removidas: 0, erro: 'cota' },
-    });
-    provar('C2. livro falhado põe o desfecho a ok:false', bloco.ok === false, bloco);
-  }
-  // C3. Escola sem namespace declarado E livro falhado: a pendência não pode desaparecer
-  //     (era o `null` do `!:namespaceId` — «não há o que limpar» —, que engolia o livro).
-  {
-    const bloco = desfecho({
+    const semNamespace = desfecho({
       cloudflare: {}, morada: { kvNamespaceId: null }, slug: 'breu',
-      livro: { ok: false, removidas: 0, erro: 'cota' },
     });
-    provar('C3. sem namespace mas com o livro falhado, a pendência existe', Boolean(bloco) && bloco.ok === false, bloco);
-    const limpo = desfecho({
-      cloudflare: {}, morada: { kvNamespaceId: null }, slug: 'breu',
-      livro: { ok: true, removidas: 0 },
+    provar('C3. sem namespace e sem falha, não se inventa pendência', semNamespace === null, semNamespace);
+    const comFalha = desfecho({
+      cloudflare: {}, morada: { kvNamespaceId: 'ns' }, slug: 'breu',
     });
-    provar('C3. sem namespace e com o livro limpo, não se inventa pendência', limpo === null, limpo);
+    provar('C3. com namespace mas sem desfecho das chaves, a pendência existe e diz porquê',
+      Boolean(comFalha) && comFalha.ok === false && Boolean(comFalha.erro), comFalha);
   }
   // C4. A cache: a morta sai, a viva fica.
   const podar = raiz.podarChavesDeEscolasMortas;
@@ -312,8 +265,7 @@ const script = scriptDoPasso(textoDoWorkflow);
   }
   if (falhas) { console.log('FALHARAM ' + falhas + ' de ' + total + ' asserções.'); process.exit(1); }
   console.log('TUDO CERTO — ' + total + ' asserções: o commit dos derivados sobrevive a um repositório '
-    + 'sem âncoras (e ainda apanha as que existem e as que foram apagadas), o livro do financeiro perde '
-    + 'as linhas da escola expurgada e mais nenhuma, o desfecho leva o livro e fica vermelho quando ele '
-    + 'falha, e a cache do monitor deixa de guardar escola que já não existe — sem confundir «não '
-    + 'perguntei» com «não há nenhuma».');
+    + 'sem âncoras (e ainda apanha as que existem e as que foram apagadas), o desfecho das chaves não '
+    + 'carrega o livro — o financeiro não é chave da escola —, e a cache do monitor deixa de guardar '
+    + 'escola que já não existe, sem confundir «não perguntei» com «não há nenhuma».');
 })();
