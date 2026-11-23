@@ -59812,3 +59812,58 @@ acervo real de hoje (as quatro escolas estão expurgadas) a página mostra 31 li
 
 **E O QUE NÃO MUDOU, de propósito:** o formulário de criar escola. «na hora do cadastro, continua do
 jeito que está o formulário de criar nova escola do jeito que está, não tem nenhuma alteração nele.»
+
+## 23/11/2026 — O documento do professor pode ser CNPJ, e não só CPF
+
+**O QUE FALTAVA PARA A REGRA SER VERDADEIRA.** A entrada anterior pôs a lista a mostrar o documento
+da pessoa com o rótulo certo — «CPF» ou «CNPJ», decidido pelo comprimento. Mas não havia **porta**
+por onde um CNPJ entrasse: o formulário do Estúdio pedia «CPF do professor», e onze dígitos. Uma
+regra de leitura sem sítio de escrita é uma regra que nunca se aplica — e o ramo do CNPJ ficaria a
+esperar por um dado que ninguém podia escrever.
+
+**Palavras dela:** «O CNPJ ou CPF que o professor tenha, né, também vai estar lá. Professor pode ter
+CNPJ ou CPF, tá? Não necessariamente só CPF.»
+
+**UM CAMPO, E O COMPRIMENTO DECIDE.** O campo do Estúdio passou a dizer **«CPF ou CNPJ do
+professor»**, e quem escolhe é o número: catorze dígitos são um CNPJ, onze são um CPF. Dois campos —
+um para cada — obrigariam quem preenche a saber qual deixar em branco, e o sistema a decidir qual
+acreditar quando os dois viessem preenchidos. **Um número é uma pessoa**, e o formulário pergunta
+pelo número.
+
+**UM DOCUMENTO, UM SÍTIO.** Gravar um CNPJ põe o número em `cnpj` e **limpa o `cpf`**; gravar um CPF
+faz o inverso. Sem isso a ficha passaria a ter dois documentos e a lista escolheria um deles por
+conta própria. O «em branco não apaga» continua a valer para os dois — em branco significa «não
+mexi», e apagar o documento de uma pessoa não é um efeito de não o escrever.
+
+**A UNICIDADE É POR DOCUMENTO**, e não entre documentos: `quemTemEsteNumero` com
+`professores/<slug>/contato` e `campo: 'cnpj'`. Um CNPJ de professor não colide com um CPF de
+professor (são universos de números diferentes), e **nenhum dos dois é comparado com o CNPJ de uma
+escola** — uma pessoa pode ser sócia de uma escola sem ser a escola, e recusar esse caso seria
+inventar uma regra que ninguém pediu.
+
+**O `normalizarCnpj` ganhou o `de`,** como o `normalizarCpf` já tinha desde 18/11: sem ele, um número
+inválido no campo do professor respondia «o CNPJ da escola tem de ter 14 dígitos», e uma mensagem que
+nomeia a entidade errada manda corrigir o campo errado. O valor por omissão é o de sempre, e nenhum
+chamador antigo muda.
+
+**E A FICHA DEVOLVE OS DOIS CAMPOS.** `/api/bastidores/ficha-do-professor` passou a devolver `cnpj`
+ao lado de `cpf`, e a tela preenche o campo com `cnpj || cpf`: um CNPJ lido como CPF vazio faria o
+«Editar» parecer uma ficha sem documento — e a pessoa escreveria o número outra vez.
+
+**O QUE CONTINUA A PEDIR CPF, E DE PROPÓSITO:** o formulário de **criar escola** — «continua do jeito
+que está o formulário de criar nova escola, não tem nenhuma alteração nele». Quem é uma empresa
+declara o CNPJ no Estúdio, que é o sítio do cadastro da pessoa. **E o CPF do professor proprietário
+não se tornou obrigatório:** «Mas não é obrigatório isso, é apenas uma sugestão.»
+
+**Com o quê.** `motor/servidor/bastidores.js` (`conferirAFichaDoProfessor`, `gravarAFichaDoProfessor`,
+a ficha lida pela tela, o campo do formulário), `motor/nucleo/cadastro-da-escola.js` (`normalizarCnpj`
+com `de`) e `experimentos/provar-cadastro-do-professor.js` (secção D, cinco asserções novas).
+
+**MEDIDO.** `provar-cadastro-do-professor` **87/87** — e as três que mordem: o CNPJ é aceite e vai
+para a chave dele com o `cpf` limpo; a ficha devolve-o no campo próprio; voltar a um CPF **limpa** o
+CNPJ, para a troca não deixar os dois. Um CNPJ já usado por outro professor é recusado com o nome de
+quem o tem. `provar-editar-professor-principal` 32/33 — a falha é **anterior** e igual sem esta
+mudança (conferido com o trabalho em `stash`). `provar-professor-secundario` 19/19,
+`provar-estrutura-ao-criar-professor`, `provar-ficha-na-listagem` 35/35, `provar-ficha-visual` 21/21,
+`provar-o-painel-do-estudio` 36/36, `provar-uma-linha-por-professor` 19/19, `check-schemas` verde,
+`check-identidade` 0 problemas.

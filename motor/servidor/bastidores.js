@@ -4344,20 +4344,53 @@ async function consumirBilheteDoAto(kv, escola, bilhete) {
  */
 async function conferirAFichaDoProfessor({ env, corpo, slug }) {
   const cadastroDaEscola = require('../nucleo/cadastro-da-escola.js');
-  const cpfBruto = String((corpo && corpo.cpf) || '').trim();
+  /* ── O DOCUMENTO DA PESSOA: CPF OU CNPJ (23/11/2026) ────────────────────────────────────────
+   *
+   * O CAMPO É UM, E QUEM DECIDE É O COMPRIMENTO — a mesma regra que a página dos Professores usa
+   * para o mostrar (`documentoDoProfessor`, no painel). Duas regras diferentes fariam o campo
+   * aceitar um número que a lista depois lê como outro.
+   *
+   * A UNICIDADE É POR DOCUMENTO, e não entre documentos: um CNPJ de professor não colide com um
+   * CPF de professor (são universos de números diferentes), e nenhum dos dois é comparado com o
+   * CNPJ de uma ESCOLA — uma pessoa pode ser sócia de uma escola sem ser a escola. */
+  /* TRÊS NOMES PARA O MESMO CAMPO, e todos são aceites pelo que dizem: `documento` (o nome
+   * certo), `cpf` (o `name` do campo no formulário, que já existia) e `cnpj` (o que um pedido
+   * escrito à mão usa quando sabe o que manda). Quem decide o que é o número é o COMPRIMENTO —
+   * nunca a chave por onde ele entrou. */
+  const documentoBruto = String((corpo && (corpo.documento || corpo.cpf || corpo.cnpj)) || '').trim();
   let cpf = '';
-  if (cpfBruto) {
-    const normalizado = cadastroDaEscola.normalizarCpf(cpfBruto);
-    if (!normalizado.ok) return { ok: false, status: 400, erro: normalizado.erro };
-    cpf = normalizado.valor;
-    const deQuem = await require('./unicidade.js').cpfJaUsado(env, cpf, slug);
-    if (deQuem) {
-      return {
-        ok: false,
-        status: 409,
-        erro: 'o CPF ' + cpf + ' já é do professor «' + deQuem + '» — cada pessoa tem um só. '
-          + 'Confira o número, ou corrija a ficha do outro professor primeiro.',
-      };
+  let cnpj = '';
+  if (documentoBruto) {
+    const digitos = cadastroDaEscola.soDigitos(documentoBruto);
+    if (digitos.length === 14) {
+      const normalizado = cadastroDaEscola.normalizarCnpj(documentoBruto, { de: 'CNPJ do professor' });
+      if (!normalizado.ok) return { ok: false, status: 400, erro: normalizado.erro };
+      cnpj = normalizado.valor;
+      const deQuem = await require('./unicidade.js').quemTemEsteNumero(env, {
+        prefixo: 'professores', sufixo: 'contato', campo: 'cnpj', valor: cnpj, ignorar: slug,
+      });
+      if (deQuem) {
+        return {
+          ok: false,
+          status: 409,
+          erro: 'o CNPJ ' + cnpj + ' já é do professor «' + deQuem + '» — cada pessoa tem um só. '
+            + 'Confira o número, ou corrija a ficha do outro professor primeiro.',
+        };
+      }
+    } else {
+      const normalizado = cadastroDaEscola.normalizarCpf(documentoBruto,
+        { de: 'CPF ou CNPJ do professor' });
+      if (!normalizado.ok) return { ok: false, status: 400, erro: normalizado.erro };
+      cpf = normalizado.valor;
+      const deQuem = await require('./unicidade.js').cpfJaUsado(env, cpf, slug);
+      if (deQuem) {
+        return {
+          ok: false,
+          status: 409,
+          erro: 'o CPF ' + cpf + ' já é do professor «' + deQuem + '» — cada pessoa tem um só. '
+            + 'Confira o número, ou corrija a ficha do outro professor primeiro.',
+        };
+      }
     }
   }
   const telefoneBruto = String((corpo && corpo.telefone) || '').trim();
@@ -4381,7 +4414,7 @@ async function conferirAFichaDoProfessor({ env, corpo, slug }) {
       return { ok: false, status: 400, erro: 'a habilidade «' + modalidade + '» não está no catálogo de modalidades' };
     }
   }
-  return { ok: true, cpf, telefone, email, modalidade };
+  return { ok: true, cpf, cnpj, telefone, email, modalidade };
 }
 
 /**
@@ -4395,14 +4428,20 @@ async function conferirAFichaDoProfessor({ env, corpo, slug }) {
  * sempre: em branco significa «não mexi», e apagar o documento de uma pessoa não é um efeito de não
  * o escrever. Quem quiser apagar fá-lo-á por um gesto que o diga.
  */
-async function gravarAFichaDoProfessor({ env, kv, escola, slug, nome, cpf, telefone, email, modalidade, quando }) {
+async function gravarAFichaDoProfessor({ env, kv, escola, slug, nome, cpf, cnpj, telefone, email, modalidade, quando }) {
   try {
     const chave = 'professores/' + slug + '/contato';
     const bruto = await kv.get(chave);
     let contato = {};
     try { contato = bruto ? JSON.parse(bruto) : {}; } catch (erro) { contato = {}; }
     contato.nomeCompleto = nome;
-    contato.cpf = cpf || contato.cpf || null;
+    /* UM DOCUMENTO, UM SÍTIO (23/11/2026). O CPF e o CNPJ são o MESMO campo da pessoa, em duas
+     * formas: escrever um apaga o outro, senão a ficha passaria a ter dois documentos e a lista
+     * escolheria um deles por conta própria. E o «em branco não apaga» continua a valer para os
+     * dois — em branco significa «não mexi». */
+    if (cnpj) { contato.cnpj = cnpj; contato.cpf = null; }
+    else if (cpf) { contato.cpf = cpf; contato.cnpj = null; }
+    else { contato.cpf = contato.cpf || null; contato.cnpj = contato.cnpj || null; }
     contato.telefone = telefone || contato.telefone || null;
     contato.email = email || contato.email || null;
     contato.atualizadoEm = quando;
@@ -4507,7 +4546,7 @@ async function editarProfessorDaEscola({ env, kv, escola, corpo, alvo }) {
    * uma ficha não pode gravar um número que já é de outra pessoa. */
   const ficha = await conferirAFichaDoProfessor({ env, corpo, slug: alvo });
   if (!ficha.ok) return json(ficha.status || 400, { ok: false, erro: ficha.erro });
-  const { cpf, telefone, email } = ficha;
+  const { cpf, cnpj, telefone, email } = ficha;
 
   const senha = String(corpo.senha || '');
   const quando = new Date().toISOString();
@@ -4552,7 +4591,7 @@ async function editarProfessorDaEscola({ env, kv, escola, corpo, alvo }) {
    * de fingir que nada aconteceu. */
   const gravadaFicha = await gravarAFichaDoProfessor({
     env, kv, escola, slug: alvo, nome: nomeExibido,
-    cpf, telefone, email, modalidade: String(corpo.modalidade || '').trim(), quando,
+    cpf, cnpj, telefone, email, modalidade: String(corpo.modalidade || '').trim(), quando,
   });
   if (!gravadaFicha.ok) {
     return json(gravadaFicha.status || 502, {
@@ -9108,8 +9147,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<input id="pnome" name="nome" autocomplete="off" placeholder="ex.: Tiago">' +
     '<label class="campo-rotulo" for="psobrenome">Sobrenome ou apelido</label>' +
     '<input id="psobrenome" name="sobrenome" autocomplete="off" placeholder="ex.: Menegaz">' +
-    '<label class="campo-rotulo" for="pcpf">CPF do professor</label>' +
-    '<input id="pcpf" name="cpf" autocomplete="off" inputmode="numeric" placeholder="000.000.000-00">' +
+    /* O DOCUMENTO DO PROFESSOR PODE SER CPF OU CNPJ (23/11/2026). Palavras dela: «O CNPJ ou CPF
+     * que o professor tenha, né, também vai estar lá. Professor pode ter CNPJ ou CPF, tá? Não
+     * necessariamente só CPF.»
+     *
+     * O CAMPO É UM SÓ, e quem decide é o COMPRIMENTO: onze dígitos são um CPF, catorze são um CNPJ.
+     * Dois campos — «CPF» e «CNPJ» — obrigariam quem preenche a saber qual deles deixar em branco,
+     * e o sistema a decidir qual acreditar quando os dois viessem preenchidos. Um número é uma
+     * pessoa, e o formulário pergunta pelo número.
+     *
+     * O `id` continua `pcpf` e o `name` continua `cpf`: são nomes de um campo que já existia em
+     * rascunhos guardados e em provas, e renomeá-los não acrescentaria nada ao que se lê no ecrã. */
+    '<label class="campo-rotulo" for="pcpf">CPF ou CNPJ do professor</label>' +
+    '<input id="pcpf" name="cpf" autocomplete="off" inputmode="numeric" placeholder="000.000.000-00 ou 00.000.000/0000-00">' +
     '<label class="campo-rotulo" for="ptelefone">Telefone do professor</label>' +
     '<input id="ptelefone" name="telefone" autocomplete="off" inputmode="tel" placeholder="(51) 99999-0000">' +
     '<label class="campo-rotulo" for="pemail">E-mail do professor</label>' +
@@ -12642,7 +12692,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var corte = inteiro.indexOf(" ");' +
     '  document.getElementById("pnome").value = corte === -1 ? inteiro : inteiro.slice(0, corte);' +
     '  document.getElementById("psobrenome").value = corte === -1 ? "" : inteiro.slice(corte + 1);' +
-    '  document.getElementById("pcpf").value = d.cpf || "";' +
+    '  document.getElementById("pcpf").value = d.cnpj || d.cpf || "";' +
     '  document.getElementById("ptelefone").value = d.telefone || "";' +
     '  document.getElementById("pemail").value = d.email || "";' +
     '  var sel = document.getElementById("pmodalidade");' +
@@ -23101,17 +23151,21 @@ async function fetch(request, env, extras) {
     const nome = ehDono ? (await nomeDoDono(env, kv, escola)) : achado.nome;
 
     const ficha = { ok: true, slug: alvo, nome: nome || '', dono: ehDono,
-      cpf: '', telefone: '', email: '', modalidade: '', desligado: false };
+      cpf: '', cnpj: '', telefone: '', email: '', modalidade: '', desligado: false };
     try {
       const bruto = await kv.get('professores/' + alvo + '/contato');
       const contato = bruto ? JSON.parse(bruto) : null;
       if (contato) {
+        /* O DOCUMENTO É O QUE ESTIVER GUARDADO (23/11/2026): os dois campos vão para a tela, e é
+         * ela que os mostra no mesmo campo do formulário. Um CNPJ lido como CPF vazio faria o
+         * «Editar» parecer uma ficha sem documento — e a pessoa escreveria o número outra vez. */
         ficha.cpf = String(contato.cpf || '');
+        ficha.cnpj = String(contato.cnpj || '');
         ficha.telefone = String(contato.telefone || '');
         ficha.email = String(contato.email || '');
       }
     } catch (erro) { /* ficha sem contato: os campos vão vazios, e a tela não inventa */ }
-    if (ehDono && !ficha.cpf && !ficha.email && !ficha.telefone) {
+    if (ehDono && !ficha.cpf && !ficha.cnpj && !ficha.email && !ficha.telefone) {
       try {
         const bruto = await kv.get(RAIZ + '/' + escola + '/cadastro');
         const cadastro = bruto ? JSON.parse(bruto) : null;
@@ -23317,7 +23371,7 @@ async function fetch(request, env, extras) {
      * passa por eles sem duplicar nada. */
     const gravadaFicha = await gravarAFichaDoProfessor({
       env, kv, escola, slug, nome: nomeExibido,
-      cpf: ficha.cpf, telefone: ficha.telefone, email: ficha.email,
+      cpf: ficha.cpf, cnpj: ficha.cnpj, telefone: ficha.telefone, email: ficha.email,
       modalidade: ficha.modalidade, quando: new Date().toISOString(),
     });
     if (!gravadaFicha.ok) {
@@ -23344,7 +23398,7 @@ async function fetch(request, env, extras) {
       // vínculo da aluna lê para avisar o professor. Dizê-lo na resposta evita a leitura de que os
       // campos se perderam outra vez.
       ficha: {
-        contato: Boolean(ficha.cpf || ficha.telefone || ficha.email),
+        contato: Boolean(ficha.cpf || ficha.cnpj || ficha.telefone || ficha.email),
         modalidade: ficha.modalidade || '',
         perfil: Boolean(gravadaFicha.perfil),
       },

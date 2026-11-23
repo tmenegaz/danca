@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-23T07:36:11-0300`
-Commit atual: `c7b1ee0f` — fix(estrutura): a senha do professor não se esconde com o modo do professor
+Gerado em: `2026-11-23T07:36:41-0300`
+Commit atual: `29071b87` — feat(estrutura): os professores têm Ações, documento e contacto — e o Financeiro manda o professor para lá
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -83,6 +83,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+29071b87 feat(estrutura): os professores têm Ações, documento e contacto — e o Financeiro manda o professor para lá
 c7b1ee0f fix(estrutura): a senha do professor não se esconde com o modo do professor
 bd87f249 docs(estrutura): o CNPJ das escolas de teste, e a data que eu tinha escrito errada
 c24e4636 feat(estrutura): a criação também herda a identidade fiscal, e não só a recriação
@@ -102,7 +103,6 @@ edab6ae5 fix(estrutura): o commit dos derivados sobrevive a um repositório sem 
 2b8df0ba fix(estrutura): o registo comercial não se perde ao desabilitar, e o expurgo volta a passar
 e73342a6 fix(estrutura): a dica do apagar muda com o motivo — quem não tem cadastro não desabilita
 7ee95a91 fix(estrutura): a campanha não tem a seta de colapsar, e o vazio do apagar diz a verdade
-02f53906 feat(template): a seta de abrir e fechar é uma peça só, e o documento abre com o primeiro
 ```
 
 ## Por professor
@@ -184,85 +184,60 @@ e73342a6 fix(estrutura): a dica do apagar muda com o motivo — quem não tem ca
 
 ## Última entrada do REGISTRO
 
-## 23/11/2026 — Os professores têm Ações, documento e contacto; e o Financeiro manda o professor para lá
+## 23/11/2026 — O documento do professor pode ser CNPJ, e não só CPF
 
-**O PEDIDO, em duas listas que são uma arrumação só.** Na página dos professores: «Aqui chama escolas
-vivas, a gente vai chamar aqui de ações.» […] «onde está escrito sem escola viva, que é só uma
-etiqueta, vai virar um botão de ação. Sem escola viva é uma etiqueta, mas se tiver escola viva, aí o
-botão leva até a escola viva. Aí o botão vai ser o nome da escola e aí se clicar nele, vai para a
-escola. E aí aqui tem que ter também os campos de contato, que é o telefone, o e-mail e o CNPJ do
-professor.» No Financeiro: «Você colocou o professor com o CNPJ ou CPF dele logo abaixo, né? Você vai
-mudar isso. Aqui você vai colocar o professor apenas como sendo um link que leva lá para o espaço de
-professores.»
+**O QUE FALTAVA PARA A REGRA SER VERDADEIRA.** A entrada anterior pôs a lista a mostrar o documento
+da pessoa com o rótulo certo — «CPF» ou «CNPJ», decidido pelo comprimento. Mas não havia **porta**
+por onde um CNPJ entrasse: o formulário do Estúdio pedia «CPF do professor», e onze dígitos. Uma
+regra de leitura sem sítio de escrita é uma regra que nunca se aplica — e o ramo do CNPJ ficaria a
+esperar por um dado que ninguém podia escrever.
 
-**A COLUNA «AÇÕES», E AS DUAS METADES DA FRASE DELA.** A diferença entre «vira um botão» e «sem escola
-viva é uma etiqueta» é a regra inteira: **sem** escola não há gesto nenhum a fazer, e o que fica é a
-etiqueta; **com** escola há um destino, e o que fica é um botão com o **nome** dela. Um botão que
-dissesse «sem escola viva» seria um botão para nenhum sítio; uma etiqueta com o nome da escola
-esconderia que ele se clica. O vão entre os botões e a largura da coluna são da peça `.acoes-da-linha`
-— a mesma dos botões «Habilitar»/«Desabilitar» da lista das vivas —, e não de um estilo novo.
+**Palavras dela:** «O CNPJ ou CPF que o professor tenha, né, também vai estar lá. Professor pode ter
+CNPJ ou CPF, tá? Não necessariamente só CPF.»
 
-**A ORDEM DA COLUNA PASSOU A SER A ORDEM DO QUE ESTÁ ESCRITO.** A coluna ordenava por slug e agora
-escreve nomes, e por isso passa a ordenar por nomes: ordenar por uma coisa e mostrar outra faria a
-coluna parecer desarrumada. O `title` dela é **«Ordenar pelas escolas»**, e não «Ordenar por ações» —
-que não quer dizer nada: o título diz o gesto, a ordem diz o facto. Para isso o `thOrdenavel` ganhou um
-parâmetro opcional com o `title` inteiro; na primeira tentativa ele era um sufixo colado a «Ordenar
-por», e saiu **«Ordenar por pelas escolas»** — o defeito a dizer o que é.
+**UM CAMPO, E O COMPRIMENTO DECIDE.** O campo do Estúdio passou a dizer **«CPF ou CNPJ do
+professor»**, e quem escolhe é o número: catorze dígitos são um CNPJ, onze são um CPF. Dois campos —
+um para cada — obrigariam quem preenche a saber qual deixar em branco, e o sistema a decidir qual
+acreditar quando os dois viessem preenchidos. **Um número é uma pessoa**, e o formulário pergunta
+pelo número.
 
-**O RESPONSÁVEL VAI NO `title`, e não numa coluna nova.** Ela quer saber de quem cobrar ou contra quem
-acionar («se eles são professores principais, professores titulares donos da escola»), e `e.professor`
-no índice é exactamente essa resposta. É facto, e só aparece onde é verdade: na escola de que esta
-pessoa é responsável.
+**UM DOCUMENTO, UM SÍTIO.** Gravar um CNPJ põe o número em `cnpj` e **limpa o `cpf`**; gravar um CPF
+faz o inverso. Sem isso a ficha passaria a ter dois documentos e a lista escolheria um deles por
+conta própria. O «em branco não apaga» continua a valer para os dois — em branco significa «não
+mexi», e apagar o documento de uma pessoa não é um efeito de não o escrever.
 
-**O CADASTRO NA LISTA — e ele é lido de onde é escrito.** O documento e os contactos **não estão no
-índice**: o `check-indices` proíbe e-mail e telefone lá, e a ficha da pessoa vive no KV
-(`professores/<slug>/contato`), escrita pela criação da escola e pelo Estúdio — as duas portas que ela
-nomeou. A rota passou a ler essas fichas (`fichasDosProfessores`): **um `get` por professor, em
-paralelo, e nenhuma enumeração** — o `list` é a operação limitada por dia (18/10/2026), e esta página
-não é razão para a gastar. Medido: 31 professores, 31 `get`, 0 `list`.
+**A UNICIDADE É POR DOCUMENTO**, e não entre documentos: `quemTemEsteNumero` com
+`professores/<slug>/contato` e `campo: 'cnpj'`. Um CNPJ de professor não colide com um CPF de
+professor (são universos de números diferentes), e **nenhum dos dois é comparado com o CNPJ de uma
+escola** — uma pessoa pode ser sócia de uma escola sem ser a escola, e recusar esse caso seria
+inventar uma regra que ninguém pediu.
 
-**O DOCUMENTO É LIDO PELO COMPRIMENTO, E O RÓTULO SAI DO NÚMERO.** «Professor pode ter CNPJ ou CPF,
-tá? Não necessariamente só CPF.» Catorze dígitos são um CNPJ, onze são um CPF — e um `cpf` com catorze
-dígitos, que é o que sai de um campo que aceita os dois, **não é um CPF**. `documentoDoProfessor` põe
-os pontos e o traço (é um número que alguém vai ler para o escrever noutro sítio) e **nunca corrige**
-um número com forma inesperada: mostra-o como está, sem rótulo.
+**O `normalizarCnpj` ganhou o `de`,** como o `normalizarCpf` já tinha desde 18/11: sem ele, um número
+inválido no campo do professor respondia «o CNPJ da escola tem de ter 14 dígitos», e uma mensagem que
+nomeia a entidade errada manda corrigir o campo errado. O valor por omissão é o de sempre, e nenhum
+chamador antigo muda.
 
-**E O NOME ganhou uma segunda fonte.** O índice tem o nome que a escola declarou; quando ele não
-existe, a ficha da pessoa tem o que ela própria escreveu. É a mesma pessoa, na mesma chave — e a
-célula deixa de dizer «sem nome registado» para quem tem nome no cadastro.
+**E A FICHA DEVOLVE OS DOIS CAMPOS.** `/api/bastidores/ficha-do-professor` passou a devolver `cnpj`
+ao lado de `cpf`, e a tela preenche o campo com `cnpj || cpf`: um CNPJ lido como CPF vazio faria o
+«Editar» parecer uma ficha sem documento — e a pessoa escreveria o número outra vez.
 
-**NO FINANCEIRO, O PROFESSOR É UMA LIGAÇÃO, E O DOCUMENTO SAIU DE LÁ.** A aba «Os dados da escola»
-responde «quem é a escola, e como falo com ela»; o documento da pessoa respondia a uma segunda
-pergunta na mesma célula. `professorCpf` **saiu do feed** (`dadosDasEscolas`), e não só da tela: um
-dado em dois sítios é um dado que vai discordar de si mesmo no dia em que só um for corrigido. O
-e-mail e o telefone do professor **ficam** — essa pergunta é desta aba.
+**O QUE CONTINUA A PEDIR CPF, E DE PROPÓSITO:** o formulário de **criar escola** — «continua do jeito
+que está o formulário de criar nova escola, não tem nenhuma alteração nele». Quem é uma empresa
+declara o CNPJ no Estúdio, que é o sítio do cadastro da pessoa. **E o CPF do professor proprietário
+não se tornou obrigatório:** «Mas não é obrigatório isso, é apenas uma sugestão.»
 
-`semDado` e `comoFalar` saíram de dentro de `paginaFinanceira` para o módulo: as duas páginas usam-nas
-agora, e duas cópias divergiriam na primeira vez que uma delas ganhasse uma terceira forma.
+**Com o quê.** `motor/servidor/bastidores.js` (`conferirAFichaDoProfessor`, `gravarAFichaDoProfessor`,
+a ficha lida pela tela, o campo do formulário), `motor/nucleo/cadastro-da-escola.js` (`normalizarCnpj`
+com `de`) e `experimentos/provar-cadastro-do-professor.js` (secção D, cinco asserções novas).
 
-**Com o quê.** `motor/servidor/painel-html.js` (`tabelaDeProfessores`, `documentoDoProfessor`,
-`comoFalar`, `semDado`, `thOrdenavel`, `linhaDaFicha`, `paginaDosProfessores`),
-`motor/servidor/raiz.js` (`fichasDosProfessores`, a rota `/professores`, `dadosDasEscolas`),
-`experimentos/provar-painel.js` (secções 6a e 6b novas, e a rota com um KV de bolso) e
-`experimentos/provar-os-dados-da-escola.js` (D2b e C4b).
-
-**MEDIDO.** `provar-painel` **110/110** — e ganhou `--contra=<sha>`, que lhe faltava: contra
-`c7b1ee0f` reprovam **14** asserções, e são exactamente as que descrevem esta mudança (um motor sem
-`tools/` e `biblioteca/` não carrega, e o controle morreu a carregar na primeira tentativa — um
-controle que não corre não prova nada). `provar-os-dados-da-escola` **79/79**. `provar-recriar-escola`
-94/94, `provar-o-financeiro-que-fica` 30/30, `provar-os-restos-do-expurgo` verde,
-`provar-pagina-publica` 79/79, `provar-form-escola` e `provar-painel-do-estudio` verdes,
-`provar-financeiro-da-escola` 129/136 (as mesmas 7 falhas de antes), `check-identidade` **0
-problemas** (23 verificações), `check-indices` 16/16, `check-schemas` verde.
-
-**MEDIDO EM CHROME, com o acervo de produção e escolas vivas montadas.** A 1366, 1280 e 900px: cinco
-colunas, tabela de 900/900/852px sem transbordo, `Ações` com 156px e os botões a 139×45 — dois
-empilhados para o professor de duas escolas —, e **nenhuma rolagem horizontal** na página. Com o
-acervo real de hoje (as quatro escolas estão expurgadas) a página mostra 31 linhas e 31 etiquetas
-«sem escola viva»: é a verdade do índice, e os botões aparecem quando houver escola viva.
-
-**E O QUE NÃO MUDOU, de propósito:** o formulário de criar escola. «na hora do cadastro, continua do
-jeito que está o formulário de criar nova escola do jeito que está, não tem nenhuma alteração nele.»
+**MEDIDO.** `provar-cadastro-do-professor` **87/87** — e as três que mordem: o CNPJ é aceite e vai
+para a chave dele com o `cpf` limpo; a ficha devolve-o no campo próprio; voltar a um CPF **limpa** o
+CNPJ, para a troca não deixar os dois. Um CNPJ já usado por outro professor é recusado com o nome de
+quem o tem. `provar-editar-professor-principal` 32/33 — a falha é **anterior** e igual sem esta
+mudança (conferido com o trabalho em `stash`). `provar-professor-secundario` 19/19,
+`provar-estrutura-ao-criar-professor`, `provar-ficha-na-listagem` 35/35, `provar-ficha-visual` 21/21,
+`provar-o-painel-do-estudio` 36/36, `provar-uma-linha-por-professor` 19/19, `check-schemas` verde,
+`check-identidade` 0 problemas.
 
 ## O que está pendente
 

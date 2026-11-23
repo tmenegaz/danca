@@ -31,7 +31,9 @@
  *      senha em branco e à vista — e a HABILIDADE fechada, que é a ordem dela (20/11/2026);
  *   D. o SERVIDOR — a ficha (`GET`) e a gravação (`POST`), com as duas metades do que se pode e do
  *      que não se pode: o nome de quem já assinou documentos não muda (e a recusa é dele, com a
- *      razão), e tudo o resto — CPF, telefone, e-mail, habilidade, senha — muda;
+ *      razão), e tudo o resto — documento, telefone, e-mail, habilidade, senha — muda. O
+ *      DOCUMENTO pode ser CPF ou CNPJ (23/11/2026): um campo, o comprimento decide, e os dois não
+ *      convivem na mesma ficha;
  *   E. a HABILIDADE É A MESMA nos dois sítios: a lista do `<select>` do cadastro e as caixas da aba
  *      das Habilitações saem do MESMO catálogo (`biblioteca/modalidades/modalidades.json`).
  *
@@ -451,6 +453,50 @@ const comSenha = (corpo) => Object.assign({ senhaDirecao: '123' }, corpo || {});
     }));
     conferir('um CPF que já é de outro professor é recusado', r4.status === 409, r4.dados);
     conferir('…e a recusa diz de quem é o número', /já é do professor/i.test(String(r4.dados.erro)), r4.dados.erro);
+
+    /* ── O DOCUMENTO PODE SER CNPJ (23/11/2026) ─────────────────────────────────────────────
+     *
+     * Palavras dela: «O CNPJ ou CPF que o professor tenha, né, também vai estar lá. Professor pode
+     * ter CNPJ ou CPF, tá? Não necessariamente só CPF.»
+     *
+     * O CAMPO É UM, E O COMPRIMENTO DECIDE. As três asserções que mordem: o CNPJ é aceite e vai
+     * para a chave dele (não para `cpf`); os dois documentos NÃO convivem na mesma ficha (senão a
+     * lista escolheria um deles por conta própria); e o campo do formulário mostra o que estiver
+     * guardado — um CNPJ lido como CPF vazio faria o «Editar» parecer uma ficha sem documento. */
+    const rCnpj = await pedir(env, '/api/bastidores/professor', 'POST', comSenha({
+      editar: 'ana-diag', nome: 'Ana', sobrenome: 'Diagnóstico', cpf: '37.455.854/0001-72',
+    }));
+    conferir('um CNPJ de 14 dígitos é aceite na ficha do professor', rCnpj.status === 200, rCnpj.dados);
+    const comCnpj = JSON.parse(kv.bruto.get('professores/ana-diag/contato'));
+    conferir('…e vai para a chave `cnpj`, com o `cpf` limpo — um documento, um sítio',
+      comCnpj.cnpj === '37455854000172' && comCnpj.cpf === null, comCnpj);
+
+    const fichaCnpj = await pedir(env, '/api/bastidores/ficha-do-professor', 'POST', comSenha({ professor: 'ana-diag' }));
+    conferir('…e a ficha devolve o CNPJ no campo próprio, para a tela o mostrar',
+      fichaCnpj.dados.cnpj === '37455854000172', fichaCnpj.dados);
+
+    const rVolta = await pedir(env, '/api/bastidores/professor', 'POST', comSenha({
+      editar: 'ana-diag', nome: 'Ana', sobrenome: 'Diagnóstico', cpf: '529.982.247-25',
+    }));
+    const voltou = JSON.parse(kv.bruto.get('professores/ana-diag/contato'));
+    conferir('…e voltar a um CPF limpa o CNPJ — a troca não deixa os dois',
+      rVolta.status === 200 && voltou.cpf === '52998224725' && voltou.cnpj === null,
+      { status: rVolta.status, voltou });
+
+    /* UM CNPJ QUE OUTRA PESSOA JÁ TEM. A unicidade é por documento: catorze dígitos são
+     * comparados com catorze, e um CNPJ de professor não colide com um CPF de professor. */
+    const kvOutro = kvFalso({
+      'bastidores/breu/professores': JSON.stringify(PROFS),
+      'bastidores/breu/dono': JSON.stringify({ nome: 'Brise Volet', slug: 'brise-volet' }),
+      'professores/ana-diag/contato': JSON.stringify({ cnpj: '37455854000172' }),
+    });
+    const envOutro = envCom(kvOutro, gh);
+    const rDuplicado = await pedir(envOutro, '/api/bastidores/professor', 'POST', comSenha({
+      editar: 'brise-volet', nome: 'Brise', sobrenome: 'Volet', cnpj: '37.455.854/0001-72',
+    }));
+    conferir('…e um CNPJ que já é de outro professor é recusado, com o nome de quem o tem',
+      rDuplicado.status === 409 && /já é do professor/i.test(String(rDuplicado.dados.erro)),
+      rDuplicado.dados);
 
     /* — E O PRINCIPAL: o nome vive na sobreposição do dono, a senha no par do dono. */
     const r5 = await pedir(env, '/api/bastidores/professor', 'POST', comSenha({

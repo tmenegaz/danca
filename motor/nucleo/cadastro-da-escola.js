@@ -61,15 +61,15 @@ function normalizarCpf(valor, { de = 'CPF do professor' } = {}) {
  * VEM ANTES DO CPF na ordem das mensagens — a escola é o que se está a criar, e um erro no
  * cadastro dela não deve aparecer depois de a pessoa preencher o do professor.
  */
-function normalizarCnpj(valor) {
+function normalizarCnpj(valor, { de = 'CNPJ da escola' } = {}) {
   const bruto = String(valor == null ? '' : valor).trim();
-  if (!bruto) return { ok: false, erro: 'informe o CNPJ da escola' };
+  if (!bruto) return { ok: false, erro: 'informe o ' + de };
   const digitos = soDigitos(bruto);
   if (digitos.length !== 14) {
-    return { ok: false, erro: 'o CNPJ da escola tem de ter 14 dígitos (vieram ' + digitos.length + ')' };
+    return { ok: false, erro: 'o ' + de + ' tem de ter 14 dígitos (vieram ' + digitos.length + ')' };
   }
   if (/^(\d)\1{13}$/.test(digitos)) {
-    return { ok: false, erro: 'o CNPJ da escola não pode ser um número repetido' };
+    return { ok: false, erro: 'o ' + de + ' não pode ser um número repetido' };
   }
   return { ok: true, valor: digitos };
 }

@@ -4,8 +4,16 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 23/11/2026 — **a lista dos professores ganhou Ações, documento e contacto;
-> e o Financeiro manda o professor para lá**. A coluna «Escolas vivas» passou a chamar-se **«Ações»**:
+> **Última fotografia:** 23/11/2026 — **o documento do professor pode ser CNPJ.** A entrada
+> anterior pôs a lista a ler o documento pelo comprimento, mas não havia porta por onde um CNPJ
+> entrasse: o Estúdio pedia «CPF do professor», onze dígitos. O campo passou a dizer **«CPF ou CNPJ do
+> professor»** e quem decide é o número; gravar um **limpa** o outro (um documento, um sítio); a
+> unicidade é por documento, e não entre documentos nem contra o CNPJ das escolas. O formulário de
+> criar escola continua a pedir CPF — é a ordem dela —, e o CPF do proprietário continua a **não** ser
+> obrigatório.
+>
+> **Fotografia anterior (23/11/2026 — a lista dos professores ganhou Ações, documento e contacto;
+> e o Financeiro manda o professor para lá).** A coluna «Escolas vivas» passou a chamar-se **«Ações»**:
 > quando há escola viva, cada uma é um botão com o **nome** dela que leva ao site, e o `title`
 > diz se ele é o responsável por ela; quando não há, fica a etiqueta «sem escola viva», porque um botão para
 > nenhum sítio não é uma ação. A lista passou a mostrar o **cadastro da pessoa** — documento (CPF
@@ -3828,6 +3836,23 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      só a primeira é corrigida.
      **O QUE NÃO SE TOCA:** o formulário de criar escola — «continua do jeito que está».
 
+171. **O DOCUMENTO DA PESSOA PODE SER CPF OU CNPJ — E O COMPRIMENTO É QUEM DECIDE.** Palavras dela:
+     «O CNPJ ou CPF que o professor tenha, né, também vai estar lá. Professor pode ter CNPJ ou CPF,
+     tá? Não necessariamente só CPF.»
+     **A DECISÃO 170 pôs a lista a LER o documento pelo comprimento, mas não havia PORTA por onde um
+     CNPJ entrasse:** o Estúdio pedia «CPF do professor», onze dígitos. Uma regra de leitura sem
+     sítio de escrita é uma regra que nunca se aplica.
+     **UM CAMPO, E O NÚMERO DECIDE:** catorze dígitos são um CNPJ, onze são um CPF. Dois campos
+     obrigariam quem preenche a saber qual deixar em branco, e o sistema a decidir qual acreditar
+     quando os dois viessem preenchidos.
+     **UM DOCUMENTO, UM SÍTIO:** gravar um limpa o outro, senão a ficha teria dois documentos e a
+     lista escolheria um por conta própria. O «em branco não apaga» continua a valer para os dois.
+     **A UNICIDADE É POR DOCUMENTO:** um CNPJ de professor não colide com um CPF de professor, e
+     nenhum dos dois é comparado com o CNPJ de uma **escola** — uma pessoa pode ser sócia de uma
+     escola sem ser a escola.
+     **O QUE CONTINUA A PEDIR CPF:** o formulário de criar escola (é a ordem dela na decisão 170), e
+     o CPF do **proprietário** não é obrigatório — «não é obrigatório isso, é apenas uma sugestão».
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -4739,7 +4764,17 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (23/11/2026 — Ações, documento e contacto na lista dos professores)
+### Executado nesta fotografia (23/11/2026 — o documento do professor pode ser CNPJ)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-cadastro-do-professor.js` (secção **D**, cinco asserções novas) | **87/87**. Um CNPJ de 14 dígitos é aceite e vai para a chave `cnpj` **com o `cpf` limpo**; a ficha devolve-o no campo próprio; voltar a um CPF **limpa** o CNPJ, para a troca não deixar os dois; um CNPJ que já é de outro professor é recusado (409) com o nome de quem o tem. O corpo aceita `documento`, `cpf` e `cnpj` — quem decide o que o número é é o comprimento, nunca a chave por onde entrou |
+| `provar-editar-professor-principal` | 32/33 — a falha é **anterior** e igual sem esta mudança, conferido com o trabalho em `stash` (o recado do servidor que não aparece na secção, em jsdom) |
+| `provar-professor-secundario` · `provar-estrutura-ao-criar-professor` · `provar-ficha-na-listagem` · `provar-ficha-visual` · `provar-o-painel-do-estudio` · `provar-uma-linha-por-professor` · `provar-slug-do-professor` | 19/19 · verde · 35/35 · 21/21 · 36/36 · 19/19 · verde |
+| `check-schemas` · `check-identidade` | verde · **0 problemas** (23 verificações) |
+| a mensagem que nomeia a entidade certa | `normalizarCnpj(valor, {de})`, como o `normalizarCpf` já tinha desde 18/11: sem o rótulo, um número inválido no campo do professor respondia «o CNPJ da escola tem de ter 14 dígitos», e uma mensagem que nomeia a entidade errada manda corrigir o campo errado. O valor por omissão é o de sempre |
+
+### Executado na fotografia anterior (23/11/2026 — Ações, documento e contacto na lista dos professores)
 
 | Verificação | Resultado |
 |:--|:--|
