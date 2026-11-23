@@ -1270,6 +1270,23 @@ empilhada à esquerda** — o `.rail rail-esq` com `position: sticky` e `flex-di
 grade de três colunas (13rem de acções, a prosa, 15rem de índice). Não se troca uma pela outra: o que
 mudou de sítio não foi uma regra, foi a vontade dela.
 
+### «Como falar» com uma pessoa ou uma escola — duas formas, e são as mesmas em todo o lado *(23/11/2026)*
+
+**A REGRA.** Quando uma célula ou um bloco mostra um contacto que serve para **falar com alguém**, são
+duas formas e não uma terceira: o **e-mail** em `mailto:` e o **telefone** em `wa.me`, os dois
+clicáveis e o telefone a abrir numa aba nova (`target="_blank" rel="noopener"`). O número vai
+normalizado para o formato que o WhatsApp entende (`numeroDoWhatsapp`, em `painel-html.js`: só
+dígitos, com o `55` à frente) — um número com espaços e parênteses não abre conversa nenhuma.
+
+**ONDE JÁ SE CUMPRE:** a página dos Contactos (quem procurou o sistema) e a aba «Os dados da escola»
+do Financeiro. **PORQUE É UMA REGRA, e não um detalhe:** as duas páginas existem para a mesma coisa —
+saber a quem se escreve —, e um `tel:` numa e um `wa.me` na outra obrigariam a lembrar em qual se
+está. Quem tem telefone e e-mail vê os dois; quem tem só um vê um; quem não tem nenhum vê `—`.
+
+**E O TRAÇO É A AUSÊNCIA.** Uma célula sem dado escreve `—`, nunca uma frase nem um valor deduzido.
+Um número de telefone adivinhado a partir do slug, ou um CNPJ calculado, seria pior do que a
+ausência: é com esse número que se cobra alguém.
+
 ### A coluna de acções de uma tabela chama-se «Ações» — no plural *(23/11/2026)*
 
 > «Na tabela está escrito como recriar, mas a última coluna tem que se chamar ação. Ações, né? Acho

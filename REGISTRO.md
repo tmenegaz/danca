@@ -59444,3 +59444,80 @@ problemas (23 verificações).
 copiado para fora do repositório; depois da decisão nova, as **7 linhas foram repostas** a partir
 dessa cópia — nada inventado, os mesmos valores, os mesmos carimbos, lidos de volta do Cloudflare
 depois do `PUT`.
+
+---
+
+## 23/11/2026 — Os dados da escola: o CNPJ que o expurgo apagava, e o que «outra Breu» quer dizer
+
+**AS DUAS PERGUNTAS DELA, e a segunda é uma armadilha que ela mesma farejou.**
+
+> «Eu vou criar uma escola Breu por meio do botão criar escola e aí eu vou usar um outro CNPJ […]
+> Então, sendo outro CNPJ, é outra escola Breu, não é a mesma, né? Pelo menos é assim que eu espero
+> que seja. […] antes de eu criar, você precisa verificar, porque eu acho que vai ser outra escola
+> Breu, porque eu não salvei o CNPJ inclusive antigo.»
+
+> «Uma coisa que tá faltando aqui no nosso painel é a gente saber os dados da escola criada. […] eu
+> preciso de uma lista […] uma tabela que mostra o nome da escola, o professor da escola, o telefone
+> da escola […] e ali eu consigo então entrar em contato com a escola, saber qual é o CNPJ dela e me
+> mexer atrás dela.»
+
+**1. «Outra Breu» — a resposta medida, e ela tem duas metades que não se confundem.**
+
+| | |
+|:--|:--|
+| **o CNPJ** é o registo comercial | outro CNPJ não colide com nada: `cnpjJaUsado` devolve `null`, e a criação passa. É outro contrato. |
+| **o SLUG** é a identidade da máquina | `slugificar('Breu')` = **`breu`** — a MESMA pasta, o MESMO prefixo de KV, o MESMO endereço, e o MESMO elo (`escola/breu/indice.json`, que ganha a 14.ª `recriacao`, exactamente como o botão «Recriar» faria). |
+
+**Consequência que ela tem de saber antes de criar:** a `breu` nova **herda o livro das
+mensalidades** — as 7 linhas que a decisão de hoje manda guardar, de 2026-11 a 2027-05. E herda o
+elo com 14 expurgos e 13 recriações. Se o que ela quer é uma escola de teste **genuinamente nova**,
+o caminho é um nome que produza outro slug — **`Breu Dois`** → `breu-dois` —, e ele **continua a
+carregar o fixture de teste**, porque a regra do fixture é uma PALAVRA NO NOME e não o CNPJ
+(`teste-fixtures.js`: `breu` → conjunto 3, em qualquer posição do nome).
+
+**Medido, sem criar nada:** `escolaExiste('breu')` → **404** (é escola de shard, não tem Worker
+próprio, e a guarda do `criarEscola` não a apanha); `pendenciaDoKv` → nenhuma (o elo diz
+`kv.ok: true`); `criar-escola.sh` → não há `ciclo-01-breu.conf`, nem pacote, nem `wrangler.breu.jsonc`
+(o expurgo levou-os); o mapa `escolas/por-host` está `{}`, e o KV tem **0** chaves sob os dois
+prefixos. A criação não é recusada por nada.
+
+**2. O DEFEITO QUE A PRIMEIRA PERGUNTA EXPÔS, e é o mesmo do livro das mensalidades.** «eu não
+salvei o CNPJ inclusive antigo» — não é esquecimento dela: **o expurgo apagou-o**. A limpeza do KV é
+por prefixo (`<slug>/` e `bastidores/<slug>/`), e o cadastro da escola vive no segundo. Expurgar
+levava o CNPJ, o e-mail e o telefone — exactamente os dados que se precisam para cobrar quem deve ou
+para acionar quem deve. E não havia segunda via: o cadastro **nunca esteve no Git** (o
+`check-indices` proíbe e-mail, telefone e afins nos índices do acervo), e o histórico do Git não o
+tem. Medido: o CNPJ da `breu` que ela expurgou **não é recuperável** em sítio nenhum.
+
+**A CORRECÇÃO, e é a mesma família da decisão de hoje de manhã:** o que é **fiscal** não se expurga.
+`guardarCadastroDoExpurgo` corre ANTES da limpeza (passo 1-ter, ao lado do cartão de despedida, que
+já lia o cadastro pela mesma razão) e grava `cadastros/<slug>` — uma chave **fora dos dois prefixos**,
+e é só isso que a faz sobreviver. Guarda o nome, o CNPJ, o e-mail e o telefone da escola, e o nome,
+CPF, e-mail e telefone do professor; **não** guarda alunas, curadorias, documentos, endereço nem
+Worker — esses são o dado que **serve** a escola, e é isso que o expurgo leva. O registo
+**acrescenta**: um segundo expurgo da mesma escola deixa dois elos, e o de ontem é o que se procura
+quando a dívida é de ontem.
+
+**3. A ABA NOVA — «Os dados da escola»**, a quarta do Financeiro, no FIM: ela é consulta, e quem abre
+o Financeiro vem ver «quem está em dia?». A tabela tem o nome, o professor (com o CPF), o CNPJ, o
+contacto da escola, o contacto do professor, a situação (viva × expurgada, com a data) e a **origem**
+do dado: `cadastro` (o que a escola declarou), `guardado no expurgo` (o registo de antes de ela sair)
+ou `sem cadastro`. As vivas **e** as expurgadas estão na lista — é depois de a escola sair que o CNPJ
+faz falta. «Como falar» usa as duas formas que a página dos Contactos já usa, `mailto:` e `wa.me`, e
+nenhuma terceira; o que falta é um traço, nunca um número deduzido.
+
+**Com o quê.** `motor/servidor/raiz.js` (`chaveDoCadastroHistorico`, `lerCadastroHistorico`,
+`lerContatoDoProfessor`, `guardarCadastroDoExpurgo`, `dadosDasEscolas`, a chamada no expurgo e a
+leitura na rota do `/financeiro`), `motor/servidor/painel-html.js` (a aba e o bloco),
+`IDENTIDADE-VISUAL.md` (a regra do «como falar», e o traço como ausência),
+`experimentos/provar-os-dados-da-escola.js` (**novo**), `.gitignore`,
+`experimentos/provar-financeiro-da-escola.js` (a asserção das abas passou a exigir as quatro).
+
+**MEDIDO.** `provar-os-dados-da-escola` **42/42**; controle `--contra=f0186400` a reprovar **13 de
+22**. `provar-o-financeiro-que-fica` 30/30, `provar-recriar-escola` 94/94, `provar-financeiro-da-
+escola` 129/136 (**as 7 falhas são as de antes** desta mudança, todas de `jsdom` na página da
+escola), `provar-painel` verde, `check-identidade` **0 problemas** (23 verificações).
+
+**O QUE FICA PENDENTE, e é dela.** A aba diz «sem cadastro» às escolas expurgadas antes de hoje. Não
+inventei registo nenhum: o CNPJ delas não existe em sítio nenhum, e um número reconstruído seria uma
+mentira com aparência de dado. Daqui em diante, o registo fica.

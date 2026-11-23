@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T22:35:15-0300`
-Commit atual: `838938c2` — docs(estrutura): a fotografia do expurgo da breu, e o que ele deixou para trás
+Gerado em: `2026-11-22T23:01:48-0300`
+Commit atual: `f0186400` — fix(estrutura): um mês que foi pago nunca se esconde do extrato
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -83,6 +83,9 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+f0186400 fix(estrutura): um mês que foi pago nunca se esconde do extrato
+96535aaf docs(estrutura): a regra do financeiro que fica, e o que «Recriar» significa
+1dc07e2a fix(estrutura): o financeiro de uma escola expurgada não se apaga — é história
 838938c2 docs(estrutura): a fotografia do expurgo da breu, e o que ele deixou para trás
 3a29feee chore(estrutura): fechar os derivados do expurgo da breu
 14d20091 fix(estrutura): o expurgo limpa o livro do financeiro e a cache do monitor
@@ -100,9 +103,6 @@ f4ec34e1 docs(estrutura): o portão da aula dada bloqueia, e a decisão fica gua
 cbd1aa66 feat(aula-03): a mudança chega à aula vigente, e as dadas ficam iguais ao último registro
 e08b9b7b chore(estrutura): fechar os derivados — âncoras e índices
 c9a4168c feat(aula-03): a aula decide a sua música, e o repertório do plano acompanha a Turma
-d2bbab1b chore(estrutura): fechar os derivados — âncoras e índices
-4c37b9ef fix(musicalidade): a música é a da escola, e sobe do verbete quando a linha não a copiou
-9d4b9744 chore(estrutura): fechar os derivados — âncoras e índices
 ```
 
 ## Por professor
@@ -184,89 +184,80 @@ d2bbab1b chore(estrutura): fechar os derivados — âncoras e índices
 
 ## Última entrada do REGISTRO
 
-## 23/11/2026 — O financeiro de uma escola expurgada não se apaga: ele é a prova de que ela pagou
+## 23/11/2026 — Os dados da escola: o CNPJ que o expurgo apagava, e o que «outra Breu» quer dizer
 
-**O QUE ELA DISSE, e é a regra inteira.** «O que eu entendi do expurgo é que ele também está levando a
-parte financeira. […] O que não pode sair é a parte financeira. Tem que manter que ela é uma escola
-que tem um histórico de pagamentos e de ações. […] A parte financeira não pode expurgar, ela fica para
-histórico. E aí a gente diz numa linha seguinte que essa escola foi expurgada. […] Eu acessei o
-financeiro agora e ele não tem nada lá mais. E não pode isso.»
+**AS DUAS PERGUNTAS DELA, e a segunda é uma armadilha que ela mesma farejou.**
 
-**É UMA REVERSÃO DECLARADA, e a decisão anterior também era dela.** A 17/11/2026, com estas palavras:
-«quando você expurgar [a escola] dessa vez, essa parte toda de pagamento e financeiro […] tem que
-deixar de existir.» Foi implementada — `apagarEscolaDoLivro` no núcleo, chamada na rota de retomada, e
-depois nas duas. A 23/11 ela viu o resultado e corrigiu. **O argumento que faltava é de negócio:** uma
-escola que pagou sete meses e depois saiu é **receita que existiu**, e apagá-la do livro não limpa
-nada — falsifica o passado da operação, e o mês em que ela deixou de pagar é exactamente a informação
-que se procura meses depois.
+> «Eu vou criar uma escola Breu por meio do botão criar escola e aí eu vou usar um outro CNPJ […]
+> Então, sendo outro CNPJ, é outra escola Breu, não é a mesma, né? Pelo menos é assim que eu espero
+> que seja. […] antes de eu criar, você precisa verificar, porque eu acho que vai ser outra escola
+> Breu, porque eu não salvei o CNPJ inclusive antigo.»
 
-**A FRONTEIRA, e ela é precisa.** SAI o dado que **serve** a escola — contrato, senhas, alunas,
-curadoria, documentos, endereço, Worker. É o expurgo, e é irreversível. FICA a linha do livro
-(`financeiro/mensalidades`): mês, valor, quando foi pago, por quem, em que plano.
+> «Uma coisa que tá faltando aqui no nosso painel é a gente saber os dados da escola criada. […] eu
+> preciso de uma lista […] uma tabela que mostra o nome da escola, o professor da escola, o telefone
+> da escola […] e ali eu consigo então entrar em contato com a escola, saber qual é o CNPJ dela e me
+> mexer atrás dela.»
 
-**O QUE ESTAVA ROTO, e eram duas coisas diferentes.** O livro **sobrevivia** por construção — é uma
-chave com a lista de todas as escolas, e o expurgo apaga por prefixo, logo nunca o alcançou. Quem não
-o mostrava era o painel, em dois sítios:
+**1. «Outra Breu» — a resposta medida, e ela tem duas metades que não se confundem.**
 
-1. `extratoDasEscolas` recebia só as **vivas** (`escolas: vivas` na rota do `/financeiro`), e uma
-   escola expurgada não chegava ao extrato.
-2. `situacaoDaEscola` contava os meses **a partir da adesão** (`criadoEm`/`habilitadaEm`), e uma
-   escola expurgada perdeu o contrato — logo `inicio` era `null`, `meses` era `[]`, e o extrato dela
-   ficava **vazio**. Era isto que ela viu: «não tem nada lá mais».
+| | |
+|:--|:--|
+| **o CNPJ** é o registo comercial | outro CNPJ não colide com nada: `cnpjJaUsado` devolve `null`, e a criação passa. É outro contrato. |
+| **o SLUG** é a identidade da máquina | `slugificar('Breu')` = **`breu`** — a MESMA pasta, o MESMO prefixo de KV, o MESMO endereço, e o MESMO elo (`escola/breu/indice.json`, que ganha a 14.ª `recriacao`, exactamente como o botão «Recriar» faria). |
 
-**AS CORREÇÕES, e cada uma tem a sua asserção.**
+**Consequência que ela tem de saber antes de criar:** a `breu` nova **herda o livro das
+mensalidades** — as 7 linhas que a decisão de hoje manda guardar, de 2026-11 a 2027-05. E herda o
+elo com 14 expurgos e 13 recriações. Se o que ela quer é uma escola de teste **genuinamente nova**,
+o caminho é um nome que produza outro slug — **`Breu Dois`** → `breu-dois` —, e ele **continua a
+carregar o fixture de teste**, porque a regra do fixture é uma PALAVRA NO NOME e não o CNPJ
+(`teste-fixtures.js`: `breu` → conjunto 3, em qualquer posição do nome).
 
-- **Sem contrato, a linha do tempo é o livro.** As únicas linhas que existem são as que foram
-  **pagas** — não há o que cobrar de uma escola que não existe. Com contrato nada muda: os meses
-  continuam a nascer da adesão, e os meses em aberto continuam a existir (medido, `A2`).
-- **As apagadas com histórico entram no extrato**, com `expurgada` e a data; as **sem** histórico
-  ficam de fora — uma conta vazia com o nome de uma escola que já não existe é ruído.
-- **O cartão dela não oferece cobrança.** Saem os quatro ganchos que gravam sobre o registo
-  comercial: `data-pagar`, `data-pagamento-gravar`, `data-ensaio-ligar`, `data-contrato-gravar`. Um
-  botão que gravasse ali criaria um contrato novo para uma escola morta. A viva continua com os
-  quatro — é o controle que impede a correcção de os tirar a todas.
-- **A linha seguinte, que ela pediu por palavras:** «Escola expurgada em 22/11/2026 às 22:00. O
-  histórico de pagamentos fica — é a receita que existiu. Saíram do sistema o contrato, as senhas, as
-  alunas e os documentos, e por isso não há aqui o que cobrar nem o que alterar.» O fuso é o de quem
-  lê: o expurgo foi às 01:00:53 UTC de 23/11, que em Passo Fundo ainda é 22/11 às 22:00.
-- **`apagarEscolaDoLivro` saiu do núcleo.** Ficou sem chamador, e um caminho de escrita que ninguém
-  usa é código morto que parece vivo: o próximo que o lesse acreditaria que apagar o livro é um gesto
-  do produto.
-- **A COLUNA CHAMA-SE `Ações`, no plural.** «Na tabela está escrito como recriar, mas a última coluna
-  tem que se chamar ação. Ações, né? […] Acho que isso deve estar documentado. Se não estiver,
-  documente porque isso tem que ser o nome, ações.» Não estava documentado como regra de coluna —
-  estava só como marcação da pílula. Passou a estar em `IDENTIDADE-VISUAL.md`: **o nome da coluna diz
-  o que ali vive, não o rótulo do único botão que ela tem hoje.**
+**Medido, sem criar nada:** `escolaExiste('breu')` → **404** (é escola de shard, não tem Worker
+próprio, e a guarda do `criarEscola` não a apanha); `pendenciaDoKv` → nenhuma (o elo diz
+`kv.ok: true`); `criar-escola.sh` → não há `ciclo-01-breu.conf`, nem pacote, nem `wrangler.breu.jsonc`
+(o expurgo levou-os); o mapa `escolas/por-host` está `{}`, e o KV tem **0** chaves sob os dois
+prefixos. A criação não é recusada por nada.
 
-**O QUE «RECRIAR» SIGNIFICA — medido, e é uma resposta que ela pediu antes de testar.** «Ele vai
-recriar a escola Breu do jeito que ela estava, já com as aulas que ela tinha ou só o básico.» **Não
-desfaz o expurgo.** O botão de `/escolas-apagadas` manda um **convite** — quem recria é a escola, do
-outro lado do link, escolhendo plano e senhas. O caminho devolve a escola (rota, Worker/shard, KV,
-senhas, contrato, Pix) e os **envelopes**: na `breu`, medido com o restaurador a seco, **76
-documentos, 2 professoras, 2 alunas**, nada descartado na capacidade de 10/120. **Não voltam:** as
-**aulas** (169 ficheiros do ciclo — eram fontes e foram com o expurgo), as **linhas de base** (20
-ficheiros; lacuna do restaurador, declarada), o **elenco e a turma** (vivem no KV, e a restauração só
-escreve ficheiros) e o **pacote gerado**.
+**2. O DEFEITO QUE A PRIMEIRA PERGUNTA EXPÔS, e é o mesmo do livro das mensalidades.** «eu não
+salvei o CNPJ inclusive antigo» — não é esquecimento dela: **o expurgo apagou-o**. A limpeza do KV é
+por prefixo (`<slug>/` e `bastidores/<slug>/`), e o cadastro da escola vive no segundo. Expurgar
+levava o CNPJ, o e-mail e o telefone — exactamente os dados que se precisam para cobrar quem deve ou
+para acionar quem deve. E não havia segunda via: o cadastro **nunca esteve no Git** (o
+`check-indices` proíbe e-mail, telefone e afins nos índices do acervo), e o histórico do Git não o
+tem. Medido: o CNPJ da `breu` que ela expurgou **não é recuperável** em sítio nenhum.
 
-**Com o quê.** `motor/nucleo/mensalidades.js` (`situacaoDaEscola`, e a saída do `apagarEscolaDoLivro`),
-`motor/servidor/raiz.js` (`extratoDasEscolas`, a rota do `/financeiro`, a saída do
-`limparOLivroDaEscola` e do `livro` no desfecho), `motor/servidor/painel-html.js` (o cartão, as
-acções, a coluna), `IDENTIDADE-VISUAL.md`, `experimentos/provar-o-financeiro-que-fica.js` (**novo**),
-`experimentos/provar-os-restos-do-expurgo.js`, `experimentos/provar-recriar-escola.js`,
-`experimentos/provar-financeiro-da-escola.js`, `.gitignore`.
+**A CORRECÇÃO, e é a mesma família da decisão de hoje de manhã:** o que é **fiscal** não se expurga.
+`guardarCadastroDoExpurgo` corre ANTES da limpeza (passo 1-ter, ao lado do cartão de despedida, que
+já lia o cadastro pela mesma razão) e grava `cadastros/<slug>` — uma chave **fora dos dois prefixos**,
+e é só isso que a faz sobreviver. Guarda o nome, o CNPJ, o e-mail e o telefone da escola, e o nome,
+CPF, e-mail e telefone do professor; **não** guarda alunas, curadorias, documentos, endereço nem
+Worker — esses são o dado que **serve** a escola, e é isso que o expurgo leva. O registo
+**acrescenta**: um segundo expurgo da mesma escola deixa dois elos, e o de ontem é o que se procura
+quando a dívida é de ontem.
 
-**MEDIDO.** `provar-o-financeiro-que-fica` **27/27**; controle `--contra=838938c2` a reprovar **16 de
-27**. `provar-os-restos-do-expurgo` 16/16, controle `--contra=8b877844` a reprovar 3 de 10.
-`provar-recriar-escola` **94/94** (com a asserção nova da coluna). `provar-financeiro-da-escola`
-129/136 — **as 7 falhas são as de antes** (128/135 antes desta mudança, as mesmas sete, de `jsdom` na
-página da escola); a asserção «sem contrato datado não tem mensalidades» foi actualizada para a regra
-de hoje. `provar-bancadas-e-expurgo` 22/22, `provar-lista-do-expurgo` 26/26. `check-identidade` 0
-problemas (23 verificações).
+**3. A ABA NOVA — «Os dados da escola»**, a quarta do Financeiro, no FIM: ela é consulta, e quem abre
+o Financeiro vem ver «quem está em dia?». A tabela tem o nome, o professor (com o CPF), o CNPJ, o
+contacto da escola, o contacto do professor, a situação (viva × expurgada, com a data) e a **origem**
+do dado: `cadastro` (o que a escola declarou), `guardado no expurgo` (o registo de antes de ela sair)
+ou `sem cadastro`. As vivas **e** as expurgadas estão na lista — é depois de a escola sair que o CNPJ
+faz falta. «Como falar» usa as duas formas que a página dos Contactos já usa, `mailto:` e `wa.me`, e
+nenhuma terceira; o que falta é um traço, nunca um número deduzido.
 
-**A CÓPIA E A REPOSIÇÃO, declaradas.** Antes de o `limparOLivroDaEscola` correr ao vivo, o livro foi
-copiado para fora do repositório; depois da decisão nova, as **7 linhas foram repostas** a partir
-dessa cópia — nada inventado, os mesmos valores, os mesmos carimbos, lidos de volta do Cloudflare
-depois do `PUT`.
+**Com o quê.** `motor/servidor/raiz.js` (`chaveDoCadastroHistorico`, `lerCadastroHistorico`,
+`lerContatoDoProfessor`, `guardarCadastroDoExpurgo`, `dadosDasEscolas`, a chamada no expurgo e a
+leitura na rota do `/financeiro`), `motor/servidor/painel-html.js` (a aba e o bloco),
+`IDENTIDADE-VISUAL.md` (a regra do «como falar», e o traço como ausência),
+`experimentos/provar-os-dados-da-escola.js` (**novo**), `.gitignore`,
+`experimentos/provar-financeiro-da-escola.js` (a asserção das abas passou a exigir as quatro).
+
+**MEDIDO.** `provar-os-dados-da-escola` **42/42**; controle `--contra=f0186400` a reprovar **13 de
+22**. `provar-o-financeiro-que-fica` 30/30, `provar-recriar-escola` 94/94, `provar-financeiro-da-
+escola` 129/136 (**as 7 falhas são as de antes** desta mudança, todas de `jsdom` na página da
+escola), `provar-painel` verde, `check-identidade` **0 problemas** (23 verificações).
+
+**O QUE FICA PENDENTE, e é dela.** A aba diz «sem cadastro» às escolas expurgadas antes de hoje. Não
+inventei registo nenhum: o CNPJ delas não existe em sítio nenhum, e um número reconstruído seria uma
+mentira com aparência de dado. Daqui em diante, o registo fica.
 
 ## O que está pendente
 
