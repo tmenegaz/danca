@@ -344,7 +344,22 @@ function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas 
    *
    * Com contrato nada disto corre: a linha do tempo continua a nascer da adesão, e é ela que
    * produz os meses em aberto. */
-  const meses = inicio ? mesesEntre(inicio, hojeIso) : Object.keys(pagamentos).sort();
+  /* UM MÊS QUE FOI PAGO NUNCA SE ESCONDE (23/11/2026, à tarde) — a linha do tempo é a UNIÃO.
+   *
+   * `mesesEntre` vai da adesão até hoje, e isso basta para a cobrança: não se cobra o futuro. Mas
+   * uma página do livro pode estar FORA dessa janela, e ela é um pagamento que existiu:
+   *
+   *   · para trás — um mês anterior à adesão (um acerto, uma migração de contrato);
+   *   · para a frente — um pagamento adiantado, e é o caso que a `breu` tem: sete meses pagos de
+   *     2026-11 a 2027-05, com «hoje» em novembro de 2026. Ao recriar a escola, a adesão nova é de
+   *     novembro, `mesesEntre` devolveria UM mês, e os outros seis desapareceriam do extrato —
+   *     exactamente o que esta correcção existe para impedir.
+   *
+   * A regra é a mesma dos dois lados: o que se cobra vem da adesão; o que foi pago vem do livro; a
+   * vista é a soma dos dois. Ordenada, porque a aritmética acima conta com a ordem crescente. */
+  const daAdesao = inicio ? mesesEntre(inicio, hojeIso) : [];
+  const doLivro = Object.keys(pagamentos);
+  const meses = daAdesao.concat(doLivro.filter((m) => daAdesao.indexOf(m) === -1)).sort();
 
   const linhas = meses.map((mes) => {
     const pago = pagamentos[mes] || null;

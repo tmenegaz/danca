@@ -160,6 +160,23 @@ const ESCOLA_EXPURGADA_SEM_HISTORICO = {
   provar('A2. …e a linha do contrato em vigor continua a sair',
     comContrato.valorCentavos === 7990, comContrato.valorCentavos);
 
+  /* A3. O CASO QUE ELA VAI VIVER: a escola RECRIADA. A adesão nova é deste mês, e o livro tem os
+   * sete meses pagos — seis deles no FUTURO de hoje. `mesesEntre` iria da adesão até hoje e
+   * devolveria um mês; os outros seis desapareceriam do extrato, que é o defeito de hoje a voltar
+   * com outra cara. Um mês que foi pago nunca se esconde: a linha do tempo é a UNIÃO. */
+  const recriada = mensalidades.situacaoDaEscola({
+    escola: 'breu',
+    contrato: { escola: 'breu', plano: 'basico', valorCentavos: 7990, criadoEm: '2026-11-22T12:00:00Z' },
+    livro: HISTORICO, agora: '2026-11-23T12:00:00Z',
+  });
+  provar('A3. a escola RECRIADA (adesão deste mês) continua a mostrar os sete meses pagos',
+    recriada.meses.length === 7, recriada.meses.map((m) => m.mes));
+  provar('A3. …incluindo os seis que estão no futuro de hoje — um pagamento adiantado não se esconde',
+    recriada.meses.filter((m) => m.mes > '2026-11').length === 6,
+    recriada.meses.map((m) => m.mes));
+  provar('A3. …e o mês da adesão nova continua a existir como mês a cobrar',
+    recriada.meses.some((m) => m.mes === '2026-11'), recriada.meses.map((m) => m.mes));
+
   console.log('');
   console.log('B. A FRONTEIRA DO LIVRO — igualdade do slug, nunca prefixo');
   const vizinha = mensalidades.situacaoDaEscola({
