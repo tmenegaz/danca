@@ -301,6 +301,126 @@ const ELO = {
     /Nenhuma escola cadastrada/.test(vazia), null);
 
   console.log('');
+  console.log('F. A RECRIAÇÃO — o cadastro guardado volta a ser o da escola');
+  /* A PERGUNTA DELA, textualmente: «O CNPJ a partir de então vai surgir junto? Quer dizer, os dados
+   * da escola eles vão ser recriados também? […] Então recriar é aquela escola que a gente já tinha
+   * antes, mas aí com os dados da escola também. É isso mesmo?»
+   *
+   * ERA NÃO. `guardarCadastroDoExpurgo` guardava-o, e nada o trazia de volta: a escola voltava sem
+   * CNPJ, sem e-mail e sem telefone, e o e-mail de boas-vindas saía só para o professor. Estas
+   * asserções medem a volta. */
+  const herdar = raiz.herdarCadastroDoExpurgo;
+  provar('F0. `herdarCadastroDoExpurgo` existe', typeof herdar === 'function');
+  if (typeof herdar === 'function') {
+    const REGISTO = JSON.stringify({ escola: 'breu', expurgos: [{
+      em: '2026-11-23T01:00:53.940Z', motivo: 'expurgada pela página',
+      escolaNome: 'Escola Breu', cnpj: '12.345.678/0001-90', email: 'direcao@breu.exemplo',
+      telefone: '54 3333-4444', professor: { slug: 'demi-plie', nome: 'Demi Plié' },
+    }] });
+
+    // F1. o caso inteiro: a escola volta com os dados que tinha.
+    {
+      const kv = kvDeBolso({ 'cadastros/breu': REGISTO });
+      const r = await herdar({ env: { PADD_KV: kv }, slug: 'breu' });
+      const vivo = JSON.parse(kv.dados.get('bastidores/breu/cadastro') || 'null');
+      provar('F1. a recriação repõe o cadastro guardado', r.ok === true && r.herdado === true, r);
+      provar('F1. …com o CNPJ, o e-mail, o telefone e o nome que a escola tinha',
+        vivo && vivo.cnpj === '12.345.678/0001-90' && vivo.email === 'direcao@breu.exemplo'
+        && vivo.telefone === '54 3333-4444' && vivo.escolaNome === 'Escola Breu', vivo);
+      provar('F1. …e diz DE QUANDO são: não foram declarados agora',
+        vivo && vivo.herdadoDe && vivo.herdadoDe.em === '2026-11-23T01:00:53.940Z', vivo && vivo.herdadoDe);
+      provar('F1. …e não se declara cadastro novo (a origem diz recriação)',
+        vivo && vivo.origem === 'recriacao', vivo && vivo.origem);
+    }
+    // F2. um cadastro que a escola já tem não se sobrepõe.
+    {
+      const kv = kvDeBolso({
+        'cadastros/breu': REGISTO,
+        'bastidores/breu/cadastro': JSON.stringify({ escolaNome: 'Breu Nova', cnpj: '22.222.222/0001-22' }),
+      });
+      const r = await herdar({ env: { PADD_KV: kv }, slug: 'breu' });
+      const vivo = JSON.parse(kv.dados.get('bastidores/breu/cadastro'));
+      provar('F2. o cadastro que já existe com conteúdo NÃO é sobreposto',
+        r.ok === true && r.herdado === false && vivo.cnpj === '22.222.222/0001-22', { r, vivo });
+    }
+    // F3. o número único: se o CNPJ já é de OUTRA escola, herda-se o resto e não o número.
+    {
+      const kv = kvDeBolso({
+        'cadastros/breu': REGISTO,
+        'bastidores/nova/cadastro': JSON.stringify({ escolaNome: 'Nova', cnpj: '12345678000190' }),
+      });
+      const r = await herdar({ env: { PADD_KV: kv }, slug: 'breu' });
+      const vivo = JSON.parse(kv.dados.get('bastidores/breu/cadastro'));
+      provar('F3. o CNPJ que já é de outra escola NÃO é herdado — um CNPJ é uma escola',
+        vivo && vivo.cnpj === null, vivo && vivo.cnpj);
+      provar('F3. …e o resto herda-se: o e-mail e o telefone ficam',
+        vivo && vivo.email === 'direcao@breu.exemplo' && vivo.telefone === '54 3333-4444', vivo);
+      provar('F3. …e o desfecho diz qual é a escola que tem o número',
+        r.cnpjNaoHerdado && r.cnpjNaoHerdado.escola === 'nova', r.cnpjNaoHerdado);
+    }
+    // F4. sem registo guardado: não se inventa nada, e não é falha.
+    {
+      const kv = kvDeBolso({});
+      const r = await herdar({ env: { PADD_KV: kv }, slug: 'duo' });
+      provar('F4. sem registo guardado, não se escreve cadastro nenhum',
+        r.ok === true && r.herdado === false && !kv.dados.has('bastidores/duo/cadastro'), r);
+    }
+    // F5. sem KV: ok:false, e a recriação não cai por isso.
+    {
+      const r = await herdar({ env: {}, slug: 'breu' });
+      provar('F5. sem KV a resposta diz que não repôs', r.ok === false && Boolean(r.erro), r);
+    }
+    // F6. a escola recriada passa a ser lida como «herdado», e não como «vivo».
+    {
+      const kv = kvDeBolso({
+        'cadastros/breu': REGISTO,
+        'bastidores/breu/cadastro': JSON.stringify({
+          escolaNome: 'Escola Breu', cnpj: '12.345.678/0001-90', email: 'direcao@breu.exemplo',
+          telefone: '54 3333-4444', origem: 'recriacao',
+          herdadoDe: { em: '2026-11-23T01:00:53.940Z', motivo: 'expurgada pela página' },
+        }),
+      });
+      const linha = (await dados({ env: { PADD_KV: kv }, escolas: [{ slug: 'breu', nome: 'Breu', expurgada: false }] }))[0];
+      provar('F6. a aba diz «herdado», e não «cadastro» — os dados não foram declarados hoje',
+        linha && linha.fonte === 'herdado', linha && linha.fonte);
+      provar('F6. …e leva a data de onde vieram', linha && linha.herdadoDe
+        && linha.herdadoDe.em === '2026-11-23T01:00:53.940Z', linha && linha.herdadoDe);
+      /* E a página escreve-o — a célula não pode dizer o mesmo para um dado herdado e para um
+       * declarado. */
+      const pagina = painel.paginaFinanceira({
+        pix: { chave: 'x' }, descontos: [], escolas: [], extrato: [], dados: [linha], catalogo: null,
+      });
+      provar('F6. …e a célula diz «herdado do expurgo»', /herdado do expurgo/.test(pagina), null);
+    }
+    // F7. um cadastro VIVO mas vazio não esconde o registo guardado.
+    {
+      const kv = kvDeBolso({
+        'cadastros/breu': REGISTO,
+        'bastidores/breu/cadastro': JSON.stringify({ escolaNome: null, cnpj: null, email: null, telefone: null }),
+      });
+      const linha = (await dados({ env: { PADD_KV: kv }, escolas: [{ slug: 'breu', nome: 'Breu', expurgada: false }] }))[0];
+      provar('F7. três traços não são um cadastro: a aba cai no registo guardado',
+        linha && linha.cnpj === '12.345.678/0001-90' && linha.fonte === 'expurgo', linha);
+    }
+  }
+
+  /* A LIGAÇÃO — que é o que faz isto chegar ao botão. A função pode estar perfeita e não ser
+   * chamada; a asserção é sobre o TEXTO do `recriarEscola`, e o controle negativo apanha-a. */
+  {
+    const fonte = fs.readFileSync(path.join(RAIZ_DO_MOTOR, 'motor/servidor/raiz.js'), 'utf8');
+    const corpo = fonte.slice(fonte.indexOf('async function recriarEscola('),
+      fonte.indexOf('A IDENTIDADE ÚNICA DAS ENTIDADES'));
+    provar('F8. `recriarEscola` chama a herança do cadastro',
+      /herdarCadastroDoExpurgo\(\{/.test(corpo), null);
+    provar('F8. …e chama-a DEPOIS de o motor ter subido (o `disparo` vem antes)',
+      corpo.indexOf('herdarCadastroDoExpurgo({') > corpo.indexOf('if (!disparo.ok)'), null);
+    provar('F8. …e o nome da escola sai do cadastro guardado quando não há vivo',
+      /lerCadastroHistorico\(env, slug\)/.test(corpo), null);
+    provar('F9. a página do convite só promete os dados quando os há',
+      /identidade\s*&&|identidade\s*\?/.test(fs.readFileSync(path.join(RAIZ_DO_MOTOR, 'motor/servidor/painel-html.js'), 'utf8')), null);
+  }
+
+  console.log('');
   console.log('E. A CRIAÇÃO — a pergunta dela, medida');
   /* A RESPOSTA, e ela tem duas metades que não se confundem: o CNPJ é o registo COMERCIAL (um CNPJ
    * é uma escola), e o SLUG é a identidade da máquina (a pasta, o prefixo do KV, o endereço). */

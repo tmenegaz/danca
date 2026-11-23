@@ -2284,7 +2284,17 @@ async function criarConvite({ env, escola, por }) {
   /* O NOME E OS DESTINATÁRIOS. O nome sai do cadastro quando ele reproduz o slug (é o mesmo
    * cuidado da recriação); sem cadastro, do slug. Os contactos saem do KV — e quando não há
    * nenhum, o convite NÃO falha: ele volta com o link, e ela manda-o por WhatsApp. */
-  const cadastro = await lerCadastroDaEscola(env, slug);
+  /* O CADASTRO QUE O EXPURGO GUARDOU ENTRA AQUI TAMBÉM (23/11/2026) — e o convite é o primeiro a
+   * ganhar com isso.
+   *
+   * O convite leva o nome da escola e os contactos que o recebem. Os dois viviam no cadastro, e o
+   * cadastro de uma escola purgada foi apagado — logo o convite saía com o nome derivado do slug
+   * («Breu» em vez de «Escola Breu») e só para o endereço do PROFESSOR, porque o da escola já não
+   * existia. Com o registo guardado, o convite chega às duas partes, que é o que ele promete.
+   *
+   * A LEITURA É LIVRE E NÃO ESCREVE NADA: o convite não muda o cadastro da escola. Quem o repõe é
+   * a recriação, e só depois de a escola existir. */
+  const cadastro = (await lerCadastroDaEscola(env, slug)) || (await lerCadastroHistorico(env, slug));
   const nomeDoCadastro = String((cadastro && cadastro.escolaNome) || '').trim();
   const nome = (nomeDoCadastro && slugificar(nomeDoCadastro) === slug) ? nomeDoCadastro : tituloDoSlug(slug);
   const paraOMail = await cadastroParaOMail({ env, escola: slug, professor: (responsavelDoInventario(elo).slug || ''), nome, registo: cadastro });
@@ -2507,17 +2517,27 @@ async function respostaDoConvite(request, env) {
   const lido = await lerConvite({ env, token });
   if (!lido.ok) {
     return painel.resposta(painel.paginaDoConvite({
-      escola: '', nome: '—', token: '', catalogo: null, pix: null, estado: lido,
+      escola: '', nome: '—', token: '', catalogo: null, pix: null, estado: lido, identidade: null,
     }), 404);
   }
   /* O NOME, do elo. Se o elo desaparecer entre o envio e a abertura, a página continua a abrir com
    * o nome que o convite guardou — o convite é do momento em que foi emitido, e não uma segunda
    * leitura de um dado que pode ter mudado. */
   const pix = await lerPix(env && env.PADD_KV, env);
+  /* A IDENTIDADE QUE SOBREVIVEU (23/11/2026). A página diz «os dados ficaram guardados» — e essa
+   * frase esteve aqui a ser falsa desde 16/11, porque o expurgo os apagava e ninguém os restituía.
+   * Agora são verdade para as escolas expurgadas a partir de hoje, e a página só a escreve quando
+   * há mesmo um registo para mostrar. */
+  let identidade = null;
+  try {
+    const guardado = await lerCadastroHistorico(env, lido.escola);
+    identidade = guardado ? { cnpj: guardado.cnpj || null, em: guardado.em || null } : null;
+  } catch (erro) { identidade = null; }
   return painel.resposta(painel.paginaDoConvite({
     escola: lido.escola,
     nome: (lido.registo && lido.registo.nome) || lido.escola,
     token,
+    identidade,
     catalogo: comercial.catalogoDaPagina(),
     pix,
     /* O RETRATO QUE O CONVITE GUARDOU (16/11/2026). É ele que permite avisar, na página, que o
@@ -2701,7 +2721,18 @@ async function recriarEscola({ env, escola, plano, lotesProfessores, lotesAlunos
   /* 3. O NOME. O slug nasce do nome (`slugificar(nome)`), e o nome tem de o reproduzir — senão a
    * recriação criaria OUTRA escola, ao lado do elo. A ordem é: o nome que o cadastro guardou, se
    * ele reproduz o slug; senão, o título do próprio slug (é a volta de uma ida, como na criação). */
-  const cadastro = await lerCadastroDaEscola(env, slug);
+  /* O CADASTRO QUE O EXPURGO GUARDOU ENTRA AQUI, ANTES DE O NOME SER ESCOLHIDO (23/11/2026).
+   *
+   * A ORDEM NÃO É INDIFERENTE. O nome da escola recriada sai do cadastro, e o cadastro da
+   * encarnação anterior foi apagado pelo expurgo — sem esta linha, a escola voltava com o nome
+   * derivado do slug («Breu») em vez do que ela declarou («Escola Breu»), e o e-mail de boas-vindas
+   * saía só para o professor, porque o endereço da escola vivia no cadastro que já não existia.
+   *
+   * A LEITURA É LIVRE E NÃO ESCREVE NADA: quem grava é o passo 8-bis, e só depois de a escola
+   * existir. Gravar aqui deixaria um cadastro a apontar para uma escola que uma recusa (um plano
+   * inválido, um 409) ainda pode não criar — e esse cadastro faria o CNPJ parecer ocupado por uma
+   * escola que não voltou. */
+  const cadastro = (await lerCadastroDaEscola(env, slug)) || (await lerCadastroHistorico(env, slug));
   const nomeDoCadastro = String((cadastro && cadastro.escolaNome) || '').trim();
   const nome = (nomeDoCadastro && slugificar(nomeDoCadastro) === slug)
     ? nomeDoCadastro
@@ -2894,6 +2925,18 @@ async function recriarEscola({ env, escola, plano, lotesProfessores, lotesAlunos
     disparoRun: (disparo && disparo.run) ? disparo.run : null,
   }, 'recriacao', { substituir: true });
 
+  /* 8-bis. O CADASTRO GUARDADO VOLTA A SER O DA ESCOLA (23/11/2026).
+   *
+   * DEPOIS DO ESTADO COMERCIAL, E SÓ AQUI, porque é a primeira altura em que a escola existe de
+   * facto: o Worker subiu, o disparo do motor correu, o registo comercial foi escrito. Uma falha
+   * antes disto desfaz o placeholder e a escola não volta — e o cadastro não pode ficar a dizer que
+   * ela voltou, nem o CNPJ a parecer ocupado por uma escola que não existe.
+   *
+   * O QUE ELE RESTITUI: o nome, o CNPJ, o e-mail e o telefone que a escola tinha. O que ele NÃO
+   * restitui: nada do que servia a escola (alunas, curadorias, documentos) — isso é o retrato, e
+   * vem pelo `restaurar-retrato.js`, no runner. Ver `herdarCadastroDoExpurgo`. */
+  const cadastroHerdado = await herdarCadastroDoExpurgo({ env, slug: criada.escola });
+
   /* 9. O CORREIO — a MESMA mensagem da criação, e pela mesma função (16/11/2026).
    *
    * «Sempre que for criado uma escola, tem que disparar um e-mail» — e uma escola recriada é uma
@@ -2917,7 +2960,13 @@ async function recriarEscola({ env, escola, plano, lotesProfessores, lotesAlunos
   const correioEnviado = await mandarBoasVindas({
     env,
     escola: criada.escola,
-    cadastro: await cadastroParaOMail({ env, escola: criada.escola, professor: quem.slug, nome, registo: cadastro }),
+    /* LIDO OUTRA VEZ, DEPOIS DE REPOSTO: `cadastro` acima é o que estava ANTES de a escola
+     * existir. Sem esta releitura, o endereço da escola iria para a mensagem só se ele já vivesse
+     * no KV — e a recriação é exactamente o caso em que ele foi reposto agora. */
+    cadastro: await cadastroParaOMail({
+      env, escola: criada.escola, professor: quem.slug, nome,
+      registo: (await lerCadastroDaEscola(env, criada.escola)) || cadastro,
+    }),
     url: criada.url,
     dominio: criada.dominio,
   });
@@ -2936,6 +2985,9 @@ async function recriarEscola({ env, escola, plano, lotesProfessores, lotesAlunos
       ? { estado: comercialGravado.comercial.estado, plano: escolha.plano,
           planoNome: escolha.planoNome, valor: escolha.valor }
       : { estado: null, erro: comercialGravado.erro },
+    /* OS DADOS DA ESCOLA, DE VOLTA (23/11/2026) — e o desfecho vai ao lado do sucesso, porque a
+     * escola JÁ voltou: uma falha a repor o cadastro não a desfaz, e quem lê tem de o saber. */
+    cadastro: cadastroHerdado,
     /* O QUE ELA VAI FAZER A SEGUIR, e é o passo comercial que fechou o ciclo: mandar a chave Pix.
      * O valor vem daqui para ela não ter de o procurar noutra página. */
     aPagar: { valor: escolha.valor, valorCentavos: escolha.valorCentavos, plano: escolha.planoNome },
@@ -3110,6 +3162,78 @@ async function guardarCadastroDoExpurgo({ env, slug, elo, motivo, quando }) {
     return { ok: true, chave, expurgos: expurgos.length, cnpj: Boolean(elo_.cnpj) };
   } catch (erro) {
     return { ok: false, erro: (erro && erro.message) || String(erro) };
+  }
+}
+
+/**
+ * O CAMINHO DE VOLTA — o cadastro guardado volta a ser o cadastro da escola, quando ela é RECRIADA
+ * (23/11/2026, à noite).
+ *
+ * A PERGUNTA DELA, e é a que abriu isto: «O CNPJ a partir de então vai surgir junto? Quer dizer, os
+ * dados da escola eles vão ser recriados também? Porque, afinal de contas, nunca foram apagados,
+ * né? Então recriar é aquela escola que a gente já tinha antes, mas aí com os dados da escola
+ * também.»
+ *
+ * O QUE ACONTECIA SEM ISTO, e são duas coisas. (1) `guardarCadastroDoExpurgo` passou a guardar o
+ * registo — mas NADA o trazia de volta: a escola recriada ficava sem CNPJ, sem e-mail e sem
+ * telefone, e a aba nova mostrava-lhe «guardado no expurgo» sobre uma escola viva. (2) O e-mail de
+ * boas-vindas da recriação saía só para o PROFESSOR: o da escola vivia no cadastro, que o expurgo
+ * levou — e a promessa que a página do convite já fazia («os dados de identificação dela ficaram
+ * guardados») não tinha quem a cumprisse.
+ *
+ * O QUE NÃO SE HERDA, E PORQUÊ. **O CNPJ é um número único por escola** (25/11/2026), e depois de
+ * um expurgo o número fica livre — alguém pode ter criado uma escola nova com ele. Herdá-lo sem
+ * perguntar criaria dois registos com o mesmo número, que é o defeito que a regra existe para
+ * impedir. Então o número é conferido: se já é de OUTRA escola, não se herda (o resto herda-se), e
+ * o desfecho diz qual é a escola que o tem. O `ignorar: slug` é o que impede a escola de colidir
+ * consigo mesma.
+ *
+ * NÃO SE SOBREPÕE UM CADASTRO QUE JÁ EXISTE com conteúdo: se a escola já declarou os dados (uma
+ * criação que passou pelo formulário), o que está lá é mais recente do que o guardado.
+ *
+ * NUNCA LANÇA: a recriação já está feita, e uma falha a restaurar o cadastro é um facto do
+ * relatório, não uma razão para dizer que a escola não voltou.
+ */
+async function herdarCadastroDoExpurgo({ env, slug, quando }) {
+  const kv = env && env.PADD_KV;
+  const quandoIso = quando || new Date().toISOString();
+  if (!kv || typeof kv.put !== 'function') {
+    return { ok: false, herdado: false, erro: 'sem KV: o cadastro guardado não foi reposto' };
+  }
+  try {
+    const guardado = await lerCadastroHistorico(env, slug);
+    if (!guardado) {
+      return { ok: true, herdado: false, motivo: 'não há cadastro guardado de antes do expurgo' };
+    }
+    const vivo = await lerCadastroDaEscola(env, slug);
+    if (vivo && (vivo.cnpj || vivo.email || vivo.telefone)) {
+      return { ok: true, herdado: false, motivo: 'a escola já tem cadastro próprio — não se sobrepõe' };
+    }
+    let cnpj = guardado.cnpj || null;
+    let cnpjNaoHerdado = null;
+    if (cnpj) {
+      const dono = await cnpjJaUsado(env, cnpj, slug);
+      if (dono) { cnpjNaoHerdado = { cnpj, escola: dono }; cnpj = null; }
+    }
+    const novo = {
+      escolaNome: guardado.escolaNome || null,
+      cnpj,
+      email: guardado.email || null,
+      telefone: guardado.telefone || null,
+      origem: 'recriacao',
+      /* DE QUANDO SÃO ESTES DADOS — e é o que impede a tela de dizer que a escola os declarou
+       * agora. `criadoEm` é quando esta linha foi escrita; `herdadoDe` é de onde vieram. */
+      herdadoDe: { em: guardado.em || null, motivo: guardado.motivo || null },
+      criadoEm: quandoIso,
+      atualizadoEm: quandoIso,
+    };
+    await kv.put('bastidores/' + slug + '/cadastro', JSON.stringify(novo));
+    return {
+      ok: true, herdado: true, cnpj: Boolean(cnpj),
+      ...(cnpjNaoHerdado ? { cnpjNaoHerdado } : {}),
+    };
+  } catch (erro) {
+    return { ok: false, herdado: false, erro: (erro && erro.message) || String(erro) };
   }
 }
 
@@ -3531,7 +3655,13 @@ async function dadosDasEscolas({ env, escolas }) {
     /* O CADASTRO VIVO MANDA; o histórico é o que sobra de uma escola que já não existe. Ler os
      * dois e escolher é mais honesto do que perguntar «está expurgada?» à página: uma escola
      * recriada tem os dois, e o que vale é o de agora. */
-    const vivo = await lerCadastroDaEscola(env, slug);
+    /* O CADASTRO VIVO SÓ CONTA SE TIVER O QUE MOSTRAR (23/11/2026). Uma chave com todos os campos
+     * a `null` — é o que a criação pelo painel escrita sem dados produz — não é um cadastro: é a
+     * ausência dele escrita num sítio. Contá-la como «vivo» faria a aba esconder o registo do
+     * expurgo atrás de três traços. */
+    const temConteudo = (c) => Boolean(c && (c.cnpj || c.email || c.telefone || c.escolaNome));
+    const lidoVivo = await lerCadastroDaEscola(env, slug);
+    const vivo = temConteudo(lidoVivo) ? lidoVivo : null;
     const doExpurgo = vivo ? null : await lerCadastroHistorico(env, slug);
     const cadastro = vivo || doExpurgo || {};
     const responsavel = String((e && e.professor) || '').trim()
@@ -3555,9 +3685,14 @@ async function dadosDasEscolas({ env, escolas }) {
       expurgada,
       expurgadaEm: expurgada ? ((e && e.expurgada_em) || null) : null,
       /* DE ONDE VEM O QUE ESTÁ ESCRITO — a página diz isto, e não o deduz. `vivo` = o cadastro da
-       * escola que existe; `expurgo` = o registo guardado antes de ela sair; `nenhum` = não há
-       * dados, e é o caso das escolas expurgadas antes de hoje. */
-      fonte: vivo ? 'vivo' : (doExpurgo ? 'expurgo' : 'nenhum'),
+       * escola que existe; `herdado` = o cadastro que a RECRIAÇÃO repôs a partir do expurgo (os
+       * mesmos valores, mas não declarados hoje, e a data de onde vieram vai junto); `expurgo` = o
+       * registo de uma escola que já não existe; `nenhum` = não há dados.
+       *
+       * A DISTINÇÃO ENTRE `vivo` E `herdado` NÃO É COSMÉTICA: um CNPJ herdado é o da encarnação
+       * anterior, e quem o lê tem de o saber antes de emitir uma cobrança com ele. */
+      fonte: vivo ? (vivo.herdadoDe ? 'herdado' : 'vivo') : (doExpurgo ? 'expurgo' : 'nenhum'),
+      herdadoDe: (vivo && vivo.herdadoDe) ? vivo.herdadoDe : null,
     });
   }
   return lista;
@@ -5173,6 +5308,7 @@ module.exports = {
    * nova do Financeiro mostra. Exportadas porque são regra — e a prova tem de as exercer sem subir
    * o Worker nem tocar no Cloudflare. */
   guardarCadastroDoExpurgo, lerCadastroHistorico, chaveDoCadastroHistorico, dadosDasEscolas,
+  herdarCadastroDoExpurgo,
   lerContatoDoProfessor,
   // AS DUAS PORTAS E O QUE AS SEPARA (25/11/2026). Exportadas porque são a REGRA que a prova tem
   // de medir sem um Worker à frente: «este pedido é do público ou do proprietário?» decide o que

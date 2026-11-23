@@ -787,7 +787,7 @@ function paginaDeLista({ recorte, escolas, ordem, professores, catalogo }) {
  * mais nada. As duas formas saem da MESMA função — a página inválida não é um erro do servidor, é
  * uma resposta, e uma resposta tem de ser tão legível como a outra.
  */
-function paginaDoConvite({ escola, nome, token, catalogo, pix, estado, retrato }) {
+function paginaDoConvite({ escola, nome, token, catalogo, pix, estado, retrato, identidade }) {
   const nomeDaEscola = String(nome || escola || '');
   /* O `data-centavos` VAI JUNTO DO `data-preco` (16/11/2026). O texto é o que se lê; os cêntimos
    * são o que se soma. Somar `R$ 69,90` a partir de uma cadeia é a conta que dá 69,90000000000001
@@ -846,10 +846,24 @@ function paginaDoConvite({ escola, nome, token, catalogo, pix, estado, retrato }
   const corpo = estado && estado.ok === false
     ? '<div class="caixa falta"><h2>Este convite não está válido</h2>' +
       '<p>' + esc(estado.motivo) + '</p></div>'
+    /* A PROMESSA SÓ SE FAZ QUANDO É VERDADE (23/11/2026). A frase «os dados de identificação dela
+     * ficaram guardados» esteve aqui desde 16/11 — e era FALSA: o expurgo apagava o cadastro, e
+     * nada o restituía na recriação. Duas correcções depois, é verdade para toda a escola expurgada
+     * a partir de hoje; para as anteriores não há dados nenhuns para guardar, e a página diz isso em
+     * vez de prometer o que não tem. */
     : '<div class="caixa nota">' +
       '<h2>A escola «' + esc(nomeDaEscola) + '»</h2>' +
-      '<p>Os dados de identificação dela ficaram guardados. Falta o cadastro do acesso e o ' +
-      'pagamento: escolha o plano, crie as senhas, e pague por Pix.</p>' +
+      (identidade
+        ? '<p>Os dados de identificação dela — ' +
+          (identidade.cnpj ? 'o nome, o CNPJ e os contactos' : 'o nome e os contactos') +
+          ' — ficaram guardados, e voltam com a escola.' +
+          (identidade.cnpj ? '' : ' O CNPJ não está entre eles: a escola não o tinha declarado.') +
+          ' Falta o cadastro do acesso e o pagamento: escolha o plano, crie as senhas, e pague por ' +
+          'Pix.</p>'
+        : '<p>Não há dados de identificação desta escola guardados: o expurgo dela é anterior a ' +
+          '23/11/2026, e nessa altura o cadastro ia com ele. Falta o cadastro do acesso e o ' +
+          'pagamento: escolha o plano, crie as senhas, e pague por Pix. Se precisar dos dados ' +
+          'fiscais, eles têm de ser recolhidos de novo.</p>') +
       '<p><strong>São senhas novas.</strong> A senha antiga não é necessária — e não é pedida. ' +
       'Se ninguém se lembra dela, é esta que passa a valer.</p>' +
       '</div>' +
@@ -1888,9 +1902,13 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
       : '<span class="selo ok">viva</span>') + '</td>' +
     '<td>' + (f.fonte === 'vivo'
       ? '<span class="selo discreto">cadastro</span>'
-      : (f.fonte === 'expurgo'
-        ? '<span class="selo discreto">guardado no expurgo</span>'
-        : '<span class="selo alerta">sem cadastro</span>')) + '</td>' +
+      : (f.fonte === 'herdado'
+        ? '<span class="selo discreto" title="repôs-se o cadastro que o expurgo guardou'
+          + (f.herdadoDe && f.herdadoDe.em ? ', de ' + esc(quando(f.herdadoDe.em)) : '')
+          + '">herdado do expurgo</span>'
+        : (f.fonte === 'expurgo'
+          ? '<span class="selo discreto">guardado no expurgo</span>'
+          : '<span class="selo alerta">sem cadastro</span>'))) + '</td>' +
     '</tr>';
 
   const semDados = fichas.filter((f) => f.fonte === 'nenhum');
@@ -1904,8 +1922,10 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
         '<th>Contacto do professor</th><th>Situação</th><th>Origem</th></tr></thead>' +
         '<tbody>' + fichas.map(linhaDaFicha).join('') + '</tbody></table>' +
         '<p class="aviso">«Origem» diz de onde vem o que está escrito: <strong>cadastro</strong> é o ' +
-        'que a escola declarou na criação; <strong>guardado no expurgo</strong> é o registo que o ' +
-        'expurgo guarda antes de apagar o cadastro. «—» é ausência de dado, e não um zero.</p>' +
+        'que a escola declarou; <strong>herdado do expurgo</strong> é o cadastro que a recriação ' +
+        'repôs a partir do registo guardado — os mesmos dados, que a escola não voltou a declarar; ' +
+        '<strong>guardado no expurgo</strong> é o registo de uma escola que já não existe. ' +
+        '«—» é ausência de dado, e não um zero.</p>' +
         (semDados.length
           ? '<p class="aviso">' + semDados.length + ' escola(s) sem cadastro nenhum: ' +
             semDados.map((f) => esc(f.escola)).join(', ') +
