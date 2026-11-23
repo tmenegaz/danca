@@ -59120,3 +59120,65 @@ nenhuma. `gerar-ciclo` 0 erros, `hash-ciclo --check` íntegro, `check-pacote` 0 
 fechar — em qualquer das duas superfícies — encontra a regra no catálogo (`IDENTIDADE-VISUAL.md`,
 secção «A seta de abrir e fechar»), no resumo executável das instruções, na folha, na prova e na
 checagem. Cinco sítios, uma regra: é o que impede o ajuste de ser refeito a cada mudança.
+
+## 22/11/2026 — A campanha não tem a seta, e o vazio do «Apagar escola» passa a dizer a verdade
+
+**Duas correcções que ela viu ao vivo, e as duas são a mesma família de defeito: uma regra certa com
+uma peça (ou uma frase) errada por cima.**
+
+### 1. A campanha não tem o botão de colapsar e expandir
+
+**As palavras dela.** «Você também colocou o botão de colapsar e expandir no sistema lastro no
+endereço danca.padd.com.br, nesse não. […] O sistema lastro aqui, o que está explicando aqui, é como é
+que o sistema funciona. Ele é uma campanha de marketing, não é como uma ferramenta, não. É a parte de
+venda. Isso também é a mesma coisa no endereço lastro.padd.com.br, não tem que ter o botão de colapsar
+e expandir, não.»
+
+**O defeito, e é meu.** A dobra nasce em **qualquer** `.conteudo > h2[id]` — é o que a torna
+universal nos documentos do pacote —, e a página da raiz, que serve os **dois** endereços, tem onze
+títulos de secção. Medido no commit anterior: **9 botões** na campanha.
+
+**A correcção.** `nav.js` passa a ter uma lista por nome, `TELAS_SEM_DOBRA`, com `raiz` e `porta`. A
+regra é por nome, e não «tem ou não tem `data-tela`»: o contrário deixaria uma página nova sem dobra
+em silêncio, e um botão que falta não se anuncia. Os documentos do pacote não declaram `data-tela` e
+continuam a ganhar a dobra — e é isso que o controle da prova mede, senão «zero botões» seria
+verdade por o script não ter corrido.
+
+### 2. «Não há escola para apagar» sobre uma escola que existe
+
+**As palavras dela.** «Agora o botão apagar escola, ele não carrega a escola para eu poder apagar. Ele
+diz assim, carregando a lista de escolas e depois ele diz, não há escola para apagar. E não está
+certo, porque a escola Abreu ainda não foi expurgada.»
+
+**MEDIDO no KV, e o resultado muda o diagnóstico.** `bastidores/breu/comercial` está
+`{"estado":"ativa","habilitadaEm":"2026-11-17T00:41:26.797Z"}`, **sem `desabilitadaEm`**. A regra de
+16/11 — dela — diz que a escola habilitada não aparece para expurgo, porque «apagá-la seria apagar o
+que está a ser usado». **A regra estava certa.** O que estava errado era a frase: existir uma escola
+que não pode ser apagada não é o mesmo que não existir escola nenhuma, e é essa diferença que decide
+o que ela faz a seguir.
+
+**A correcção.** O vazio do modal passa a: nomear as escolas travadas; repetir o motivo que o
+**servidor** mandou (`motivoDoExpurgo` — o campo já viajava na resposta de `/api/escolas` e o ecrã
+deitava-o fora); e dar o passo seguinte, que é o que ela pediu sem o nomear — **desabilitar primeiro**,
+e é nas escolas vivas que isso se faz. Com muitas travadas, corta em **8** e diz «…e mais N».
+
+**O corte de 16/11 continua, e a distinção é o que o salva.** Naquele dia ela cortou a razão escola a
+escola dentro da LISTA — «imagina quando eu tiver 20.000 escolas» —, e o corte mantém-se: com cartões
+para apagar, a lista não explica ninguém. O que muda é o **vazio**. Um vazio não tem lista para
+poluir, e é o único momento em que o motivo é a única coisa que há para ler.
+
+**Com o quê.** `tools/templates/nav.js` (a lista das telas sem dobra), `raiz/index.html` (o vazio do
+apagar), `tools/check-identidade.js` (a checagem 20 passou a exigir as duas metades da guarda),
+`experimentos/provar-a-raiz-sem-dobra-e-o-vazio-do-apagar.js` (**novo**), `.gitignore`, a raiz e os
+pacotes regerados, `ESTADO-ATUAL.md`.
+
+**MEDIDO.** `provar-a-raiz-sem-dobra-e-o-vazio-do-apagar` **16/16**, controle `--contra=02f53906` a
+reprovar **9 de 16**. `check-identidade` **0 problemas** (23 verificações), e a checagem recusa de
+facto: sem `raiz` na lista, o erro nomeia a tela. `provar-pagina-publica` 79/79, `provar-painel`
+verde, `provar-a-seta-redonda` 21/21, `provar-a-musica-do-modal` 42/42. `gerar-raiz` e
+`gerar-ciclo` refeitos, `check-pacote` 0 erros.
+
+**E o que fica dito para ela, porque é operação e não código:** em regime de teste a carência é de
+**minutos**, portanto o caminho para expurgar a `breu` é desabilitá-la (escolas vivas) → esperar a
+carência → e o botão de apagar passa a oferecê-la. Nada disto é novo: é a regra de 16/11 a funcionar,
+agora com a tela a dizer o que fazer em vez de dizer que não há nada.

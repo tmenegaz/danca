@@ -1638,10 +1638,30 @@ function conferirSeta() {
         + '.9rem. Uma peça desenhada duas vezes é a que diverge à primeira correcção');
     }
   }
+  /* E A CAMPANHA NÃO TEM SETA (22/11/2026). Palavras dela: «Ele é uma campanha de marketing, não é
+   * como uma ferramenta, não. É a parte de venda.» A guarda que o garante é uma lista por nome em
+   * `nav.js` (`TELAS_SEM_DOBRA`), e a página da raiz declara-se `data-tela="raiz"` — as duas metades
+   * têm de continuar casadas. Uma página que muda de `data-tela` e fica na lista por engano perde a
+   * dobra em silêncio; a lista que perde a entrada devolve a seta à campanha. Nenhuma das duas se vê
+   * a olhar para a tela de um documento — é por isso que é aqui. */
+  const nav = fs.readFileSync(path.join(raiz, 'tools/templates/nav.js'), 'utf8');
+  for (const tela of ['raiz', 'porta']) {
+    if (!new RegExp('TELAS_SEM_DOBRA[^}]*\\b' + tela + '\\s*:').test(nav)) {
+      problemas.push('Seta: `TELAS_SEM_DOBRA` em `nav.js` deixou de excluir «' + tela + '» — essa '
+        + 'tela voltaria a ganhar o botão de colapsar e expandir');
+    }
+  }
+  const raizHtml = fs.readFileSync(path.join(raiz, 'raiz/index.html'), 'utf8');
+  if (!/data-tela="raiz"/.test(raizHtml)) {
+    problemas.push('Seta: a página da raiz deixou de se declarar `data-tela="raiz"` — sem isso a '
+      + 'campanha (danca e lastro) volta a ganhar o botão de colapsar e expandir');
+  }
+
   for (const p of problemas) erros.push(p);
   if (!problemas.length) {
     ok.push('Seta: a `.secao-dobra` da folha e a `.alternar-form` dos Bastidores são a MESMA peça — '
-      + GEOMETRIA_DA_SETA.map((k) => `${k} ${daFolha[k]}`).join(', '));
+      + GEOMETRIA_DA_SETA.map((k) => `${k} ${daFolha[k]}`).join(', ')
+      + ' — e a campanha (`raiz`, que serve danca e lastro) fica sem ela, como ela pediu');
   }
 }
 conferirSeta();

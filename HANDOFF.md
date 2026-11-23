@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T21:16:16-0300`
-Commit atual: `22354d71` — feat(estrutura): o portão da aula dada — o botão abre depois do lançamento da anterior
+Gerado em: `2026-11-22T21:27:37-0300`
+Commit atual: `02f53906` — feat(template): a seta de abrir e fechar é uma peça só, e o documento abre com o primeiro
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+02f53906 feat(template): a seta de abrir e fechar é uma peça só, e o documento abre com o primeiro
 22354d71 feat(estrutura): o portão da aula dada — o botão abre depois do lançamento da anterior
 6c24ee55 chore(estrutura): fechar os derivados — âncoras e índices
 22b99699 fix(musicalidade): a música do exercício não se escreve no plano — deriva-se no Estilo
@@ -101,7 +102,6 @@ d562534a feat(aula-02): a aula que vem depois lê o lançamento da anterior
 247f825f chore(estrutura): fechar os derivados — âncoras e índices
 e504f372 docs(estrutura): a fotografia da aula que diz só o que é dela
 b78a5f00 fix(po): cada aula imprime o seu marco, e mede pela régua da turma
-070415c2 docs(estrutura): a fotografia da folha que mede o conteúdo e do painel empilhado
 ```
 
 ## Por professor
@@ -195,75 +195,67 @@ b78a5f00 fix(po): cada aula imprime o seu marco, e mede pela régua da turma
 
 ## Última entrada do REGISTRO
 
-## 22/11/2026 — A seta de abrir e fechar é uma peça só, e o documento abre com o primeiro título
+## 22/11/2026 — A campanha não tem a seta, e o vazio do «Apagar escola» passa a dizer a verdade
 
-**A decisão, na letra dela.** «Nos bastidores, tem nas salas, no professores, alunos, na audição, nós
-temos a seta […] Ele é maior, ele é grande, ele é redondo, tem uma borda redonda e tal. Vamos adotar
-isso como padrão […] onde é que vai ser padrão esse botão? Nesses títulos que a gente tem no
-contexto […] E aí começa com todos eles colapsados, exceto o primeiro […] registra isso, documenta
-isso, porque a gente vai seguir fazendo mudanças e isso é algo que tem que ser preservado para a
-gente não estar toda hora ajustando de novo a identidade visual.»
+**Duas correcções que ela viu ao vivo, e as duas são a mesma família de defeito: uma regra certa com
+uma peça (ou uma frase) errada por cima.**
 
-**MOTIVO DECLARADO — e este arquivo está congelado.** `tools/templates/ciclo.css`,
-`tools/templates/nav.js` e `tools/check-identidade.js` mudam por decisão de identidade da
-proprietária, tomada a 22/11/2026: a peça que abre e fecha as secções deixa de ser um glifo solto de
-13px e passa a ser a redonda de 2rem que já existia nos Bastidores, e o estado inicial do documento
-passa a ser «todos recolhidos, excepto o primeiro». É a primeira metade do pedido dela — a segunda é
-que fique **preservado**, e é por isso que a checagem 20 nasce neste mesmo commit.
+### 1. A campanha não tem o botão de colapsar e expandir
 
-**A PEÇA, e o que ela mede.** `2rem × 2rem`, `border-radius: 999px`, `1px solid var(--borda-campo)`,
-fundo `--superficie`, glifo `700 .9rem/1 var(--ui)`, e no ponteiro o `--fundo-hover` com a cor de
-`--marca-texto`. Vale nos **títulos de secção** do plano, das aulas, da notação e do glossário — e
-**não** no índice (`.toc-dobra`) nem no menu (`.coluna-seta`), que por decisão dela ficam pequenos.
+**As palavras dela.** «Você também colocou o botão de colapsar e expandir no sistema lastro no
+endereço danca.padd.com.br, nesse não. […] O sistema lastro aqui, o que está explicando aqui, é como é
+que o sistema funciona. Ele é uma campanha de marketing, não é como uma ferramenta, não. É a parte de
+venda. Isso também é a mesma coisa no endereço lastro.padd.com.br, não tem que ter o botão de colapsar
+e expandir, não.»
 
-**PORQUE UMA CHECAGEM E NÃO SÓ UM COMENTÁRIO.** A peça é desenhada em **duas folhas** — a
-`.alternar-form` no `<style>` da Produção, a `.secao-dobra` em `ciclo.css` — porque as duas
-superfícies não partilham ficheiro de estilo. Duas declarações da mesma peça é exactamente o que
-diverge à primeira correcção. A checagem **20 (Seta)** lê as duas (a segunda, do HTML que o motor
-**serve**) e compara `width`, `height`, `border-radius`, `border` e `font` — o que a pessoa vê, não
-nomes de classe. Testada a recusar: com a folha em `1.9rem`, o erro sai e nomeia os dois valores.
+**O defeito, e é meu.** A dobra nasce em **qualquer** `.conteudo > h2[id]` — é o que a torna
+universal nos documentos do pacote —, e a página da raiz, que serve os **dois** endereços, tem onze
+títulos de secção. Medido no commit anterior: **9 botões** na campanha.
 
-**O ESTADO INICIAL, e a chave que mudou de nome.** O documento abre com o **primeiro** título aberto
-e todos os outros fechados. A memória passou a guardar as **abertas** (`ciclo:secoes-abertas`), e a
-chave é nova porque o **sentido** mudou: ler `ciclo:secoes` (que guardava as recolhidas) com o
-sentido novo abriria o documento inteiro para quem tem a sessão de antes. Um `[]` guardado é uma
-escolha — a pessoa fechou tudo —, e distingue-se de «não há memória».
+**A correcção.** `nav.js` passa a ter uma lista por nome, `TELAS_SEM_DOBRA`, com `raiz` e `porta`. A
+regra é por nome, e não «tem ou não tem `data-tela`»: o contrário deixaria uma página nova sem dobra
+em silêncio, e um botão que falta não se anuncia. Os documentos do pacote não declaram `data-tela` e
+continuam a ganhar a dobra — e é isso que o controle da prova mede, senão «zero botões» seria
+verdade por o script não ter corrido.
 
-**DOIS DEFEITOS MEDIDOS, os dois meus, e os dois apanhados pela prova.**
-1. **O clique gravava a secção errada.** A variável chamava-se `aberto` e era verdadeira quando a
-   secção estava **fechada**; com a lista das recolhidas a troca passava despercebida, com a das
-   abertas gravava a primeira ao clicar na segunda. Medido: `["contexto"]` depois de clicar em
-   «Objetivo geral». Passou a `eraFechada`.
-2. **A janela de criar a aula era engolida pela última secção.** O diálogo é a última coisa do
-   plano, e a dobra apanha «tudo o que vem depois do título até ao título seguinte». Com as secções
-   a nascer abertas, não se notava; a nascer fechadas, `#criar-aula` ficou dentro de uma caixa
-   `display:none` e o botão «Criar» deixou de ser clicável — «o modal abriu e não responde». O
-   `.modal` não é conteúdo de secção: fica onde está, e a secção recolhe à volta dele.
+### 2. «Não há escola para apagar» sobre uma escola que existe
 
-**O QUE NÃO CRESCE, e foi medido contra a expectativa.** O título fica com **38px** com e sem a
-peça — o mesmo número do pacote anterior. O `h2` tem 23px de tipo, a linha já dava 38, e a redonda
-de 32 cabe dentro. A seta ficou maior **sem custar uma linha de altura**.
+**As palavras dela.** «Agora o botão apagar escola, ele não carrega a escola para eu poder apagar. Ele
+diz assim, carregando a lista de escolas e depois ele diz, não há escola para apagar. E não está
+certo, porque a escola Abreu ainda não foi expurgada.»
 
-**Com o quê.** `tools/templates/ciclo.css` (a peça), `tools/templates/nav.js` (o estado inicial, a
-memória e a guarda do `.modal`), `tools/check-identidade.js` (a checagem 20),
-`experimentos/provar-a-seta-redonda.js` (**novo**), `experimentos/provar-a-dobra-e-a-aula-anterior.js`
-(a asserção invertida, com o motivo), `IDENTIDADE-VISUAL.md` (o Quadro 1, o Quadro 2 e a secção
-nova), `.github/instructions/identidade-visual.instructions.md`, o pacote da `rosa` e os assets do
-pacote `breu` regerados, a raiz regerada, `ESTADO-ATUAL.md`.
+**MEDIDO no KV, e o resultado muda o diagnóstico.** `bastidores/breu/comercial` está
+`{"estado":"ativa","habilitadaEm":"2026-11-17T00:41:26.797Z"}`, **sem `desabilitadaEm`**. A regra de
+16/11 — dela — diz que a escola habilitada não aparece para expurgo, porque «apagá-la seria apagar o
+que está a ser usado». **A regra estava certa.** O que estava errado era a frase: existir uma escola
+que não pode ser apagada não é o mesmo que não existir escola nenhuma, e é essa diferença que decide
+o que ela faz a seguir.
 
-**MEDIDO.** `provar-a-seta-redonda` **21/21**, controle `--contra=22354d71` a reprovar **15 de 21**.
-`check-identidade` **0 problemas** (23 verificações), com a checagem 20 a recusar de facto quando a
-geometria diverge. `provar-a-musica-do-modal` 42/42 (era o que apanhava o modal engolido),
-`provar-criar-aula` 53/53, `provar-a-dobra-e-a-aula-anterior` 31/31,
-`provar-derivados-da-sequencia` 27/27, `provar-o-derivar-do-estilo` 12/12,
-`provar-a-aula-que-vem` 70/70, `provar-celular` **14 de 15** — e a que passou a passar é «todo botão
-visível tem os quatro lados com a mesma espessura», porque o glifo de antes não tinha moldura
-nenhuma. `gerar-ciclo` 0 erros, `hash-ciclo --check` íntegro, `check-pacote` 0 erros.
+**A correcção.** O vazio do modal passa a: nomear as escolas travadas; repetir o motivo que o
+**servidor** mandou (`motivoDoExpurgo` — o campo já viajava na resposta de `/api/escolas` e o ecrã
+deitava-o fora); e dar o passo seguinte, que é o que ela pediu sem o nomear — **desabilitar primeiro**,
+e é nas escolas vivas que isso se faz. Com muitas travadas, corta em **8** e diz «…e mais N».
 
-**E o registo para o futuro, que é o que ela pediu.** A partir daqui, quem mexer numa seta de abrir e
-fechar — em qualquer das duas superfícies — encontra a regra no catálogo (`IDENTIDADE-VISUAL.md`,
-secção «A seta de abrir e fechar»), no resumo executável das instruções, na folha, na prova e na
-checagem. Cinco sítios, uma regra: é o que impede o ajuste de ser refeito a cada mudança.
+**O corte de 16/11 continua, e a distinção é o que o salva.** Naquele dia ela cortou a razão escola a
+escola dentro da LISTA — «imagina quando eu tiver 20.000 escolas» —, e o corte mantém-se: com cartões
+para apagar, a lista não explica ninguém. O que muda é o **vazio**. Um vazio não tem lista para
+poluir, e é o único momento em que o motivo é a única coisa que há para ler.
+
+**Com o quê.** `tools/templates/nav.js` (a lista das telas sem dobra), `raiz/index.html` (o vazio do
+apagar), `tools/check-identidade.js` (a checagem 20 passou a exigir as duas metades da guarda),
+`experimentos/provar-a-raiz-sem-dobra-e-o-vazio-do-apagar.js` (**novo**), `.gitignore`, a raiz e os
+pacotes regerados, `ESTADO-ATUAL.md`.
+
+**MEDIDO.** `provar-a-raiz-sem-dobra-e-o-vazio-do-apagar` **16/16**, controle `--contra=02f53906` a
+reprovar **9 de 16**. `check-identidade` **0 problemas** (23 verificações), e a checagem recusa de
+facto: sem `raiz` na lista, o erro nomeia a tela. `provar-pagina-publica` 79/79, `provar-painel`
+verde, `provar-a-seta-redonda` 21/21, `provar-a-musica-do-modal` 42/42. `gerar-raiz` e
+`gerar-ciclo` refeitos, `check-pacote` 0 erros.
+
+**E o que fica dito para ela, porque é operação e não código:** em regime de teste a carência é de
+**minutos**, portanto o caminho para expurgar a `breu` é desabilitá-la (escolas vivas) → esperar a
+carência → e o botão de apagar passa a oferecê-la. Nada disto é novo: é a regra de 16/11 a funcionar,
+agora com a tela a dizer o que fazer em vez de dizer que não há nada.
 
 ## O que está pendente
 

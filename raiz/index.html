@@ -1742,7 +1742,59 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
               var todas = d.escolas || [];
               var expurgaveis = todas.filter(function (e) { return e.expurgavel === true; });
               if (!expurgaveis.length) {
-                listaApagar.appendChild(el("p", "nota", "Não há escola para apagar."));
+                /* «NÃO HÁ ESCOLA PARA APAGAR» QUANDO HÁ ESCOLAS É UMA FRASE FALSA (22/11/2026).
+                 *
+                 * O QUE ELA VIU: «o botão apagar escola, ele não carrega a escola para eu poder
+                 * apagar. Ele diz assim, carregando a lista de escolas e depois ele diz, não há
+                 * escola para apagar. E não está certo, porque a escola Abreu ainda não foi
+                 * expurgada.» Medido no KV: a `breu` está `estado: "ativa"`, sem `desabilitadaEm` —
+                 * e a regra de 16/11 (dela) diz que a habilitada não aparece para expurgo, porque
+                 * «apagá-la seria apagar o que está a ser usado». A REGRA ESTAVA CERTA; o que
+                 * estava errado era a frase. Existir uma escola que não pode ser apagada não é o
+                 * mesmo que não existir escola nenhuma, e é essa diferença que decide o que ela faz
+                 * a seguir.
+                 *
+                 * PORQUE A EXPLICAÇÃO VOLTA AQUI, DEPOIS DE TER SAÍDO (16/11/2026). Naquele dia ela
+                 * cortou a razão escola a escola dentro da LISTA — «imagina quando eu tiver 20.000
+                 * escolas» —, e o corte continua: com cartões para apagar, a lista não explica
+                 * ninguém. O que muda é o VAZIO. Um vazio não tem lista para poluir, e é o único
+                 * momento em que o motivo é a única coisa que há para ler. Um ecrã que diz «não há
+                 * nada» e não diz porquê obriga-a a adivinhar qual das cinco regras a travou.
+                 *
+                 * E DIZ-SE O PASSO SEGUINTE, que é o que ela pediu sem o nomear: a escola
+                 * habilitada passa a expurgável quando é DESABILITADA, e é na lista das vivas que
+                 * isso se faz. Uma recusa sem saída é o «um botão que não faz nada» que esta casa
+                 * já pagou caro. */
+                if (!todas.length) {
+                  listaApagar.appendChild(el("p", "nota", "Não há escola nenhuma neste sistema."));
+                  return;
+                }
+                listaApagar.appendChild(el("p", "nota",
+                  todas.length === 1
+                    ? "Há 1 escola, e ela não pode ser apagada neste estado:"
+                    : "Há " + todas.length + " escolas, e nenhuma pode ser apagada neste estado:"));
+                /* O TETO É DECLARADO, e não escondido: com muitas escolas travadas a caixa diria
+                 * «e mais 19994» — o número não é decoração, é o que a impede de pensar que a
+                 * lista está completa. */
+                var MAXIMO = 8;
+                todas.slice(0, MAXIMO).forEach(function (e) {
+                  var li = el("p");
+                  li.appendChild(el("strong", null, e.slug));
+                  li.appendChild(document.createTextNode(
+                    " — " + (e.motivoDoExpurgo || "o servidor não disse o motivo")));
+                  listaApagar.appendChild(li);
+                });
+                if (todas.length > MAXIMO) {
+                  listaApagar.appendChild(el("p", "nota",
+                    "…e mais " + (todas.length - MAXIMO) + ", todas pelo mesmo tipo de motivo."));
+                }
+                var caminho = el("p");
+                caminho.appendChild(document.createTextNode(
+                  "Para apagar uma escola é preciso desabilitá-la primeiro: "));
+                var lig = el("a", "acao secundario", "Ver as escolas vivas");
+                lig.setAttribute("href", "/escolas-vivas");
+                caminho.appendChild(lig);
+                listaApagar.appendChild(caminho);
                 return;
               }
               expurgaveis.forEach(function (e) { listaApagar.appendChild(cartao(e)); });

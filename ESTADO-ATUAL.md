@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 22/11/2026 (commit `22354d71`, e **a seta de abrir e fechar como peça única** a seguir).
+> **Última fotografia:** 22/11/2026 (commit `02f53906`, e **a campanha sem seta + o vazio do apagar** a seguir).
 > Ainda neste dia, **o modal passou a deixar escrever**: os tempos e o compasso de cada exercício
 > abrem preenchidos com o que o verbete declara e são editáveis — a música do verbete é a da escola,
 > a da aula é decisão de quem a dá, e essas duas coisas estavam a ser a mesma. A secção «Música e
@@ -3518,6 +3518,31 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      *Medido:* o título **não cresce** — 38px com e sem a peça (o `h2` tem 23px de tipo e a redonda
      de 32 cabe na linha), o mesmo número do pacote anterior.
 
+161. **A CAMPANHA NÃO TEM A SETA — E O VAZIO DO «APAGAR ESCOLA» PASSA A DIZER A VERDADE.** Duas
+     correcções no mesmo dia, e as duas são a mesma família: uma regra certa com uma frase (ou uma
+     peça) errada por cima.
+     **(1) A campanha.** Palavras dela: «Você também colocou o botão de colapsar e expandir no
+     sistema lastro no endereço danca.padd.com.br, nesse não. […] Ele é uma campanha de marketing,
+     não é como uma ferramenta, não. É a parte de venda. Isso também é a mesma coisa no endereço
+     lastro.padd.com.br.» **DECIDIDO e CORRIGIDO**: a dobra nasce em qualquer `.conteudo > h2[id]`,
+     e a página da raiz — a mesma que serve os dois endereços — tem onze títulos. Passa a haver uma
+     lista por nome (`TELAS_SEM_DOBRA`) com `raiz` e `porta`; os documentos do pacote não declaram
+     `data-tela` e continuam a ganhar a dobra.
+     **A regra é por nome, e não «tem ou não tem `data-tela`»** — o contrário deixaria uma página
+     nova sem dobra em silêncio, e um botão que falta não se anuncia.
+     **(2) O vazio do apagar.** Palavras dela: «o botão apagar escola […] diz assim, carregando a
+     lista de escolas e depois ele diz, não há escola para apagar. E não está certo, porque a escola
+     Abreu ainda não foi expurgada.» **MEDIDO no KV**: a `breu` está `estado: "ativa"`, sem
+     `desabilitadaEm` — e a regra de 16/11, dela, diz que a habilitada não aparece para expurgo
+     («apagá-la seria apagar o que está a ser usado»). **A REGRA ESTAVA CERTA; a FRASE era falsa.**
+     Existir uma escola que não pode ser apagada não é o mesmo que não existir escola. O vazio passa
+     a nomear as escolas travadas, a repetir o motivo que o **servidor** mandou (`motivoDoExpurgo`,
+     que já viajava na resposta e o ecrã deitava fora) e a dar o passo seguinte — é preciso
+     **desabilitar primeiro**, e é nas escolas vivas que se faz.
+     **O corte de 16/11 continua**, e a distinção é o que o salva: na LISTA com cartões não se explica
+     escola a escola («imagina quando eu tiver 20.000 escolas»); no VAZIO não há lista para poluir, e
+     o motivo é a única coisa que há para ler. Com muitas travadas, corta em 8 e diz «…e mais N».
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -4363,7 +4388,17 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (22/11/2026 — a seta de abrir e fechar, peça única)
+### Executado nesta fotografia (22/11/2026 — a campanha sem seta, e o vazio do apagar)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-a-raiz-sem-dobra-e-o-vazio-do-apagar.js` (**nova**) | **16/16**: a raiz (que serve `danca` e `lastro`) declara-se `data-tela="raiz"`, tem **10 títulos** de secção e **0 botões** de dobra e **0 corpos** de secção — o mesmo `nav.js` continua a dar os botões a um documento do pacote (o controle que impede «zero por a página não correr o script»). O vazio do apagar em quatro casos: sem escola → «não há escola nenhuma»; uma travada → nomeia-a, repete o motivo **do servidor** e liga às escolas vivas; 12 travadas → conta-as e corta em 8 com «…e mais 4»; uma expurgável → o cartão aparece e **nenhum** motivo se imprime (a regra de 16/11). Controle `--contra=02f53906`: **9 de 16 reprovam** — a campanha tinha **9 botões** e o vazio dizia «Não há escola para apagar» sobre uma escola que existe |
+| `node tools/check-identidade.js` (checagem **20, Seta**, ampliada) | **0 problemas**, 23 verificações. Além de comparar a geometria das duas declarações, passou a exigir que `TELAS_SEM_DOBRA` exclua `raiz` e `porta` e que a raiz se declare `data-tela="raiz"`. Testada a recusar: sem `raiz` na lista, o erro nomeia a tela |
+| o estado real da `breu`, medido no KV | `{"estado":"ativa","habilitadaEm":"2026-11-17T00:41:26.797Z"}` — **sem `desabilitadaEm`**. É por isso que ela não aparecia para expurgo: a regra de 16/11, não um defeito do modal. A carência em regime de teste é de **minutos**, portanto o caminho é desabilitar → esperar → apagar |
+| `provar-pagina-publica` · `provar-painel` · `provar-a-seta-redonda` · `provar-a-musica-do-modal` | 79/79 · verde · 21/21 · 42/42 |
+| `gerar-raiz` · `gerar-ciclo` · `check-pacote` | a raiz regerada sem dobra · 0 erros · 0 erros |
+
+### Executado na fotografia anterior (22/11/2026 — a seta de abrir e fechar, peça única)
 
 | Verificação | Resultado |
 |:--|:--|

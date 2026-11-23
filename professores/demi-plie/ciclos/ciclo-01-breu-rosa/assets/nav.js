@@ -270,9 +270,32 @@
     if (sinal) sinal.textContent = aberto ? '\u25BE' : '\u25B8';
   }
 
-  /* A PORTA NÃO TEM ISTO. Ela é o formulário de elicitação: recolher uma secção lá é
-     esconder perguntas que faltam responder, e a barra do topo já diz o que falta. */
-  if (document.body && document.body.getAttribute('data-tela') !== 'porta') {
+  /* AS TELAS QUE NÃO SÃO DOCUMENTO DE LEITURA NÃO TÊM ISTO (22/11/2026).
+   *
+   * Palavras dela, e são sobre o que a página É: «o sistema lastro aqui, o que está explicando aqui,
+   * é como é que o sistema funciona. Ele é uma campanha de marketing, não é como uma ferramenta, não.
+   * É a parte de venda. Isso também é a mesma coisa no endereço lastro.padd.com.br, não tem que ter
+   * o botão de colapsar e expandir, não.»
+   *
+   * O DEFEITO QUE ISTO FECHA, e foi eu que o trouxe. A dobra nasce em QUALQUER `.conteudo > h2[id]`,
+   * e a página da raiz — a mesma que serve `danca.padd.com.br` e `lastro.padd.com.br` — tem onze
+   * títulos de secção. A peça estava certa num documento que se estuda e errada numa campanha: uma
+   * página de venda que se pode fechar por partes lê-se como um formulário, e o que ela quer é que
+   * se leia de cima abaixo.
+   *
+   * A REGRA É POR NOME, e não por «tem ou não tem `data-tela`». Uma página nova que declare o que
+   * É continua a ganhar a dobra por omissão (é o caso dos documentos do pacote, que não declaram
+   * nada); o que se exclui é o que se sabe NÃO ser leitura, uma linha cada, com o motivo ao lado.
+   * O contrário — exigir `data-tela` para ter dobra — deixaria uma página nova sem ela em silêncio,
+   * e um botão que falta não se anuncia.
+   *
+   *   · `porta`   — o formulário de elicitação: recolher uma secção é esconder perguntas que faltam
+   *                 responder, e a barra do topo já diz o que falta;
+   *   · `raiz`    — a campanha (o «como o sistema funciona»): vende-se lendo, não se navega por
+   *                 partes. Vale nos DOIS endereços que a servem, porque é a mesma página. */
+  var TELAS_SEM_DOBRA = { porta: 1, raiz: 1 };
+  var telaDaPagina = document.body ? document.body.getAttribute('data-tela') : null;
+  if (document.body && !TELAS_SEM_DOBRA[telaDaPagina]) {
     Array.prototype.forEach.call(document.querySelectorAll('.conteudo > h2[id]'), function (h2) {
       var pai = h2.parentNode;
       if (!pai) return;
