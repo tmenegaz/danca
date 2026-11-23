@@ -1878,3 +1878,10 @@ experimentos/modelo-formulario/*
 !experimentos/provar-a-raiz-sem-dobra-e-o-vazio-do-apagar.js
 !experimentos/provar-o-cadastro-comercial-nao-se-perde.js
 !experimentos/provar-a-musica-do-modal.js
+
+# A PROVA DOS RESTOS DO EXPURGO (23/11/2026): a escola sai e o que o prefixo não alcança sai com
+# ela — o livro do financeiro (uma chave de TODAS as escolas) e a cache do monitor. E o commit dos
+# derivados sobrevive a um repositório sem âncoras, que é o estado que o expurgo da última escola
+# produz. O passo do `derivados.yml` é extraído do arquivo e corrido num repositório de verdade;
+# com controle negativo, o `git add` do pathspec vazio morre com 128.
+!experimentos/provar-os-restos-do-expurgo.js
