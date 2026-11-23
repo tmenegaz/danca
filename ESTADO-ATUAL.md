@@ -4,7 +4,7 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 22/11/2026 (commit `02f53906`, e **a campanha sem seta + o vazio do apagar** a seguir).
+> **Última fotografia:** 22/11/2026 (commit `e73342a6`, e **o registo comercial que não se perde** a seguir).
 > Ainda neste dia, **o modal passou a deixar escrever**: os tempos e o compasso de cada exercício
 > abrem preenchidos com o que o verbete declara e são editáveis — a música do verbete é a da escola,
 > a da aula é decisão de quem a dá, e essas duas coisas estavam a ser a mesma. A secção «Música e
@@ -3548,6 +3548,33 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      **não têm** — as três continuam no índice e já não têm registo no KV. São o que fica de uma
      escola expurgada, e a tela diz isso em vez de as mandar procurar um botão que não existe.
 
+162. **O REGISTO COMERCIAL NÃO SE PERDE AO DESABILITAR — E «NÃO HÁ CADASTRO» QUER DIZER ISSO.**
+     Palavras dela: «Eu desabilitei a escola viva, que é a escola Breu, e eu respeitei o tempo para
+     poder apagá-la, e agora eu não consigo apagar. […] Breu, não há cadastro comercial desta escola
+     e sem cadastro não há como saber que ela está suspensa. […] Eu não sei que regra é essa que você
+     colocou sobre cadastro comercial desta escola.»
+     **MEDIDO, e a cadeia inteira.** O expurgo limpa o KV **por prefixo**
+     (`prefixosDaEscola` = `['breu/', 'bastidores/breu/']`), e `bastidores/breu/comercial` está
+     dentro do prefixo — **um expurgo que falha a meio apaga o registo que autoriza o expurgo**. Foi
+     o que aconteceu: às 00:13 o contrato estava inteiro (plano `basico`, R$ 79,90, capacidade,
+     `habilitadaEm`, 6 elos); às 00:42 já não existia. Quando ela desabilitou, o `gravarComercial`
+     leu «nada» e **gravou o esboço da leitura**: `{"estado":"suspensa","semRegisto":true,
+     "plano":null,…}`. A partir daí a guarda do expurgo — que existe para não afirmar um estado que
+     ninguém leu — passou a afirmar o **contrário** do que o registo dizia, e a escola ficou
+     impossível de apagar.
+     **DUAS CORRECÇÕES.** (1) **A escrita**: o sinal de «não li nada» não se persiste —
+     `gravarComercial` tira `semRegisto` e `motivo` do que lê e do que grava. (2) **A regra**: a
+     evidência vence o booleano — `semCadastro` só vale quando não há plano, nem data de
+     desabilitação, nem de habilitação, nem de criação, nem histórico.
+     **A LIÇÃO, que é a mesma de outras três neste ficheiro: a forma de uma LEITURA não é a forma de
+     uma ESCRITA.** Um objecto que responde «não há nada» não pode ser o que se persiste; persisti-lo
+     transforma a ausência num facto, e um facto inventado é pior do que a ausência.
+     **E O PRAZO**: a carência de teste passou a **1 minuto** (eram 5), por decisão dela na mesma
+     mensagem. O regime continua a ser um interruptor (`null` = 3 meses, o de produção).
+     **O registo da `breu` foi REPARADO**, com os valores que eu tinha medido nesta sessão antes do
+     defeito (plano, valor, capacidade, datas e os 6 elos) mais o elo real da suspensão — nada
+     inventado, e o estado `suspensa` que ela criou ficou. Verificado: `pode apagar? true`.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -4393,7 +4420,16 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (22/11/2026 — a campanha sem seta, e o vazio do apagar)
+### Executado nesta fotografia (22/11/2026 — o registo comercial não se perde ao desabilitar)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-o-cadastro-comercial-nao-se-perde.js` (**nova**) | **29/29**: desabilitar uma escola **com** contrato preserva plano, valor, capacidade, as datas e o histórico (que cresce em vez de recomeçar); desabilitar uma **sem** contrato grava um registo sem `semRegisto` nem `motivo`; o registo que ela viu (suspensa + data + `semRegisto`) passa a **pode: true**; o vazio de verdade continua a recusar com a frase honesta; a habilitada recusa pelo motivo certo; a carência devolvida é **exactamente 60 segundos**; e o ciclo inteiro (sem registo → desabilitar → 61 s → pode) fecha. Controle `--contra=e73342a6`: **12 de 29 reprovam** |
+| o registo real da `breu`, antes e depois | **antes** (00:13): `{estado:ativa, plano:basico, valor:"R$ 79,90", capacidade:{aulas:120}, habilitadaEm, criadoEm, historico:[6]}` · **depois do defeito** (00:42): `{estado:suspensa, semRegisto:true, plano:null, historico:[1]}` · **reparado**: o contrato de volta + o elo real da suspensão, `semRegisto` fora. `estadoDoExpurgar` → `pode: true` |
+| a causa da perda, medida | `prefixosDaEscola('breu')` = `['breu/', 'bastidores/breu/']` — a limpeza do KV do expurgo apaga `bastidores/breu/comercial`, que é o registo que autoriza o expurgo. **PENDENTE** como desenho: um expurgo falhado deixa a escola sem cadastro, e a recuperação é desabilitar outra vez (agora funciona, e leva 1 minuto) |
+| `provar-pagina-publica` · `provar-painel` · `provar-a-raiz-sem-dobra-e-o-vazio-do-apagar` | 79/79 · verde · 21/21 |
+
+### Executado na fotografia anterior (22/11/2026 — a campanha sem seta, e o vazio do apagar)
 
 | Verificação | Resultado |
 |:--|:--|

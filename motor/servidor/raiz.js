@@ -1441,10 +1441,15 @@ const ESTADOS_COMERCIAL = ['aguardando', 'ativa', 'suspensa'];
 const MESES_DE_CARENCIA = 3;
 
 /**
- * O REGIME DE TESTE — 5 MINUTOS, POR DECISÃO DELA (16/11/2026).
+ * O REGIME DE TESTE — **1 MINUTO**, POR DECISÃO DELA (22/11/2026; eram 5 desde 16/11/2026).
  *
- * «para fim de teste coloca `desabilitadaEm` + 5 minutos. depois a gente muda para 3 meses quando
- * for produção de verdade, com escolas de verdade.»
+ * «a regra para poder expurgar uma escola era somente a questão dela estar desabilitada e
+ * respeitando o prazo de três meses. Mas como a gente ainda está em teste, eu coloquei esse prazo
+ * bem menor. Vamos mudar esse prazo para um minuto apenas, tá?»
+ *
+ * A FRASE ANTERIOR, de 16/11/2026, fica como registo do que mudou: «para fim de teste coloca
+ * `desabilitadaEm` + 5 minutos. depois a gente muda para 3 meses quando for produção de verdade,
+ * com escolas de verdade.»
  *
  * UM INTERRUPTOR, e não uma data condicional espalhada: enquanto ele tiver minutos, a carência é
  * essa (`carenciaAte`); quando for `null`, voltam os três meses. É o MESMO número que a lista das
@@ -1455,7 +1460,7 @@ const MESES_DE_CARENCIA = 3;
  * cinco minutos depois. Com uma escola de verdade no sistema, `null` primeiro — a suspensão deixa
  * de ser reversível no instante em que o prazo é curto.
  */
-const CARENCIA_DE_TESTE_MINUTOS = 5;
+const CARENCIA_DE_TESTE_MINUTOS = 1;
 
 /**
  * O RELÓGIO DA RÉGUA DE TESTE — e a razão de ele existir (16/11/2026).
@@ -1604,8 +1609,31 @@ async function regimeDeTeste(kv, agora) {
 function estadoDoExpurgo(comercial, opcoes) {
   const agora = (opcoes && opcoes.agora) || Date.now();
   const regimeDesde = (opcoes && opcoes.regimeDesde) || null;
-  const semCadastro = !comercial || typeof comercial !== 'object' || comercial.semRegisto === true;
   const c = comercial || {};
+  /* «NÃO HÁ CADASTRO» QUER DIZER NÃO HAVER EVIDÊNCIA NENHUMA (22/11/2026) — e o `semRegisto` sozinho
+   * deixou de bastar.
+   *
+   * A GUARDA, e ela continua certa: quando nada foi lido, não se afirma «a escola está habilitada»
+   * — a frase seria sobre um facto que ninguém mediu, e o motivo é o que a pessoa lê.
+   *
+   * O QUE ELA NÃO PODE É SOBREVIVER AO FACTO. A 22/11/2026 o `gravarComercial` persistiu o esboço da
+   * leitura e o registo passou a dizer `semRegisto: true` **e** `estado: 'suspensa'` **e**
+   * `desabilitadaEm: …`. Ou seja: os três campos que decidem o expurgo estavam lá, medidos, e a
+   * guarda respondia «não há cadastro» — a mesma mentira, ao contrário. A escola ficou impossível de
+   * apagar: «Eu já desabilitei, eu já esperei o tempo que tinha que esperar e eu não consigo apagar.»
+   *
+   * A REGRA, agora: o sinal de ausência só vale quando não há NADA que o desminta. Um estado
+   * suspenso com data, um histórico, um plano ou uma data de criação são evidência de que houve
+   * registo — e a evidência vence um booleano. */
+  const temEvidencia = Boolean(
+    c.plano
+    || c.desabilitadaEm
+    || c.habilitadaEm
+    || c.criadoEm
+    || (Array.isArray(c.historico) && c.historico.length)
+  );
+  const semCadastro = !comercial || typeof comercial !== 'object'
+    || (comercial.semRegisto === true && !temEvidencia);
   const estado = String(c.estado || ESTADOS_COMERCIAL[1] || 'ativa');
   const desabilitadaEm = c.desabilitadaEm || null;
   const base = {
@@ -1908,11 +1936,32 @@ async function lerEnsaio(kv, escola) {
   } catch (erro) { return null; }
 }
 
+/**
+ * O QUE UM REGISTO COMERCIAL É QUANDO NÃO EXISTE — e porque é que este objecto já foi um defeito.
+ *
+ * `REGISTO_AUSENTE` é a FORMA DA RESPOSTA, e nunca a forma do que se grava. Ele nasceu a 22/11/2026
+ * para a `estadoDoExpurgo` poder dizer «não há cadastro desta escola» em vez de «a escola está
+ * habilitada» — a segunda frase afirma um estado que ninguém leu. Está certo, e é a única coisa que
+ * ele serve.
+ *
+ * O DEFEITO QUE ELE CAUSOU, medido ao vivo a 22/11/2026: o `gravarComercial` lê o anterior por esta
+ * função e faz `Object.assign`. Numa escola SEM registo gravado, o «anterior» era este esboço — e
+ * ele foi GRAVADO: `{"estado":"suspensa","semRegisto":true,"plano":null,…}`. A partir daí a mesma
+ * guarda que existia para não mentir passou a afirmar uma coisa FALSA (que a escola não tem
+ * cadastro, quando ela tem um registo que diz «suspensa desde tal dia»), e a escola tornou-se
+ * **impossível de expurgar para sempre**. Foi o que ela viu: «Eu já desabilitei, eu já esperei o
+ * tempo que tinha que esperar e eu não consigo apagar a escola.»
+ *
+ * A LIÇÃO, e é a mesma de outras três neste ficheiro: **a forma de uma leitura não é a forma de uma
+ * escrita.** Um objecto que responde «não há nada» não pode ser o que se persiste — persisti-lo
+ * transforma a ausência num facto, e um facto inventado é pior do que a ausência.
+ */
+const REGISTO_AUSENTE = Object.freeze({
+  estado: 'ativa', motivo: 'sem registo comercial', semRegisto: true, plano: null, valor: null,
+});
+
 async function lerComercial(kv, escola) {
-  /* `semRegisto` NÃO É DECORAÇÃO (22/11/2026): é o que permite a `estadoDoExpurgo` dizer «não há
-   * cadastro desta escola» em vez de «a escola está habilitada» — a segunda frase afirma um estado
-   * que ninguém leu. `estado: 'ativa'` fica por compatibilidade com quem já o lê. */
-  const vazio = { estado: 'ativa', motivo: 'sem registo comercial', semRegisto: true, plano: null, valor: null };
+  const vazio = Object.assign({}, REGISTO_AUSENTE);
   if (!kv || typeof kv.get !== 'function' || !escola) return vazio;
   try {
     const texto = await kv.get(chaveComercial(escola));
@@ -1940,9 +1989,19 @@ async function lerComercial(kv, escola) {
 async function gravarComercial(kv, escola, mudanca, quem, opcoes) {
   if (!kv || typeof kv.put !== 'function') return { ok: false, erro: 'sem KV' };
   const limpar = Boolean(opcoes && opcoes.substituir);
-  const anterior = limpar
+  const lido = limpar
     ? { estado: ESTADOS_COMERCIAL[1] || 'ativa' }
     : await lerComercial(kv, escola);
+  /* O SINAL DE «NÃO LI NADA» NÃO SE GRAVA (22/11/2026). `lerComercial` devolve o esboço quando a
+   * chave não existe; misturá-lo no que se escreve punha o `semRegisto: true` dentro do registo e
+   * a escola deixava de poder ser expurgada — ver a nota grande do `REGISTO_AUSENTE`. O `motivo`
+   * também não é dado: é a frase que a leitura usa quando não há nada.
+   *
+   * O QUE FICA: o que a leitura leu de verdade. Numa escola sem registo, o anterior é o estado
+   * por omissão e mais nada — o que é exactamente a verdade. */
+  const anterior = Object.assign({}, lido);
+  delete anterior.semRegisto;
+  delete anterior.motivo;
   const agora = new Date().toISOString();
   const registo = Object.assign({}, anterior, mudanca, {
     estado: mudanca.estado || anterior.estado,
@@ -1950,6 +2009,7 @@ async function gravarComercial(kv, escola, mudanca, quem, opcoes) {
     atualizadoPor: quem || null,
   });
   delete registo.motivo;
+  delete registo.semRegisto;
   /* A DATA DE CADA MUDANÇA DE ESTADO, guardada como facto próprio (25/11/2026).
    *
    * O histórico já tinha o «quando» de cada elo, mas ler a última transição de lá a cada linha de

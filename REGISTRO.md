@@ -59190,3 +59190,65 @@ as três continuam no `indices/escolas/` e já não têm `bastidores/<escola>/co
 de uma escola expurgada, e a tela passa a dizê-lo em vez de as mandar procurar um botão que não
 existe. Quando os dois motivos coexistem, a dica geral aparece (há uma que se desabilita) e um rodapé
 conta as outras («2 delas não têm cadastro comercial»).
+
+## 22/11/2026 — O registo comercial não se perde ao desabilitar, e «não há cadastro» passa a querer dizer isso
+
+**A queixa, na letra dela.** «Eu desabilitei a escola viva, que é a escola Breu, e eu respeitei o
+tempo para poder apagá-la, e agora eu não consigo apagar. Aparece assim: há uma escola e ela não pode
+ser apagada neste estado. […] Breu, não há cadastro comercial desta escola e sem cadastro não há como
+saber que ela está suspensa. […] Eu já desabilitei, eu já esperei o tempo que tinha que esperar e eu
+não consigo apagar a escola. Eu não sei que regra é essa que você colocou sobre cadastro comercial
+desta escola.»
+
+**A CADEIA, medida de ponta a ponta.** O expurgo limpa o KV **por prefixo** — `prefixosDaEscola('breu')`
+devolve `['breu/', 'bastidores/breu/']` —, e `bastidores/breu/comercial` está dentro do prefixo. **Um
+expurgo que falha a meio apaga o próprio registo que autoriza o expurgo.** Foi o que aconteceu: às
+00:13 o contrato estava inteiro (plano `basico`, R$ 79,90, capacidade de 120 aulas, `habilitadaEm`,
+seis elos de histórico); às 00:42 já não existia. Quando ela desabilitou a escola, o `gravarComercial`
+leu «nada» e **gravou o esboço da leitura**:
+
+```json
+{"estado":"suspensa","semRegisto":true,"plano":null,"historico":[{"para":"suspensa",…}]}
+```
+
+A guarda do expurgo existe para não afirmar um estado que ninguém leu — e passou a afirmar o
+**contrário** do que o registo dizia: `estado: suspensa` e `desabilitadaEm` estavam lá, medidos, e ela
+respondia «não há cadastro». A escola ficou impossível de apagar, para sempre.
+
+**AS DUAS CORRECÇÕES.**
+1. **A escrita.** O sinal de «não li nada» não se persiste: `gravarComercial` tira `semRegisto` e
+   `motivo` do que lê, antes de os misturar com a mudança, e volta a tirá-los do resultado. O esboço
+   passou a ser uma constante congelada (`REGISTO_AUSENTE`), com a nota de que é **forma de resposta e
+   nunca forma de escrita**.
+2. **A regra.** `semCadastro` deixou de ser um booleano sozinho: só vale quando não há **nada** que o
+   desminta — sem plano, sem `desabilitadaEm`, sem `habilitadaEm`, sem `criadoEm` e sem histórico. **A
+   evidência vence um booleano.**
+
+**A LIÇÃO, e é a quarta vez que esta casa a escreve:** **a forma de uma LEITURA não é a forma de uma
+ESCRITA.** Um objecto que responde «não há nada» não pode ser o que se persiste — persisti-lo
+transforma a ausência num facto, e um facto inventado é pior do que a ausência.
+
+**E O PRAZO, na mesma mensagem.** «a regra para poder expurgar uma escola era somente a questão dela
+estar desabilitada e respeitando o prazo de três meses. Mas como a gente ainda está em teste […]
+Vamos mudar esse prazo para um minuto apenas, tá?» — `CARENCIA_DE_TESTE_MINUTOS` passa de **5** para
+**1**. O regime continua a ser um interruptor: `null` devolve os três meses de produção.
+
+**O REGISTO DA `breu` FOI REPARADO**, e digo exactamente com o quê: os valores medidos nesta sessão
+**antes** de o defeito os apagar (plano `basico`, R$ 79,90, capacidade 1/10/120, `criadoEm`,
+`habilitadaEm`, os seis elos do histórico) mais o elo real da suspensão que ela criou. Nada inventado;
+o estado `suspensa` dela ficou, porque é um facto novo e a reparação não o desfaz. Verificado com a
+regra do próprio código: **`pode apagar? true`**.
+
+**Com o quê.** `motor/servidor/raiz.js` (`REGISTO_AUSENTE`, `lerComercial`, `gravarComercial`,
+`estadoDoExpurgo`, `CARENCIA_DE_TESTE_MINUTOS`),
+`experimentos/provar-o-cadastro-comercial-nao-se-perde.js` (**novo**), `.gitignore`, `ESTADO-ATUAL.md`.
+
+**MEDIDO.** `provar-o-cadastro-comercial-nao-se-perde` **29/29**, controle `--contra=e73342a6` a
+reprovar **12 de 29**. `provar-pagina-publica` 79/79, `provar-painel` verde,
+`provar-a-raiz-sem-dobra-e-o-vazio-do-apagar` 21/21.
+
+**O QUE FICA PENDENTE, e é de desenho, não de código.** O prefixo da limpeza do KV inclui o registo
+comercial, portanto **um expurgo falhado deixa a escola sem cadastro**. A recuperação existe e é a que
+ela vai usar (desabilitar outra vez → 1 minuto → apagar), mas a alternativa — excluir
+`bastidores/<slug>/comercial` do prefixo até o expurgo concluir — é uma decisão sobre o que o expurgo
+pode apagar, e não a tomo sozinho.

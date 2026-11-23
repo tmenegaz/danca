@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-22T21:30:52-0300`
-Commit atual: `7ee95a91` — fix(estrutura): a campanha não tem a seta de colapsar, e o vazio do apagar diz a verdade
+Gerado em: `2026-11-22T21:49:51-0300`
+Commit atual: `e73342a6` — fix(estrutura): a dica do apagar muda com o motivo — quem não tem cadastro não desabilita
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+e73342a6 fix(estrutura): a dica do apagar muda com o motivo — quem não tem cadastro não desabilita
 7ee95a91 fix(estrutura): a campanha não tem a seta de colapsar, e o vazio do apagar diz a verdade
 02f53906 feat(template): a seta de abrir e fechar é uma peça só, e o documento abre com o primeiro
 22354d71 feat(estrutura): o portão da aula dada — o botão abre depois do lançamento da anterior
@@ -101,7 +102,6 @@ d562534a feat(aula-02): a aula que vem depois lê o lançamento da anterior
 49fb6f87 docs(estrutura): a fotografia do §1 da aula e do guia que leva ao formulário
 62b2659c feat(aula-01): o §1 diz quem dá a aula, onde e em que dia — e o §5 leva ao formulário
 247f825f chore(estrutura): fechar os derivados — âncoras e índices
-e504f372 docs(estrutura): a fotografia da aula que diz só o que é dela
 ```
 
 ## Por professor
@@ -195,75 +195,67 @@ e504f372 docs(estrutura): a fotografia da aula que diz só o que é dela
 
 ## Última entrada do REGISTRO
 
-## 22/11/2026 — A campanha não tem a seta, e o vazio do «Apagar escola» passa a dizer a verdade
+## 22/11/2026 — O registo comercial não se perde ao desabilitar, e «não há cadastro» passa a querer dizer isso
 
-**Duas correcções que ela viu ao vivo, e as duas são a mesma família de defeito: uma regra certa com
-uma peça (ou uma frase) errada por cima.**
+**A queixa, na letra dela.** «Eu desabilitei a escola viva, que é a escola Breu, e eu respeitei o
+tempo para poder apagá-la, e agora eu não consigo apagar. Aparece assim: há uma escola e ela não pode
+ser apagada neste estado. […] Breu, não há cadastro comercial desta escola e sem cadastro não há como
+saber que ela está suspensa. […] Eu já desabilitei, eu já esperei o tempo que tinha que esperar e eu
+não consigo apagar a escola. Eu não sei que regra é essa que você colocou sobre cadastro comercial
+desta escola.»
 
-### 1. A campanha não tem o botão de colapsar e expandir
+**A CADEIA, medida de ponta a ponta.** O expurgo limpa o KV **por prefixo** — `prefixosDaEscola('breu')`
+devolve `['breu/', 'bastidores/breu/']` —, e `bastidores/breu/comercial` está dentro do prefixo. **Um
+expurgo que falha a meio apaga o próprio registo que autoriza o expurgo.** Foi o que aconteceu: às
+00:13 o contrato estava inteiro (plano `basico`, R$ 79,90, capacidade de 120 aulas, `habilitadaEm`,
+seis elos de histórico); às 00:42 já não existia. Quando ela desabilitou a escola, o `gravarComercial`
+leu «nada» e **gravou o esboço da leitura**:
 
-**As palavras dela.** «Você também colocou o botão de colapsar e expandir no sistema lastro no
-endereço danca.padd.com.br, nesse não. […] O sistema lastro aqui, o que está explicando aqui, é como é
-que o sistema funciona. Ele é uma campanha de marketing, não é como uma ferramenta, não. É a parte de
-venda. Isso também é a mesma coisa no endereço lastro.padd.com.br, não tem que ter o botão de colapsar
-e expandir, não.»
+```json
+{"estado":"suspensa","semRegisto":true,"plano":null,"historico":[{"para":"suspensa",…}]}
+```
 
-**O defeito, e é meu.** A dobra nasce em **qualquer** `.conteudo > h2[id]` — é o que a torna
-universal nos documentos do pacote —, e a página da raiz, que serve os **dois** endereços, tem onze
-títulos de secção. Medido no commit anterior: **9 botões** na campanha.
+A guarda do expurgo existe para não afirmar um estado que ninguém leu — e passou a afirmar o
+**contrário** do que o registo dizia: `estado: suspensa` e `desabilitadaEm` estavam lá, medidos, e ela
+respondia «não há cadastro». A escola ficou impossível de apagar, para sempre.
 
-**A correcção.** `nav.js` passa a ter uma lista por nome, `TELAS_SEM_DOBRA`, com `raiz` e `porta`. A
-regra é por nome, e não «tem ou não tem `data-tela`»: o contrário deixaria uma página nova sem dobra
-em silêncio, e um botão que falta não se anuncia. Os documentos do pacote não declaram `data-tela` e
-continuam a ganhar a dobra — e é isso que o controle da prova mede, senão «zero botões» seria
-verdade por o script não ter corrido.
+**AS DUAS CORRECÇÕES.**
+1. **A escrita.** O sinal de «não li nada» não se persiste: `gravarComercial` tira `semRegisto` e
+   `motivo` do que lê, antes de os misturar com a mudança, e volta a tirá-los do resultado. O esboço
+   passou a ser uma constante congelada (`REGISTO_AUSENTE`), com a nota de que é **forma de resposta e
+   nunca forma de escrita**.
+2. **A regra.** `semCadastro` deixou de ser um booleano sozinho: só vale quando não há **nada** que o
+   desminta — sem plano, sem `desabilitadaEm`, sem `habilitadaEm`, sem `criadoEm` e sem histórico. **A
+   evidência vence um booleano.**
 
-### 2. «Não há escola para apagar» sobre uma escola que existe
+**A LIÇÃO, e é a quarta vez que esta casa a escreve:** **a forma de uma LEITURA não é a forma de uma
+ESCRITA.** Um objecto que responde «não há nada» não pode ser o que se persiste — persisti-lo
+transforma a ausência num facto, e um facto inventado é pior do que a ausência.
 
-**As palavras dela.** «Agora o botão apagar escola, ele não carrega a escola para eu poder apagar. Ele
-diz assim, carregando a lista de escolas e depois ele diz, não há escola para apagar. E não está
-certo, porque a escola Abreu ainda não foi expurgada.»
+**E O PRAZO, na mesma mensagem.** «a regra para poder expurgar uma escola era somente a questão dela
+estar desabilitada e respeitando o prazo de três meses. Mas como a gente ainda está em teste […]
+Vamos mudar esse prazo para um minuto apenas, tá?» — `CARENCIA_DE_TESTE_MINUTOS` passa de **5** para
+**1**. O regime continua a ser um interruptor: `null` devolve os três meses de produção.
 
-**MEDIDO no KV, e o resultado muda o diagnóstico.** `bastidores/breu/comercial` está
-`{"estado":"ativa","habilitadaEm":"2026-11-17T00:41:26.797Z"}`, **sem `desabilitadaEm`**. A regra de
-16/11 — dela — diz que a escola habilitada não aparece para expurgo, porque «apagá-la seria apagar o
-que está a ser usado». **A regra estava certa.** O que estava errado era a frase: existir uma escola
-que não pode ser apagada não é o mesmo que não existir escola nenhuma, e é essa diferença que decide
-o que ela faz a seguir.
+**O REGISTO DA `breu` FOI REPARADO**, e digo exactamente com o quê: os valores medidos nesta sessão
+**antes** de o defeito os apagar (plano `basico`, R$ 79,90, capacidade 1/10/120, `criadoEm`,
+`habilitadaEm`, os seis elos do histórico) mais o elo real da suspensão que ela criou. Nada inventado;
+o estado `suspensa` dela ficou, porque é um facto novo e a reparação não o desfaz. Verificado com a
+regra do próprio código: **`pode apagar? true`**.
 
-**A correcção.** O vazio do modal passa a: nomear as escolas travadas; repetir o motivo que o
-**servidor** mandou (`motivoDoExpurgo` — o campo já viajava na resposta de `/api/escolas` e o ecrã
-deitava-o fora); e dar o passo seguinte, que é o que ela pediu sem o nomear — **desabilitar primeiro**,
-e é nas escolas vivas que isso se faz. Com muitas travadas, corta em **8** e diz «…e mais N».
+**Com o quê.** `motor/servidor/raiz.js` (`REGISTO_AUSENTE`, `lerComercial`, `gravarComercial`,
+`estadoDoExpurgo`, `CARENCIA_DE_TESTE_MINUTOS`),
+`experimentos/provar-o-cadastro-comercial-nao-se-perde.js` (**novo**), `.gitignore`, `ESTADO-ATUAL.md`.
 
-**O corte de 16/11 continua, e a distinção é o que o salva.** Naquele dia ela cortou a razão escola a
-escola dentro da LISTA — «imagina quando eu tiver 20.000 escolas» —, e o corte mantém-se: com cartões
-para apagar, a lista não explica ninguém. O que muda é o **vazio**. Um vazio não tem lista para
-poluir, e é o único momento em que o motivo é a única coisa que há para ler.
+**MEDIDO.** `provar-o-cadastro-comercial-nao-se-perde` **29/29**, controle `--contra=e73342a6` a
+reprovar **12 de 29**. `provar-pagina-publica` 79/79, `provar-painel` verde,
+`provar-a-raiz-sem-dobra-e-o-vazio-do-apagar` 21/21.
 
-**Com o quê.** `tools/templates/nav.js` (a lista das telas sem dobra), `raiz/index.html` (o vazio do
-apagar), `tools/check-identidade.js` (a checagem 20 passou a exigir as duas metades da guarda),
-`experimentos/provar-a-raiz-sem-dobra-e-o-vazio-do-apagar.js` (**novo**), `.gitignore`, a raiz e os
-pacotes regerados, `ESTADO-ATUAL.md`.
-
-**MEDIDO.** `provar-a-raiz-sem-dobra-e-o-vazio-do-apagar` **16/16**, controle `--contra=02f53906` a
-reprovar **9 de 16**. `check-identidade` **0 problemas** (23 verificações), e a checagem recusa de
-facto: sem `raiz` na lista, o erro nomeia a tela. `provar-pagina-publica` 79/79, `provar-painel`
-verde, `provar-a-seta-redonda` 21/21, `provar-a-musica-do-modal` 42/42. `gerar-raiz` e
-`gerar-ciclo` refeitos, `check-pacote` 0 erros.
-
-**E o que fica dito para ela, porque é operação e não código:** em regime de teste a carência é de
-**minutos**, portanto o caminho para expurgar a `breu` é desabilitá-la (escolas vivas) → esperar a
-carência → e o botão de apagar passa a oferecê-la. Nada disto é novo: é a regra de 16/11 a funcionar,
-agora com a tela a dizer o que fazer em vez de dizer que não há nada.
-
-**E a dica mudou com o motivo, porque há dois — medido no sistema real.** «Desabilite primeiro» é o
-caminho da escola que tem cadastro, e é **mentira** para a que não tem: não há estado a desabilitar.
-A 22/11/2026 o KV mostra `breu` com cadastro (`ativa`) e `batata`, `calango` e `duo` **sem registo** —
-as três continuam no `indices/escolas/` e já não têm `bastidores/<escola>/comercial`. São o que fica
-de uma escola expurgada, e a tela passa a dizê-lo em vez de as mandar procurar um botão que não
-existe. Quando os dois motivos coexistem, a dica geral aparece (há uma que se desabilita) e um rodapé
-conta as outras («2 delas não têm cadastro comercial»).
+**O QUE FICA PENDENTE, e é de desenho, não de código.** O prefixo da limpeza do KV inclui o registo
+comercial, portanto **um expurgo falhado deixa a escola sem cadastro**. A recuperação existe e é a que
+ela vai usar (desabilitar outra vez → 1 minuto → apagar), mas a alternativa — excluir
+`bastidores/<slug>/comercial` do prefixo até o expurgo concluir — é uma decisão sobre o que o expurgo
+pode apagar, e não a tomo sozinho.
 
 ## O que está pendente
 
