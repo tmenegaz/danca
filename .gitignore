@@ -1887,3 +1887,12 @@ experimentos/modelo-formulario/*
 # produz. O passo do `derivados.yml` é extraído do arquivo e corrido num repositório de verdade;
 # com controle negativo, o `git add` do pathspec vazio morre com 128.
 !experimentos/provar-os-restos-do-expurgo.js
+
+# A PROVA DOS DADOS DA ESCOLA (23/11/2026). Ela quis o CNPJ da `breu` que acabara de expurgar, e ele
+# já não existia em sítio nenhum: o expurgo limpa `bastidores/<slug>/`, e o cadastro da escola vive
+# lá. A chave nova (`cadastros/<slug>`) fica FORA dos dois prefixos, e é isso que a faz sobreviver —
+# guarda o CNPJ, o e-mail e o telefone da escola e do professor, e acrescenta um elo por expurgo.
+# Mede também a resposta à pergunta dela antes de criar: «Breu» é o MESMO slug de antes (mesma pasta,
+# mesmo prefixo, mesmo endereço), e o fixture de teste vem do NOME — um «Breu Dois» também o carrega.
+# Com controle negativo, onde a função e a aba não existem.
+!experimentos/provar-os-dados-da-escola.js

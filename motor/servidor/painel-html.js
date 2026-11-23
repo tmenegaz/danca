@@ -1470,13 +1470,14 @@ function paginaDosContatos({ contatos } = {}) {
  * as peças da folha. Um ecrã do painel que inventasse uma grelha própria seria o segundo desenho
  * do mesmo formulário nesta casa, e a folha é uma.
  */
-function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
+function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados }) {
   const chave = (pix && pix.chave) || '';
   const titular = (pix && pix.titular) || '';
   const lista = Array.isArray(descontos) ? descontos : [];
   const vivas = Array.isArray(escolas) ? escolas : [];
   const contas = Array.isArray(extrato) ? extrato : [];
   const cat = catalogo || null;
+  const fichas = Array.isArray(dados) ? dados : [];
 
   const blocoDaChave = '<div class="caixa" id="financeiro-pix">' +
     '<h2>A chave que recebe os pagamentos</h2>' +
@@ -1845,6 +1846,77 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
         '<p>Uma escola aparece aqui assim que existir. Uma lista vazia quer dizer que nenhuma ' +
         'existe, não que a leitura falhou.</p></div>');
 
+  /* OS DADOS DA ESCOLA — a lista que responde «com quem falo, e com que CNPJ» (23/11/2026).
+   *
+   * O QUE ELA PEDIU: «eu preciso de uma lista dos nomes da escola, do professor da escola, uma
+   * tabela que mostra o nome da escola, o professor da escola, o telefone da escola […] e ali eu
+   * consigo então entrar em contato com a escola, saber qual é o CNPJ dela e me mexer atrás dela.»
+   *
+   * A LISTA TEM AS VIVAS **E** AS EXPURGADAS, e isso não é descuido: o caso que a levou a pedir
+   * esta aba é o de uma escola que deve há muito tempo e foi expurgada — depois do expurgo é que se
+   * precisa do CNPJ. Por isso a coluna «Situação» existe, e por isso a coluna «Origem» existe: ela
+   * diz se o dado é do cadastro de agora ou do registo que o expurgo guardou antes de apagar.
+   *
+   * E DIZ QUANDO NÃO HÁ NADA. As escolas expurgadas antes de hoje perderam o cadastro para sempre
+   * (o expurgo apagava `bastidores/<slug>/cadastro`, e o cadastro nunca esteve no Git — o
+   * `check-indices` proíbe e-mail e telefone nos índices do acervo). Uma célula com um traço é a
+   * verdade; um número deduzido do slug seria uma mentira com aparência de dado.
+   *
+   * «COMO FALAR» usa as MESMAS duas formas da página dos Contactos — `mailto:` e `wa.me` —, e não
+   * uma terceira: quem já sabe clicar num telefone naquele ecrã sabe clicar neste. */
+  const semDado = (v) => (v === null || v === undefined || String(v).trim() === '' ? '—' : esc(v));
+  const comoFalar = (email, telefone) => [email
+    ? '<a href="mailto:' + esc(email) + '">' + esc(email) + '</a>' : '',
+  telefone
+    ? '<a href="https://wa.me/' + esc(numeroDoWhatsapp(telefone))
+      + '" target="_blank" rel="noopener">' + esc(telefone) + '</a>' : ''
+  ].filter(Boolean).join('<br>');
+
+  const linhaDaFicha = (f) => '<tr>' +
+    '<td><strong>' + esc(f.nome || f.escola) + '</strong>' +
+      (f.nome && f.escola && f.nome !== f.escola
+        ? ' <span class="dono">(' + esc(f.escola) + ')</span>' : '<br><span class="dono">' +
+        esc(f.escola) + '</span>') + '</td>' +
+    '<td>' + (f.professorNome ? esc(f.professorNome) : semDado(f.professor)) +
+      (f.professorCpf ? '<br><span class="dono">CPF ' + esc(f.professorCpf) + '</span>' : '') + '</td>' +
+    '<td>' + semDado(f.cnpj) + '</td>' +
+    '<td>' + (comoFalar(f.email, f.telefone) || '—') + '</td>' +
+    '<td>' + (comoFalar(f.professorEmail, f.professorTelefone) || '—') + '</td>' +
+    '<td>' + (f.expurgada
+      ? '<span class="selo discreto">expurgada</span>'
+        + (f.expurgadaEm ? '<br><span class="dono">' + esc(quando(f.expurgadaEm)) + '</span>' : '')
+      : '<span class="selo ok">viva</span>') + '</td>' +
+    '<td>' + (f.fonte === 'vivo'
+      ? '<span class="selo discreto">cadastro</span>'
+      : (f.fonte === 'expurgo'
+        ? '<span class="selo discreto">guardado no expurgo</span>'
+        : '<span class="selo alerta">sem cadastro</span>')) + '</td>' +
+    '</tr>';
+
+  const semDados = fichas.filter((f) => f.fonte === 'nenhum');
+  const blocoDosDados = '<h2>Os dados da escola</h2>' +
+    '<p>O nome, o CNPJ e os contactos de cada escola — os dela e os do professor responsável. ' +
+    'A lista tem as vivas <strong>e as expurgadas</strong>: é depois de uma escola sair que o CNPJ ' +
+    'dela faz falta, para cobrar ou para acionar quem deve.</p>' +
+    (fichas.length
+      ? tabelaPaginada('pa-lista-dados', '<table>' +
+        '<thead><tr><th>Escola</th><th>Professor</th><th>CNPJ</th><th>Contacto da escola</th>' +
+        '<th>Contacto do professor</th><th>Situação</th><th>Origem</th></tr></thead>' +
+        '<tbody>' + fichas.map(linhaDaFicha).join('') + '</tbody></table>' +
+        '<p class="aviso">«Origem» diz de onde vem o que está escrito: <strong>cadastro</strong> é o ' +
+        'que a escola declarou na criação; <strong>guardado no expurgo</strong> é o registo que o ' +
+        'expurgo guarda antes de apagar o cadastro. «—» é ausência de dado, e não um zero.</p>' +
+        (semDados.length
+          ? '<p class="aviso">' + semDados.length + ' escola(s) sem cadastro nenhum: ' +
+            semDados.map((f) => esc(f.escola)).join(', ') +
+            '. São expurgos anteriores a 23/11/2026 — o cadastro delas foi apagado com o expurgo e ' +
+            'nunca esteve no repositório (o índice do acervo não guarda e-mail nem telefone). ' +
+            'Não há como os recuperar; daqui em diante, o registo fica.</p>'
+          : ''), 'Escolas por página')
+      : '<div class="caixa nota"><h2>Nenhuma escola cadastrada</h2>' +
+        '<p>Uma escola aparece aqui assim que existir. Uma lista vazia quer dizer que nenhuma ' +
+        'existe, não que a leitura falhou.</p></div>');
+
   /* TRÊS ABAS, CADA ASSUNTO NA SUA (16/11/2026).
    *
    * «Aqui também você vai organizar em abas […] considera um desconto, é aba. A parte da mensalidade
@@ -1858,8 +1930,11 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
    * A TIRA É A MESMA PEÇA dos Professores, da Audição e de «A escola» — `.abas`/`.aba`, na folha.
    * O motor é desta página (`SCRIPT_DAS_ABAS`), e o contrato com a folha são as marcas:
    * `role="tab"`, `aria-selected` e o painel `hidden`. */
+  /* A QUARTA ABA ENTRA NO FIM, E NÃO NO PRINCÍPIO (23/11/2026): ela é consulta, e não trabalho
+   * do dia. Quem abre o Financeiro vem ver «quem está em dia?» — a ordem das outras três é essa, e
+   * uma tabela de contactos à frente delas empurraria o trabalho para o segundo clique. */
   const abas = [['mensalidades', 'Mensalidades'], ['chave', 'A chave Pix'],
-    ['descontos', 'Os descontos']];
+    ['descontos', 'Os descontos'], ['dados', 'Os dados da escola']];
   const tira = '<nav class="abas" role="tablist" aria-label="Financeiro — seções" id="fi-abas">' +
     abas.map(([n, titulo], i) => '<button type="button" class="aba" role="tab" id="fi-aba-' + n + '" ' +
       'data-aba="' + n + '" aria-controls="fi-painel-' + n + '" ' +
@@ -1879,6 +1954,7 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo }) {
       painel('mensalidades', blocoDasContas, true) +
       painel('chave', blocoDaChave, false) +
       painel('descontos', blocoDoDesconto + tabela, false) +
+      painel('dados', blocoDosDados, false) +
       SCRIPT_DAS_ABAS + SCRIPT_DAS_CONTAS +
       SCRIPT_DO_FINANCEIRO +
       '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',

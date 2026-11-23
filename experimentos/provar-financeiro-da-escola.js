@@ -246,12 +246,16 @@ function kvCom(dados) {
       const { JSDOM } = require('jsdom');
       const d0 = new JSDOM(html).window.document;
       const abas = [...d0.querySelectorAll('#fi-abas [role="tab"]')].map((b) => b.getAttribute('data-aba'));
-      conferir('o financeiro está em três abas: mensalidades, chave e descontos',
-        JSON.stringify(abas) === JSON.stringify(['mensalidades', 'chave', 'descontos']), abas);
-      const paineis = ['mensalidades', 'chave', 'descontos']
+      /* A QUARTA ABA ENTROU A 23/11/2026 — «Os dados da escola», no fim e não no princípio: ela é
+       * consulta, e quem abre o Financeiro vem ver «quem está em dia?». A asserção passa a exigir a
+       * ordem inteira, e não só as três de 16/11: uma aba nova que se metesse à frente do trabalho
+       * empurrava-o para o segundo clique. */
+      conferir('o financeiro está em quatro abas, com «Os dados da escola» no fim',
+        JSON.stringify(abas) === JSON.stringify(['mensalidades', 'chave', 'descontos', 'dados']), abas);
+      const paineis = ['mensalidades', 'chave', 'descontos', 'dados']
         .map((n) => d0.getElementById('fi-painel-' + n));
       conferir('…com um só painel à vista, e é o das mensalidades (é o que se abre todos os meses)',
-        paineis[0] && !paineis[0].hidden && paineis[1].hidden && paineis[2].hidden,
+        paineis[0] && !paineis[0].hidden && paineis[1].hidden && paineis[2].hidden && paineis[3].hidden,
         paineis.map((p) => !!(p && p.hidden)));
       conferir('…e a aba à vista é a que está marcada como selecionada',
         d0.getElementById('fi-aba-mensalidades').getAttribute('aria-selected') === 'true'

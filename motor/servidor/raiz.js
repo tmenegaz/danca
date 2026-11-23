@@ -3002,6 +3002,118 @@ async function lerCadastroDaEscola(env, escola) {
 }
 
 /**
+ * O CADASTRO QUE SOBREVIVE AO EXPURGO — a identidade fiscal da escola que já não existe
+ * (23/11/2026, à noite).
+ *
+ * O QUE ELA PEDIU, e é a razão de isto existir: «é importante lá no financeiro se, por exemplo, eu
+ * expurgar uma escola ou tiver com uma escola com pagamento atrasado, muito tempo atrasado e aí eu
+ * tive que expurgar ou eu vou ter que correr atrás. […] eu preciso de uma lista dos nomes da escola,
+ * do professor da escola, […] saber qual é o CNPJ dela e me mexer atrás dela.»
+ *
+ * O DEFEITO QUE ISTO CORRIGE, e é o mesmo do livro das mensalidades — só que mais caro. O expurgo
+ * limpa o KV de dois prefixos, `<slug>/` e `bastidores/<slug>/`, e o CADASTRO da escola está no
+ * segundo: **expurgar apagava o CNPJ, os telefones e os e-mails**, exactamente os dados que se
+ * precisam para cobrar ou para acionar quem deve. Ela descobriu-o pelo lado pior: quis saber o
+ * CNPJ da `breu` que tinha acabado de expurgar, e ele já não existia em sítio nenhum — nem no KV,
+ * nem no repositório, nem no histórico do Git (o cadastro nunca esteve lá, e o `check-indices`
+ * proíbe e-mail e telefone nos índices).
+ *
+ * O QUE SE GUARDA, E O QUE NÃO SE GUARDA. Guarda-se o registo FISCAL e de CONTACTO: o nome da
+ * escola, o CNPJ, o e-mail e o telefone dela, e o nome, CPF, e-mail e telefone do professor
+ * responsável. Não se guarda — porque a escola já não os tem — as alunas, as curadorias, os
+ * documentos, o endereço nem o Worker: esses são o dado que SERVE a escola, e é isso que o expurgo
+ * leva.
+ *
+ * A CHAVE FICA FORA DOS DOIS PREFIXOS (`cadastros/<slug>`), e é essa a única razão de ela
+ * sobreviver: `prefixosDaEscola` devolve `<slug>/` e `bastidores/<slug>/`, e mais nada. Uma chave
+ * com o nome da escola dentro de um prefixo da escola seria apagada no expurgo seguinte.
+ *
+ * E ELA ACRESCENTA, NÃO EDITA — a regra da proveniência. Um segundo expurgo da mesma escola
+ * (recriada e expurgada outra vez) deixa o segundo elo ao lado do primeiro, com a data: o cadastro
+ * de hoje não apaga o de ontem, porque o de ontem é o que se procura quando a dívida é de ontem.
+ */
+function chaveDoCadastroHistorico(slug) {
+  const alvo = String(slug || '').trim();
+  return alvo ? 'cadastros/' + alvo : null;
+}
+
+/** O cadastro histórico de uma escola expurgada — o ÚLTIMO expurgo, ou `null`. Nunca lança. */
+async function lerCadastroHistorico(env, escola) {
+  const kv = env && env.PADD_KV;
+  const chave = chaveDoCadastroHistorico(escola);
+  if (!kv || typeof kv.get !== 'function' || !chave) return null;
+  try {
+    const texto = await kv.get(chave);
+    const registo = texto ? JSON.parse(texto) : null;
+    const lista = (registo && Array.isArray(registo.expurgos)) ? registo.expurgos : [];
+    return lista.length ? lista[lista.length - 1] : null;
+  } catch (erro) { return null; }
+}
+
+/** A ficha de contacto de uma pessoa (professor) — `professores/<slug>/contato`, ou `null`. */
+async function lerContatoDoProfessor(env, professor) {
+  const kv = env && env.PADD_KV;
+  const slug = String(professor || '').trim();
+  if (!kv || typeof kv.get !== 'function' || !slug) return null;
+  try {
+    const texto = await kv.get('professores/' + slug + '/contato');
+    return texto ? JSON.parse(texto) : null;
+  } catch (erro) { return null; }
+}
+
+/**
+ * GUARDA A IDENTIDADE FISCAL ANTES DE O EXPURGO A APAGAR.
+ *
+ * CORRE ANTES DA LIMPEZA DO KV, e é isso que a torna possível: depois, o cadastro já não existe.
+ * O ponto do código é o mesmo do cartão de despedida (passo 1-bis) e pela mesma razão que lá está
+ * escrita — «procurá-lo depois seria procurá-lo numa gaveta que já foi para o lixo».
+ *
+ * NUNCA LANÇA e nunca faz falhar o expurgo: a escola já vai sair, e uma falha a guardar o registo
+ * não pode impedir a operação que ela pediu. O desfecho vai no relatório, e é lá que se lê.
+ */
+async function guardarCadastroDoExpurgo({ env, slug, elo, motivo, quando }) {
+  const kv = env && env.PADD_KV;
+  const chave = chaveDoCadastroHistorico(slug);
+  const quandoIso = quando || new Date().toISOString();
+  if (!kv || typeof kv.put !== 'function' || !chave) {
+    return { ok: false, erro: 'sem KV: a identidade fiscal não foi guardada' };
+  }
+  try {
+    const cadastro = (await lerCadastroDaEscola(env, slug)) || {};
+    const quem = elo ? responsavelDoInventario(elo) : { slug: '', nome: '' };
+    const doProfessor = await lerContatoDoProfessor(env, quem.slug || (elo && elo.professor && elo.professor.slug));
+    const elo_ = {
+      em: quandoIso,
+      motivo: motivo || null,
+      escolaNome: cadastro.escolaNome || (elo && elo.escola) || slug,
+      cnpj: cadastro.cnpj || null,
+      email: cadastro.email || null,
+      telefone: cadastro.telefone || null,
+      professor: {
+        slug: (quem && quem.slug) || (elo && elo.professor && elo.professor.slug) || null,
+        nome: (quem && quem.nome) || (elo && elo.professor && elo.professor.nome) || null,
+        cpf: (doProfessor && doProfessor.cpf) || null,
+        email: (doProfessor && doProfessor.email) || null,
+        telefone: (doProfessor && doProfessor.telefone) || null,
+      },
+      /* OS OUTROS PROFESSORES que passaram pela escola: o elo sabe quem foram, e o contacto de
+       * cada um está na chave dele — que NÃO é apagada por este expurgo (é da pessoa, e a pessoa
+       * fica). Ler aqui é o que permite dizer «fale com quem deu aula» sem varrer o KV. */
+      professores: Array.isArray(elo && elo.professores) ? elo.professores : [],
+    };
+    const anterior = await kv.get(chave);
+    let registo = null;
+    try { registo = anterior ? JSON.parse(anterior) : null; } catch (erro) { registo = null; }
+    const expurgos = (registo && Array.isArray(registo.expurgos)) ? registo.expurgos : [];
+    expurgos.push(elo_);
+    await kv.put(chave, JSON.stringify({ escola: slug, expurgos, atualizadoEm: quandoIso }));
+    return { ok: true, chave, expurgos: expurgos.length, cnpj: Boolean(elo_.cnpj) };
+  } catch (erro) {
+    return { ok: false, erro: (erro && erro.message) || String(erro) };
+  }
+}
+
+/**
  * O CADASTRO NA FORMA QUE A MENSAGEM LÊ (16/11/2026).
  *
  * OS DOIS NOMES DO MESMO DADO. `gravarCadastro` escreve no KV um registo com `email` (o da escola)
@@ -3383,6 +3495,70 @@ async function extratoDasEscolas({ env, escolas, agora }) {
       expurgada,
       expurgadaEm: expurgada ? ((e && e.expurgada_em) || null) : null,
     }));
+  }
+  return lista;
+}
+
+/**
+ * OS DADOS DE CADA ESCOLA — a lista que responde «como falo com esta escola?» (23/11/2026).
+ *
+ * O QUE ELA PEDIU, na letra: «Uma coisa que tá faltando aqui no nosso painel é a gente saber os
+ * dados da escola criada. […] eu preciso de uma lista dos nomes da escola, do professor da escola,
+ * uma tabela que mostra o nome da escola, o professor da escola, o telefone da escola, enfim, os
+ * dados que a gente tem da escola. E ali eu consigo então entrar em contato com a escola, saber qual
+ * é o CNPJ dela e me mexer atrás dela.»
+ *
+ * AS TRÊS FONTES, e cada uma responde por uma coisa:
+ *
+ *   · o ÍNDICE do acervo — quem a escola é hoje: o nome, o responsável, se está viva e desde quando
+ *     (a mesma leitura que a lista das vivas e o extrato usam);
+ *   · `bastidores/<escola>/cadastro` — o CNPJ, o e-mail e o telefone DELA, recolhidos na criação;
+ *   · `professores/<slug>/contato` — o CPF, o e-mail e o telefone da PESSOA.
+ *
+ * E UMA QUARTA, SÓ PARA AS EXPURGADAS: `cadastros/<escola>`, o registo que o expurgo guarda antes
+ * de apagar o cadastro. Sem ele, a escola que saiu deixa de ter CNPJ — e era exactamente o caso que
+ * ela encontrou: «eu não salvei o CNPJ inclusive antigo».
+ *
+ * NÃO SE INVENTA NADA: o que não existe sai `null`, e a página escreve um traço. Uma célula vazia
+ * com um número inventado seria pior do que a ausência — é o número que se usa para cobrar.
+ */
+async function dadosDasEscolas({ env, escolas }) {
+  const lista = [];
+  for (const e of Array.isArray(escolas) ? escolas : []) {
+    const slug = String((e && e.slug) || '').trim();
+    if (!slug) continue;
+    const expurgada = Boolean(e && e.expurgada);
+    /* O CADASTRO VIVO MANDA; o histórico é o que sobra de uma escola que já não existe. Ler os
+     * dois e escolher é mais honesto do que perguntar «está expurgada?» à página: uma escola
+     * recriada tem os dois, e o que vale é o de agora. */
+    const vivo = await lerCadastroDaEscola(env, slug);
+    const doExpurgo = vivo ? null : await lerCadastroHistorico(env, slug);
+    const cadastro = vivo || doExpurgo || {};
+    const responsavel = String((e && e.professor) || '').trim()
+      || (doExpurgo && doExpurgo.professor && doExpurgo.professor.slug) || '';
+    const contato = responsavel ? await lerContatoDoProfessor(env, responsavel) : null;
+    lista.push({
+      escola: slug,
+      nome: cadastro.escolaNome || (e && e.nome) || slug,
+      professor: responsavel || null,
+      professorNome: (contato && contato.nomeCompleto)
+        || (doExpurgo && doExpurgo.professor && doExpurgo.professor.nome) || null,
+      cnpj: cadastro.cnpj || null,
+      email: cadastro.email || null,
+      telefone: cadastro.telefone || null,
+      professorCpf: (contato && contato.cpf) || null,
+      professorEmail: (contato && contato.email)
+        || (doExpurgo && doExpurgo.professor && doExpurgo.professor.email) || null,
+      professorTelefone: (contato && contato.telefone)
+        || (doExpurgo && doExpurgo.professor && doExpurgo.professor.telefone) || null,
+      criadaEm: (e && e.criada_em) || null,
+      expurgada,
+      expurgadaEm: expurgada ? ((e && e.expurgada_em) || null) : null,
+      /* DE ONDE VEM O QUE ESTÁ ESCRITO — a página diz isto, e não o deduz. `vivo` = o cadastro da
+       * escola que existe; `expurgo` = o registo guardado antes de ela sair; `nenhum` = não há
+       * dados, e é o caso das escolas expurgadas antes de hoje. */
+      fonte: vivo ? 'vivo' : (doExpurgo ? 'expurgo' : 'nenhum'),
+    });
   }
   return lista;
 }
@@ -3856,8 +4032,12 @@ async function fetch(request, env) {
        * já não existe não é uma oferta, é um erro à espera de ser cometido. Duas listas porque são
        * duas perguntas: «o que entrou?» e «a quem posso conceder?». */
       const extrato = await extratoDasEscolas({ env, escolas: escolas || [] });
+      /* OS DADOS DA ESCOLA (23/11/2026) — a aba que responde «como falo com esta escola?». Lê o
+       * cadastro vivo de cada uma e, para as expurgadas, o registo que o expurgo guardou. Corre
+       * aqui e não na página porque a página não fala com o KV: ela desenha o que lhe dão. */
+      const dados = await dadosDasEscolas({ env, escolas: escolas || [] });
       return painel.resposta(painel.paginaFinanceira({
-        pix, descontos, escolas: vivas, extrato, catalogo: comercial.catalogoDaPagina(),
+        pix, descontos, escolas: vivas, extrato, dados, catalogo: comercial.catalogoDaPagina(),
       }));
     } catch (err) {
       return painel.resposta(painel.paginaSemToken(
@@ -4681,6 +4861,26 @@ async function fetch(request, env) {
       nomeDaEscola = slug;
     }
 
+    /* 1-ter. A IDENTIDADE FISCAL, GUARDADA ANTES DE SER APAGADA (23/11/2026, à noite).
+     *
+     * A MESMA LEITURA DO PASSO ACIMA, e a mesma razão — só que o que estava a perder-se não era o
+     * endereço da carta: era o CNPJ. «Eu preciso de uma lista […] saber qual é o CNPJ dela e me
+     * mexer atrás dela»: expurgar apagava o cadastro inteiro, e com ele a única forma de cobrar
+     * quem deve ou de acionar quem deve.
+     *
+     * A chave fica FORA dos prefixos da escola (`cadastros/<slug>`), e é isso que a faz sobreviver
+     * à limpeza que vem a seguir. Ver `guardarCadastroDoExpurgo`.
+     *
+     * NÃO FAZ FALHAR O EXPURGO: ela decidiu expurgar, e um erro a guardar o registo não é razão
+     * para não o fazer. O desfecho vai no relatório. */
+    try {
+      relatorio.cadastro = await guardarCadastroDoExpurgo({
+        env, slug, elo: eloDoExpurgo, motivo, quando: new Date().toISOString(),
+      });
+    } catch (err) {
+      relatorio.cadastro = { ok: false, erro: (err && err.message) || String(err) };
+    }
+
     // 2. ONDE A ESCOLA VIVE, antes de apagar qualquer coisa. O `wrangler.<slug>.jsonc` diz o
     // nome do script e o namespace do KV; sem ele não se limpa o KV — e apagar o Worker
     // deixando o dado é o pior dos mundos. Não se começa o que não se termina. (Se o config
@@ -4968,6 +5168,12 @@ module.exports = {
    * foram corrigidas por medição: a `breu` saiu e as duas continuaram a falar dela. Exportadas
    * porque são REGRA e a prova tem de as afirmar sem subir o Worker. */
   podarChavesDeEscolasMortas,
+  /* A IDENTIDADE FISCAL QUE SOBREVIVE AO EXPURGO (23/11/2026): `guardarCadastroDoExpurgo` escreve
+   * antes de o KV ser limpo, `lerCadastroHistorico` lê depois, e `dadosDasEscolas` é o que a aba
+   * nova do Financeiro mostra. Exportadas porque são regra — e a prova tem de as exercer sem subir
+   * o Worker nem tocar no Cloudflare. */
+  guardarCadastroDoExpurgo, lerCadastroHistorico, chaveDoCadastroHistorico, dadosDasEscolas,
+  lerContatoDoProfessor,
   // AS DUAS PORTAS E O QUE AS SEPARA (25/11/2026). Exportadas porque são a REGRA que a prova tem
   // de medir sem um Worker à frente: «este pedido é do público ou do proprietário?» decide o que
   // se serve e o que se recusa, e uma regra que só se testa em produção descobre-se em produção.
