@@ -4,17 +4,30 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 23/11/2026 (commits `edab6ae5`, `14d20091` e `3a29feee` — **o expurgo da
-> `breu` deixa de deixar restos**). Ela expurgou a escola e pediu «verifique se nada sobrou». O
+> **Última fotografia:** 23/11/2026, ao fim do dia — **o financeiro de uma escola expurgada não se
+> apaga**. Ela olhou o resultado do expurgo da `breu` no `danca.padd.com.br/financeiro` e disse: «O
+> que não pode sair é a parte financeira. Tem que manter que ela é uma escola que tem um histórico de
+> pagamentos e de ações. […] A parte financeira não pode expurgar, ela fica para histórico. E aí a
+> gente diz numa linha seguinte que essa escola foi expurgada.» A regra de 17/11 era o contrário, e
+> chegou a apagar as 7 linhas dela do livro. Invertida: o livro fica (é a receita que existiu), as
+> **7 linhas foram repostas**, o extrato passa a mostrar a escola com a marca e a data, e o cartão
+> dela deixa de oferecer cobrança — não se cobra uma escola que já não existe. A coluna da lista das
+> apagadas passa a chamar-se **`Ações`**, no plural, e a regra está documentada em
+> [IDENTIDADE-VISUAL.md](IDENTIDADE-VISUAL.md). E ficou medido o que **`Recriar` significa** (§8): a
+> escola volta com os documentos enviados, **não** com as aulas, a turma nem as linhas de base.
+>
+> **Fotografia anterior (23/11/2026 — commits `edab6ae5`, `14d20091` e `3a29feee`: o expurgo da
+> `breu` deixa de deixar restos).** Ela expurgou a escola e pediu «verifique se nada sobrou». O
 > expurgo correu (`3ffa914f`: 267 arquivos no elo, 0 chaves no KV, o endereço morto), e ficaram três
 > restos, nenhum deles sob um prefixo: o **derivado** continuava a dizer `expurgada: false` com 76
 > registos que o repositório já não tinha — o workflow «Fechar os derivados» **falhou** no commit do
 > expurgo, em `fatal: pathspec '*.fipp' did not match any files`, porque o expurgo levou a **última
 > âncora** e um pathspec vazio é um erro (exit 128) e não um no-op; o **livro do financeiro** ficou
-> com as 7 linhas da escola, porque a limpeza dele só era chamada na **retomada** e não na rota que
-> expurga; e a **cache do monitor** guardava `"breu"`, porque o mapa só acrescentava. Os três estão
-> corrigidos, medidos e verificados ao vivo — o «Fechar os derivados» passou a verde **na mesma
-> árvore sem âncoras**, o livro está `{"lista":[]}` e a raiz não devolve «breu» em sítio nenhum.
+> com as 7 linhas da escola; e a **cache do monitor** guardava `"breu"`, porque o mapa só acrescentava.
+> O derivado e a cache estão corrigidos, medidos e verificados ao vivo — o «Fechar os derivados»
+> passou a verde **na mesma árvore sem âncoras** e a cache está `{}`. O livro era o terceiro, e a
+> decisão de o limpar foi **invertida no mesmo dia** (ver a fotografia acima): as linhas ficaram, por
+> decisão dela.
 >
 > **Fotografia anterior (22/11/2026 — commit `e73342a6`, o registo comercial que não se perde).**
 > Ainda nesse dia, **o modal passou a deixar escrever**: os tempos e o compasso de cada exercício
@@ -3600,11 +3613,12 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
         **Um repositório com zero ciclos ancorados é um estado LEGÍTIMO** — é o que o expurgo da
         última escola produz —, e a condição passa a ser **perguntada** (`acrescentar_ancoras`:
         `git ls-files -c -o` antes do `git add`), nunca suposta.
-     2. **Uma regra que existe numa porta e não na outra é meia regra.** A limpeza do livro
-        (`apagarEscolaDoLivro`, 17/11/2026, com as palavras dela) só era chamada na **retomada**; a
-        rota que faz o expurgo nunca a chamou, e o livro é **uma chave de todas as escolas** — nenhum
-        prefixo a alcança. Passa a haver um sítio só (`limparOLivroDaEscola`), o desfecho leva o
-        livro e a conta do `ok` inclui-o.
+     2. ~~**Uma regra que existe numa porta e não na outra é meia regra.**~~ — **CORRIGIDO NO MESMO
+        DIA, e a regra era a errada: ver a decisão 164.** A limpeza do livro
+        (`apagarEscolaDoLivro`, 17/11/2026) só era chamada na **retomada**, e passou a ser chamada
+        nas duas rotas. Ela viu o resultado do lado financeiro e inverteu a decisão: **o financeiro
+        de uma escola expurgada não se apaga.** A função saiu do núcleo e as duas rotas deixaram de
+        a chamar.
      3. **Uma cache que só acrescenta guarda o parque que já não existe.** A conta estava certa
         (`resumirCloudflare` soma sobre as escolas vivas); o **valor guardado** é que não. Três
         estados, e confundi-los seria o defeito novo: `null` = «não perguntei» (não risca nada),
@@ -3612,6 +3626,36 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      **O QUE FICA, de propósito:** `escola/breu/indice.json` (a memória: 14 expurgos, 13 recriações,
      o elo com os 267 ficheiros e as âncoras), `indices/escolas/breu.json` (uma linha do acervo com
      **zero registos** e `expurgada: true`) e `teste/breu.json` (fixture sintética, sem dado pessoal).
+164. **O FINANCEIRO DE UMA ESCOLA EXPURGADA NÃO SE APAGA — É HISTÓRIA.** Palavras dela: «O que não
+     pode sair é a parte financeira. Tem que manter que ela é uma escola que tem um histórico de
+     pagamentos e de ações. […] A parte financeira não pode expurgar, ela fica para histórico. E aí a
+     gente diz numa linha seguinte que essa escola foi expurgada.» E o defeito, do lado dela: «Eu
+     acessei o financeiro agora e ele não tem nada lá mais. E não pode isso.»
+     **É A REVERSÃO DE UMA DECISÃO, e ela é declarada como tal.** A regra de 17/11/2026 era o
+     contrário — «essa parte toda de pagamento e financeiro […] tem que deixar de existir» —, foi
+     implementada, e chegou a apagar as **7 linhas** da `breu` do livro. O argumento que faltava é de
+     negócio: uma escola que pagou sete meses e depois saiu é **receita que existiu**, e apagá-la do
+     livro não limpa nada — falsifica o passado da operação.
+     **A FRONTEIRA, e ela é precisa.** SAI o dado que **serve** a escola (contrato, senhas, alunas,
+     documentos, endereço, Worker) — é o expurgo, e é irreversível. FICA a linha do livro
+     (`financeiro/mensalidades`): mês, valor, quando, por quem, em que plano.
+     **O QUE FALTAVA NO PAINEL, e era o defeito visível.** O livro sobrevivia por construção (é uma
+     chave de todas as escolas, e nenhum prefixo a alcança); quem não o mostrava era o **extrato**:
+     `extratoDasEscolas` recebia só as vivas, e a `situacaoDaEscola` contava os meses a partir da
+     adesão — que uma escola expurgada perdeu. Resultado: a conta dela ficava **vazia**. Corrigido
+     nos dois sítios: as apagadas **com histórico** entram no extrato com a marca e a data, e sem
+     contrato a linha do tempo é o livro (os meses que ela **pagou**). Uma apagada **sem histórico**
+     não entra: uma conta vazia com o nome de uma escola que já não existe é ruído.
+     **E NÃO SE COBRA UMA ESCOLA QUE JÁ NÃO EXISTE:** o cartão dela não tem «Marcar pago», nem
+     «Informar um pagamento», nem o ensaio, nem o formulário do contrato — quatro ganchos que gravam
+     sobre um registo comercial que o expurgo levou. A viva continua com os quatro (medido).
+     **A COLUNA CHAMA-SE «AÇÕES»**, no plural: «a última coluna tem que se chamar ação. Ações, né?»
+     A regra está em [IDENTIDADE-VISUAL.md](IDENTIDADE-VISUAL.md) — o nome da coluna diz o que ali
+     vive, não o rótulo do único botão que ela tem hoje.
+     **A RECRIAÇÃO NÃO É UM «DESFAZER»** (medido, ver §8): ela devolve a escola, o contrato e as
+     senhas, e traz de volta os **envelopes** (as anamneses, os planos de ensino, os POs) filtrados
+     pela capacidade — mas **não** as aulas, a notação, as linhas de base, as âncoras nem o pacote
+     gerado, que eram fontes e foram com o expurgo.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
@@ -3981,6 +4025,58 @@ página. Fechar a primeira exige levar o estado do lançamento até ao diálogo 
 calendário existir); fechar a segunda exige uma recusa no servidor — e uma recusa no servidor é
 **decisão dela**, não minha: é a diferença entre um botão que não se clica e uma API que responde 409.
 **PENDENTE** enquanto ela não disser.
+
+### O que «Recriar» faz, e o que ele NÃO faz (23/11/2026) — medido antes de ela testar
+
+**A PERGUNTA DELA.** «Quero que você verifique também se esse botão recriar, ele vai recriar a escola
+Breu do jeito que ela estava, já com as aulas que ela tinha ou só o básico. É como se fosse criar a
+escola nova, só que a escola Breu. Ela vai recriar com os alunos que já tinha? […] precisamos saber
+exactamente o que que significa recriar.»
+
+**A RESPOSTA, e ela é de desenho:** `Recriar` **não desfaz o expurgo**. Ele cria uma escola **nova com
+o mesmo nome** e devolve-lhe os **documentos que foram preenchidos** — não o sistema como estava.
+
+**O CAMINHO, medido no código.** O botão de `/escolas-apagadas` **não recria**: manda um **convite**
+(`POST /api/recriar-convite`) com um link de uso único, e é a escola que recria do outro lado,
+escolhendo o plano e as senhas (`POST /api/recriar/<token>` → `recriarEscola`). O que esse caminho faz:
+
+| o que | de onde |
+|:--|:--|
+| a escola existe outra vez (rota, Worker/shard, chaves do KV, senhas, contrato, Pix) | `criarEscola`, o mesmo da criação nova |
+| os **envelopes** — anamneses, planos de ensino, POs, lançamentos | `tools/restaurar-retrato.js`, a partir do `commit_antes` do elo |
+
+**O QUE VEM DE VOLTA, medido na `breu`** (`node tools/restaurar-retrato.js --escola breu
+--professores 10 --alunos 120 --seco`): retrato em `8b877844`, **76 documentos**, **2 professoras** e
+**2 alunas**, nenhum documento descartado na capacidade de 10/120. Quem não couber sai — a regra é
+dela: «a escolha do que fica é sequencial em ordem decrescente, ou seja, recupera os mais recentes».
+
+**O QUE NÃO VEM DE VOLTA, e é o que ela precisa de saber antes de testar:**
+
+- **As aulas.** Todo o `professores/demi-plie/ciclos/ciclo-01-breu-*` — na `breu` foram **169
+  ficheiros**: as aulas, o plano de ensino em `.md`, o plano de observação, a notação, as capturas, o
+  `-dados.json` e as âncoras `.fipp`. Eram **fontes** e foram com o expurgo. A escola volta com os
+  envelopes (o que a professora **enviou**), e o ciclo é **reconstruído a partir deles** — não
+  restaurado.
+- **As linhas de base** (`escola/<slug>/linhas-de-base/`, 20 ficheiros na `breu`). **É uma lacuna do
+  restaurador, e está declarada:** `restaurar-retrato.js` só copia `envelopes/`, e as linhas de base
+  estão no mesmo commit do retrato. Elas existem lá e não são trazidas.
+- **O elenco e a turma.** `bastidores/<escola>/alunas`, `/turmas` e `/curadorias` vivem no **KV**, não
+  no repositório — o expurgo apaga-os, e a restauração só escreve ficheiros. As **anamneses** voltam
+  (são envelopes, com o nome de cada aluna), mas a **curadoria** — quem está em que turma — tem de ser
+  refeita.
+- **O pacote gerado** (HTML/PDF) e as âncoras: são saída de P-04, e voltam se o ciclo for regerado.
+
+**O QUE ISSO QUER DIZER PARA O TESTE DELA.** Recriar a `breu` dá uma escola com as fichas e os planos
+enviados, **sem aulas nenhumas** e **sem turma** — o ciclo tem de ser gerado outra vez a partir do
+plano de ensino. Se o que ela quer é testar o portão da aula dada, o caminho é criar a escola e
+**gerar o ciclo**; se o que ela quer é ver as aulas de antes, elas **não voltam**, e o que fica delas
+é o elo (o `commit_antes`, as âncoras e a impressão do conjunto) — que é o que a proveniência promete
+guardar.
+
+**PENDENTE, e é decisão de desenho:** trazer também `linhas-de-base/` no restaurador (é uma pasta do
+mesmo commit, e a ausência não é intencional — é o resto de o restaurador ter nascido para os
+envelopes). As fontes do ciclo **não** se trazem: elas são ancoradas, e restaurá-las sem as âncoras
+faria a auditoria de proveniência falhar sobre uma escola recriada.
 
 ### O plano de observação em `/rosa/` não carrega o formulário (21/11/2026) — medido, não corrigido
 
@@ -4461,7 +4557,19 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (23/11/2026 — o expurgo da `breu` não deixa restos)
+### Executado nesta fotografia (23/11/2026 — o financeiro de uma escola expurgada não se apaga)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-o-financeiro-que-fica.js` (**nova**, substitui a de 17/11 que media a regra contrária) | **27/27**. **A.** Uma escola **sem contrato** tem os **7 meses que pagou**, tirados do livro (era zero); todos pagos, do mais recente para o mais antigo, com o valor e o plano de cada mês; sem contrato não se inventa valor a cobrar; e sem livro continua vazio. A escola **com** contrato continua a contar desde a adesão. **B.** `breu-rosa` só vê os meses dela — igualdade do slug, não prefixo. **C.** A expurgada **com** histórico entra no extrato com `expurgada: true` e a data; a **sem** histórico fica de fora; a viva entra sem marca e com o contrato em vigor. **D.** O cartão dela escreve «Escola expurgada em 22/11/2026 às 22:00» e **não tem nenhum** dos quatro ganchos de cobrança (`data-pagar`, `data-pagamento-gravar`, `data-ensaio-ligar`, `data-contrato-gravar`); o da viva tem os quatro. **E.** `mensalidades.apagarEscolaDoLivro` já não existe e a raiz não a chama. Controle `--contra=838938c2`: **16 de 27 reprovam** |
+| o livro, no KV de produção | **as 7 linhas da `breu` repostas** (`2026-11` a `2027-05`, R$ 239,90 → R$ 159,90) a partir da cópia tirada antes de as apagar; `{"lista":[7 linhas]}` lido de volta do Cloudflare depois do `PUT` |
+| `node experimentos/provar-os-restos-do-expurgo.js` (a secção do livro saiu — a regra mudou de dono) | **16/16**; o controle `--contra=8b877844` reprova **3 de 10** (o pathspec vazio e a poda da cache) |
+| `node experimentos/provar-recriar-escola.js` | **94/94** — e a asserção da coluna passou a exigir **`Ações`**: `<th>Ações</th>` é a última, e `<th>Recriar</th>` já não existe |
+| `node experimentos/provar-financeiro-da-escola.js` | **129/136** — as **7 falhas são as de antes** desta mudança (128/135 antes, mesmas sete, todas de `jsdom` na página da escola). A asserção «sem contrato datado não tem mensalidades» foi **actualizada** para a regra de hoje: sem contrato não há mês a cobrar, e os que estão no livro aparecem pagos |
+| `node tools/check-identidade.js` | **0 problemas**, 23 verificações — a regra nova da coluna `Ações` é documento, não código: nenhuma peça nasceu |
+| `provar-bancadas-e-expurgo` · `provar-lista-do-expurgo` · `provar-a-carencia-nao-se-burla` | 22/22 · 26/26 · 50/58 (as 8 falhas são anteriores, medidas com `git stash`) |
+
+### Executado na fotografia anterior (23/11/2026 — o expurgo da `breu` não deixa restos)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -4470,7 +4578,7 @@ recorta» como «a rota está fechada».
 | a árvore, depois do expurgo | `268` arquivos no commit; **267** no elo (`apagado`), com `commit_antes`, `kv.ok` e a proveniência auditada (4 âncoras, impressão `04055f36…`). Ficam `escola/breu/indice.json`, `indices/escolas/breu.json` e `teste/breu.json` (fixture), e do professor fica o `perfil.json` e os 5 schemas |
 | o KV, nos três namespaces | **0** chaves com «breu» no nome em `ciclos-escolas`, `ciclos-escolas-plano-b` e `ciclos-escolas-maria`; `escolas/por-host` e `contatos/entradas` sem o nome |
 | o Cloudflare | scripts: só `danca` e `lastro-teste` · nenhuma rota de zona com «breu» · nenhum registo DNS com «breu» · `breu.padd.com.br` → `curl` exit **6** («could not resolve host») |
-| **ao vivo**, depois do deploy `3a29feee` | «Fechar os derivados» **success** às 01:12:08 — na **mesma árvore sem âncoras** em que tinha falhado às 01:00:57 · «Publicar o sistema» success, script de 01:12:28Z com as funções novas · `financeiro/mensalidades` = `{"lista":[],"atualizadoEm":"2026-11-23T01:13:18.670Z"}` (as 7 linhas saíram pelo `limparOLivroDaEscola` do motor, aplicado com `experimentos/limpar-os-restos-da-breu.js --aplicar`) · `monitor/cache` = `chaves: {}` · `GET /api/escolas` devolve **lista vazia** e **nenhuma** ocorrência de «breu» no corpo |
+| **ao vivo**, depois do deploy `3a29feee` (e a nota de que o livro foi limpo por engano nesse dia — ver a fotografia acima) | «Fechar os derivados» **success** às 01:12:08 — na **mesma árvore sem âncoras** em que tinha falhado às 01:00:57 · «Publicar o sistema» success, script de 01:12:28Z com as funções novas · `financeiro/mensalidades` = `{"lista":[]}` — e **[CORRIGIDO às 22:20 do mesmo dia: as 7 linhas foram repostas, por decisão dela]** · `monitor/cache` = `chaves: {}` · `GET /api/escolas` devolve **lista vazia** e **nenhuma** ocorrência de «breu» no corpo |
 | `provar-o-cadastro-comercial-nao-se-perde` · `provar-bancadas-e-expurgo` · `provar-lista-do-expurgo` · `check-identidade` | 29/29 · 22/22 · 26/26 · 0 problemas (23 verificações) |
 | as duas que reprovam **antes e depois** | `provar-a-carencia-nao-se-burla` **50/58** e `provar-financeiro-da-escola` **128/135** — medido com `git stash`: idênticas com e sem esta mudança, portanto **anteriores** e não causadas por ela |
 

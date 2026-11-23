@@ -1270,6 +1270,27 @@ empilhada à esquerda** — o `.rail rail-esq` com `position: sticky` e `flex-di
 grade de três colunas (13rem de acções, a prosa, 15rem de índice). Não se troca uma pela outra: o que
 mudou de sítio não foi uma regra, foi a vontade dela.
 
+### A coluna de acções de uma tabela chama-se «Ações» — no plural *(23/11/2026)*
+
+> «Na tabela está escrito como recriar, mas a última coluna tem que se chamar ação. Ações, né? Acho
+> que é ações no plural e não ação no singular. […] Se não estiver documentado, documente porque isso
+> tem que ser o nome, ações.»
+
+**A REGRA.** A última coluna de uma tabela cujas células são **gestos** (um botão, um link de acção)
+chama-se **`Ações`** — no plural, com maiúscula, sem dois-pontos. Não se nomeia a coluna com o rótulo
+do único botão que ela tem hoje: a lista das escolas apagadas tinha a coluna `Recriar`, e amanhã há
+dois botões e o cabeçalho teria de mudar outra vez. O nome da coluna diz o que ali vive, e não o que
+ali está esta semana.
+
+**ONDE JÁ SE CUMPRE:** a lista das escolas apagadas (o botão `Recriar`, ao lado do `Registo`), e a
+tabela da música do exercício no diálogo de criar aula. **ONDE NÃO SE APLICA:** uma coluna que mostra
+um FACTo (um estado, uma data, um valor) — essas nomeiam-se pelo facto, e `Ações` sobre um facto é
+uma promessa que a célula não cumpre.
+
+**A coluna ao lado continua a ser o que ela é.** Em `/escolas-apagadas` são duas colunas distintas: o
+`Registo` (o link para o elo da escola) e as `Ações` (o que se pode fazer com ela). Juntá-las faria
+uma coluna com dois assuntos, e a que sobra é sempre a que não se lê.
+
 **A regra da `.acoes-da-lista`** (o «Ações» da Área do Professor, o «Seções» da Produção, o «Abas»
 da Audição): a **pílula** no telemóvel, que sobe a folha com os mesmos destinos, e os **blocos à
 vista** no computador — a pílula não aparece lá, por desenho. A marcação, uma vez:
