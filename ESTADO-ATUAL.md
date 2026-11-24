@@ -4,7 +4,27 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **a escada aplicada, as extensões simuladas e a mora.** As três
+> **Última fotografia:** 25/11/2026 — **o §7.1 não existe, e o ponto de migração passou a ser dito.** Ela
+> desconfiou de mim — «isso já não foi feito? […] Você precisa medir isso» — e tinha razão em desconfiar:
+> **o agrupamento das gerações não está implementado.** O `disparar.js` faz um `POST` imediato por
+> pedido, sem janela; o `concurrency` do `gerar-ciclo.yml` **serializa** (para não sobrescrever o pacote)
+> e o do `derivados.yml` **cancela o pendente** — e um cancelado paga-se. Nos runs: **71 gerações, 4
+> canceladas (5,6 %)**, e os intervalos de «0 minutos» são o **mesmo acto a disparar duas vezes**, a
+> 12–15 segundos. **E o mais importante:** o §7.1 foi escrito para «dez aulas seguidas»; aqui são **16
+> por dia, uma por hora**, com a geração a demorar **40–50 s** — a anterior termina **59 minutos antes**
+> de a seguinte ser pedida. **Quando eu disse que ele «corta a factura a metade», apliquei a este
+> cenário um ganho medido noutro.** O que a medição encontrou é maior: **um acto dispara 2–4 gerações e
+> 1–7 derivações — 10 minutos por um gesto de trinta segundos** —, porque cada gravação pede a geração e
+> cada geração escreve em `professores/**`, que dispara a derivação outra vez. **É esse o agrupamento
+> que falta**, e é ele que entra na ordem de socorro no lugar do §7.1. **E o aviso do ponto de migração
+> está no ar:** no monitoramento, na aba da receita, a lista das escolas que **vale a pena migrar** —
+> **190** aulas/mês no Básico→Intermediário e **400** no Intermediário→Avançado, com a frase que o
+> consultor leva. **A prova corrigiu o modelo:** o dinheiro perdido **cresce** com o crescimento (R$ 0 →
+> 20 → 55) e as aulas «que paga sem receber» **encolhem** (130 → 90 → 20) — **o dinheiro mede a perda,
+> as aulas descrevem a distância.** O bloco diz que **não** é a migração dos fornecedores, e **não tem
+> botão de migrar**: a decisão é comercial, e o que ela pediu foi a lista para telefonar.
+>
+> **Fotografia anterior (25/11/2026 — a escada aplicada, as extensões simuladas e a mora.** As três
 > coisas que ela pediu no mesmo dia, todas feitas. **A escada é o que o sistema promete**: as
 > franquias do `planos.json` passaram a **130 / 320 / 500**, e o Financeiro e o cartão da escola
 > mostram-nas **sem uma linha de código** — leem o catálogo. **O simulado das extensões, que faltava,
@@ -4129,6 +4149,37 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      acaba, e a cota entra no **pior indicador** (sem ela o mesmo parque dava «folga»). **DECIDIDO** e
      **APLICADO** 25/11/2026. **A lacuna declarada:** a norma de **luz** foi lida; a de **água** não —
      os percentuais coincidem, mas a citação é mais fraca.
+
+180. **O §7.1 NÃO EXISTE — E NESTA OPERAÇÃO NÃO AJUDARIA. O QUE FALTA É O AGRUPAMENTO DENTRO DO ACTO.**
+     Ela desconfiou: «isso já não foi feito? […] Você precisa medir isso.» **Medido: não.** O
+     `disparar.js` faz um `POST` imediato por pedido, sem janela; o `concurrency` do `gerar-ciclo.yml`
+     **serializa** (para não sobrescrever o pacote) e o do `derivados.yml` **cancela o pendente** — e
+     um cancelado paga-se. Nos runs: **71 gerações, 4 canceladas (5,6 %)**, e os intervalos de
+     «0 minutos» são o **mesmo acto a disparar duas vezes**, a 12–15 s. **E o mais importante:** o
+     §7.1 foi escrito para «dez aulas seguidas»; aqui são **16 por dia, uma por hora**, com a geração a
+     demorar **40–50 s** — a anterior termina **59 minutos antes** de a seguinte ser pedida. **Quando
+     eu disse que ele «corta a factura a metade», apliquei ao cenário dela um ganho medido noutro.** O
+     que a medição encontrou é maior: um acto dispara **2–4 gerações e 1–7 derivações** — **10 min por
+     gesto de trinta segundos** —, porque cada gravação pede a geração e cada geração escreve em
+     `professores/**`, que dispara a derivação outra vez. **É esse o agrupamento que falta**, e é ele
+     que entra na ordem de socorro no lugar do §7.1; a engenharia continua em primeiro e cortar aulas
+     continua em último. **DECIDIDO** 25/11/2026.
+
+181. **O PONTO DE MIGRAÇÃO DA ESCOLA PASSA A SER DITO NO MONITORAMENTO — E O DINHEIRO MEDE A PERDA, NÃO
+     AS AULAS.** «É ali que você vai me dizer quando vale a pena então migrar. É o ponto de migração da
+     escola. E aí que eu vou pedir para o consultor entrar em contato.» O ponto deriva do catálogo:
+     `viragem = franquia + (preço de cima − preço de baixo) ÷ preço da extensão` → **190** aulas/mês no
+     Básico→Intermediário e **400** no Intermediário→Avançado. **No ponto a escola paga exactamente o
+     preço do plano de cima e recebe menos** (190 em vez de 320; 400 em vez de 500), e acima dele o
+     dinheiro começa a correr (a 230 aulas no Básico, **R$ 20,00/mês a mais**). **E a prova corrigiu o
+     modelo:** o dinheiro perdido **cresce** com o crescimento (R$ 0 → 20 → 55) e as aulas «que paga
+     sem receber» **encolhem** (130 → 90 → 20) — dizer «paga 90 aulas a menos» a quem está a 230 de 320
+     é verdade e é inútil. **O dinheiro mede a perda; as aulas descrevem a distância.** O bloco vive na
+     aba **da receita** e **não** na «migração» — aquela é a dos fornecedores e gasta, esta é a das
+     escolas e rende, e o bloco começa por o dizer. **Não tem botão de migrar:** a decisão é comercial,
+     e o que ela pediu foi a lista para telefonar. Três listas — **migrar**, **a chegar** (acima de 80 %
+     do ponto) e **sem degrau** (o Avançado acima da franquia, que não pode ser calado). **DECIDIDO** e
+     **APLICADO** 25/11/2026.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a

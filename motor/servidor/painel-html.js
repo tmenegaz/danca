@@ -2483,7 +2483,7 @@ module.exports = {
   paginaDoConvite,
   paginaFinanceira, SCRIPT_DO_FINANCEIRO, ENSAIO_PADRAO_MINUTOS,
   /* O MONITORAMENTO (17/11/2026) — a página, e as peças que a prova mede à parte. */
-  paginaDoMonitoramento, barraDaCota, seloDoNivel, blocoDasAulas,
+  paginaDoMonitoramento, barraDaCota, seloDoNivel, blocoDasAulas, blocoDaMigracaoDasEscolas,
 };
 
 /* ══════════════════════════════════════════════════════════════════════════════════════════════
@@ -2924,6 +2924,104 @@ function blocoDaInadimplencia(i) {
     '</div>';
 }
 
+/**
+ * AS ESCOLAS A MIGRAR — o ponto de viragem do PLANO COMERCIAL, e a chamada para o consultor
+ * *(25/11/2026)*.
+ *
+ * O QUE ELA PEDIU: «É ali que você vai me dizer quando vale a pena então migrar. É o ponto de
+ * migração da escola. E aí que eu vou pedir para o consultor entrar em contacto e aí ele ganha uma
+ * grana e presta essa consultoria e mantém a escola viva.»
+ *
+ * E ESTA NÃO É A «MIGRAÇÃO» DA OUTRA ABA. Aquela é a dela — o plano do GitHub, do Cloudflare, do
+ * Resend, que sobe quando a cota aperta e que só gasta. Esta é a da ESCOLA — o degrau comercial que
+ * sobe quando a escola cresce e que **rende**: no ponto de viragem ela paga o mesmo e leva mais
+ * aulas. Duas palavras iguais para duas coisas opostas; a diferença é dita no topo do bloco, porque
+ * uma aba chamada «migração» ao lado de um bloco chamado «migração» é a receita para se ler o
+ * número errado.
+ *
+ * A FRASE QUE O CONSULTOR LEVA está em cada linha, e é concreta: quantas aulas a escola paga e não
+ * recebe. Não é «considere subir de plano» — é «paga o mesmo que o Intermediário e recebe 130 aulas
+ * a menos».
+ */
+function blocoDaMigracaoDasEscolas(m) {
+  if (!m) return '';
+  const pontos = (m.pontos || []).map((p) => '<tr><td>' + esc(p.deNome) + ' → <strong>'
+    + esc(p.paraNome) + '</strong></td><td>' + numero(p.viragem) + ' aulas/mês</td><td>'
+    + reaisDeCentavos(Math.round(p.pagaNoPonto * 100)) + '</td><td>'
+    + numero(p.aulasQueRecebe) + '</td><td>' + numero(p.aulasQuePagaSemReceber) + '</td></tr>').join('');
+
+  const celulaDaLinha = (e) => {
+    const dinheiro = e.nivel === 'migrar'
+      ? '<span class="selo falha">migrar</span>'
+      : (e.nivel === 'janela' ? '<span class="selo alerta">a chegar</span>'
+        : '<span class="selo ok">folga</span>');
+    /* O QUE ELA PAGA A MAIS, e é a frase da conversa. `aulasQuePagaSemReceber` só existe acima do
+     * ponto; na janela o que se mostra é quanto falta. */
+    /* O DINHEIRO MEDE A PERDA; AS AULAS DESCREVEM A DISTÂNCIA (25/11/2026, e a prova obrigou a
+     * separá-los). No ponto a economia ainda é zero — ela paga exactamente o preço do plano de
+     * cima —, mas o plano de cima dá mais aulas; acima do ponto começa a pagar a mais, e é esse o
+     * valor que a consultoria leva. Uma frase só com as aulas diria «paga 90 aulas a menos» a quem
+     * está a 230 de 320: verdade e inútil. */
+    const razao = e.nivel === 'migrar'
+      ? (e.economiaCentavos > 0
+        ? '<strong>' + reaisDeCentavos(e.economiaCentavos) + '/mês</strong> a mais pelo mesmo plano '
+          + 'de cima <span class="sub">(e ' + numero(e.aulasQuePagaSemReceber) + ' aulas a menos que '
+          + numero(e.aulasQueRecebe) + ')</span>'
+        : 'no ponto: paga o mesmo que o ' + esc(e.paraNome) + ', que dá <strong>'
+          + numero(e.aulasQueRecebe) + ' aulas</strong> em vez de ' + numero(e.numero))
+      : (e.nivel === 'janela' ? 'falta ' + numero(e.falta) + ' aula(s) para o ponto'
+        : 'dentro da franquia do plano');
+    return '<tr><td><strong>' + esc(e.nome) + '</strong></td>' +
+      '<td>' + esc(e.planoNome) + ' <span class="sub">→ ' + esc(e.paraNome) + '</span></td>' +
+      '<td>' + numero(e.numero) + '<span class="sub"> / ' + numero(e.viragem) + '</span></td>' +
+      '<td>' + razao + '</td>' +
+      '<td>' + dinheiro + '</td></tr>';
+  };
+
+  /* A LISTA SÓ APARECE QUANDO HÁ O QUE FAZER. Uma tabela com vinte escolas em «folga» esconde as
+   * duas que importam — e a pergunta desta caixa é «quem é que eu mando o consultor contactar». */
+  const aMigrar = (m.migrar || []);
+  const aChegar = (m.janela || []);
+  const comQueFalar = aMigrar.concat(aChegar);
+  const tabela = comQueFalar.length
+    ? '<div class="rolagem-caixa"><table><thead><tr><th>Escola</th><th>Plano</th>'
+      + '<th>Aulas / ponto</th><th>O que está a acontecer</th><th>Ação</th></tr></thead><tbody>'
+      + comQueFalar.map(celulaDaLinha).join('') + '</tbody></table></div>'
+    : '<p class="sub">Nenhuma escola está perto do ponto de viragem do seu plano — não há '
+      + 'consultoria a marcar por este motivo.</p>';
+
+  /* AS ESCOLAS NO TOPO DA ESCADA. O Avançado não tem degrau acima, e calá-las deixaria a maior
+   * escola sem resposta: a conversa dela é outra, e é dita. */
+  const topo = (m.semDegrau || []).length
+    ? '<p class="sub">No topo da escada (sem degrau acima, a conversa é à mão): '
+      + m.semDegrau.map((e) => esc(e.nome) + ' (' + numero(e.franquia) + ' aulas)').join(' · ')
+      + '.</p>'
+    : '';
+
+  /* O QUE O NÚMERO É, e o que ainda não é. O contador de aulas do mês não existe: o número que
+   * decide é o CONTRATADO, que é o tecto — uma escola que comprou pacotes até passar do ponto já
+   * está a pagar a mais, mesmo sem se contar uma aula. Quando o contador existir, a mesma tabela
+   * passa a ler o USADO, e o bloco não muda. */
+  const semContador = (m.escolas || []).some((e) => e.fonteDoNumero === 'contratadas')
+    ? '<p class="sub">O número é o da franquia <strong>contratada</strong> (plano + pacotes). O '
+      + 'contador de aulas do mês ainda não existe — quando existir, esta tabela passa a ler o que '
+      + 'a escola <strong>usa</strong>, e é essa a leitura que fecha a conta.</p>'
+    : '';
+
+  return '<div class="caixa" id="monitor-migrar-escolas">' +
+    '<h2>A migração das escolas — quando vale a pena subir de plano</h2>' +
+    '<p>Isto <strong>não</strong> é a migração da outra aba: aquela é a dos fornecedores (GitHub, '
+    + 'Cloudflare, Resend) e só gasta. Esta é a das escolas, e <strong>rende</strong> — no ponto de '
+    + 'viragem a escola paga o mesmo e leva mais aulas, e é aqui que se manda o consultor '
+    + 'contactar.</p>' +
+    '<div class="rolagem-caixa"><table><thead><tr><th>Degrau</th><th>Ponto de viragem</th>'
+    + '<th>A escola paga</th><th>Leva</th><th>Deixa de receber</th></tr></thead><tbody>' + pontos
+    + '</tbody></table></div>' +
+    '<p><strong>' + esc(m.frase || '') + '</strong></p>' +
+    tabela + topo + semContador +
+    '</div>';
+}
+
 function blocoDaReceita(r, cambio) {
   if (!r) return '';
   const meses = [
@@ -3130,8 +3228,13 @@ function paginaDoMonitoramento({ retrato, cambio, visibilidade, recado, aba }) {
        * para uma tabela que se abre no mesmo gesto é um clique a mais todos os meses. Entra
        * DEPOIS da receita e ANTES da migração: a receita diz o tamanho, a inadimplência diz quem
        * está fora dele. */
+      /* A MIGRAÇÃO DAS ESCOLAS FICA NA ABA DA RECEITA (25/11/2026), e não na «migração»: aquela é
+       * dos fornecedores e gasta; esta é das escolas e rende. Vem DEPOIS da inadimplência porque a
+       * ordem é a do dinheiro — a receita diz o tamanho, a inadimplência diz quem está fora dele, e
+       * esta diz quem devia estar a pagar mais e não está. */
       painel('receita', blocoDaReceita(r.receita, cambio)
-        + blocoDaInadimplencia(r.inadimplencia), aba === 'receita') +
+        + blocoDaInadimplencia(r.inadimplencia)
+        + blocoDaMigracaoDasEscolas(r.migracaoDasEscolas), aba === 'receita') +
       painel('migracao', blocoDaMigracao(r.migracao, visibilidade, recado), aba === 'migracao') +
       SCRIPT_DAS_ABAS_DO_MONITOR +
       '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',

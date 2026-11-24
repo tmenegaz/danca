@@ -1588,6 +1588,15 @@ experimentos/modelo-formulario/*
 # correm, o teto do CDC a morder, e o mês PAGO a não ter encargos. 24 asserções.
 !experimentos/provar-a-mora.js
 
+# O PONTO DE MIGRAÇÃO DA ESCOLA (25/11/2026). «É ali que você vai me dizer quando vale a pena então
+# migrar. É o ponto de migração da escola. E aí que eu vou pedir para o consultor entrar em contacto.»
+# O aviso vive na aba da receita do monitoramento, e NÃO é a «migração» dos fornecedores — aquela
+# gasta, esta rende, e o bloco começa por o dizer. A prova mede os dois lados da fronteira, o topo da
+# escada que não pode ser calado, e o controlo que corrigiu o modelo: o DINHEIRO mede a perda e as
+# AULAS descrevem a distância — as aulas «que paga sem receber» ENCOLHEM com o crescimento, e uma
+# frase só com elas diria «paga 90 aulas a menos» a quem está a 230 de 320. 34 asserções.
+!experimentos/provar-o-ponto-de-migracao.js
+
 # O FINANCEIRO QUE FICA (23/11/2026, à tarde). A regra de 17/11 era o contrário — expurgar a escola
 # levava as mensalidades dela —, e ela corrigiu: «A parte financeira não pode expurgar, ela fica
 # para histórico. E aí a gente diz numa linha seguinte que essa escola foi expurgada.» O livro vive

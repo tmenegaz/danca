@@ -60878,3 +60878,69 @@ mudanças: 273 provas, 177 verdes, 96 falhas conhecidas, 0 regressões, 187 s.
 `motor/nucleo/mensalidades.js`, `motor/servidor/painel-html.js`, `experimentos/provar-a-cota-em-aulas.js`
 (novo), `experimentos/provar-a-mora.js` (novo), `.gitignore` (as duas provas registadas com a razão),
 `CUSTO-DOS-FLUXOS.md` (§13), `ESTADO-ATUAL.md` (a fotografia e a decisão 179), `HANDOFF.md`.
+
+## 25/11/2026 — O §7.1 não está feito (e nesta operação não ajudaria), e o aviso do ponto de migração
+
+**A pergunta dela, e a desconfiança era justa.** «Você diz que precisa agrupar as gerações, que isso
+corta a fatura pela metade. Mas isso já não foi feito? Eu acho que já. […] Você precisa medir isso.»
+
+**Medido, e a resposta é não — com a correcção que eu devo.** O `motor/servidor/disparar.js` faz um
+`POST` imediato ao `dispatches` por cada pedido: **não há espera, não há janela, não há agrupamento**.
+O que existe é outra coisa, e é bom distingui-la: o `concurrency` do `gerar-ciclo.yml`
+(`cancel-in-progress: false`) **serializa** — duas gerações do mesmo pacote não correm juntas para não
+o sobrescreverem, como o próprio ficheiro diz; o `concurrency` do `derivados.yml`
+(`cancel-in-progress: true`) **cancela o pendente**, e um cancelado paga-se; e a **consolidação do
+`derivados.yml` num só job** (16/11/2026) foi consolidação de **jobs**, não de **execuções**.
+
+**Nos runs: 71 `Gerar o ciclo`, 4 canceladas (5,6 %)** — efeito de borda da fila, não agrupamento. E
+os intervalos de «0 minutos» entre execuções da mesma variante são o **mesmo acto a disparar duas
+vezes**, a 12–15 segundos um do outro.
+
+**E o número que mais importa: nesta operação o agrupamento não pouparia nada.** O §7.1 foi escrito
+para «dez aulas lançadas seguidas». Na operação dela são **16 aulas por dia, uma por hora**, e uma
+geração demora **40 a 50 segundos** — a anterior termina **59 minutos antes** de a seguinte ser pedida.
+**Não há nada para agrupar.** Quando eu disse que «o §7.1 corta a factura a metade», apliquei ao
+cenário dela um ganho medido noutro. A afirmação estava errada.
+
+**O que a medição encontrou em vez disso, e é maior:** um único acto dispara **2 a 4 gerações** e
+**1 a 7 derivações** — um gesto de trinta segundos custa **10 minutos**. A alavanca que existe não é o
+agrupamento entre aulas, é o **agrupamento DENTRO do acto**: cada gravação pede a geração, e cada
+geração escreve em `professores/**`, que dispara a derivação outra vez. **É ela que substitui o §7.1
+na ordem de socorro da §12.8**, e a engenharia continua em primeiro (R$ 43,63/mês, 36 % do custo).
+**Cortar aulas continua a última, e essa conclusão não dependia do §7.1** — a aula custa sete centavos
+e a R$ 12 seria preciso cortar a franquia a metade.
+
+**E a unidade confirma-se:** numa aula isolada, **2 min** (1 `Gerar` + 1 `derivados`) — exactamente o
+número em que a §12 se apoia.
+
+**O AVISO DO PONTO DE MIGRAÇÃO, implementado no monitoramento.** «É ali que você vai me dizer quando
+vale a pena então migrar. É o ponto de migração da escola. E aí que eu vou pedir para o consultor
+entrar em contato.»
+
+A conta: `viragem = franquia + (preço de cima − preço de baixo) ÷ preço da extensão` → **190 aulas/mês**
+no Básico→Intermediário e **400** no Intermediário→Avançado. **No ponto a escola paga exactamente o
+preço do plano de cima e recebe menos aulas** — 190 em vez de 320 (130 a menos), 400 em vez de 500 (100
+a menos) —, e **acima do ponto o dinheiro começa a correr** (a 230 aulas no Básico, R$ 20,00/mês a mais).
+
+**E A PROVA CORRIGIU O MODELO.** A primeira versão media a perda pelas aulas («paga 130 aulas a
+menos»). As duas grandezas andam em **sentidos opostos**: o dinheiro perdido **cresce** com o
+crescimento (R$ 0 → 20 → 55) e as aulas «que paga sem receber» **encolhem** (130 → 90 → 20), porque a
+escola se aproxima da franquia do plano de cima. Dizer «paga 90 aulas a menos» a quem está a 230 de 320
+é verdade e é inútil. **A regra ficou: o dinheiro mede a perda, as aulas descrevem a distância.** E no
+próprio ponto a economia é **zero** — é o que faz do ponto um ponto.
+
+**Onde vive, e o que não é.** Na aba **da receita**, e **não** na aba «A migração» — aquela é a dos
+**fornecedores** e só gasta; esta é a das **escolas** e rende. Duas palavras iguais para duas coisas
+opostas, e o bloco **começa por dizer que não é a outra**. **Não tem botão de migrar**: mudar o plano
+de uma escola é decisão comercial com contrato, e o que ela pediu foi a lista para telefonar. Três
+listas: **migrar**, **a chegar** (acima de 80 % do ponto) e **sem degrau** — o Avançado acima da
+franquia, que **não pode ser calado** porque é a maior escola. O número que decide é o medido quando
+existe e o contratado quando não, e o bloco **diz qual está a usar**.
+
+**MEDIDO.** `provar-o-ponto-de-migracao` **34/34 (novo)**. `correr-provas --mudou` sobre os três
+módulos tocados: **0 regressões**. As quatro conferências verdes: `check-identidade` (23),
+`check-schemas`, `check-sem-destruicao`, `check-github-headers` (5).
+
+**Onde entrou.** `motor/nucleo/monitoramento.js`, `motor/servidor/painel-html.js`,
+`motor/servidor/raiz.js`, `experimentos/provar-o-ponto-de-migracao.js` (novo), `.gitignore`,
+`CUSTO-DOS-FLUXOS.md` (§14 e §15), `ESTADO-ATUAL.md` (a fotografia e a decisão 180), `HANDOFF.md`.

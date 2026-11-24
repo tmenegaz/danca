@@ -4503,8 +4503,15 @@ async function fetch(request, env) {
        * painel diz qual usou. Sem ele, a percentagem não é calculada — e isso também se diz. */
       const cambio = Number(env && env.CAMBIO_USD_BRL) > 0 ? Number(env.CAMBIO_USD_BRL) : null;
 
+      /* A MIGRAÇÃO DAS ESCOLAS (25/11/2026) — «é ali que você vai me dizer quando vale a pena então
+       * migrar. É o ponto de migração da escola. E aí que eu vou pedir para o consultor entrar em
+       * contacto.» Calcula-se do MESMO `extrato` que a receita e a inadimplência já leem: uma
+       * segunda leitura dos contratos daria uma segunda lista de quem contactar, e a que ficasse a
+       * valer seria a que ela abrisse primeiro. */
+      const migracaoDasEscolas = monitoramento.escolasParaMigrar({ extrato, agora: agoraIso });
+
       const retrato = monitoramento.retrato({
-        github, correio, cloudflare, receita, inadimplencia,
+        github, correio, cloudflare, receita, inadimplencia, migracaoDasEscolas,
         cambio,
         /* OS CUSTOS DE HOJE SÃO ZERO, e é o número certo: os três planos em uso são gratuitos.
          * Quando um deles passar a ser pago, este é o valor que entra na coluna «diferença». */

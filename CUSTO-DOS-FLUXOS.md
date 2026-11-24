@@ -1945,7 +1945,7 @@ menor encarece a aula:
 | alavanca | o que poupa | custa o quê |
 |:--|:--|:--|
 | **a engenharia** | **R$ 43,63/mês** (36 % do custo) | nada a ninguém — não é promessa |
-| **o §7.1** (agrupar as gerações) | **metade da factura** (2,0 → 1,0 min/aula) | desenho e código |
+| **o agrupamento dentro do acto** | **10 min por gesto → 2** (ver §14) | desenho e código |
 | o gratuito | já em uso | — |
 | **cortar aulas** | **R$ 0,94 / 2,30 / 3,60** por 10 % | 13 / 32 / 50 aulas de promessa |
 
@@ -2014,3 +2014,177 @@ muda é a força da citação, e isso fica dito.
 **O Financeiro passou a mostrar as franquias novas sozinho**, sem uma linha de código: ele lê o
 catálogo (`catalogoDaPagina`), e o catálogo é a única fonte do preço e da franquia. É a razão pela
 qual o `planos.json` foi mudado em vez de os ecrãs.
+
+---
+
+## 14. O §7.1 não está feito — e nesta operação não ajudaria *(25/11/2026)*
+
+> «Você me disse que para solucionar caso o dólar aumente o preço, a opção melhor é a de engenharia. E
+> aí você diz que precisa agrupar as gerações, que isso corta a fatura pela metade. Mas eu te
+> pergunto, isso já não foi feito? Eu acho que já. Por isso que eu propus a franquia ser diminuída,
+> porque eu acho que essa solução de agrupar as gerações já está implementada. Você precisa medir
+> isso.»
+> — a proprietária, 25/11/2026
+
+**A resposta é não, e a medição é de três ordens.**
+
+### 14.1 O código não tem janela nenhuma
+
+O `motor/servidor/disparar.js` faz **um `POST` imediato** ao `dispatches` do GitHub por cada pedido de
+geração. Não há espera, não há atraso, não há agrupamento: o que existe é `dispararGeracao`, com o
+`body` montado e a resposta devolvida. Um pedido, um disparo.
+
+**O que ela pode estar a lembrar é de outra coisa, e é bom que se distinga:**
+
+| o que existe | o que faz | não é |
+|:--|:--|:--|
+| `concurrency: gerar-ciclo-<prof>-<ciclo>-<variante>` com `cancel-in-progress: false` | **serializa** — duas gerações do mesmo pacote não correm juntas, para não o sobrescreverem | não funde, não adia, não junta. O comentário do próprio ficheiro diz o que é: «duas disparadas juntas sobrescreveriam o mesmo pacote» |
+| `concurrency` do `derivados.yml`, com `cancel-in-progress: true` | **cancela o pendente** — a derivação é idempotente, e a última árvore ganha | cancela, e a factura arredonda ao minuto: um cancelado paga-se |
+| a consolidação do `derivados.yml` num só job *(16/11/2026)* | um job em vez de vários | é consolidação de **jobs**, não de **execuções** |
+
+### 14.2 O que se mediu nos runs
+
+Sobre as execuções reais do repositório:
+
+| o que | medido |
+|:--|--:|
+| `Gerar o ciclo`, total na janela | **71** |
+| …concluídas com sucesso | 57 |
+| …**canceladas** | **4 (5,6 %)** |
+| intervalo entre execuções da mesma variante | **0 minutos** em 12 de 12 pares medidos |
+
+**5,6 % de cancelamentos não é agrupamento — é o efeito de borda da fila.** E os intervalos de
+«0 minutos» são o mesmo acto a disparar duas vezes, não dois lançamentos distintos: os pares medidos
+estão a **12–15 segundos** um do outro (18:08:37 e 18:08:49; 18:31:11 e 18:31:25; 22:55:17 e
+22:55:31; 11:49:08 e 11:49:23).
+
+### 14.3 E o número que importa: nesta operação o agrupamento não pouparia nada
+
+**§7.1 foi escrito para outro cenário** — «dez aulas lançadas seguidas disparam dez gerações». Isso é
+verdade quando dez aulas são lançadas em rajada. **Na operação dela, não são:** 16 aulas por dia, uma
+por hora, e uma geração demora **40 a 50 segundos**. **A geração anterior termina 59 minutos antes de
+a seguinte ser pedida.** Não há nada para agrupar.
+
+> **A correcção que eu devo:** quando disse que «o §7.1 corta a factura a metade», estava a aplicar
+> ao cenário dela um ganho medido noutro. **Numa operação de hora a hora, agrupar gerações salva
+> zero.** A afirmação estava errada, e a senhora tinha razão em desconfiar.
+
+**O que a medição encontrou em vez disso — e é maior:** um único acto dispara **2 a 4 gerações** e
+**1 a 7 derivações**. Medido nos 5 minutos seguintes a cada geração:
+
+| acto | `Gerar` | `derivados` | total facturado |
+|:--|--:|--:|--:|
+| um acto simples | 1 | 0–1 | **1–2 min** |
+| conclusão do elenco | **4** | **6–7** | **10 min** |
+
+**Um gesto de trinta segundos custa dez minutos.** Não é o agrupamento entre aulas que falta — é o
+**agrupamento dentro do acto**: cada gravação pede a geração, e cada geração escreve em
+`professores/**`, que dispara a derivação outra vez. **É essa a alavanca que existe**, e é a que
+substitui o §7.1 nesta operação.
+
+**E a conta que fica:** numa aula isolada, **2 min** (1 `Gerar` + 1 `derivados`). É exactamente o
+número em que a §12 se apoia — 2,0 minutos por aula —, e é a confirmação de que esse número está
+certo para o caso dela.
+
+### 14.4 A consequência para a alavanca de socorro
+
+A ordem que a §12.8 escreveu **muda**, e a segunda posição passa a ser outra:
+
+| antes | agora |
+|:--|:--|
+| 1. a engenharia | 1. a engenharia — **continua a primeira** (R$ 43,63/mês, 36 % do custo) |
+| 2. ~~o §7.1~~ | 2. **o agrupamento DENTRO do acto** — 10 min por gesto para 2, e é ele que existe |
+| 3. cortar aulas | 3. cortar aulas — **continua a última**, e a §13.5 mostra porquê |
+
+**O que continua verdade, e é o que ela precisa de ouvir:** cortar aulas é a alavanca mais fraca, e a
+razão **não** dependia do §7.1. A aula custa sete centavos; o custo é 13 % da receita no Básico; e a
+R$ 12 seria preciso cortar a franquia **a metade** para o custo não subir. **A conclusão de que não se
+corta a franquia mantém-se inteira** — muda só a alternativa que se lhe oferece.
+
+---
+
+## 15. O ponto de migração da escola — o aviso no monitoramento *(25/11/2026)*
+
+> «A gente vai fazer essa implementação que avisa para mim lá no danca.padd.com.br na parte que a
+> gente lida com o monitoramento. É ali que você vai me dizer quando vale a pena então migrar. É o
+> ponto de migração da escola. E aí que eu vou pedir para o consultor entrar em contato e aí ele ganha
+> uma grana e presta essa consultoria e mantém a escola viva.»
+> — a proprietária, 25/11/2026
+
+### 15.1 A conta, e o que a define
+
+Uma escola que cresce tem duas saídas: **comprar extensão** a R$ 0,50 por aula, ou **subir de plano** e
+pagar a diferença da mensalidade. A partir de um certo número de aulas a segunda fica mais barata:
+**esse número é o ponto de viragem.**
+
+```
+viragem = franquia do plano + (preço do plano de cima − preço do plano) ÷ preço da extensão
+```
+
+| degrau | ponto de viragem | por semana | por dia |
+|:--|--:|--:|--:|
+| **Básico → Intermediário** | **190 aulas/mês** | 43,8 | 7,3 |
+| **Intermediário → Avançado** | **400 aulas/mês** | 92,3 | 15,4 |
+
+**No ponto, a escola paga exactamente o preço do plano de cima — e recebe menos aulas:**
+
+| degrau | paga | e leva | no plano de cima levaria | **deixa de receber** |
+|:--|--:|--:|--:|--:|
+| Básico → Intermediário | **R$ 99,90** | 190 | **320** | **130 aulas** |
+| Intermediário → Avançado | **R$ 139,90** | 400 | **500** | **100 aulas** |
+
+**E acima do ponto o dinheiro começa a correr.** A 230 aulas no Básico, a escola paga **R$ 119,90** —
+**R$ 20,00 a mais por mês** do que pagaria no Intermediário, que lhe daria 320 aulas.
+
+### 15.2 A distinção que a prova obrigou a fazer
+
+A primeira versão media a perda pelas **aulas**: «paga 130 aulas a menos». A prova reprovou-a, e com
+razão:
+
+| aulas/mês no Básico | paga | economia se migrasse | aulas «que paga sem receber» |
+|--:|--:|--:|--:|
+| 150 | R$ 79,90 | R$ 0,00 | — (folga) |
+| **190 (o ponto)** | R$ 99,90 | **R$ 0,00** | **130** |
+| 230 | R$ 119,90 | **R$ 20,00** | 90 |
+| 300 | R$ 154,90 | **R$ 55,00** | 20 |
+
+**As duas grandezas andam em sentidos opostos.** O dinheiro perdido **cresce** com o crescimento; as
+aulas «que paga e não recebe» **encolhem** — porque a escola se aproxima da franquia do plano de cima.
+Dizer «paga 90 aulas a menos» a quem está a 230 de 320 é verdade e é inútil.
+
+> **A regra que ficou: o dinheiro mede a perda, as aulas descrevem a distância.** E, no próprio ponto,
+> a economia é **zero** — ela paga exactamente o preço do plano de cima. É o que faz do ponto um
+> ponto, e é a leitura honesta: no dia em que lá chega, ainda não perdeu nada; é dali para cima que
+> perde.
+
+### 15.3 Onde vive, e o que não é
+
+**Na aba da receita do monitoramento**, e **não** na aba «A migração» — aquela é a **dos fornecedores**
+(GitHub, Cloudflare, Resend), que só gasta; esta é a **das escolas**, que rende. **Duas palavras iguais
+para duas coisas opostas**, e por isso o bloco **começa por dizer que não é a outra**.
+
+**E não tem botão de migrar.** Mudar o plano de uma escola é uma decisão comercial com contrato
+— e o que ela pediu foi a **lista para telefonar**, não um clique. A ação é «migrar» (o selo), e o
+telefone é o do consultor.
+
+**As três listas que o bloco dá:**
+
+| lista | quem entra | o que se faz |
+|:--|:--|:--|
+| **migrar** | no ponto ou acima | telefonar — paga o mesmo ou mais e recebe menos |
+| **a chegar** | acima de 80 % do ponto | ainda não compensa; vigiar |
+| **sem degrau** | o Avançado acima da franquia | conversa à mão — não há plano acima, e **calá-la deixaria a maior escola sem resposta** |
+
+**O número que decide é o medido quando existe, e o contratado quando não** — e o bloco **diz qual
+está a usar**. Enquanto o contador de aulas do mês não existir, é a franquia contratada (plano +
+pacotes), que é o **tecto**: uma escola que comprou pacotes até passar do ponto **já está a pagar a
+mais**, mesmo sem se contar uma única aula.
+
+### 15.4 Onde está implementado
+
+| onde | o quê |
+|:--|:--|
+| `motor/nucleo/monitoramento.js` | `pontosDeMigracao` (a escada e o preço da extensão vêm do **catálogo**), `escolasParaMigrar`, e a entrada no `retrato` |
+| `motor/servidor/painel-html.js` | `blocoDaMigracaoDasEscolas`, na aba da receita, **depois** da inadimplência: a ordem é a do dinheiro — a receita diz o tamanho, a inadimplência diz quem está fora dele, e esta diz quem devia pagar mais e não está |
+| `motor/servidor/raiz.js` | calculado do **mesmo `extrato`** que a receita e a inadimplência já leem — uma segunda leitura dos contratos daria uma segunda lista de quem contactar |
+| `experimentos/provar-o-ponto-de-migracao.js` | **novo** — 34 asserções, com os controlos dos dois lados da fronteira, do topo que não pode ser calado, e do dinheiro que cresce enquanto as aulas encolhem |

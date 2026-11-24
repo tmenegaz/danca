@@ -945,6 +945,168 @@ function impactoDaMigracao({ receita: r, cambio, custosAtuaisUsd } = {}) {
   };
 }
 
+/* ── O PONTO DE MIGRAÇÃO: QUANDO É QUE VALE A PENA SUBIR DE PLANO ────────────────────────────── */
+
+/**
+ * A PERGUNTA DELA, e é a razão de isto existir: «É ali que você vai me dizer quando vale a pena
+ * então migrar. É o ponto de migração da escola. E aí que eu vou pedir para o consultor entrar em
+ * contacto e aí ele ganha uma grana e presta essa consultoria e mantém a escola viva.»
+ *
+ * A CONTA. Uma escola que cresce tem duas saídas: **comprar extensão** a R$ 0,50 por aula, ou
+ * **subir de plano** e pagar a diferença da mensalidade. As duas custam dinheiro; a partir de um
+ * certo número de aulas a segunda fica mais barata. Esse número é o **ponto de viragem**:
+ *
+ *     viragem = franquia do plano + (preço do plano de cima − preço do plano) ÷ preço da extensão
+ *
+ * Com a escada de 25/11/2026 e a extensão a R$ 0,50: Básico → Intermediário às **190** aulas/mês;
+ * Intermediário → Avançado às **400**. O ponto existe porque o `planos.json` escolheu R$ 0,50
+ * exactamente para isso — «o custo unitário da aula da extensão é maior do que o custo unitário da
+ * aula do próximo plano».
+ *
+ * O QUE SE COMPARA, e é a parte que importa para ela não vender mal: no ponto de viragem a escola
+ * paga **o mesmo** e leva **mais aulas**. No Básico, 190 aulas com extensão custam R$ 99,90 — o
+ * preço do Intermediário, que dá 320. **Quem está no ponto e não migra está a pagar 130 aulas que
+ * não recebe.** É essa frase que a consultoria leva.
+ *
+ * AS TRÊS FONTES DO NÚMERO, e a ordem em que se usa:
+ *   1. **as aulas USADAS no mês**, quando o contador existir (`franquia.usadas`) — é o número certo;
+ *   2. **as aulas contratadas** (`franquia.franquia` = plano + pacotes) — é o tecto, e uma escola que
+ *      comprou pacotes até passar do ponto **já está a pagar a mais**, mesmo sem contar aulas;
+ *   3. nenhuma das duas → a escola não entra na lista, e diz-se porquê.
+ *
+ * `nivel` diz o que fazer, e é uma palavra só: `migrar` (no ponto ou acima), `janela` (a comprar
+ * extensão é o certo, por agora) e `folga`.
+ */
+function pontosDeMigracao({ extensao } = {}) {
+  /* A escada e o preço da extensão vêm do CATÁLOGO, e não de uma cópia — a lição das provas que
+   * ficaram verdes sobre um mundo que já não existia (25/11/2026). */
+  const comercial = require('./comercial.js');
+  const planos = comercial.ASSINATURAS.map((a) => ({
+    id: a.id, nome: a.nome, preco: Number(a.preco), aulas: Number(a.aulas),
+  }));
+  const porAula = Number.isFinite(Number(extensao)) && Number(extensao) > 0
+    ? Number(extensao)
+    : (() => {
+      const itens = comercial.pacotesDeAulas();
+      if (!itens.length) return null;
+      const precos = itens.map((i) => Number(i.preco) / Number(i.aulas));
+      return precos.reduce((s, v) => s + v, 0) / precos.length;
+    })();
+  const pontos = [];
+  for (let i = 0; i + 1 < planos.length; i += 1) {
+    const de = planos[i];
+    const para = planos[i + 1];
+    if (!porAula) continue;
+    const viragem = Math.ceil(de.aulas + (para.preco - de.preco) / porAula);
+    pontos.push({
+      de: de.id, deNome: de.nome, para: para.id, paraNome: para.nome,
+      viragem,
+      /* O que a escola paga no ponto, com extensões — e o que pagaria já migrada. Os dois números
+       * são iguais por construção; é isso que faz do ponto um ponto. */
+      pagaNoPonto: de.preco + (viragem - de.aulas) * porAula,
+      pagaMigrada: para.preco,
+      aulasQueRecebe: para.aulas,
+      aulasQuePagaSemReceber: para.aulas - viragem,
+      porAulaNoPonto: (de.preco + (viragem - de.aulas) * porAula) / viragem,
+      porAulaMigrada: para.preco / para.aulas,
+    });
+  }
+  return {
+    extensao: porAula,
+    pontos,
+    /* O mapa por plano de ORIGEM, para a lista das escolas o consultar sem varrer. */
+    porPlano: pontos.reduce((m, p) => { m[p.de] = p; return m; }, {}),
+  };
+}
+
+/**
+ * AS ESCOLAS QUE VALE A PENA MIGRAR — a lista que ela pede ao consultor.
+ *
+ * Só entram escolas **vivas**, **com contrato**, e **com degrau acima** (o Avançado não tem para
+ * onde subir, e a resposta certa nesse caso é a negociação à mão — está dito, e não escondido).
+ */
+function escolasParaMigrar({ extrato, agora } = {}) {
+  const comercial = require('./comercial.js');
+  const mapa = pontosDeMigracao();
+  const linhas = Array.isArray(extrato) ? extrato : [];
+  const lista = [];
+  const semDegrau = [];
+  let semNumero = 0;
+  for (const l of linhas) {
+    if (!l || l.contratoVivo === false) continue;
+    const plano = l.plano || (l.franquia && l.franquia.plano) || null;
+    if (!plano) { semNumero += 1; continue; }
+    const ponto = mapa.porPlano[plano];
+    const franquia = l.franquia && Number(l.franquia.franquia) > 0 ? Number(l.franquia.franquia) : null;
+    const usadas = l.franquia && l.franquia.usadas != null ? Number(l.franquia.usadas) : null;
+    /* O NÚMERO QUE DECIDE: o medido quando existe, o contratado quando não. E diz-se qual é. */
+    const numero = usadas != null ? usadas : franquia;
+    if (!ponto) {
+      /* O TOPO DA ESCADA. Entra na lista na mesma — quem está acima da franquia do Avançado é uma
+       * conversa que ela tem de ter, e uma lista que a cala deixa a maior escola sem resposta. */
+      if (franquia) semDegrau.push({ escola: l.escola, nome: l.nome || l.escola, plano, franquia, usadas });
+      continue;
+    }
+    if (numero == null) { semNumero += 1; continue; }
+    const nivel = numero >= ponto.viragem ? 'migrar' : (numero > ponto.viragem * 0.8 ? 'janela' : 'folga');
+    /* QUANTO ELA PERDE POR MÊS, e são DUAS coisas diferentes — a prova obrigou a separá-las
+     * (25/11/2026):
+     *
+     *   · `economiaCentavos` — o dinheiro que ela pouparia migrando: hoje paga `valorCentavos`,
+     *     no plano de cima pagaria `para.preco`. **É este o número que CRESCE com o crescimento**,
+     *     e é o que a conversa usa.
+     *   · `aulasQuePagaSemReceber` — a diferença de aulas entre o que ela tem e o que o plano de
+     *     cima dá. **Encolhe** à medida que ela se aproxima da franquia de cima, e por isso não
+     *     serve de medida de perda: dizer «paga 90 aulas a menos» a quem está a 230 de 320 é
+     *     verdade e é inútil.
+     *
+     * A regra que ficou: **o dinheiro mede a perda, as aulas descrevem a distância.** */
+    const valorDoContrato = Number(l.valorCentavos) || 0;
+    const economiaCentavos = nivel === 'migrar'
+      ? Math.max(0, valorDoContrato - Math.round(ponto.pagaMigrada * 100)) : 0;
+    const aulasQuePagaSemReceber = nivel === 'migrar' ? Math.max(0, ponto.aulasQueRecebe - numero) : 0;
+    lista.push({
+      escola: l.escola, nome: l.nome || l.escola,
+      plano, planoNome: l.planoNome || ponto.deNome,
+      para: ponto.para, paraNome: ponto.paraNome,
+      numero, fonteDoNumero: usadas != null ? 'usadas' : 'contratadas',
+      franquia, usadas,
+      viragem: ponto.viragem,
+      falta: Math.max(0, ponto.viragem - numero),
+      nivel,
+      pagaNoPonto: ponto.pagaNoPonto,
+      pagaMigrada: ponto.pagaMigrada,
+      aulasQueRecebe: ponto.aulasQueRecebe,
+      aulasQuePagaSemReceber,
+      economiaCentavos,
+      porAulaHoje: numero > 0 ? (Number(l.valorCentavos) || 0) / numero / 100 : null,
+      porAulaMigrada: ponto.porAulaMigrada,
+      valorCentavos: Number(l.valorCentavos) || 0,
+    });
+  }
+  const ordem = { migrar: 0, janela: 1, folga: 2 };
+  lista.sort((a, b) => (ordem[a.nivel] - ordem[b.nivel]) || (b.numero - a.numero));
+  const migrar = lista.filter((x) => x.nivel === 'migrar');
+  const janela = lista.filter((x) => x.nivel === 'janela');
+  return {
+    extensao: mapa.extensao,
+    pontos: mapa.pontos,
+    escolas: lista,
+    /* AS DUAS LISTAS QUE ELA USA: quem já passou do ponto, e quem está a chegar. */
+    migrar,
+    janela,
+    semDegrau,
+    semNumero,
+    /* A FRASE ÚNICA — o que se lê no topo do bloco. */
+    frase: migrar.length
+      ? migrar.length + ' escola(s) já passaram do ponto de viragem: pagam o mesmo que o plano de '
+        + 'cima e recebem menos aulas.'
+      : (janela.length
+        ? janela.length + ' escola(s) estão a chegar ao ponto de viragem. Ainda não compensa mudar.'
+        : 'Nenhuma escola está no ponto de viragem.'),
+  };
+}
+
 /* ── A CONTA EM AULAS: ONDE O GASTO SAI DO ZERO, E QUANTO CUSTA DEPOIS ──────────────────────── */
 
 /**
@@ -1050,12 +1212,16 @@ function projectarAulas({ aulasVendidas, precoDaAulaCentavos, cambio, referencia
  * mesma separação do `mensalidades.js`: o mês e o dia de uma cota são os do fuso da escola.
  */
 function retrato({ github, correio, cloudflare, receita: r, inadimplencia: inad, aulas, cambio,
-  custosAtuaisUsd, agora } = {}) {
+  migracaoDasEscolas, custosAtuaisUsd, agora } = {}) {
   const migracao = impactoDaMigracao({ receita: r, cambio, custosAtuaisUsd });
   /* A CONTA EM AULAS entra no retrato (25/11/2026), e entra como COTA — é ela que responde à
    * pergunta dela («quando é que os meus custos aumentam?»), e uma cota que não está no pior
    * indicador não avisa ninguém. `aulas` vem pronto (`projectarAulas`) ou é calculado aqui a partir
    * da receita, que já sabe a franquia vendida e o preço médio da aula. */
+  /* A MIGRAÇÃO DAS ESCOLAS entra no retrato (25/11/2026) — é a lista de quem contactar, e uma
+   * lista que só se calcula quando alguém se lembra de a pedir não serve para nada. Vem pronta do
+   * chamador (`escolas`) ou é calculada aqui a partir do mesmo extrato que a receita lê. */
+  const migrarEscolas = migracaoDasEscolas || escolasParaMigrar({ extrato: r && r.linhas });
   const emAulas = aulas || projectarAulas({
     aulasVendidas: r && r.aulas ? r.aulas.franquiaTotal : null,
     precoDaAulaCentavos: r && r.aulas ? r.aulas.precoContratadoCentavos : null,
@@ -1072,6 +1238,7 @@ function retrato({ github, correio, cloudflare, receita: r, inadimplencia: inad,
     correio: correio || null,
     cloudflare: cloudflare || null,
     aulas: emAulas || null,
+    migracaoDasEscolas: migrarEscolas || null,
     receita: r || null,
     /* A INADIMPLÊNCIA ENTRA NO RETRATO (17/11/2026): é a mesma família da receita — dinheiro que
      * devia ter entrado e não entrou —, e é a lista de quem contactar. Vai separada da receita
@@ -1137,6 +1304,8 @@ module.exports = {
   MINUTOS_POR_AULA_MEDIDO_EM,
   CAMBIO_DE_REFERENCIA,
   projectarAulas,
+  pontosDeMigracao,
+  escolasParaMigrar,
   projectarCiclo,
   resumirFactura,
   CHAVE_DO_CORREIO,
