@@ -60291,3 +60291,60 @@ de o confirmar em produção é o contador de subpedidos do Worker (`orcamentoDe
 não expõe por rota. E o `arvore-do-repo/` **não tem expurgo** — quando uma escola é apagada, a
 chave continua lá com a árvore de um commit antigo (que não contém dado de aluno, só caminhos). É
 lixo que expira por si, e fica declarado em vez de escondido.
+
+## 24/11/2026 — A página revalida-se depressa, o asset fica em cache, e o 404 não se guarda
+
+**O PEDIDO.** «Separe as políticas de cache: `Cache-Control` curto para páginas HTML e longo para
+`assets/`, sem `immutable` pois os nomes não têm hash.»
+
+**O QUE ESTAVA, medido ao vivo em `breu.padd.com.br` a 24/11/2026:**
+`cache-control: public, max-age=0, must-revalidate` em **tudo** — na página do plano (50 KB), na
+aula (46 KB), na folha (16 KB) e no `style.css` (195 KB). «Não uses o que tens; pergunta sempre.»
+Com o `etag` do ASSETS a resposta é um 304 pequeno — barato, mas é uma ida ao servidor por cada
+recurso em cada navegação, e são dezenas por página.
+
+**A DISTINÇÃO QUE FALTAVA.** Uma página e uma folha de estilo não mudam à mesma velocidade: a
+página diz o que o professor fez na aula de ontem e muda a cada geração; a folha muda quando
+alguém mexe na identidade visual, que é raro e deliberado.
+
+| o que | política |
+|:--|:--|
+| página (HTML, rota sem extensão, e `.json`) | `public, max-age=60, must-revalidate` |
+| `assets/` com extensão estável (css, js, woff2, svg, ico…) | `public, max-age=86400, stale-while-revalidate=604800` |
+
+**Porque nunca `immutable`.** Ele promete que a URL nunca muda de conteúdo, e isso é verdade só
+para nomes com hash. Os nossos não têm: `style.css` é `style.css` para sempre. Prometer
+imutabilidade a um nome estável é a forma mais eficiente de servir uma folha velha durante um ano.
+
+**Porque `stale-while-revalidate`.** Uma cache longa sem ele deixa o browser a mostrar a folha
+antiga **até expirar**. Com ele, o browser usa a cópia que tem e vai buscar a nova em paralelo,
+para a navegação seguinte. É o que torna a cache longa segura num sítio que muda por deploy.
+
+**O QUE SE RECUSA, e é a parte que evita o pior resultado desta mudança:** um **404 não se guarda**.
+A página que não existe passa a existir no deploy seguinte; uma cache de 404 durante 24 h seria
+transformar um link quebrado num link quebrado por um dia. E um **302** fica com o `no-store` de
+quem o emitiu — sobrescrevê-lo seria piorar o que está certo. Só se toca no que é `200`.
+
+**Onde entrou.** `motor/servidor/producao.js` — `comCache` é o funil, e entra no único sítio que
+serve o pacote (`comAparencia` só trata do que é HTML, e por isso não servia). `CACHE_DA_PAGINA`,
+`CACHE_DO_ASSET` e `comCache` exportados para a prova medir a **decisão** (caminho → política) sem
+um Worker à frente.
+
+**O QUE NÃO SE CONSEGUIU MUDAR, e fica declarado em vez de escondido.** O `/assets/*` da **raiz**
+do shard não passa pelo Worker (`run_worker_first: ["/*", "!/assets/*"]`) — é servido directamente
+pelo ASSETS, e o `wrangler` **não tem** opção `headers` para assets (conferido no
+`config-schema.json`: só `directory`, `binding`, `html_handling`, `not_found_handling`,
+`run_worker_first`). Esses ficam com o que a plataforma dá. Os `/…/assets/…` **de cada turma**
+passam pelo Worker e ganham a política — e são eles que a página carrega.
+
+**MEDIDO.** `experimentos/provar-cache-por-tipo.js` (**nova**) **28/28**: página curta em quatro
+caminhos; asset longo em quatro; nenhum `immutable`; 404 intocado; 302 intocado; `.json` curto
+mesmo debaixo de `assets/`; os outros cabeçalhos (incluindo o `etag`) e o corpo sobrevivem; e o
+controlo negativo mostra que sem o funil a página e o asset saem **iguais**, com `max-age=0`.
+`provar-pagina-publica` 79/79 e `provar-producao` 142/159 — este último **igual sem a mudança**
+(conferido com `stash`).
+
+**O que ainda não está feito.** Não se mediu no ar: a política só vale no próximo deploy do shard,
+e a confirmação é `curl -sI` em `breu.padd.com.br/piano/plano` (esperado: `max-age=60`) e em
+`…/piano/assets/style.css` (esperado: `max-age=86400`). O **edge** do Cloudflare continua a não
+guardar HTML sem uma Cache Rule — isso é configuração de conta, não de código, e não foi tocado.

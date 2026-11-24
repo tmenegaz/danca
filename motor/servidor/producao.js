@@ -98,6 +98,67 @@ function jsonCurto(objeto, status) {
  * par `{modo, paleta}` e a repor os dois atributos — porque o pacote do ciclo e a porta são
  * servidos por aqui, e uma família que valesse só nos Bastidores não seria «da escola».
  */
+/**
+ * A POLÍTICA DE CACHE DO QUE A ESCOLA SERVE (24/11/2026).
+ *
+ * O QUE ESTAVA, medido ao vivo em `breu.padd.com.br` antes desta mudança:
+ *
+ *   `cache-control: public, max-age=0, must-revalidate`  — em TUDO: na página do plano (50 KB),
+ *   na aula (46 KB), na folha (16 KB) e no `style.css` (195 KB).
+ *
+ * `max-age=0` com `must-revalidate` quer dizer: «não uses o que tens; pergunta sempre». Com o
+ * `etag` que o ASSETS manda, a resposta a essa pergunta é um 304 pequeno — barato, mas é uma
+ * ida ao servidor por cada recurso em cada navegação, e são dezenas por página.
+ *
+ * A DISTINÇÃO QUE FALTAVA, e é a única que interessa: **uma página e uma folha de estilo não
+ * mudam à mesma velocidade**. A página diz o que o professor fez na aula de ontem e muda a cada
+ * geração; a folha muda quando alguém mexe na identidade visual, que é raro e é um gesto
+ * deliberado.
+ *
+ * ── E PORQUE NÃO `immutable` ────────────────────────────────────────────────────────────────
+ * `immutable` promete que a URL nunca muda de conteúdo, e é verdade só para nomes com hash
+ * (`style.a1b2c3.css`). Os nossos não têm hash: `style.css` é `style.css` para sempre. Prometer
+ * imutabilidade sobre um nome estável é a forma mais eficiente de servir uma folha velha durante
+ * um ano.
+ *
+ * ── E PORQUE `stale-while-revalidate` ───────────────────────────────────────────────────────
+ * Uma cache longa sem ele deixa o browser a mostrar a folha antiga **até expirar**. Com ele, o
+ * browser usa a cópia que tem e vai buscar a nova **em paralelo**, para a navegação seguinte. É
+ * o que faz a cache longa ser segura num sítio que muda por deploy e não por URL.
+ */
+const CACHE_DA_PAGINA = 'public, max-age=60, must-revalidate';
+const CACHE_DO_ASSET = 'public, max-age=86400, stale-while-revalidate=604800';
+
+/** As extensões que uma deploy muda de uma vez por todas — o resto é página. */
+const EXTENSOES_ESTAVEIS = /\.(css|js|mjs|woff2?|ttf|otf|eot|svg|png|jpe?g|gif|webp|avif|ico)$/i;
+
+/**
+ * O CACHE DE UMA RESPOSTA, decidido pelo CAMINHO e pelo TIPO — e o único sítio que o decide.
+ *
+ * Só se toca no que é `200`: um 404 não se guarda (a página que não existe passa a existir no
+ * deploy seguinte, e uma cache de 404 durante um dia é o pior resultado possível desta mudança),
+ * e um 302 já traz `no-store` de quem o emitiu.
+ *
+ * `assets/` com extensão estável → longo; `.json` → curto, porque o `nav.json` e o `ciclos.json`
+ * mudam por geração e são lidos por JavaScript, não por um `<link>`; tudo o resto → curto.
+ */
+function comCache(resposta, caminho) {
+  if (!resposta || resposta.status !== 200) return resposta;
+  const tipo = String(resposta.headers.get('content-type') || '').toLowerCase();
+  const p = String(caminho || '');
+  const emAssets = /(^|\/)assets\//.test(p);
+  const estavel = EXTENSOES_ESTAVEIS.test(p);
+  let politica = CACHE_DA_PAGINA;
+  if (emAssets && estavel) politica = CACHE_DO_ASSET;
+  // Um JSON nunca ganha cache longo, mesmo debaixo de `assets/`: é dado, e é lido por código.
+  if (/\.json$/i.test(p) || tipo.indexOf('application/json') === 0) politica = CACHE_DA_PAGINA;
+  const cabecalhos = new Headers(resposta.headers);
+  cabecalhos.set('Cache-Control', politica);
+  return new Response(resposta.body, {
+    status: resposta.status, statusText: resposta.statusText, headers: cabecalhos,
+  });
+}
+
 async function comAparencia(resposta, aparencia, extras) {
   const menu = (extras && extras.menu) || null;
   const ap = aparencia || {};
@@ -1393,8 +1454,10 @@ async function fetch(request, env) {
     }
     // O PACOTE também veste a escola: o índice, as aulas, o guia — todos são documentos que
     // se leem, e ler no escuro é uma decisão da casa, não de quem abriu o link.
-    return comAparencia(respostaDoAsset, await aparenciaDoEnv(env),
-      { teste: numeroDoTeste(env.ESCOLA_SLUG), menu, pedido: path });
+    /* O CACHE ENTRA AQUI, no funil por onde passa TUDO o que a escola serve do pacote
+     * (`comAparencia` só trata do que é HTML — ver `comCache`). */
+    return comCache(await comAparencia(respostaDoAsset, await aparenciaDoEnv(env),
+      { teste: numeroDoTeste(env.ESCOLA_SLUG), menu, pedido: path }), caminhoNoAsset);
   }
   return new Response(JSON.stringify({ ok: false, erro: 'nao encontrado' }), {
     status: 404,
@@ -1407,6 +1470,10 @@ async function fetch(request, env) {
  * outra forma. Sem isto, ela provaria o adaptador da prova, e não o da produção. */
 module.exports = {
   fetch, comAparencia, aparenciaDoEnv, menuDaEscola,
+  /* A POLÍTICA DE CACHE DO PACOTE (24/11/2026) — exportada para a prova medir a DECISÃO
+   * (caminho → política) sem um Worker à frente. Uma prova que reconstruísse a regra mediria a
+   * prova, e esta regra é exactamente o que se está a decidir. */
+  comCache, CACHE_DA_PAGINA, CACHE_DO_ASSET,
   /* O ESTADO COMERCIAL E A FRONTEIRA «ler × escrever» (25/11/2026), exportadas porque são a REGRA
    * que a prova mede sem um Worker à frente: um estado errado aqui abre ou fecha a escola inteira. */
   comercialDaEscola, ehEscrita, POSTS_QUE_SO_LEEM,
