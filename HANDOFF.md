@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-24T15:22:01-0300`
-Commit atual: `0692e5a0` — feat(estrutura): o §7.1 não existe (e aqui não ajudaria), e o aviso do ponto de migração
+Gerado em: `2026-11-24T15:40:27-0300`
+Commit atual: `e803f8a0` — fix(estrutura): o monitoramento deixou de reler o mês a cada abertura
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+e803f8a0 fix(estrutura): o monitoramento deixou de reler o mês a cada abertura
 0692e5a0 feat(estrutura): o §7.1 não existe (e aqui não ajudaria), e o aviso do ponto de migração
 c1199018 feat(estrutura): a escada aplicada, o simulado das extensões e a política de mora
 ad7d1c8a docs(estrutura): escada 130/320/500 com dólar a R$ 6, e a margem não depende do nº de escolas
@@ -101,7 +102,6 @@ a0d0fe6b feat(ciclo-01): a mesa dos N ciclos, e o ciclo zero que a guarda deixav
 00436bea chore(entrega): gerar o pacote de demi-plie/01/breu-piano
 8278192c chore(estrutura): fechar os derivados — âncoras e índices
 aefcd3d2 fix(ciclo-01): o manifesto declara tudo o que o escritor grava
-5d322d4b chore(estrutura): fechar os derivados — âncoras e índices
 ```
 
 ## Por professor
@@ -195,61 +195,53 @@ aefcd3d2 fix(ciclo-01): o manifesto declara tudo o que o escritor grava
 
 ## Última entrada do REGISTRO
 
-## 25/11/2026 — O monitoramento lento: a hipótese dela estava meio certa, e a causa maior era outra
+## 25/11/2026 — O agrupamento dentro do ato: quatro commits passam a um, e o caminho de sempre fica por baixo
 
-**O pedido.** «Quando eu entro aqui em danca.pdd.com.br/monitoramento, a API demora muito tempo para
-carregar. E eu tenho a impressão que isso acontece porque a consulta está sem critério. Os planos se
-renovam a cada 30 dias, então a consulta precisa ser só do mês corrente.»
+**O que ela aprovou.** «O agrupamento que falta é dentro do ato e não dentro das aulas. Então vamos
+fazer esse ponto para economizar ainda mais. É importante que isso não estrague nada do que está
+funcionando.»
 
-**O que já estava feito, e digo-o para não a corrigir onde ela tinha razão.** A janela **já era o
-ciclo** — dia 1 ao hoje, desde 17/11/2026, quando o painel dizia 3.623 min de uma cota em que a
-factura dizia 1.930. O `Resend` já era mensal **e** diário. E o `Cloudflare` não tem cota de operações
-exposta a este Worker — o painel diz isso em vez de mostrar um zero com cara de medição.
+**A medida, e é pior do que «2 a 4».** Nos runs de 23 e 24/11: **21 execuções do «Fechar os
+derivados», 7 canceladas**, duração somada dos jobs **274 s = 4,6 min**, e **21 minutos facturados**
+— cada job arredonda ao minuto. **4,6× de desperdício.** As sete canceladas duraram **22 segundos**
+ao todo e custaram **sete minutos**.
 
-**A causa que faltava, e que era a que ela sentia: a paginação sem critério.** O corte era aplicado
-**depois** de a lista vir. Lia-se a lista do repositório página a página e deitava-se fora o que fosse
-de outro mês. **Medido com `curl` neste repositório:** 26 páginas e 2 600 execuções em **97,8 s** sem
-filtro; 11 páginas e 1 000 execuções em **54,7 s** com `created=>=2026-11-01` no pedido. O filtro
-passou a ir no URL. Duas consequências ficaram declaradas no código: **`total_count` devolve ZERO**
-com o filtro (não é «não há execuções»), e a listagem filtrada **para em 1 000** — acima disso a
-janela é `truncado`, e diz-se.
+**O ato, commit a commit.** O «Guardar» das 11:11:53 às 11:12:30 de 24/11 fez **quatro pushes em
+nove segundos**: `envelope/.indice.json`, `envelope/plano-….json`, o `.conf`, e as dez fontes. Os
+quatro disparam o `derivados.yml`, que observa `escola/**` e `professores/**`. O escritor das fontes
+**já estava resolvido** desde 22/10/2026; o que faltava eram os **três pequenos**.
 
-**A causa maior, e a que ela não podia nomear: a janela não tinha cache.** Havia cache para os jobs de
-cada execução, para as chaves de KV, para a factura e para a visibilidade. Não havia para a **lista de
-execuções** — a mais cara, porque se paga em **páginas**. Cada abertura relia o mês de fábrica: onze
-pedidos em série, sempre. Agora a lista fica 2 minutos, com **validade por mês**, com o **`truncado`
-guardado** (senão a abertura seguinte apresentaria uma janela incompleta como completa), com **leitura
-falhada não guardada**, e com o **`ok` restituído** — um objecto vindo do KV não traz esse campo, e sem
-isto o painel diria «a janela falhou» sobre uma leitura que correu bem.
+**A causa não é o CI, é a forma da escrita.** Cada uma dessas três é um `PUT /contents` — um commit
+cada, e cada commit é um push. E `gravarArquivosNumCommit` gasta **cinco subpedidos por commit**:
+quatro commits são **vinte** num orçamento de **cinquenta** por invocação do Worker. Um commit são
+cinco.
 
-**A medida de ponta a ponta**, com a rota verdadeira em processo, um GitHub de mentira que conta os
-pedidos e um KV em memória que persiste entre as aberturas: **fria 11 páginas + 12 medições + 3;
-quente 0 páginas + 12 medições + 2, `janelaDaCache=true`.** Onze pedidos a menos por abertura. A
-poupança em segundos (~32 s, a 2,87 s/página) é **derivada** dos dois pontos de rede, e está dita como
-derivada — o tempo de rede não se mede contra um GitHub de mentira.
+**O desenho.** `acervo-envelopes.js` ganhou um **lote** — `abrirLote`/`fecharLote`/`emLote`.
+Dentro dele `guardar`/`criar` acumulam e `ler` vê o pendente; o fecho aplica tudo com **um** commit,
+pela mesma `gravarArquivosNumCommit`. **Sem lote nada muda**, e é o controlo negativo da prova. O
+`criado` pergunta-se **antes** de guardar (o primeiro defeito: escrito ao contrário, todo o envelope
+novo passava por edição). Lote vazio não faz commit. O `apagar` **fecha** o lote antes, porque o
+commit único não sabe apagar. E o `elicitar` é a fronteira do pedido — abre no início, fecha antes
+do `return`, e o `ok` que vale é o do **commit**, não o da promessa.
 
-**A conta dos subpedidos, corrigida no comentário:** dizia `30 + 12 + 2 + 1 = 45` de 50; hoje são
-**26 na fria e 15 na quente**, com o tecto de páginas a descer de 30 para 10, que é onde o filtro para.
+**A regressão que a mudança quase causou, e o que ela ensinou.** `provar-escola-do-documento` passou
+de 8/8 para 7/8: um `fetchImpl` que só conhece `/contents/` e a árvore — o das bancadas — não fala a
+API de Git do commit único, o fecho reprovava, e **o ato deixava de gravar**. Um ganho de cota não
+pode custar a gravação: o fecho passou a **degradar** para as escritas uma a uma, pela mesma
+`escrever` de sempre, e a resposta diz `degradado: true` com o motivo. Sem essa marca, o painel
+diria «um commit» sobre quatro.
 
-**O controle negativo, e o defeito que ele apanhou.** A prova simula a cache e tem de provar que ela se
-recusa a servir — três minutos depois, e com uma janela de outro mês. Na primeira execução os dois
-controlos passaram **sem medir nada**: o prazo era lido com `Number('2 * 60 * 1000')`, que dá `NaN`, e
-`qualquer coisa > NaN` é sempre falso — a cache nunca caducava. Mesma família do `.every` sobre leitura
-vazia: uma validação que não mede nada não falha. Passou a ler o prazo como expressão, e a afirmar que
-é finito antes de o usar.
+**O que fica fora, e é dito.** O `.conf` continua num commit próprio (é escrito por
+`escrever-plano.js`, antes de o acervo entrar; juntá-lo exigiria a fila ao nível da rota, que
+atravessa três módulos) — o corte medido é de **quatro para três** neste ponto, e o ganho não o
+conta.
 
-**A idade do número, dita na página.** «As execuções do mês são as de 25/11/2026 às 08:58 — relidas a
-cada dois minutos.» Quando a janela vem fresca não se diz nada — dizer «agora» em cada abertura é
-ruído. E `janelaDaCache` é `null`, não `false`, quando não se sabe: um campo que falta não é um «não».
+**Validado.** `provar-o-ato-num-commit.js` **30/30**, e **vermelha sem a mudança** (conferido com
+`git stash`). As provas dos módulos tocados: **0 regressões**. As quatro conferências verdes.
 
-**Validado.** `provar-a-velocidade-do-monitoramento.js` **26/26**; as quatro conferências verdes
-(`check-identidade` 23, `check-schemas`, `check-sem-destruicao`, `check-github-headers` 5); a suite
-completa sem regressões.
-
-**Onde entrou.** `motor/servidor/leitura-do-monitor.js`, `motor/servidor/raiz.js`,
-`motor/nucleo/monitoramento.js`, `motor/servidor/painel-html.js`,
-`experimentos/provar-a-velocidade-do-monitoramento.js` (novo), `.gitignore`, `CUSTO-DOS-FLUXOS.md`
-(§16), `ESTADO-ATUAL.md` (a fotografia e a decisão 182), `HANDOFF.md`.
+**Onde entrou.** `motor/servidor/acervo-envelopes.js`, `motor/nucleo/porta.js`,
+`experimentos/provar-o-ato-num-commit.js` (novo), `.gitignore`, `CUSTO-DOS-FLUXOS.md` (§17),
+`ESTADO-ATUAL.md` (a fotografia e a decisão 183), `HANDOFF.md`.
 
 ## O que está pendente
 

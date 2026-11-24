@@ -4,7 +4,31 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **o monitoramento deixou de reler o mês a cada abertura.** Ela
+> **Última fotografia:** 25/11/2026 — **o ato passou a custar um commit, e não quatro.** «O
+> agrupamento que falta é dentro do ato e não dentro das aulas […] É importante que isso não estrague
+> nada do que está funcionando.» **A medida, e é pior do que «2 a 4»:** nos runs de 23 e 24/11, **21
+> execuções do «Fechar os derivados», 7 canceladas**, **4,6 min de trabalho e 21 min facturados** —
+> **4,6× de desperdício**, porque cada job arredonda ao minuto e **um cancelado paga-se**. As sete
+> canceladas duraram **22 segundos** e custaram **sete minutos**. **O ato, commit a commit:** o
+> «Guardar» das 11:11:53 às 11:12:30 fez **quatro pushes em nove segundos** — o `.indice.json`, o
+> envelope, o `.conf` e as dez fontes (essas já juntas desde 22/10). Cada um é um `PUT /contents`, e
+> cada `PUT` é um commit, e cada commit é um push que acorda o `derivados.yml`. **E o custo não é só
+> o CI:** `gravarArquivosNumCommit` gasta **cinco subpedidos por commit**, e quatro commits são vinte
+> num orçamento de cinquenta. **O desenho:** o acervo ganhou um **lote** (`abrirLote`/`fecharLote`),
+> acumulando as escritas do pedido num commit só; **sem lote nada muda** — é o controlo negativo da
+> prova, e é a resposta ao «não estrague nada». O `criado` pergunta-se **antes** de guardar (o
+> primeiro defeito: escrito ao contrário, todo o envelope novo passava por edição). Lote vazio não
+> faz commit. O `apagar` **fecha** o lote antes, porque o commit único não sabe apagar. E a lição
+> que valeu três provas vermelhas: **`typeof` não basta com um proxy que finge saber tudo** — o
+> `acervo-envelopes.js` devolve uma **promessa rejeitada** para o verbo que não conhece, e um
+> `try/catch` sem `await` não a apanha. **E a regressão que a mudança quase causou** —
+> `provar-escola-do-documento` de 8/8 para 7/8, porque um `fetchImpl` de bancada não fala a API de
+> Git — produziu o `degradado`: se o commit único falhar, as escritas são refeitas **uma a uma**, e
+> a resposta di-lo. **Um ganho de cota não pode custar a gravação.** O `.conf` continua num commit
+> próprio, e fica dito: o corte é de **quatro para três** nesse ponto. **182/277 provas, 0
+> regressões.**
+>
+> **Fotografia anterior (25/11/2026 — o monitoramento deixou de reler o mês a cada abertura).** Ela
 > sentiu-o antes de eu o medir — «a API demora muito tempo para carregar […] tenho a impressão que isso
 > acontece porque a consulta está sem critério» —, e a hipótese estava **meio certa**: a janela **já
 > era o ciclo** (dia 1 ao hoje, desde 17/11), e o que não tinha critério era a **paginação**. O corte do
@@ -4233,6 +4257,26 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      **nunca caducava**, e os dois controlos passavam sem medir nada. É a família do `.every` sobre
      leitura vazia: uma validação que não mede nada não falha. **DECIDIDO** e **APLICADO** 25/11/2026.
 
+183. **O ATO PASSA A CUSTAR UM COMMIT — E O CAMINHO DE SEMPRE FICA POR BAIXO.** «O agrupamento que
+     falta é dentro do ato e não dentro das aulas […] É importante que isso não estrague nada do que
+     está funcionando.» **A medida:** 21 execuções do «Fechar os derivados» em dois dias, **7
+     canceladas**, **4,6 min de trabalho e 21 facturados** — 4,6× de desperdício, porque cada job
+     arredonda ao minuto e **um cancelado paga-se** (as sete canceladas: **22 segundos** de trabalho,
+     **sete minutos** de cota). **A causa:** um `PUT /contents` é um commit, e um commit é um push; o
+     ato das 11:11:53–11:12:30 fez quatro. E cada commit custa **cinco subpedidos**, num orçamento de
+     cinquenta. **A solução:** um **lote** no acervo — `guardar`/`criar` acumulam, `ler` vê o
+     pendente, `fecharLote` aplica tudo com **um** commit pela `gravarArquivosNumCommit` que o
+     escritor do ciclo já usava. **Sem lote nada muda** (é o controlo negativo da prova); o `criado`
+     pergunta-se **antes** de guardar; lote vazio não faz commit; o `apagar` fecha o lote antes; e o
+     `ok` que vale é o do **commit**, não o da promessa. **Duas lições que custaram provas
+     vermelhas:** `typeof` não basta com o proxy do armazenamento — ele devolve uma **promessa
+     rejeitada** para o verbo que não conhece, e um `try/catch` sem `await` não a apanha (três provas
+     caíram por isto); e o commit único que falha tem de **degradar** para as escritas uma a uma, não
+     rebentar — um `fetchImpl` de bancada não fala a API de Git, e sem a saída **o ato deixava de
+     gravar**. **Um ganho de cota não pode custar a gravação.** Fica dito o que fica fora: o `.conf`
+     continua num commit próprio, e o corte medido nesse ponto é de **quatro para três**.
+     **DECIDIDO** e **APLICADO** 25/11/2026.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -5144,7 +5188,19 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (25/11/2026 — o monitoramento deixou de reler o mês)
+### Executado nesta fotografia (25/11/2026 — o agrupamento dentro do ato)
+
+| Verificação | Resultado |
+|:--|:--|
+| a factura dos runs de 23 e 24/11, lida na API | **21 execuções do «Fechar os derivados», 7 canceladas**. Duração somada dos jobs: **274 s = 4,6 min**. Facturado: **21 min** (cada job arredonda ao minuto). **4,6× de desperdício.** As 7 canceladas: 2 s, 2 s, 3 s, 3 s, 10 s, 1 s, 1 s — **22 segundos** que custaram **sete minutos** |
+| o ato, commit a commit, lido no `main` | «Guardar» de 24/11 das **11:11:53 às 11:12:30**: `envelope/.indice.json` → `envelope/plano-….json` → o `.conf` → as dez fontes. **Quatro pushes em nove segundos**, quatro execuções do derivados, três canceladas. O ato das 11:15:38: três pushes, duas canceladas |
+| `node experimentos/provar-o-ato-num-commit.js` (**nova**) | **30/30**. §A sem lote, dois commits (**controlo negativo**). §B com lote, um commit com os dois ficheiros. §C o pendente é visível e o mesmo nome não se cria duas vezes. §D o `criado` pergunta-se antes. §E lote vazio não faz commit, e abrir duas vezes não apaga. §F com o lote **e** o um-a-um a falhar, nada se anuncia como gravado. §G o apagar fecha o lote antes. §H degrada para um-a-um quando não há API de Git, e **diz que degradou** |
+| a prova depende da mudança | **vermelha sem ela** (exit 1) e verde com ela (exit 0), conferido com `git stash` |
+| as duas regressões que a mudança causou, e o que as fechou | `provar-escola-do-documento` 8/8 → 7/8: um `fetchImpl` de bancada não fala a API de Git, o fecho reprovava e **o ato deixava de gravar** → o fecho passou a **degradar** | `provar-anamnese-sem-cofre`, `provar-anamnese-da-aluna-certa`, `provar-ponte-do-worker`: o **proxy** do armazenamento devolve uma **promessa rejeitada** para o verbo que não conhece, e um `try/catch` sem `await` não a apanha → as três chamadas passaram a `await` |
+| `node tools/correr-provas.js` | **277 provas, 182 verdes, 95 falhas conhecidas, 0 regressões** |
+| `check-identidade` · `check-schemas` · `check-sem-destruicao` · `check-github-headers` | **0 problemas** (23 verificações) · verde · verde · 5 verificações ok |
+
+### Executado nesta fotografia anterior (25/11/2026 — o monitoramento deixou de reler o mês)
 
 | Verificação | Resultado |
 |:--|:--|

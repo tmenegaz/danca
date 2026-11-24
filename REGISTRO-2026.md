@@ -61000,3 +61000,51 @@ completa sem regressões.
 `motor/nucleo/monitoramento.js`, `motor/servidor/painel-html.js`,
 `experimentos/provar-a-velocidade-do-monitoramento.js` (novo), `.gitignore`, `CUSTO-DOS-FLUXOS.md`
 (§16), `ESTADO-ATUAL.md` (a fotografia e a decisão 182), `HANDOFF.md`.
+
+## 25/11/2026 — O agrupamento dentro do ato: quatro commits passam a um, e o caminho de sempre fica por baixo
+
+**O que ela aprovou.** «O agrupamento que falta é dentro do ato e não dentro das aulas. Então vamos
+fazer esse ponto para economizar ainda mais. É importante que isso não estrague nada do que está
+funcionando.»
+
+**A medida, e é pior do que «2 a 4».** Nos runs de 23 e 24/11: **21 execuções do «Fechar os
+derivados», 7 canceladas**, duração somada dos jobs **274 s = 4,6 min**, e **21 minutos facturados**
+— cada job arredonda ao minuto. **4,6× de desperdício.** As sete canceladas duraram **22 segundos**
+ao todo e custaram **sete minutos**.
+
+**O ato, commit a commit.** O «Guardar» das 11:11:53 às 11:12:30 de 24/11 fez **quatro pushes em
+nove segundos**: `envelope/.indice.json`, `envelope/plano-….json`, o `.conf`, e as dez fontes. Os
+quatro disparam o `derivados.yml`, que observa `escola/**` e `professores/**`. O escritor das fontes
+**já estava resolvido** desde 22/10/2026; o que faltava eram os **três pequenos**.
+
+**A causa não é o CI, é a forma da escrita.** Cada uma dessas três é um `PUT /contents` — um commit
+cada, e cada commit é um push. E `gravarArquivosNumCommit` gasta **cinco subpedidos por commit**:
+quatro commits são **vinte** num orçamento de **cinquenta** por invocação do Worker. Um commit são
+cinco.
+
+**O desenho.** `acervo-envelopes.js` ganhou um **lote** — `abrirLote`/`fecharLote`/`emLote`.
+Dentro dele `guardar`/`criar` acumulam e `ler` vê o pendente; o fecho aplica tudo com **um** commit,
+pela mesma `gravarArquivosNumCommit`. **Sem lote nada muda**, e é o controlo negativo da prova. O
+`criado` pergunta-se **antes** de guardar (o primeiro defeito: escrito ao contrário, todo o envelope
+novo passava por edição). Lote vazio não faz commit. O `apagar` **fecha** o lote antes, porque o
+commit único não sabe apagar. E o `elicitar` é a fronteira do pedido — abre no início, fecha antes
+do `return`, e o `ok` que vale é o do **commit**, não o da promessa.
+
+**A regressão que a mudança quase causou, e o que ela ensinou.** `provar-escola-do-documento` passou
+de 8/8 para 7/8: um `fetchImpl` que só conhece `/contents/` e a árvore — o das bancadas — não fala a
+API de Git do commit único, o fecho reprovava, e **o ato deixava de gravar**. Um ganho de cota não
+pode custar a gravação: o fecho passou a **degradar** para as escritas uma a uma, pela mesma
+`escrever` de sempre, e a resposta diz `degradado: true` com o motivo. Sem essa marca, o painel
+diria «um commit» sobre quatro.
+
+**O que fica fora, e é dito.** O `.conf` continua num commit próprio (é escrito por
+`escrever-plano.js`, antes de o acervo entrar; juntá-lo exigiria a fila ao nível da rota, que
+atravessa três módulos) — o corte medido é de **quatro para três** neste ponto, e o ganho não o
+conta.
+
+**Validado.** `provar-o-ato-num-commit.js` **30/30**, e **vermelha sem a mudança** (conferido com
+`git stash`). As provas dos módulos tocados: **0 regressões**. As quatro conferências verdes.
+
+**Onde entrou.** `motor/servidor/acervo-envelopes.js`, `motor/nucleo/porta.js`,
+`experimentos/provar-o-ato-num-commit.js` (novo), `.gitignore`, `CUSTO-DOS-FLUXOS.md` (§17),
+`ESTADO-ATUAL.md` (a fotografia e a decisão 183), `HANDOFF.md`.

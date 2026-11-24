@@ -1607,6 +1607,15 @@ experimentos/modelo-formulario/*
 # asserções.
 !experimentos/provar-a-velocidade-do-monitoramento.js
 
+# O ATO NUM COMMIT SÓ (25/11/2026). «O agrupamento que falta é dentro do ato e não dentro das aulas.
+# […] É importante que isso não estrague nada do que está funcionando.» Medido antes: 21 execuções do
+# «Fechar os derivados» em dois dias, 7 canceladas, 4,6 min de trabalho e 21 facturados — 4,6× de
+# desperdício. Um «Guardar» das 11:11:53 às 11:12:30 fez QUATRO commits em nove segundos. A prova
+# mede o controlo negativo (sem lote, dois commits), o lote a juntar, o pendente visível, o `criado`
+# perguntado antes de guardar, o lote vazio a não fazer commit, o duplo falhanço a não anunciar nada
+# e a degradação para o caminho de sempre quando não há API de Git. 30 asserções.
+!experimentos/provar-o-ato-num-commit.js
+
 # O FINANCEIRO QUE FICA (23/11/2026, à tarde). A regra de 17/11 era o contrário — expurgar a escola
 # levava as mensalidades dela —, e ela corrigiu: «A parte financeira não pode expurgar, ela fica
 # para histórico. E aí a gente diz numa linha seguinte que essa escola foi expurgada.» O livro vive

@@ -2625,6 +2625,50 @@ async function estadoDaAnamnese(armazenamento, envelope, elenco) {
  * está aqui — o cliente não decide, e a tela não sabe o estado para gravar.
  */
 async function elicitar(armazenamento, corpo, dados) {
+  /* O LOTE DO ATO ABRE AQUI E FECHA NO FIM (25/11/2026).
+   *
+   * É esta a fronteira do pedido: aqui começa a gravação de UM documento, e é aqui que se sabe
+   * quando ela acabou. Abrir mais acima seria abrir em quem só lê; abrir dentro do
+   * `gravarEnvelope` seria abrir em cada tentativa do carimbo — e três tentativas fariam três
+   * lotes.
+   *
+   * O QUE ELE JUNTA: o `.indice.json` e o envelope. Dois commits que eram dois pushes, duas
+   * execuções do «Fechar os derivados», e a primeira cancelada pela segunda — cancelada e
+   * paga. Medido nos runs de 23 e 24/11: 21 execuções do derivados, 7 canceladas, 4 minutos de
+   * trabalho e 21 facturados.
+   *
+   * SE NINGUÉM ABRIU LOTE, NADA MUDA. O `abrirLote` do adaptador do KV é a identidade, e o
+   * `armazenamento` das bancadas não o tem — os dois caem no caminho de sempre, commit a commit. */
+  /* `typeof` NÃO BASTA AQUI, E O PROXY ENSINOU-O ÀS PRÓPRIAS PROVAS (25/11/2026).
+   *
+   * O `acervo-envelopes.js` embrulha o armazenamento num Proxy cujo `has` responde `true` a
+   * qualquer verbo que um dos destinos conheça — e cujo `get` devolve uma função que REJEITA com
+   * «este armazenamento não sabe X». Logo `typeof armazenamento.emLote === 'function'` era
+   * verdadeiro sobre um armazenamento que não sabe o que é um lote, e o `elicitar` rebentava no
+   * primeiro pedido de `provar-anamnese-sem-cofre`. Três provas ficaram vermelhas por isto.
+   *
+   * A resposta é perguntar com um `try`: quem não sabe, responde com uma excepção, e a excepção é
+   * a resposta. Degradar aqui é o que sempre valeu — o caminho de sempre é o que corre quando o
+   * lote não existe. */
+  /* O PROXY DEVOLVE UMA PROMESSA REJEITADA, E NÃO LANÇA (25/11/2026). A distinção custou uma
+   * segunda execução: `try { ... } catch` apanha um `throw`, e o que o proxy faz é
+   * `return Promise.reject(...)` — uma rejeição que ninguém espera, e que o Node trata como
+   * `unhandledRejection` e mata o processo. Por isso o `await`: uma rejeição esperada é uma
+   * excepção, e uma excepção apanhada é uma resposta. */
+  let podeLote = false;
+  let loteJaAberto = false;
+  try {
+    podeLote = typeof armazenamento.abrirLote === 'function'
+      && typeof armazenamento.fecharLote === 'function';
+    if (podeLote) loteJaAberto = (await armazenamento.emLote()) === true;
+  } catch (erro) {
+    podeLote = false;
+    loteJaAberto = false;
+  }
+  if (podeLote && !loteJaAberto) {
+    try { await armazenamento.abrirLote(); } catch (erro) { podeLote = false; }
+  }
+
   const cruas = corpo && typeof corpo.respostas === 'object' && corpo.respostas ? corpo.respostas : {};
   const fonte = corpo && corpo.fonte;
   const conteudoAtual =
@@ -2835,14 +2879,47 @@ async function elicitar(armazenamento, corpo, dados) {
 
   const { documento, estado, relatorio } = motor.elicitar(conteudoAtual, respostas, opcoes);
   const simular = Boolean(corpo && corpo.simular);
-  const gravacao = simular
+  let gravacao = simular
     ? { ok: true, linhas: linhasDoRelatorio(relatorio) }
     : await gravarEnvelope(armazenamento, documento, relatorio, { substituir: idDeDocumentoQueExiste, base: baseDaEdicao });
+
+  /* O FECHO DO LOTE, E O QUE ELE PODE DESMENTIR (25/11/2026).
+   *
+   * Dentro do lote, o envelope foi PROMETIDO, não gravado: o `ok` que o `gravarEnvelope` devolveu
+   * diz «coube no lote». É o commit que decide, e é aqui que ele acontece. Se falhar, a gravação
+   * passa a `ok: false` com o motivo — um registo que a tela anuncia como guardado e o
+   * repositório não tem é o pior dos estados, e é exactamente o que a guarda do `relatorio.ok`
+   * do `escreverCiclo` já evita do lado do ciclo.
+   *
+   * Um lote vazio não faz commit. É o caso de quem só leu, e `nada: true` diz isso mesmo. */
+  let fecho = null;
+  if (podeLote && !loteJaAberto) {
+    try {
+      fecho = await armazenamento.fecharLote(
+        'feat(acervo): o registo e o índice num commit só — ' + (relatorio.id || 'sem id'),
+      );
+    } catch (erro) {
+      /* O LOTE NÃO SE PODE FECHAR — e a gravação que ele prometeu não aconteceu. Isto NÃO é o
+       * mesmo que a degradação do `fecharLote` (que grava um a um e diz `degradado`): aqui o
+       * armazenamento não sabe sequer o que é um lote, e por isso o que fica por gravar é a
+       * promessa toda. A gravação é desmentida, com o motivo. */
+      fecho = { ok: false, erro: (erro && erro.message) || String(erro) };
+    }
+    if (fecho && fecho.ok === false && gravacao.ok) {
+      gravacao = Object.assign({}, gravacao, {
+        ok: false,
+        erro: 'as escritas do registo não entraram no repositório: ' + (fecho.erro || 'sem motivo'),
+      });
+    }
+  }
 
   return {
     ok: relatorio.errosDoDocumento.length === 0,
     simular,
     gravado: !simular && gravacao.ok,
+    /* AS ESCRITAS DO PEDIDO, DITAS NA RESPOSTA. Sem isto não há como provar — nem na bancada nem
+     * nos runs — que o ato passou a custar um commit em vez de dois. */
+    ...(fecho ? { commitDoLote: fecho.commit || null, escritasDoLote: (fecho.escritos || []).length } : {}),
     // O MOTIVO de não ter gravado — a rota e a tela dizem-no em vez de deixar o professor a
     // adivinhar por que o «Guardar» não guardou (20/10/2026).
     erroDaGravacao: gravacao.ok ? null : (gravacao.erro || null),

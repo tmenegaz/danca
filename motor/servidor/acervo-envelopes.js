@@ -252,12 +252,45 @@ function criarAcervoDeEnvelopes({ token, dono, repo, ref, escola, senhaCripto, c
   const lidos = new Map();   // chave → {texto, sha} | null
   let indice = null;         // a árvore, lida no máximo uma vez por pedido
 
+  /* O LOTE DO ATO — AS ESCRITAS DO PEDIDO NUM COMMIT SÓ (25/11/2026).
+   *
+   * MEDIDO, e é o que ele corrige. Um «Guardar» custava QUATRO commits ao repositório, e cada
+   * commit é um push — logo, quatro execuções do «Fechar os derivados» em nove segundos, das
+   * quais três foram CANCELADAS. Um job cancelado paga-se (arredonda ao minuto), de modo que o
+   * gesto custava quatro minutos de cota e o trabalho real era de dezassete segundos. Contado nos
+   * runs de 23 e 24/11: 21 execuções do derivados, 7 canceladas, 4 minutos de trabalho e
+   * **21 minutos facturados — 4,6× de desperdício.**
+   *
+   * E o custo não é só o CI. `gravarArquivosNumCommit` gasta cinco subpedidos por commit (a
+   * referência, o commit, a árvore, o commit novo, a referência nova); quatro commits são vinte,
+   * num orçamento de cinquenta por invocação. Um commit são cinco, e o pedido volta a ter folga.
+   *
+   * O QUE O LOTE **NÃO** MUDA é a garantia que sempre valeu: o repositório nunca guarda um estado
+   * intermédio em que o envelope existe e o índice não o cita. Era por causa disso que o
+   * `gravarEnvelope` escrevia o índice primeiro — com um commit só, a pergunta desaparece.
+   *
+   * SEM LOTE NADA MUDA. `lote` a `null` é o caminho de sempre, commit a commit, e é ele que corre
+   * quando ninguém abriu nada. O lote é opt-in de propósito: quem não o abre fica exactamente
+   * como estava. */
+  let lote = null;           // Map(chave → {texto, mensagem}) | null
+
+  /** A leitura vê o que está pendente — senão um `guardar` seguido de `ler` mentiria. */
+  function pendente(chave) {
+    return lote && lote.has(chave) ? lote.get(chave) : null;
+  }
+
   function exigirToken() {
     if (!token) throw new Error('acervo: sem GITHUB_TOKEN — o envelope não vai para o repositório');
     if (!slug) throw new Error('acervo: sem ESCOLA_SLUG — este Worker não é escola');
   }
 
   async function conteudo(chave) {
+    /* O PENDENTE VEM PRIMEIRO (25/11/2026). Dentro de um lote, o que já foi escrito existe para
+     * quem lê — só ainda não está no repositório. Sem esta linha, o `registrarNoIndice` que corre
+     * depois de o envelope ser acumulado voltaria a ler o repositório e concluiria que o envelope
+     * não existe. */
+    const emLote = pendente(chave);
+    if (emLote) return { texto: emLote.texto, sha: null, noLote: true };
     if (lidos.has(chave)) return lidos.get(chave);
     const url = comRamo(base + '/contents/' + caminhoDaChave(slug, chave));
     const r = await f(url, { method: 'GET', headers: cabecalhos });
@@ -300,6 +333,20 @@ function criarAcervoDeEnvelopes({ token, dono, repo, ref, escola, senhaCripto, c
 
   /** Escreve um texto já pronto. Repete o 409 (o `sha` mudou entre a leitura e a escrita). */
   async function escrever(chave, texto, mensagem) {
+    /* DENTRO DO LOTE, A ESCRITA É UMA PROMESSA (25/11/2026). Devolve o mesmo `ok` que o chamador
+     * espera e o caminho onde o registo VAI ficar — mas o commit é um só, no fim. Quem precisar de
+     * saber se entrou tem de perguntar ao `fecharLote`; por isso a resposta leva `adiado: true`, e
+     * um chamador que não o conheça vê o mesmo `ok: true` de sempre. */
+    if (lote) {
+      /* `criado` PERGUNTA-SE ANTES DE GUARDAR (25/11/2026). Escrito ao contrário — a olhar o lote
+       * já com a chave dentro —, a resposta era `criado: false` para tudo: `conteudo` devolve o
+       * pendente que acabara de ser posto, e um envelope novo passava por edição. */
+      const jaEstava = (await conteudo(chave)) !== null;
+      lote.set(chave, { texto, mensagem });
+      lidos.delete(chave);
+      return { ok: true, status: 202, adiado: true, criado: !jaEstava,
+        caminho: caminhoDaChave(slug, chave), commit: null };
+    }
     const url = base + '/contents/' + caminhoDaChave(slug, chave);
     let ultimo = { ok: false, erro: 'não se tentou' };
     for (let tentativa = 1; tentativa <= 3; tentativa++) {
@@ -346,7 +393,98 @@ function criarAcervoDeEnvelopes({ token, dono, repo, ref, escola, senhaCripto, c
     return ultimo;
   }
 
+  /**
+   * ABRE O LOTE — a partir daqui, as escritas deste armazenamento acumulam-se (25/11/2026).
+   *
+   * Quem chama é o handler de um ATO (o «Guardar» do PO, o «Guardar» do plano): abre antes de
+   * começar, deixa correr tudo o que já corria, e fecha no fim. O que muda não é o que se grava —
+   * é QUANTOS COMMITS isso custa. De quatro para um, medido nos runs de 23 e 24/11.
+   *
+   * Abrir duas vezes não é erro: a segunda não faz nada. É a rede para um handler que abra o lote
+   * e chame outro que também o abra — e é mais segura do que rebentar, porque o pior que pode
+   * acontecer é ficar o lote de fora.
+   */
+  function abrirLote() {
+    if (!lote) lote = new Map();
+    return lote;
+  }
+
+  /**
+   * FECHA O LOTE E GRAVA TUDO NUM COMMIT SÓ. Devolve `{ok, commit, escritos, nada}`.
+   *
+   * UM LOTE VAZIO NÃO FAZ COMMIT — e é o caso normal de um pedido que só leu. `nada: true` diz
+   * isso, e não é uma falha.
+   *
+   * A ORDEM DENTRO DO COMMIT É A DA INSERÇÃO, e é a que o `porta.js` já impunha: o índice
+   * primeiro, o envelope depois. Com um commit só, a ordem deixa de importar para a consistência
+   * — mas mantê-la barata é o que faz o diff do repositório ser o mesmo de antes.
+   *
+   * SE O COMMIT FALHAR, O LOTE NÃO SE PERDE: as escritas ficam pendentes e quem chamou pode
+   * voltar a tentar. Apagá-las faria o envelope desaparecer sem que ninguém soubesse.
+   */
+  async function fecharLote(mensagem) {
+    if (!lote || !lote.size) return { ok: true, commit: null, escritos: [], nada: true };
+    exigirToken();
+    const arquivos = [];
+    for (const [chave, valor] of lote) {
+      let corpo = valor.texto;
+      if (ehAnamnese(chave)) corpo = await montarArquivoCifrado(JSON.parse(valor.texto), senhaCripto, cifrar);
+      arquivos.push({ caminho: caminhoDaChave(slug, chave), conteudo: corpo });
+    }
+    /* O LOTE É O CAMINHO CURTO; O COMMIT A COMMIT É O QUE SEMPRE FUNCIONOU. E ELE FICA.
+     *
+     * Uma regressão apanhada pela prova `provar-escola-do-documento` (25/11/2026), e é a razão
+     * desta segunda metade existir: um `fetchImpl` que só conhece `/contents/` e a árvore — o das
+     * bancadas, e o de qualquer adaptador futuro — não fala a API de Git do commit único. Sem esta
+     * saída, o ato DEIXAVA DE GRAVAR: o `gravarArquivosNumCommit` responde «não li a referência»,
+     * o fecho reprovava, e a gravação inteira era anunciada como falhada. O caminho antigo
+     * funcionava, e um ganho de cota não pode custar a gravação.
+     *
+     * A ORDEM É A DE SEMPRE quando se degrada: um a um, pela mesma `escrever` — que é a que já
+     * sabe do `sha`, do 409 e da repetição. Nada aqui inventa um segundo caminho de escrita. */
+    const { gravarArquivosNumCommit } = require('./escrever-ciclo.js');
+    const r = await gravarArquivosNumCommit({
+      token, dono: dono || DONO_PADRAO, repo: repo || REPO_PADRAO, ref: ramo,
+      arquivos,
+      mensagem: mensagem || 'feat(acervo): as escritas do pedido num commit só',
+      fetchImpl: f,
+    });
+    if (!r.ok) {
+      const pendentes = [...lote.entries()];
+      lote = null;
+      const feitos = [];
+      const falhas = [];
+      for (const [chave, valor] of pendentes) {
+        try {
+          const um = await escrever(chave, valor.texto, valor.mensagem);
+          if (um && um.ok) feitos.push(chave); else falhas.push(chave + ': ' + ((um && um.erro) || 'sem motivo'));
+        } catch (erro) {
+          falhas.push(chave + ': ' + ((erro && erro.message) || String(erro)));
+        }
+      }
+      return {
+        ok: falhas.length === 0,
+        commit: null,
+        escritos: feitos,
+        /* DIZ-SE QUE SE DEGRADOU. Sem esta marca, o painel diria «um commit» sobre quatro — e a
+         * diferença entre um commit e quatro é a cota que o ato custou. */
+        degradado: true,
+        motivoDoLote: r.erro || ('HTTP ' + r.status),
+        ...(falhas.length ? { erro: falhas.join(' · ') } : {}),
+      };
+    }
+    for (const chave of lote.keys()) lidos.delete(chave);
+    const escritos = [...lote.keys()];
+    lote = null;
+    return { ok: true, commit: r.commit || null, escritos, nada: false };
+  }
+
   return {
+    /* O LOTE DO ATO (25/11/2026) — ver `abrirLote`/`fecharLote` acima. Expostos os dois, e o
+     * `emLote` para quem quiser perguntar se há escritas à espera sem as fechar. */
+    abrirLote,
+    fecharLote,
+    emLote: () => Boolean(lote && lote.size),
     /**
      * LÊ. O repositório primeiro; o KV só quando a árvore não tem o nome.
      *
@@ -416,6 +554,17 @@ function criarAcervoDeEnvelopes({ token, dono, repo, ref, escola, senhaCripto, c
      * sufixos sem fim.
      */
     async criar(chave, texto, mensagem) {
+      /* A ESCRITA CONDICIONAL DENTRO DO LOTE (25/11/2026). A pergunta dela é «este nome já é de
+       * outro?», e a resposta tem de considerar o que está pendente — dois envelopes do mesmo
+       * pedido não podem escolher o mesmo nome. Se livre, acumula; o `criado: true` diz que a
+       * intenção foi criar, e o nome que o `porta.js` escolheu fica reservado no lote. */
+      if (lote) {
+        const jaExiste = pendente(chave) !== null || (await conteudo(chave)) !== null;
+        if (jaExiste) return { criado: false, jaExiste: true };
+        lote.set(chave, { texto, mensagem });
+        lidos.delete(chave);
+        return { criado: true, adiado: true, status: 202, caminho: caminhoDaChave(slug, chave) };
+      }
       if (!token || !slug) {
         // SEM ACERVO NÃO HÁ CRIAR: quem não escreve no repositório grava onde sempre gravou.
         if (legado && typeof legado.guardar === 'function') {
@@ -667,6 +816,14 @@ function criarAcervoDeEnvelopes({ token, dono, repo, ref, escola, senhaCripto, c
 
     /** APAGA. Devolve `true` se existia (a mesma resposta do adaptador do KV). */
     async apagar(chave) {
+      /* O APAGAR NÃO ENTRA NO LOTE — ELE FECHA-O PRIMEIRO (25/11/2026).
+       *
+       * O commit único sabe CRIAR e SUBSTITUIR ficheiros numa árvore; apagar é uma entrada de
+       * `sha: null`, que ele não faz. Podia ensiná-lo — e seria mais uma peça a mexer no caminho
+       * que hoje está verde. Fechar o lote antes é a resposta certa e é a conservadora: quem apaga
+       * paga um commit a mais, e o que sobra é a ordem que sempre valeu — o que foi prometido
+       * entra antes, e o apagamento vê o repositório com tudo o que o pedido já gravou. */
+      if (lote && lote.size) await fecharLote('feat(acervo): as escritas do pedido, antes de apagar');
       const nome = String(chave || '');
       if (!nome.startsWith('envelope/')) {
         return legado && typeof legado.apagar === 'function' ? legado.apagar(nome) : false;

@@ -2319,3 +2319,125 @@ medir nada** — o prazo era lido com `Number('2 * 60 * 1000')`, que dá `NaN`, 
 É a mesma família de erro que o `.every` sobre uma leitura vazia: uma validação que não mede nada não
 falha. A prova passou a ler o prazo como **expressão** (multiplicando as parcelas) e a afirmar que ele
 é finito antes de o usar.
+
+---
+
+## 17. O agrupamento dentro do ato — quatro commits, um *(25/11/2026)*
+
+> «Agora eu entendi a sua proposta e ela faz sentido. Essa medição que encontrou coisa maior, o
+> único ato dispara dois a quatro gerações e uma a sete derivações, que a gente acaba gastando
+> muito. Então vamos fazer essa solução que você aponta aqui. O agrupamento que falta é dentro do
+> ato e não dentro das aulas. Então vamos fazer esse ponto para economizar ainda mais. É importante
+> que isso não estrague nada do que está funcionando.»
+
+### 17.1 A medida, e ela é pior do que «2 a 4»
+
+Os runs de 23 e 24/11, lidos na API:
+
+| | |
+|:--|--:|
+| execuções do «Fechar os derivados» | **21** |
+| delas, **canceladas** | **7** |
+| duração somada dos jobs | **274 s = 4,6 min** |
+| **facturado** (cada job arredonda ao minuto) | **21 min** |
+| **desperdício** | **4,6×** |
+
+As sete canceladas duraram **22 segundos ao todo** — 2 s, 2 s, 3 s, 3 s, 10 s, 1 s, 1 s — e
+custaram **sete minutos**. Um job cancelado paga-se: o GitHub arredonda ao minuto o que correu, não
+o que foi útil.
+
+### 17.2 O ato, commit a commit
+
+Lido no `main`, o «Guardar» das 11:11:53 às 11:12:30 de 24/11:
+
+| instante | commit | ficheiros |
+|:--|:--|--:|
+| 11:11:53 | `feat(acervo): envelope/.indice.json` | **1** |
+| 11:11:54 | `feat(acervo): envelope/plano-….json` | **1** |
+| 11:11:59 | `feat(plano): o plano elicitado vira a fonte` | — |
+| 11:12:01 | `feat(ciclo): o manifesto da variante…` | **1** |
+| 11:12:30 | `chore(estrutura): fechar os derivados` | — |
+
+**Quatro pushes em nove segundos, quatro execuções do `derivados.yml`, três canceladas.** E o
+segundo ato, das 11:15:38: três pushes, duas canceladas.
+
+O escritor das fontes **já estava resolvido** desde 22/10/2026 (`gravarArquivosNumCommit`, dez
+ficheiros num commit). O que faltava eram os **três pequenos**: o índice de envelopes, o envelope, e
+o `.conf`.
+
+### 17.3 A causa, e não é o CI
+
+Cada uma dessas três escritas é um `PUT /contents` — **um commit cada**, e o GitHub trata cada
+commit como um push. O `derivados.yml` observa `escola/**` e `professores/**`, e por isso acorda
+três vezes para o que devia acordar uma.
+
+E o custo não é só o CI. `gravarArquivosNumCommit` gasta **cinco subpedidos** por commit — a
+referência, o commit, a árvore, o commit novo, a referência nova. Quatro commits são **vinte
+subpedidos** num orçamento de **cinquenta** por invocação do Worker. Um commit são cinco, e o
+pedido volta a ter folga. Foi essa a conta que já tinha estourado o «Guardar» a 08/11/2026.
+
+### 17.4 O desenho: um lote, e o caminho de sempre por baixo
+
+`acervo-envelopes.js` ganhou um **lote**: `abrirLote()`, `fecharLote(mensagem)`, `emLote()`. Dentro
+dele, `guardar`/`criar` **acumulam** e `ler` vê o que está pendente; `fecharLote` aplica tudo com
+**um** commit, pela mesma `gravarArquivosNumCommit` que o escritor do ciclo já usava.
+
+Cinco decisões que o desenho fixa, e as cinco estão na prova:
+
+- **SEM LOTE NADA MUDA.** O lote é *opt-in*: quem não o abre fica exactamente como estava. É a
+  resposta directa ao «não estrague nada do que está funcionando» — e o controlo negativo da prova
+  mede-o (sem lote, dois commits).
+- **O `criado` pergunta-se ANTES de guardar.** Escrito ao contrário — a olhar o lote já com a chave
+  dentro —, todo o envelope novo passava por edição. Foi o primeiro defeito desta implementação.
+- **O lote vazio não faz commit.** Quem só leu não escreve, e `nada: true` di-lo.
+- **O apagar FECHA o lote primeiro.** O commit único sabe criar e substituir; apagar é uma entrada
+  de `sha: null`, que ele não faz. Ensiná-lo seria mais uma peça no caminho que está verde; fechar
+  antes é a resposta conservadora.
+- **DEGRADA, NÃO REBENTA.** E esta nasceu de uma regressão apanhada por outra prova
+  (`provar-escola-do-documento`): um `fetchImpl` que só conhece `/contents/` e a árvore — o das
+  bancadas — não fala a API de Git do commit único. Sem saída, **o ato deixava de gravar**. Um ganho
+  de cota não pode custar a gravação: se o commit único falhar, as escritas do lote são refeitas
+  **uma a uma**, pelo mesmo `escrever` de sempre, e a resposta diz `degradado: true` com o motivo.
+
+### 17.5 Onde ele entra
+
+Em `elicitar` (`motor/nucleo/porta.js`), que é a fronteira do pedido: aqui começa a gravação de um
+documento e aqui se sabe quando acabou. Abrir mais acima seria abrir em quem só lê; abrir dentro do
+`gravarEnvelope` seria abrir em cada tentativa do carimbo — e três tentativas fariam três lotes.
+
+E o `ok` que vem do lote é **o do commit**, não o da promessa: se o fecho falhar, a gravação passa
+a `ok: false` com o motivo. Um registo que a tela anuncia como guardado e o repositório não tem é o
+pior dos estados — é a mesma guarda que o `escrever-ciclo` já aplica do lado do ciclo.
+
+### 17.6 O que fica fora, e é dito
+
+- **O `.conf` continua num commit próprio.** Ele é escrito por `escrever-plano.js`, antes de o
+  acervo entrar; juntá-lo exigiria a fila ao nível da rota, que atravessa três módulos. O corte
+  feito é de **quatro para três** neste ponto — e o ganho medido abaixo não o conta.
+- **A geração do ciclo (`gerar-ciclo.yml`) continua a ser uma por ato.** É a única que faz trabalho
+  real sobre o pacote, e o commit dela já vai agrupado desde 22/10/2026.
+- **O `publicar.yml` dispara no mesmo push.** Ele não observa `escola/**`, e por isso os envelopes
+  não o acordam; os commits em `professores/**/ciclos/` acordam-no, e aí o ganho vem de graça com o
+  mesmo corte.
+
+### 17.7 A prova
+
+`experimentos/provar-o-ato-num-commit.js` — **30 asserções**, com o GitHub de mentira a contar
+commits. As secções: sem lote dois commits (o controlo negativo); com lote um; o pendente visível;
+o `criado` antes; o lote vazio; o duplo falhanço a não anunciar nada; o apagar a fechar antes; e a
+degradação sem API de Git.
+
+**Ela é vermelha sem a mudança e verde com ela** — conferido com `git stash`.
+
+E a regressão que a mudança quase causou — `provar-escola-do-documento` a passar de 8/8 para 7/8 —
+foi o que produziu o `degradado`. Fica escrito porque é a lição: uma optimização de cota que corre
+em bancadas com `fetchImpl` falso tem de saber o que fazer quando esse falso é mais pobre do que o
+GitHub.
+
+### 17.8 O que mudou
+
+| ficheiro | o quê |
+|:--|:--|
+| `motor/servidor/acervo-envelopes.js` | `abrirLote`/`fecharLote`/`emLote`; `escrever`/`criar` acumulam; `conteudo` vê o pendente; `apagar` fecha o lote antes; degradação um-a-um |
+| `motor/nucleo/porta.js` | `elicitar` abre o lote no início e fecha-o antes do `return`; o `ok` do commit manda no `gravado`; a resposta diz `commitDoLote`/`escritasDoLote` |
+| `experimentos/provar-o-ato-num-commit.js` | **novo** — 30 asserções |
