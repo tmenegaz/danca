@@ -1399,3 +1399,175 @@ se não sabe é quanto uma escola escreve e envia.
 escreveu: **um lote**. Uma escola com 90 alunas que peça as 90 anamneses no mesmo dia gasta 90 dos 100
 e-mails do dia — e isso acontece no arranque, não a cada aula. **Enquanto não houver medição, nenhum
 dos dois entra na conta.**
+
+---
+
+## 11. O equilíbrio da escada — quantas aulas por semana cada plano pode dar *(25/11/2026)*
+
+> «Eu tenho essa viabilidade prática, ela é meio fantasiosa para os planos básicos, intermediários e
+> avançados. […] eu acho que está mal equilibrado isso. Eu acho que dá para aumentar algumas escolas,
+> em dois planos, no básico e no intermediário, dá para aumentar a quantidade de aulas, alguma medida,
+> né? E no avançado dá para diminuir a quantidade de aulas em alguma medida. Então vamos tentar
+> equilibrar isso para ver se fica mais interessante para a escola e para mim.»
+> — a proprietária, 25/11/2026
+
+### 11.1 A viabilidade dela está certa, e cruza com a franquia ao minuto
+
+A análise que ela trouxe («4 h/dia, 6 dias» para o Básico; «12 h seguidas ou 2 salas» para o
+Intermediário; «31 aulas/dia é impossível numa sala» para o Avançado) **confere com o catálogo**, e
+confere ao minuto:
+
+| plano | franquia | por semana | por dia (6 dias) | a operação que ela descreveu |
+|:--|--:|--:|--:|:--|
+| **Básico** | 100 | **23,1** | **3,8** | 4 aulas/dia × 6 dias, 1 sala |
+| **Intermediário** | 300 | **69,3** | **11,5** | 12 aulas/dia (1 sala 12 h, ou 2 salas × 6) |
+| **Avançado** | 800 | **184,8** | **30,8** | 31 aulas/dia — **impossível numa sala a 1/h** |
+
+**Não é uma coincidência: as franquias foram desenhadas sobre essas operações.** E é por isso que o
+cenário dos «16 h por dia» da §10 estava errado como retrato — **nenhuma escola do Básico trabalha 16
+horas**; ela trabalha quatro. A franquia é a realidade operacional, e é ela que manda nesta secção.
+
+### 11.2 O tecto dos 100 % é do DONO DA CONTA, não do plano
+
+**A resposta à pergunta literal dela** («quantas aulas por semana posso chegar para ainda ter 100 % de
+lucro?») tem uma forma que surpreende: **o tecto é o mesmo nos três planos**, porque a cota é uma só —
+a da conta.
+
+```
+2 000 min ÷ 2,0 min/aula = 1 000 aulas/mês  no TOTAL da conta
+```
+
+E daí:
+
+| | franquia de hoje | tecto a 100 % | veredicto |
+|:--|--:|--:|:--|
+| **Básico**, 3 escolas | 23/semana cada | **77/semana cada** | **folga de 3,3×** — cabe muito mais |
+| **Intermediário**, 3 escolas | 69/semana cada | **77/semana cada** | **folga de 1,1×** — está no ponto |
+| **Avançado**, 3 escolas | 185/semana cada | **77/semana cada** | **excede 2,4×** — não cabe |
+
+**E com 9 escolas (3 de cada), o tecto desce a 26 aulas por semana por escola** — 111 por mês, que é
+pouco acima da franquia do Básico. **Nove escolas a 100 % de margem só existem se todas forem
+pequenas**; a escada de hoje pede 7 200 minutos para as nove, contra os 2 000 do gratuito.
+
+> **É exatamente o desequilíbrio que ela viu, e agora está quantificado:** o Básico promete **um terço**
+> do que a conta aguenta, o Intermediário promete o que aguenta, e o Avançado promete **2,4 vezes** o
+> que aguenta.
+
+### 11.3 O que a conta aguenta, por plano — e a razão de ser
+
+| plano | quantas escolas cabem a R$ 0 | receita a R$ 0 |
+|:--|--:|--:|
+| só Básico (100) | **10** | **R$ 699,00** |
+| só Intermediário (300) | **3** | R$ 299,70 |
+| só Avançado (800) | **1** | R$ 139,90 |
+
+**Dez vezes mais receita gratuita com o Básico do que com o Avançado.** A razão é uma só: **o compute
+custa o mesmo por aula, e o Avançado vende a aula quatro vezes mais barata.** A escada de valor — que
+é deliberada, e está documentada no `planos.json` — **é, do lado do custo, um subsídio**: cada degrau
+que sobe dá mais aulas por menos dinheiro, e o CI acompanha as aulas, não o dinheiro.
+
+### 11.4 Dois limites duros que a renegociação não pode passar
+
+Antes de propor números, dois invariantes do próprio catálogo que fecham o espaço de manobra:
+
+**1. O Básico não pode passar de 139 aulas.** A extensão custa **R$ 0,50 por aula**
+(`pacotesDeAulas`), e o catálogo diz por que esse preço é esse: *«a R$ 0,20 a extensão ficaria mais
+barata do que a aula do Intermediário e ninguém migraria nunca»*. O outro lado do mesmo invariante é
+que a extensão tem de ser **mais barata do que a aula do plano de entrada**, senão ela não se vende no
+degrau onde existe:
+
+```
+69,90 ÷ aulas > 0,50   ⟹   aulas < 139,8   ⟹   Básico ≤ 139
+```
+
+**2. O Avançado tem de ter mais aulas do que o Intermediário por real.** Para continuar a ser o degrau
+de cima:
+
+| Intermediário | R$/aula | Avançado tem de ter |
+|--:|--:|--:|
+| 300 | 0,333 | **mais de 420** |
+| 320 | 0,312 | **mais de 448** |
+| 350 | 0,285 | **mais de 490** |
+
+**E há uma segunda consequência, que é dela e não minha:** a R$ 0,50 a extensão fica **2,86×** a aula
+do Avançado hoje (0,175) e só **1,79×** se o Avançado for a 500 (0,280). A extensão deixa de ser
+punida no topo — o que é bom para quem já está lá e mau para a migração para cima, que no Avançado não
+existe.
+
+### 11.5 A escada proposta: **139 / 320 / 500**
+
+| | Básico | Intermediário | Avançado |
+|:--|--:|--:|--:|
+| **hoje** | 100 | 300 | 800 |
+| **proposto** | **139** | **320** | **500** |
+| variação | **+39 %** | **+7 %** | **−37 %** |
+| aulas/semana | 32,1 | 73,9 | 115,5 |
+| aulas/dia (6 dias) | **5,4** | **12,3** | **19,2** |
+| a operação que a gasta | 1 sala | 2 salas × 6,2 | 3 salas × 6,4 |
+| **R$ por aula** | **0,503** | **0,312** | **0,280** |
+| compute sobre a receita | **13 %** | **21 %** | **23 %** |
+| minutos por escola | 278 | 640 | 1 000 |
+| escolas a R$ 0 | 7 | 3 | 2 |
+
+**O que isto faz, e são quatro coisas:**
+
+1. **O Básico passa a dar 39 % mais aulas pelo mesmo preço** — e é o máximo que o invariante da
+   extensão permite. A escola pequena ganha quase 10 aulas por mês, e a proprietária não paga nada por
+   isso enquanto houver cota.
+2. **O Avançado cai de 800 para 500** — de 31 aulas por dia para **19**, que é uma operação de três
+   salas, não de trinta horas. E o compute sobre a receita cai de **37 % para 23 %**.
+3. **A escada fica com passos reais, e menores:** a aula passa a custar 0,503 → 0,312 → 0,280, ou seja
+   **−38 % e −10 %**. Hoje é −52 % e −47 %: um desconto que ela pagava em minutos.
+4. **A margem sobe com as nove escolas cheias: de 83,0 % para 88,1 %** (R$ 929,10 de receita contra
+   R$ 110,83 de CI, em vez de R$ 157,68).
+
+**E as capacidades ficam mais honestas:** hoje cabem **10** escolas do Básico, **3** do Intermediário e
+**1** do Avançado. Com a escada nova cabem **7 / 3 / 2**. **A receita máxima a R$ 0 desce** (de R$ 699
+para R$ 489), porque o Básico ficou mais generoso — é o preço de dar mais valor no degrau de entrada,
+e é um preço que se paga com a margem das nove.
+
+### 11.6 O que muda na migração, e é a parte que ela não pediu
+
+O ponto em que a extensão deixa de valer a pena e o degrau de cima passa a compensar **move-se com as
+franquias**:
+
+| migração | hoje | com 139 / 320 / 500 |
+|:--|:--|:--|
+| Básico → Intermediário | às **160** aulas | às **259** |
+| Intermediário → Avançado | às **380** aulas | às **400** |
+
+Com o Básico em 139, a extensão continua a fazer sentido até às 259 aulas — **mais 120 aulas** do que
+hoje. E é aqui que a proposta tem um custo escondido: **a extensão passa a vender mais**, porque o
+cliente do Básico tem de comprar mais 120 aulas antes de o upgrade compensar. Se a extensão é um
+produto que se quer vender, isto é bom; se a migração é o que se quer, é mau. **A escolha é dela, e
+não é uma conta — é uma política.**
+
+### 11.7 As alternativas, e o que cada uma custa
+
+| escada | R$/aula | margem (9 escolas) | computa a mais | cabe a R$ 0 |
+|:--|:--|--:|--:|:--|
+| **hoje** 100/300/800 | 0,699 / 0,333 / 0,175 | **83,0 %** | 25 % | 10 / 3 / 1 |
+| **A** 130/320/500 | 0,538 / 0,312 / 0,280 | 88,3 % | 20 % | 7 / 3 / 2 |
+| **B** 139/320/500 *(proposta)* | 0,503 / 0,312 / 0,280 | **88,1 %** | 20 % | 7 / 3 / 2 |
+| **C** 139/350/560 | 0,503 / 0,285 / 0,250 | 86,2 % | 22 % | 7 / 2 / 1 |
+
+**A diferença entre A e B é de 0,2 pontos de margem** — e B dá 9 aulas a mais no Básico. **C** dá 30
+aulas a mais no Intermediário e 60 no Avançado, e custa 1,9 pontos de margem e uma escola de capacidade
+em cada um dos dois planos de cima: é a mais generosa com a escola e a mais cara para ela.
+
+### 11.8 O que é medição, e o que é decisão
+
+- **Medido:** 2,0 min por aula (§10.1); 24 aulas por ciclo; o custo do minuto (US$ 0,006, câmbio
+  5,40); as franquias (100/300/800) e os preços (69,90/99,90/139,90), do `planos.json`; a extensão a
+  R$ 0,50 e o invariante que ela impõe, do mesmo ficheiro.
+- **Calculado, e não medido:** a viabilidade por dia (a franquia ÷ 4,33 semanas ÷ 6 dias) — é
+  aritmética sobre o que a escola declarar; **a operação real de uma escola não foi observada.**
+- **Decisão dela, e não minha:** qual escada. A proposta desta secção é uma recomendação com a conta
+  ao lado; o preço, o tamanho dos passos e a política de extensão são comerciais.
+
+> **E o que continua a ser o número mais frágil desta conta:** a escola que **não** gasta a franquia.
+> Toda esta secção supõe que a escola lança as 139, 320 ou 500 aulas — **o custo só existe quando elas
+> são lançadas.** Uma escola que compre o Avançado e lance 50 aulas custa R$ 6,48, e o problema desta
+> secção desaparece. É por isso que o contador de aulas do mês (o
+> [`PLANO-CONTADOR-DE-AULAS.md`](PLANO-CONTADOR-DE-AULAS.md)) é mais útil do que qualquer tabela: ele
+> mede o que a escola **usa**, não o que ela **pode**.

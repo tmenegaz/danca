@@ -4,7 +4,24 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **quantas escolas se sustentam.** Pergunta dela: «quantas
+> **Última fotografia:** 25/11/2026 — **o equilíbrio da escada.** Depois de a §10 fechar a conta do
+> lucro, ela trouxe a viabilidade prática — «4 h/dia, 6 dias» no Básico, «12 h ou 2 salas» no
+> Intermediário, «31 aulas/dia é impossível numa sala» no Avançado — e ela **confere ao minuto** com as
+> franquias (3,8 · 11,5 · 30,8 aulas/dia). **E é por isso que o cenário dos 16 h/dia estava errado como
+> retrato:** nenhuma escola do Básico trabalha dezesseis horas; trabalha quatro. **A resposta à
+> pergunta dela não depende do plano:** o tecto dos 100 % é `2 000 min ÷ 2,0 = 1 000 aulas/mês no
+> TOTAL` — **77 aulas/semana por escola com 3 escolas**, 26 com nove. Contra isso, o Básico (100) tem
+> **folga de 3,3×**, o Intermediário (300) está **no ponto** e o Avançado (800) **excede 2,4×**. A razão
+> é uma só: o compute custa o mesmo por aula e o Avançado vende a aula **quatro vezes mais barata** —
+> a escada de valor é, do lado do custo, um subsídio. **Dois limites duros fecham o espaço de manobra:**
+> o Básico **não passa de 139 aulas** (a extensão a R$ 0,50 tem de ser mais barata do que a aula do
+> plano de entrada) e o Avançado tem de ter **mais de 448** com o Intermediário em 320. **A escada
+> proposta: 139 / 320 / 500** — +39 % no Básico, +7 % no Intermediário, −37 % no Avançado (de 31 para
+> 19 aulas/dia), com o compute sobre a receita a ir de 9/19/37 % para **13/21/23 %** e a margem das nove
+> escolas de **83,0 % para 88,1 %**. Perde-se receita máxima gratuita (R$ 699 → R$ 489,30) e ganha-se
+> 120 aulas de extensão antes de o upgrade compensar. **Recomendado; a decisão comercial é dela.**
+>
+> **Fotografia anterior (25/11/2026 — quantas escolas se sustentam).** Pergunta dela: «quantas
 > escolas eu consigo ter lucro? […] parece que o meu custo aumenta mais do que a minha receita na
 > medida em que eu tenho mais escola». **A resposta é: todas, e não existe ponto de prejuízo** —
 > porque o custo de uma escola é sempre uma fracção da receita dela, e a escada do GitHub só acrescenta
@@ -4018,6 +4035,23 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      se vigia é o minuto facturado, e a franquia é o limite comercial (100/300/800 em
      `assinaturas[].aulas`, com excedente a R$ 0,50 acima). A 16 aulas/dia o cliente está 3,5× acima
      do Básico e o preço já o empurra para o Avançado (R$ 0,557 → R$ 0,397 por aula).
+
+177. **O TECTO DOS 100 % É DO DONO DA CONTA, NÃO DO PLANO — E A ESCADA PEDE 139 / 320 / 500.** A
+     pergunta dela («quantas aulas por semana posso chegar para ainda ter 100 % de lucro?») tem uma
+     resposta que não depende do plano: `2 000 min ÷ 2,0 min/aula = 1 000 aulas/mês no TOTAL`, o que dá
+     **77 aulas/semana por escola com 3 escolas** e **26 com nove**. Medido contra as franquias: o
+     **Básico (100) tem folga de 3,3×**, o **Intermediário (300) está no ponto** e o **Avançado (800)
+     excede 2,4×**. A razão é uma só: **o compute custa o mesmo por aula e o Avançado vende a aula
+     quatro vezes mais barata** — a escada de valor é, do lado do custo, um subsídio. **Dois limites
+     duros fecham o espaço:** o **Básico ≤ 139 aulas** (a extensão a R$ 0,50 tem de ser mais barata do
+     que a aula do plano de entrada) e o **Avançado > 448** se o Intermediário ficar em 320. **A escada
+     proposta — 139 / 320 / 500** — dá +39 % ao Básico, +7 % ao Intermediário e −37 % ao Avançado (de
+     31 para 19 aulas/dia, que é uma operação de três salas e não de trinta horas), leva o compute sobre
+     a receita de 9/19/37 % para **13/21/23 %** e a margem das nove escolas de **83,0 % para 88,1 %**.
+     **O que se perde:** a receita máxima a R$ 0 desce de R$ 699 para R$ 489,30 (o Básico ficou mais
+     generoso) e a extensão passa a compensar até às 259 aulas em vez de 160 — **mais 120 aulas de
+     extensão antes de o upgrade compensar**, o que é bom se a extensão se quer vender. **RECOMENDADO**
+     25/11/2026; a decisão comercial é dela.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a

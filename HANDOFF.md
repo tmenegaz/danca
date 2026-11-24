@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-24T13:50:42-0300`
-Commit atual: `5ef4d5d9` — docs(estrutura): a variante dos 30 dias, e a margem que desce a 86,4 %
+Gerado em: `2026-11-24T14:03:07-0300`
+Commit atual: `36c09bc6` — docs(estrutura): a franquia é o teto, a C25 está fechada, e o laço percorre o ciclo
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+36c09bc6 docs(estrutura): a franquia é o teto, a C25 está fechada, e o laço percorre o ciclo
 5ef4d5d9 docs(estrutura): a variante dos 30 dias, e a margem que desce a 86,4 %
 9bb55975 docs(estrutura): a aula custa 2,12 min, e a margem da escola a 16 h/dia é 93,7 %
 7344f1aa feat(experimentos): provas seletivas no commit, e o primeiro portão de pull_request
@@ -101,7 +102,6 @@ aefcd3d2 fix(ciclo-01): o manifesto declara tudo o que o escritor grava
 7749ac62 feat(acervo): envelope/po-20261124-0815.json
 a61a47d4 feat(acervo): envelope/.indice.json
 6799d7a2 chore(estrutura): fechar os derivados — âncoras e índices
-a2701173 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
 ```
 
 ## Por professor
@@ -195,58 +195,74 @@ a2701173 feat(ciclo): o manifesto da variante passa a derivar do cadastro da tur
 
 ## Última entrada do REGISTRO
 
-## 25/11/2026 — Correção da entrada anterior: a franquia é o teto, a C25 está fechada, e o laço percorre o ciclo
+## 25/11/2026 — O equilíbrio da escada: 139 / 320 / 500, e o tecto dos 100 % é do dono da conta
 
-**Nota de correção, datada, sobre a entrada «Lucro, custo e margem», de hoje.** Ela leu-a e corrigiu
-três coisas. **As três estavam erradas, e as três são dela.**
+**O que ela trouxe, e trouxe certo.** A viabilidade prática dela — «4 h/dia, 6 dias» para o Básico,
+«12 h seguidas ou 2 salas» para o Intermediário, «31 aulas/dia é impossível numa sala» para o Avançado
+— **confere ao minuto com as franquias**: 100/mês = 3,8/dia; 300 = 11,5/dia; 800 = 30,8/dia. As
+franquias foram desenhadas sobre essas operações. **E é por isso que o cenário dos «16 h por dia» da
+§10 estava errado como retrato:** nenhuma escola do Básico trabalha dezesseis horas; trabalha quatro.
 
-**1. «Não há teto.» Falso — e o teto é a franquia.** «Cada plano roda uma quantidade de aulas. A
-quantidade de aulas que a pessoa contrata é o limite. […] Você disse que não tem limite. Tem limite.»
-Está no catálogo desde sempre: `biblioteca/comercial/planos.json → assinaturas[].aulas` — **100 / 300 /
-800** aulas por mês, a R$ 0,699 / 0,333 / 0,175 por aula. Acima da franquia há **excedente com preço**
-(`pacotesDeAulas`, sempre a **R$ 0,50** a aula, desenhado para ser mais caro do que a aula do plano
-seguinte e mais barato do que a do Básico). E a regra já sabe calcular-se:
-`comercial.situacaoDaFranquia({contrato, aulasUsadas})` devolve `folga` · `perto` · `limite` ·
-`passou`, o excedente, o restantes e a frase. **O que falta não é a regra — é o número:**
-`contarAulasDoMes` não existe, e está desenhado no [`PLANO-CONTADOR-DE-AULAS.md`](PLANO-CONTADOR-DE-AULAS.md) §3.3.
+**A resposta à pergunta dela tem uma forma que surpreende: o tecto é o mesmo nos três planos**, porque
+a cota é uma só — a da conta. `2 000 min ÷ 2,0 min/aula = 1 000 aulas/mês no total`. Daí:
 
-**2. «A C25 está aberta.» Falso — está resolvida.** A 17/11/2026 ela decidiu **contar 440** aulas/mês
-para a escola no tamanho máximo: «Eu acho que a gente tem que contar com a capacidade menor, né? Para a
-gente ser prudente.» E o `teto.aulas: null` é **deliberado**, com a razão escrita no próprio catálogo:
-«um teto comercial é uma promessa, e a promessa é a franquia (100/300/800)». O `teto` era o parâmetro
-**interno** do §L9c para a capacidade da infraestrutura — outra grandeza, outro dono. Confundi os dois
-e anunciei como pendência uma decisão de oito dias antes.
+| plano | franquia hoje | tecto a 100 % (3 escolas) | veredicto |
+|:--|--:|--:|:--|
+| Básico | 23/semana | **77/semana** | **folga de 3,3×** |
+| Intermediário | 69/semana | **77/semana** | folga de 1,1× — no ponto |
+| Avançado | 185/semana | **77/semana** | **excede 2,4×** |
 
-**3. «A geração percorre as 352 aulas do mês.» Falso — percorre as aulas do ciclo, e o ciclo tem 24.**
-O `ciclo-01-breu-piano-plano.md` declara «Número total de aulas: 24» (3×/semana × 8 semanas). O laço do
-`gerar-ciclo.sh` percorre as aulas **daquele ciclo**, pelo que uma escola a 352 aulas/mês tem **~15
-ciclos de 24**, e cada geração paga o seu ciclo. A soma quadrática de **1 076 min** que a entrada
-anterior publicou não existe: são **704**. A fronteira do minuto está às **67 aulas num só ciclo** — a
-24 não se toca, e por isso a unidade é constante: **2,0 min por aula** (1,00 de `Gerar o ciclo`, mediana
-40 s em 16 runs pós-TeX, + 1,00 de `Fechar os derivados`, 395 runs).
+Com nove escolas o tecto desce a **26 aulas/semana por escola** — 111/mês, pouco acima do Básico.
+**Nove escolas a 100 % de margem só existem se todas forem pequenas.** É o desequilíbrio que ela viu,
+quantificado: o Básico promete um terço do que a conta aguenta, o Avançado 2,4 vezes o que aguenta.
 
-**O que isso faz à resposta.** A pergunta dela era «quantas escolas eu consigo ter lucro?». A resposta
-**continua a ser todas** — mas pelos números certos, e não pelos que eu publiquei: a margem **desce**
-com N e **aplana** num piso que depende do plano — **90,7 %** no Básico, **80,5 %** no Intermediário,
-**62,9 %** no Avançado —, e **não existe um número de escolas a partir do qual dá prejuízo**, porque o
-custo de uma escola é sempre uma fração da receita dela. O zero exigiria **21,6 / 10,3 / 5,4 min por
-aula**: no caso mais apertado (Avançado), o runner **2,7× mais lento** do que hoje. E a 16 aulas/dia as
-três escolas custam **R$ 3,63** contra **R$ 461,70** de receita — **margem 99,2 %**, e não os 93,7 %
-que eu tinha escrito.
+**A razão de ser, e é uma só:** o compute custa o mesmo por aula e o Avançado vende a aula quatro vezes
+mais barata (R$ 0,175 contra R$ 0,699). **A escada de valor é, do lado do custo, um subsídio.** Dez
+escolas do Básico cabem a R$ 0 (R$ 699 de receita); do Avançado cabe **uma** (R$ 139,90).
 
-**Uma divergência que fica declarada, e não se corrige aqui.** O §L9c e o §7.2 do plano do contador
-dizem «3 escolas no tamanho máximo», e fizeram a conta com **1 min por aula**
-(`(2 000 − 522) ÷ 440 = 3,4`). Com a unidade medida, 2,0 min, são `1 478 ÷ 880 = 1,7` — **uma escola**.
-A decisão da C25 continua válida; o que muda é a capacidade que dela se tira, e é **menor**. Corrigir o
-§L9c pede a sua própria medição da engenharia, e não se fez.
+**Dois limites duros que fecham o espaço de manobra.** (1) **O Básico não pode passar de 139 aulas**:
+a extensão custa R$ 0,50 e tem de ser mais barata do que a aula do plano de entrada —
+`69,90 ÷ aulas > 0,50 ⟹ aulas < 139,8`. (2) **O Avançado tem de ter mais aulas do que o Intermediário
+por real** — acima de 448 se o Intermediário ficar em 320.
 
-**MEDIDO.** API dos runs do GitHub (1 000 execuções); o plano do ciclo (24 aulas); micro-bancada do
-`pandoc` (59 ms/página, 20 chamadas em 1,187 s) e do validador (32 ms, 50 em 1,629 s). As quatro
-conferências verdes: `check-identidade` (23), `check-schemas`, `check-sem-destruicao`,
-`check-github-headers` (5).
+**A escada proposta: 139 / 320 / 500** (era 100 / 300 / 800).
 
-**Onde entrou.** `CUSTO-DOS-FLUXOS.md` (§10 reescrita — §10.1 a §10.12, com a §10.11 a listar os três
-erros), `ESTADO-ATUAL.md` (a fotografia e a decisão 176), `HANDOFF.md` (regenerado).
+| | Básico | Intermediário | Avançado |
+|:--|--:|--:|--:|
+| variação | **+39 %** | **+7 %** | **−37 %** |
+| aulas/dia (6 dias) | 5,4 | 12,3 | **19,2** (era 31) |
+| a operação | 1 sala | 2 salas × 6,2 | 3 salas × 6,4 |
+| R$ por aula | 0,503 | 0,312 | 0,280 |
+| compute sobre a receita | 13 % | 21 % | **23 %** (era 37 %) |
+
+**A margem com as nove escolas cheias sobe de 83,0 % para 88,1 %** (R$ 110,83 de CI contra R$ 929,10
+de receita, em vez de R$ 157,68). A capacidade a R$ 0 fica **7 / 3 / 2** (era 10 / 3 / 1), e a receita
+máxima gratuita **desce** de R$ 699 para R$ 489,30 — é o preço de dar mais valor no degrau de entrada.
+
+**O que muda na migração, e é a parte que ela não pediu:** com o Básico em 139, a extensão continua a
+compensar até às **259** aulas (era 160), e o Intermediário migra às **400** (era 380). **A extensão
+passa a vender mais** — 120 aulas a mais antes de o upgrade compensar. É bom se a extensão é o produto
+que se quer vender, mau se a migração é o que se quer. **É política, não conta.**
+
+**Duas alternativas ficam na mesa:** A (130/320/500) custa 0,2 pontos de margem e dá 9 aulas menos no
+Básico; C (139/350/560) dá 30 aulas a mais no Intermediário e 60 no Avançado e custa 1,9 pontos de
+margem e uma escola de capacidade em cada plano de cima.
+
+**DECIDIDO** — a proposta é uma recomendação com a conta ao lado; o preço, o tamanho dos passos e a
+política de extensão são comerciais e são dela.
+
+**E o número mais frágil desta secção continua a ser a escola que NÃO gasta a franquia.** Tudo isto
+supõe que ela lança as 139, 320 ou 500 aulas — **o custo só existe quando elas são lançadas.** Uma
+escola que compre o Avançado e lance 50 custa R$ 6,48, e o problema desaparece. É por isso que o
+contador de aulas do mês mede o que a escola **usa**, e não o que ela **pode**.
+
+**MEDIDO.** As franquias, os preços e a extensão, do `planos.json`; o custo do minuto e a unidade de
+2,0 min/aula, da §10. **Calculado, não medido:** a viabilidade por dia (franquia ÷ 4,33 ÷ 6) — a
+operação real de uma escola nunca foi observada. As quatro conferências verdes: `check-identidade`
+(23), `check-schemas`, `check-sem-destruicao`, `check-github-headers` (5).
+
+**Onde entrou.** `CUSTO-DOS-FLUXOS.md` (§11 — §11.1 a §11.8), `ESTADO-ATUAL.md` (a fotografia e a
+decisão 177), `HANDOFF.md` (regenerado).
 
 ## O que está pendente
 

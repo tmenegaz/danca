@@ -60663,3 +60663,72 @@ conferências verdes: `check-identidade` (23), `check-schemas`, `check-sem-destr
 
 **Onde entrou.** `CUSTO-DOS-FLUXOS.md` (§10 reescrita — §10.1 a §10.12, com a §10.11 a listar os três
 erros), `ESTADO-ATUAL.md` (a fotografia e a decisão 176), `HANDOFF.md` (regenerado).
+
+## 25/11/2026 — O equilíbrio da escada: 139 / 320 / 500, e o tecto dos 100 % é do dono da conta
+
+**O que ela trouxe, e trouxe certo.** A viabilidade prática dela — «4 h/dia, 6 dias» para o Básico,
+«12 h seguidas ou 2 salas» para o Intermediário, «31 aulas/dia é impossível numa sala» para o Avançado
+— **confere ao minuto com as franquias**: 100/mês = 3,8/dia; 300 = 11,5/dia; 800 = 30,8/dia. As
+franquias foram desenhadas sobre essas operações. **E é por isso que o cenário dos «16 h por dia» da
+§10 estava errado como retrato:** nenhuma escola do Básico trabalha dezesseis horas; trabalha quatro.
+
+**A resposta à pergunta dela tem uma forma que surpreende: o tecto é o mesmo nos três planos**, porque
+a cota é uma só — a da conta. `2 000 min ÷ 2,0 min/aula = 1 000 aulas/mês no total`. Daí:
+
+| plano | franquia hoje | tecto a 100 % (3 escolas) | veredicto |
+|:--|--:|--:|:--|
+| Básico | 23/semana | **77/semana** | **folga de 3,3×** |
+| Intermediário | 69/semana | **77/semana** | folga de 1,1× — no ponto |
+| Avançado | 185/semana | **77/semana** | **excede 2,4×** |
+
+Com nove escolas o tecto desce a **26 aulas/semana por escola** — 111/mês, pouco acima do Básico.
+**Nove escolas a 100 % de margem só existem se todas forem pequenas.** É o desequilíbrio que ela viu,
+quantificado: o Básico promete um terço do que a conta aguenta, o Avançado 2,4 vezes o que aguenta.
+
+**A razão de ser, e é uma só:** o compute custa o mesmo por aula e o Avançado vende a aula quatro vezes
+mais barata (R$ 0,175 contra R$ 0,699). **A escada de valor é, do lado do custo, um subsídio.** Dez
+escolas do Básico cabem a R$ 0 (R$ 699 de receita); do Avançado cabe **uma** (R$ 139,90).
+
+**Dois limites duros que fecham o espaço de manobra.** (1) **O Básico não pode passar de 139 aulas**:
+a extensão custa R$ 0,50 e tem de ser mais barata do que a aula do plano de entrada —
+`69,90 ÷ aulas > 0,50 ⟹ aulas < 139,8`. (2) **O Avançado tem de ter mais aulas do que o Intermediário
+por real** — acima de 448 se o Intermediário ficar em 320.
+
+**A escada proposta: 139 / 320 / 500** (era 100 / 300 / 800).
+
+| | Básico | Intermediário | Avançado |
+|:--|--:|--:|--:|
+| variação | **+39 %** | **+7 %** | **−37 %** |
+| aulas/dia (6 dias) | 5,4 | 12,3 | **19,2** (era 31) |
+| a operação | 1 sala | 2 salas × 6,2 | 3 salas × 6,4 |
+| R$ por aula | 0,503 | 0,312 | 0,280 |
+| compute sobre a receita | 13 % | 21 % | **23 %** (era 37 %) |
+
+**A margem com as nove escolas cheias sobe de 83,0 % para 88,1 %** (R$ 110,83 de CI contra R$ 929,10
+de receita, em vez de R$ 157,68). A capacidade a R$ 0 fica **7 / 3 / 2** (era 10 / 3 / 1), e a receita
+máxima gratuita **desce** de R$ 699 para R$ 489,30 — é o preço de dar mais valor no degrau de entrada.
+
+**O que muda na migração, e é a parte que ela não pediu:** com o Básico em 139, a extensão continua a
+compensar até às **259** aulas (era 160), e o Intermediário migra às **400** (era 380). **A extensão
+passa a vender mais** — 120 aulas a mais antes de o upgrade compensar. É bom se a extensão é o produto
+que se quer vender, mau se a migração é o que se quer. **É política, não conta.**
+
+**Duas alternativas ficam na mesa:** A (130/320/500) custa 0,2 pontos de margem e dá 9 aulas menos no
+Básico; C (139/350/560) dá 30 aulas a mais no Intermediário e 60 no Avançado e custa 1,9 pontos de
+margem e uma escola de capacidade em cada plano de cima.
+
+**DECIDIDO** — a proposta é uma recomendação com a conta ao lado; o preço, o tamanho dos passos e a
+política de extensão são comerciais e são dela.
+
+**E o número mais frágil desta secção continua a ser a escola que NÃO gasta a franquia.** Tudo isto
+supõe que ela lança as 139, 320 ou 500 aulas — **o custo só existe quando elas são lançadas.** Uma
+escola que compre o Avançado e lance 50 custa R$ 6,48, e o problema desaparece. É por isso que o
+contador de aulas do mês mede o que a escola **usa**, e não o que ela **pode**.
+
+**MEDIDO.** As franquias, os preços e a extensão, do `planos.json`; o custo do minuto e a unidade de
+2,0 min/aula, da §10. **Calculado, não medido:** a viabilidade por dia (franquia ÷ 4,33 ÷ 6) — a
+operação real de uma escola nunca foi observada. As quatro conferências verdes: `check-identidade`
+(23), `check-schemas`, `check-sem-destruicao`, `check-github-headers` (5).
+
+**Onde entrou.** `CUSTO-DOS-FLUXOS.md` (§11 — §11.1 a §11.8), `ESTADO-ATUAL.md` (a fotografia e a
+decisão 177), `HANDOFF.md` (regenerado).
