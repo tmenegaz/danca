@@ -31,7 +31,29 @@
       "versoes": 1
     }
   ],
-  "aulas": [],
+  "aulas": [
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-24",
+        "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.fipp",
+        "cobertura": [
+          "professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.md",
+          "professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-aula-01.md"
+        ],
+        "hash": "34f5e0cf8ef68e27e9f4be0e37bfe8847b8db5db7567ec120ed09a839d413c18",
+        "hash_conteudo": "1b7df154f2e78346fed05bd92bba679ec989cc68499b8179f5ea66cd84666012",
+        "id": "ciclo-01-breu-piano-aula-01",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "ciclo_id": "ciclo:demi-plie/01/breu",
+      "documento": null,
+      "id": "ciclo:demi-plie/01/breu/piano/aula-01",
+      "numero": "01",
+      "variante": "piano"
+    }
+  ],
   "ciclos": [
     {
       "ancora": {
@@ -39,19 +61,54 @@
         "ancorado_em": "2026-11-24",
         "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano.fipp",
         "cobertura": [
+          "professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.md",
+          "professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-aula-01.md",
+          "professores/demi-plie/ciclos/ciclo-01-breu-piano-dados.json",
           "professores/demi-plie/ciclos/ciclo-01-breu-piano-plano.md",
+          "professores/demi-plie/ciclos/ciclo-01-breu-piano-po.md",
           "professores/demi-plie/ciclos/ciclo-01-breu-piano.conf",
           "professores/demi-plie/ciclos/ciclo-01.conf"
         ],
-        "hash": "89b6ab567e01fac754566ded55d52eff4af50f7df7c3746cecafff96baf9e02d",
-        "hash_conteudo": "95bc5ca1ad22ec2677b06a0640d43c1bb7c89ffde376ae4a962d8ad9081d33a6",
+        "hash": "09aa810e4535342b8d7e791d114cc3a8dedddac94fe279eeb0cbc347378e43ce",
+        "hash_conteudo": "0871073d9f2fd225011a84be7f3949053e80774128a8dff40a9622c5350be91a",
         "id": "ciclo-01-breu-piano",
         "lida": true,
         "parent_hash": ""
       },
-      "aulas": [],
+      "aulas": [
+        {
+          "ancora": {
+            "algoritmo": "SHA-256",
+            "ancorado_em": "2026-11-24",
+            "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.fipp",
+            "cobertura": [
+              "professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.md",
+              "professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-aula-01.md"
+            ],
+            "hash": "34f5e0cf8ef68e27e9f4be0e37bfe8847b8db5db7567ec120ed09a839d413c18",
+            "hash_conteudo": "1b7df154f2e78346fed05bd92bba679ec989cc68499b8179f5ea66cd84666012",
+            "id": "ciclo-01-breu-piano-aula-01",
+            "lida": true,
+            "parent_hash": ""
+          },
+          "documento": null,
+          "id": "ciclo:demi-plie/01/breu/piano/aula-01",
+          "numero": "01",
+          "variante": "piano"
+        }
+      ],
       "documentos": [
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.fipp",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.md",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-aula-01.md",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-declaracao.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano-dados.cifrado.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano-dados.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano-harmonizacao.md",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano-notacao.md",
         "professores/demi-plie/ciclos/ciclo-01-breu-piano-plano.md",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano-po.md",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano-referencias.md",
         "professores/demi-plie/ciclos/ciclo-01-breu-piano.conf",
         "professores/demi-plie/ciclos/ciclo-01-breu-piano.fipp",
         "professores/demi-plie/ciclos/ciclo-01-breu.conf",
@@ -67,13 +124,29 @@
       "sem_ancora": false,
       "tipos": [
         "ancora",
+        "aula",
+        "dados",
+        "declaracao",
+        "harmonizacao",
         "manifesto",
+        "notacao",
         "plano",
+        "po",
+        "referencias",
         "schema"
       ]
     }
   ],
   "documentos": [
+    {
+      "ancora_id": "ciclo-01-breu-piano",
+      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.fipp",
+      "ciclo_id": "ciclo:demi-plie/01/breu",
+      "escola": "breu",
+      "id": "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.fipp",
+      "professor": "demi-plie",
+      "tipo": "ancora"
+    },
     {
       "ancora_id": "ciclo-01-breu-piano",
       "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano.fipp",
@@ -91,6 +164,60 @@
       "id": "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu.fipp",
       "professor": "demi-plie",
       "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-piano",
+      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.md",
+      "ciclo_id": "ciclo:demi-plie/01/breu",
+      "escola": "breu",
+      "id": "documento:aula:professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.md",
+      "professor": "demi-plie",
+      "tipo": "aula"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-piano",
+      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-aula-01.md",
+      "ciclo_id": "ciclo:demi-plie/01/breu",
+      "escola": "breu",
+      "id": "documento:aula:professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-aula-01.md",
+      "professor": "demi-plie",
+      "tipo": "aula"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-piano",
+      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano-dados.cifrado.json",
+      "ciclo_id": "ciclo:demi-plie/01/breu",
+      "escola": "breu",
+      "id": "documento:dados:professores/demi-plie/ciclos/ciclo-01-breu-piano-dados.cifrado.json",
+      "professor": "demi-plie",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-piano",
+      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano-dados.json",
+      "ciclo_id": "ciclo:demi-plie/01/breu",
+      "escola": "breu",
+      "id": "documento:dados:professores/demi-plie/ciclos/ciclo-01-breu-piano-dados.json",
+      "professor": "demi-plie",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-piano",
+      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-declaracao.json",
+      "ciclo_id": "ciclo:demi-plie/01/breu",
+      "escola": "breu",
+      "id": "documento:declaracao:professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-declaracao.json",
+      "professor": "demi-plie",
+      "tipo": "declaracao"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-piano",
+      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano-harmonizacao.md",
+      "ciclo_id": "ciclo:demi-plie/01/breu",
+      "escola": "breu",
+      "id": "documento:harmonizacao:professores/demi-plie/ciclos/ciclo-01-breu-piano-harmonizacao.md",
+      "professor": "demi-plie",
+      "tipo": "harmonizacao"
     },
     {
       "ancora_id": "ciclo-01-breu-piano",
@@ -112,12 +239,39 @@
     },
     {
       "ancora_id": "ciclo-01-breu-piano",
+      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano-notacao.md",
+      "ciclo_id": "ciclo:demi-plie/01/breu",
+      "escola": "breu",
+      "id": "documento:notacao:professores/demi-plie/ciclos/ciclo-01-breu-piano-notacao.md",
+      "professor": "demi-plie",
+      "tipo": "notacao"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-piano",
       "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano-plano.md",
       "ciclo_id": "ciclo:demi-plie/01/breu",
       "escola": "breu",
       "id": "documento:plano:professores/demi-plie/ciclos/ciclo-01-breu-piano-plano.md",
       "professor": "demi-plie",
       "tipo": "plano"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-piano",
+      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano-po.md",
+      "ciclo_id": "ciclo:demi-plie/01/breu",
+      "escola": "breu",
+      "id": "documento:po:professores/demi-plie/ciclos/ciclo-01-breu-piano-po.md",
+      "professor": "demi-plie",
+      "tipo": "po"
+    },
+    {
+      "ancora_id": "ciclo-01-breu-piano",
+      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano-referencias.md",
+      "ciclo_id": "ciclo:demi-plie/01/breu",
+      "escola": "breu",
+      "id": "documento:referencias:professores/demi-plie/ciclos/ciclo-01-breu-piano-referencias.md",
+      "professor": "demi-plie",
+      "tipo": "referencias"
     },
     {
       "ancora_id": "ciclo-01-breu-piano",
@@ -135,13 +289,13 @@
     ],
     "contagens": {
       "anamneses": 1,
-      "aulas": 0,
+      "aulas": 1,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 1,
-      "pos": 0,
+      "pos": 1,
       "recortes": 1,
-      "registros": 2
+      "registros": 3
     },
     "criada_em": "2026-11-23T10:26:27.415407+00:00",
     "expurgada": false,
@@ -156,17 +310,19 @@
     ],
     "registros": [
       "anamnese:anamnese-20261123-1055",
-      "plano:plano-20261124-0811"
+      "plano:plano-20261124-0811",
+      "po:po-20261124-0815"
     ],
     "slug": "breu"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "anamnese:anamnese-20261123-1055",
-          "plano:plano-20261124-0811"
+          "plano:plano-20261124-0811",
+          "po:po-20261124-0815"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -210,11 +366,12 @@
     ],
     "professores": [
       {
-        "contagem": 3,
+        "contagem": 4,
         "ids": [
           "anamnese:anamnese-20261123-1055",
           "ciclo:demi-plie/01/breu",
-          "plano:plano-20261124-0811"
+          "plano:plano-20261124-0811",
+          "po:po-20261124-0815"
         ],
         "rotulo": "demi-plie",
         "valor": "demi-plie"
@@ -244,14 +401,22 @@
         ],
         "rotulo": "Plano de ensino",
         "valor": "plano"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "po:po-20261124-0815"
+        ],
+        "rotulo": "Plano de observação",
+        "valor": "po"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "a270117"
+    "commit": "0ea82c6"
   },
-  "gerado_em": "2026-11-24T11:12",
+  "gerado_em": "2026-11-24T11:16",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -327,6 +492,16 @@
       "professor": "demi-plie",
       "tipo": "plano",
       "turma": "Piano"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "po-20261124-0815",
+      "ciclo": "01",
+      "data": "2026-11-24T08:15",
+      "id": "po:po-20261124-0815",
+      "professor": "demi-plie",
+      "tipo": "po"
     }
   ],
   "versao": 7

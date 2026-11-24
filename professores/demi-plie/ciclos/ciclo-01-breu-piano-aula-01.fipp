@@ -1,0 +1,20 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Âncora da AULA 01 do ciclo 01-breu-piano: cobre só as fontes desta aula.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# parentHash vazio por desenho: a âncora de uma aula não encadeia com a da anterior.
+
+id: ciclo-01-breu-piano-aula-01
+type: Aula
+professor: demi-plie
+ciclo: 01
+variante: breu-piano
+aula: 01
+hash_conteudo: 1b7df154f2e78346fed05bd92bba679ec989cc68499b8179f5ea66cd84666012
+parentHash: 
+hash: 34f5e0cf8ef68e27e9f4be0e37bfe8847b8db5db7567ec120ed09a839d413c18
+algoritmo: SHA-256
+ancorado_em: 2026-11-24
+cobertura:
+  - professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.md
+  - professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-aula-01.md

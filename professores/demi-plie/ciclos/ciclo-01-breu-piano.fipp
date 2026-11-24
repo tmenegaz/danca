@@ -10,12 +10,12 @@ type: Ciclo
 professor: demi-plie
 ciclo: 01
 variante: breu-piano
-hash_conteudo: 95bc5ca1ad22ec2677b06a0640d43c1bb7c89ffde376ae4a962d8ad9081d33a6
+hash_conteudo: 0871073d9f2fd225011a84be7f3949053e80774128a8dff40a9622c5350be91a
 parentHash: 
-hash: 89b6ab567e01fac754566ded55d52eff4af50f7df7c3746cecafff96baf9e02d
+hash: 09aa810e4535342b8d7e791d114cc3a8dedddac94fe279eeb0cbc347378e43ce
 algoritmo: SHA-256
-po: ausente — este ciclo ainda não tem PO declarado
-po_state: 
+po: professores/demi-plie/ciclos/ciclo-01-breu-piano-po.md
+po_state: Input_PO_Validado
 ancorado_em: 2026-11-24
 notacao: Código de dança
 notacao_modalidade: bale-classico
@@ -24,6 +24,10 @@ notacao_versao: 64
 notacao_sha: 7f2f0c56435f5ed22c568fc5f88ae88ce9a3d2b9d158b9ed04f4b6c1d944b5f0
 notacao_vocabulario_sha: e061d8d48f595ca5c2d714cf948af9d11b02ab7f245394b15129fd8c865e8d0c
 cobertura:
+  - professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.md
+  - professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-aula-01.md
+  - professores/demi-plie/ciclos/ciclo-01-breu-piano-dados.json
   - professores/demi-plie/ciclos/ciclo-01-breu-piano-plano.md
+  - professores/demi-plie/ciclos/ciclo-01-breu-piano-po.md
   - professores/demi-plie/ciclos/ciclo-01-breu-piano.conf
   - professores/demi-plie/ciclos/ciclo-01.conf
