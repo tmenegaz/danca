@@ -1,0 +1,77 @@
+{
+  "contexto": {
+    "frequenciaSemanal": "3x semanal — seg e qua e sex",
+    "duracaoPorAula": "55 minutos",
+    "calendario": "2027-01-04 → 2027-02-26",
+    "numeroTotalDeAulas": "24",
+    "professorResponsavel": "demi-plie",
+    "turmaObservada": "Piano",
+    "volumeDeTrabalho": "3–6 séries",
+    "condicaoDeRegistro": "Na sala: professor, alunas da turma · observa: o próprio professor.",
+    "metodologiaDeReferencia": "RAD",
+    "notacaoDeDanca": "Código de dança"
+  },
+  "objetivoGeral": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
+  "objetivosEspecificos": [
+    {
+      "n": "01",
+      "objetivo": "transferir o peso entre os pés sem perder o alinhamento",
+      "blocos": "Solo · Barra · Centro · Musicalidade · Expressão"
+    }
+  ],
+  "marcosPorAula": [
+    {
+      "n": "01",
+      "objetivos": "01",
+      "marco": "transferir o peso entre os pés sem perder o alinhamento"
+    }
+  ],
+  "distribuicaoDeVolume": [
+    {
+      "bloco": "Solo",
+      "proporcaoAlvo": "20%",
+      "justificativa": "Aquecimento e consciência corporal."
+    },
+    {
+      "bloco": "Barra",
+      "proporcaoAlvo": "30%",
+      "justificativa": "Apoio e alinhamento."
+    },
+    {
+      "bloco": "Centro",
+      "proporcaoAlvo": "30%",
+      "justificativa": "Transferência e sequência."
+    },
+    {
+      "bloco": "Musicalidade",
+      "proporcaoAlvo": "10%",
+      "justificativa": "Pulso e frase."
+    },
+    {
+      "bloco": "Expressão",
+      "proporcaoAlvo": "10%",
+      "justificativa": "Levesa e fluição"
+    }
+  ],
+  "condicoesPreliminares": [
+    "Sala com barra, espelho e aparelho de som; piso adequado."
+  ],
+  "reguaDaRubrica": [
+    "Domina",
+    "Satisfatório",
+    "Não domina",
+    "Não medido"
+  ],
+  "criterioDeExtensao": "Estender o ciclo em duas aulas se o último marco não for alcançado.",
+  "musicasVideos": [
+    "Faixa de teste em 4/4 e 3/4; vídeo de referência de teste."
+  ],
+  "repertorio": [
+    "Battement jeté",
+    "Battement tendu",
+    "Plié",
+    "Relevé"
+  ],
+  "proveniencia": "Plano derivado da metodologia RAD, adaptado ao âmbito da turma; Plano derivado de literatura de apoio sobre corpo e aula",
+  "calendario": "[Preencher: o calendário não está no .md — o gerador injeta o bloco calculado do .conf da variante (Regra 10, camada 2)]"
+}

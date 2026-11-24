@@ -34,14 +34,17 @@
     "documento:aula:professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-aula-01.md",
     "documento:dados:professores/demi-plie/ciclos/ciclo-01-breu-piano-dados.cifrado.json",
     "documento:dados:professores/demi-plie/ciclos/ciclo-01-breu-piano-dados.json",
+    "documento:dados:professores/demi-plie/ciclos/ciclo-01-breu-piano/ciclo-01-breu-piano-dados.json",
     "documento:declaracao:professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-declaracao.json",
     "documento:harmonizacao:professores/demi-plie/ciclos/ciclo-01-breu-piano-harmonizacao.md",
+    "documento:indice:professores/demi-plie/ciclos/ciclo-01-breu-piano/ciclos.json",
     "documento:manifesto:professores/demi-plie/ciclos/ciclo-01-breu-piano.conf",
     "documento:manifesto:professores/demi-plie/ciclos/ciclo-01-breu.conf",
     "documento:notacao:professores/demi-plie/ciclos/ciclo-01-breu-piano-notacao.md",
     "documento:plano:professores/demi-plie/ciclos/ciclo-01-breu-piano-plano.md",
     "documento:po:professores/demi-plie/ciclos/ciclo-01-breu-piano-po.md",
     "documento:referencias:professores/demi-plie/ciclos/ciclo-01-breu-piano-referencias.md",
+    "documento:schema:professores/demi-plie/ciclos/ciclo-01-breu-piano/plano-observacao/envelope/elicitacao-schema.json",
     "documento:schema:professores/demi-plie/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "breu",
@@ -59,7 +62,7 @@
         "valor": "aula"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "dados",
         "valor": "dados"
       },
@@ -72,6 +75,11 @@
         "contagem": 1,
         "rotulo": "harmonizacao",
         "valor": "harmonizacao"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "indice",
+        "valor": "indice"
       },
       {
         "contagem": 2,
@@ -99,7 +107,7 @@
         "valor": "referencias"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "schema",
         "valor": "schema"
       }
