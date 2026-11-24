@@ -61221,3 +61221,40 @@ fica aberta sobre a regra das alunas por modalidade, e o que a mudança quebra �
 com as parcelas trocadas — a família de erro da decisão 174. Corrigida no mesmo dia: passa a afirmar
 os **componentes**, um a um (12 → 14 asserções), e o `2a` do documento foi substituído pelo **`3a`**
 medido.
+
+## 25/11/2026 — A regra da ocupação: sala, professor e elenco — e as quatro decisões dela
+
+**As quatro perguntas, respondidas no mesmo dia.** A regra das alunas por modalidade: **substituir** —
+a aluna pode estar em duas Turmas da mesma modalidade se não colidirem. A Turma sem hora: **recusar a
+gravação**. Períodos que não se tocam: **permitir**. Dois elencos no mesmo horário: **recusar sempre**.
+
+**A decisão 2 é mais forte do que a minha recomendação, e é a certa.** Eu propunha saltar a verificação
+e dizê-lo, para não transformar um dado antigo em parede. Ela escolheu recusar: o dado fica **completo**,
+e a colisão deixa de estar por conferir exactamente nas turmas antigas — que são as que já estão
+gravadas. `diasSemHora()` nomeia os dias em falta, e a mensagem diz quais.
+
+**O que ficou feito.** `motor/nucleo/ocupacao.js` — a regra pura, sem I/O: `intervalosDaSala`,
+`periodosTocamSe`, `conflitosEntre`, `ocupacaoDaCuradoria`, `conflitosDaCuradoria` e
+`motivoDoConflito`. E `experimentos/provar-a-ocupacao.js`, **46 asserções**, com os cinco casos-limite
+da sobreposição (encadeadas 14–15 e 15–16 **não** colidem, porque o intervalo é meio-aberto), o
+período como quarta dimensão, os três recursos cada um a decidir sozinho, a decisão dela sobre a aluna
+na mesma modalidade, a turma sem hora recusada, o que não está em vigor a não ocupar, a mensagem com o
+dia e as **duas** horas, e os controlos negativos. **Vermelha sem a mudança.**
+
+**Dois defeitos meus, que a prova apanhou, e são os dois da mesma família.** (1) `periodosTocamSe`
+lia `periodoInicio`/`periodoFim` da turma e recebia o objecto do período — um campo que não existe
+dava `null → «não se sabe» → trata como tocando`, e o resultado era `true` em **todos** os casos.
+Passou despercebido porque o lado conservador dá «colide»: só a asserção da sucessão de salas, a única
+que espera `false`, o apanhou. (2) `conflitosDaCuradoria` só excluía a própria curadoria se o chamador
+passasse `excetoId` — e quem edita não passa: a curadoria colidia **consigo mesma** e nenhuma edição
+passaria. A exclusão passou a ser implícita pelo id.
+
+**O bloqueio ainda está de pé, e é importante não o esconder.** A regra nova existe e está provada,
+mas **as rotas continuam a chamar a antiga** (`salasOcupadas`): a escola com balé 1 às 14h e balé 2 às
+16h na mesma sala **ainda recebe 409**. Os passos 3 a 5 do plano — trocar a chamada nos dois sítios,
+ligar professor e elenco, e reescrever as **41 asserções** de `provar-mudanca-de-sala` — são uma
+operação só, e é a próxima.
+
+**Onde entrou.** `motor/nucleo/ocupacao.js` (novo), `experimentos/provar-a-ocupacao.js` (novo),
+`PLANO-DE-OCUPACAO.md` (§8 com as decisões, §9 com o estado), `.gitignore`, `ESTADO-ATUAL.md`
+(decisão 186 atualizada), `HANDOFF.md`.

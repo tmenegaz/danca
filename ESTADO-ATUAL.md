@@ -4390,8 +4390,14 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      aulas no mesmo horário». A premissa de 09/11 era «uma sala = um horário»; a Sala é o ritmo e tem
      vários. O plano (`PLANO-DE-OCUPACAO.md`) põe a regra em intervalos por dia, nos **três
      recursos** — sala, professor, elenco/aluna —, e declara que `provar-mudanca-de-sala` (**41
-     asserções**) terá de ser reescrita. **DECIDIDO** (o custo e o desenho) e **PENDENTE** (duas
-     perguntas de §8 do plano de ocupação: a regra das alunas por modalidade, e a turma sem hora).
+     asserções**) terá de ser reescrita. **DECIDIDO** (o custo e o desenho) e **APLICADO** em parte
+     (a regra pura e a prova, 46 asserções). **As quatro perguntas de §8 foram respondidas a 25/11**:
+     alunas por modalidade — **substituir**; turma sem hora — **recusar a gravação** (mais forte do que
+     eu recomendava, e a consequência é a certa: o dado fica completo e a colisão deixa de estar por
+     conferir nas turmas antigas); períodos que não se tocam — **permitir**; dois elencos no mesmo
+     horário — **recusar sempre**. **E o bloqueio ainda está de pé:** as rotas continuam a chamar a
+     regra antiga, e a escola com balé 1 às 14h e balé 2 às 16h na mesma sala **ainda recebe 409** até
+     os passos 3 a 5 entrarem — que são uma operação só, e é a próxima.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a

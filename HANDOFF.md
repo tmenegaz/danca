@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-24T17:19:46-0300`
-Commit atual: `0e2340db` — feat(estrutura): a analítica do Cloudflare ligada ao painel — os pedidos e as operações de KV por dia
+Gerado em: `2026-11-24T17:25:41-0300`
+Commit atual: `dfbaf973` — docs(estrutura): o custo por aula é 3 minutos medidos, o contador custa zero, e a regra da sala recusa o que ela pediu
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+dfbaf973 docs(estrutura): o custo por aula é 3 minutos medidos, o contador custa zero, e a regra da sala recusa o que ela pediu
 0e2340db feat(estrutura): a analítica do Cloudflare ligada ao painel — os pedidos e as operações de KV por dia
 7f834e90 feat(estrutura): os schemas do ciclo passam de cinco commits a um, e a analítica do Cloudflare já está habilitada
 c179465f fix(estrutura): a implementação do lote, que o commit anterior não levou
@@ -101,7 +102,6 @@ ad7d1c8a docs(estrutura): escada 130/320/500 com dólar a R$ 6, e a margem não 
 10f5c242 feat(estrutura): a árvore do repositório pede-se uma vez por commit
 f286c3b1 chore(estrutura): o REGISTRO partido por ano — índice e arquivo anual
 112a15b8 docs(registro): a mesa dos N ciclos, e a factura medida das execuções
-a0d0fe6b feat(ciclo-01): a mesa dos N ciclos, e o ciclo zero que a guarda deixava passar
 ```
 
 ## Por professor
@@ -195,69 +195,42 @@ a0d0fe6b feat(ciclo-01): a mesa dos N ciclos, e o ciclo zero que a guarda deixav
 
 ## Última entrada do REGISTRO
 
-## 25/11/2026 — O custo por aula medido (3 min, não 2), o contador custa zero, e a regra da sala recusa o que ela pediu
+## 25/11/2026 — A regra da ocupação: sala, professor e elenco — e as quatro decisões dela
 
-**Três coisas, e a terceira é a que bloqueia.**
+**As quatro perguntas, respondidas no mesmo dia.** A regra das alunas por modalidade: **substituir** —
+a aluna pode estar em duas Turmas da mesma modalidade se não colidirem. A Turma sem hora: **recusar a
+gravação**. Períodos que não se tocam: **permitir**. Dois elencos no mesmo horário: **recusar sempre**.
 
-### 1. O custo: o modelo `2a` estava optimista
+**A decisão 2 é mais forte do que a minha recomendação, e é a certa.** Eu propunha saltar a verificação
+e dizê-lo, para não transformar um dado antigo em parede. Ela escolheu recusar: o dado fica **completo**,
+e a colisão deixa de estar por conferir exactamente nas turmas antigas — que são as que já estão
+gravadas. `diasSemHora()` nomeia os dias em falta, e a mensagem diz quais.
 
-A factura real de Novembro: **2 511 min, $15,07 bruto, $15,07 de desconto, $0,00 a pagar.** Mas ao
-medir os jobs apareceu o que faltava: **todos os jobs estão abaixo de 60 s, e cada um factura 1
-minuto** — a geração, que o §12 media a 110 s p50, está hoje em **14–43 s**. E **um acto não é uma
-execução**: o «Guardar» do PO de 24/11 às 11:15 acordou **4 execuções — 3 do `derivados` (2
-canceladas) e 1 geração** —, e as canceladas pagam-se.
+**O que ficou feito.** `motor/nucleo/ocupacao.js` — a regra pura, sem I/O: `intervalosDaSala`,
+`periodosTocamSe`, `conflitosEntre`, `ocupacaoDaCuradoria`, `conflitosDaCuradoria` e
+`motivoDoConflito`. E `experimentos/provar-a-ocupacao.js`, **46 asserções**, com os cinco casos-limite
+da sobreposição (encadeadas 14–15 e 15–16 **não** colidem, porque o intervalo é meio-aberto), o
+período como quarta dimensão, os três recursos cada um a decidir sozinho, a decisão dela sobre a aluna
+na mesma modalidade, a turma sem hora recusada, o que não está em vigor a não ocupar, a mensagem com o
+dia e as **duas** horas, e os controlos negativos. **Vermelha sem a mudança.**
 
-| modelo | min/aula | 2 850 aulas | custo a R$ 6 | margem |
-|:--|--:|--:|--:|--:|
-| o do documento (`2a`) | 2 | 5 700 | R$ 133,20 | 85,7 % |
-| **medido antes das ondas (`4a`)** | 4 | 11 400 | R$ 338,40 | 63,6 % |
-| **medido depois (`3a`)** | 3 | 8 550 | **R$ 235,80** | **74,6 %** |
+**Dois defeitos meus, que a prova apanhou, e são os dois da mesma família.** (1) `periodosTocamSe`
+lia `periodoInicio`/`periodoFim` da turma e recebia o objecto do período — um campo que não existe
+dava `null → «não se sabe» → trata como tocando`, e o resultado era `true` em **todos** os casos.
+Passou despercebido porque o lado conservador dá «colide»: só a asserção da sucessão de salas, a única
+que espera `false`, o apanhou. (2) `conflitosDaCuradoria` só excluía a própria curadoria se o chamador
+passasse `excetoId` — e quem edita não passa: a curadoria colidia **consigo mesma** e nenhuma edição
+passaria. A exclusão passou a ser implícita pelo id.
 
-**As ondas não melhoraram um cenário bom — recuperaram 11 pontos de margem** (R$ 102,60/mês às nove
-escolas cheias) que estavam a ser pagos sem ninguém ver. E o número honesto hoje é **R$ 235,80**, não
-R$ 133,20. A alavanca seguinte, declarada com a conta: o `derivados.yml` deixar de observar o pacote
-gerado — leva um acto a **2 min** e devolve a margem a **85,7 %**.
+**O bloqueio ainda está de pé, e é importante não o esconder.** A regra nova existe e está provada,
+mas **as rotas continuam a chamar a antiga** (`salasOcupadas`): a escola com balé 1 às 14h e balé 2 às
+16h na mesma sala **ainda recebe 409**. Os passos 3 a 5 do plano — trocar a chamada nos dois sítios,
+ligar professor e elenco, e reescrever as **41 asserções** de `provar-mudanca-de-sala` — são uma
+operação só, e é a próxima.
 
-### 2. O contador de aulas custa ZERO minutos de GitHub
-
-`aulas-dadas.js:112` já lê `ciclos.json` por `lerAsset()` — **do ASSETS, que não é rede**. O
-`montar-publicacao.js` já junta todas as variantes de uma escola. E o `ciclos.json` real tem
-`n, data, inicio, fim, marco, lancada, ancora, prazo, config` — conferido no `ciclo-01-breu-piano`.
-
-O que falta é **uma função**: `contarAulasDoMes({ ciclos, competencia })`. A comparação com a
-franquia, os quatro estados, o excedente e a disciplina do `null ≠ 0` **já existem** em
-`comercial.situacaoDaFranquia`. Os passos 1 a 5 do plano **não custam um minuto**; o passo 6 (o botão
-«criar a aula N») custa o que uma aula já custa.
-
-### 3. A regra da sala recusa exactamente o cenário que ela descreveu — **medido**
-
-Ela: «ciclos diferentes que podem estar no mesmo período […] o que diferencia é o dia da semana […]
-ou o horário». O código, em `estado-da-turma.js:181`: **«Uma sala recebe UMA Turma por vez: duas
-Turmas na mesma sala são duas aulas no mesmo horário, no mesmo lugar.»**
-
-Correndo a função verdadeira com duas curadorias na mesma sala e horas diferentes (14h e 16h):
-`salasOcupadas` responde **ocupada**, e a mensagem diz «no mesmo horário» sobre duas aulas a 14h e
-16h — e acrescenta «não há nenhuma outra sala livre», empurrando a escola a criar uma sala que não
-precisa.
-
-**É um bloqueio, e não um detalhe:** a escola que tem balé 1 às 14h e balé 2 às 16h na mesma sala
-recebe **409**. A premissa de 09/11 era «uma sala = um horário»; a Sala é o ritmo, e tem vários.
-
-O plano está em `PLANO-DE-OCUPACAO.md`, com a regra formalizada (intervalos por dia, meio-abertos,
-com período), os três recursos (**sala, professor, elenco/aluna**), os casos-limite, a decisão que
-fica aberta sobre a regra das alunas por modalidade, e o que a mudança quebra — incluindo
-**`provar-mudanca-de-sala`, 41 asserções**, que afirma a regra antiga e terá de ser reescrita.
-
-**Onde entrou.** `CUSTO-DOS-FLUXOS.md` (§20), `PLANO-CONTADOR-DE-AULAS.md` (§9),
-`PLANO-DE-OCUPACAO.md` (novo), `ESTADO-ATUAL.md` (fotografia e decisão 186), `HANDOFF.md`.
-
-**E uma prova que acertava pelo motivo errado.** `provar-o-custo-da-aula.js` diz **3 minutos** desde
-19/11/2026, enquanto este documento dizia 2 — mas ela afirmava `1 derivados + 2 geração`, e hoje é
-`2 derivados + 1 geração`. O total coincide e a decomposição é **oposta**: a geração abaratou (110 s →
-14–43 s) e o derivados encareceu (1 → 2–3 execuções por gravação). A prova passava pelo número certo
-com as parcelas trocadas — a família de erro da decisão 174. Corrigida no mesmo dia: passa a afirmar
-os **componentes**, um a um (12 → 14 asserções), e o `2a` do documento foi substituído pelo **`3a`**
-medido.
+**Onde entrou.** `motor/nucleo/ocupacao.js` (novo), `experimentos/provar-a-ocupacao.js` (novo),
+`PLANO-DE-OCUPACAO.md` (§8 com as decisões, §9 com o estado), `.gitignore`, `ESTADO-ATUAL.md`
+(decisão 186 atualizada), `HANDOFF.md`.
 
 ## O que está pendente
 

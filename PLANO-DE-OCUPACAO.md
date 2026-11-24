@@ -213,11 +213,40 @@ porque é dela que sai o calendário que o contador soma.
 
 ---
 
-## 8. Decisões que ficam abertas — para ela
+## 8. As quatro decisões — **respondidas a 25/11/2026**
 
-| # | a pergunta | a recomendação |
+| # | a pergunta | a decisão dela |
 |:--|:--|:--|
-| 1 | a regra das alunas por modalidade: **(a) substituir** ou **(b) manter as duas**? (§5.4) | **(a)** — é o que ela descreveu |
-| 2 | uma Turma **sem hora** num dia: salta-se e diz-se, ou recusa-se a gravação? (§5.1) | **salta-se e diz-se** — recusar por um dado que não existe é uma parede |
-| 3 | dois períodos que não se tocam na mesma sala: permitir? (§5.2) | **permitir** — é a sucessão normal de uma sala |
-| 4 | a excepção dos dois elencos no mesmo horário: recusar sempre, ou haver um «forçar» declarado? | **recusar sempre** — ela disse que o sistema não prevê |
+| 1 | a regra das alunas por modalidade: substituir ou manter as duas? (§5.4) | **(a) SUBSTITUIR** — a aluna pode estar em duas Turmas da mesma modalidade, se não colidirem no horário |
+| 2 | uma Turma **sem hora** num dia: salta-se, ou recusa-se a gravação? (§5.1) | **RECUSAR a gravação** — e é mais forte do que eu recomendava |
+| 3 | dois períodos que não se tocam na mesma sala: permitir? (§5.2) | **PERMITIR** — é a sucessão normal de uma sala |
+| 4 | dois elencos no mesmo horário: recusar sempre, ou um «forçar» declarado? | **RECUSAR SEMPRE** — o sistema não prevê a excepção |
+
+**A decisão 2 muda a regra, e vale escrever porquê.** Eu recomendava saltar a verificação e dizê-lo,
+para não transformar um dado antigo em parede. Ela escolheu **recusar**, e a consequência é a certa:
+o dado fica **completo**, e a colisão deixa de estar por conferir exactamente nas turmas antigas — que
+são as que já estão gravadas. Uma Turma que hoje não declara a hora de um dia passa a ser convidada a
+preenchê-la na próxima gravação, e a mensagem nomeia **os dias em falta**. `diasSemHora()` é a função
+que os nomeia.
+
+---
+
+## 9. O estado da obra — 25/11/2026
+
+| # | passo | estado |
+|:--|:--|:--|
+| 1 | `motor/nucleo/ocupacao.js` — a regra pura | **FEITO** |
+| 2 | a prova, com os casos-limite | **FEITO** — `experimentos/provar-a-ocupacao.js`, **46 asserções** |
+| 3 | trocar a pergunta do `salasOcupadas` pela regra nova, nos dois sítios | **por fazer** |
+| 4 | acrescentar professor e elenco às rotas | **a regra já os tem**; falta ligá-la |
+| 5 | reescrever as 41 asserções de `provar-mudanca-de-sala` | **por fazer** |
+| 6 | a tela: a faixa horária na aba Salas | **por fazer** |
+
+**O bloqueio que ela descreveu ainda está de pé**, e é importante não o esconder: a regra nova existe
+e está provada, mas **as rotas continuam a chamar a antiga**. A escola que tem balé 1 às 14h e balé 2
+às 16h na mesma sala **ainda recebe 409** até o passo 3 entrar. O que os passos 1 e 2 dão é a regra
+certa, provada, para o passo 3 ser só uma troca de chamada — e não uma reescrita às cegas.
+
+**A ordem dos passos 3 a 5 é uma só operação**, e é por isso que ela não se parte: trocar a chamada
+sem reescrever a prova deixa a suite vermelha sobre a decisão certa, e reescrever a prova sem trocar a
+chamada não mede nada.
