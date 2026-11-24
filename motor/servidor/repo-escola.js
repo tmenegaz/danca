@@ -254,7 +254,7 @@ function professoresDosCaminhos(caminhos) {
  * Sem índice (ou sem `nome`), devolve `nome: null`: a lista serve para ESCOLHER, e um nome
  * ausente não impede escolher pelo slug.
  */
-async function listarProfessores({ token, dono, repo, ref, fetchImpl }) {
+async function listarProfessores({ token, dono, repo, ref, fetchImpl, kv }) {
   const caminhos = await arvoreDeCaminhos({ token, dono, repo, ref, fetchImpl });
   const slugs = professoresDosCaminhos(caminhos);
   const escolas = escolasDosCaminhos(caminhos);
@@ -338,7 +338,7 @@ async function listarProfessoresPeloIndice({ token, dono, repo, ref, fetchImpl, 
       // segue para a varredura
     }
   }
-  const professores = await listarProfessores({ token, dono, repo, ref, fetchImpl });
+  const professores = await listarProfessores({ token, dono, repo, ref, fetchImpl, kv });
   return { ok: true, doIndice: false, doCache: false, custo: null, professores };
 }
 
@@ -549,18 +549,22 @@ function classificarPreservados(caminhos, professor, slug) {
   };
 }
 
-/** A árvore do repositório, recursiva — numa chamada. Só os `blob` interessam. */
-async function arvoreDeCaminhos({ token, dono, repo, ref, fetchImpl }) {
-  const f = fetchImpl || fetch;
-  const url = 'https://api.github.com/repos/' + dono + '/' + repo + '/git/trees/' + ref + '?recursive=1';
-  const r = await pedir(f, url, token);
-  if (!r.ok) throw new Error('não li a árvore do repositório: HTTP ' + r.status);
-  const tree = (r.corpo && r.corpo.tree) || [];
-  return tree.filter((t) => t.type === 'blob').map((t) => t.path);
+/**
+ * A árvore do repositório, recursiva — numa chamada. Só os `blob` interessam.
+ *
+ * PASSA PELO LEITOR PARTILHADO DESDE 24/11/2026 — ver `arvore-do-repo.js`. A assinatura ficou a
+ * mesma (são SEIS chamadores aqui dentro, e nenhum deles tinha de mudar); o que mudou é que o
+ * `GET` de 273 KB só acontece quando o commit do ramo muda. `kv` é opcional: sem ele, o leitor
+ * pede a árvore como antes, e nada falha.
+ */
+async function arvoreDeCaminhos({ token, dono, repo, ref, fetchImpl, kv }) {
+  const { criarLeitorDaArvore } = require('./arvore-do-repo.js');
+  const leitor = criarLeitorDaArvore({ token, dono, repo, ref, fetchImpl, kv });
+  return leitor.caminhos();
 }
 
 /** As escolas que o repositório declara, em ordem de slug. A raiz sai. */
-async function listarEscolas({ token, dono, repo, ref, fetchImpl }) {
+async function listarEscolas({ token, dono, repo, ref, fetchImpl, kv }) {
   const caminhos = await arvoreDeCaminhos({ token, dono, repo, ref, fetchImpl });
   /* QUEM É SHARD SAI DA LISTA, E A PERGUNTA É A DO `shards.js` (25/11/2026). O marcador mora no
    * CONFIG (`PACOTE_PARTILHADO`), e a árvore só traz caminhos — é uma leitura a mais, e só para
@@ -618,7 +622,7 @@ async function listarEscolasPeloIndice({ token, dono, repo, ref, fetchImpl, kv, 
       // segue para a varredura
     }
   }
-  const escolas = await listarEscolas({ token, dono, repo, ref, fetchImpl });
+  const escolas = await listarEscolas({ token, dono, repo, ref, fetchImpl, kv });
   return { ok: true, doIndice: false, doCache: false, custo: null, escolas };
 }
 

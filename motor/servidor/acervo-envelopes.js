@@ -56,6 +56,8 @@
 const Cifra = require('../../tools/lib-cifra.js');
 
 const { base64De, textoDeBase64, cabecalhosDe: cabecalhosDaApi } = require('./github-api.js');
+/* A ÁRVORE DO REPOSITÓRIO, LIDA UMA VEZ E GUARDADA POR COMMIT (24/11/2026) — ver o módulo. */
+const { criarLeitorDaArvore } = require('./arvore-do-repo.js');
 
 // O teto do runtime do Worker (o mesmo do `cifrar-envelope.js`: o WebCrypto do workerd recusa
 // PBKDF2 acima de 100.000). O envelope é autodescritivo — `_cifrado.iteracoes` viaja no
@@ -236,7 +238,7 @@ const cabecalhosDe = (token) => cabecalhosDaApi(token, { conteudo: true });
  *
  * `escola` vazia não tem acervo: sem slug não há caminho (o Worker da raiz não é escola).
  */
-function criarAcervoDeEnvelopes({ token, dono, repo, ref, escola, senhaCripto, cifrar, fetchImpl, legado }) {
+function criarAcervoDeEnvelopes({ token, dono, repo, ref, escola, senhaCripto, cifrar, fetchImpl, legado, kv }) {
   const slug = String(escola || '').trim();
   const f = fetchImpl || fetch;
   const base = 'https://api.github.com/repos/' + (dono || DONO_PADRAO) + '/' + (repo || REPO_PADRAO);
@@ -269,17 +271,26 @@ function criarAcervoDeEnvelopes({ token, dono, repo, ref, escola, senhaCripto, c
     return achado;
   }
 
-  /** A árvore do repositório (UMA chamada), filtrada no acervo desta escola. */
+  /* A ÁRVORE PASSA A VIR DO LEITOR PARTILHADO (24/11/2026) — ver `arvore-do-repo.js`.
+   *
+   * O que havia aqui: um `GET …/git/trees/{ramo}?recursive=1` que devolve **273 KB**, memoizado
+   * em `indice` — mas o `indice` vive o tempo DESTE armazenamento, que a ponte cria por `fetch`.
+   * Quer dizer: a memoização servia as três rotas de uma página e mais nada; a página seguinte
+   * pagava os 273 KB outra vez. Com o leitor, paga-se 365 bytes (o commit) e uma leitura de KV, e
+   * a lista completa só se pede quando o commit muda.
+   *
+   * O FILTRO POR ESCOLA FICA — a cache guarda a árvore INTEIRA, uma, e cada escola filtra a sua
+   * parte. Guardar por escola seria a mesma árvore N vezes. */
+  const leitorDaArvore = criarLeitorDaArvore({
+    token, dono, repo, ref: ramo, fetchImpl: f, kv,
+  });
+
+  /** A árvore do repositório, filtrada no acervo desta escola. */
   async function arvore() {
     if (indice) return indice;
-    const r = await f(base + '/git/trees/' + encodeURIComponent(ramo) + '?recursive=1',
-      { method: 'GET', headers: cabecalhos });
-    if (!r.ok) throw new Error('acervo: não li a árvore do repositório: HTTP ' + r.status);
-    const dados = await r.json().catch(() => null);
     const nomes = [];
-    for (const item of (dados && dados.tree) || []) {
-      if (!item || item.type !== 'blob') continue;
-      const achado = lerCaminho(item.path);
+    for (const caminho of await leitorDaArvore.caminhos()) {
+      const achado = lerCaminho(caminho);
       if (!achado || achado.escola !== slug) continue;
       nomes.push(achado.chave);
     }
@@ -720,6 +731,22 @@ function criarAcervoDeEnvelopes({ token, dono, repo, ref, escola, senhaCripto, c
 }
 
 /**
+ * UM `{ ler, guardar }` SOBRE O KV DO WORKER — a forma que o `indice-acervo` já usa e que a cache
+ * da árvore precisa (24/11/2026).
+ *
+ * `null` quando não há KV: quem o recebe trata a ausência como «sem cache», e não como erro. Um
+ * Worker sem KV continua a servir; só não poupa a chamada de 273 KB.
+ */
+function kvDoEnv(env) {
+  const bruto = env && env.PADD_KV;
+  if (!bruto || typeof bruto.get !== 'function' || typeof bruto.put !== 'function') return null;
+  return {
+    ler: (chave) => bruto.get(chave),
+    guardar: (chave, texto) => bruto.put(chave, String(texto)),
+  };
+}
+
+/**
  * O ACERVO a partir do `env` do Worker — o mesmo par (dono, repo, ramo) dos outros escritores.
  *
  * `legado` é o armazenamento do KV (o que a ponte já construía). Passado aqui, ele nunca é
@@ -728,6 +755,12 @@ function criarAcervoDeEnvelopes({ token, dono, repo, ref, escola, senhaCripto, c
 function doAmbiente(env, { legado, escola, cifrar, fetchImpl } = {}) {
   return criarAcervoDeEnvelopes({
     token: (env && env.GITHUB_TOKEN) || null,
+    /* A CACHE DA ÁRVORE VAI NO KV DA RAIZ (24/11/2026). Vem do MESMO `env`, e não de um parâmetro
+     * novo, para não haver um chamador que a esqueça: são cinco sítios em `bastidores.js`, e um
+     * deles esquecido seria uma cache que ninguém usa sem ninguém saber. O adaptador não lhe põe a
+     * escola à frente (`arvore-do-repo/` não é família de escola), e é isso que a torna uma cópia
+     * só para todas. */
+    kv: kvDoEnv(env),
     dono: DONO_PADRAO,
     repo: REPO_PADRAO,
     ref: REF_PADRAO,

@@ -43,6 +43,8 @@
  */
 
 const { RAIZ, base64De, textoDeBase64, detalheDe, cabecalhosDe } = require('./github-api.js');
+/* A ÁRVORE DO REPOSITÓRIO, LIDA UMA VEZ E GUARDADA POR COMMIT (24/11/2026). */
+const { criarLeitorDaArvore } = require('./arvore-do-repo.js');
 
 const PREFIXO = 'escola/';
 const PASTA = 'linhas-de-base/';
@@ -101,7 +103,7 @@ function lerCaminho(caminho) {
  * O leitor/escritor. Sem `token` ele fica INERTE e diz que não leu — não finge uma lista vazia
  * (uma lista vazia silenciosa faz a escola achar que perdeu as linhas de base).
  */
-function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
+function criarStore({ token, dono, repo, ref, escola, fetchImpl, kv }) {
   const slug = String(escola || '').trim();
   const f = fetchImpl || fetch;
   const base = RAIZ + '/repos/' + (dono || DONO_PADRAO) + '/' + (repo || REPO_PADRAO);
@@ -155,19 +157,18 @@ function criarStore({ token, dono, repo, ref, escola, fetchImpl }) {
     return achado;
   }
 
+  /* A ÁRVORE VEM DO LEITOR PARTILHADO (24/11/2026) — ver `arvore-do-repo.js`. Antes, este era o
+   * terceiro `GET` de 273 KB do mesmo repositório: um aqui, um no acervo dos envelopes e um no
+   * índice. A memoização em `nomes` continua a valer dentro do pedido; o que se ganha é entre
+   * pedidos, e é aí que estava o custo. */
+  const leitorDaArvore = criarLeitorDaArvore({ token, dono, repo, ref: ramo, fetchImpl: f, kv });
+
   async function arvore() {
     if (nomes) return nomes;
     if (!activo) { nomes = []; return nomes; }
-    const r = await pedir(base + '/git/trees/' + encodeURIComponent(ramo) + '?recursive=1',
-      { method: 'GET', headers: cabecalhos });
-    if (!r.ok) {
-      throw new Error('linhas-de-base: não li a árvore do repositório: ' + await detalheDe(r));
-    }
-    const dados = await r.json().catch(() => null);
     const achadas = [];
-    for (const item of (dados && dados.tree) || []) {
-      if (!item || item.type !== 'blob') continue;
-      const achado = lerCaminho(item.path);
+    for (const caminho of await leitorDaArvore.caminhos()) {
+      const achado = lerCaminho(caminho);
       if (!achado || achado.escola !== slug) continue;
       achadas.push(achado.chave);
     }
@@ -592,6 +593,11 @@ function doAmbiente(env, escola, fetchImpl) {
     // repositório por fora do contador, e a cadeia — que corre no mesmo pedido — julgaria ter
     // mais folga do que tem. `null` mantém o caminho das bancadas.
     fetchImpl: fetchImpl || null,
+    /* A CACHE DA ÁRVORE (24/11/2026): vem do `env`, como no acervo dos envelopes, para não haver
+     * um chamador que a esqueça. Sem KV, o leitor pede a árvore como sempre pediu. */
+    kv: (e.PADD_KV && typeof e.PADD_KV.get === 'function' && typeof e.PADD_KV.put === 'function')
+      ? { ler: (c) => e.PADD_KV.get(c), guardar: (c, v) => e.PADD_KV.put(c, String(v)) }
+      : null,
   });
 }
 

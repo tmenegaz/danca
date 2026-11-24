@@ -28,6 +28,8 @@
  */
 
 const indices = require('../nucleo/indices.js');
+/* A ÁRVORE DO REPOSITÓRIO, LIDA UMA VEZ E GUARDADA POR COMMIT (24/11/2026). */
+const { criarLeitorDaArvore } = require('./arvore-do-repo.js');
 /* A MESMA RESPOSTA PARA «ESTE SCRIPT É UMA ESCOLA?» (24/11/2026) — a função que o
  * `gerar-indices.js` também passou a chamar. Duas leituras do mesmo marcador divergiriam. */
 const shardsDoRepo = require('../nucleo/shards.js');
@@ -84,7 +86,7 @@ function lerAncora(texto) {
  * essa decisão se toma — e ela é do CHAMADOR (a ponte da escola diz sim; a raiz diz não), não
  * de um parâmetro que se esquece.
  */
-async function construirDoAcervo({ token, dono, repo, ref, fetchImpl, agora, comApelido }) {
+async function construirDoAcervo({ token, dono, repo, ref, fetchImpl, agora, comApelido, kv }) {
   if (!token) throw new Error('índice: sem GITHUB_TOKEN não há acervo para indexar');
   const f = fetchImpl || fetch;
   const base = 'https://api.github.com/repos/' + (dono || DONO_PADRAO) + '/' + (repo || REPO_PADRAO);
@@ -92,14 +94,20 @@ async function construirDoAcervo({ token, dono, repo, ref, fetchImpl, agora, com
   const cabecalhos = cabecalhosDe(token);
   const custo = { arvores: 0, leituras: 0 };
 
-  const arvore = await f(base + '/git/trees/' + encodeURIComponent(ramo) + '?recursive=1',
-    { method: 'GET', headers: cabecalhos });
-  if (!arvore.ok) throw new Error('índice: não li a árvore do repositório: HTTP ' + arvore.status);
-  custo.arvores += 1;
-  const corpo = await arvore.json().catch(() => null);
-  const caminhos = ((corpo && corpo.tree) || [])
-    .filter((t) => t && t.type === 'blob')
-    .map((t) => t.path);
+  /* A ÁRVORE VEM DO LEITOR PARTILHADO (24/11/2026) — ver `arvore-do-repo.js`. Era o QUARTO `GET`
+   * de 273 KB do mesmo repositório, e o que a cache do índice não cobria: quando ela erra (a
+   * chave não está, ou é de uma versão anterior), a reconstrução pedia a árvore inteira outra
+   * vez. Agora a árvore tem cache própria, por commit, e a reconstrução do índice só paga as
+   * leituras dos ficheiros — que é o trabalho dela. */
+  const leitor = criarLeitorDaArvore({ token, dono: dono || DONO_PADRAO, repo: repo || REPO_PADRAO, ref: ramo, fetchImpl: f, kv });
+  const caminhos = await leitor.caminhos();
+  custo.arvores += Math.max(1, leitor.custo().arvores);
+  /* O `commit` que o índice grava vem do LEITOR, e não da resposta da árvore: o leitor é quem o
+   * sabe (é a chave da cache). Antes lia-se `corpo.sha` — a resposta da árvore ecoa o sha do
+   * COMMIT quando o `ref` é um ramo, e era essa a fonte. Com a cache, a resposta pode nem existir
+   * (veio do KV), e o commit continua a ser o mesmo. `null` quando não se soube: o campo é volátil
+   * e o `--check` do índice já o exclui. */
+  const commitDaArvore = leitor.custo().commit || null;
 
   const lerTexto = async (caminho) => {
     custo.leituras += 1;
@@ -168,7 +176,7 @@ async function construirDoAcervo({ token, dono, repo, ref, fetchImpl, agora, com
   const shards = await shardsDoRepo.scriptsDeShard({ caminhos, lerTexto });
 
   const { acervo, escolas } = indices.construir({
-    fonte: { commit: (corpo && corpo.sha) || null, arvore: (corpo && corpo.sha) || null },
+    fonte: { commit: commitDaArvore, arvore: commitDaArvore },
     agora: agora || null,
     arvores: caminhos,
     inventarios,
@@ -180,7 +188,7 @@ async function construirDoAcervo({ token, dono, repo, ref, fetchImpl, agora, com
     comApelido: comApelido === true,
   });
 
-  return { acervo, escolas, custo, arvore: (corpo && corpo.sha) || null };
+  return { acervo, escolas, custo, arvore: commitDaArvore };
 }
 
 /**
@@ -215,7 +223,7 @@ async function lerComCache({ token, dono, repo, ref, fetchImpl, agora, comApelid
     }
   }
 
-  const construido = await construirDoAcervo({ token, dono, repo, ref, fetchImpl, agora, comApelido });
+  const construido = await construirDoAcervo({ token, dono, repo, ref, fetchImpl, agora, comApelido, kv });
   custo.arvores += construido.custo.arvores;
   custo.leituras += construido.custo.leituras;
   const indice = escola ? construido.escolas[escola] : construido.acervo;

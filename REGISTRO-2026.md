@@ -60227,3 +60227,67 @@ linhas conferidas (`L9`, `L46`, `L83` batem nas entradas que nomeiam). `bash -n`
 **O que ainda não está feito.** O `REGISTRO-2026.md` continua a crescer até 31/12/2026; em 2027
 nasce o `REGISTRO-2027.md` e a tabela do índice ganha uma linha. Nada automatiza essa viragem —
 é um gesto manual, e está escrito no índice para não ser esquecido.
+
+## 24/11/2026 — A árvore do repositório pede-se uma vez por COMMIT, e não uma vez por pedido
+
+**O PEDIDO.** «No `acervo-envelopes.js` (linha ~273), substitua a memoização restrita à requisição
+atual pelo cache em KV por SHA da árvore […] Verifique `repo-escola.js` (~555) e
+`linhas-de-base-repo.js` (~161) para reutilizar o mesmo cache.»
+
+**O QUE MOTIVOU, medido contra a API real a 24/11/2026.**
+
+| pedido | bytes |
+|:--|--:|
+| `GET …/git/trees/main?recursive=1` | **273 KB** (933 entradas) |
+| `GET …/git/ref/heads/main` | **365 B** — e diz o commit |
+| `GET …/git/trees/main` (sem `recursive`) | 15,8 KB — só para dizer o mesmo |
+
+**Quatro** sítios pediam os 273 KB, cada um com a sua cópia do pedido: `repo-escola.js`
+(`arvoreDeCaminhos`, seis chamadores), `acervo-envelopes.js`, `linhas-de-base-repo.js` e
+`indice-acervo.js`. E a memoização de três deles vivia o tempo do **pedido** — a página seguinte
+pagava tudo outra vez. O caso pior é o mesmo pedido pedir a árvore **duas vezes**: reconstruir o
+índice (que lê a árvore) e listar os envelopes (que lê a árvore) não partilhavam nada.
+
+**O QUE FOI DECIDIDO.** Uma cache só, `motor/servidor/arvore-do-repo.js`, com a chave
+`arvore-do-repo/<dono>/<repo>/<commit>`. O commit descobre-se com **365 bytes**, e é isso que torna
+a troca boa: 365 B para saber se vale a pena pedir 273 KB — **750×**. Um commit novo é uma árvore
+nova, portanto não há janela em que a cache minta: não é TTL, é identidade.
+
+**Porque não se usou o `sha` da árvore, como o `indice-acervo` faz.** Lá o que se guarda é o
+**índice** construído (que custa N leituras de ficheiro) e a política é «usa-se o que está lá; quem
+sabe que acabou de gravar pede `reconstruir`». Aqui guarda-se a lista de caminhos, e o commit
+identifica-a exactamente.
+
+**E o KV, contra a decisão 18.** A decisão diz «o KV é o último recurso; só guarda o que é da
+ESCOLA». A árvore não é dado de escola — é um derivado **global**, com a mesma natureza da cache do
+acervo que já vive no KV (`CHAVE_ACERVO`). O custo é um `get` por pedido e um `put` por commit;
+nunca um `list`, que é a operação com cota diária. A chave não leva a escola à frente
+(`arvore-do-repo/` não é `envelope/` nem `ia-registro/`, e por isso o adaptador não a namespaça) —
+é uma cópia só para todas as escolas, e cada uma filtra a sua parte.
+
+**Degrada, não rebenta:** sem KV, com um KV que falha, ou com um commit que não se conseguiu ler, o
+leitor pede a árvore como sempre pediu e **não grava nada** — uma chave adivinhada mentiria para
+sempre. Uma cache indisponível é a ausência de uma economia, não um erro.
+
+**Onde entrou.** `motor/servidor/arvore-do-repo.js` (**novo**), `motor/servidor/acervo-envelopes.js`
+(a fábrica recebe `kv`; `doAmbiente` extrai-o do `env` para não haver um chamador que o esqueça),
+`motor/servidor/repo-escola.js` (`arvoreDeCaminhos` delega, assinatura intacta; `kv` opcional em
+`listarProfessores`/`listarEscolas`), `motor/servidor/linhas-de-base-repo.js`, e
+`motor/servidor/indice-acervo.js` (o quarto `GET`; o `fonte.commit` do índice passou a vir do
+leitor — a resposta da árvore ecoava o commit, e com a cache pode nem existir).
+
+**NÃO é congelado:** `motor/` não está em `CONGELAMENTO.md`. Nenhum ficheiro de `tools/` foi tocado.
+
+**MEDIDO.** `experimentos/provar-cache-da-arvore.js` (**nova**) **25/25**: dois pedidos com o mesmo
+commit fazem **uma** árvore; um commit novo faz outra; sem KV vêm as duas e zero leituras; um commit
+que não se leu não vira chave; cache ilegível reconstrói-se; o controlo negativo mostra que sem
+cache os mesmos dois pedidos fazem **duas** árvores. `provar-indice-de-proveniencia` **60/60** (e
+foi ela que apanhou a referência órfã a `corpo`, que eu tinha deixado). `provar-acervo-envelopes`
+52/52, `provar-cache-por-tipo` 28/28, `provar-pagina-publica` 79/79. `provar-isolamento-entre-escolas`
+falha **2** e `provar-producao` falha **17** — **igual sem esta mudança**, conferido com `stash`.
+
+**O que ainda não está feito.** Não se mediu no ar: o ganho é de bytes por pedido, e a única forma
+de o confirmar em produção é o contador de subpedidos do Worker (`orcamentoDe`), que o painel ainda
+não expõe por rota. E o `arvore-do-repo/` **não tem expurgo** — quando uma escola é apagada, a
+chave continua lá com a árvore de um commit antigo (que não contém dado de aluno, só caminhos). É
+lixo que expira por si, e fica declarado em vez de escondido.
