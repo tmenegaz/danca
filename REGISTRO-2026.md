@@ -60540,3 +60540,73 @@ repositório, e um workflow de `pull_request` só se mede com um. A primeira vez
 PR é a primeira execução. E as **96** continuam sem trïagem: não se sabe quantas são provas
 desatualizadas e quantas são defeitos — agora há ferramenta (`--verboso`) e há um número que não
 mente.
+
+## 25/11/2026 — Lucro, custo e margem: a escola que trabalha 16 horas por dia
+
+**O que ela pediu.** «Eu preciso saber isso para saber qual é o excedente e aí eu consigo basear os
+meus custos porque daí eu só calculo esse excedente e subtraio do valor da receita.» Com os
+parâmetros ditos por ela: **uma escola em cada plano, cada uma isolada**, funcionando **16 horas por
+dia com uma aula por hora**, **partilhando o mesmo workflow**, em **repositório privado**.
+
+**A resposta: há lucro, e a infraestrutura não é o que o limita.** 16 aulas/dia × 22 dias úteis = 352
+aulas/mês, um ciclo por escola, **3,06 min/aula**: uma escola sozinha usa **1 076 dos 2 000 min** e
+custa **R$ 0,00**. As três juntas são 3 228 min, **US$ 5,37 = R$ 28,99**, contra **R$ 461,70** de
+receita — **lucro R$ 432,71, margem 93,7 %**. Com o runner três vezes mais lento a margem cai a
+**90,5 %**. A margem só chegaria a 50 % com **9 458 min/mês**, que é 2,9× o cenário dela.
+
+**A unidade mudou, e é medido.** O §1 do `CUSTO-DOS-FLUXOS.md` fixou **3 min/aula** e dela fez a
+unidade comercial. Hoje são **2,12**: `Gerar o ciclo` caiu de **1,55** para **1,12 min** (16 runs desde
+21/11, mediana **40 s**, 12 % acima de 60 s) quando o TeX saiu do caminho, e `Fechar os derivados` é
+**1,00** (395 runs, mediana 11 s, 4 acima de 60 s).
+
+**«Partilhando o mesmo workflow» não poupa minuto — e neste cenário nem chega a disparar.** O
+`concurrency` com `cancel-in-progress` **lança e cancela**; não funde. E a factura arredonda ao minuto
+por job, pelo que um job cancelado aos 4 s custa o mesmo que um de 60 (246 das 395 execuções de
+`Fechar os derivados` foram canceladas). De hora a hora não há sobreposição nenhuma — 16 aulas são 16
+execuções de cada workflow. O que pouparia é o §7.1 (agrupar as gerações), que não existe.
+
+**A descoberta estrutural: o laço é `O(N)`.** O `gerar-ciclo.sh` re-renderiza **todas** as aulas do
+ciclo a cada geração — duas páginas `pandoc` por aula e uma validação `node` por aula. Medido nesta
+máquina: **59 ms/página** e **32 ms/aula**, ou **150 ms por aula no ciclo**. O ciclo de uma escola a 16
+aulas/dia acumula 352 aulas no mês, pelo que a última geração paga as 352. Modelo B (soma dos jobs
+reais) dá **1 076 min** para 352 aulas com escala ×2 — praticamente igual ao modelo A constante
+(1 098), e é essa coincidência que dá confiança à conta. Acima de ~600 aulas o modelo B é pior, e é o
+verdadeiro.
+
+**A correcção que esta secção deve ao catálogo.** O `planos.json` diz «um factor de 4 muda a capacidade
+de 13 escolas para 3». Esses números foram escritos sobre o modelo de **1 min/aula** do §L9f. Sobre a
+unidade actual, a mesma cota dá **7 escolas** a 110 aulas/mês (264 min cada) e **1 escola** a 440
+(1 428 min). O factor de 4 muda a capacidade **de 7 para 1**.
+
+**A consequência comercial não é sobre servidores, é sobre a franquia.** A escola a 16 aulas/dia está
+**3,5× acima** do Básico (100) e **1,17× acima** do Intermediário (300); só o Avançado (800) a
+comporta. E o preço já resolve isto sozinho: a 352 aulas ela paga **R$ 0,557/aula** no Básico e
+**R$ 0,397/aula** no Avançado — o ponto de viragem é às 240 aulas, e ela está 47 % acima. O que falta é
+o **teto**: `teto.aulas` é `null`, e a C25 passa a ter um número real a pedir decisão — **352**, medido,
+entre os 110 e os 440 que estavam em discussão.
+
+**Uma divergência entre dois documentos do planeamento, e ela manda migrar cedo demais.** O §L9d escreve
+o gatilho do GitHub Team como «acima de 2 000 min facturados»; o §L9c, que fez a conta ao cêntimo,
+escreve **2 667**. O §L9c é o certo: entre 2 000 e 2 667 o excedente custa entre US$ 0 e US$ 4, e o
+Team custa US$ 4 fixos. **A escada do §L9d é a que o painel vai implementar**, e implementada como está
+escrita faria o painel recomendar a migração **antes** de ela compensar. Fica declarado; corrigir é
+mexer no painel, e isso não se fez aqui.
+
+**O que é modelo e o que é medição.** Medido: a duração de cada workflow, os 59 ms de `pandoc`, os 32 ms
+de validação, os 40 s de base. **Declarado**: a escala ×2 do runner (não se mediu a razão).
+**Extrapolado**: o crescimento do laço com N — **nenhum ciclo deste repositório tem mais de uma aula**,
+logo a curva não foi observada em lado nenhum. **Modelo**: a factura em privado, porque o repositório é
+público e o `/timing` responde `billable.UBUNTU.total_ms = 0` em todas as execuções; o modelo é o do
+§L9f, conferido contra a factura real com 3,5 % de erro.
+
+**O ensaio que fecha a maior lacuna, e que não se fez.** Gerar um ciclo com **50 aulas** numa escola de
+teste e ler a duração do job. É barato e é o próximo passo. Ensaiada a sensibilidade até ×5, 352 aulas
+custam 1 534 min e **a conclusão não muda** — mas o número certo é o que sair do ensaio, e não se
+escreve um número que ninguém mediu.
+
+**MEDIDO.** `node tools/check-identidade.js` (23 conferências, 0 problemas), `node tools/check-schemas.js`,
+`node tools/check-sem-destruicao.js`, `node tools/check-github-headers.js` (5 conferências) — todos
+verdes.
+
+**Onde entrou.** `CUSTO-DOS-FLUXOS.md` (§10, a secção nova), `ESTADO-ATUAL.md` (§6), `HANDOFF.md`
+(regenerado).

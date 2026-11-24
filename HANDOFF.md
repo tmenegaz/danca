@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-24T12:49:27-0300`
-Commit atual: `4b08d9ff` — feat(estrutura): a página revalida depressa, o asset fica em cache
+Gerado em: `2026-11-24T13:35:19-0300`
+Commit atual: `7344f1aa` — feat(experimentos): provas seletivas no commit, e o primeiro portão de pull_request
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,9 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+7344f1aa feat(experimentos): provas seletivas no commit, e o primeiro portão de pull_request
+726a0653 feat(entrega): a minificação do que vai ao browser — 545 KB viram 200
+8c5645c3 chore(experimentos): vinte e nove provas apagadas — as que mediam o que já não existe
 4b08d9ff feat(estrutura): a página revalida depressa, o asset fica em cache
 10f5c242 feat(estrutura): a árvore do repositório pede-se uma vez por commit
 f286c3b1 chore(estrutura): o REGISTRO partido por ano — índice e arquivo anual
@@ -99,9 +102,6 @@ a61a47d4 feat(acervo): envelope/.indice.json
 a2701173 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
 229a322a feat(plano): o plano elicitado vira a fonte do ciclo
 ed583594 feat(acervo): envelope/plano-20261124-0811.json
-d72feca1 feat(acervo): envelope/.indice.json
-93d53409 chore(estrutura): fechar os derivados — âncoras e índices
-35b79e59 feat(linha de base): índice — tami 20261124-1107
 ```
 
 ## Por professor
@@ -195,76 +195,77 @@ d72feca1 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 24/11/2026 — Vinte e nove provas apagadas: as que mediam objetos que já não existem
+## 25/11/2026 — Lucro, custo e margem: a escola que trabalha 16 horas por dia
 
-**O PEDIDO.** «Localize e **delete completamente** do repositório: todas as provas que dependem de
-caminhos ou fixtures inexistentes de `professores/tiago/`, `professores/leticia/` e
-`ciclo-01-breu-rosa/`; todas as provas (~41) que dependem de fixtures com carimbo fixo no nome.»
+**O que ela pediu.** «Eu preciso saber isso para saber qual é o excedente e aí eu consigo basear os
+meus custos porque daí eu só calculo esse excedente e subtraio do valor da receita.» Com os
+parâmetros ditos por ela: **uma escola em cada plano, cada uma isolada**, funcionando **16 horas por
+dia com uma aula por hora**, **partilhando o mesmo workflow**, em **repositório privado**.
 
-**O QUE MOTIVOU, medido.** Em 24/11/2026 corri **as 301 provas versionadas** pela primeira vez:
-**177 passavam e 124 falhavam**. Vinte e nove delas não falhavam por um defeito do sistema —
-falhavam porque o objeto que mediam **já não existe**:
+**A resposta: há lucro, e a infraestrutura não é o que o limita.** 16 aulas/dia × 22 dias úteis = 352
+aulas/mês, um ciclo por escola, **3,06 min/aula**: uma escola sozinha usa **1 076 dos 2 000 min** e
+custa **R$ 0,00**. As três juntas são 3 228 min, **US$ 5,37 = R$ 28,99**, contra **R$ 461,70** de
+receita — **lucro R$ 432,71, margem 93,7 %**. Com o runner três vezes mais lento a margem cai a
+**90,5 %**. A margem só chegaria a 50 % com **9 458 min/mês**, que é 2,9× o cenário dela.
 
-| de onde vinha | provas | o que aconteceu |
-|:--|--:|:--|
-| `professores/demi-plie/ciclos/ciclo-01-breu-rosa/` | 14 | o pacote que o expurgo da `breu` levou |
-| `escola/breu/envelopes/<carimbo>.json` | 11 | os envelopes, apagados no mesmo expurgo |
-| `professores/prova-sem-base/` e uma amostra de anamnese com carimbo | 4 | fixture de uma escola que nunca existiu neste clone |
+**A unidade mudou, e é medido.** O §1 do `CUSTO-DOS-FLUXOS.md` fixou **3 min/aula** e dela fez a
+unidade comercial. Hoje são **2,12**: `Gerar o ciclo` caiu de **1,55** para **1,12 min** (16 runs desde
+21/11, mediana **40 s**, 12 % acima de 60 s) quando o TeX saiu do caminho, e `Fechar os derivados` é
+**1,00** (395 runs, mediana 11 s, 4 acima de 60 s).
 
-Uma prova assim não é um portão: é um **arquivo com aparência de portão**. Ela não pode passar
-(o dado não está lá), e o vermelho dela não diz nada sobre o sistema — mistura-se aos vermelhos
-verdadeiros e é isso que torna a suite ilegível.
+**«Partilhando o mesmo workflow» não poupa minuto — e neste cenário nem chega a disparar.** O
+`concurrency` com `cancel-in-progress` **lança e cancela**; não funde. E a factura arredonda ao minuto
+por job, pelo que um job cancelado aos 4 s custa o mesmo que um de 60 (246 das 395 execuções de
+`Fechar os derivados` foram canceladas). De hora a hora não há sobreposição nenhuma — 16 aulas são 16
+execuções de cada workflow. O que pouparia é o §7.1 (agrupar as gerações), que não existe.
 
-**O QUE FOI DECIDIDO: apagar, não adaptar** — foi a palavra dela. Adaptar significaria inventar um
-fixture novo para uma prova que mede um objeto do passado, e o resultado seria uma prova a medir
-uma cópia, não o que se queria medir.
+**A descoberta estrutural: o laço é `O(N)`.** O `gerar-ciclo.sh` re-renderiza **todas** as aulas do
+ciclo a cada geração — duas páginas `pandoc` por aula e uma validação `node` por aula. Medido nesta
+máquina: **59 ms/página** e **32 ms/aula**, ou **150 ms por aula no ciclo**. O ciclo de uma escola a 16
+aulas/dia acumula 352 aulas no mês, pelo que a última geração paga as 352. Modelo B (soma dos jobs
+reais) dá **1 076 min** para 352 aulas com escala ×2 — praticamente igual ao modelo A constante
+(1 098), e é essa coincidência que dá confiança à conta. Acima de ~600 aulas o modelo B é pior, e é o
+verdadeiro.
 
-**O DIAGNÓSTICO QUE EU TINHA DADO ESTAVA ERRADO, e fica registado.** Na investigação de custos eu
-escrevi que «algumas provas falham por `python3` fora do `PATH`». **Não é verdade.**
-`python3` está instalado e o Node encontra-o (`3.12.3`). O que falhava era o `spawn('python3', …)`
-de `provar-criar-aula` com `cwd:` a apontar para `ciclo-01-breu-rosa/` — e o Node devolve
-**`ENOENT` para um `cwd` inexistente**, com a mesma mensagem de um binário ausente. Duas causas
-diferentes, uma mensagem só: a prova foi apagada com as outras, e não havia nada a corrigir no
-ambiente.
+**A correcção que esta secção deve ao catálogo.** O `planos.json` diz «um factor de 4 muda a capacidade
+de 13 escolas para 3». Esses números foram escritos sobre o modelo de **1 min/aula** do §L9f. Sobre a
+unidade actual, a mesma cota dá **7 escolas** a 110 aulas/mês (264 min cada) e **1 escola** a 440
+(1 428 min). O factor de 4 muda a capacidade **de 7 para 1**.
 
-**MEDIDO, antes e depois:**
+**A consequência comercial não é sobre servidores, é sobre a franquia.** A escola a 16 aulas/dia está
+**3,5× acima** do Básico (100) e **1,17× acima** do Intermediário (300); só o Avançado (800) a
+comporta. E o preço já resolve isto sozinho: a 352 aulas ela paga **R$ 0,557/aula** no Básico e
+**R$ 0,397/aula** no Avançado — o ponto de viragem é às 240 aulas, e ela está 47 % acima. O que falta é
+o **teto**: `teto.aulas` é `null`, e a C25 passa a ter um número real a pedir decisão — **352**, medido,
+entre os 110 e os 440 que estavam em discussão.
 
-| | provas | verdes | falhas |
-|:--|--:|--:|--:|
-| antes | 301 | 177 | 124 |
-| depois | **272** | **177** | **95** |
+**Uma divergência entre dois documentos do planeamento, e ela manda migrar cedo demais.** O §L9d escreve
+o gatilho do GitHub Team como «acima de 2 000 min facturados»; o §L9c, que fez a conta ao cêntimo,
+escreve **2 667**. O §L9c é o certo: entre 2 000 e 2 667 o excedente custa entre US$ 0 e US$ 4, e o
+Team custa US$ 4 fixos. **A escada do §L9d é a que o painel vai implementar**, e implementada como está
+escrita faria o painel recomendar a migração **antes** de ela compensar. Fica declarado; corrigir é
+mexer no painel, e isso não se fez aqui.
 
-E a asserção que importa: **nenhuma prova restante lê um caminho que não existe** (zero, era 22).
+**O que é modelo e o que é medição.** Medido: a duração de cada workflow, os 59 ms de `pandoc`, os 32 ms
+de validação, os 40 s de base. **Declarado**: a escala ×2 do runner (não se mediu a razão).
+**Extrapolado**: o crescimento do laço com N — **nenhum ciclo deste repositório tem mais de uma aula**,
+logo a curva não foi observada em lado nenhum. **Modelo**: a factura em privado, porque o repositório é
+público e o `/timing` responde `billable.UBUNTU.total_ms = 0` em todas as execuções; o modelo é o do
+§L9f, conferido contra a factura real com 3,5 % de erro.
 
-**As 95 que continuam vermelhas NÃO foram tocadas, e é de propósito.** São falhas de asserção —
-telas que mudaram, contratos que evoluíram —, e apagá-las esconderia defeito real em vez de lixo.
-Fica declarado o que são: dívida de manutenção da suite, não objeto apagado.
+**O ensaio que fecha a maior lacuna, e que não se fez.** Gerar um ciclo com **50 aulas** numa escola de
+teste e ler a duração do job. É barato e é o próximo passo. Ensaiada a sensibilidade até ×5, 352 aulas
+custam 1 534 min e **a conclusão não muda** — mas o número certo é o que sair do ensaio, e não se
+escreve um número que ninguém mediu.
 
-**Onde entrou.** 29 ficheiros de `experimentos/` (**apagados**), `.gitignore` (29 linhas `!` que
-os abriam **removidas**), `experimentos/README.md` (5 linhas de tabela que os descreviam), e
-`tools/correr-provas.js` (**novo** — é ele que torna isto medível: descobrir as 301 à mão custava
-meia hora de laço).
+**MEDIDO.** `node tools/check-identidade.js` (23 conferências, 0 problemas), `node tools/check-schemas.js`,
+`node tools/check-sem-destruicao.js`, `node tools/check-github-headers.js` (5 conferências) — todos
+verdes.
 
-**O que ainda não está feito.** As 95 falhas de asserção continuam sem trïagem — não se sabe
-quantas são provas desatualizadas e quantas são defeitos do sistema. É o próximo trabalho da
-suite, e agora há uma ferramenta para o fazer (`node tools/correr-provas.js --verboso`).
+**Onde entrou.** `CUSTO-DOS-FLUXOS.md` (§10, a secção nova), `ESTADO-ATUAL.md` (§6), `HANDOFF.md`
+(regenerado).
 
 ## O que está pendente
-
-## 22/11/2026 — O estúdio, e o modelo do painel inicial
-
-- **O painel não está construído.** O que existe é o modelo, e ele espera duas decisões: o **peso do
-  número** (a caixinha da casa ou uma peça nova) e o que **«ocupação»** mede.
-- **Se a ocupação for o corpo**, falta o campo **vagas** na Sala — e é um campo novo de dados, com o
-  caminho que os outros tiveram (declarado no cadastro, lido pelo painel, provado).
-- **A metade do KV do expurgo continua por medir**: a chave do cofre é a `SENHA_MESTRA`, não um token
-  da Cloudflare. Fica à espera de um token de API.
-
-## 24/11/2026 — O REGISTRO partido por ano: o índice e o arquivo anual
-
-O `REGISTRO-2026.md` continua a crescer até 31/12/2026; em 2027
-nasce o `REGISTRO-2027.md` e a tabela do índice ganha uma linha. Nada automatiza essa viragem —
-é um gesto manual, e está escrito no índice para não ser esquecido.
 
 ## 24/11/2026 — A árvore do repositório pede-se uma vez por COMMIT, e não uma vez por pedido
 
@@ -286,6 +287,20 @@ guardar HTML sem uma Cache Rule — isso é configuração de conta, não de có
 As 95 falhas de asserção continuam sem trïagem — não se sabe
 quantas são provas desatualizadas e quantas são defeitos do sistema. É o próximo trabalho da
 suite, e agora há uma ferramenta para o fazer (`node tools/correr-provas.js --verboso`).
+
+## 24/11/2026 — A minificação do que vai ao browser: 545 KB → 200 KB, e 143 → 51 KB comprimidos
+
+Não se mediu em produção depois do deploy (`curl` a comparar o
+`content-length` de `/piano/plano-observacao/` antes e depois). E as páginas **já geradas nos
+pacotes do repositório** (`professores/*/ciclos/ciclo-*/`) continuam com os comentários: elas são
+
+## 24/11/2026 — `correr-provas`, provas seletivas no commit, e o primeiro portão de `pull_request`
+
+O `conferir.yml` **nunca correu** — não há nenhum PR aberto neste
+repositório, e um workflow de `pull_request` só se mede com um. A primeira vez que alguém abrir um
+PR é a primeira execução. E as **96** continuam sem trïagem: não se sabe quantas são provas
+desatualizadas e quantas são defeitos — agora há ferramenta (`--verboso`) e há um número que não
+mente.
 
 ## Pendências anteriores (índice)
 
@@ -780,6 +795,8 @@ suite, e agora há uma ferramenta para o fazer (`node tools/correr-provas.js --v
 - **20/11/2026** — A folha impressa deixou de perguntar duas vezes → `REGISTRO-2026.md` L57108
 - **22/11/2026** — O fluxo da Aula 02 escrito, e o expurgo com um conferidor → `REGISTRO-2026.md` L57963
 - **22/11/2026** — Uma régua só, e um plano só na escolha → `REGISTRO-2026.md` L58074
+- **22/11/2026** — O estúdio, e o modelo do painel inicial → `REGISTRO-2026.md` L58155
+- **24/11/2026** — O REGISTRO partido por ano: o índice e o arquivo anual → `REGISTRO-2026.md` L60175
 - **demi-plie · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
