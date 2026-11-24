@@ -4,7 +4,24 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 23/11/2026 — **o «Gravar» só acende quando o pedido mudaria.** Nas
+> **Última fotografia:** 24/11/2026 — **o manifesto declara tudo o que o escritor grava.** Ela
+> configurou a `breu` de ponta a ponta (professor `demi-plié`, plano de ensino, plano de observação,
+> «Gerar») e não nasceu ciclo, aula nem documento — «e não tem nenhum erro no action do GitHub».
+> **A execução estava vermelha**: «Gerar o ciclo · demi-plie/01/breu-piano» (run `45382567181`)
+> terminou em `failure` no passo «Gerar e validar o pacote», com **20 erros**. Nenhum deles nomeava a
+> causa: o `DOCS` do manifesto dizia `plano aula-01 captura-aula-01` enquanto o escritor gravava, ao
+> lado, `-harmonizacao.md`, `-notacao.md`, `-glossario-codigo_de_danca.md` e `-referencias.md` — e o
+> gerador publica o que o `DOCS` declara. A aula também só ganha as secções de exercício quando é
+> composta com a notação, e é delas que vivem as 16 âncoras que a tabela dos objetivos cita.
+> **A causa era uma lista com duas regras:** `docsGerados` sabia a lista inteira e só corria quando o
+> manifesto ainda não tinha `aula-01`; o caminho normal caía no ramo que só acrescenta aulas, e a
+> lista parava de crescer em silêncio. `docsCompletos` passa a ser a regra única (só acrescenta,
+> nunca reordena o que não é dela), `gerar-ciclo.sh` deixa de citar âncoras que a página não vai ter,
+> e o `.conf` foi reparado pela própria regra. **Ao ar:** a execução refeita (`45384285428`)
+> concluiu `success`, e em `breu.padd.com.br/piano/` as nove páginas respondem 200 — as 16 âncoras
+> existem todas na aula.
+>
+> **Fotografia anterior (23/11/2026 — o «Gravar» só acende quando o pedido mudaria).** Nas
 > Habilitações do Estúdio, o botão nasce **apagado** e acende só quando o que se gravaria difere do
 > que o servidor diz que está gravado — «para evitar custo», porque cada gravação escreve
 > `professores/<slug>/perfil.json` e move a cadeia. A conta é **o pedido**, não o ecrã: a mesma
@@ -3924,6 +3941,17 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      **O PADRÃO, declarado:** formulário **sem «Editar»** abre com o Gravar apagado (acende com uma
      diferença); **com «Editar»**, acende ao abrir. Em `IDENTIDADE-VISUAL.md` e no resumo executável
      das instruções.
+174. **O MANIFESTO DECLARA TUDO O QUE O ESCRITOR GRAVA — E A LISTA SÓ CRESCE.** O escritor do
+     ciclo grava seis fontes e depois escreve o `DOCS`; uma fonte fora da lista existe no repositório
+     e não entra no pacote, sem erro nenhum até à geração. **A REGRA É DERIVADA, e tem um dono só:**
+     `docsCompletos` (em `motor/nucleo/aulas-do-ciclo.js`) — a família das aulas, mais harmonização,
+     notação, glossário e referências, na ordem do pacote. Substituiu duas regras que conviviam:
+     `docsGerados` (a lista inteira, que só corria com `aula-01` ausente) e `docsComAsAulas` (que só
+     acrescenta aulas, e é o ramo por onde passa todo o ciclo que nasce). **NUNCA SE TIRA NADA: um
+     documento que o escritor não conhece** (`pre-requisitos`, `musicalidade-aluna`, `caderno-NN`,
+     `guia-de-observacao-NN`) **fica onde está**, porque a ordem declarada é a ordem do menu
+     publicado. E **a tabela dos objetivos só cita a âncora de exercício quando `notacao` está na
+     lista** — o que a página não vai ter, a tabela não cita. **DECIDIDO** 24/11/2026.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
@@ -4836,7 +4864,21 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (23/11/2026 — o «Gravar» que só acende quando o pedido mudaria)
+### Executado nesta fotografia (24/11/2026 — o manifesto declara tudo o que o escritor grava)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-aula-dada.js` (secção **F**, nova) | **47/47**. F mede o **invariante**, não uma lista copiada: *toda a fonte `.md` que o escritor grava nesta passagem está declarada no `DOCS`*. Um ciclo que nasce com `DOCS="plano aula-01 captura-aula-01"` sai com `plano harmonizacao aula-01 captura-aula-01 notacao glossario-codigo_de_danca referencias`; a ordem é a do manifesto de referência; o relatório diz o que acrescentou; um documento que o escritor não gera (`pre-requisitos`, `musicalidade-aluna`) **sobrevive** e não é atirado para o fim; e um manifesto já completo **não é tocado** |
+| controle negativo | contra `aefcd3d2^` a secção F reprova **11** asserções (36/47), e o escritor aparece a gravar **seis** fontes sem declarar nenhuma — nenhuma delas `aula-01`, que já lá estava |
+| `tools/gerar-ciclo.sh demi-plie 01 breu-piano` | **antes**: 20 erros (`P-17/P-21`, 3 links para páginas não publicadas, 16 «âncora inexistente») · **depois**: `OK: 0 erro(s), 1 aviso` — 9 páginas, 259 links |
+| a guarda da tabela, no mesmo banco | com `notacao` retirado do `DOCS`, a tabela deixa de citar as 16 âncoras (**0** «âncora inexistente»); ficam só os dois links para `notacao.html`, que é a consequência honesta de a notação não ser publicada |
+| execução `45384285428` (mesmos inputs da que falhou) | **`success`**; o pacote de `demi-plie/01/breu-piano` foi commitado (`00436bea`) com as nove páginas |
+| ao ar, em `breu.padd.com.br/piano/` | `plano`, `aula-01`, `notacao`, `referencias`, `glossario-codigo_de_danca` e `captura-aula-01` respondem **200**; as **16** âncoras `#<bloco>-<exercício>-ob<N>` do plano existem todas na aula publicada. `harmonizacao.html` responde **404 por desenho** (`FORA_DA_PUBLICACAO`, decisão de 23/10/2026: vive só no pacote) |
+| `check-schemas --professor demi-plie` · `check-identidade` · `check-sem-destruicao` | verde · **0 problemas** (23 verificações) · verde |
+| `provar-manifesto-da-turma` · `provar-manifesto-do-plano` · `provar-manifesto-sem-base` | falham 3, 3 e 1 — **igual sem esta mudança** (conferido com `stash`): os dois primeiros são do `VOLUME_MIN_75` e de um `ciclo-01.conf` de escola que não existe no disco; o terceiro é o mesmo |
+| **NÃO MEDIDO, e continua a ser o expurgo que o explica** | `provar-o-commit-do-po`, `provar-orcamento-do-guardar`, `provar-criar-aula` e `provar-o-portao-da-aula-dada` explodem em `ENOENT` **antes** de medir: os dois primeiros leem envelopes da `breu` que o expurgo levou, o terceiro não tem `python3` no ambiente desta sessão, e o quarto lê `ciclo-01-breu-rosa/`, que já não existe |
+
+### Executado na fotografia anterior (23/11/2026 — o «Gravar» que só acende quando o pedido mudaria)
 
 | Verificação | Resultado |
 |:--|:--|

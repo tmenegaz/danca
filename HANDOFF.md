@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-23T10:44:59-0300`
-Commit atual: `f40dc797` — feat(estrutura): habilitar demi-plie em bale-classico
+Gerado em: `2026-11-24T08:29:43-0300`
+Commit atual: `aefcd3d2` — fix(ciclo-01): o manifesto declara tudo o que o escritor grava
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -64,7 +64,7 @@ rabo-gramde
 redinha-rosa
 rimel-preto
 sapatilha-de-ponta (15)
-- **Ciclos com manifesto:** 1 variante(s)
+- **Ciclos com manifesto:** 2 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -82,26 +82,26 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+aefcd3d2 fix(ciclo-01): o manifesto declara tudo o que o escritor grava
+5d322d4b chore(estrutura): fechar os derivados — âncoras e índices
+0ea82c68 feat(ciclo): o «Guardar» do PO grava as fontes de breu-piano num commit só
+7749ac62 feat(acervo): envelope/po-20261124-0815.json
+a61a47d4 feat(acervo): envelope/.indice.json
+6799d7a2 chore(estrutura): fechar os derivados — âncoras e índices
+a2701173 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+229a322a feat(plano): o plano elicitado vira a fonte do ciclo
+ed583594 feat(acervo): envelope/plano-20261124-0811.json
+d72feca1 feat(acervo): envelope/.indice.json
+93d53409 chore(estrutura): fechar os derivados — âncoras e índices
+35b79e59 feat(linha de base): índice — tami 20261124-1107
+352655f4 feat(elenco): tami — concluído
+36f5202c chore(estrutura): fechar os derivados — âncoras e índices
+04001327 feat(acervo): envelope/anamnese-20261123-1055.json
+32335396 feat(acervo): envelope/.indice.json
+ec4230f9 feat(estrutura): o «Gravar» das habilitações só acende quando o pedido mudaria
 f40dc797 feat(estrutura): habilitar demi-plie em bale-classico
 305171e6 fix(template): a seta só está onde ela a pediu, e gravar as habilitações fecha o formulário
 2741f55d audit(experimentos): a criação da escola alimenta a lista dos professores
-453d6f08 feat(estrutura): o documento do professor pode ser CNPJ, e não só CPF
-9aa12256 feat(estrutura): os professores têm Ações, documento e contacto — e o Financeiro manda o professor para lá
-6f11507e feat(estrutura): habilitar demi-plie em bale-classico
-99e9edb8 feat(estrutura): habilitar demi-plie em bale-classico
-ddbee1d5 feat(acervo): envelope/.indice.json
-abbe291c feat(estrutura): criar a escola breu (motor completo)
-c7b1ee0f fix(estrutura): a senha do professor não se esconde com o modo do professor
-bd87f249 docs(estrutura): o CNPJ das escolas de teste, e a data que eu tinha escrito errada
-c24e4636 feat(estrutura): a criação também herda a identidade fiscal, e não só a recriação
-870895ce docs(estrutura): a recriação traz os dados da escola, e o convite deixa de prometer o que não tem
-c71eefe2 fix(estrutura): recriar a escola traz os dados dela de volta, marcados como herdados
-b39c3bf4 docs(estrutura): os dados da escola, o CNPJ que ficava pelo caminho, e o que «outra Breu» quer dizer
-3b4e9746 feat(estrutura): a identidade fiscal sobrevive ao expurgo, e os dados da escola têm aba
-f0186400 fix(estrutura): um mês que foi pago nunca se esconde do extrato
-96535aaf docs(estrutura): a regra do financeiro que fica, e o que «Recriar» significa
-1dc07e2a fix(estrutura): o financeiro de uma escola expurgada não se apaga — é história
-838938c2 docs(estrutura): a fotografia do expurgo da breu, e o que ele deixou para trás
 ```
 
 ## Por professor
@@ -118,15 +118,17 @@ f0186400 fix(estrutura): um mês que foi pago nunca se esconde do extrato
 
 ### demi-plie — 1 ciclo(s)
 
-**Ciclo 01** — variante(s): breu
+**Ciclo 01** — variante(s): breu, breu-piano
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
 | breu | (sem PO) | — | — |
+| breu | ciclo-01-breu-piano-po.md | Input_PO_Validado | 1 |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `e81a3e1cf08c` | (vazio) | — |
+| breu-piano | ciclo-01-breu-piano.fipp | `722580618ab1` | (vazio) | Input_PO_Validado |
 
 ### fernando-franciose — 0 ciclo(s)
 
@@ -193,68 +195,83 @@ f0186400 fix(estrutura): um mês que foi pago nunca se esconde do extrato
 
 ## Última entrada do REGISTRO
 
-## 23/11/2026 — O «Gravar» das habilitações só acende quando o pedido mudaria
+## 24/11/2026 — O manifesto declara tudo o que o escritor grava, e a geração volta a fechar
 
-**O PEDIDO, e o motivo está na primeira linha:** «para evitar custo, só vai habilitar o botão gravar
-quando mudar alguma coisa». O custo não é o clique — é a gravação: cada «Gravar» escreve
-`professores/<slug>/perfil.json` no repositório e move a cadeia.
+**O PEDIDO.** «Eu estou com a escola Breu. Aí eu fiz toda a configuração para professor, que é o
+demi-plié. […] Aí eu fiz o plano de ensino. Eu fiz também o plano de observação, mandei gerar. E eu
+ainda não tenho o ciclo, não tenho a aula, então não gerou os documentos. E não tem nenhum erro no
+action do GitHub. Preciso que você investigue.»
 
-**A CONTA É O PEDIDO, NÃO O ECRÃ.** `retratoDasHabilitacoes()` devolve o que o formulário mandaria
-agora, na mesma forma em que o pedido o manda — e `tradicoesDasHabilitacoes()` passou a ser a conta
-única do `submit` e da comparação. Duas contas divergiriam no dia em que uma delas aprendesse um
-campo, e o sintoma seria o pior: um botão apagado sobre uma diferença que existe.
+**A PRIMEIRA MEDIÇÃO CORRIGIU O PEDIDO, e sem isso a investigação ia para o lado errado.** A
+execução «Gerar o ciclo · demi-plie/01/breu-piano» de 24/11 11:16 (run `45382567181`) está
+**vermelha** — `conclusion: failure`, passo 7 «Gerar e validar o pacote». O que estava verde era a
+«Fechar os derivados» (as âncoras e os índices), que é outra execução e outro trabalho. Não havia
+erro nenhum no ecrã dela porque o erro mora no registo da execução, não na página.
 
-**E ESSA CONTA OBRIGOU A FECHAR UM BURACO QUE JÁ LÁ ESTAVA.** O perfil guarda **três** estados por
-modalidade desde 18/11 — chave ausente («ainda não foi perguntado»), chave vazia («não ensina
-nenhuma») e chave com nomes —, mas o pedido só sabia exprimir dois: mandava `[]` também quando
-ninguém tinha respondido. Medido no repositório: **13 dos 15** perfis têm `modalidades` e **nenhum
-mapa de tradições**. Nesse estado a caixa do generalista aparece desmarcada; marcá-la era, no ecrã,
-uma declaração — e no pedido, nada. O `submit` passou a **calar a chave** quando nem o generalista
-nem uma tradição estão marcados, e é isso que faz a terceira linha do modelo existir de facto.
+**O LOG, e o defeito não estava em nenhum dos sítios que os erros nomeiam.** Vinte erros:
+`P-17/P-21` («ciclo com aula precisa declarar `harmonizacao` no DOCS do manifesto»), dois links de
+`aula-01.html` para `notacao.html`, um de `plano.html` para `referencias.html`, e dezasseis
+«âncora inexistente em aula-01.html → `#<bloco>-<exercício>-ob<N>`». A causa é uma só: o manifesto
+da variante dizia `DOCS="plano aula-01 captura-aula-01"` e o escritor tinha gravado, ao lado,
+`-harmonizacao.md`, `-notacao.md`, `-glossario-codigo_de_danca.md` e `-referencias.md`. O gerador
+publica o que o `DOCS` declara — as quatro fontes existiam e não entravam no pacote. E a aula só
+ganha as secções de exercício quando o gerador a compõe com a notação, o que exige `notacao` na
+lista: as dezasseis âncoras que a tabela dos objetivos cita nasciam de uma fonte que ia ser
+publicada para uma página que ia ser gerada sem elas.
 
-**A BASE VEM DO SERVIDOR, com uma marca para o que o ecrã não sabe exprimir.** `retratoDoServidor(d)`
-usa `~` para a chave declarada e vazia e `''` para a ausente. Uma base calculada do que ficou pintado
-perdia exactamente o caso mais comum — o perfil nunca perguntado — e teria deixado o botão apagado
-sobre uma declaração verdadeira. Foi a primeira versão, e a prova apanhou-a.
+**PORQUE ACONTECIA, e não era um caso de escola.** Havia **duas regras para a mesma lista**.
+`docsGerados` (em `escrever-ciclo.js`) sabia a lista inteira e só era chamada quando o manifesto
+ainda **não** tinha `aula-01`; o caminho normal — o «Guardar» do plano grava primeiro e já lá põe
+`aula-01` — caía no ramo que só sabe acrescentar aulas (`docsComAsAulas`). O segundo ramo é um
+subconjunto do primeiro, e por isso nada falhava: a lista simplesmente parava de crescer, em
+silêncio, no primeiro ciclo que nascesse por ali.
 
-**Cinco consequências, e cada uma é uma asserção:** voltar ao estado de origem apaga o botão;
-cancelar apaga-o e devolve o estado; gravar faz do gravado a nova base (sem esperar pela releitura —
-senão há um instante aceso sobre um estado já gravado); trocar de professor apaga-o **antes** de
-ler; e **um estado que não se conseguiu ler não se grava por cima** — o botão fica apagado e a nota
-diz porquê, porque as caixas de um professor que não se leu estão vazias e gravá-las apagaria a
-declaração.
+**A CORREÇÃO É A REGRA DE 21/11 OUTRA VEZ — uma lista, um dono.** `docsCompletos` passa a viver em
+`motor/nucleo/aulas-do-ciclo.js`: a família das aulas de `docsComAsAulas`, mais harmonização,
+notação, glossário e referências, na ordem do pacote, e **sempre só a acrescentar** — um documento
+que o escritor não conhece (`pre-requisitos`, `musicalidade-aluna`, `caderno-NN`,
+`apanhado-historico`, `guia-de-observacao-NN`) fica onde está, porque a ordem em que estava é a
+ordem do menu publicado. Os dois caminhos chamam-na; `docsGerados` fica como adaptador dela.
 
-**O BOTÃO NASCE APAGADO NA MARCAÇÃO.** Nascer aceso e apagar-se à chegada da leitura daria um
-instante em que se pode gravar sem saber o quê; e sem JavaScript não há gravação nenhuma — o pedido
-é o `submit`. O `title` diz a razão («nada mudou» / «o estado ainda não foi lido»): um botão
-desligado sem explicação é a mesma família do botão que falta.
+**Duas coisas caíram do mesmo movimento, e são defeito, não arrumação.** (1) `docsComAsAulas`
+devolvia a lista intacta quando não faltava aula nenhuma — `aula-01 aula-02 captura-aula-01
+captura-aula-02` ficava assim, e a mesma lista em duas ordens dava dois menús; passa a normalizar a
+família sempre, e só não muda nada quando já está na ordem certa. (2) `gerar-ciclo.sh` lia
+`fonte_md notacao` **direto do repositório** para montar a tabela dos objetivos, mesmo quando
+`notacao` não estava no `DOCS` — citava a âncora de uma página que não ia ter exercícios. A tabela
+passa a só citar o que a página vai ter.
 
-**E FICOU DOCUMENTADO COMO PADRÃO, que foi o que ela pediu:** «Nessas situações em que não tem o
-botão de editar, a gente vai adotar isso como padrão.»
+**A REPARAÇÃO DO MANIFESTO É A PRÓPRIA REGRA, não uma linha escrita à mão.** O `.conf` da
+`breu-piano` foi passado por `docsCompletos` e ficou `plano harmonizacao aula-01 captura-aula-01
+notacao glossario-codigo_de_danca referencias`. A âncora da cadeia foi refeita (`hash-ciclo.sh`) —
+e ela **muda de conteúdo**, porque a lista de fontes cobertas passa a incluir os quatro documentos
+que agora são publicados: o manifesto declara, a âncora cobre.
 
-| género | como abre | o «Gravar» |
-|:--|:--|:--|
-| com «Editar» | fechado, a mostrar o registo | acende ao abrir |
-| **sem «Editar»** | aberto, já com o estado carregado | **apagado**; acende só com uma diferença |
+**MEDIDO, e a medida é o invariante e não uma lista.** A `provar-aula-dada.js` ganhou a secção F:
+«toda a fonte `.md` que o escritor grava nesta passagem está declarada no `DOCS`» — lido do que ele
+escreveu, não de uma cópia envelhecida da lista. **47/47**; contra o código anterior (`aefcd3d2^`)
+reprova **11** asserções, e o escritor aparece a gravar **seis** fontes sem declarar nenhuma.
+Controlo do outro lado, na mesma secção: um documento que o escritor não gera sobrevive no lugar
+onde estava, e um manifesto já completo não é tocado (a lista não reescreve o que está certo).
+A geração local com o mesmo commit passa de **20 erros** a `OK: 0 erro(s), 1 aviso` — 9 páginas,
+259 links.
 
-Está em `IDENTIDADE-VISUAL.md` (capítulo «O «Gravar» que só acende quando algo muda») e no resumo
-executável das instruções, que é o sítio que os agentes leem antes de escrever marcação.
+**E ao ar.** A execução refeita (`45384285428`, mesmos inputs) concluiu **success**; o pacote
+publicado tem as nove páginas, e em `breu.padd.com.br/piano/` o plano, a aula, a notação, as
+referências, o glossário e a folha respondem 200 — as dezasseis âncoras do plano existem todas na
+aula ao vivo. `harmonizacao.html` responde 404 **por desenho**: ela vive só no pacote desde
+23/10/2026 (`FORA_DA_PUBLICACAO`, em `tools/montar-publicacao.js`).
 
-**Com o quê.** `motor/servidor/bastidores.js` (`blocoDasTradicoes`, `tradicoesDasHabilitacoes`,
-`retratoDasHabilitacoes`, `retratoDoServidor`, `pintarGravarDasHabilitacoes`,
-`marcarBaseDasHabilitacoes`, `dizerQueNaoSeLeuAsHabilitacoes`, a marca `data-a-gravar` no
-`ocuparBotao`/`liberarBotao`, os dois handlers de mudança, o `submit` e a marcação do botão),
-`experimentos/provar-o-gravar-que-so-acende.js` (**novo**), `IDENTIDADE-VISUAL.md` e o resumo das
-instruções.
+**Com o quê.** `motor/nucleo/aulas-do-ciclo.js` (`docsCompletos`, e a normalização da família em
+`docsComAsAulas`), `motor/servidor/escrever-ciclo.js` (o `if` de dois ramos passa a uma chamada;
+`docsGerados` fica como adaptador), `tools/gerar-ciclo.sh` (a guarda da tabela),
+`professores/demi-plie/ciclos/ciclo-01-breu-piano.conf` e o `.fipp` reparados pela regra,
+`experimentos/provar-aula-dada.js` (secção F).
 
-**MEDIDO.** `provar-o-gravar-que-so-acende` **42/42**; controle `--contra=305171e6` reprova **19**.
-Num Chrome, com a página real e o `fetch` de bolso: `disabled` à chegada com `opacity 0.4` e
-`cursor: not-allowed`, aceso (`opacity 1`, `pointer`) ao marcar o jazz, e apagado outra vez ao
-desmarcá-lo. `provar-habilitacao-do-professor` verde, `provar-cadastro-do-professor` 87/87,
-`provar-a-dobra-so-onde-ela-pediu` 35/35, `provar-o-painel-do-estudio` 36/36,
-`provar-ficha-na-listagem` 35/35, `provar-professor-secundario` 19/19, `check-identidade` **0
-problemas** (23 verificações). `provar-editar-professor-principal` 32/33 — a falha é anterior e
-igual sem esta mudança.
+**O QUE FICA POR DIZER, e é a pergunta que ela ainda não fez.** A lista de documentos declara o que
+o escritor grava — mas o escritor não escreve `-pre-requisitos.md` nem `-musicalidade-aluna.md`, e
+um ciclo cujo plano os peça fica com a lista a apontar ficheiros que ninguém derivou. Não é o caso
+do `breu-piano` (não os pede), e não se mexeu nisso: derivar esses dois é trabalho de outra sessão.
 
 ## O que está pendente
 
@@ -784,7 +801,7 @@ ela melhora com a mesma fusão, mas só quando for re-derivada com o elenco cert
 - **20/11/2026** — O estudo do modal do Estilo, corrigido por ela: é na… → `REGISTRO.md` L56004
 - **20/11/2026** — Duas provas apagadas: as que mediam um mundo que já não… → `REGISTRO.md` L56921
 - **20/11/2026** — «Curadoria» saiu da tela, e a prova que media uma Turma sem… → `REGISTRO.md` L56965
-- **demi-plie · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
+- **demi-plie · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
 

@@ -60023,3 +60023,81 @@ desmarcá-lo. `provar-habilitacao-do-professor` verde, `provar-cadastro-do-profe
 `provar-ficha-na-listagem` 35/35, `provar-professor-secundario` 19/19, `check-identidade` **0
 problemas** (23 verificações). `provar-editar-professor-principal` 32/33 — a falha é anterior e
 igual sem esta mudança.
+
+## 24/11/2026 — O manifesto declara tudo o que o escritor grava, e a geração volta a fechar
+
+**O PEDIDO.** «Eu estou com a escola Breu. Aí eu fiz toda a configuração para professor, que é o
+demi-plié. […] Aí eu fiz o plano de ensino. Eu fiz também o plano de observação, mandei gerar. E eu
+ainda não tenho o ciclo, não tenho a aula, então não gerou os documentos. E não tem nenhum erro no
+action do GitHub. Preciso que você investigue.»
+
+**A PRIMEIRA MEDIÇÃO CORRIGIU O PEDIDO, e sem isso a investigação ia para o lado errado.** A
+execução «Gerar o ciclo · demi-plie/01/breu-piano» de 24/11 11:16 (run `45382567181`) está
+**vermelha** — `conclusion: failure`, passo 7 «Gerar e validar o pacote». O que estava verde era a
+«Fechar os derivados» (as âncoras e os índices), que é outra execução e outro trabalho. Não havia
+erro nenhum no ecrã dela porque o erro mora no registo da execução, não na página.
+
+**O LOG, e o defeito não estava em nenhum dos sítios que os erros nomeiam.** Vinte erros:
+`P-17/P-21` («ciclo com aula precisa declarar `harmonizacao` no DOCS do manifesto»), dois links de
+`aula-01.html` para `notacao.html`, um de `plano.html` para `referencias.html`, e dezasseis
+«âncora inexistente em aula-01.html → `#<bloco>-<exercício>-ob<N>`». A causa é uma só: o manifesto
+da variante dizia `DOCS="plano aula-01 captura-aula-01"` e o escritor tinha gravado, ao lado,
+`-harmonizacao.md`, `-notacao.md`, `-glossario-codigo_de_danca.md` e `-referencias.md`. O gerador
+publica o que o `DOCS` declara — as quatro fontes existiam e não entravam no pacote. E a aula só
+ganha as secções de exercício quando o gerador a compõe com a notação, o que exige `notacao` na
+lista: as dezasseis âncoras que a tabela dos objetivos cita nasciam de uma fonte que ia ser
+publicada para uma página que ia ser gerada sem elas.
+
+**PORQUE ACONTECIA, e não era um caso de escola.** Havia **duas regras para a mesma lista**.
+`docsGerados` (em `escrever-ciclo.js`) sabia a lista inteira e só era chamada quando o manifesto
+ainda **não** tinha `aula-01`; o caminho normal — o «Guardar» do plano grava primeiro e já lá põe
+`aula-01` — caía no ramo que só sabe acrescentar aulas (`docsComAsAulas`). O segundo ramo é um
+subconjunto do primeiro, e por isso nada falhava: a lista simplesmente parava de crescer, em
+silêncio, no primeiro ciclo que nascesse por ali.
+
+**A CORREÇÃO É A REGRA DE 21/11 OUTRA VEZ — uma lista, um dono.** `docsCompletos` passa a viver em
+`motor/nucleo/aulas-do-ciclo.js`: a família das aulas de `docsComAsAulas`, mais harmonização,
+notação, glossário e referências, na ordem do pacote, e **sempre só a acrescentar** — um documento
+que o escritor não conhece (`pre-requisitos`, `musicalidade-aluna`, `caderno-NN`,
+`apanhado-historico`, `guia-de-observacao-NN`) fica onde está, porque a ordem em que estava é a
+ordem do menu publicado. Os dois caminhos chamam-na; `docsGerados` fica como adaptador dela.
+
+**Duas coisas caíram do mesmo movimento, e são defeito, não arrumação.** (1) `docsComAsAulas`
+devolvia a lista intacta quando não faltava aula nenhuma — `aula-01 aula-02 captura-aula-01
+captura-aula-02` ficava assim, e a mesma lista em duas ordens dava dois menús; passa a normalizar a
+família sempre, e só não muda nada quando já está na ordem certa. (2) `gerar-ciclo.sh` lia
+`fonte_md notacao` **direto do repositório** para montar a tabela dos objetivos, mesmo quando
+`notacao` não estava no `DOCS` — citava a âncora de uma página que não ia ter exercícios. A tabela
+passa a só citar o que a página vai ter.
+
+**A REPARAÇÃO DO MANIFESTO É A PRÓPRIA REGRA, não uma linha escrita à mão.** O `.conf` da
+`breu-piano` foi passado por `docsCompletos` e ficou `plano harmonizacao aula-01 captura-aula-01
+notacao glossario-codigo_de_danca referencias`. A âncora da cadeia foi refeita (`hash-ciclo.sh`) —
+e ela **muda de conteúdo**, porque a lista de fontes cobertas passa a incluir os quatro documentos
+que agora são publicados: o manifesto declara, a âncora cobre.
+
+**MEDIDO, e a medida é o invariante e não uma lista.** A `provar-aula-dada.js` ganhou a secção F:
+«toda a fonte `.md` que o escritor grava nesta passagem está declarada no `DOCS`» — lido do que ele
+escreveu, não de uma cópia envelhecida da lista. **47/47**; contra o código anterior (`aefcd3d2^`)
+reprova **11** asserções, e o escritor aparece a gravar **seis** fontes sem declarar nenhuma.
+Controlo do outro lado, na mesma secção: um documento que o escritor não gera sobrevive no lugar
+onde estava, e um manifesto já completo não é tocado (a lista não reescreve o que está certo).
+A geração local com o mesmo commit passa de **20 erros** a `OK: 0 erro(s), 1 aviso` — 9 páginas,
+259 links.
+
+**E ao ar.** A execução refeita (`45384285428`, mesmos inputs) concluiu **success**; o pacote
+publicado tem as nove páginas, e em `breu.padd.com.br/piano/` o plano, a aula, a notação, as
+referências, o glossário e a folha respondem 200 — as dezasseis âncoras do plano existem todas na
+aula ao vivo. `harmonizacao.html` responde 404 **por desenho**: ela vive só no pacote desde
+23/10/2026 (`FORA_DA_PUBLICACAO`, em `tools/montar-publicacao.js`).
+
+**Com o quê.** `motor/nucleo/aulas-do-ciclo.js` (`docsCompletos`, e a normalização da família em
+`docsComAsAulas`), `motor/servidor/escrever-ciclo.js` (o `if` de dois ramos passa a uma chamada;
+`docsGerados` fica como adaptador), `tools/gerar-ciclo.sh` (a guarda da tabela),
+`professores/demi-plie/ciclos/ciclo-01-breu-piano.conf` e o `.fipp` reparados pela regra,
+`experimentos/provar-aula-dada.js` (secção F).
+
+**O QUE FICA POR DIZER, e é a pergunta que ela ainda não fez.** A lista de documentos declara o que
+o escritor grava — mas o escritor não escreve `-pre-requisitos.md` nem `-musicalidade-aluna.md`, e
+um ciclo cujo plano os peça fica com a lista a apontar ficheiros que ninguém derivou. Não é o caso
+do `breu-piano` (não os pede), e não se mexeu nisso: derivar esses dois é trabalho de outra sessão.
