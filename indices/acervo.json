@@ -2,7 +2,7 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "09aa810e4535342b8d7e791d114cc3a8dedddac94fe279eeb0cbc347378e43ce",
+        "hash": "722580618ab1570170b0f4a3be2dbca08228c994f7cea3023f340dd00a4de8b7",
         "id": "ciclo-01-breu-piano",
         "lida": true,
         "parent_hash": ""
@@ -353,9 +353,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "0ea82c6"
+    "commit": "aefcd3d"
   },
-  "gerado_em": "2026-11-24T11:16",
+  "gerado_em": "2026-11-24T11:27",
   "nao_indexado": [
     {
       "familia": "conteudo",
