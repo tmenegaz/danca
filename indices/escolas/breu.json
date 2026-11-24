@@ -1,5 +1,36 @@
 {
-  "aspectos": [],
+  "aspectos": [
+    {
+      "aspecto": "cinco-posicoes-2a-pes",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261124-1107",
+      "ultima": "20261124-1107",
+      "versoes": 1
+    },
+    {
+      "aspecto": "formato-anatomico-dos-joelhos",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261124-1107",
+      "ultima": "20261124-1107",
+      "versoes": 1
+    },
+    {
+      "aspecto": "passe",
+      "contagem": 1,
+      "ids": [
+        "recorte:tami"
+      ],
+      "primeira": "20261124-1107",
+      "ultima": "20261124-1107",
+      "versoes": 1
+    }
+  ],
   "aulas": [],
   "ciclos": [
     {
@@ -77,7 +108,7 @@
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "recortes": 0,
+      "recortes": 1,
       "registros": 1
     },
     "criada_em": "2026-11-23T10:26:27.415407+00:00",
@@ -107,7 +138,32 @@
         "valor": "2026"
       }
     ],
-    "aspectos": [],
+    "aspectos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "cinco-posicoes-2a-pes",
+        "valor": "cinco-posicoes-2a-pes"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "formato-anatomico-dos-joelhos",
+        "valor": "formato-anatomico-dos-joelhos"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "recorte:tami"
+        ],
+        "rotulo": "passe",
+        "valor": "passe"
+      }
+    ],
     "estados": [
       {
         "contagem": 1,
@@ -150,9 +206,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "0400132"
+    "commit": "35b79e5"
   },
-  "gerado_em": "2026-11-23T13:55",
+  "gerado_em": "2026-11-24T11:07",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -175,7 +231,37 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "recortes": [],
+  "recortes": [
+    {
+      "alunas": 1,
+      "aspectos": [
+        "cinco-posicoes-2a-pes",
+        "formato-anatomico-dos-joelhos",
+        "passe"
+      ],
+      "atualizada_em": "2026-11-24T11:07:20.754Z",
+      "enviada_em": "2026-11-24T11:07:21.254Z",
+      "id": "recorte:tami",
+      "linha": "tami",
+      "nome": "Tami",
+      "professor": null,
+      "turma": null,
+      "versoes": [
+        {
+          "alunas": 1,
+          "arquivo": "escola/breu/linhas-de-base/tami--20261124-1107.json",
+          "aspectos": [
+            "cinco-posicoes-2a-pes",
+            "passe",
+            "formato-anatomico-dos-joelhos"
+          ],
+          "enviada_em": "2026-11-24T11:07:21.254Z",
+          "versao": "20261124-1107"
+        }
+      ],
+      "vigente": true
+    }
+  ],
   "registros": [
     {
       "ajuste_de": null,
