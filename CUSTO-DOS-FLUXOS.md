@@ -1212,6 +1212,16 @@ escreve 5,50; a diferença é 1,9 % e não muda nenhuma conclusão, mas fica dit
 | **lucro** | R$ 195,90 | R$ 125,90 | R$ 139,90 | **R$ 432,71** |
 | **margem** | **100,0 %** | **100,0 %** | **100,0 %** | **93,7 %** |
 
+**E se a escola abrir 30 dias em vez de 22** — que é o que «16 horas por dia» pode querer dizer — são
+**480 aulas/mês** e **1 602 min** por escola (linha de 480 na tabela da §10.3). A conclusão não muda:
+**1 602 < 2 000**, a primeira continua gratuita; a segunda leva o total a 3 204 min e custa
+**US$ 5,22**. A receita, essa, sobe: no Básico são 380 aulas de excedente e **R$ 259,90**; o
+Intermediário fica em **R$ 189,90** e o Avançado em **R$ 139,90** — **R$ 589,70** no total. Mas o
+CI sobe mais do que a receita: as três juntas são 4 806 min, **US$ 14,84 = R$ 80,11**, e a margem
+**desce** a **86,4 %** (era 93,7 % a 22 dias). É a primeira vez nesta secção que o custo cresce mais
+depressa do que a receita — e o motivo é o laço da §10.3: **480 aulas custam 1,5× o que 352
+custavam** (1 602 contra 1 076 min), e o excedente da fatura cresce nessa proporção.
+
 **A leitura que importa, e são três factos:**
 
 1. **Uma escola sozinha não custa nada.** 1 076 min contra os 2 000 do plano gratuito: **54 % da cota**
