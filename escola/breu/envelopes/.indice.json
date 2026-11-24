@@ -2,7 +2,8 @@
   "versao": 6,
   "nomes": [
     "anamnese-20261123-1055.json",
-    "plano-20261124-0811.json"
+    "plano-20261124-0811.json",
+    "po-20261124-0815.json"
   ],
   "resumos": {
     "anamnese-20261123-1055.json": {
@@ -35,6 +36,21 @@
         "Relevé"
       ],
       "professorNome": "demi-plie"
+    },
+    "po-20261124-0815.json": {
+      "id": "po-20261124-0815",
+      "fonte": "po",
+      "escola": "breu",
+      "professor": "demi-plie",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "gerado_em": "2026-11-24T08:15",
+      "sujeitos": [
+        "Vavá"
+      ],
+      "plano": [
+        "plano-20261124-0811"
+      ]
     }
   }
 }
