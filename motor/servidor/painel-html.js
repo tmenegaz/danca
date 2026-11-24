@@ -1747,7 +1747,18 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
         : (m.valorCentavos ? 'R$ ' + emReais(m.valorCentavos) : '—')) + '</td>' +
       '<td>' + (m.status === 'pago'
         ? '<span class="selo ok">pago</span> <span class="dono">' + esc(m.emTexto || '') + '</span>'
-        : (m.venceu ? '<span class="selo falha">em aberto</span>'
+        : (m.venceu
+          ? '<span class="selo falha">em aberto</span>'
+            /* OS ENCARGOS AO LADO DO ESTADO, e não numa coluna nova (25/11/2026): uma oitava coluna
+             * numa tabela que já rola é o que faz o valor que interessa sair do ecrã. O mês em
+             * atraso diz quanto a mais, e diz a NORMA — a escola que pergunta «de onde vem isto?»
+             * tem a resposta na mesma célula. */
+            + (m.encargos && m.encargos.encargosCentavos > 0
+              ? '<br><span class="sub">+' + reaisDeCentavos(m.encargos.encargosCentavos)
+                + ' de mora (' + m.encargos.diasDeAtraso + ' dia(s): multa '
+                + reaisDeCentavos(m.encargos.multaCentavos) + ' + juros '
+                + reaisDeCentavos(m.encargos.jurosCentavos) + ')</span>'
+              : '')
           : '<span class="selo discreto">a vencer</span>')) + '</td>' +
       '<td>' + (m.status === 'pago'
         ? (m.planoNome ? esc(m.planoNome) : '—')
@@ -1836,6 +1847,14 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
        * referência»; com a unidade comercial na aula, nenhum dos dois é uma promessa, e um número
        * de gente ao lado de um preço lê-se como se fosse parte dele. Fica o que se cobra: o plano,
        * a mensalidade, a franquia, o consumo e o vencimento. */
+      /* O TOTAL EM MORA, quando há dívida (25/11/2026) — «a gente vai adotar a mesma política de
+       * multa e juros que tem em conta de água, conta de luz». Aparece só quando há o que cobrar: um
+       * «R$ 0,00 de mora» em toda a escola em dia é ruído que esconde o caso que importa. */
+      (c.totalEmMoraCentavos > 0
+        ? '<span>Em mora: <strong>' + reaisDeCentavos(c.totalEmMoraCentavos) + '</strong>'
+          + ' <span class="sub">(mensalidades ' + reaisDeCentavos(c.totalEmMoraCentavos - c.encargosEmMoraCentavos)
+          + ' + encargos ' + reaisDeCentavos(c.encargosEmMoraCentavos) + ')</span></span>'
+        : '') +
       (c.proximoVencimento
         ? '<span>Próximo vencimento: <strong>' + esc(c.proximoVencimento) + '</strong>'
           + (c.diasParaVencer != null
@@ -2464,7 +2483,7 @@ module.exports = {
   paginaDoConvite,
   paginaFinanceira, SCRIPT_DO_FINANCEIRO, ENSAIO_PADRAO_MINUTOS,
   /* O MONITORAMENTO (17/11/2026) — a página, e as peças que a prova mede à parte. */
-  paginaDoMonitoramento, barraDaCota, seloDoNivel,
+  paginaDoMonitoramento, barraDaCota, seloDoNivel, blocoDasAulas,
 };
 
 /* ══════════════════════════════════════════════════════════════════════════════════════════════
@@ -2500,6 +2519,22 @@ const usdFino = (v) => {
   return 'US$ ' + n.toFixed(casas).replace('.', ',');
 };
 const pct = (f) => (Math.round((Number(f) || 0) * 1000) / 10).toFixed(1).replace('.', ',') + '%';
+/* O NÚMERO DA CASA: milhar separado por espaço fino inseparável, e a vírgula decimal. «2850» lê-se
+ * mal e «2.85×» lê-se como outra coisa; «2 850» e «2,85×» é o que ela escreve e o que o documento
+ * do custo usa. O espaço é `\u202f` (fino, não separável) para não partir entre o milhar e a
+ * centena. */
+const numero = (v) => {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return '—';
+  const inteiro = Math.round(Math.abs(n)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '\u202f');
+  return (n < 0 ? '−' : '') + inteiro;
+};
+const decimal = (v, casas) => {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return '—';
+  const c = Number.isInteger(casas) ? casas : 2;
+  return n.toFixed(c).replace('.', ',');
+};
 
 /**
  * A BARRA DE UMA COTA — a distância até o teto, e o estado dela.
@@ -2698,6 +2733,72 @@ function blocoDoGithub(g) {
 }
 
 /** O BLOCO DO CLOUDFLARE — a ocupação, e o que não se mede. */
+/**
+ * AS AULAS — a cota que decide, e a conta a um dólar de referência *(25/11/2026)*.
+ *
+ * «A gente tem um monitoramento aqui e ele diz para a gente quando é que a gente precisa tomar
+ * alguma medida antes que ela aconteça.» As cotas que já estavam aqui são todas do FORNECEDOR —
+ * minutos, e-mails, chaves. Esta é a da CASA: **quantas aulas o parque vendeu**, contra as **1.000
+ * aulas/mês** que o plano gratuito paga (2.000 min ÷ 2,0 min por aula, medidos).
+ *
+ * PORQUE É QUE A FRANQUIA VENDIDA E NÃO O CONSUMO: o contador de aulas do mês ainda não existe
+ * (`PLANO-CONTADOR-DE-AULAS.md`), e a franquia é o TECTO do que pode ser lançado — o pior caso. Um
+ * alarme construído sobre o pior caso avisa cedo, que é o que ela pediu; quando o contador existir,
+ * passa-se-lhe o número medido e o bloco não muda. O bloco diz qual dos dois está a usar.
+ *
+ * A CONTA A R$ 6 É DECLARADA COMO REFERÊNCIA, e não é a cotação: ela fixou «até R$ 6 o dólar é onde
+ * eu posso suportar». Ao lado fica a conta à taxa do dia, que é o que se paga — e as duas dizem o
+ * câmbio que usaram, porque um número em reais sem a taxa ao lado é um número que ninguém confere.
+ */
+function blocoDasAulas(a) {
+  if (!a) return '';
+  const temAulas = a.aulasVendidas != null;
+  const detalhe = (r) => {
+    if (!r) return '<span class="sub">sem câmbio declarado, a conta não é feita</span>';
+    return '<strong>R$ ' + decimal(r.custoCentavos / 100, 2) + '/mês</strong>'
+      + (r.margem != null
+        ? ' <span class="sub">— margem ' + pct(r.margem) + ' sobre a franquia vendida</span>'
+        : '');
+  };
+  return '<div class="caixa" id="monitor-aulas">' +
+    '<h2>As aulas — a cota que decide</h2>' +
+    '<p>As cotas acima são do fornecedor. Esta é a da casa: o plano gratuito do GitHub paga '
+    + '<strong>' + numero(a.aulasQueEsgotamGratuito) + ' aulas por mês</strong>, a '
+    + decimal(a.minutosPorAula, 1)
+    + ' minutos cada (medido a ' + esc(dia(a.minutosPorAulaMedidoEm)) + ').</p>' +
+    /* A BARRA SÓ APARECE QUANDO HÁ O QUE MEDIR. Sem aulas vendidas, a página diz que não sabe —
+     * e não desenha um zero que se lê como «parque vazio». */
+    (temAulas
+      ? barraDaCota({
+        fraccao: Math.min(1, a.fraccao), nivel: seloDoNivel(a.fraccao).includes('falha') ? 'agora'
+          : (seloDoNivel(a.fraccao).includes('alerta') ? 'atencao' : 'folga'),
+        rotulo: numero(a.aulasVendidas) + ' aulas vendidas (franquia dos contratos)',
+        doQue: 'das ' + numero(a.aulasQueEsgotamGratuito) + ' que o plano gratuito paga',
+      })
+      : '<p class="sub">Ainda sem aulas vendidas registadas: o consumo em aulas não é calculado.</p>') +
+    (temAulas && a.fraccao > 1
+      ? '<p class="sub">A franquia vendida é <strong>' + decimal(a.fraccao, 2)
+        + '×</strong> o que o plano gratuito paga.</p>'
+      : '') +
+    '<div class="rolagem-caixa"><table><thead><tr><th>Custo, a um dólar de…</th><th>Por mês</th>'
+    + '</tr></thead><tbody>' +
+    (a.hoje
+      ? '<tr><td><strong>R$ ' + decimal(a.hoje.cambio, 2) + '</strong> — o câmbio '
+        + 'declarado, que é o que se paga</td><td>' + detalhe(a.hoje) + '</td></tr>'
+      : '') +
+    (a.naReferencia
+      ? '<tr><td><strong>R$ ' + decimal(a.naReferencia.cambio, 2) + '</strong> — '
+        + 'a referência de segurança que ela fixou</td><td>' + detalhe(a.naReferencia) + '</td></tr>'
+      : '') +
+    '</tbody></table></div>' +
+    '<p class="sub">' + esc(a.frase || '') + '</p>' +
+    /* O QUE A CONTA NÃO INCLUI, dito ao lado: o CI da operação da casa não é aulas de escola, e
+     * somado a isto aparece na fatura sem estar nesta barra. */
+    '<p class="sub">Esta conta é só das aulas vendidas. O CI do desenvolvimento corre na mesma '
+    + 'cota e não entra aqui — a fatura soma os dois.</p>' +
+    '</div>';
+}
+
 function blocoDoCloudflare(cf) {
   if (!cf) return '';
   const c = cf.cotas;
@@ -2989,6 +3090,10 @@ function paginaDoMonitoramento({ retrato, cambio, visibilidade, recado, aba }) {
           'ver crescer é o das aulas lançadas no mês, não o das fichas.')) + '</p>' +
     '<div class="ficha">' +
     '<span>Pior indicador: <strong>' + pct(r.piorFraccao) + '</strong></span>' +
+    '<span>Aulas: <strong>' + ((r.aulas && r.aulas.aulasVendidas) != null
+      ? (numero(r.aulas.aulasVendidas) + ' de ' + numero(r.aulas.aulasQueEsgotamGratuito))
+      : 'sem contagem')
+      + '</strong></span>' +
     '<span>GitHub: <strong>' + ((r.github && r.github.minutos) || 0) + ' de ' + ((r.github && r.github.total) || 0) + ' min</strong></span>' +
     '<span>Resend: <strong>' + ((r.correio && r.correio.enviados) || 0) + ' de ' + ((r.correio && r.correio.total) || 0) + '</strong></span>' +
     '<span>Receita: <strong>' + reaisDeCentavos((r.receita && r.receita.mrrCentavos) || 0) + '/mês</strong></span>' +
@@ -3014,8 +3119,12 @@ function paginaDoMonitoramento({ retrato, cambio, visibilidade, recado, aba }) {
       + 'faz à receita. O que não é medido está dito — um painel que mente é pior do que não o ter.',
     atual: 'monitoramento',
     corpo: cabecalho + tira +
-      painel('consumo', blocoDoGithub(r.github) + blocoDoCloudflare(r.cloudflare) +
-        blocoDoCorreio(r.correio), (aba || 'consumo') === 'consumo') +
+      /* AS AULAS VÊM PRIMEIRO na aba do consumo (25/11/2026): é a única cota cujo gasto é o
+       * produto — as outras três são do fornecedor e sobem com o que a casa faz; esta sobe com o que
+       * a escola usa. Ordenar por «o que decide» e não por «o que já existia» é a razão da ordem. */
+      painel('consumo', blocoDasAulas(r.aulas) + blocoDoGithub(r.github) +
+        blocoDoCloudflare(r.cloudflare) + blocoDoCorreio(r.correio),
+      (aba || 'consumo') === 'consumo') +
             /* A INADIMPLÊNCIA FICA NA ABA DA RECEITA, e não numa quarta (17/11/2026): é a mesma
        * pergunta do dinheiro — «quanto entra» e «quem não pagou» lêem-se juntas, e uma aba a mais
        * para uma tabela que se abre no mesmo gesto é um clique a mais todos os meses. Entra

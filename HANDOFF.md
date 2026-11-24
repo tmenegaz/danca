@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-24T14:12:39-0300`
-Commit atual: `87fdbdc0` — docs(estrutura): o tecto dos 100% é do dono da conta, e a escada pede 139/320/500
+Gerado em: `2026-11-24T14:38:59-0300`
+Commit atual: `ad7d1c8a` — docs(estrutura): escada 130/320/500 com dólar a R$ 6, e a margem não depende do nº de escolas
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+ad7d1c8a docs(estrutura): escada 130/320/500 com dólar a R$ 6, e a margem não depende do nº de escolas
 87fdbdc0 docs(estrutura): o tecto dos 100% é do dono da conta, e a escada pede 139/320/500
 36c09bc6 docs(estrutura): a franquia é o teto, a C25 está fechada, e o laço percorre o ciclo
 5ef4d5d9 docs(estrutura): a variante dos 30 dias, e a margem que desce a 86,4 %
@@ -101,7 +102,6 @@ aefcd3d2 fix(ciclo-01): o manifesto declara tudo o que o escritor grava
 5d322d4b chore(estrutura): fechar os derivados — âncoras e índices
 0ea82c68 feat(ciclo): o «Guardar» do PO grava as fontes de breu-piano num commit só
 7749ac62 feat(acervo): envelope/po-20261124-0815.json
-a61a47d4 feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -195,75 +195,81 @@ a61a47d4 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 25/11/2026 — A escada é 130/320/500, com o dólar a R$ 6 — e não há prejuízo em nenhum cenário plausível
+## 25/11/2026 — A escada aplicada, o simulado das extensões, e a política de mora das contas de consumo
 
-**A decisão é dela.** «Eu vou ficar com a proposta A, ela é a mais vantajosa para mim e também é
-razoável com a escola.» **A escada passa a 130 / 320 / 500** (era 100 / 300 / 800), e o **dólar de
-referência é R$ 6,00** — «para a gente ter uma sobra», porque «o dólar está sempre oscilando ali entre
-quatro e pouco, cinco e 50, mas pode ser que chegue a seis».
+**A escada deixou de ser recomendação e passou a ser o que o sistema promete.** `planos.json →
+assinaturas[].aulas` passa a **130 / 320 / 500** (era 100 / 300 / 800), e a nota dos pacotes passa a
+citar os pontos de viragem novos: **190** e **400**. O Financeiro e o cartão da escola passaram a
+mostrar as franquias novas **sem uma linha de código** — leem o catálogo, que é a fonte única do preço
+e da franquia.
 
-**E o resultado é melhor do que o da escada anterior:** às nove escolas cheias o custo **cai** de
-R$ 175,20 para **R$ 121,20** (a R$ 6) e a margem **sobe** de 81,1 % para **87,0 %**.
+**O SIMULADO DAS EXTENSÕES, que faltava, e a conclusão inverte a intuição.** A extensão custa
+**R$ 0,072** de CI e vende-se a **R$ 0,50**: **85,6 % de margem**, melhor do que o Intermediário
+(76,9 %) e o Avançado (74,3 %). E a margem **sobe** à medida que a escola cresce: no Intermediário de
+76,9 % para **79,4 %** no ponto de migrar (400 aulas), no Avançado de 74,3 % para **81,5 %** a 1 000
+aulas. No Básico fica quase plana (86,6 % → 86,3 %) porque a aula do plano já custa R$ 0,538, muito
+perto dos R$ 0,50. **A escola paga mais por aula nas extensões do que no plano** — no Avançado, de
+R$ 0,280 para R$ 0,390 —, que é exactamente o que o preço de R$ 0,50 foi desenhado para fazer.
 
-**As aulas por semana** (mês = 52 ÷ 12 = 4,33): Básico **30,0/semana** (5,0/dia, 1 sala);
-Intermediário **73,8** (12,3/dia, 2 salas × 6,2); Avançado **115,4** (19,2/dia, 3 salas × 6,4).
+**E o conjunto:** nove escolas a crescer 50 % em aulas dão **65 % mais receita** e **89 % mais lucro**,
+com a margem quase intacta (87,0 % → 86,3 %). As nove no ponto de migrar: R$ 1 139,10 de receita
+contra R$ 151,44 de CI — **86,7 %**.
 
-**Os pontos de migração, com a extensão a R$ 0,50:** Básico → Intermediário às **190 aulas/mês**
-(**43,8/semana**); Intermediário → Avançado às **400** (**92,3/semana**). Em espelho, a **janela em que
-a extensão é o melhor negócio para a escola**: no Básico de 131 a 190 (30,2 a 43,8/semana), no
-Intermediário de 321 a 400 (74,1 a 92,3/semana), e no Avançado **de 501 em diante** — porque **não há
-plano acima**, e aí a extensão custa **1,79× a aula do próprio plano**.
+**PORQUE É QUE A ALAVANÇA DELA É FRACA — demonstrado, porque ela perguntou.** (1) A aula custa sete
+centavos e o preço é trinta: o custo é 13 % da receita no Básico e 26 % no Avançado, nunca mais.
+(2) Para segurar o custo quando o dólar sobe é preciso cortar **na mesma proporção** — a R$ 12 seria
+preciso reduzir a franquia a **metade** para o custo não subir, e a margem nem assim melhora.
+(3) Corta o produto mais rentável: cortar o Avançado de 500 para 450 devolve **R$ 3,60** de custo e
+abre **50 aulas vendáveis a R$ 0,50 = R$ 25,00**. (4) Encarece a aula do plano em **+11 %** por cada
+−10 % de franquia. **O que reduz a sério: a engenharia (R$ 43,63/mês, 36 % do custo) e o §7.1
+(metade da factura), nessa ordem.**
 
-**E é por isso que «o que vier é lucro» é literal:** a extensão custa **R$ 0,072** de CI e vende-se a
-**R$ 0,50** — **85,6 % de margem**, melhor do que a do Intermediário (76,9 %) e a do Avançado (74,3 %).
+**A POLÍTICA DE MULTA E JUROS — pesquisada, com a norma.** «A gente vai adotar a mesma política de
+multa e juros que tem em conta de água, conta de luz.» **Multa de 2 %** sobre o valor da fatura, uma
+vez — teto do **CDC art. 52, §1º** e da **REN ANEEL nº 1.000/2021, art. 343, §1º**; **juros de mora
+de 1 % ao mês, pro rata die** — art. 343, *caput* (é a norma, e não o Código Civil, que fixa o 1 %: o
+CC/2002 remeteu à Selic no art. 406); **sem carência**; a única tolerância é a do §3º (vencimento em
+dia não útil); base de cálculo = o valor da fatura, **sem anatocismo** (§2º, III). **O exemplo fecha:
+R$ 100 a 30 dias = R$ 2,00 de multa + R$ 1,00 de juros = R$ 103,00.**
 
-**Quando os custos aumentam — uma vez só.** O custo é **R$ 0,00 até 1 000 aulas/mês na conta inteira**
-(2 000 min), e depois é **R$ 0,072 por aula, para sempre**. Em escolas: **7 do Básico**, **3 do
-Intermediário**, **2 do Avançado**, ou **3 (uma de cada) com 100 min de sobra**.
+**A correção monetária do IPCA NÃO é aplicada, e diz-se em cada conta.** Buscar um índice oficial
+seria uma dependência que falha em silêncio e muda o valor da dívida sem ninguém saber — o mesmo
+raciocínio que fez o câmbio do painel ser *declarado*. `correcaoAplicada: false` existe para que a
+omissão seja dita, e para o dia em que houver um índice datado.
 
-**A descoberta tranquilizadora: a margem não depende do número de escolas.** Como o custo é
-proporcional às aulas e a receita também, a margem converge para o piso do plano e **fica lá** — 90,6 %
-no Básico, 79,7 % no Intermediário, 76,3 % no Avançado (a N=30). **O que desce é a fatia gratuita, e ela
-acaba uma vez.** Não há número de escolas em que o negócio vire.
+**A LACUNA DECLARADA, e é de fonte.** A conta de **luz** tem norma federal. A de **água** não: os
+percentuais vêm do contrato de cada operador e da norma do regulador estadual, e reproduzem na prática
+o mesmo 2 % + 1 %. A afirmação «água = 2 % + 1 %» está sustentada pelo **CDC art. 52, §1º** e pelo
+padrão contratual do setor — **não** por uma resolução de regulador estadual lida nesta sessão. Como
+os números coincidem, a política não muda; o que muda é a força da citação.
 
-**A sensibilidade ao dólar, com 3 de cada na franquia cheia (2 850 aulas, 5 700 min, receita
-R$ 929,10):** R$ 4,00 → **91,3 %**; R$ 5,40 → 88,3 %; **R$ 6,00 → 87,0 %** (custo R$ 121,20); R$ 8,00 →
-82,6 %; R$ 10,00 → 78,3 %; R$ 12,00 → 73,9 %; **R$ 23,00 → 50,0 %**; **R$ 46,00 → 0 %**. O prejuízo só
-começa a um dólar **oito vezes** o que ela declarou suportar. Por plano, o zero chega a R$ 44,81
-(Básico), R$ 26,02 (Intermediário) e **R$ 23,32 (Avançado)** — o primeiro a apertar, e ainda assim só
-a R$ 11,66 para os 50 %.
+**O MONITORAMENTO PASSOU A MEDIR A COTA NA UNIDADE DA CASA.** «A gente tem um monitoramento aqui e ele
+diz para a gente quando é que a gente precisa tomar alguma medida antes que ela aconteça.» As cotas
+eram todas do fornecedor; a nova é a das **aulas**: **1 000 aulas/mês** é onde o plano gratuito acaba
+(2 000 min ÷ 2,0 min por aula, medidos em 395 runs de `Fechar os derivados` e 16 de `Gerar o ciclo`).
+A conta aparece **à taxa do dia e a R$ 6**, e a cota entra no **pior indicador** — sem ela, o mesmo
+parque com as três cotas do fornecedor a 10 % dava «folga», que é o defeito que ela mandou tapar
+(medido como controlo negativo na prova).
 
-**Sem a franquia cheia — que é o caso real, e ela disse-o** («as escolas não chegam a tudo isso de
-aula») —, com metade: 1 425 aulas, 2 850 min, **R$ 24,00**, margem **97,4 %**. Com um terço, **R$ 0,00**.
+**UMA PROVA QUE ESTAVA VERDE SOBRE UM MUNDO QUE JÁ NÃO EXISTE.** `provar-o-custo-de-uma-aula` e
+`provar-a-franquia-de-aulas` tinham a escada **copiada à mão** (`100 / 300 / 800`), e passaram a
+reprovar a própria decisão quando ela mudou. É a mesma família do `DOCS` que parou de crescer (decisão
+174): uma segunda lista da mesma coisa apodrece em silêncio, e o verde dela não quer dizer nada. As
+duas passaram a **ler o catálogo**, e o que afirmam é a **forma** (três planos, franquias crescentes,
+o ponto de viragem dentro da franquia do plano de cima) e não o número — que muda sempre que a escada
+mude. `provar-a-escola-que-nasce` e `provar-monitoramento` foram corrigidas pela mesma razão.
 
-**A engenharia é a maior rubrica depois das escolas.** Os 1 212 min/mês medidos entre 15 e 24/11 somados
-às nove escolas dão 6 912 min → **R$ 164,83**: **R$ 43,63 a mais, 36 % do total**, e é a única que ela
-controla sem tocar na promessa comercial.
+**MEDIDO.**
+`provar-o-custo-de-uma-aula` 24/24 · `provar-a-franquia-de-aulas` 43/43 ·
+`provar-a-escola-que-nasce` 25/25 · `provar-monitoramento` 105/105 ·
+`provar-a-cota-em-aulas` **27/27 (novo)** · `provar-a-mora` **24/24 (novo)**.
+`correr-provas --mudou` sobre os quatro módulos tocados: **0 regressões**. Suíte completa antes destas
+mudanças: 273 provas, 177 verdes, 96 falhas conhecidas, 0 regressões, 187 s.
 
-**A alavanca que ela propôs é fraca, e é preciso dizê-lo antes de ela a usar.** Uma aula custa
-**R$ 0,072**: cortar 10 % da franquia poupa **R$ 0,94** (Básico), **R$ 2,30** (Intermediário) e
-**R$ 3,60** (Avançado) por mês, e tira 13, 32 e 50 aulas da promessa. **Para poupar R$ 100/mês seriam
-precisas 1 389 aulas — mais do que a conta inteira.** A ordem certa, se o gatilho aparecer, é o
-gratuito (já usado), a **engenharia** (36 %, não é promessa a ninguém), a **consolidação dos jobs**
-(§7.1, corta a unidade de 2,0 para 1,0 min e reduz esta factura a metade) e só no fim a franquia.
-
-**A linha de alarme:** a **única coisa a vigiar é o total de aulas lançadas no mês**, todas as escolas
-somadas — não o número de escolas nem o plano de cada uma. É ele que decide se a conta está nos R$ 0 ou
-nos R$ 121.
-
-**POR ESCREVER, e é o que falta:** as três franquias continuam **100 / 300 / 800** em
-`biblioteca/comercial/planos.json → assinaturas[].aulas`. **Enquanto não forem escritas, o sistema
-promete a escada antiga** — o painel, o Financeiro e o `situacaoDaFranquia` leem aquele ficheiro.
-Escrevê-las é mudar três números e publicar; **não se fez porque é decisão comercial acabada de tomar, e
-porque o commit do catálogo merece ser o dele**, com o motivo declarado.
-
-**MEDIDO.** As franquias, os preços e a extensão, do `planos.json`; o custo do minuto e a unidade de
-2,0 min/aula, da §10. **Calculado:** as aulas por semana (franquia ÷ 4,33), a viabilidade da operação
-(nunca observada) e a sensibilidade ao dólar. As quatro conferências verdes: `check-identidade` (23),
-`check-schemas`, `check-sem-destruicao`, `check-github-headers` (5).
-
-**Onde entrou.** `CUSTO-DOS-FLUXOS.md` (§12 — §12.1 a §12.10), `ESTADO-ATUAL.md` (a fotografia e a
-decisão 178), `HANDOFF.md` (regenerado).
+**Onde entrou.** `biblioteca/comercial/planos.json`, `motor/nucleo/monitoramento.js`,
+`motor/nucleo/mensalidades.js`, `motor/servidor/painel-html.js`, `experimentos/provar-a-cota-em-aulas.js`
+(novo), `experimentos/provar-a-mora.js` (novo), `.gitignore` (as duas provas registadas com a razão),
+`CUSTO-DOS-FLUXOS.md` (§13), `ESTADO-ATUAL.md` (a fotografia e a decisão 179), `HANDOFF.md`.
 
 ## O que está pendente
 

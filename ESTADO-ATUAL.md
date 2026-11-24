@@ -4,7 +4,28 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **a escada fechada: 130 / 320 / 500, com o dólar a R$ 6.**
+> **Última fotografia:** 25/11/2026 — **a escada aplicada, as extensões simuladas e a mora.** As três
+> coisas que ela pediu no mesmo dia, todas feitas. **A escada é o que o sistema promete**: as
+> franquias do `planos.json` passaram a **130 / 320 / 500**, e o Financeiro e o cartão da escola
+> mostram-nas **sem uma linha de código** — leem o catálogo. **O simulado das extensões, que faltava,
+> inverte a intuição:** a extensão custa R$ 0,072 de CI e vende-se a R$ 0,50 — **85,6 % de margem**,
+> melhor do que o Intermediário (76,9 %) e o Avançado (74,3 %) —, e a margem **sobe** com o
+> crescimento (Intermediário 76,9 % → **79,4 %** às 400 aulas; Avançado 74,3 % → **81,5 %** às 1 000).
+> **A escola paga mais por aula nas extensões do que no plano**, e nove escolas a crescer 50 % dão
+> **65 % mais receita e 89 % mais lucro**. **Porque a alavanca dela é fraca, medido:** a aula custa 7
+> centavos e o preço é 30; a R$ 12 seria preciso cortar a franquia **a metade** para o custo não subir;
+> e corta justamente o produto mais rentável — cortar o Avançado de 500 para 450 devolve R$ 3,60 e abre
+> 50 aulas vendáveis a R$ 0,50. **O que reduz a sério é a engenharia** (R$ 43,63/mês, 36 % do custo) e
+> o **§7.1** (metade da factura). **A mora é a das contas de consumo:** 2 % de multa (CDC art. 52, §1º;
+> REN ANEEL 1.000/2021, art. 343, §1º) e 1 % ao mês pro rata die, sem carência e sem anatocismo —
+> R$ 100 a 30 dias = R$ 103,00; e a correção do IPCA **não se aplica, e diz-se**. **O monitoramento
+> passou a medir a cota na unidade da casa** — 1 000 aulas/mês é onde o gratuito acaba, às duas câmbios
+> (a do dia e a de R$ 6), e entra no **pior indicador**: sem ela o mesmo parque com as três cotas do
+> fornecedor a 10 % dava «folga». **Seis provas, 248 asserções, 0 regressões**; duas delas novas com o
+> controlo negativo que importa. **A lacuna declarada:** a norma de **luz** foi lida; a de **água**
+> não — os números coincidem, a citação é mais fraca.
+>
+> **Fotografia anterior (25/11/2026 — a escada fechada em 130 / 320 / 500).**
 > «Eu vou ficar com a proposta A, ela é a mais vantajosa para mim e também é razoável com a escola.» A
 > conta refeita com a escolha dela e com o dólar de referência que ela fixou: às nove escolas cheias o
 > custo **cai** de R$ 175,20 para **R$ 121,20** e a margem **sobe** de 81,1 % para **87,0 %**. **As
@@ -4088,7 +4109,26 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      poupa R$ 0,94 / 2,30 / 3,60 por mês. Se o gatilho aparecer, a ordem é **engenharia** (1 212 min/mês,
      36 % do custo, não é promessa), **§7.1** (corta a unidade para metade) e só no fim a franquia.
      **O que se vigia é o total de aulas lançadas no mês** — não o número de escolas. **DECIDIDO**
-     25/11/2026. **Por escrever:** as franquias do `planos.json` continuam 100 / 300 / 800.
+     25/11/2026. ~~Por escrever: as franquias continuam 100/300/800~~ — **ESCRITAS** no mesmo dia, ver 179.
+
+179. **A EXTENSÃO É O PRODUTO DE MAIOR MARGEM, E A MORA É A DAS CONTAS DE CONSUMO.** Três decisões no
+     mesmo dia, todas dela, todas aplicadas. **(a)** As franquias passam a **130 / 320 / 500** no
+     `planos.json` — e o Financeiro e o cartão da escola passaram a mostrá-las **sem uma linha de
+     código**, porque leem o catálogo. **(b)** O **simulado das extensões**, que faltava: a extensão
+     vende-se a R$ 0,50 e custa R$ 0,072 — **85,6 % de margem**, melhor do que o Intermediário (76,9 %)
+     e o Avançado (74,3 %); e a margem **sobe** com o crescimento (Intermediário 76,9 % → **79,4 %** às
+     400 aulas; Avançado 74,3 % → **81,5 %** às 1 000). Nove escolas a crescer 50 % dão **65 % mais
+     receita e 89 % mais lucro**. **A alavanca de cortar aulas é fraca, e mediu-se** — a R$ 12 seria
+     preciso cortar a franquia **a metade** para o custo não subir, e corta o produto mais rentável;
+     o que reduz a sério é a **engenharia** (36 % do custo) e o **§7.1** (metade da factura). **(c)** A
+     **multa e juros** são os das contas de consumo: **2 % de multa** (CDC art. 52, §1º; REN ANEEL
+     1.000/2021, art. 343, §1º) e **1 % ao mês pro rata die** (art. 343, *caput*), sem carência e sem
+     anatocismo — R$ 100 a 30 dias = R$ 103,00. **A correção do IPCA não se aplica e diz-se**: buscar
+     um índice seria a dependência que falha em silêncio que o câmbio do painel já pagou. **E o
+     monitoramento passou a medir a cota na unidade da casa** — **1 000 aulas/mês** é onde o gratuito
+     acaba, e a cota entra no **pior indicador** (sem ela o mesmo parque dava «folga»). **DECIDIDO** e
+     **APLICADO** 25/11/2026. **A lacuna declarada:** a norma de **luz** foi lida; a de **água** não —
+     os percentuais coincidem, mas a citação é mais fraca.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a

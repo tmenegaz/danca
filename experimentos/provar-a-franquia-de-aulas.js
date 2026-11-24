@@ -62,10 +62,18 @@ function paginaDaEscola(contrato, aulasUsadas) {
 (async () => {
   console.log('A. O catálogo: a franquia é a unidade, e as pessoas são referência');
   {
-    const esperado = { basico: 100, intermediario: 300, avancado: 800 };
-    conferir('as três franquias são 100 / 300 / 800 aulas por mês',
-      Object.entries(esperado).every(([id, n]) => comercial.franquiaDoPlano(id) === n),
-      Object.keys(esperado).map((id) => comercial.franquiaDoPlano(id)));
+    /* A ESCADA VEM DO CATÁLOGO (25/11/2026). Aqui estava `{basico:100, intermediario:300,
+     * avancado:800}` escrito à mão, e ele sobreviveu à mudança para 130/320/500 a reprovar a
+     * própria decisão: uma prova que guarda uma segunda cópia do dado não guarda o dado, guarda a
+     * cópia — e a cópia envelhece sem avisar. O que se continua a afirmar é a FORMA: três planos,
+     * franquias crescentes, e o catálogo a ser o sítio onde elas vivem. */
+    const franquias = comercial.ASSINATURAS.map((a) => Number(a.aulas));
+    conferir('os três planos vendem aulas, e a franquia cresce de degrau para degrau',
+      franquias.length === 3 && franquias.every((n) => n > 0)
+      && franquias[1] > franquias[0] && franquias[2] > franquias[1], franquias);
+    conferir('…e `franquiaDoPlano` devolve o que o catálogo diz, plano a plano',
+      comercial.ASSINATURAS.every((a) => comercial.franquiaDoPlano(a.id) === Number(a.aulas)),
+      comercial.ASSINATURAS.map((a) => [a.id, comercial.franquiaDoPlano(a.id)]));
     conferir('…e os preços são os da escada decidida: 69,90 / 99,90 / 139,90',
       comercial.ASSINATURAS.map((a) => a.preco).join(',') === '69.9,99.9,139.9',
       comercial.ASSINATURAS.map((a) => a.preco));
@@ -80,7 +88,9 @@ function paginaDaEscola(contrato, aulasUsadas) {
     /* A PÁGINA RECEBE AS DUAS COISAS, e separadas: `aulas` para mostrar, `referencia` para medir. */
     const p = funcionamento().assinaturas[0];
     conferir('…e a página recebe `aulas` à parte e as pessoas dentro de «referencia»',
-      p.aulas === 100 && p.referencia && p.referencia.professores === 1 && p.referencia.alunos === 10, p);
+      p.aulas === Number(comercial.ASSINATURAS[0].aulas) && p.referencia
+      && p.referencia.professores === Number(comercial.ASSINATURAS[0].professores)
+      && p.referencia.alunos === Number(comercial.ASSINATURAS[0].alunos), p);
     conferir('…e já não recebe professores/alunos como campo de topo a parecer limite',
       p.professores === undefined && p.alunos === undefined, Object.keys(p));
   }
@@ -93,17 +103,26 @@ function paginaDaEscola(contrato, aulasUsadas) {
      * (é legítimo: um contrato anterior ao eixo), e a prova tem de dizer «falhou», e não morrer. */
     const c = (contrato, n) => comercial.situacaoDaFranquia({ contrato, aulasUsadas: n })
       || { franquia: null, estado: null, excedente: null, usadas: null, restantes: null, frase: '' };
-    conferir('a fraquia do plano é a base', c({ plano: 'intermediario' }, 0).franquia === 300, null);
+    /* A FRANQUIA DO MEIO, lida do catálogo: 320 com a escada de 25/11/2026, e o que quer que o
+     * catálogo passe a dizer se ela voltar a mexer-lhe. As fronteiras dos quatro estados são
+     * DERIVADAS dela — 80% e a própria franquia —, e é a forma da regra que se mede, não o número. */
+    const FR = Number(comercial.ASSINATURAS[1].aulas);
+    conferir('a franquia do plano é a base (Intermediário = ' + FR + ')',
+      c({ plano: 'intermediario' }, 0).franquia === FR, c({ plano: 'intermediario' }, 0).franquia);
 
-    /* OS QUATRO ESTADOS, com as fronteiras declaradas. */
-    conferir('239 é «folga» e 240 é «perto» — o corte dos 80% é declarado',
-      c({ plano: 'intermediario' }, 239).estado === 'folga' && c({ plano: 'intermediario' }, 240).estado === 'perto',
-      [c({ plano: 'intermediario' }, 239).estado, c({ plano: 'intermediario' }, 240).estado]);
-    conferir('aos 300 é «limite» — e ainda não há excedente',
-      c({ plano: 'intermediario' }, 300).estado === 'limite' && c({ plano: 'intermediario' }, 300).excedente === 0);
-    conferir('aos 350 é «passou», com 50 de excedente',
-      c({ plano: 'intermediario' }, 350).estado === 'passou' && c({ plano: 'intermediario' }, 350).excedente === 50,
-      c({ plano: 'intermediario' }, 350).excedente);
+    /* OS QUATRO ESTADOS, com as fronteiras DERIVADAS da franquia. */
+    const antesDoCorte = Math.floor(FR * 0.8) - 1;
+    const noCorte = Math.ceil(FR * 0.8);
+    conferir(antesDoCorte + ' é «folga» e ' + noCorte + ' é «perto» — o corte dos 80% é declarado',
+      c({ plano: 'intermediario' }, antesDoCorte).estado === 'folga'
+      && c({ plano: 'intermediario' }, noCorte).estado === 'perto',
+      [c({ plano: 'intermediario' }, antesDoCorte).estado, c({ plano: 'intermediario' }, noCorte).estado]);
+    conferir('aos ' + FR + ' é «limite» — e ainda não há excedente',
+      c({ plano: 'intermediario' }, FR).estado === 'limite' && c({ plano: 'intermediario' }, FR).excedente === 0);
+    conferir('aos ' + (FR + 50) + ' é «passou», com 50 de excedente',
+      c({ plano: 'intermediario' }, FR + 50).estado === 'passou'
+      && c({ plano: 'intermediario' }, FR + 50).excedente === 50,
+      c({ plano: 'intermediario' }, FR + 50).excedente);
 
     /* `null` ≠ `0` — a distinção que o cartão usa para calar em vez de mentir. */
     const semContagem = c({ plano: 'basico' }, null);
@@ -118,18 +137,24 @@ function paginaDaEscola(contrato, aulasUsadas) {
     conferir('os três pacotes são +20/+50/+100 a R$ 10 / R$ 25 / R$ 50',
       comercial.pacotesDeAulas().map((x) => [x.aulas, x.preco].join('/')).join(' ') === '20/10 50/25 100/50',
       comercial.pacotesDeAulas());
-    conferir('Básico + um pacote pequeno = 120 aulas', c({ plano: 'basico', pacotes: ['p'] }, 0).franquia === 120, null);
-    conferir('…e dois pacotes iguais somam duas vezes', c({ plano: 'basico', pacotes: ['p', 'p'] }, 0).franquia === 140, null);
+    const BASE_B = Number(comercial.ASSINATURAS[0].aulas);
+    const pequeno = Number(comercial.pacotesDeAulas()[0].aulas);
+    conferir('Básico + um pacote pequeno = ' + (BASE_B + pequeno) + ' aulas',
+      c({ plano: 'basico', pacotes: ['p'] }, 0).franquia === BASE_B + pequeno, null);
+    conferir('…e dois pacotes iguais somam duas vezes',
+      c({ plano: 'basico', pacotes: ['p', 'p'] }, 0).franquia === BASE_B + 2 * pequeno, null);
     conferir('…e um pacote que o catálogo não tem é ignorado, sem rebentar',
-      c({ plano: 'basico', pacotes: ['zzz'] }, 0).franquia === 100, null);
+      c({ plano: 'basico', pacotes: ['zzz'] }, 0).franquia === BASE_B, null);
     /* Um contrato ANTIGO (objecto em vez de id) continua legível — o registo não se migra à força. */
     conferir('um contrato antigo com pacotes em objecto continua a somar',
-      c({ plano: 'basico', pacotes: [{ id: 'x', aulas: 20, preco: 10 }] }, 0).franquia === 120, null);
+      c({ plano: 'basico', pacotes: [{ id: 'x', aulas: 20, preco: 10 }] }, 0).franquia === BASE_B + 20, null);
 
     /* A CONTA DO DINHEIRO: o pacote entra na mensalidade, e o total é o do catálogo. */
     const conta = comercial.calcular({ assinatura: 'basico', pacotes: ['m'] });
-    conferir('Básico + pacote médio = R$ 94,90 e 150 aulas',
-      conta.total === 'R$ 94,90' && conta.capacidadeTotal.aulas === 150, [conta.total, conta.capacidadeTotal.aulas]);
+    const medio = Number(comercial.pacotesDeAulas()[1].aulas);
+    conferir('Básico + pacote médio = R$ 94,90 e ' + (BASE_B + medio) + ' aulas',
+      conta.total === 'R$ 94,90' && conta.capacidadeTotal.aulas === BASE_B + medio,
+      [conta.total, conta.capacidadeTotal.aulas]);
     conferir('…e o desconto continua a não ser inventado', conta.descontoCentavos === 0, conta.descontoCentavos);
   }
 
@@ -150,10 +175,15 @@ function paginaDaEscola(contrato, aulasUsadas) {
     const viragem = (de, para, preco) => Math.ceil(
       comercial.franquiaDoPlano(de)
       + (comercial.assinaturaPorId(para).preco - comercial.assinaturaPorId(de).preco) / preco);
-    conferir('a migração do Básico acontece às 160 aulas', viragem('basico', 'intermediario', 0.5) === 160,
-      viragem('basico', 'intermediario', 0.5));
-    conferir('…e a do Intermediário às 380', viragem('intermediario', 'avancado', 0.5) === 380,
-      viragem('intermediario', 'avancado', 0.5));
+    /* O PONTO DE VIRAGEM NÃO SE ESCREVE, confere-se a FORMA: ele existe (cai acima da franquia do
+     * plano de baixo e abaixo da do plano de cima) — que é o que faz a janela da extensão existir. O
+     * número muda com a escada, e a asserção não pode mudar com ele sem dizer nada. */
+    const v1 = viragem('basico', 'intermediario', 0.5);
+    const v2 = viragem('intermediario', 'avancado', 0.5);
+    conferir('a migração do Básico acontece às ' + v1 + ' aulas — dentro da franquia do de cima',
+      v1 > comercial.franquiaDoPlano('basico') && v1 < comercial.franquiaDoPlano('intermediario'), v1);
+    conferir('…e a do Intermediário às ' + v2 + ' — também dentro',
+      v2 > comercial.franquiaDoPlano('intermediario') && v2 < comercial.franquiaDoPlano('avancado'), v2);
     /* E os dois lados do ponto, medidos: abaixo o desembolso manda; acima, o preço por aula. */
     const desembolso = (plano, aulas, preco) => comercial.assinaturaPorId(plano).preco
       + Math.ceil(Math.max(0, aulas - comercial.franquiaDoPlano(plano)) / 20) * 20 * preco;
@@ -167,18 +197,27 @@ function paginaDaEscola(contrato, aulasUsadas) {
 
   console.log('\nD. A página da escola: a franquia aparece, o limite de gente não');
   {
+    /* A escada lida do catálogo, outra vez neste bloco: `BASE_B` e `pequeno` vivem no escopo do B,
+     * e uma variável de outro bloco é exactamente o tipo de acoplamento que faz uma prova parecer
+     * verde por acidente. */
+    const BASE_B = Number(comercial.ASSINATURAS[0].aulas);
+    const pequeno = Number(comercial.pacotesDeAulas()[0].aulas);
     /* SEM CONTAGEM DE AULAS, o cartão mostra a franquia e CALA o consumo. */
     const semContagem = paginaDaEscola({ plano: 'basico', capacidade: { professores: 1, alunos: 10 } });
-    conferir('o cartão diz a franquia de aulas do plano',
-      /Franquia de aulas/.test(semContagem) && /100 aulas por mês/.test(semContagem), null);
+    conferir('o cartão diz a franquia de aulas do plano (' + BASE_B + ' aulas por mês)',
+      /Franquia de aulas/.test(semContagem)
+      && new RegExp(BASE_B + ' aulas por mês').test(semContagem), null);
     conferir('…e NÃO afirma um consumo que não foi medido', !/Consumo do mês/.test(semContagem), null);
     /* COM CONTAGEM, mostra os dois números. */
     const comContagem = paginaDaEscola({ plano: 'basico', capacidade: { professores: 1, alunos: 10 } }, 40);
-    conferir('com contagem, o cartão diz 40 de 100',
-      /Consumo do mês/.test(comContagem) && /40 de 100/.test(comContagem), null);
-    /* E O EXCEDENTE, quando passa. */
-    const passou = paginaDaEscola({ plano: 'basico', capacidade: { professores: 1, alunos: 10 } }, 130);
-    conferir('acima da franquia, o cartão diz o excedente', /30 excedente/.test(passou), null);
+    conferir('com contagem, o cartão diz 40 de ' + BASE_B,
+      /Consumo do mês/.test(comContagem)
+      && new RegExp('40 de ' + BASE_B).test(comContagem), null);
+    /* E O EXCEDENTE, quando passa — 30 acima da franquia, seja ela qual for. */
+    const acima = BASE_B + 30;
+    const passou = paginaDaEscola({ plano: 'basico', capacidade: { professores: 1, alunos: 10 } }, acima);
+    conferir('acima da franquia (' + acima + ' aulas), o cartão diz 30 excedente',
+      /30 excedente/.test(passou), null);
 
     /* O QUE NÃO PODE ESTAR: número nenhum de gente. A referência de tamanho passou por aqui uma
      * tarde (17/11/2026) e saiu no mesmo dia, por decisão dela: «Isso não existe mais, esse tipo de
@@ -196,8 +235,10 @@ function paginaDaEscola(contrato, aulasUsadas) {
     });
     conferir('…e o cartão diz a mensalidade real do contrato: R$ 109,90',
       /Mensalidade/.test(comValor) && /R\$ 109,90/.test(comValor), null);
-    conferir('…e a franquia com o pacote somado: 320 aulas por mês',
-      /Franquia de aulas/.test(comValor) && /320 aulas por mês/.test(comValor), null);
+    const COM_PACOTE = Number(comercial.ASSINATURAS[1].aulas) + pequeno;
+    conferir('…e a franquia com o pacote somado: ' + COM_PACOTE + ' aulas por mês',
+      /Franquia de aulas/.test(comValor)
+      && new RegExp(COM_PACOTE + ' aulas por mês').test(comValor), null);
     conferir('…e o que foi contratado além dela: +20 aulas',
       /Aulas extras/.test(comValor) && /\+20 aulas/.test(comValor), null);
   }

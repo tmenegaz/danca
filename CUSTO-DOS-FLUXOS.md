@@ -1804,3 +1804,213 @@ alavanca de socorro **não é cortar aulas** — é o número de escolas e a eng
 promete a escada antiga** — o painel, o Financeiro e o `situacaoDaFranquia` leem aquele ficheiro.
 Escrevê-las é mudar três números e publicar; **não se fez porque é decisão comercial e ela acabou de a
 tomar, e porque o commit do catálogo merece ser o dele**, com o motivo declarado.
+
+---
+
+## 13. O simulado das extensões, e a política de mora *(25/11/2026)*
+
+> «A gente tem uma parte que é relacionada às extensões da mensalidade. A gente tem um preço
+> calculado aqui. Você não fez o simulado com esses preços calculados. […] se a escola vai crescer e
+> precisa contratar extensões de aula até aquele limite que é interessante antes de mudar de plano
+> com esses valores, qual é então a margem que eu vou passar a ter? E quanto é que a escola vai
+> pagar também?»
+> — a proprietária, 25/11/2026
+
+### 13.1 A extensão é o produto de maior margem que a casa tem
+
+A extensão custa **R$ 0,50 por aula** e custa **R$ 0,072** de CI (a R$ 6). Isso é **85,6 % de
+margem** — e é preciso pôr os quatro números lado a lado, porque a conclusão inverte a intuição:
+
+| o que se vende | receita por aula | custo (R$ 6) | **margem** |
+|:--|--:|--:|--:|
+| **extensão** | **R$ 0,500** | R$ 0,072 | **85,6 %** |
+| plano Básico | R$ 0,538 | R$ 0,072 | 86,6 % |
+| plano Intermediário | R$ 0,312 | R$ 0,072 | 76,9 % |
+| plano Avançado | R$ 0,280 | R$ 0,072 | 74,3 % |
+
+**«O que vier é lucro» é literal.** A extensão rende **mais** do que uma aula de plano em **dois** dos
+três degraus — e no terceiro empata. Ela não é um mal necessário: é o melhor produto da tabela.
+
+### 13.2 A escola que cresce: quanto paga, e qual a margem — degrau a degrau
+
+**Básico (130 / migra às 190)**
+
+| aulas/mês | extensões | mensalidade + ext. | custo de CI | lucro | **margem** | R$/aula |
+|--:|--:|--:|--:|--:|--:|--:|
+| 130 (franquia) | 0 | R$ 69,90 | R$ 9,36 | R$ 60,54 | 86,6 % | 0,538 |
+| 140 | 10 | R$ 74,90 | R$ 10,08 | R$ 64,82 | 86,5 % | 0,535 |
+| 160 | 30 | R$ 84,90 | R$ 11,52 | R$ 73,38 | 86,4 % | 0,531 |
+| **190 (migra)** | **60** | **R$ 99,90** | R$ 13,68 | R$ 86,22 | **86,3 %** | 0,526 |
+
+**Intermediário (320 / migra às 400)**
+
+| aulas/mês | extensões | mensalidade + ext. | custo de CI | lucro | **margem** | R$/aula |
+|--:|--:|--:|--:|--:|--:|--:|
+| 320 (franquia) | 0 | R$ 99,90 | R$ 23,04 | R$ 76,86 | 76,9 % | 0,312 |
+| 340 | 20 | R$ 109,90 | R$ 24,48 | R$ 85,42 | 77,7 % | 0,323 |
+| **400 (migra)** | **80** | **R$ 139,90** | R$ 28,80 | R$ 111,10 | **79,4 %** | 0,350 |
+
+**Avançado (500 / sem degrau acima)**
+
+| aulas/mês | extensões | mensalidade + ext. | custo de CI | lucro | **margem** | R$/aula |
+|--:|--:|--:|--:|--:|--:|--:|
+| 500 (franquia) | 0 | R$ 139,90 | R$ 36,00 | R$ 103,90 | 74,3 % | 0,280 |
+| 520 | 20 | R$ 149,90 | R$ 37,44 | R$ 112,46 | 75,0 % | 0,288 |
+| 750 | 250 | R$ 264,90 | R$ 54,00 | R$ 210,90 | 79,6 % | 0,353 |
+| 1 000 | 500 | R$ 389,90 | R$ 72,00 | R$ 317,90 | **81,5 %** | 0,390 |
+
+**Três leituras, e a segunda é a que ninguém espera:**
+
+1. **A margem SOBE em todos os degraus** à medida que a escola compra extensão — de 86,6 % para 86,3 %
+   no Básico (desce um décimo), de 76,9 % para **79,4 %** no Intermediário, de 74,3 % para **81,5 %**
+   no Avançado. **A extensão melhora a margem**, porque custa o mesmo que uma aula de plano e vende-se
+   por mais.
+2. **A receita por aula SOBE para a escola que cresce**, o que parece contra-intuitivo: no Avançado,
+   de R$ 0,280 para R$ 0,390. **A escola paga mais por aula nas extensões do que no plano** — e é
+   exactamente isso que o `planos.json` decidiu quando fixou R$ 0,50: «o custo unitário da aula da
+   extensão é maior do que o custo unitário da aula do próximo plano».
+3. **No Básico a margem é quase plana** (86,6 % → 86,3 %) porque a aula do plano já custa R$ 0,538,
+   muito perto dos R$ 0,50 da extensão. **É o único degrau onde crescer não melhora quase nada** — e
+   é por isso que a migração dele é a mais cedo (às 190).
+
+### 13.3 O conjunto: nove escolas, e o efeito de crescerem
+
+| cenário (3 de cada) | aulas/mês | minutos | receita | custo (R$ 6) | lucro | **margem** |
+|:--|--:|--:|--:|--:|--:|--:|
+| todas na franquia | 2 850 | 5 700 | R$ 929,10 | R$ 121,20 | R$ 807,90 | 87,0 % |
+| **meio caminho até migrar** | 3 060 | 6 120 | R$ 1 034,10 | R$ 136,32 | R$ 897,78 | 86,8 % |
+| **no ponto de migrar** | 3 270 | 6 540 | R$ 1 139,10 | R$ 151,44 | R$ 987,66 | 86,7 % |
+| Avançado a dobrar (1 000) | 4 350 | 8 700 | R$ 1 679,10 | R$ 229,20 | R$ 1 449,90 | 86,3 % |
+
+**Crescer 50 % em aulas dá 65 % mais receita e 89 % mais lucro**, e a margem mal se mexe (87,0 % →
+86,3 %). **A extensão é o que faz o negócio crescer sem estragar a margem.**
+
+### 13.4 A pergunta dela: «quando é que a escola deve migrar?»
+
+Com a extensão a R$ 0,50, a conta que a escola faz é comparar «ficar e comprar extensão» com «subir»:
+
+| migração | ponto de viragem | por semana | por dia |
+|:--|--:|--:|--:|
+| **Básico → Intermediário** | **190 aulas/mês** | **43,8** | 7,3 |
+| **Intermediário → Avançado** | **400 aulas/mês** | **92,3** | 15,4 |
+
+**E a janela em que a extensão é o melhor negócio PARA A ESCOLA** é o intervalo entre a franquia e o
+ponto de migração: **131–190** no Básico (60 aulas de largura), **321–400** no Intermediário (80), e
+**501 em diante** no Avançado — onde não há plano acima, e a extensão passa a ser a única saída, a
+**1,79×** o preço da aula do próprio plano.
+
+> **Um aviso que fica declarado, e é comercial:** no ponto de migração a escola paga **R$ 99,90 por
+> 190 aulas** (R$ 0,526) quando poderia pagar **R$ 99,90 por 320** (R$ 0,312). **Ela só migra se
+> souber** — e o sistema não lhe diz. A frase do `situacaoDaFranquia` avisa que a franquia está no
+> fim, e não que existe um degrau acima mais barato. **É o que falta para a janela cumprir o que
+> promete**, e é a próxima peça desta frente.
+
+### 13.5 Por que cortar aulas é a alavanca fraca — a demonstração
+
+Ela propôs: «se a gente for mexer em alguma coisa para eu suportar o custo, a gente vai diminuir a
+quantidade de aulas». **Medido, e são quatro razões:**
+
+**1. A aula custa sete centavos e o preço dela é trinta.** O custo é **13 %** da receita no Básico e
+**26 %** no Avançado — nunca mais do que isso. Cortar o que custa 13 % não salva o que rende 100 %.
+
+**2. Para segurar o custo quando o dólar sobe, é preciso cortar NA MESMA PROPORÇÃO:**
+
+| dólar | franquia que segura o custo | corte | margem |
+|--:|:--|--:|--:|
+| 6,00 | 130 / 320 / 500 | 0 % | 77,9 % |
+| 8,00 | 98 / 240 / 375 | **25 %** | 77,9 % |
+| 10,00 | 78 / 192 / 300 | **40 %** | 77,9 % |
+| 12,00 | 65 / 160 / 250 | **50 %** | 77,9 % |
+
+**A R$ 12 seria preciso reduzir a franquia a METADE para o custo não subir** — e a margem nem assim
+melhora, porque o preço fica igual e as aulas caem. **Cortar metade da promessa para proteger 13 % da
+receita não é um bom negócio.**
+
+**3. E corta justamente o produto mais rentável.** Toda aula que sai da franquia é uma aula que ela
+**pode vender a R$ 0,50** em vez de dar dentro do plano. Cortar o Avançado de 500 para 450 devolve
+**R$ 3,60** de custo por mês e abre **50 aulas vendáveis a R$ 0,50 = R$ 25,00** de receita possível.
+**Ganha 3,60 e abre a porta a 25,00.**
+
+**4. E a receita por aula sobe — o que é uma perda, não um ganho.** Com o preço fixo, uma franquia
+menor encarece a aula:
+
+| plano | hoje | com −10 % | a aula fica |
+|:--|--:|--:|--:|
+| Básico | 130 → R$ 0,538 | 117 → **R$ 0,597** | +11 % |
+| Intermediário | 320 → R$ 0,312 | 288 → **R$ 0,347** | +11 % |
+| Avançado | 500 → R$ 0,280 | 450 → **R$ 0,311** | +11 % |
+
+**O que REALMENTE reduz o custo, por ordem de ganho:**
+
+| alavanca | o que poupa | custa o quê |
+|:--|:--|:--|
+| **a engenharia** | **R$ 43,63/mês** (36 % do custo) | nada a ninguém — não é promessa |
+| **o §7.1** (agrupar as gerações) | **metade da factura** (2,0 → 1,0 min/aula) | desenho e código |
+| o gratuito | já em uso | — |
+| **cortar aulas** | **R$ 0,94 / 2,30 / 3,60** por 10 % | 13 / 32 / 50 aulas de promessa |
+
+### 13.6 A política de multa e juros — a das contas de consumo
+
+> «A gente vai adotar a mesma política de multa e juros que tem em um serviço como, por exemplo,
+> conta de água, conta de luz, que eu acho que são os mais básicos, os mais baixos também que tem no
+> mercado.»
+
+**A política foi pesquisada e verificada, e é esta:**
+
+| componente | valor | norma |
+|:--|:--|:--|
+| **Multa de mora** | **2 %** sobre o valor da fatura, **uma vez** | **CDC art. 52, §1º** («não poderão ser superiores a dois por cento do valor da prestação») e **REN ANEEL nº 1.000/2021, art. 343, §1º** («no percentual de até 2 %») |
+| **Juros de mora** | **1 % ao mês, pro rata die** | **REN ANEEL 1.000/2021, art. 343, *caput*** |
+| **Carência** | **nenhuma** | nem a REN nem o CDC dão dias de graça |
+| **Tolerância** | vencimento em sábado, domingo ou feriado + pagamento no 1.º dia útil = **não é atraso** | **art. 343, §3º** |
+| **Base de cálculo** | o valor da fatura, **sem** multa e juros anteriores | **art. 343, §2º, III** |
+
+**O exemplo que fecha a conta — R$ 100,00 com 30 dias de atraso:**
+
+| item | conta | valor |
+|:--|:--|--:|
+| multa | 2 % × 100 | **R$ 2,00** |
+| juros | (1 % ÷ 30) × 30 = 1 % × 100 | **R$ 1,00** |
+| **total** | | **R$ 103,00** |
+
+**E é este o número que a casa aplica** — conferido por
+[`provar-a-mora.js`](experimentos/provar-a-mora.js), 24 asserções, com o controlo de que a 60 dias a
+multa é a mesma e os juros dobram.
+
+**Onde está implementado.** Em `motor/nucleo/mensalidades.js` (`encargos`), ligado ao extrato: cada
+mês vencido leva os seus encargos, o extrato soma `totalEmMoraCentavos` e `encargosEmMoraCentavos`
+separados, e o monitor conta a mora dentro da dívida (`moraTotalCentavos`) e ao lado dela. Um mês
+**pago** não tem encargos — o atraso foi resolvido no acto do pagamento, e cobrá-lo outra vez seria
+cobrar duas vezes a mesma mora.
+
+**O que NÃO se aplica, e porquê.** A REN manda atualizar pelo **IPCA**; aqui **não se aplica**.
+Buscar um índice oficial seria uma dependência externa que **falha em silêncio e muda o valor da
+dívida sem ninguém saber** — o mesmo raciocínio que fez o câmbio do painel ser *declarado*
+(`CAMBIO_USD_BRL`) em vez de descoberto. O campo `correcaoAplicada: false` existe em cada conta para
+que a omissão seja **dita**, e para o dia em que houver um índice lido de fonte datada.
+
+**E o que a mora NÃO é: não é a consequência do atraso.** A escada da inadimplência é outra — avisar,
+desabilitar aos 1 mês, expurgar aos 3 (§7.3 do [`PLANO-CONTADOR-DE-AULAS.md`](PLANO-CONTADOR-DE-AULAS.md)).
+Multa e juros são o **preço** do atraso, e não o castigo dele.
+
+**Uma lacuna declarada, e é de fonte.** A conta de **luz** tem norma federal (a REN acima). A de
+**água** não tem: os percentuais vêm do contrato de cada operador e da norma do regulador
+estadual, e **reproduzem na prática o mesmo 2 % + 1 %**. A afirmação «água = 2 % + 1 %» está
+sustentada pelo **CDC art. 52, §1º** e pelo padrão contratual do setor, **não** por uma resolução de
+regulador estadual lida nesta sessão. Como os dois números são os mesmos, a política não muda; o que
+muda é a força da citação, e isso fica dito.
+
+### 13.7 O que se aplicou no sistema
+
+| onde | o que |
+|:--|:--|
+| `biblioteca/comercial/planos.json` | as franquias passam a **130 / 320 / 500**; a nota dos pacotes passa a citar os pontos de viragem novos (190 e 400) |
+| `motor/nucleo/monitoramento.js` | `projectarAulas` — a cota em **aulas**, o custo às duas câmbios, e a frase que diz onde a conta sai do zero; a cota entra no **pior indicador** do retrato |
+| `motor/servidor/painel-html.js` | o bloco **«As aulas — a cota que decide»**, primeiro na aba do consumo; os encargos de mora na linha do mês e o total em mora no cartão do Financeiro |
+| `motor/nucleo/mensalidades.js` | `encargos`, `MULTA_DE_MORA`, `JUROS_AO_MES`; encargos por mês, totais em mora, e a política que viaja com o extrato |
+| `experimentos/provar-a-cota-em-aulas.js` | **novo** — 27 asserções, com o controlo de que sem a cota em aulas o retrato dava «folga» |
+| `experimentos/provar-a-mora.js` | **novo** — 24 asserções, com o controlo da multa única e dos juros que correm |
+
+**O Financeiro passou a mostrar as franquias novas sozinho**, sem uma linha de código: ele lê o
+catálogo (`catalogoDaPagina`), e o catálogo é a única fonte do preço e da franquia. É a razão pela
+qual o `planos.json` foi mudado em vez de os ecrãs.

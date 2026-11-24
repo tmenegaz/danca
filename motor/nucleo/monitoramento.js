@@ -92,6 +92,32 @@ const COTAS = {
   },
 };
 
+/*
+ * ── A UNIDADE QUE DECIDE: A AULA ────────────────────────────────────────────────────────────────
+ *
+ * O painel media minutos, e os minutos são a unidade do FORNECEDOR. A unidade da casa é a AULA — é o
+ * que se vende, o que a franquia conta e o que o professor lança. Medido a 25/11/2026 sobre mil
+ * execuções: um lançamento custa **1,00 min** (`Fechar os derivados`, mediana 11 s, 395 runs) e a
+ * geração que ele pede custa **1,00 min** (`Gerar o ciclo`, mediana 40 s, 16 runs depois de o TeX
+ * sair do caminho) — **2,0 minutos por aula**.
+ *
+ * O QUE ISSO QUER DIZER, e é o número que ela pediu: os 2.000 minutos do plano gratuito são
+ * **1.000 aulas por mês**. É esse o número que o painel tem de mostrar a subir, porque é ele que
+ * diz quando a conta sai do zero — e o §12 do CUSTO-DOS-FLUXOS mediu que, a partir daí, cada aula
+ * custa **R$ 0,072** a um dólar de R$ 6.
+ *
+ * OS DOIS NÚMEROS SÃO DECLARADOS E DATADOS. `MINUTOS_POR_AULA` é uma MEDIÇÃO (com a sua data), e
+ * `CAMBIO_DE_REFERENCIA` é uma DECISÃO dela — «até R$ 6 o dólar é onde eu posso suportar» —, e não
+ * a cotação do dia: o comparador continua a usar o `CAMBIO_USD_BRL` do `env`, que é o que se paga.
+ * A referência existe para a pergunta «e se o dólar for a 6?», que é a pergunta de quem se previne.
+ */
+const MINUTOS_POR_AULA = 2.0;
+/* A data da medição é um INSTANTE e não um dia solto: passada pelo fuso da casa, uma data nua
+ * (`2026-11-25`) é meia-noite UTC — e meia-noite UTC é o dia 24 às 21:00 em Passo Fundo. A casa já
+ * pagou por isto uma vez (o comentário do `dia()` no painel). O meio-dia local não tem fronteira. */
+const MINUTOS_POR_AULA_MEDIDO_EM = '2026-11-25T12:00:00-03:00';
+const CAMBIO_DE_REFERENCIA = 6.0;
+
 /** Os minutos que o incluído do GitHub compra: `12 / 0,006 = 2.000`. */
 function minutosIncluidos(plano) {
   const p = (plano && plano.computeUsd) || COTAS.github.computeIncluidoUsd;
@@ -752,6 +778,7 @@ function inadimplencia({ extrato, agora } = {}) {
   let inadimplentes = 0;
   let paraExpurgar = 0;
   let dividaTotalCentavos = 0;
+  let moraTotalCentavos = 0;
 
   for (const l of vivas) {
     const meses = Array.isArray(l.meses) ? l.meses : [];
@@ -761,8 +788,17 @@ function inadimplencia({ extrato, agora } = {}) {
      * conversa é o que falta pagar. */
     const vencidos = meses.filter((m) => m && m.venceu && m.status !== 'pago');
     const n = vencidos.length;
-    const divida = vencidos.reduce((s, m) => s + Math.max(0, Number(m.valorCentavos) || 0), 0);
+    /* A DÍVIDA LEVA A MORA (25/11/2026). «A gente vai adotar a mesma política de multa e juros que
+     * tem em conta de água, conta de luz.» O que se cobra de uma escola em atraso não é a soma das
+     * mensalidades: é a soma com multa e juros, e é esse o número que a conversa usa. Os dois ficam
+     * separados no retorno — quem quiser saber quanto é mensalidade e quanto é mora tem os dois. */
+    const divida = vencidos.reduce((s, m) => s
+      + Math.max(0, (m.encargos && m.encargos.totalCentavos != null)
+        ? Number(m.encargos.totalCentavos)
+        : (Number(m.valorCentavos) || 0)), 0);
+    const mora = vencidos.reduce((s, m) => s + Math.max(0, (m.encargos && m.encargos.encargosCentavos) || 0), 0);
     dividaTotalCentavos += divida;
+    moraTotalCentavos += mora;
     let classe = 'em-dia';
     if (n >= MESES_ATE_EXPURGAR) { classe = 'para-expurgar'; paraExpurgar += 1; }
     else if (n > 0) { classe = 'inadimplente'; inadimplentes += 1; }
@@ -775,6 +811,7 @@ function inadimplencia({ extrato, agora } = {}) {
         /* O MÊS MAIS ANTIGO é o que âncora a conversa: «está devendo desde agosto». */
         desde: vencidos.length ? String(vencidos[vencidos.length - 1].mes || '') : null,
         dividaCentavos: divida,
+        moraCentavos: mora,
         classe,
         plano: l.plano || null,
         planoNome: l.planoNome || null,
@@ -796,6 +833,7 @@ function inadimplencia({ extrato, agora } = {}) {
     inadimplentes,
     paraExpurgar,
     dividaTotalCentavos,
+    moraTotalCentavos,
     /* A LISTA SÓ TEM QUEM DEVE. Uma lista com as escolas em dia ao lado das devedoras faria
      * procurar o que interessa no meio do que não interessa — e a pergunta desta tabela é «quem é
      * que eu tenho de contactar». */
@@ -907,23 +945,133 @@ function impactoDaMigracao({ receita: r, cambio, custosAtuaisUsd } = {}) {
   };
 }
 
+/* ── A CONTA EM AULAS: ONDE O GASTO SAI DO ZERO, E QUANTO CUSTA DEPOIS ──────────────────────── */
+
+/**
+ * A PERGUNTA DELA, ao pé da letra: «quando é que os meus custos aumentam, se é que eles aumentam em
+ * algum momento? E se eu vou ter prejuízo em algum momento?»
+ *
+ * A RESPOSTA TEM TRÊS FRASES, e todas as três se calculam daqui:
+ *   1. O custo é **zero até 1.000 aulas/mês** na conta inteira (2.000 min ÷ 2,0 min/aula).
+ *   2. Passado esse ponto é **R$ 0,072 por aula**, e mais nada — não há um segundo degrau.
+ *   3. **Não há prejuízo em nenhum volume plausível**: a margem converge para um piso que depende do
+ *      plano (90,7 % / 80,5 % / 62,9 % com a escada de 25/11 e o dólar a 6), e nunca cruza o zero.
+ *
+ * O QUE ENTRA POR PARÂMETRO, e por que: `aulasVendidas` é a franquia que o parque vendeu (soma dos
+ * contratos) — o TECTO do que pode ser lançado, e não o que foi lançado. É a única grandeza que
+ * existe hoje: o contador de aulas do mês ainda não está implementado
+ * (`PLANO-CONTADOR-DE-AULAS.md`), e medir o consumo a partir da franquia vendida é o pior caso — que
+ * é o caso certo para um alarme. Quando o contador existir, passa-se-lhe o número medido e o resto
+ * desta função não muda.
+ *
+ * `precoDaAula` é a receita média por aula contratada, e vem da mesma tabela da receita
+ * (`mrr ÷ aulas vendidas`). Sem ela, a margem não é calculada — e diz-se, em vez de se inventar.
+ */
+function projectarAulas({ aulasVendidas, precoDaAulaCentavos, cambio, referenciaCambio } = {}) {
+  const aulas = Number(aulasVendidas);
+  const temAulas = Number.isFinite(aulas) && aulas >= 0;
+  const taxa = Number(cambio) > 0 ? Number(cambio) : null;
+  const referencia = Number(referenciaCambio) > 0 ? Number(referenciaCambio) : CAMBIO_DE_REFERENCIA;
+  const preco = Number(precoDaAulaCentavos);
+
+  /* AS DUAS COTAS, e a segunda é a que ela quer vigiar. O fim do GRATUITO é em aulas; o fim do
+   * TEAM (quando o excedente passa a custar mais do que o plano fixo) também, porque é a mesma
+   * divisão. */
+  const aulasQueEsgotamGratuito = Math.floor(minutosIncluidos(null) / MINUTOS_POR_AULA);
+  const aulasQueEsgotamTeam = Math.floor(
+    minutosIncluidos(COTAS.github.planos[1]) / MINUTOS_POR_AULA);
+
+  /* A FUNÇÃO DO CUSTO, a uma taxa qualquer. É a mesma escada do §12 do CUSTO-DOS-FLUXOS, aqui
+   * escrita em aulas em vez de minutos para haver uma conta só na casa. */
+  const custoUsd = (n, taxaUsada) => {
+    const minutos = n * MINUTOS_POR_AULA;
+    const incluido = minutosIncluidos(null);
+    if (minutos <= incluido) return 0;
+    const teamMinutos = minutosIncluidos(COTAS.github.planos[1]);
+    const excedente = (minutos - incluido) * COTAS.github.precoMinutoUsd;
+    if (minutos <= teamMinutos) return Math.min(excedente, COTAS.github.planos[1].porPessoaUsd);
+    return COTAS.github.planos[1].porPessoaUsd
+      + (minutos - teamMinutos) * COTAS.github.precoMinutoUsd;
+  };
+
+  const retratoDaTaxa = (taxaUsada) => {
+    if (!taxaUsada || !temAulas) return null;
+    const usd = custoUsd(aulas, taxaUsada);
+    const brlCentavos = Math.round(usd * taxaUsada * 100);
+    const receitaCentavos = Number.isFinite(preco) && preco > 0 ? Math.round(preco * aulas) : null;
+    const margem = receitaCentavos && receitaCentavos > 0
+      ? (receitaCentavos - brlCentavos) / receitaCentavos : null;
+    return { cambio: taxaUsada, custoUsd: usd, custoCentavos: brlCentavos, margem };
+  };
+
+  const hoje = retratoDaTaxa(taxa);
+  const naReferencia = retratoDaTaxa(referencia);
+
+  /* A FRACÇÃO DO GRATUITO, para a barra da cota. `null` quando não há aulas vendidas: `null` é «não
+   * sei», e zero seria a afirmação de um parque vazio. */
+  const fraccao = temAulas ? fracao(aulas, aulasQueEsgotamGratuito) : null;
+  const aulasRestantes = temAulas ? Math.max(0, aulasQueEsgotamGratuito - aulas) : null;
+
+  const frase = !temAulas
+    ? 'Ainda não há aulas vendidas registadas: o consumo em aulas não é calculado.'
+    : (aulas <= aulasQueEsgotamGratuito
+      ? 'O parque vendeu ' + aulas + ' aulas/mês e o plano gratuito paga ' + aulasQueEsgotamGratuito
+        + ' — restam ' + aulasRestantes + '. Enquanto assim for, o custo é zero.'
+      : 'O parque vendeu ' + aulas + ' aulas/mês, ' + (aulas - aulasQueEsgotamGratuito)
+        + ' acima do que o plano gratuito paga. A partir daqui cada aula custa R$ '
+        + (MINUTOS_POR_AULA * COTAS.github.precoMinutoUsd * referencia).toFixed(3).replace('.', ',')
+        + ' a um dólar de R$ ' + String(referencia).replace('.', ',') + '.');
+
+  return {
+    /* O que é medido, e o que é suposto. */
+    minutosPorAula: MINUTOS_POR_AULA,
+    minutosPorAulaMedidoEm: MINUTOS_POR_AULA_MEDIDO_EM,
+    cambioDeReferencia: referencia,
+    /* As cotas, em aulas. */
+    aulasVendidas: temAulas ? aulas : null,
+    aulasQueEsgotamGratuito,
+    aulasQueEsgotamTeam,
+    aulasRestantes,
+    fraccao,
+    excedenteAulas: temAulas ? Math.max(0, aulas - aulasQueEsgotamGratuito) : null,
+    /* A conta, à taxa do dia e à de referência. */
+    hoje,
+    naReferencia,
+    /* O QUE A FRANQUIA PROMETE, contra o que a cota paga: é a leitura que se quer de um alarme. */
+    cabeNaReferencia: temAulas ? aulas <= aulasQueEsgotamGratuito : null,
+    frase,
+  };
+}
+
 /* ── O RETRATO COMPLETO ─────────────────────────────────────────────────────────────────────── */
 
 /**
  * O que a página desenha, num objecto só. `agora` é o carimbo (ISO) e `hoje` é o dia LOCAL — a
  * mesma separação do `mensalidades.js`: o mês e o dia de uma cota são os do fuso da escola.
  */
-function retrato({ github, correio, cloudflare, receita: r, inadimplencia: inad, cambio, custosAtuaisUsd, agora } = {}) {
+function retrato({ github, correio, cloudflare, receita: r, inadimplencia: inad, aulas, cambio,
+  custosAtuaisUsd, agora } = {}) {
   const migracao = impactoDaMigracao({ receita: r, cambio, custosAtuaisUsd });
-  /* O ALERTA É O PIOR DOS TRÊS, e não a média: uma cota a 95% e duas a 10% é uma cota a 95%. */
+  /* A CONTA EM AULAS entra no retrato (25/11/2026), e entra como COTA — é ela que responde à
+   * pergunta dela («quando é que os meus custos aumentam?»), e uma cota que não está no pior
+   * indicador não avisa ninguém. `aulas` vem pronto (`projectarAulas`) ou é calculado aqui a partir
+   * da receita, que já sabe a franquia vendida e o preço médio da aula. */
+  const emAulas = aulas || projectarAulas({
+    aulasVendidas: r && r.aulas ? r.aulas.franquiaTotal : null,
+    precoDaAulaCentavos: r && r.aulas ? r.aulas.precoContratadoCentavos : null,
+    cambio,
+  });
+  /* O ALERTA É O PIOR DOS QUATRO, e não a média: uma cota a 95% e três a 10% é uma cota a 95%. */
   const fraccoes = [github && github.fraccao, correio && correio.fraccao, correio && correio.fraccaoDia,
-    cloudflare && cloudflare.fraccaoArmazenamento].filter((f) => typeof f === 'number');
+    cloudflare && cloudflare.fraccaoArmazenamento, emAulas && emAulas.fraccao]
+    .filter((f) => typeof f === 'number');
   const pior = fraccoes.length ? Math.max(...fraccoes) : 0;
   return {
     agora: agora || null,
     github: github || null,
     correio: correio || null,
     cloudflare: cloudflare || null,
+    aulas: emAulas || null,
     receita: r || null,
     /* A INADIMPLÊNCIA ENTRA NO RETRATO (17/11/2026): é a mesma família da receita — dinheiro que
      * devia ter entrado e não entrou —, e é a lista de quem contactar. Vai separada da receita
@@ -985,6 +1133,10 @@ function contarEnvio(contadores, { mes, dia, quantos, enviado } = {}) {
 
 module.exports = {
   COTAS,
+  MINUTOS_POR_AULA,
+  MINUTOS_POR_AULA_MEDIDO_EM,
+  CAMBIO_DE_REFERENCIA,
+  projectarAulas,
   projectarCiclo,
   resumirFactura,
   CHAVE_DO_CORREIO,

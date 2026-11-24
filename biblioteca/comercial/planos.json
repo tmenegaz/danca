@@ -8,7 +8,7 @@
       "id": "basico",
       "nome": "Básico",
       "preco": 69.9,
-      "aulas": 100,
+      "aulas": 130,
       "professores": 1,
       "alunos": 10,
       "consultas": 7,
@@ -23,7 +23,7 @@
       "id": "intermediario",
       "nome": "Intermediário",
       "preco": 99.9,
-      "aulas": 300,
+      "aulas": 320,
       "professores": 3,
       "alunos": 40,
       "consultas": 14,
@@ -38,7 +38,7 @@
       "id": "avancado",
       "nome": "Avançado",
       "preco": 139.9,
-      "aulas": 800,
+      "aulas": 500,
       "professores": 6,
       "alunos": 90,
       "consultas": 46,
@@ -107,7 +107,7 @@
     "avista": null
   },
   "pacotesDeAulas": {
-    "_nota": "AS EXTENSÕES DE AULAS (§ADITIVO §5), medidas a R$ 0,50 por aula. O preço não é um custo a minimizar: é um COMANDO que escolhe onde a migração acontece. A regra que ele cumpre é a da proprietária: «o custo unitário da aula da extensão é maior do que o custo unitário da aula do próximo plano». A aula do Intermediário custa R$ 0,333 e a do Avançado R$ 0,175; a R$ 0,50 a extensão é mais cara do que o degrau para onde se migraria, e mais barata do que a aula do Básico (R$ 0,699) — no degrau de entrada ela melhora o preço médio de quem a compra. Consequência medida: a migração do Básico acontece às 160 aulas (160 de 300, 53% da franquia) e a do Intermediário às 380 (de 800, 48%). Abaixo do ponto de viragem o desembolso manda e a extensão ganha; acima, o preço por aula manda e o plano ganha. A R$ 0,20 (uma proposta anterior) a extensão ficaria MAIS BARATA do que a aula do Intermediário e ninguém migraria nunca — é o que a prova `provar-o-custo-de-uma-aula` reprova. Sobre o Avançado não há degrau acima: a extensão custa 2,86× a aula do próprio plano, e é declarado — acima de 800 aulas a conversa é com a proprietária.",
+    "_nota": "AS EXTENSÕES DE AULAS (§ADITIVO §5), medidas a R$ 0,50 por aula. O preço não é um custo a minimizar: é um COMANDO que escolhe onde a migração acontece. A regra que ele cumpre é a da proprietária: «o custo unitário da aula da extensão é maior do que o custo unitário da aula do próximo plano». A aula do Intermediário custa R$ 0,312 e a do Avançado R$ 0,280; a R$ 0,50 a extensão é mais cara do que o degrau para onde se migraria, e mais barata do que a aula do Básico (R$ 0,538) — no degrau de entrada ela melhora o preço médio de quem a compra. Consequência medida (com a escada 130/320/500 de 25/11/2026): a migração do Básico acontece às 190 aulas (190 de 320, 59% da franquia) e a do Intermediário às 400 (de 500, 80%). Abaixo do ponto de viragem o desembolso manda e a extensão ganha; acima, o preço por aula manda e o plano ganha. A R$ 0,20 (uma proposta anterior) a extensão ficaria MAIS BARATA do que a aula do Intermediário e ninguém migraria nunca — é o que a prova `provar-o-custo-de-uma-aula` reprova. Sobre o Avançado não há degrau acima: a extensão custa 1,79× a aula do próprio plano (era 2,86× com a franquia de 800), e é declarado — acima de 500 aulas a conversa é com a proprietária.",
     "itens": [
       {
         "id": "p",

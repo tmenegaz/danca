@@ -499,10 +499,19 @@ function conferir(titulo, condicao, dado) {
     conferir('…com os três fornecedores na aba do consumo',
       d.getElementById('monitor-github') && d.getElementById('monitor-cloudflare')
         && d.getElementById('monitor-resend'), null);
-    /* A BARRA É A PEÇA DA FOLHA, e não um `<div>` com uma largura escrita à mão. */
+    /* A BARRA É A PEÇA DA FOLHA, e não um `<div>` com uma largura escrita à mão.
+     *
+     * ERAM TRÊS E SÃO QUATRO (25/11/2026): a cota em AULAS entrou na frente das três do fornecedor,
+     * porque é ela que responde à pergunta que decide — «quantas aulas cabem antes de a conta sair do
+     * zero?». O número passou a ser contado, e não escrito: uma prova que fixa «três» volta a
+     * reprovar a cada cota nova, e a correcção seria sempre aumentar o número — o que não é medição.
+     * O que se afirma é a FORMA: toda barra é a peça da folha, e a das aulas existe. */
     const barras = [...d.querySelectorAll('progress.cota')];
-    conferir('as barras são `<progress class="cota">` — a peça da folha',
-      barras.length === 3 && barras.every((b) => b.getAttribute('max') === '1000'), barras.length);
+    conferir('as barras são `<progress class="cota">` — a peça da folha, todas com `max=1000`',
+      barras.length >= 3 && barras.every((b) => b.getAttribute('max') === '1000'), barras.length);
+    conferir('…e a cota em AULAS é uma delas, e vem antes das do fornecedor',
+      Boolean(d.getElementById('monitor-aulas'))
+      && html.indexOf('monitor-aulas') < html.indexOf('monitor-github'), null);
     conferir('…e NÃO há `style=""` na marcação (regra 5 da identidade)',
       !/style="/.test(html), (html.match(/style="[^"]*"/g) || []).slice(0, 2));
     const css = fs.readFileSync(path.join(RAIZ, 'tools/templates/ciclo.css'), 'utf8');

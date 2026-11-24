@@ -71,11 +71,16 @@ function kvFalso(inicial) {
       Array.isArray(escolha.escolha.lotesProfessores) && escolha.escolha.lotesProfessores.length === 0
         && Array.isArray(escolha.escolha.lotesAlunos) && escolha.escolha.lotesAlunos.length === 0,
       [escolha.escolha.lotesProfessores, escolha.escolha.lotesAlunos]);
-    /* A FRANQUIA QUE ESSE CONTRATO DÁ: 300 do plano + 20 do pacote. */
-    conferir('…e a franquia do contrato é 320 aulas por mês',
-      comercial.franquiaDoContrato({ plano: 'intermediario', pacotes: ['p'] }).franquia === 320, null);
-    conferir('…e uma escola que não compra pacote nenhum fica com a franquia do plano',
-      comercial.franquiaDoContrato({ plano: 'basico', pacotes: [] }).franquia === 100, null);
+    /* A FRANQUIA QUE ESSE CONTRATO DÁ: a do plano + 20 do pacote. Os números vêm do catálogo —
+     * escrevê-los aqui seria guardar uma segunda cópia da escada, e a cópia envelhece sem avisar
+     * (25/11/2026: a escada mudou de 100/300/800 para 130/320/500 e esta prova não disse nada). */
+    const FR_INTER = Number(comercial.ASSINATURAS[1].aulas);
+    const FR_BASE = Number(comercial.ASSINATURAS[0].aulas);
+    const PK = Number(comercial.pacotesDeAulas()[0].aulas);
+    conferir('…e a franquia do contrato é a do plano + o pacote (' + (FR_INTER + PK) + ' aulas/mês)',
+      comercial.franquiaDoContrato({ plano: 'intermediario', pacotes: ['p'] }).franquia === FR_INTER + PK, null);
+    conferir('…e uma escola que não compra pacote nenhum fica com a franquia do plano (' + FR_BASE + ')',
+      comercial.franquiaDoContrato({ plano: 'basico', pacotes: [] }).franquia === FR_BASE, null);
   }
 
   console.log('\nB. O que o expurgo apaga — incluindo o que nasceu depois da lista');
@@ -121,7 +126,9 @@ function kvFalso(inicial) {
     const abertos = (s.meses || []).filter((m) => m.status !== 'pago' && m.venceu);
     conferir('no ensaio há um mês em aberto desde o primeiro segundo', abertos.length >= 1, (s.meses || []).length);
     conferir('…e o ensaio NÃO mexe na franquia — ela continua a ser a do contrato',
-      s.franquia && s.franquia.franquia === 320, s.franquia && s.franquia.franquia);
+      s.franquia && s.franquia.franquia
+        === Number(comercial.ASSINATURAS[1].aulas) + Number(comercial.pacotesDeAulas()[0].aulas),
+      s.franquia && s.franquia.franquia);
   }
 
   console.log('\nD. A franquia de um contrato novo, e o que ela NÃO mostra');
@@ -131,15 +138,20 @@ function kvFalso(inicial) {
       contrato: { plano: 'intermediario', pacotes: ['p'], valorCentavos: 10990, capacidade: { professores: 3, alunos: 40 } },
       livro: [], agora: '2026-11-17T12:00:00Z',
     });
-    conferir('a franquia é 320 e o pacote é dito', situacao.franquia.franquia === 320
-      && situacao.pacotes.length === 1 && situacao.pacotes[0].aulas === 20, situacao.pacotes);
+    const ESPERADA = Number(comercial.ASSINATURAS[1].aulas) + Number(comercial.pacotesDeAulas()[0].aulas);
+    conferir('a franquia é ' + ESPERADA + ' e o pacote é dito',
+      situacao.franquia.franquia === ESPERADA
+      && situacao.pacotes.length === 1
+      && situacao.pacotes[0].aulas === Number(comercial.pacotesDeAulas()[0].aulas), situacao.pacotes);
     /* SEM CONTAGEM DE AULAS, o consumo é null — o cartão cala em vez de dizer zero. */
     conferir('sem contador, o consumo do mês é null e não zero', situacao.franquia.usadas === null, situacao.franquia.usadas);
     /* E A CONTA DO EXCEDENTE FUNCIONA ASSIM QUE HOUVER CONTAGEM. */
+    const USADAS = Number(comercial.ASSINATURAS[1].aulas) + Number(comercial.pacotesDeAulas()[0].aulas) + 30;
     const comConsumo = comercial.situacaoDaFranquia({
-      contrato: { plano: 'intermediario', pacotes: ['p'] }, aulasUsadas: 350,
+      contrato: { plano: 'intermediario', pacotes: ['p'] }, aulasUsadas: USADAS,
     });
-    conferir('com 350 aulas usadas, o excedente é de 30', comConsumo.excedente === 30, comConsumo.excedente);
+    conferir('com ' + USADAS + ' aulas usadas (30 acima da franquia), o excedente é de 30',
+      comConsumo.excedente === 30, comConsumo.excedente);
   }
 
   console.log('');

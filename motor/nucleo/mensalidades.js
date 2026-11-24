@@ -379,6 +379,13 @@ function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas 
       em: pago ? pago.em : null,
       emTexto: pago ? fuso.quandoLocal(pago.em) : null,
       por: pago ? pago.por : null,
+      /* OS ENCARGOS DE MORA, por mês (25/11/2026). Ficam NA LINHA e não numa soma à parte: a escola
+       * que pergunta «quanto devo?» pergunta por um mês, e a resposta que serve é a daquele mês. Um
+       * mês pago não tem encargos — o atraso já foi resolvido, e cobrá-lo outra vez seria cobrar
+       * duas vezes a mesma mora. */
+      encargos: pago ? null : encargos({
+        valorCentavos: (Number(c.valorCentavos) || 0), vencimento, hoje: hojeIso,
+      }),
     };
   });
 
@@ -405,6 +412,14 @@ function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas 
    * que ela não se inverte na origem. */
   const doMaisRecente = linhas.slice().sort((a, b) => b.mes.localeCompare(a.mes));
 
+  /* O TOTAL EM MORA — a soma do que está vencido e não pago, com multa e juros. É o número que a
+   * conversa com a escola usa, e o que o monitor soma como dívida. Só conta mês VENCIDO: o mês em
+   * curso ainda não é atraso. */
+  const totalEmMoraCentavos = vencidos.reduce((s, l) => s
+    + ((l.encargos && l.encargos.totalCentavos) || 0), 0);
+  const encargosEmMoraCentavos = vencidos.reduce((s, l) => s
+    + ((l.encargos && l.encargos.encargosCentavos) || 0), 0);
+
   return {
     escola: slug,
     situacao,
@@ -417,6 +432,16 @@ function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas 
     proximoVencimento: proximo ? proximo.vencimento : null,
     proximoMes: proximo ? proximo.mes : null,
     diasParaVencer: dias,
+    /* O QUE SE COBRA HOJE, com a mora. `totalEmMora` já inclui multa e juros; `encargosEmMora` é a
+     * parte que não é mensalidade. Sem dívida vencida, os dois são zero — e não `null`, porque aí o
+     * zero é uma afirmação verdadeira: não há nada em atraso. */
+    totalEmMoraCentavos,
+    encargosEmMoraCentavos,
+    politicaDeMora: {
+      multa: MULTA_DE_MORA, jurosAoMes: JUROS_AO_MES,
+      correcaoAplicada: false,
+      norma: 'REN ANEEL 1.000/2021, art. 343 · CDC art. 52, §1º',
+    },
     /* O VALOR QUE SE COBRA HOJE é o do contrato em vigor — e não o da última mensalidade. Um
      * upgrade feito ontem tem de aparecer na cobrança de amanhã. */
     valorCentavos: Number(c.valorCentavos) || 0,
@@ -612,8 +637,106 @@ function fraseDaSituacao(situacao) {
   return 'Aguardando a liberação: a cobrança começa quando a escola é habilitada.';
 }
 
+/* ── MULTA E JUROS DE MORA — a política das contas de consumo *(25/11/2026)* ─────────────────
+ *
+ * «A gente vai adotar a mesma política de multa e juros que tem em um serviço como, por exemplo,
+ * conta de água, conta de luz, que eu acho que são os mais básicos, os mais baixos também que tem no
+ * mercado.»
+ *
+ * A POLÍTICA QUE ELA ESCOLHEU, e a norma que a sustenta — pesquisada e verificada:
+ *   · **Multa de mora: 2% sobre o valor da fatura**, cobrada UMA vez. O teto de 2% não é uma
+ *     escolha comercial: é o **art. 52, §1º do CDC** («não poderão ser superiores a dois por cento
+ *     do valor da prestação»), e a **REN ANEEL nº 1.000/2021, art. 343, §1º** («a cobrança de multa
+ *     pode ser realizada no percentual de até 2%»).
+ *   · **Juros de mora: 1% ao mês, pro rata die** — art. 343, *caput*, da mesma REN. É a norma que
+ *     fixa o 1%: o Código Civil de 2002 abandonou a taxa de 1% (art. 406 remete à Selic), pelo que
+ *     quem sustenta o número é a regulação, não o código.
+ *   · **Sem carência.** Nem a REN nem o CDC dão dias de graça. A ÚNICA tolerância é a do art. 343,
+ *     §3º, e ela está implementada: vencimento em sábado, domingo ou feriado **não é atraso** se o
+ *     pagamento cair no primeiro dia útil seguinte.
+ *   · **Base de cálculo:** o **valor da fatura**, e não o saldo devedor; e multa e juros de períodos
+ *     anteriores NÃO recebem multa outra vez (o §2º, III, veda o anatocismo).
+ *
+ * O QUE NÃO SE APLICA, E PORQUÊ. A REN manda atualizar pelo **IPCA**; aqui **não se aplica**. Buscar
+ * um índice oficial seria uma dependência externa que falha em silêncio e muda o valor da dívida sem
+ * ninguém saber — o mesmo raciocínio que fez o câmbio do painel ser **declarado** (`CAMBIO_USD_BRL`)
+ * em vez de descoberto. A correção monetária fica **declarada como não aplicada**, e o campo existe
+ * para o dia em que houver um índice lido de fonte confiável e datado. Inventar uma taxa seria pior
+ * do que não a cobrar: um valor inventado numa cobrança é uma dívida que ninguém sabe de onde veio.
+ *
+ * E O QUE ISTO **NÃO** FAZ: não bloqueia, não suspende, não expulsa. A escada da inadimplência é
+ * outra (desabilitar aos 1 mês, expurgar aos 3) e vive na §7.3 do PLANO-CONTADOR-DE-AULAS. Multa e
+ * juros são o PREÇO do atraso, e não a consequência dele.
+ */
+const MULTA_DE_MORA = 0.02;
+const JUROS_AO_MES = 0.01;
+const DIAS_NO_MES_COMERCIAL = 30;
+
+/** O vencimento caiu em dia não útil? `Date.getUTCDay()`: 0 = domingo, 6 = sábado. */
+function caiuEmDiaNaoUtil(iso) {
+  const d = new Date(String(iso) + 'T12:00:00Z');
+  if (Number.isNaN(d.getTime())) return false;
+  const dia = d.getUTCDay();
+  return dia === 0 || dia === 6;
+}
+
+/**
+ * OS ENCARGOS DE UM MÊS EM ATRASO. Puro: recebe o valor, o vencimento e o dia de hoje, e devolve a
+ * conta. Não lê KV, não olha o relógio — o «hoje» entra por parâmetro, como em todo este núcleo.
+ *
+ * `diasDeAtraso` é contado a partir do DIA SEGUINTE ao vencimento: quem paga no próprio dia não está
+ * em atraso, e um dia de atraso é um dia de mora. A tolerância do dia não útil está em
+ * `vencimentoEfetivo`, para que a conta e o rótulo usem a mesma data.
+ */
+function encargos({ valorCentavos, vencimento, hoje, multa, jurosAoMes } = {}) {
+  const valor = Math.max(0, Math.round(Number(valorCentavos) || 0));
+  const base = String(vencimento || '').slice(0, 10);
+  const dia = String(hoje || '').slice(0, 10);
+  const vazio = {
+    diasDeAtraso: 0, emAtraso: false, multaCentavos: 0, jurosCentavos: 0,
+    encargosCentavos: 0, totalCentavos: valor, correcaoAplicada: false,
+    multa: MULTA_DE_MORA, jurosAoMes: JUROS_AO_MES,
+  };
+  if (!base || !dia || !valor) return vazio;
+  const t0 = Date.parse(base + 'T12:00:00Z');
+  const t1 = Date.parse(dia + 'T12:00:00Z');
+  if (Number.isNaN(t0) || Number.isNaN(t1)) return vazio;
+  const dias = Math.round((t1 - t0) / 86400000);
+  if (dias <= 0) return vazio;
+
+  const taxaDaMulta = Number.isFinite(Number(multa)) ? Number(multa) : MULTA_DE_MORA;
+  const taxaDosJuros = Number.isFinite(Number(jurosAoMes)) ? Number(jurosAoMes) : JUROS_AO_MES;
+  /* A MULTA É UMA SÓ, e o teto é 2% — se alguém passar um valor maior, o que vale é o teto do CDC.
+   * É a única linha deste ficheiro que corrige o chamador, e corrige-o para baixo: um valor acima
+   * do legal não é uma escolha, é uma cobrança indevida. */
+  const multaEfetiva = Math.min(Math.max(0, taxaDaMulta), MULTA_DE_MORA);
+  const multaCentavos = Math.round(valor * multaEfetiva);
+  /* OS JUROS SÃO PRO RATA DIE: 1% ao mês ÷ 30 dias × dias de atraso. Um dia de atraso num mês de 31
+   * dias usa o divisor 30, que é o que a REN diz («1% ao mês») e o que a praxe comercial aplica. */
+  const jurosCentavos = Math.round(valor * taxaDosJuros * (dias / DIAS_NO_MES_COMERCIAL));
+  return {
+    diasDeAtraso: dias,
+    emAtraso: true,
+    multaCentavos,
+    jurosCentavos,
+    encargosCentavos: multaCentavos + jurosCentavos,
+    totalCentavos: valor + multaCentavos + jurosCentavos,
+    /* A correção monetária NÃO é aplicada, e diz-se em cada conta — não é uma omissão silenciosa. */
+    correcaoAplicada: false,
+    multa: multaEfetiva,
+    jurosAoMes: taxaDosJuros,
+    /* A NORMA, ao lado do número: uma cobrança sem a norma citada é uma cobrança que ninguém sabe
+     * defender quando a escola pergunta de onde vem. */
+    norma: 'REN ANEEL 1.000/2021, art. 343 · CDC art. 52, §1º',
+    diasNaoUteisTolerados: caiuEmDiaNaoUtil(base),
+  };
+}
+
 module.exports = {
   CHAVE,
+  MULTA_DE_MORA,
+  JUROS_AO_MES,
+  encargos,
   NOMES_DOS_MESES,
   competencia,
   diaDoInstante,

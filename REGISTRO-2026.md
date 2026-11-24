@@ -60802,3 +60802,79 @@ porque o commit do catálogo merece ser o dele**, com o motivo declarado.
 
 **Onde entrou.** `CUSTO-DOS-FLUXOS.md` (§12 — §12.1 a §12.10), `ESTADO-ATUAL.md` (a fotografia e a
 decisão 178), `HANDOFF.md` (regenerado).
+
+## 25/11/2026 — A escada aplicada, o simulado das extensões, e a política de mora das contas de consumo
+
+**A escada deixou de ser recomendação e passou a ser o que o sistema promete.** `planos.json →
+assinaturas[].aulas` passa a **130 / 320 / 500** (era 100 / 300 / 800), e a nota dos pacotes passa a
+citar os pontos de viragem novos: **190** e **400**. O Financeiro e o cartão da escola passaram a
+mostrar as franquias novas **sem uma linha de código** — leem o catálogo, que é a fonte única do preço
+e da franquia.
+
+**O SIMULADO DAS EXTENSÕES, que faltava, e a conclusão inverte a intuição.** A extensão custa
+**R$ 0,072** de CI e vende-se a **R$ 0,50**: **85,6 % de margem**, melhor do que o Intermediário
+(76,9 %) e o Avançado (74,3 %). E a margem **sobe** à medida que a escola cresce: no Intermediário de
+76,9 % para **79,4 %** no ponto de migrar (400 aulas), no Avançado de 74,3 % para **81,5 %** a 1 000
+aulas. No Básico fica quase plana (86,6 % → 86,3 %) porque a aula do plano já custa R$ 0,538, muito
+perto dos R$ 0,50. **A escola paga mais por aula nas extensões do que no plano** — no Avançado, de
+R$ 0,280 para R$ 0,390 —, que é exactamente o que o preço de R$ 0,50 foi desenhado para fazer.
+
+**E o conjunto:** nove escolas a crescer 50 % em aulas dão **65 % mais receita** e **89 % mais lucro**,
+com a margem quase intacta (87,0 % → 86,3 %). As nove no ponto de migrar: R$ 1 139,10 de receita
+contra R$ 151,44 de CI — **86,7 %**.
+
+**PORQUE É QUE A ALAVANÇA DELA É FRACA — demonstrado, porque ela perguntou.** (1) A aula custa sete
+centavos e o preço é trinta: o custo é 13 % da receita no Básico e 26 % no Avançado, nunca mais.
+(2) Para segurar o custo quando o dólar sobe é preciso cortar **na mesma proporção** — a R$ 12 seria
+preciso reduzir a franquia a **metade** para o custo não subir, e a margem nem assim melhora.
+(3) Corta o produto mais rentável: cortar o Avançado de 500 para 450 devolve **R$ 3,60** de custo e
+abre **50 aulas vendáveis a R$ 0,50 = R$ 25,00**. (4) Encarece a aula do plano em **+11 %** por cada
+−10 % de franquia. **O que reduz a sério: a engenharia (R$ 43,63/mês, 36 % do custo) e o §7.1
+(metade da factura), nessa ordem.**
+
+**A POLÍTICA DE MULTA E JUROS — pesquisada, com a norma.** «A gente vai adotar a mesma política de
+multa e juros que tem em conta de água, conta de luz.» **Multa de 2 %** sobre o valor da fatura, uma
+vez — teto do **CDC art. 52, §1º** e da **REN ANEEL nº 1.000/2021, art. 343, §1º**; **juros de mora
+de 1 % ao mês, pro rata die** — art. 343, *caput* (é a norma, e não o Código Civil, que fixa o 1 %: o
+CC/2002 remeteu à Selic no art. 406); **sem carência**; a única tolerância é a do §3º (vencimento em
+dia não útil); base de cálculo = o valor da fatura, **sem anatocismo** (§2º, III). **O exemplo fecha:
+R$ 100 a 30 dias = R$ 2,00 de multa + R$ 1,00 de juros = R$ 103,00.**
+
+**A correção monetária do IPCA NÃO é aplicada, e diz-se em cada conta.** Buscar um índice oficial
+seria uma dependência que falha em silêncio e muda o valor da dívida sem ninguém saber — o mesmo
+raciocínio que fez o câmbio do painel ser *declarado*. `correcaoAplicada: false` existe para que a
+omissão seja dita, e para o dia em que houver um índice datado.
+
+**A LACUNA DECLARADA, e é de fonte.** A conta de **luz** tem norma federal. A de **água** não: os
+percentuais vêm do contrato de cada operador e da norma do regulador estadual, e reproduzem na prática
+o mesmo 2 % + 1 %. A afirmação «água = 2 % + 1 %» está sustentada pelo **CDC art. 52, §1º** e pelo
+padrão contratual do setor — **não** por uma resolução de regulador estadual lida nesta sessão. Como
+os números coincidem, a política não muda; o que muda é a força da citação.
+
+**O MONITORAMENTO PASSOU A MEDIR A COTA NA UNIDADE DA CASA.** «A gente tem um monitoramento aqui e ele
+diz para a gente quando é que a gente precisa tomar alguma medida antes que ela aconteça.» As cotas
+eram todas do fornecedor; a nova é a das **aulas**: **1 000 aulas/mês** é onde o plano gratuito acaba
+(2 000 min ÷ 2,0 min por aula, medidos em 395 runs de `Fechar os derivados` e 16 de `Gerar o ciclo`).
+A conta aparece **à taxa do dia e a R$ 6**, e a cota entra no **pior indicador** — sem ela, o mesmo
+parque com as três cotas do fornecedor a 10 % dava «folga», que é o defeito que ela mandou tapar
+(medido como controlo negativo na prova).
+
+**UMA PROVA QUE ESTAVA VERDE SOBRE UM MUNDO QUE JÁ NÃO EXISTE.** `provar-o-custo-de-uma-aula` e
+`provar-a-franquia-de-aulas` tinham a escada **copiada à mão** (`100 / 300 / 800`), e passaram a
+reprovar a própria decisão quando ela mudou. É a mesma família do `DOCS` que parou de crescer (decisão
+174): uma segunda lista da mesma coisa apodrece em silêncio, e o verde dela não quer dizer nada. As
+duas passaram a **ler o catálogo**, e o que afirmam é a **forma** (três planos, franquias crescentes,
+o ponto de viragem dentro da franquia do plano de cima) e não o número — que muda sempre que a escada
+mude. `provar-a-escola-que-nasce` e `provar-monitoramento` foram corrigidas pela mesma razão.
+
+**MEDIDO.**
+`provar-o-custo-de-uma-aula` 24/24 · `provar-a-franquia-de-aulas` 43/43 ·
+`provar-a-escola-que-nasce` 25/25 · `provar-monitoramento` 105/105 ·
+`provar-a-cota-em-aulas` **27/27 (novo)** · `provar-a-mora` **24/24 (novo)**.
+`correr-provas --mudou` sobre os quatro módulos tocados: **0 regressões**. Suíte completa antes destas
+mudanças: 273 provas, 177 verdes, 96 falhas conhecidas, 0 regressões, 187 s.
+
+**Onde entrou.** `biblioteca/comercial/planos.json`, `motor/nucleo/monitoramento.js`,
+`motor/nucleo/mensalidades.js`, `motor/servidor/painel-html.js`, `experimentos/provar-a-cota-em-aulas.js`
+(novo), `experimentos/provar-a-mora.js` (novo), `.gitignore` (as duas provas registadas com a razão),
+`CUSTO-DOS-FLUXOS.md` (§13), `ESTADO-ATUAL.md` (a fotografia e a decisão 179), `HANDOFF.md`.

@@ -1568,6 +1568,26 @@ experimentos/modelo-formulario/*
 # — a prova reprova 23 de 39.
 !experimentos/provar-a-franquia-de-aulas.js
 
+# A COTA EM AULAS NO MONITORAMENTO (25/11/2026). «A gente tem um monitoramento aqui e ele diz para a
+# gente quando é que a gente precisa tomar alguma medida antes que ela aconteça.» As cotas do painel
+# eram todas do FORNECEDOR — minutos, e-mails, chaves. Esta é a da casa: **1.000 aulas/mês** é onde o
+# plano gratuito acaba (2.000 min ÷ 2,0 min por aula, medidos em 395 runs de `Fechar os derivados` e
+# 16 de `Gerar o ciclo`). A prova mede as duas faixas da escada — o excedente linear e o degrau fixo
+# do Team, que substitui mil minutos do excedente e faz a regra de bolso exagerar —, o `null` ≠ `0` da
+# franquia que ninguém contou, e o controlo que importa: **sem a cota em aulas no retrato, o mesmo
+# parque com as três cotas do fornecedor a 10% dava «folga»** — que é o defeito que ela mandou tapar.
+# 27 asserções.
+!experimentos/provar-a-cota-em-aulas.js
+
+# A MULTA E OS JUROS DA CASA (25/11/2026). «A gente vai adotar a mesma política de multa e juros que
+# tem em conta de água, conta de luz.» Multa de 2% (teto do CDC art. 52, §1º e da REN ANEEL
+# 1.000/2021, art. 343, §1º) e juros de mora de 1% ao mês pro rata die (art. 343, caput) — sem
+# carência, e sem anatocismo. A correção monetária do IPCA NÃO é aplicada, e a conta diz isso: buscar
+# um índice seria a mesma dependência que falha em silêncio que o câmbio do painel já pagou. A prova
+# mede o exemplo da pesquisa (R$ 100 a 30 dias = R$ 3,00), o controlo de que a multa é UMA e os juros
+# correm, o teto do CDC a morder, e o mês PAGO a não ter encargos. 24 asserções.
+!experimentos/provar-a-mora.js
+
 # O FINANCEIRO QUE FICA (23/11/2026, à tarde). A regra de 17/11 era o contrário — expurgar a escola
 # levava as mensalidades dela —, e ela corrigiu: «A parte financeira não pode expurgar, ela fica
 # para histórico. E aí a gente diz numa linha seguinte que essa escola foi expurgada.» O livro vive
