@@ -4892,7 +4892,24 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (24/11/2026 — a mesa dos N ciclos)
+### Executado nesta fotografia (24/11/2026 — as ondas de higiene, cache e limpeza da suite)
+
+| Verificação | Resultado |
+|:--|:--|
+| `git gc --prune=now` no clone local | **741 MB → 57 MB**. Objectos soltos: 11 501 (691 MB) → **0**. Antes do `gc`, `git fsck --unreachable` listou os 1540 inalcançáveis numa pasta de sessão; classificados como restos de `rebase`, `stash` antigos e **envelopes da `breu` que o expurgo levara** (a lista sobrevive fora do Git) |
+| o `.git` depois | `git fsck` limpo, `HEAD` igual ao remoto, e `provar-ciclos-independentes` 34/34 e `check-identidade` verdes |
+| `REGISTRO.md` partido por ano | **4,3 MB / 60 173 linhas → 4,5 KB de índice + `REGISTRO-2026.md` com as 812 entradas**, movidas byte a byte (`sha256 aaea6d85…`). O `gerar-handoff.sh` extrai a última entrada certa e o índice das pendências passou a citar `REGISTRO-2026.md L<n>` — conferido em L9/L46/L83 |
+| `node experimentos/provar-cache-da-arvore.js` (**nova**) | **25/25**. Dois pedidos com o mesmo commit fazem **uma** árvore; um commit novo faz outra; sem KV vêm as duas; um commit que não se leu não vira chave; cache ilegível reconstrói-se. Controlo negativo: sem cache, dois pedidos fazem **duas** árvores |
+| `node experimentos/provar-cache-por-tipo.js` (**nova**) | **28/28**. Página `max-age=60, must-revalidate`; asset `max-age=86400, stale-while-revalidate=604800`; nenhum `immutable`; **404 intocado**; 302 intocado; `.json` curto mesmo debaixo de `assets/`. Controlo negativo: sem o funil, página e asset saem iguais com `max-age=0` |
+| **ao ar**, depois do deploy | `breu.padd.com.br/piano/plano` → `max-age=60, must-revalidate` · `…/piano/assets/style.css` → `max-age=86400, stale-while-revalidate=604800` · `…/piano/aula-99` (404) → **sem `cache-control` nenhum** |
+| `node tools/correr-provas.js` (**novo**) | **272 provas, 177 verdes, 95 falhas** em **185 s**. Antes da limpeza: 301 provas, 177 verdes, 124 falhas. O que mudou foi só o lixo — ver abaixo |
+| as 29 provas apagadas | medidas uma a uma antes de sair: **as 29 liam um caminho inexistente** (14 de `ciclo-01-breu-rosa/`, 11 de envelopes com carimbo fixo da `breu`, 4 de fixtures de escolas que nunca existiram). Depois: **zero** provas a ler caminhos ausentes |
+| o diagnóstico corrigido | **«`python3` fora do `PATH`» estava errado.** `python3` está instalado (3.12.3) e o Node encontra-o; o `spawn` de `provar-criar-aula` falhava porque o **`cwd`** era a pasta apagada — o Node devolve `ENOENT` para um `cwd` inexistente |
+| as 95 que continuam vermelhas | **NÃO foram apagadas.** São falhas de asserção (telas que mudaram, contratos que evoluíram) e apagá-las esconderia defeito real. Ficam declaradas como dívida de manutenção |
+| `provar-isolamento-entre-escolas` · `provar-producao` | falham 2 e 17 — **igual com e sem** as mudanças desta fotografia (conferido com `stash`) |
+| `check-identidade` · `check-schemas` · `check-sem-destruicao` · `check-github-headers` | **0 problemas** (23 verificações) · verde · verde · 5 verificações ok |
+
+### Executado nesta fotografia anterior (24/11/2026 — a mesa dos N ciclos)
 
 | Verificação | Resultado |
 |:--|:--|

@@ -192,7 +192,6 @@ experimentos/propostas/*
 !experimentos/provar-senha-do-lancamento.js
 # A prova do ÍNDICE DO ACERVO (20/10/2026, fase 4): determinismo, reconstrução e a medida que
 # separa «mais rápido» de «parece mais rápido» (zero árvores com o cache quente).
-!experimentos/provar-manifesto-sem-base.js
 !experimentos/provar-schemas-do-professor.js
 !experimentos/provar-professor-secundario.js
 !experimentos/provar-indice-de-proveniencia.js
@@ -462,7 +461,6 @@ TRANSFERENCIA-IA.md
 # derivada (14 exercícios → 7 pares), o link para a sequência dentro da aula, e que a ficha de
 # identificação duplicada saiu. O controle negativo dela lê a fonte de `HEAD` e confirma a
 # duplicação que ela guarda — sem isso, «conferi» seria a minha palavra.
-!experimentos/provar-objetivos-por-aula.js
 
 # A MATRIZ DO PARÂMETRO (26/10/2026). A prova é citada pelo REGISTRO («14 de 14») e pelo rodapé
 # `Auditoria:` do commit — e uma prova citada que não existe no clone é uma afirmação que ninguém
@@ -510,7 +508,6 @@ experimentos/modelo-formulario/*
 # misturar os professores e as turmas». Mede os quatro estados da lista no browser e a barreira do
 # SERVIDOR (o 403), e o controle negativo devolve a tela E o `rotas.js` de antes — os dois lados,
 # cada um contra o seu marcador. É citada pelo REGISTRO e pelo rodapé `Auditoria:` do commit.
-!experimentos/provar-turmas-do-professor.js
 
 # O PLANO DE ENSINO É O FORMULÁRIO PREENCHIDO (27/10/2026). A prova nasceu do relato: «o
 # objetivo por bloco por aula tá vazio» e «ele tem que ser o plano de ensino». Mede os três
@@ -524,11 +521,9 @@ experimentos/modelo-formulario/*
 # de perguntar e continua a gravar, e as cinco condições que passou a ler do plano — e o controle
 # negativo devolve o `po.json` de antes, com o ref derivado do commit que introduziu `leituras`.
 # É citada pelo REGISTRO e pelo rodapé `Auditoria:` do commit.
-!experimentos/provar-leituras-do-po.js
 
 # A AULA TEM DUAS LEITURAS (27/10/2026). A prova garante que a versão em prosa conserva compasso,
 # contagem e descrição, omite a coluna Benesh e não inventa descrições que faltam na fonte.
-!experimentos/provar-aula-prosa.js
 
 # A MÚSICA DO VERBETE É A DO PLANO (31/10/2026 — versionada a 01/11/2026). A prova nasceu da
 # pergunta dela no nó «Sequência de exercícios por bloco»: «tempo não tem nada e compasso não tem
@@ -550,11 +545,9 @@ experimentos/modelo-formulario/*
 # A JANELA DO LANÇAMENTO (01/11/2026) — a prova de que o formulário da coleta pergunta pelos 8
 # critérios e não por 4 células com dois dentro. Mede a TELA (jsdom, o pacote por HTTP), com
 # controle negativo: com o config antigo, os campos caem para metade.
-!experimentos/provar-janela-do-lancamento.js
 # O ESCOPO DA AULA (01/11/2026) — a prova de que o «o que fica de fora» vem do PO e não de uma
 # frase da Diaghilev promovida a código, de que a §6 duplicada saiu, e de que o par dimensão ×
 # item não se perde em silêncio quando falta a lista das dimensões.
-!experimentos/provar-escopo-da-aula.js
 !experimentos/provar-dimensoes-plano.js
 !experimentos/provar-musica-no-plano.js
 
@@ -653,7 +646,6 @@ experimentos/modelo-formulario/*
 !experimentos/provar-apagar-da-listagem.js
 # A bancada do MENU NO FORMULÁRIO (04/11/2026): foi a primeira a medir a barra e a coluna COM o
 # menu aplicado — as outras servem a porta crua, sem `<nav>`, e por isso nunca viram o defeito.
-!experimentos/provar-menu-do-formulario.js
 
 # A BANCADA DO PLANO E A DO PO VOLTAM A MEDIR (03/11/2026). As duas estavam fora do Git, e as duas
 # morriam na PRIMEIRA linha por um fixture que já não existe: `professores/leticia/…`, a pasta do
@@ -687,7 +679,6 @@ experimentos/modelo-formulario/*
 # observação só falava de técnica: Musicalidade e Expressão, que são poiésis, saíam com o prefixo
 # «Técnica —». Esta prova fixa as duas correções e a regra de que nada se perde — todo item do PO
 # continua na tabela, uma linha cada. Citada no `REGISTRO.md`.
-!experimentos/provar-eixos-e-tempo-da-aula.js
 
 # O AJUSTE DO PLANO ARRASTA O PO (04/11/2026). A pesquisadora corrigiu a proporção do Expressão no
 # plano de ensino; o «Guardar» criou o elo novo (a proveniência manda) e o PO continuou a observar o
@@ -726,7 +717,6 @@ experimentos/modelo-formulario/*
 # o comprimento da linha, e (quando há pandoc) as percentagens que ele escreve no HTML. Mede
 # também o que saiu: a notação Benesh não está no bloco de musicalidade da aula — ela vive no
 # documento dela, e é lá que o botão «notação» a vai buscar.
-!experimentos/provar-colunas-da-aula.js
 
 # OS VERBOS DO ARMAZENAMENTO (04/11/2026). O composto que o Worker monta (`combinar`) ENUMERAVA os
 # verbos à mão, e por isso o `criar` — a escrita condicional, isto é, a blindagem da corrida do
@@ -748,7 +738,6 @@ experimentos/modelo-formulario/*
 # inteira só cobria o `label`. O rótulo encolhia até 0px e o valor tomava a coluna. Esta prova
 # MEDE a geometria no Chrome (o jsdom não calcula layout): sobreposição entre campos, rótulo com
 # largura para ser lido, valor dentro do campo, e transbordo horizontal — a 320, 360, 390 e 414px.
-!experimentos/provar-faixa-do-ato-no-celular.js
 
 # OS CICLOS E A ANAMNESE (04/11/2026). Mede a sequência estrita (e o buraco, que não se tapa), os
 # ciclos lidos do documento, a GUARDA da exclusão (só o último — o parentHash do seguinte aponta
@@ -762,7 +751,6 @@ experimentos/modelo-formulario/*
 # sério (um stub de `api/…` rebentava o arranque e dava um verde falso), mede o ciclo da anamnese (que
 # não tem), o do PO (lista dos ciclos com plano) e o do plano (travado no próximo), e a geometria do
 # véu e do spinner da linha a apagar. Citada no `REGISTRO.md`.
-!experimentos/provar-novo-registo-e-ciclo.js
 
 # A MOLDURA EM TODAS AS TELAS (05/11/2026). A porta era servida com o marcador `<!-- NAV -->` cru:
 # a listagem ao lado tinha barra e coluna, o formulário não tinha nenhuma das duas. A bancada monta
@@ -913,7 +901,6 @@ experimentos/modelo-formulario/*
 # A prova mede as cinco famílias do §4.9 do PLANO-INDICES (sem uma linha de prosa), a chave que
 # reproduz as 11 que o schema declara à mão, o `AL03` a responder «em que aulas, desde quando», o
 # determinismo do índice e o caderno a imprimir o que o formulário grava.
-!experimentos/provar-indice-de-lancamentos.js
 # O MAPA DE RELAÇÕES DO CICLO (05/11/2026). A pergunta dela — «dá para ir de um nó ao outro até um
 # objetivo?» — tem resposta testável: as arestas já existiam espalhadas pelos arquivos, e faltava
 # materializá-las. A prova mede que cada aresta NOMEIA o campo que a produziu (não é opinião), que
@@ -944,7 +931,6 @@ experimentos/modelo-formulario/*
 # geração corre), a página no padrão das outras oito, o formulário a não se oferecer para uma aula
 # já dada, o link a abrir a aula que aponta — e as contraprovas: sem o índice, o formulário volta (o
 # defeito, a correr), e sem leitura a ponte diz «não sei» em vez de «não há».
-!experimentos/provar-aulas-dadas.js
 !experimentos/provar-proveniencia-do-expurgo.js
 
 # O ELENCO RECÉM-CRIADO CHEGA À TURMA SEM F5 (07/11/2026). A prova abre a página da Produção em
@@ -997,7 +983,6 @@ experimentos/modelo-formulario/*
 # elenco depois de o Plano de Observação estar gravado, e as rotas de escrita aceitavam o gesto.
 !experimentos/provar-vinculo-do-elenco.js
 !experimentos/provar-remocao-do-elenco.js
-!experimentos/provar-orcamento-do-guardar.js
 !experimentos/provar-trava-da-operacao.js
 !experimentos/provar-ponte-do-worker.js
 !experimentos/provar-transferencia-e-desligamento.js
@@ -1621,7 +1606,6 @@ experimentos/modelo-formulario/*
 # Cecchetti ela passou a medir o item 50 inteiro e os desdobramentos — e um nome que fala de uma
 # opção deixaria a próxima sessão a procurar a prova do resto. A entrada antiga sai, e a nova entra;
 # o REGISTRO mantém o nome antigo onde ele foi citado, com a nota datada.
-!experimentos/provar-matriz-metodologica.js
 
 # A LISTA DO EXPURGO (18/11/2026). A prova que decidiu se o campo `arquivos` do índice se apagava ou
 # se mantinha — e a resposta foi «apaga». Ela mede o `apagarEscolaDoRepo` de verdade, com um GitHub
@@ -1734,7 +1718,6 @@ experimentos/modelo-formulario/*
 # falhado (que não pode deixar metade) e o orçamento curto. É citada no REGISTRO e no rodapé
 # `Auditoria:` do commit, e um arquivo citado que não existe no clone é uma afirmação que ninguém
 # pode conferir.
-!experimentos/provar-o-commit-do-po.js
 # O AJUSTE DO DICIONÁRIO FICA REPRESADO NA TURMA (20/11/2026). A decisão de contenção de custos —
 # «não é para gerar ciclo, aumentar o custo no workflow para algo que não tem impacto no ciclo» —
 # inverteu a de 19/11: gravar um verbete ou um termo deixa de disparar a geração, e o contador do
@@ -1760,7 +1743,6 @@ experimentos/modelo-formulario/*
 # o elo — medido: 44 linhas de diferença viraram 0. A prova corre num `git worktree` temporário e
 # mede os três lados da regra: sem mudança o elo fica, com mudança passa a ser o estado anterior, e
 # depois de mudar não volta a mover-se. É citada no REGISTRO e no rodapé `Auditoria:` do commit.
-!experimentos/provar-o-elo-da-aula.js
 # A AULA QUE JÁ FOI DADA NÃO SE REESCREVE (21/11/2026). A regra, na letra dela: «regenerar o ciclo
 # afecta só a aula que ainda não foi dada; as outras ficam e não se apagam». Mede o núcleo (o que
 # conta como facto e as três formas do número da aula), os dois caminhos que regeram um ciclo (o
@@ -1784,7 +1766,6 @@ experimentos/modelo-formulario/*
 # vazia não a declara), e o escritor (o `DOCS` cresce, o `-aula-02.md` é escrito com o número dela,
 # e a Aula 01 não se perde). Um Chrome abre a página de verdade com `?criar-aula=02` e confere
 # que a caixa abre com o marco e a data da linha. Com a regra desligada caem 8 das 38 asserções.
-!experimentos/provar-criar-aula.js
 # «NÃO CONSEGUI OLHAR» NÃO É «NÃO HÁ» (21/11/2026). Nona vez que a armadilha do `experimentos/*`
 # aparece: a prova nasceu ignorada, e este `!` é o que a traz para o repositório. Ela mede o
 # caminho pelo qual uma leitura da curadoria que FALHA fechava o formulário do Plano de Observação
@@ -1800,7 +1781,6 @@ experimentos/modelo-formulario/*
 # fonte que a máquina já tinha»), que o fallback — com o ficheiro recusado — cai numa sans e não
 # numa serifa, e que a ficha da anamnese aponta para o caminho absoluto. É citada no REGISTRO e
 # no rodapé `Auditoria:` do commit.
-!experimentos/provar-a-fonte-do-site.js
 # «AJUSTAR» ABRE O REGISTO, E NÃO UM NÓ QUE NÃO SE PREENCHE (21/11/2026). Décima primeira vez que
 # a armadilha do `experimentos/*` aparece: a prova nasceu ignorada. Ela mede o que ela viu — a aba
 # abria na moldura do formulário com «Professor responsável … não se preenche aqui» dentro, e a
@@ -1815,7 +1795,6 @@ experimentos/modelo-formulario/*
 # o recorte é do Corpo e a leitura inteira serve a Poiesis; que a rota serve as duas listas; e que o
 # elenco vigente é o do carimbo maior. Com o `--controle-negativo` caem 6 asserções, todas as das
 # notas. É citada no REGISTRO e no rodapé `Auditoria:` do commit.
-!experimentos/provar-o-que-se-observa.js
 # MOSTRAR O QUE SE OBSERVA (21/11/2026). Décima terceira vez que a armadilha do `experimentos/*`
 # aparece: um ficheiro novo nasce ignorado. Este lê o acervo ao vivo — o recorte do elenco que a
 # turma lê, as anamneses das alunas e o conteúdo da anamnese — e imprime, aspecto a aspecto, o que
@@ -1831,7 +1810,6 @@ experimentos/modelo-formulario/*
 # A PROVA DA RÉGUA ÚNICA (22/11/2026): a folha de lançamento mede o corpo pela régua da turma, e a
 # página mostra UMA escala. Substitui, como prova da mesma pergunta, o que estava espalhado; e é
 # ela que separa «a declaração nasce certa» de «a página não mistura duas escalas».
-!experimentos/provar-uma-regua-so.js
 
 # A PROVA DA ESTANTE DO PO (07/11/2026) NUNCA ESTEVE NO REPOSITÓRIO. Ela era citada pelo REGISTRO
 # como a prova do «só o plano vigente se oferece» e nenhum clone a tinha — a mesma armadilha que o
@@ -1866,25 +1844,18 @@ experimentos/modelo-formulario/*
 # A PROVA DE QUE A AULA DIZ SÓ O QUE É DELA (22/11/2026): cada aula imprime o marco que o plano lhe
 # dá — e não a matriz inteira do ciclo —, e o guia mede pela régua da turma em vez das cinco marcas
 # que o produto abandonou. Tem controle negativo contra o código de antes.
-!experimentos/provar-a-aula-diz-so-o-que-e-dela.js
 
 # A PROVA DA IDENTIDADE DA AULA (22/11/2026): o §1 diz quem dá a aula, em que sala e em que dia — e
 # uma data, não um calendário —, e o §5 explica o formulário e leva lá com um botão. O dia da semana
 # é conferido por FORA, com o `Intl` do Node, para a prova não perguntar ao código que o escreveu.
-!experimentos/provar-a-identidade-da-aula.js
-!experimentos/provar-a-dobra-e-a-aula-anterior.js
 !experimentos/provar-a-aula-que-vem.js
 !experimentos/provar-o-derivar-do-estilo.js
-!experimentos/provar-o-portao-da-aula-dada.js
-!experimentos/provar-a-seta-redonda.js
-!experimentos/provar-a-raiz-sem-dobra-e-o-vazio-do-apagar.js
 # A mesma família, um dia depois: a seta fora do índice da escola e da apresentação, e o
 # gravar das habilitações que fecha o formulário.
 !experimentos/provar-a-dobra-so-onde-ela-pediu.js
 # O mesmo formulário, um passo adiante: o «Gravar» que só acende quando o pedido mudaria.
 !experimentos/provar-o-gravar-que-so-acende.js
 !experimentos/provar-o-cadastro-comercial-nao-se-perde.js
-!experimentos/provar-a-musica-do-modal.js
 
 # A PROVA DOS RESTOS DO EXPURGO (23/11/2026): a escola sai e o que o prefixo não alcança sai com
 # ela — o livro do financeiro (uma chave de TODAS as escolas) e a cache do monitor. E o commit dos

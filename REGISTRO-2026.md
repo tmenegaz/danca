@@ -60348,3 +60348,57 @@ controlo negativo mostra que sem o funil a página e o asset saem **iguais**, co
 e a confirmação é `curl -sI` em `breu.padd.com.br/piano/plano` (esperado: `max-age=60`) e em
 `…/piano/assets/style.css` (esperado: `max-age=86400`). O **edge** do Cloudflare continua a não
 guardar HTML sem uma Cache Rule — isso é configuração de conta, não de código, e não foi tocado.
+
+## 24/11/2026 — Vinte e nove provas apagadas: as que mediam objetos que já não existem
+
+**O PEDIDO.** «Localize e **delete completamente** do repositório: todas as provas que dependem de
+caminhos ou fixtures inexistentes de `professores/tiago/`, `professores/leticia/` e
+`ciclo-01-breu-rosa/`; todas as provas (~41) que dependem de fixtures com carimbo fixo no nome.»
+
+**O QUE MOTIVOU, medido.** Em 24/11/2026 corri **as 301 provas versionadas** pela primeira vez:
+**177 passavam e 124 falhavam**. Vinte e nove delas não falhavam por um defeito do sistema —
+falhavam porque o objeto que mediam **já não existe**:
+
+| de onde vinha | provas | o que aconteceu |
+|:--|--:|:--|
+| `professores/demi-plie/ciclos/ciclo-01-breu-rosa/` | 14 | o pacote que o expurgo da `breu` levou |
+| `escola/breu/envelopes/<carimbo>.json` | 11 | os envelopes, apagados no mesmo expurgo |
+| `professores/prova-sem-base/` e uma amostra de anamnese com carimbo | 4 | fixture de uma escola que nunca existiu neste clone |
+
+Uma prova assim não é um portão: é um **arquivo com aparência de portão**. Ela não pode passar
+(o dado não está lá), e o vermelho dela não diz nada sobre o sistema — mistura-se aos vermelhos
+verdadeiros e é isso que torna a suite ilegível.
+
+**O QUE FOI DECIDIDO: apagar, não adaptar** — foi a palavra dela. Adaptar significaria inventar um
+fixture novo para uma prova que mede um objeto do passado, e o resultado seria uma prova a medir
+uma cópia, não o que se queria medir.
+
+**O DIAGNÓSTICO QUE EU TINHA DADO ESTAVA ERRADO, e fica registado.** Na investigação de custos eu
+escrevi que «algumas provas falham por `python3` fora do `PATH`». **Não é verdade.**
+`python3` está instalado e o Node encontra-o (`3.12.3`). O que falhava era o `spawn('python3', …)`
+de `provar-criar-aula` com `cwd:` a apontar para `ciclo-01-breu-rosa/` — e o Node devolve
+**`ENOENT` para um `cwd` inexistente**, com a mesma mensagem de um binário ausente. Duas causas
+diferentes, uma mensagem só: a prova foi apagada com as outras, e não havia nada a corrigir no
+ambiente.
+
+**MEDIDO, antes e depois:**
+
+| | provas | verdes | falhas |
+|:--|--:|--:|--:|
+| antes | 301 | 177 | 124 |
+| depois | **272** | **177** | **95** |
+
+E a asserção que importa: **nenhuma prova restante lê um caminho que não existe** (zero, era 22).
+
+**As 95 que continuam vermelhas NÃO foram tocadas, e é de propósito.** São falhas de asserção —
+telas que mudaram, contratos que evoluíram —, e apagá-las esconderia defeito real em vez de lixo.
+Fica declarado o que são: dívida de manutenção da suite, não objeto apagado.
+
+**Onde entrou.** 29 ficheiros de `experimentos/` (**apagados**), `.gitignore` (29 linhas `!` que
+os abriam **removidas**), `experimentos/README.md` (5 linhas de tabela que os descreviam), e
+`tools/correr-provas.js` (**novo** — é ele que torna isto medível: descobrir as 301 à mão custava
+meia hora de laço).
+
+**O que ainda não está feito.** As 95 falhas de asserção continuam sem trïagem — não se sabe
+quantas são provas desatualizadas e quantas são defeitos do sistema. É o próximo trabalho da
+suite, e agora há uma ferramenta para o fazer (`node tools/correr-provas.js --verboso`).

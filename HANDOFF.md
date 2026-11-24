@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-24T12:27:54-0300`
-Commit atual: `112a15b8` — docs(registro): a mesa dos N ciclos, e a factura medida das execuções
+Gerado em: `2026-11-24T12:49:27-0300`
+Commit atual: `4b08d9ff` — feat(estrutura): a página revalida depressa, o asset fica em cache
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,9 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+4b08d9ff feat(estrutura): a página revalida depressa, o asset fica em cache
+10f5c242 feat(estrutura): a árvore do repositório pede-se uma vez por commit
+f286c3b1 chore(estrutura): o REGISTRO partido por ano — índice e arquivo anual
 112a15b8 docs(registro): a mesa dos N ciclos, e a factura medida das execuções
 a0d0fe6b feat(ciclo-01): a mesa dos N ciclos, e o ciclo zero que a guarda deixava passar
 74a69836 docs(registro): a geração que falhou sem erro à vista, e a regra que a fecha
@@ -99,9 +102,6 @@ ed583594 feat(acervo): envelope/plano-20261124-0811.json
 d72feca1 feat(acervo): envelope/.indice.json
 93d53409 chore(estrutura): fechar os derivados — âncoras e índices
 35b79e59 feat(linha de base): índice — tami 20261124-1107
-352655f4 feat(elenco): tami — concluído
-36f5202c chore(estrutura): fechar os derivados — âncoras e índices
-04001327 feat(acervo): envelope/anamnese-20261123-1055.json
 ```
 
 ## Por professor
@@ -195,85 +195,61 @@ d72feca1 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## 24/11/2026 — O REGISTRO partido por ano: o índice e o arquivo anual
+## 24/11/2026 — Vinte e nove provas apagadas: as que mediam objetos que já não existem
 
-**O PEDIDO.** «Mova o histórico atual de `REGISTRO.md` (4,3 MB / ~60 mil linhas) para
-`REGISTRO-2026.md` […] Recrie `REGISTRO.md` como índice enxuto apontando para os arquivos anuais e
-mantendo a regra de append-only.»
+**O PEDIDO.** «Localize e **delete completamente** do repositório: todas as provas que dependem de
+caminhos ou fixtures inexistentes de `professores/tiago/`, `professores/leticia/` e
+`ciclo-01-breu-rosa/`; todas as provas (~41) que dependem de fixtures com carimbo fixo no nome.»
 
-**O QUE MOTIVOU, medido.** O ficheiro crescia **7,5× em oito semanas** — 573 KB a 01/10, 2,0 MB a
-01/11, 3,2 MB a 15/11, **4,3 MB e 60 173 linhas** a 24/11 — e **243 commits** o tocaram numa só
-semana. Cada `grep` custava 4 MB; cada sessão nova pagava o ficheiro inteiro para usar as últimas
-cinco entradas, que é a única parte que ela precisa.
+**O QUE MOTIVOU, medido.** Em 24/11/2026 corri **as 301 provas versionadas** pela primeira vez:
+**177 passavam e 124 falhavam**. Vinte e nove delas não falhavam por um defeito do sistema —
+falhavam porque o objeto que mediam **já não existe**:
 
-**O QUE FOI DECIDIDO.** O registo passa a ter **dois ficheiros com um papel cada**:
+| de onde vinha | provas | o que aconteceu |
+|:--|--:|:--|
+| `professores/demi-plie/ciclos/ciclo-01-breu-rosa/` | 14 | o pacote que o expurgo da `breu` levou |
+| `escola/breu/envelopes/<carimbo>.json` | 11 | os envelopes, apagados no mesmo expurgo |
+| `professores/prova-sem-base/` e uma amostra de anamnese com carimbo | 4 | fixture de uma escola que nunca existiu neste clone |
 
-| ficheiro | o que é | como se mexe |
-|:--|:--|:--|
-| `REGISTRO.md` | **índice** — a regra, a tabela dos anuais, o porquê | só a tabela, quando nasce um ano |
-| `REGISTRO-2026.md` | as **812 entradas** de 2026, por extenso | acrescenta-se ao fim; nunca se reordena |
+Uma prova assim não é um portão: é um **arquivo com aparência de portão**. Ela não pode passar
+(o dado não está lá), e o vermelho dela não diz nada sobre o sistema — mistura-se aos vermelhos
+verdadeiros e é isso que torna a suite ilegível.
 
-**As 812 entradas foram movidas byte a byte** — o ficheiro anual é cópia exacta do anterior
-(`sha256` conferido na cópia, `aaea6d85…`), e é por isso que as referências `REGISTRO.md L<n>`
-publicadas em commits antigos continuam a apontar para a linha certa **dentro do ficheiro anual**.
+**O QUE FOI DECIDIDO: apagar, não adaptar** — foi a palavra dela. Adaptar significaria inventar um
+fixture novo para uma prova que mede um objeto do passado, e o resultado seria uma prova a medir
+uma cópia, não o que se queria medir.
 
-**O que a partição NÃO resolve, e fica declarado:** o histórico do Git continua a ter o ficheiro
-grande em cada versão em que ele apareceu. Alivia-se o presente (clone, `diff`, `tail`), não o
-passado — reencolher o passado exigiria reescrever história, e este repositório não a reescreve.
+**O DIAGNÓSTICO QUE EU TINHA DADO ESTAVA ERRADO, e fica registado.** Na investigação de custos eu
+escrevi que «algumas provas falham por `python3` fora do `PATH`». **Não é verdade.**
+`python3` está instalado e o Node encontra-o (`3.12.3`). O que falhava era o `spawn('python3', …)`
+de `provar-criar-aula` com `cwd:` a apontar para `ciclo-01-breu-rosa/` — e o Node devolve
+**`ENOENT` para um `cwd` inexistente**, com a mesma mensagem de um binário ausente. Duas causas
+diferentes, uma mensagem só: a prova foi apagada com as outras, e não havia nada a corrigir no
+ambiente.
 
-**Motivo declarado — os congelados.** `tools/gerar-handoff.sh` está congelado (`CONGELAMENTO.md`)
-e **mudou**, em commit próprio: ele era o único leitor do registo. A mudança é de **leitura**, e
-não de regra — o formato da entrada, a ordem cronológica, a nota de correção datada e a proibição
-de apagar continuam exactamente como estavam. O que mudou:
+**MEDIDO, antes e depois:**
 
-- a lista dos ficheiros vem de `REGISTRO-*.md`, por ordem de nome (é isso que faz o ano novo
-  entrar no fim sem ninguém editar o script), com `REGISTRO.md` como reserva para um repositório
-  anterior à partição;
-- o `awk` passou a tratar os ficheiros como um fluxo só, e o índice das pendências passou a dizer
-  **de que ficheiro** é cada linha (`REGISTRO-2026.md L9`) — antes dizia sempre `REGISTRO.md`, e
-  depois da partição esse número apontaria para a linha errada;
-- **não muda**: a fórmula de hash, a cobertura das fontes, os validadores, as regras e as pétreas.
+| | provas | verdes | falhas |
+|:--|--:|--:|--:|
+| antes | 301 | 177 | 124 |
+| depois | **272** | **177** | **95** |
 
-`REGISTRO.md` foi escrito **sem um único `## `** de propósito: o `awk` do HANDOFF procura blocos
-`## ` como entradas, e um índice com secções `## ` seria lido como «a última entrada do registo».
+E a asserção que importa: **nenhuma prova restante lê um caminho que não existe** (zero, era 22).
 
-**Onde entrou.** `REGISTRO-2026.md` (**novo**, 812 entradas), `REGISTRO.md` (o índice),
-`tools/gerar-handoff.sh` (`registros[]`, `FNR`/`FILENAME` no índice das pendências),
-`.github/instructions/registro-md.instructions.md` (`applyTo: "**/REGISTRO*.md"`, e a secção «dois
-ficheiros, uma regra»), `.github/skills/fotografia-do-estado/SKILL.md`, `AGENTS.md`, `HANDOFF.md`
-(regerado).
+**As 95 que continuam vermelhas NÃO foram tocadas, e é de propósito.** São falhas de asserção —
+telas que mudaram, contratos que evoluíram —, e apagá-las esconderia defeito real em vez de lixo.
+Fica declarado o que são: dívida de manutenção da suite, não objeto apagado.
 
-**MEDIDO.** `bash tools/gerar-handoff.sh` corre e extrai a **última** entrada certa
-(«24/11/2026 — A mesa dos N ciclos»), e o índice das pendências aponta `REGISTRO-2026.md` com as
-linhas conferidas (`L9`, `L46`, `L83` batem nas entradas que nomeiam). `bash -n` no script: ok.
+**Onde entrou.** 29 ficheiros de `experimentos/` (**apagados**), `.gitignore` (29 linhas `!` que
+os abriam **removidas**), `experimentos/README.md` (5 linhas de tabela que os descreviam), e
+`tools/correr-provas.js` (**novo** — é ele que torna isto medível: descobrir as 301 à mão custava
+meia hora de laço).
 
-**O que ainda não está feito.** O `REGISTRO-2026.md` continua a crescer até 31/12/2026; em 2027
-nasce o `REGISTRO-2027.md` e a tabela do índice ganha uma linha. Nada automatiza essa viragem —
-é um gesto manual, e está escrito no índice para não ser esquecido.
+**O que ainda não está feito.** As 95 falhas de asserção continuam sem trïagem — não se sabe
+quantas são provas desatualizadas e quantas são defeitos do sistema. É o próximo trabalho da
+suite, e agora há uma ferramenta para o fazer (`node tools/correr-provas.js --verboso`).
 
 ## O que está pendente
-
-## 20/11/2026 — A folha impressa deixou de perguntar duas vezes
-
-A `-aula-01.md` continua com as linhas de técnica repetidas na §5 —
-ela melhora com a mesma fusão, mas só quando for re-derivada com o elenco certo (ver acima).
-
-## 22/11/2026 — O fluxo da Aula 02 escrito, e o expurgo com um conferidor
-
-- **A metade do KV não foi medida daqui.** `provar-expurgo-kv` exige `CLOUDFLARE_API_TOKEN` e o
-  namespace real (11 asserções, todas `HTTP 401` sem ele). Fica a autoridade do relatório da página.
-- **Não há portão N-1**: a Aula N pode nascer antes de a N-1 ter os dados do formulário. Ela disse
-  «por enquanto não faz, mas tome nota disso».
-- **O pacote da turma `rosa` da `breu`** colide com uma escola nova com o mesmo nome: a escola passa,
-  a **turma** é que recusa. Criar com **outro nome de turma**, ou deixar o expurgo levar o pacote.
-
-## 22/11/2026 — Uma régua só, e um plano só na escolha
-
-- **A metade do KV do expurgo continua por medir**: a chave recebida é a mestra, e não um token da
-  Cloudflare. Falta um token de API (`Workers KV Storage: Edit`) ou uma corrida do workflow com o
-  segredo do repositório.
-- **`provar-lancamento`** morre com `ENOENT` no fixture `ciclo-01-maria` — a escola foi expurgada e a
-  prova lê o pacote dela. Mesma família da `provar-estante-do-po`; não foi tocada hoje.
 
 ## 22/11/2026 — O estúdio, e o modelo do painel inicial
 
@@ -289,6 +265,27 @@ ela melhora com a mesma fusão, mas só quando for re-derivada com o elenco cert
 O `REGISTRO-2026.md` continua a crescer até 31/12/2026; em 2027
 nasce o `REGISTRO-2027.md` e a tabela do índice ganha uma linha. Nada automatiza essa viragem —
 é um gesto manual, e está escrito no índice para não ser esquecido.
+
+## 24/11/2026 — A árvore do repositório pede-se uma vez por COMMIT, e não uma vez por pedido
+
+Não se mediu no ar: o ganho é de bytes por pedido, e a única forma
+de o confirmar em produção é o contador de subpedidos do Worker (`orcamentoDe`), que o painel ainda
+não expõe por rota. E o `arvore-do-repo/` **não tem expurgo** — quando uma escola é apagada, a
+chave continua lá com a árvore de um commit antigo (que não contém dado de aluno, só caminhos). É
+lixo que expira por si, e fica declarado em vez de escondido.
+
+## 24/11/2026 — A página revalida-se depressa, o asset fica em cache, e o 404 não se guarda
+
+Não se mediu no ar: a política só vale no próximo deploy do shard,
+e a confirmação é `curl -sI` em `breu.padd.com.br/piano/plano` (esperado: `max-age=60`) e em
+`…/piano/assets/style.css` (esperado: `max-age=86400`). O **edge** do Cloudflare continua a não
+guardar HTML sem uma Cache Rule — isso é configuração de conta, não de código, e não foi tocado.
+
+## 24/11/2026 — Vinte e nove provas apagadas: as que mediam objetos que já não existem
+
+As 95 falhas de asserção continuam sem trïagem — não se sabe
+quantas são provas desatualizadas e quantas são defeitos do sistema. É o próximo trabalho da
+suite, e agora há uma ferramenta para o fazer (`node tools/correr-provas.js --verboso`).
 
 ## Pendências anteriores (índice)
 
@@ -780,6 +777,9 @@ nasce o `REGISTRO-2027.md` e a tabela do índice ganha uma linha. Nada automatiz
 - **20/11/2026** — Duas provas apagadas: as que mediam um mundo que já não… → `REGISTRO-2026.md` L56921
 - **20/11/2026** — «Curadoria» saiu da tela, e a prova que media uma Turma sem… → `REGISTRO-2026.md` L56965
 - **20/11/2026** — A matriz do formulário pergunta uma vez por par, e o eixo… → `REGISTRO-2026.md` L57043
+- **20/11/2026** — A folha impressa deixou de perguntar duas vezes → `REGISTRO-2026.md` L57108
+- **22/11/2026** — O fluxo da Aula 02 escrito, e o expurgo com um conferidor → `REGISTRO-2026.md` L57963
+- **22/11/2026** — Uma régua só, e um plano só na escolha → `REGISTRO-2026.md` L58074
 - **demi-plie · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
