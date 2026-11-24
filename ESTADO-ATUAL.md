@@ -4,8 +4,14 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **o custo por aula é 3 minutos, e não 2; o contador custa zero; e
-> a regra da sala recusa o que ela pediu.** Três coisas, e a terceira é um bloqueio.
+> **Última fotografia:** 25/11/2026 — **a ocupação entrou nas rotas, e o modelo que falta.**
+> A regra nova está **ligada aos dois sítios de gravação** (criar e derivar): pergunta «quem ocupa este
+> dia, a esta hora?», nomeia o recurso, o dia e as duas horas, e a regra antiga das alunas por
+> modalidade foi **substituída** (`alunasComprometidas` apagada). **E a implementação revelou o que
+> nenhuma leitura tinha revelado: a curadoria não tem ritmo próprio** — o ritmo vive só no registo da
+> Sala, e por isso duas turmas no mesmo registo têm a mesma hora por construção. O caso das 14h e das
+> 16h na mesma sala **não é expressável** hoje; o que falta é o **modelo**, e a decisão é de produto
+> (decisão 187). Ficam também as três decisões de custo da fotografia anterior.
 > **O custo, medido:** a factura de Novembro fechou em **$0,00** (2 511 min, $15,07 bruto, $15,07 de
 > desconto), mas ao medir os jobs apareceu o que faltava — **todos os jobs estão abaixo de 60 s e cada
 > um factura 1 minuto**, e a geração, que o §12 media a 110 s p50, está hoje em **14–43 s**. E **um
@@ -4395,9 +4401,23 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      alunas por modalidade — **substituir**; turma sem hora — **recusar a gravação** (mais forte do que
      eu recomendava, e a consequência é a certa: o dado fica completo e a colisão deixa de estar por
      conferir nas turmas antigas); períodos que não se tocam — **permitir**; dois elencos no mesmo
-     horário — **recusar sempre**. **E o bloqueio ainda está de pé:** as rotas continuam a chamar a
-     regra antiga, e a escola com balé 1 às 14h e balé 2 às 16h na mesma sala **ainda recebe 409** até
-     os passos 3 a 5 entrarem — que são uma operação só, e é a próxima.
+     horário — **recusar sempre**. **APLICADO nos passos 3 a 5 (25/11):** a guarda está nos dois
+     sítios (criar e derivar), nomeia o **recurso**, o **dia** e **as duas horas**, e
+     `alunasComprometidas` foi **apagada** — a regra das alunas por modalidade foi substituída, como
+     ela decidiu. `provar-mudanca-de-sala` **48 asserções**, `provar-a-ocupacao` **49**.
+
+187. **O ACHADO QUE A IMPLEMENTAÇÃO REVELOU: A CURADORIA NÃO TEM RITMO PRÓPRIO.** Ela declara
+     `turmas: [nome]` — o nome do registo da Sala —, e o ritmo (dias, hora de cada dia, duração,
+     período) vive **só** no registo da Sala (`bastidores.js:3636-3656`). Duas curadorias no mesmo
+     registo têm, por construção, o mesmo dia e a mesma hora. **Medido na rota verdadeira**
+     (`provar-mudanca-de-sala`, B2.3): o cenário «balé 1 às 14h e balé 2 às 16h na mesma sala» **não é
+     expressável no modelo de dados de hoje** — ou as duas apontam para o mesmo registo e têm a mesma
+     hora, ou apontam para registos diferentes e são duas salas aos olhos do sistema. A regra pura
+     aceita horas diferentes quando os ritmos são diferentes; **o que falta é onde os gravar.** A
+     regra nova, por agora, **endurece** (vê professor e elenco, que a antiga não via) e **não
+     desbloqueia** o caso das duas horas. **PENDENTE**, e é decisão de produto — duas saídas em
+     `PLANO-DE-OCUPACAO.md` §9.1: (1) a Sala passa a guardar **faixas horárias** e cada curadoria
+     reserva as suas; (2) o **ritmo passa para a curadoria** e a Sala fica o espaço físico sem horas.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a

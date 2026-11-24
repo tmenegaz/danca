@@ -323,17 +323,27 @@ async function principal() {
    * derivação do par novo. O caso 12b (N turmas do MESMO professor) precisa de duas salas LIVRES,
    * e é isso que estas são — o assunto de 12b é o id, não a ocupação. */
   conferir('a turma C é criada', (await novo({ nome: 'Turma C' })).status, 201);
-  conferir('a turma D é criada', (await novo({ nome: 'Turma D' })).status, 201);
+  /* A TURMA D NASCE NOUTRO HORÁRIO (25/11/2026). Nasceu às 09:00 de terça como a C, e com a regra
+   * da ocupação isso é o MESMO professor à MESMA hora em duas salas — recusado, e bem. O que este
+   * passo mede é o id (professor + modalidade + turma), não a ocupação: as horas têm de diferir para
+   * a asserção voltar a medir o que diz medir. */
+  conferir('a turma D é criada noutro horário',
+    (await novo({ nome: 'Turma D', horarios: { sex: '16:00' }, dias: ['sex'] })).status, 201);
   // E UMA PARA O CASO DO ID ANTIGO (§ 12b, «mudar a turma de uma curadoria livre»): mudar a
   // TURMA precisa de um destino LIVRE — com a regra de 09/11/2026, a Turma B já é a do par novo.
-  conferir('a turma E é criada', (await novo({ nome: 'Turma E' })).status, 201);
+  conferir('a turma E é criada', (await novo({ nome: 'Turma E', dias: ['qua'], horarios: { qua: '10:00' } })).status, 201);
   /* E DUAS PARA O § 12c (09/11/2026). Aquelas asserções reusavam a mesma sala para três atos
    * diferentes — a regra da aluna não os distinguia. Com «uma sala recebe uma Turma», cada caso
    * precisa do seu lugar; sem isso, o 409 da ocupação mascarava a regra da aluna que a prova
    * quer medir. */
-  conferir('a turma F é criada', (await novo({ nome: 'Turma F' })).status, 201);
-  conferir('a turma G é criada', (await novo({ nome: 'Turma G' })).status, 201);
-  conferir('a turma H é criada', (await novo({ nome: 'Turma H' })).status, 201);
+  /* CADA UMA NO SEU HORÁRIO (25/11/2026). Nasciam todas às 09:00 de terça e quinta — quer dizer, o
+   * MESMO docente à MESMA hora em quatro salas. A regra antiga da sala não o via (só comparava o
+   * nome); a ocupação vê, e recusa, e tem razão. O que o § 12c quer medir é a regra da ALUNA: sem
+   * horas distintas, a recusa do professor chegaria primeiro e mascarava-a — o mesmo defeito que a
+   * nota de 09/11 já tinha corrigido uma vez, por outra razão. */
+  conferir('a turma F é criada', (await novo({ nome: 'Turma F', dias: ['qua'], horarios: { qua: '11:00' } })).status, 201);
+  conferir('a turma G é criada', (await novo({ nome: 'Turma G', dias: ['qua'], horarios: { qua: '12:00' } })).status, 201);
+  conferir('a turma H é criada', (await novo({ nome: 'Turma H', dias: ['qua'], horarios: { qua: '13:00' } })).status, 201);
   const duasTurmas = await curadoria({ professor: 'Leticia', modalidade: 'Balé Clássico',
     turmas: ['Turma A', 'Turma B'] });
   conferir('a curadoria recusa DUAS turmas', duasTurmas.status, 400);
@@ -548,11 +558,18 @@ async function principal() {
 
   const repetida = await curadoria({ professor: 'Miguel', modalidade: 'Jazz',
     tradicao: 'Jazz', turmas: ['Turma F'], linhaDeBase: elencoDaGabi });
-  conferir('a aluna de outra turma da MESMA modalidade é recusada', repetida.status, 409);
+  conferir('o MESMO ELENCO inteiro noutra Turma da mesma modalidade e nível é recusado', repetida.status, 409);
   const erroRepetida = await repetida.json();
-  conferir('…e o erro diz ONDE ela está', /Gabi \(em Turma C\)/.test(erroRepetida.erro), true);
-  /* «UMA sala por modalidade» é a frase de hoje; a regra é a mesma de 16/10/2026. */
-  conferir('…e diz qual é a regra', /UMA sala por modalidade/.test(erroRepetida.erro), true);
+  conferir('…e o erro diz ONDE ele já é a Turma', /já é a Turma de Jazz · Turma C/.test(erroRepetida.erro), true);
+  /* A REGRA QUE RECUSA MUDOU, E A ASSERÇÃO ACOMPANHA-A (25/11/2026). Era a regra das ALUNAS — «uma
+   * aluna pertence a UMA sala por modalidade» —, e ela foi substituída pela ocupação, por decisão
+   * dela. Quem recusa este caso agora é outra regra, mais antiga e independente: o MESMO ELENCO
+   * (a entidade inteira, `mesmaTurmaPorElenco`) não pode ser a Turma de duas curadorias da mesma
+   * modalidade e do mesmo nível — seriam duas Turmas iguais, e o plano não saberia de qual ler.
+   *
+   * A distinção importa: uma ALUNA pode estar em duas Turmas da mesma modalidade, desde que os
+   * horários não se toquem (`provar-a-ocupacao.js`, secção D). O ELENCO inteiro repetido, não. */
+  conferir('…e diz qual é a regra', /não pode ocupar duas vezes a mesma modalidade e o mesmo nível/.test(erroRepetida.erro), true);
   const noutraModalidade = await curadoria({ professor: 'Miguel', modalidade: 'Balé clássico',
     tradicao: 'RAD', turmas: ['Turma G'], linhaDeBase: elencoDaGabi });
   conferir('a MESMA aluna noutra MODALIDADE é aceita', noutraModalidade.status, 201);

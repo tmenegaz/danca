@@ -191,9 +191,15 @@ const ESCOLA = 'prova';
 const SALA = 'Rosa';
 const OUTRA_SALA = 'Piano';
 
-const salaDaEscola = (nome, id) => ({
+/* AS DUAS SALAS DA ESCOLA, E EM HORAS DIFERENTES (25/11/2026).
+ *
+ * Nasciam ambas às 19:00 de terça, quinta e sábado, com o mesmo professor. Com a regra da ocupação
+ * isso é o MESMO docente à MESMA hora em duas salas — recusado, e bem. As asserções desta prova
+ * querem medir a regra do ELENCO, e a recusa do professor chegava primeiro e mascarava-a. As horas
+ * separam-nas, e cada regra volta a ser medida sozinha. */
+const salaDaEscola = (nome, id, horas) => ({
   id, nome, ordem: 0, frequencia: 3, dias: ['ter', 'qui', 'sáb'],
-  horarios: { ter: '19:00', qui: '19:00', 'sáb': '19:00' },
+  horarios: horas || { ter: '19:00', qui: '19:00', 'sáb': '19:00' },
   duracaoMin: 60, periodoInicio: '2026-11-20', periodoFim: '2026-12-20', ativo: true,
 });
 
@@ -241,7 +247,8 @@ function semente(extra) {
   return Object.assign({
     ['bastidores/' + ESCOLA + '/curadorias']: JSON.stringify([turmaDaRosa()]),
     ['bastidores/' + ESCOLA + '/turmas']: JSON.stringify([
-      salaDaEscola(SALA, 'rosa'), salaDaEscola(OUTRA_SALA, 'piano')]),
+      salaDaEscola(SALA, 'rosa'),
+      salaDaEscola(OUTRA_SALA, 'piano', { ter: '20:00', qui: '20:00', 'sáb': '20:00' })]),
     ['bastidores/' + ESCOLA + '/linhas-de-base']: JSON.stringify(linhas),
     ['bastidores/' + ESCOLA + '/professores']: JSON.stringify([
       { nome: 'Pe Torto', slug: 'pe-torto' }]),
@@ -323,9 +330,15 @@ async function provarAsRotas() {
       senhaDirecao: 'prova', professor: 'pe-torto', modalidade: 'Balé clássico',
       tradicao: 'RAD', grau: '', nivel: '1', turmas: [OUTRA_SALA], linhaDeBase: 'comgente',
     });
-    provar('um elenco COM alunas é recusado pela regra da aluna, que é a mais antiga',
-      r.status === 409 && /alunas já estão noutra sala/.test(String((r.json || {}).erro || '')),
-      (r.json || {}).erro);
+    /* A REGRA DA ALUNA FOI SUBSTITUÍDA (25/11/2026) — e esta asserção media-a. Ela recusava
+     * QUALQUER aluna que já estivesse noutra Turma da mesma modalidade, sem olhar horas. A decisão
+     * dela é que pode, desde que não colidam. Aqui as duas Turmas estão em horas que não se tocam,
+     * e o professor é o mesmo mas em horas diferentes: o resultado passa a ser ACEITE.
+     *
+     * A recusa por aluna continua a existir quando há sobreposição — provada em
+     * `provar-a-ocupacao.js`, secção D, e na rota em `provar-mudanca-de-sala.js`. */
+    provar('um elenco COM alunas, em horas que não se tocam, é ACEITE — a regra da aluna foi substituída',
+      r.status === 201, { status: r.status, erro: (r.json || {}).erro });
   }
 
   // DERIVAR sem tocar no elenco: aceite (o elo de origem não ocupa contra si mesmo).

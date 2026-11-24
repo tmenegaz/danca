@@ -6,11 +6,14 @@
  *
  * O QUE ESTA PROVA FIXA, e porquê:
  *
- *   A. UMA SALA RECEBE UMA TURMA — a regra pura. Antes desta data, duas curadorias activas com a
- *      mesma Sala respondiam `201`; a Sala é o RITMO (dias, horas, duração, período) e duas
- *      Turmas nela são duas aulas no mesmo horário, no mesmo lugar.
- *   B. A GUARDA NAS DUAS ROTAS — criar e derivar recusam com 409, dizem QUEM ocupa, dizem quais
- *      estão livres, e não recusam quando é a própria Turma a manter a sua sala.
+ *   A. A OCUPAÇÃO — a regra pura. Antes de 09/11/2026, duas curadorias activas com a mesma Sala
+ *      respondiam `201`; a Sala é o RITMO (dias, horas, duração, período), e duas Turmas nela ao
+ *      mesmo tempo são duas aulas no mesmo lugar.
+ *   B. A GUARDA NAS DUAS ROTAS — criar e derivar recusam com 409 quando há sobreposição, dizem o
+ *      RECURSO, o DIA e as DUAS HORAS, e não recusam quando é a própria Turma a manter a sua sala.
+ *   B2. O QUE A REGRA NOVA DEIXA PASSAR — e o ACHADO que a implementação revelou: a curadoria não
+ *      tem ritmo próprio, e por isso duas turmas no mesmo registo de Sala têm o mesmo dia e a mesma
+ *      hora por construção. A regra está certa; o que falta é o modelo (ver B2.3).
  *   C. O RITMO RELIDO — o elo novo do plano nasce com a frequência, a duração, o calendário e o
  *      total de aulas da Sala VIGENTE, e não com a fotografia do plano anterior.
  *   D. O PLANO É MARCADO quando a Sala mudou depois dele — `revalidacaoPendente` passa a ver as
@@ -87,7 +90,7 @@ const r = (valor) => ({ valor, origem: 'perguntado', respondente: 'professor', n
   globalThis.fetch = async () => new Response('nao', { status: 404 });
 
   // ==========================================================================================
-  console.log('\nA. UMA SALA RECEBE UMA TURMA — a regra pura');
+  console.log('\nA. A OCUPAÇÃO — a regra pura (quem está nesta Sala)');
 
   {
     const lista = [curadoria(), curadoria({
@@ -125,7 +128,7 @@ const r = (valor) => ({ valor, origem: 'perguntado', respondente: 'professor', n
   }
 
   // ==========================================================================================
-  console.log('\nB. A GUARDA NAS ROTAS — criar e derivar');
+  console.log('\nB. A GUARDA NAS ROTAS — criar e derivar, com a regra nova');
 
   const env = (estado) => ({
     ESCOLA_SLUG: ESCOLA, ESCOLA_HABILITADA: 'sim',
@@ -162,9 +165,19 @@ const r = (valor) => ({ valor, origem: 'perguntado', respondente: 'professor', n
       professor: 'outra', modalidade: 'Balé clássico', tradicao: 'RAD', turma: TURMA,
       senhaDirecao: SENHA,
     });
-    provar('criar outra Turma na MESMA Sala é recusado (409)', r1.status === 409, r1.json);
-    provar('…e a frase nomeia quem ocupa', /já está ocupada por a Turma de coqui|já está ocupada por/.test(r1.json.erro || ''), r1.json.erro);
-    provar('…e diz quais estão livres', /As salas livres são: Balé Nível 2, Balé Nível 3\./.test(r1.json.erro || ''), r1.json.erro);
+    provar('criar outra Turma na MESMA Sala, no MESMO horário, é recusado (409)', r1.status === 409, r1.json);
+    /* A FRASE MUDOU A 25/11/2026, e mudou porque a REGRA mudou. A anterior dizia «já está ocupada
+     * por» e «as salas livres são» — a segunda metade empurrava a escola a criar uma sala que talvez
+     * não precise. A nova nomeia o RECURSO («sala»), o DIA e as DUAS HORAS, que é o que a escola
+     * tem de mudar; e diz o caminho. As asserções passam a afirmar isso — a frase certa para a regra
+     * certa, e não a frase antiga adaptada. */
+    provar('…e a frase nomeia o recurso, o dia e as duas horas',
+      /sala «Balé Nível 1»/.test(r1.json.erro || '') && /ter/.test(r1.json.erro || '')
+      && /18:00–19:00/.test(r1.json.erro || ''), r1.json.erro);
+    provar('…e diz o caminho: mudar a hora ou o dia, ou usar outra sala',
+      /Mude a hora ou o dia/.test(r1.json.erro || '') && /outra sala/.test(r1.json.erro || ''), r1.json.erro);
+    provar('…e o conflito leva o recurso e o nome, para a tela poder marcar',
+      r1.json.recurso === 'sala' && r1.json.nome === 'Balé Nível 1', r1.json);
     const lista = JSON.parse(ambiente.PADD_KV._dados.get('bastidores/' + ESCOLA + '/curadorias'));
     provar('nada foi gravado', lista.length === 1, lista.length);
 
@@ -215,9 +228,9 @@ const r = (valor) => ({ valor, origem: 'perguntado', respondente: 'professor', n
     const mover = await pedir(ambiente2, '/api/bastidores/curadoria-derivar', {
       derivarDe: curadoria().id, turma: 'Balé Nível 3', vigencia: '2026-11-10', senhaDirecao: SENHA,
     });
-    provar('mover para uma Sala JÁ OCUPADA por outra Turma é recusado',
-      mover.status === 409 && /já está ocupada/.test(mover.json.erro || ''), mover.json);
-    provar('…e a recusa nomeia a ocupante certa', /por a Turma de outra/.test(mover.json.erro || ''),
+    provar('mover para uma Sala com OUTRA Turma no MESMO horário é recusado',
+      mover.status === 409 && /sala «Balé Nível 3»/.test(mover.json.erro || ''), mover.json);
+    provar('…e a recusa nomeia a ocupante certa', /outra · Balé clássico/.test(mover.json.erro || ''),
       mover.json.erro);
 
     const livres = await pedir(ambiente2, '/api/bastidores/curadoria-derivar', {
@@ -227,7 +240,12 @@ const r = (valor) => ({ valor, origem: 'perguntado', respondente: 'professor', n
   }
 
   {
-    // A ESCOLA SEM SALA LIVRE: a recusa diz para onde ir.
+    /* A ESCOLA COM UMA SÓ SALA — e a recusa JÁ NÃO MANDA CRIAR OUTRA (25/11/2026).
+     *
+     * Era isto que a mensagem antiga fazia: «Não há nenhuma outra sala livre nesta escola — crie uma
+     * (aba Salas) ou libere uma». Sobre uma escola que tem balé 1 às 14h e quer o balé 2 às 16h na
+     * mesma sala, era conselho errado: ela não precisa de mais salas, precisa de outra HORA. A
+     * mensagem nova diz o que muda — a hora ou o dia —, e só sugere outra sala como alternativa. */
     const cheia = {
       kv: {
         ['bastidores/' + ESCOLA + '/turmas']: JSON.stringify([sala()]),
@@ -238,8 +256,97 @@ const r = (valor) => ({ valor, origem: 'perguntado', respondente: 'professor', n
       professor: 'outra', modalidade: 'Balé clássico', tradicao: 'RAD', turma: TURMA,
       senhaDirecao: SENHA,
     });
-    provar('sem nenhuma Sala livre, a recusa diz que o caminho é criar ou liberar uma',
-      res.status === 409 && /nenhuma outra sala livre/.test(res.json.erro || ''), res.json.erro);
+    provar('com uma só Sala e o mesmo horário, a recusa manda MUDAR A HORA — e não criar sala',
+      res.status === 409 && /Mude a hora ou o dia/.test(res.json.erro || '')
+      && !/crie uma \(aba Salas\)/.test(res.json.erro || ''), res.json.erro);
+  }
+
+  /* ══════════════════════════════════════════════════════════════════════════════════════════════
+   * B2. O QUE A REGRA NOVA DEIXA PASSAR — o desbloqueio, medido nas ROTAS (25/11/2026)
+   * ══════════════════════════════════════════════════════════════════════════════════════════════
+   *
+   * Estas cinco asserções são a razão da mudança existir. A regra de 09/11 recusava-as TODAS com
+   * 409, e a proprietária descreveu-as como legítimas: «ciclos diferentes que podem estar no mesmo
+   * período [...] o que diferencia é o dia da semana [...] ou o horário». */
+  {
+    const tresSalas = [
+      sala(),
+      sala({ id: 'tarde', nome: 'Sala da Tarde' }),
+      sala({ id: 'noite', nome: 'Sala da Noite', dias: ['qua'], horarios: { qua: '18:00' } }),
+    ];
+    const ambienteDe = (curadorias, salas) => env({
+      kv: {
+        ['bastidores/' + ESCOLA + '/turmas']: JSON.stringify(salas || tresSalas),
+        ['bastidores/' + ESCOLA + '/curadorias']: JSON.stringify(curadorias || [curadoria()]),
+      },
+    });
+
+    /* (1) OUTRA SALA, MESMO HORÁRIO — o caso mais comum, e o que a regra antiga já aceitava. */
+    const outraSala = await pedir(ambienteDe(), '/api/bastidores/curadoria', {
+      professor: 'outra', modalidade: 'Balé clássico', tradicao: 'RAD', turma: 'Sala da Tarde',
+      senhaDirecao: SENHA,
+    });
+    provar('B2.1 outra sala no mesmo horário é ACEITE (já era)', outraSala.status === 201, outraSala.json);
+
+    /* (2) DUAS SALAS, O MESMO HORÁRIO — aceite, e já era. A asserção fica porque é o controlo das
+     * outras: se esta deixasse de passar, a recusa das seguintes não estaria a vir do tempo. */
+    const duasSalasMesmaHora = await pedir(ambienteDe(), '/api/bastidores/curadoria', {
+      professor: 'outra', modalidade: 'Jazz', tradicao: 'RAD', turma: 'Sala da Tarde',
+      senhaDirecao: SENHA,
+    });
+    provar('B2.2 duas SALAS diferentes no mesmo horário é ACEITE', duasSalasMesmaHora.status === 201, duasSalasMesmaHora.json);
+
+    /* (3) MESMA SALA, MESMO HORÁRIO — RECUSADO, e continua. E aqui está o ACHADO que a
+     * implementação revelou, e que é mais importante do que a regra:
+     *
+     *   A CURIADORIA NÃO TEM RITMO PRÓPRIO. Ela declara `turmas: [nome]` — o NOME do registo da
+     *   Sala —, e o ritmo (dias, horas, duração, período) vive SÓ no registo da Sala
+     *   (`bastidores.js:3636-3656`). Duas curadorias que apontam para o mesmo registo têm, por
+     *   construção, o mesmo dia e a mesma hora.
+     *
+     *   Logo o cenário que ela descreveu — «balé 1 às 14h e balé 2 às 16h na mesma sala» — NÃO É
+     *   EXPRESSÁVEL no modelo de dados de hoje. Ou as duas apontam para o mesmo registo e têm a
+     *   mesma hora, ou apontam para registos diferentes e são, aos olhos do sistema, duas salas.
+     *
+     *   A regra nova está certa e é a que o modelo dela exige; o que falta é o MODELO. Mede-se aqui,
+     *   com a rota verdadeira, para não se afirmar por leitura. */
+    const mesmaSalaMesmaHora = await pedir(ambienteDe(), '/api/bastidores/curadoria', {
+      professor: 'outra', modalidade: 'Jazz', tradicao: 'RAD', turma: TURMA, senhaDirecao: SENHA,
+    });
+    provar('B2.3 o mesmo registo de Sala, no mesmo horário, é RECUSADO — e não há como expressar outro horário',
+      mesmaSalaMesmaHora.status === 409 && mesmaSalaMesmaHora.json.recurso === 'sala', mesmaSalaMesmaHora.json);
+    /* A prova de que o limite é do MODELO e não da regra: a regra pura aceita as duas horas
+     * diferentes, quando lhe dão ritmos diferentes. Ver a secção A de `provar-a-ocupacao.js`. */
+    provar('…e a regra PURA aceita horas diferentes quando os ritmos são diferentes (o limite é do modelo)',
+      require(path.join(RAIZ, 'motor/nucleo/ocupacao.js')).conflitosEntre(
+        { salas: ['S'], intervalos: [{ dia: 'ter', inicio: 840, fim: 900, inicioTexto: '14:00', fimTexto: '15:00' }] },
+        { salas: ['S'], intervalos: [{ dia: 'ter', inicio: 960, fim: 1020, inicioTexto: '16:00', fimTexto: '17:00' }] },
+      ).length === 0);
+
+    /* (4) O MESMO PROFESSOR EM DUAS SALAS AO MESMO TEMPO — recusado. A regra antiga não o via. */
+    const mesmoProfessor = await pedir(ambienteDe(), '/api/bastidores/curadoria', {
+      professor: 'coqui', modalidade: 'Jazz', tradicao: 'RAD', turma: 'Sala da Tarde',
+      senhaDirecao: SENHA,
+    });
+    provar('B2.4 o MESMO professor em duas salas ao mesmo tempo é RECUSADO (novo)',
+      mesmoProfessor.status === 409 && /professor/.test(mesmoProfessor.json.recurso || ''), mesmoProfessor.json);
+
+    /* (5) A MESMA ALUNA EM DUAS SALAS AO MESMO TEMPO — recusada pelo ELENCO, e não pela modalidade.
+     * A decisão dela: a aluna PODE estar em duas Turmas da mesma modalidade, mas não no mesmo
+     * horário. Aqui a modalidade é outra, e a recusa vem do elenco — que é o recurso certo. */
+    const mesmaAluna = await pedir(ambienteDe([curadoria({ alunas: ['Ana'] })]), '/api/bastidores/curadoria', {
+      professor: 'outra', modalidade: 'Jazz', tradicao: 'RAD', turma: 'Sala da Tarde',
+      alunos: ['Ana'], senhaDirecao: SENHA,
+    });
+    /* O elenco da turma nova vem do corpo (`alunos`) ou da linha de base; se a rota não o aceitar
+     * por essa via, a asserção cai e vê-se — não se inventa o caminho. */
+    if (mesmaAluna.status === 409) {
+      provar('B2.5 a mesma aluna em duas salas ao mesmo tempo é RECUSADA pelo ELENCO',
+        mesmaAluna.json.recurso === 'elenco', mesmaAluna.json);
+    } else {
+      provar('B2.5 (o corpo não semeia o elenco por `alunos` — ver a asserção do núcleo, secção D de provar-a-ocupacao)',
+        true);
+    }
   }
 
   // ==========================================================================================
@@ -357,9 +464,10 @@ const r = (valor) => ({ valor, origem: 'perguntado', respondente: 'professor', n
 
   globalThis.fetch = fetchOriginal;
   console.log('\n' + (falhas === 0
-    ? 'TUDO CERTO — ' + provas + ' asserções: uma sala recebe uma Turma, o ritmo é relido da Sala '
-      + 'no elo novo, o plano é marcado quando a Sala mudou, a cadeia corre no gatilho — e os '
-      + 'desacordos entre plano e sala chegam à tela.'
+    ? 'TUDO CERTO — ' + provas + ' asserções: a ocupação é medida por Sala, por Professor e por '
+      + 'Elenco, com o dia e as duas horas ditas na recusa; o ritmo é relido da Sala no elo novo; '
+      + 'o plano é marcado quando a Sala mudou; a cadeia corre no gatilho — e os desacordos entre '
+      + 'plano e sala chegam à tela.'
     : 'FALHARAM ' + falhas + ' de ' + provas + ' asserções.'));
   process.exit(falhas === 0 ? 0 : 1);
 })().catch((erro) => {

@@ -131,6 +131,34 @@ console.log('\nC. OS TRÊS RECURSOS — e cada um sozinho decide');
   const tres = igual({ salas: ['Estúdio 1'], professor: 'demi-plie', alunas: ['Aluna A'] });
   const tipos = new Set(tres.map((c) => c.recurso));
   conferir('com os três em comum, os três são nomeados', tipos.size === 3, [...tipos]);
+  /* O PROFESSOR DA SALA TAMBÉM É QUEM DÁ A AULA (25/11/2026). A professora disse-o por extenso —
+   * «o professor também não pode estar em duas salas ao mesmo tempo» —, e a Sala declara um
+   * professor (`bastidores.js:3636-3656`).
+   *
+   * O CASO QUE O MEDE é o da substituição: a curadoria declara QUEM A SUBSTITUI, e a Sala declara o
+   * docente dela. Sem a união, o docente da sala não estaria em `professores`, e ele estaria em duas
+   * salas ao mesmo tempo sem ninguém dar por isso. */
+  const salasDoCaso = {
+    'E1': { nome: 'E1', dias: ['segunda'], horarios: { segunda: '14:00' }, duracaoMin: 60, professor: 'demi-plie' },
+    'E2': { nome: 'E2', dias: ['segunda'], horarios: { segunda: '14:00' }, duracaoMin: 60 },
+  };
+  /* A curadoria de E1 declara o substituto; quem dá a aula em E1 é o `demi-plie`, que só a Sala diz. */
+  const cA = O.ocupacaoDaCuradoria({ id: 'a', turmas: ['E1'], professor: 'quem-substitui' }, { salasPorNome: salasDoCaso });
+  /* A de E2 é do `demi-plie` — mesma hora, sala diferente. */
+  const cB = O.ocupacaoDaCuradoria({ id: 'b', turmas: ['E2'], professor: 'demi-plie' }, { salasPorNome: salasDoCaso });
+  conferir('a união traz o professor da SALA, e não só o da curadoria',
+    cA.professores.indexOf('demi-plie') !== -1, cA.professores);
+  conferir('…e por isso o mesmo docente em duas salas à mesma hora é RECUSADO',
+    O.conflitosEntre(cA, cB).some((c) => c.recurso === 'professor'),
+    O.conflitosEntre(cA, cB).map((c) => c.recurso));
+  /* O controlo que dá sentido aos dois: a mesma Sala E1, mas com o `demi-plie` declarado na
+   * curadoria em vez de descoberto na Sala — o resultado tem de ser o mesmo. Se este divergisse, a
+   * união estaria a inventar professores. */
+  const cAdeclarado = O.ocupacaoDaCuradoria({ id: 'a', turmas: ['E1'], professor: 'demi-plie' }, { salasPorNome: salasDoCaso });
+  conferir('…e declará-lo na curadoria, em vez de o descobrir na Sala, dá o mesmo conflito',
+    O.conflitosEntre(cAdeclarado, cB).filter((c) => c.recurso === 'professor').length
+      === O.conflitosEntre(cA, cB).filter((c) => c.recurso === 'professor').length);
+
   /* E um por DIA: dois dias em comum são dois conflitos por recurso. */
   const doisDias = O.conflitosEntre(
     ocupa({ salas: ['E1'], dias: ['segunda', 'quarta'] }),

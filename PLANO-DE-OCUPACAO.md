@@ -236,17 +236,56 @@ que os nomeia.
 | # | passo | estado |
 |:--|:--|:--|
 | 1 | `motor/nucleo/ocupacao.js` — a regra pura | **FEITO** |
-| 2 | a prova, com os casos-limite | **FEITO** — `experimentos/provar-a-ocupacao.js`, **46 asserções** |
-| 3 | trocar a pergunta do `salasOcupadas` pela regra nova, nos dois sítios | **por fazer** |
-| 4 | acrescentar professor e elenco às rotas | **a regra já os tem**; falta ligá-la |
-| 5 | reescrever as 41 asserções de `provar-mudanca-de-sala` | **por fazer** |
+| 2 | a prova, com os casos-limite | **FEITO** — `experimentos/provar-a-ocupacao.js`, **49 asserções** |
+| 3 | trocar a pergunta do `salasOcupadas` pela regra nova, nos dois sítios | **FEITO** |
+| 4 | acrescentar professor e elenco às rotas | **FEITO** — na regra e nas duas rotas |
+| 5 | reescrever as asserções de `provar-mudanca-de-sala` | **FEITO** — **48 asserções** |
 | 6 | a tela: a faixa horária na aba Salas | **por fazer** |
 
-**O bloqueio que ela descreveu ainda está de pé**, e é importante não o esconder: a regra nova existe
-e está provada, mas **as rotas continuam a chamar a antiga**. A escola que tem balé 1 às 14h e balé 2
-às 16h na mesma sala **ainda recebe 409** até o passo 3 entrar. O que os passos 1 e 2 dão é a regra
-certa, provada, para o passo 3 ser só uma troca de chamada — e não uma reescrita às cegas.
+### 9.1 O que os passos 3 a 5 fizeram, e o que eles **não** conseguiram
 
-**A ordem dos passos 3 a 5 é uma só operação**, e é por isso que ela não se parte: trocar a chamada
-sem reescrever a prova deixa a suite vermelha sobre a decisão certa, e reescrever a prova sem trocar a
-chamada não mede nada.
+**Feito:** a gravação deixou de perguntar «quem tem esta sala?» e passou a perguntar «quem ocupa este
+dia, a esta hora?». A guarda está nos dois sítios (`bastidores.js`, criar e derivar), nomeia o
+**recurso**, o **dia** e **as duas horas**, e a curadoria de origem não colide consigo mesma
+(`excetoId` implícito). A regra antiga das alunas — «uma aluna pertence a UMA sala por modalidade» —
+foi **substituída** por decisão dela: a mesma aluna em duas Turmas da mesma modalidade é legítima
+quando os horários não se tocam.
+
+**O achado, e é maior do que a regra.** A CURIADORIA NÃO TEM RITMO PRÓPRIO. Ela declara
+`turmas: [nome]` — o nome do registo da Sala —, e o ritmo (dias, hora de cada dia, duração, período)
+vive **só** no registo da Sala (`bastidores.js:3636-3656`). Duas curadorias que apontam para o mesmo
+registo têm, **por construção**, o mesmo dia e a mesma hora.
+
+Consequência, medida na rota verdadeira (`provar-mudanca-de-sala.js`, B2.3): **o cenário «balé 1 às
+14h e balé 2 às 16h na mesma sala» não é expressável no modelo de dados de hoje.** Ou as duas apontam
+para o mesmo registo e têm a mesma hora, ou apontam para registos diferentes e são, aos olhos do
+sistema, duas salas.
+
+Isto não é um defeito da regra — é o **modelo** que falta. A regra pura aceita horas diferentes
+quando lhe dão ritmos diferentes (`provar-a-ocupacao.js`, secção A); o que não existe é onde as
+gravar. Duas saídas, e é decisão de produto:
+
+1. **A Sala passa a ter faixas** — o registo guarda uma lista de intervalos (dia, início, fim) em vez
+   de um ritmo único, e cada curadoria reserva faixas. É o modelo que a frase dela descreve.
+2. **O ritmo passa para a curadoria** — a Sala fica o espaço físico, sem horas, e cada Turma declara
+   o seu ritmo. É a leitura mais próxima de «a turma atende nesses dias, com essa duração».
+
+Enquanto nenhuma das duas entrar, a regra nova **endurece** (passa a ver professor e elenco, que a
+antiga não via) e **não desbloqueia** o caso das duas horas — e dizê-lo ao contrário seria vender o
+que não está feito.
+
+### 9.2 O que a mudança partiu, e como se corrigiu
+
+Três provas ficaram vermelhas, e **as três estavam a medir sobre um mundo que a regra nova
+proíbe** — não sobre um defeito do código:
+
+| prova | o que aconteceu | correção |
+|:--|:--|:--|
+| `provar-derivacao-da-turma` | as Turmas C, D, E, F, G e H nasciam **todas** às 09:00 de terça, com o mesmo professor. Agora é o mesmo docente à mesma hora em seis salas | cada uma com o seu horário |
+| `provar-identidade-da-turma` | as duas salas da escola nasciam às 19:00 de terça, quinta e sábado. A recusa do professor chegava antes da regra do elenco que a prova queria medir | `Piano` às 20:00 |
+| a mesma | «um elenco COM alunas é recusado pela regra da aluna» — a regra foi substituída | passa a **aceite**, com a recusa por sobreposição provada em `provar-a-ocupacao.js` |
+
+E uma quarta, minha, apanhada pelo controlo negativo: a asserção que devia provar que o **professor
+da Sala** entra na união passava **sem** a linha que a implementa — porque a curadoria do caso já
+declarava o mesmo professor. Reescrita com a curadoria a declarar um substituto e a Sala o docente,
+o controlo negativo dá **3 falhas** sem a linha e 49/49 com ela.

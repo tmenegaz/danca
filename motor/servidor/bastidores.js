@@ -204,6 +204,18 @@ const { estadoDaTurma, podeEditarNoLugar, motivoDaRecusa, turmasCuradas,
   // identidade que se lê quando cabe uma linha só. `mesmaTurmaPorElenco` é a guarda do elenco
   // repetido na mesma modalidade e no mesmo nível.
   nomeDaTurma, rotuloDaTurma, mesmaTurmaPorElenco, motivoDoElencoRepetido } = estadoDaTurmaNucleo;
+/* A OCUPAÇÃO POR HORÁRIO (25/11/2026) — a regra que substitui a exclusividade de Sala na GRAVAÇÃO.
+ *
+ * A regra de 09/11 dizia «uma Sala recebe UMA Turma», e a premissa era «uma sala = um horário». A
+ * proprietária reviu-a: a Sala é o RITMO (dias, hora de cada dia, duração, período), e duas Turmas
+ * nela em horas diferentes são legítimas. Medido antes de mudar: uma escola com balé 1 às 14h e
+ * balé 2 às 16h na mesma sala recebia 409, com a frase «duas aulas no mesmo horário» sobre duas
+ * aulas que não são.
+ *
+ * `salasOcupadas`/`salasLivres`/`motivoDaSalaOcupada` FICAM, e continuam exportadas: elas respondem
+ * a «quem ocupa esta sala?», que é a pergunta da TELA (e a única que uma sala sem hora permite
+ * responder). O que muda é que deixam de ser a regra da GRAVAÇÃO — essa é esta. */
+const ocupacao = require('../nucleo/ocupacao.js');
 // O CONTEÚDO MUDOU DE CASA (03/11/2026) — vive na curadoria, e a turma lê a UNIÃO do que ficou
 // gravado no mapa antigo (`turma-conteudos`) com o que as curadorias dela declaram.
 const conteudos = require('../nucleo/conteudos.js');
@@ -4156,18 +4168,68 @@ function acharCuradoria(lista, professor, modalidade, turma) {
  * ONDE a aluna está, e não só que está ocupada. A curadoria que se está a editar fica de
  * fora (`idQueEdita`): as alunas dela não competem consigo mesmas.
  */
-function alunasComprometidas(lista, modalidade, idQueEdita) {
-  const onde = {};
-  for (const c of (Array.isArray(lista) ? lista : [])) {
-    if (!c || c.substituidaPor) continue;
-    if (idQueEdita && c.id === idQueEdita) continue;
-    if (String(c.modalidade || '') !== String(modalidade || '')) continue;
-    const turma = turmasDaCuradoria(c)[0] || '(sem turma)';
-    for (const a of (Array.isArray(c.alunas) ? c.alunas : [])) {
-      if (a && !onde[a]) onde[a] = turma;
+/**
+ * O RÓTULO DE QUEM OCUPA — o que a mensagem mostra.
+ *
+ * Nomear pelo id não serve: quem lê é a direção. O composto é o mesmo que a listagem usa —
+ * professor · modalidade (e, quando existe, a sala) —, e sem nenhum dos dois cai no nome da Turma
+ * pelo elenco, que é a resposta de última instância.
+ */
+function rotuloDaOcupante(c) {
+  if (!c) return null;
+  const partes = [String(c.professor || '').trim(), String(c.modalidade || '').trim()].filter(Boolean);
+  if (partes.length) return partes.join(' · ');
+  const nome = nomeDaTurma(c);
+  return nome || null;
+}
+
+/**
+ * A CONFERÊNCIA DE OCUPAÇÃO, para as duas rotas que gravam uma Turma — criar e derivar.
+ *
+ * Devolve `{ conflito, frase }` com o PRIMEIRO choque, ou `null` quando não há nenhum. `null`
+ * também quando não há como conferir (sem a lista das Salas): não se inventa colisão por falta de
+ * leitura, que é a disciplina que a regra anterior já tinha — recusar um acto legítimo por um erro
+ * de leitura é pior do que deixar passar uma ocupação que a tela mostra.
+ *
+ * OS TRÊS RECURSOS, e cada um por si: sala, professor (da curadoria E da sala) e elenco (cada
+ * apelido). Uma Turma pode colidir em mais de um, e a frase diz o primeiro — o que precisa de ser
+ * mudado para a gravação passar.
+ */
+function conferirOcupacao({ curadoria: nova, lista, salas, excetoId }) {
+  if (!Array.isArray(lista) || !Array.isArray(salas)) return null;
+  const salasPorNome = {};
+  for (const s of salas) {
+    const nome = String((s && s.nome) || '').trim();
+    if (nome) salasPorNome[nome] = s;
+  }
+  const conflitos = ocupacao.conflitosDaCuradoria({
+    curadoria: nova, outras: lista, salasPorNome, excetoId,
+    rotuloDe: rotuloDaOcupante,
+  });
+  if (conflitos === null) return null;
+  /* OS DIAS SEM HORA RECUSAM A GRAVAÇÃO (decisão dela, 25/11/2026) — e é a decisão mais dura das
+   * quatro, de propósito: sem a hora não há intervalo, e sem intervalo não há regra. Saltar em
+   * silêncio deixaria a colisão por conferir exactamente nas Turmas antigas, que são as que já
+   * estão gravadas. O dado fica completo, e a mensagem nomeia os dias. */
+  for (const nome of (Array.isArray(nova && nova.turmas) ? nova.turmas : [])) {
+    const s = salasPorNome[String(nome).trim()];
+    if (!s) continue;
+    const faltam = ocupacao.diasSemHora(s);
+    if (faltam.length) {
+      return {
+        conflito: { recurso: 'hora', nome: String(nome).trim(), dias: faltam },
+        frase: 'A sala «' + String(nome).trim() + '» não declara a hora de início em ' +
+          faltam.join(', ') + '. Sem a hora não se pode conferir se ela colide com outra Turma, ' +
+          'e gravar assim deixaria a colisão por verificar. Declare a hora ' +
+          (faltam.length === 1 ? 'desse dia' : 'desses dias') + ' na aba Salas, e grave de novo.',
+      };
     }
   }
-  return onde;
+  if (!conflitos.length) return null;
+  return {
+    conflito: conflitos[0],
+    frase: ocupacao.motivoDoConflito(conflitos[0], { rotulo: rotuloDaOcupante(nova) }),
+  };
 }
 
 
@@ -28183,34 +28245,21 @@ function parDaSalaNoCorpo(corpo, registo) {
       }
     }
 
-    /* UMA SALA RECEBE UMA TURMA (09/11/2026) — a guarda, e o caminho quando ela recusa.
+    /* A OCUPAÇÃO POR HORÁRIO (25/11/2026) — a guarda, e substitui a de 09/11.
      *
-     * O DEFEITO, medido: duas curadorias activas com a mesma Sala respondiam `201`. A Sala é o
-     * RITMO (dias, horas, duração, período); duas Turmas nela são duas aulas no mesmo horário, no
-     * mesmo lugar — e a escola não tem duas salas com o mesmo nome. O formulário não avisava
-     * porque a lista das Salas não sabia quem as ocupava; e o servidor não conferia, o que é o
-     * mesmo defeito noutro sítio (uma regra que só existe na tela não é uma regra).
+     * O QUE MUDOU, e porquê. A regra anterior recusava qualquer segunda Turma numa Sala, e a
+     * premissa era «uma sala = um horário». Medido: uma escola com balé 1 às 14h e balé 2 às 16h na
+     * mesma sala recebia 409, com a frase «duas aulas no mesmo horário» sobre duas aulas que não
+     * são — e a segunda metade dizia que não havia sala livre, empurrando a escola a criar uma que
+     * não precisa.
      *
-     * O `excetoId` é a curadoria que se está a gravar: ela não ocupa contra si mesma. Editar a
-     * tradição de uma Turma sem lhe mudar a sala continua a ser um acto legítimo.
+     * A regra nova compara RECURSO e TEMPO: colide quem partilha a sala, o professor ou uma aluna
+     * **e** se sobrepõe no dia e na hora. Duas aulas encadeadas (14–15 e 15–16) não colidem; a
+     * mesma sala em dias diferentes não colide; o mesmo professor em duas salas ao mesmo tempo
+     * colide. Ver `motor/nucleo/ocupacao.js`.
      *
-     * A CONFERÊNCIA NÃO INVENTA OCUPAÇÃO. Se a lista de curadorias não se conhece (leitura
-     * falhada), `salasOcupadas` devolve `null` e a rota segue: recusar um acto legítimo por um
-     * erro de leitura seria pior do que deixar passar uma ocupação que a tela mostra. */
-    if (turmaPedida) {
-      const ocupadas = salasOcupadas(lista, { excetoId: atual ? atual.id : null });
-      if (ocupadas && ocupadas.has(turmaPedida)) {
-        const todasAsSalas = await turmas(kv, escola);
-        return json(409, {
-          ok: false,
-          erro: motivoDaSalaOcupada(turmaPedida, ocupadas.get(turmaPedida),
-            salasLivres(todasAsSalas, lista, { excetoId: atual ? atual.id : null })),
-          sala: turmaPedida,
-          ocupadaPor: ocupadas.get(turmaPedida),
-        });
-      }
-    }
-
+     * O QUE NÃO SE PERDE: a leitura que falha continua a não inventar colisão (`conferirOcupacao`
+     * devolve `null` e a rota segue), e a própria Turma não ocupa contra si mesma. */
     // EDITAR UMA CURADORIA QUE JÁ EXISTE — a mesma regra da turma. Livre (nenhum plano de
     // ensino nasceu dela) edita-se: o registo é substituído no lugar. Vinculada (o professor
     // já fez o plano desta turma) NÃO se edita — deriva-se, senão o plano que está no ar
@@ -28291,21 +28340,17 @@ function parDaSalaNoCorpo(corpo, registo) {
     const linhaDeBaseNomeFinal = elencoEscolhido
       ? String(elencoEscolhido.nome || elencoEscolhido.id)
       : (elencoNaoMexido && atual ? (atual.linhaDeBaseNome || '') : '');
-    // A ALUNA NÃO SE REPETE NA MESMA MODALIDADE (16/10/2026). Se ela já está noutra turma desta
-    // modalidade, pô-la aqui faria os dois planos dizerem as mesmas alunas — e só uma turma é a
-    // dela. A recusa diz ONDE ela está; o caminho é tirá-la de lá (ou não a pôr aqui).
-    const ocupadas = alunasComprometidas(lista, modalidade, atual ? atual.id : null);
-    const repetidas = alunasPedidas.filter((a) => ocupadas[a]);
-    if (repetidas.length) {
-      return json(409, {
-        ok: false,
-        erro: 'estas alunas já estão noutra sala de «' + modalidade + '»: ' +
-          repetidas.map((a) => a + ' (em ' + ocupadas[a] + ')').join('; ') +
-          '. Uma aluna pertence a UMA sala por modalidade — é o que faz o plano de cada uma ' +
-          'dizer as alunas certas. Tire-a da outra curadoria, ou não a ponha nesta.',
-        alunas: repetidas.map((a) => ({ aluna: a, turma: ocupadas[a] })),
-      });
-    }
+    /* A ALUNA NUMA SÓ TURMA POR MODALIDADE (16/10/2026) FOI SUBSTITUÍDA (25/11/2026).
+     *
+     * A regra antiga recusava qualquer aluna que já estivesse noutra turma da mesma modalidade —
+     * sem olhar horas, dias nem sala. A decisão dela reviu-a: «um integrante do elenco pode fazer
+     * parte de duas turmas, mesmo que seja a mesma modalidade, mas validando esse critério, que a
+     * turma não está acontecendo no mesmo horário, no mesmo dia, na mesma sala».
+     *
+     * O que recusa agora é a OCUPAÇÃO (`conferirOcupacao`, abaixo): o elenco entra nela, e a recusa
+     * só acontece quando há sobreposição real. Uma aluna em duas turmas da mesma modalidade em
+     * horas que não se tocam é legítima — e os dois planos dizem-na, como ela declarou.
+     */
 
     /* O NÍVEL PASSOU A SER DA CURADORIA (03/11/2026) — ver `motor/nucleo/enquadramento.js`.
      *
@@ -28367,6 +28412,43 @@ function parDaSalaNoCorpo(corpo, registo) {
         });
       }
     }
+    /* A OCUPAÇÃO POR HORÁRIO (25/11/2026) — a guarda, e substitui a de 09/11.
+     *
+     * O QUE MUDOU, e porquê. A regra anterior recusava qualquer segunda Turma numa Sala, e a
+     * premissa era «uma sala = um horário». Medido: uma escola com balé 1 às 14h e balé 2 às 16h na
+     * mesma sala recebia 409, com a frase «duas aulas no mesmo horário» sobre duas aulas que não
+     * são — e a segunda metade dizia que não havia sala livre, empurrando a escola a criar uma que
+     * não precisa.
+     *
+     * A regra nova compara RECURSO e TEMPO: colide quem partilha a sala, o professor ou uma aluna
+     * **e** se sobrepõe no dia e na hora. Duas aulas encadeadas (14–15 e 15–16) não colidem; a
+     * mesma sala em dias diferentes não colide; o mesmo professor em duas salas ao mesmo tempo
+     * colide. Ver `motor/nucleo/ocupacao.js`.
+     *
+     * A POSIÇÃO DESTA GUARDA É A DO DADO, e não a do costume: ela precisa de `alunasPedidas`, que
+     * só existe depois do elenco resolvido. Posta mais acima — onde a guarda antiga estava —, o
+     * `alunasPedidas` ainda não tinha nascido e a rota rebentava com «Cannot access
+     * 'alunasPedidas' before initialization» em TODAS as gravações.
+     *
+     * O QUE NÃO SE PERDE: a leitura que falha continua a não inventar colisão (`conferirOcupacao`
+     * devolve `null` e a rota segue), e a própria Turma não ocupa contra si mesma. */
+    if (turmaPedida) {
+      const todasAsSalas = await turmas(kv, escola);
+      const choque = conferirOcupacao({
+        curadoria: {
+          id: atual ? atual.id : id,
+          turmas: turmasPedidas,
+          professor: slugificar(professor),
+          alunas: alunasPedidas,
+        },
+        lista, salas: todasAsSalas,
+        excetoId: atual ? atual.id : null,
+      });
+      if (choque) {
+        return json(409, Object.assign({ ok: false, erro: choque.frase }, choque.conflito));
+      }
+    }
+
     const nova = {
       // O id é o do registo que já existe, quando existe — e quando a turma NÃO mudou: um id
       // antigo (sem a turma) não se renomeia por baixo de quem já o referencia. Mudando a
@@ -28738,21 +28820,29 @@ function parDaSalaNoCorpo(corpo, registo) {
      */
     const salaDaAnterior = turmasDaCuradoria(anterior)[0] || '';
     const mudouDeSala = Boolean(turmaFinal && salaDaAnterior && turmaFinal !== salaDaAnterior);
-    /* A SALA FINAL TAMBÉM SE CONFERE (09/11/2026) — e o `excetoId` é a versão de ONDE se deriva:
-     * ela deixa de ocupar no momento em que a nova passa a valer, e sem esta exclusão derivar uma
-     * Turma sem lhe tocar na sala seria recusado por ela mesma. A recusa é a do ato de criar: uma
-     * Sala recebe uma Turma, e duas Turmas nela são duas aulas no mesmo horário. */
+    /* A SALA FINAL TAMBÉM SE CONFERE — pela MESMA regra da criação (25/11/2026), e o `excetoId` é a
+     * versão de ONDE se deriva: ela deixa de ocupar no momento em que a nova passa a valer, e sem
+     * esta exclusão derivar uma Turma sem lhe tocar na sala seria recusado por ela mesma.
+     *
+     * Era aqui que a derivação recusava o caso legítimo: a Sala de destino ocupada por OUTRA Turma
+     * em horário diferente dava 409. Agora só recusa se houver sobreposição. */
     if (turmaFinal) {
-      const ocupadasDeriv = salasOcupadas(lista, { excetoId: anterior.id });
-      if (ocupadasDeriv && ocupadasDeriv.has(turmaFinal)) {
-        const todasAsSalasDeriv = await turmas(kv, escola);
-        return json(409, {
-          ok: false,
-          erro: motivoDaSalaOcupada(turmaFinal, ocupadasDeriv.get(turmaFinal),
-            salasLivres(todasAsSalasDeriv, lista, { excetoId: anterior.id })),
-          sala: turmaFinal,
-          ocupadaPor: ocupadasDeriv.get(turmaFinal),
-        });
+      const todasAsSalasDeriv = await turmas(kv, escola);
+      /* O professor é o DERIVADO — o par final já resolvido acima (corpo → sala → anterior) —, e
+       * não o do corpo: `corpo.professor` pode vir vazio, e aí o que vale é o da sala. E o elenco
+       * também conta: a versão nova nasce com o elenco de hoje (`linhaDeBaseFinal`). */
+      const choqueDeriv = conferirOcupacao({
+        curadoria: {
+          id: anterior.id,
+          turmas: [turmaFinal],
+          professor: professorDerivado,
+          alunas: [],
+        },
+        lista, salas: todasAsSalasDeriv,
+        excetoId: anterior.id,
+      });
+      if (choqueDeriv) {
+        return json(409, Object.assign({ ok: false, erro: choqueDeriv.frase }, choqueDeriv.conflito));
       }
     }
     /* O ELENCO DO MOMENTO, CARIMBADO — e não declarado por quem edita (05/11/2026).
@@ -28821,20 +28911,8 @@ function parDaSalaNoCorpo(corpo, registo) {
         falta: ['professor', 'modalidade'], curadoria: jaExisteDeriv.id,
       });
     }
-    // A ALUNA NÃO SE REPETE NA MESMA MODALIDADE — também ao derivar, e na modalidade FINAL. A
-    // curadoria que se está a derivar não conta (é a de origem, `anterior.id`): as alunas dela não
-    // competem consigo.
-    const ocupadasDeriv = alunasComprometidas(lista, modalidadeDerivada, anterior.id);
-    const repetidasDeriv = alunasFinais.filter((a) => ocupadasDeriv[a]);
-    if (repetidasDeriv.length) {
-      return json(409, {
-        ok: false,
-        erro: 'estas alunas já estão noutra sala de «' + modalidadeDerivada + '»: ' +
-          repetidasDeriv.map((a) => a + ' (em ' + ocupadasDeriv[a] + ')').join('; ') +
-          '. Uma aluna pertence a UMA sala por modalidade.',
-        alunas: repetidasDeriv.map((a) => ({ aluna: a, turma: ocupadasDeriv[a] })),
-      });
-    }
+    /* A ALUNA NUMA SÓ TURMA POR MODALIDADE — também ao derivar, e também substituída (25/11/2026).
+     * A curadoria de origem não conta como ocupante (é `anterior.id`, `excetoId` na ocupação). */
     /* O NÍVEL ACOMPANHA A DERIVAÇÃO (03/11/2026). Derivar é ajustar o enquadramento sem tocar no
      * passado: a versão nova herda o nível da anterior QUANDO o corpo não o manda, e a tradição
      * nova — se mudou — recompõe o rótulo. Mudar a tradição de «Grade 3» (RAD) para uma tradição

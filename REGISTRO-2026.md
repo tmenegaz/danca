@@ -61258,3 +61258,45 @@ operação só, e é a próxima.
 **Onde entrou.** `motor/nucleo/ocupacao.js` (novo), `experimentos/provar-a-ocupacao.js` (novo),
 `PLANO-DE-OCUPACAO.md` (§8 com as decisões, §9 com o estado), `.gitignore`, `ESTADO-ATUAL.md`
 (decisão 186 atualizada), `HANDOFF.md`.
+
+## 25/11/2026 — A ocupação entra nas rotas — e o modelo que falta: a curadoria não tem ritmo próprio
+
+**O que ficou feito.** A gravação deixou de perguntar «quem tem esta sala?» e passou a perguntar «quem
+ocupa este dia, a esta hora?». A guarda está nos **dois** sítios — criar e derivar —, nomeia o
+**recurso**, o **dia** e **as duas horas**, e a curadoria de origem não colide consigo mesma
+(`excetoId` implícito pelo id). A regra antiga das alunas — «uma aluna pertence a UMA sala por
+modalidade» — foi **substituída**, como ela decidiu, e `alunasComprometidas` foi apagada em vez de
+ficar ao lado da nova. `provar-mudanca-de-sala`: **48 asserções**; `provar-a-ocupacao`: **49**.
+
+**O achado, e é maior do que a regra.** A **curadoria não tem ritmo próprio**: declara
+`turmas: [nome]` — o nome do registo da Sala —, e o ritmo (dias, hora de cada dia, duração, período)
+vive **só** no registo da Sala (`bastidores.js:3636-3656`). Duas curadorias no mesmo registo têm, por
+construção, o mesmo dia e a mesma hora.
+
+Consequência, medida na rota verdadeira: **o cenário «balé 1 às 14h e balé 2 às 16h na mesma sala» não
+é expressável no modelo de dados de hoje**. Ou as duas apontam para o mesmo registo e têm a mesma hora,
+ou apontam para registos diferentes e são, aos olhos do sistema, duas salas. A regra pura aceita horas
+diferentes quando lhe dão ritmos diferentes; o que não existe é **onde as gravar**. A regra nova, por
+agora, **endurece** (passa a ver professor e elenco, que a antiga não via) e **não desbloqueia** o caso
+das duas horas. Dizê-lo ao contrário seria vender o que não está feito. As duas saídas — a Sala com
+faixas horárias, ou o ritmo a passar para a curadoria — estão em `PLANO-DE-OCUPACAO.md` §9.1, e são
+decisão de produto.
+
+**Duas provas vermelhas, e as duas mediam sobre um mundo que a regra nova proíbe.** O padrão repetiu-se
+quatro vezes nesta sessão, e por isso fica escrito: `provar-derivacao-da-turma` criava as Turmas C, D,
+E, F, G e H **todas** às 09:00 de terça com o mesmo professor — seis salas com o mesmo docente à mesma
+hora; `provar-identidade-da-turma` criava as duas salas da escola às 19:00 — a recusa do professor
+chegava antes da regra do elenco que a prova queria medir; `provar-transferencia-e-desligamento` tinha
+salas **sem hora**, que a decisão 2 recusa. Nenhuma era defeito do código: eram bancadas a descrever um
+mundo que já não é permitido. Corrigidas as horas, **185/280 verde, 95 falhas conhecidas, 0
+regressões** — eram 182.
+
+**E uma quarta, minha, apanhada pelo controlo negativo.** A asserção que devia provar que o
+**professor da Sala** entra na união passava **sem** a linha que a implementa — a curadoria do caso já
+declarava o mesmo professor, e a asserção media o que já lá estava. Reescrita com a curadoria a
+declarar um substituto e a Sala o docente: **3 falhas** sem a linha, 49/49 com ela. Um controlo
+negativo que não fica vermelho não é um controlo.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (a guarda nos dois sítios; `alunasComprometidas`
+apagada), `motor/nucleo/ocupacao.js` (o professor da Sala na união), `experimentos/provar-mudanca-de-sala.js`, `experimentos/provar-a-ocupacao.js`, `experimentos/provar-derivacao-da-turma.js`,
+`experimentos/provar-identidade-da-turma.js`, `experimentos/provar-transferencia-e-desligamento.js`, `PLANO-DE-OCUPACAO.md` (§9 reescrito), `ESTADO-ATUAL.md`, `HANDOFF.md`.

@@ -158,9 +158,21 @@ function conflitosEntre(a, b) {
   const salasA = Array.isArray(A.salas) ? A.salas.map(String) : [];
   const salasB = Array.isArray(B.salas) ? B.salas.map(String) : [];
   for (const s of salasA) if (salasB.indexOf(s) !== -1) recursos.push({ tipo: 'sala', nome: s });
-  const profA = String(A.professor || '').trim();
-  const profB = String(B.professor || '').trim();
-  if (profA && profA === profB) recursos.push({ tipo: 'professor', nome: profA });
+  /* O PROFESSOR COMO CONJUNTO, E NÃO COMO UM CAMPO. Há dois sítios que declaram quem dá a aula: a
+   * CURADORIA (`professor`, quem dirige) e a SALA (`professor`, o enquadramento operacional de
+   * 18/11/2026 — «essas salas agora estão vinculadas a um professor e a modalidade»). Os dois
+   * comprometem a mesma pessoa no mesmo horário, e comparar só um deles deixaria o outro por
+   * conferir. Um objecto simples continua a valer: `professor` alimenta `professores`. */
+  const professoresDe = (o) => {
+    const lista = Array.isArray(o && o.professores) ? o.professores.map(String) : [];
+    const um = String((o && o.professor) || '').trim();
+    const todos = lista.map((x) => x.trim()).filter(Boolean);
+    if (um && todos.indexOf(um) === -1) todos.push(um);
+    return todos;
+  };
+  const profA = professoresDe(A);
+  const profB = professoresDe(B);
+  for (const p of profA) if (profB.indexOf(p) !== -1) recursos.push({ tipo: 'professor', nome: p });
   const alA = Array.isArray(A.alunas) ? A.alunas.map(String) : [];
   const alB = Array.isArray(B.alunas) ? B.alunas.map(String) : [];
   for (const x of alA) if (alB.indexOf(x) !== -1) recursos.push({ tipo: 'elenco', nome: x });
@@ -207,11 +219,19 @@ function ocupacaoDaCuradoria(curadoria, { salasPorNome, rotulo } = {}) {
   const mapa = salasPorNome || {};
   const intervalos = [];
   const declaradas = [];
+  const professores = [];
   let periodo = null;
+  /* QUEM DÁ A AULA: a curadoria e a sala, os dois. Ver `conflitosEntre` para a razão. */
+  const juntarProfessor = (v) => {
+    const s = String(v || '').trim();
+    if (s && professores.indexOf(s) === -1) professores.push(s);
+  };
+  juntarProfessor(c.professor);
   for (const nome of nomes) {
     const sala = mapa[nome] || null;
     if (!sala) continue;
     declaradas.push(sala);
+    juntarProfessor(sala.professor);
     const do_ = intervalosDaSala(sala);
     if (do_) intervalos.push(...do_);
     /* O PERÍODO DA CURADORIA É A UNIÃO DOS PERÍODOS DAS SUAS SALAS — o mais largo. Comparar por
@@ -229,6 +249,7 @@ function ocupacaoDaCuradoria(curadoria, { salasPorNome, rotulo } = {}) {
     rotulo: rotulo || null,
     salas: nomes,
     professor: String(c.professor || '').trim() || null,
+    professores,
     alunas: Array.isArray(c.alunas) ? c.alunas.map(String) : [],
     intervalos,
     periodo,
@@ -299,7 +320,10 @@ function motivoDoConflito(conflito, { rotulo } = {}) {
   const nome = String(c.nome || '');
   const quando = 'às ' + (c.de || '?') + '–' + (c.ate || '?') + ', ' + (c.dia || 'sem dia');
   const dele = 'às ' + (c.outroDe || '?') + '–' + (c.outroAte || '?');
-  const eu = rotulo ? 'A Turma «' + rotulo + '»' : 'Esta Turma';
+  /* O RÓTULO ENTRE PARÊNTESES, E NÃO ENTRE ASPAS. Ele é composto — «coqui · Balé clássico» —, e
+   * entre aspas lia-se «A Turma «coqui»», que confunde o professor com a turma. Entre parênteses o
+   * composto lê-se como o que é: a descrição de quem está a ser gravado. */
+  const eu = rotulo ? 'A Turma (' + rotulo + ')' : 'A Turma que se está a gravar';
 
   if (c.recurso === 'sala') {
     return eu + ' fica na sala «' + nome + '» ' + quando + ', e «' + quem + '» já lá está ' + dele +

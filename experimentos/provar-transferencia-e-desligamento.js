@@ -232,11 +232,15 @@ function githubDeBolso(arquivos) {
     { id: 'outra-bale-sala-rosa', professor: 'outra-professora', modalidade: 'bale-classico',
       tradicao: 'RAD', turmas: ['Sala Coral'], alunas: ['Aluna D'] },
   ]);
+  /* CADA SALA DECLARA A HORA (25/11/2026). Nasciam com o dia e a duração, e sem hora — e a regra da
+   * ocupação recusa gravar uma Sala cuja hora se não sabe, por decisão dela (é a pergunta 2 de
+   * `PLANO-DE-OCCUPACAO.md` §5: uma Turma sem hora é RECUSADA, e não saltada). O que esta prova mede
+   * é a transferência e o desligamento; sem hora, a recusa da Sala chegava primeiro e mascarava-os. */
   const turmasBase = () => ([
-    { nome: 'Sala Rosa', dias: ['2'], duracaoMin: 60, periodoInicio: '2026-08-01', periodoFim: '2026-12-01' },
-    { nome: 'Sala Azul', dias: ['4'], duracaoMin: 60, periodoInicio: '2026-08-01', periodoFim: '2026-12-01' },
-    { nome: 'Sala Verde', dias: ['6'], duracaoMin: 60, periodoInicio: '2026-08-01', periodoFim: '2026-12-01' },
-    { nome: 'Sala Coral', dias: ['3'], duracaoMin: 60, periodoInicio: '2026-08-01', periodoFim: '2026-12-01' },
+    { nome: 'Sala Rosa', dias: ['2'], horarios: { 2: '18:00' }, duracaoMin: 60, periodoInicio: '2026-08-01', periodoFim: '2026-12-01' },
+    { nome: 'Sala Azul', dias: ['4'], horarios: { 4: '18:00' }, duracaoMin: 60, periodoInicio: '2026-08-01', periodoFim: '2026-12-01' },
+    { nome: 'Sala Verde', dias: ['6'], horarios: { 6: '18:00' }, duracaoMin: 60, periodoInicio: '2026-08-01', periodoFim: '2026-12-01' },
+    { nome: 'Sala Coral', dias: ['3'], horarios: { 3: '18:00' }, duracaoMin: 60, periodoInicio: '2026-08-01', periodoFim: '2026-12-01' },
   ]);
 
   {
@@ -705,7 +709,7 @@ function githubDeBolso(arquivos) {
       desligado_em: '2026-11-08T10:00:00.000Z', desligado_motivo: 'fim do contrato',
     });
     const turmaMarcada = {
-      nome: 'Sala Rosa', dias: ['2'], duracaoMin: 60,
+      nome: 'Sala Rosa', dias: ['2'], horarios: { 2: '18:00' }, duracaoMin: 60,
       periodoInicio: '2026-08-01', periodoFim: '2026-12-01',
       descontinuada: { em: '2026-11-08', motivo: 'a Turma ficou sem professor: Pe Torto desligou-se' },
     };
