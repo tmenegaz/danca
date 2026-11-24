@@ -533,4 +533,44 @@ if printf '%s\n' "$arquivos" | grep -qE '^(modelo/ciclos/|professores/[^/]+/cicl
   fi
 fi
 
+# ---------------------------------------------------------------------------
+# 7) AS PROVAS DOS MÓDULOS TOCADOS (24/11/2026)
+#
+#     A SUITE NUNCA CORREU NUM COMMIT. Em 24/11/2026 havia 272 provas versionadas e o hook não
+#     corria nenhuma — correr as 272 custa ~185 s, e um hook assim é um hook que se salta com
+#     `--no-verify` (que salta TAMBÉM a âncora). O que entra é o recorte: só as provas que
+#     REFERENCIAM um ficheiro do stage.
+#
+#     O RECORTE NÃO É UM FILTRO DE CONVENIÊNCIA, é o que a prova é: uma prova que mede
+#     `motor/servidor/producao.js` cita-o. Uma prova que não cita nada que mudou não pode ter
+#     mudado de resultado — e, se pode, é porque depende de algo que não declara, e isso é um
+#     defeito da prova, não do hook.
+#
+#     QUANDO O STAGE NÃO TOCA CÓDIGO, NÃO CORRE NADA: um commit de conteúdo (`professores/**`)
+#     ou de documentação não muda o resultado de prova nenhuma.
+#
+#     E O TECTO É CURTO (20 s) POR PROVA: uma prova que pendura não pendura o commit. Medido:
+#     o mesmo recorte corre em **31 s** com tecto de 20 e em **72 s** com tecto de 60 — a
+#     diferença era UMA prova a bater no tecto. Uma prova que pendura conta como falha, com o
+#     motivo dito; se já estiver na linha de base, é «conhecida» e não recusa nada.
+#
+#     A LINHA DE BASE (`experimentos/provas-vermelhas.json`) é o que torna isto possível com uma
+#     suite que tem 96 vermelhas de dívida: só uma REGRESSÃO recusa o commit. Ver
+#     `tools/correr-provas.js` — e, quando uma prova da lista passar, o hook diz para a apagar.
+# ---------------------------------------------------------------------------
+codigo_tocado="$(printf '%s\n' "$arquivos" | grep -E '^(motor/|tools/|porta/|raiz/|workers/|indice|indices/)' || true)"
+if [ -n "$codigo_tocado" ]; then
+  echo "pre-commit: correndo as provas dos módulos tocados ..."
+  if printf '%s\n' "$codigo_tocado" | node tools/correr-provas.js --mudou --tecto=20 > /tmp/pre-commit-provas.log 2>&1; then
+    tail -1 /tmp/pre-commit-provas.log
+  else
+    grep -E '^correr-provas:' /tmp/pre-commit-provas.log | head -1 >&2
+    grep -E '^  ✗|^      ' /tmp/pre-commit-provas.log | head -20 >&2
+    echo "  as provas acima medem os módulos que este commit toca. Corrija-as, ou — se a prova" >&2
+    echo "  é que está desatualizada — diga-o na mensagem do commit. O log completo está em" >&2
+    echo "  /tmp/pre-commit-provas.log, e a suite inteira corre com 'node tools/correr-provas.js'." >&2
+    exit 1
+  fi
+fi
+
 exit 0

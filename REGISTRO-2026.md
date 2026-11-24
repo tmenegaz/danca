@@ -60464,3 +60464,79 @@ os comentários; e o controlo negativo mede os 234 KB que a passagem remove.
 pacotes do repositório** (`professores/*/ciclos/ciclo-*/`) continuam com os comentários: elas são
 **saída versionada** e só mudam quando alguém as regerar — a minificação vale para o que a montagem
 publica, não para o que o Git guarda.
+
+## 24/11/2026 — `correr-provas`, provas seletivas no commit, e o primeiro portão de `pull_request`
+
+**O PEDIDO.** «Crie `tools/correr-provas.js` […] com timeout por prova e saída resumida; suporte um
+modo filtrado por ficheiro/módulo alterado. Integre provas seletivas no `pre-commit` […]. Adicione
+gate de `pull_request` no GitHub Actions.»
+
+**O QUE MOTIVOU, medido.** Em 24/11/2026 havia **272 provas versionadas e nenhum portão que as
+corresse**: o `pre-commit` não corria nenhuma e nenhum workflow corria em `pull_request` — `grep -l
+pull_request .github/workflows/*.yml` devolvia **nada**. Todo o guarda corria **depois** de o commit
+estar no `main`. Resultado medido no mesmo dia: **96 provas vermelhas**, e ninguém sabia.
+
+**1. O RUNNER.** `tools/correr-provas.js`: descobre as provas **versionadas** (`git ls-files`, não o
+disco — uma prova fora do repositório é rascunho), corre em paralelo (6 nesta máquina), com tecto por
+prova, e diz o resultado numa linha. `--mudou` recebe os caminhos que mudaram e corre **só as provas
+que os referenciam** — o mapa é a referência literal da prova ao módulo que ela mede, não uma
+heurística de grafo: uma prova que mede `motor/servidor/producao.js` cita-o.
+
+**A suite inteira: 272 provas, 177 verdes, 96 falhas, ~185 s.** O recorte de um ficheiro
+(`producao.js`) são 43 provas.
+
+**2. A LINHA DE BASE, e porque ela não é tolerância com defeito.** `experimentos/provas-vermelhas.json`
+lista as **96** que já falham. Sem ela, o hook recusaria **todo** commit que tocasse em `motor/` — e
+um hook assim é um hook que se salta com `--no-verify`, que salta **também** a âncora da cadeia: o
+remédio seria pior do que a doença. Com ela, as duas perguntas separam-se:
+
+| pergunta | o que faz |
+|:--|:--|
+| «esta prova falha?» | informação; o número entra no resumo |
+| «esta prova **passava** e agora não?» | **regressão** — e só isto recusa o commit |
+
+**E a outra direção não se esconde:** uma prova da lista que **passa** é dita em cada corrida, com o
+nome, e o pedido de a apagar. Uma linha de base que só cresce esconde a regressão seguinte.
+
+**3. O HOOK.** Secção 7 do `pre-commit`: quando o stage toca `motor/`, `tools/`, `porta/`, `raiz/`,
+`workers/` ou `indices/`, corre `correr-provas.js --mudou --tecto=20`. Dois números medidos:
+
+| tecto | recorte de `producao.js` |
+|--:|--:|
+| 60 s | **72 s** |
+| 20 s | **31 s** |
+
+A diferença era **uma** prova a bater no tecto. E quando o stage não toca código — conteúdo, docs —
+**não corre nada**: não há resultado de prova que possa ter mudado.
+
+**4. O PORTÃO DE `pull_request`.** `.github/workflows/conferir.yml`, um job, e só o que é rápido e
+determinístico: as quatro conferências estáticas (`check-identidade --sem-pacotes`, `check-schemas`,
+`check-sem-destruicao`, `check-github-headers`) e as provas dos módulos tocados. A base é o
+`merge-base` com o `main` — não o `main` de hoje, senão o que já lá está contaria como mudança da
+proposta —, e **os ficheiros apagados contam**: um ficheiro que sai pode deixar uma prova a ler o
+nada. `Publicar o sistema` e `Fechar os derivados` **não** mudaram: um faz deploy e o outro escreve
+derivados, e nenhum dos dois deve correr numa proposta que pode ser descartada.
+
+**Onde entrou.** `tools/correr-provas.js` (**novo**, com a linha de base),
+`experimentos/provas-vermelhas.json` (**novo**), `tools/hooks/pre-commit` (secção 7),
+`.github/workflows/conferir.yml` (**novo**).
+
+**Motivo declarado — os congelados.** `tools/correr-provas.js` e `tools/hooks/pre-commit` estão em
+`tools/`, que o `CONGELAMENTO.md` congela, e **mudaram**, em commit próprio. O que entra é
+**acrescento**: um ficheiro novo e uma secção nova no fim do hook. **Não se altera** nenhuma das
+cinco secções que já lá estavam — a âncora, a geração do ciclo, o deck, a identidade, os schemas, a
+`check-sem-destruicao` e o molde continuam a correr como corriam, na mesma ordem e com as mesmas
+consequências. **Não muda** a fórmula de hash, a cobertura das fontes, os validadores, as regras nem
+as pétreas.
+
+**MEDIDO.** `node tools/correr-provas.js` — 272/273 provas, 177 verdes, 96 falhas, **186 s** (uma
+prova é flaky e alterna). Com `--mudou=motor/servidor/producao.js`: 43 provas, 29 verdes, 14
+conhecidas, **0 regressões**, exit **0** — que é a prova de que o portão **deixa passar** o que é
+dívida e **recusa** o que é regressão. O YAML do `conferir.yml` foi lido por um parser (um job,
+gatilho `pull_request` em `main`).
+
+**O que ainda não está feito.** O `conferir.yml` **nunca correu** — não há nenhum PR aberto neste
+repositório, e um workflow de `pull_request` só se mede com um. A primeira vez que alguém abrir um
+PR é a primeira execução. E as **96** continuam sem trïagem: não se sabe quantas são provas
+desatualizadas e quantas são defeitos — agora há ferramenta (`--verboso`) e há um número que não
+mente.

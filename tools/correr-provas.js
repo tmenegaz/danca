@@ -48,6 +48,39 @@ function opcao(nome, omissao) {
 }
 
 const VERBOSO = process.argv.indexOf('--verboso') !== -1;
+
+/**
+ * A LINHA DE BASE — `experimentos/provas-vermelhas.json` (24/11/2026).
+ *
+ * PORQUE ELA EXISTE, e não é tolerância com defeito. A suite tem **95 provas vermelhas** por
+ * dívida de manutenção (telas que mudaram, contratos que evoluíram) — nenhuma delas apagável sem
+ * esconder sinal. Sem linha de base, o `pre-commit` recusaria TODO commit que tocasse em `motor/`,
+ * e um hook assim é um hook que se salta com `--no-verify` — que salta **também** a âncora da
+ * cadeia. O remédio seria pior do que a doença.
+ *
+ * O que a linha de base faz é separar as duas perguntas que estavam juntas:
+ *
+ *   · «esta prova falha?» — informação, e o número entra no resumo;
+ *   · «esta prova PASSAVA e agora não?» — **regressão**, e é só isso que recusa o commit.
+ *
+ * E ela não esconde a outra direção: uma prova da linha de base que passa **é dita**, porque um
+ * baseline que só cresce esconde a regressão seguinte. Quem a vê apaga-a da lista.
+ */
+const CAMINHO_DA_BASE = path.join(RAIZ, 'experimentos/provas-vermelhas.json');
+
+function lerBase() {
+  const caminho = opcao('base', CAMINHO_DA_BASE);
+  if (!caminho || !fs.existsSync(caminho)) return null;
+  try {
+    const d = JSON.parse(fs.readFileSync(caminho, 'utf8'));
+    const lista = Array.isArray(d) ? d : d.falham;
+    return Array.isArray(lista) ? new Set(lista) : null;
+  } catch (erro) {
+    console.log('correr-provas: AVISO — a linha de base não é JSON legível (' + caminho + '); '
+      + 'a corrida trata todas as falhas como regressão.');
+    return null;
+  }
+}
 const PARALELO = Math.max(1, Number(opcao('paralelo', String(os.cpus().length || 4))) || 1);
 const TECTO = Math.max(1, Number(opcao('tecto', '60')) || 60);
 
@@ -173,25 +206,51 @@ function causa(prova, saida) {
 
   const falhas = resultados.filter((r) => !r.ok);
   const tectos = falhas.filter((r) => r.tecto);
+  const base = lerBase();
+  const nome = (r) => path.basename(r.prova, '.js');
+  const conhecidas = base ? falhas.filter((r) => base.has(nome(r))) : [];
+  const regressoes = base ? falhas.filter((r) => !base.has(nome(r))) : falhas;
+  const saradas = base
+    ? resultados.filter((r) => r.ok && base.has(nome(r)))
+    : [];
   if (VERBOSO) {
     for (const r of resultados.sort((a, b) => a.prova.localeCompare(b.prova))) {
       console.log('  ' + (r.ok ? 'ok   ' : 'FALHA') + ' ' + (r.ms / 1000).toFixed(1).padStart(5) + 's  '
         + path.relative(RAIZ, r.prova));
     }
   }
-  if (falhas.length) {
+  if (regressoes.length) {
     console.log('');
-    for (const r of falhas.sort((a, b) => a.prova.localeCompare(b.prova))) {
-      console.log('  ✗ ' + path.basename(r.prova) + (r.tecto ? '  (passou o tecto de ' + TECTO + 's)' : '')
+    for (const r of regressoes.sort((a, b) => a.prova.localeCompare(b.prova))) {
+      console.log('  ✗ ' + path.basename(r.prova)
+        + (r.tecto ? '  (passou o tecto de ' + TECTO + 's)' : '')
+        + (base ? '  ← REGRESSÃO (não está na linha de base)' : '')
         + '\n      ' + causa(r.prova, r.saida));
     }
     console.log('');
   }
+  if (conhecidas.length && VERBOSO) {
+    console.log('  (já vermelhas na linha de base: ' + conhecidas.length + ')');
+    for (const r of conhecidas.sort((a, b) => a.prova.localeCompare(b.prova))) {
+      console.log('  · ' + path.basename(r.prova));
+    }
+    console.log('');
+  }
+  if (saradas.length) {
+    console.log('  AVISO: ' + saradas.length + ' prova(s) da linha de base passam agora — '
+      + 'apague-as de experimentos/provas-vermelhas.json, senão a próxima regressão delas '
+      + 'passa em silêncio:');
+    for (const r of saradas.sort((a, b) => a.prova.localeCompare(b.prova))) {
+      console.log('    - ' + nome(r));
+    }
+  }
 
   const resumo = 'correr-provas: ' + (resultados.length - falhas.length) + '/' + resultados.length
     + ' verde(s)' + (falhas.length ? ', ' + falhas.length + ' falha(s)'
-      + (tectos.length ? ' (' + tectos.length + ' por tecto)' : '') : '')
+      + (tectos.length ? ' (' + tectos.length + ' por tecto)' : '')
+      + (base ? ' — ' + regressoes.length + ' regressão(ões), '
+        + conhecidas.length + ' já conhecida(s)' : '') : '')
     + ' — ' + segundos + 's';
   console.log(resumo);
-  process.exit(falhas.length ? 1 : 0);
+  process.exit(regressoes.length ? 1 : 0);
 })();

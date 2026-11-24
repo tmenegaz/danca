@@ -1883,6 +1883,12 @@ experimentos/modelo-formulario/*
 # comentário que a Porta levava em cada carregamento.
 !experimentos/provar-minificacao-do-payload.js
 
+# A LINHA DE BASE DAS PROVAS (24/11/2026). Não é uma prova: é o dado que faz o `pre-commit` poder
+# correr provas com uma suite que tem 96 vermelhas de dívida — só uma REGRESSÃO recusa o commit.
+# Tem de estar versionada: uma linha de base que só existe na máquina de quem a escreveu não
+# protege ninguém.
+!experimentos/provas-vermelhas.json
+
 # A PROVA DOS DADOS DA ESCOLA (23/11/2026). Ela quis o CNPJ da `breu` que acabara de expurgar, e ele
 # já não existia em sítio nenhum: o expurgo limpa `bastidores/<slug>/`, e o cadastro da escola vive
 # lá. A chave nova (`cadastros/<slug>`) fica FORA dos dois prefixos, e é isso que a faz sobreviver —

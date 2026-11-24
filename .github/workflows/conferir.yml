@@ -1,0 +1,93 @@
+name: Conferir a proposta
+
+# O PRIMEIRO PORTÃO ANTES DO `main` (24/11/2026).
+#
+# O QUE FALTAVA, e o custo de faltar. Até hoje nenhum workflow corria em `pull_request`
+# (`grep -l pull_request .github/workflows/*.yml` devolvia nada): todo o guarda corria DEPOIS de o
+# commit estar no `main`, e o primeiro «não» chegava quando já era trabalho publicado. Os outros
+# dois workflows ficam como estão — `Publicar o sistema` e `Fechar os derivados` continuam a ser
+# `push`, porque um deles faz deploy e o outro escreve derivados, e nenhum dos dois deve correr
+# numa proposta que pode ser descartada.
+#
+# O QUE ELE CORRE, e por que só isto:
+#   · três conferências ESTÁTICAS e rápidas (identidade, schemas, sem-destruição) — juntas, menos
+#     de dois segundos medidos a 24/11/2026, e nenhuma delas precisa de rede;
+#   · as provas dos módulos que a proposta TOCA (`--mudou`), com a linha de base a separar
+#     «falha conhecida» de «regressão» — a suite tem 96 vermelhas de dívida, e um portão que
+#     reprovasse por elas seria um portão desligado no segundo dia.
+#
+# O QUE ELE NÃO CORRE, de propósito: `gerar-ciclo.sh` (precisa de pandoc e de uma fonte que o PR
+# pode não tocar), o `check-identidade` com pacotes (precisa de pacotes regerados), e o deploy.
+# Um portão de PR que faz trabalho de CI inteiro é um portão que ninguém espera.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Duas propostas a correr ao mesmo tempo não é problema: este workflow não escreve nada. E o que
+# já não interessa — um push novo na mesma proposta — cancela o anterior: ele mede a árvore do
+# momento, e é o momento que se quer medido.
+concurrency:
+  group: conferir-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  conferir:
+    # Fixo pelo mesmo motivo dos outros: o cache dos pacotes depende da imagem do runner.
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # O `--mudou` precisa de saber o que a proposta mudou. Sem a história, o `diff` contra a
+          # base não existe e todas as provas correriam — que é o que se está a evitar.
+          fetch-depth: 0
+
+      # `instalar: 'true'` porque as provas usam `jsdom` e uma delas o `esbuild`. O cache do
+      # `node_modules` é o mesmo dos outros workflows (a chave é o `package-lock.json`).
+      - uses: ./.github/actions/preparar-node
+
+      - name: A identidade visual
+        shell: bash
+        run: node tools/check-identidade.js --sem-pacotes
+
+      - name: Os schemas dizem o mesmo contrato
+        shell: bash
+        run: node tools/check-schemas.js
+
+      - name: Nenhuma chamada apaga o repositório
+        shell: bash
+        run: node tools/check-sem-destruicao.js
+
+      - name: Os cabeçalhos do GitHub
+        shell: bash
+        run: node tools/check-github-headers.js
+
+      # O QUE A PROPOSTA MUDA. A base é o merge-base com o `main` — não o `main` de hoje, senão o
+      # que já lá está contaria como mudança da proposta. Um ficheiro apagado também conta: uma
+      # prova que o citava pode passar a falhar por isso.
+      - name: Descobrir o que a proposta muda
+        id: mudou
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="$(git merge-base "origin/${{ github.base_ref }}" HEAD)"
+          echo "base: $base"
+          git diff --name-only --diff-filter=ACMRT "$base" HEAD > /tmp/mudou.txt
+          # OS APAGADOS TAMBÉM CONTAM, e não entram no filtro acima de propósito: um ficheiro que
+          # sai pode deixar uma prova a ler o nada, e é isso que se quer apanhar. O caminho vai
+          # como mudou, e a prova que o citava entra no recorte.
+          git diff --name-only --diff-filter=D "$base" HEAD >> /tmp/mudou.txt
+          sort -u -o /tmp/mudou.txt /tmp/mudou.txt
+          echo "ficheiros que mudaram: $(wc -l < /tmp/mudou.txt)"
+          head -30 /tmp/mudou.txt
+
+      - name: As provas dos módulos que a proposta toca
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/correr-provas.js --mudou < /tmp/mudou.txt | tee /tmp/provas.log
+          # `tee` para o registo ficar; o `pipefail` faz o passo falhar com o `correr-provas`.
