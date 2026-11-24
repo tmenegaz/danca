@@ -353,3 +353,80 @@ aconteceu nesta casa:
 5. **`null` ≠ `0`** — sem contagem, o cartão cala; com contagem, diz.
 6. **A soma é inteira ou não é** — a mesma regra do painel: um contrato sem contagem faz o total do
    parque ser `null`, e não uma parte apresentada como o todo.
+
+---
+
+## 9. O impacto de o implementar agora — medido a 25/11/2026
+
+> «Eu preciso que você elabore para mim o impacto da gente implementar agora o contador de aulas. Eu
+> acho que nós já temos tudo para começar a fazer isso. Então eu quero saber o custo e se a gente tem
+> tudo mesmo.»
+
+### 9.1 O custo do contador é ZERO minutos de GitHub
+
+E não é uma estimativa: é o que a leitura mostra.
+
+`motor/servidor/aulas-dadas.js:112` já lê o índice de um ciclo por `lerAsset(variante + '/ciclos.json')`
+— **do ASSETS do Worker, que não é rede.** O comentário no ficheiro diz isso mesmo: «Lido do ASSETS:
+não é rede.» E o `ciclos.json` de cada variante é montado no pacote por `tools/montar-publicacao.js`
+(`turmasDaEscola()`), que já junta **todas as variantes de uma escola**.
+
+| o que o contador precisa | de onde vem | custo |
+|:--|:--|:--|
+| quais são os ciclos da escola | o KV `bastidores/<escola>/turmas` (já lido pelo Worker) ou os assets | **0** |
+| a data de cada aula | `ciclos.json` → `aulas[].data` | **0** (ASSETS) |
+| o facto de cada aula | `ciclos.json` → `aulas[].lancada` | **0** (ASSETS) |
+| a franquia contratada | `biblioteca/comercial/planos.json` (empacotado) | **0** |
+
+**A conclusão que isto autoriza: o contador não aumenta a factura em nada.** Ele lê o que já está
+publicado. Não gera, não commita, não dispara workflow.
+
+### 9.2 O que custa não é contar — é criar a aula
+
+O contador mede; o **botão «criar a aula N»** (§5) é que produz, e produzir custa. Medido no §20 do
+[`CUSTO-DOS-FLUXOS.md`](CUSTO-DOS-FLUXOS.md): um acto = **3 minutos** hoje, e é o mesmo custo de
+qualquer gravação de aula — o botão não acrescenta um acto, **antecipa-o**.
+
+Ou seja: **implementar o contador não muda a factura. Implementar o botão também não** — o que muda é
+*quando* a aula passa a existir, não *quanto* ela custa.
+
+### 9.3 O que está mesmo pronto — conferido, não suposto
+
+| peça | estado | evidência |
+|:--|:--|:--|
+| `aulas[].data` e `aulas[].lancada` no pacote | **existe** | lido no `ciclo-01-breu-piano/ciclos.json`: as chaves são `n, data, inicio, fim, marco, lancada, ancora, prazo, config` |
+| a leitura por ASSETS, sem rede | **existe** | `aulas-dadas.js:112` |
+| a comparação com a franquia | **existe** | `comercial.situacaoDaFranquia` — recebe `aulasUsadas` e devolve `folga/perto/limite/passou`, o excedente e a frase |
+| `aulasUsadas: null ≠ 0` | **existe** | `comercial.js:281-302` — sem contagem devolve `usadas: null` e cala o consumo |
+| a agregação por escola e por mês | **NÃO existe** | é o que falta, e é **uma função pura** |
+| o estado calculado no servidor | **NÃO existe** | hoje o browser recalcula |
+
+**Tradução honesta: falta uma função.** `contarAulasDoMes({ ciclos, competencia })` — recebe a lista
+de índices que já se sabe ler, soma as `lancada` cuja `data` cai no mês, devolve um inteiro. Todo o
+resto — a comparação, os quatro estados, a frase, o «sem contagem não se inventa um zero» — **já está
+escrito e provado**.
+
+### 9.4 A ordem, com o custo de cada passo
+
+| # | passo | custo | entrega |
+|:--|:--|:--|:--|
+| 1 | `contarAulasDoMes` — uma função pura | **0** | o número |
+| 2 | ligá-la ao `situacaoDaFranquia` na rota e no painel | **0** | a franquia deixa de ser um número no ecrã |
+| 3 | a conferência: índice × `ciclos.json` × `-dados.json` | **0** | a prova que reprova quando divergem |
+| 4 | o alerta das previstas (`TOTAL_AULAS`) | **0** | o aviso antes de passar |
+| 5 | o excedente no Financeiro | **0** | a linha da cobrança |
+| 6 | o botão «criar a aula N» | **3 min por aula** | o produtor que falta |
+
+**Os passos 1 a 5 não custam um minuto de cota.** O passo 6 custa o que uma aula já custa hoje.
+
+### 9.5 A condição que ela pôs, e ela muda a ordem
+
+> «O que a gente tem que é um critério é que não dá para uma sala ser ocupada ao mesmo tempo por
+> elencos […] completamente diferentes.»
+
+Isso é a validação de ocupação, e ela **tem de vir antes do passo 1** — porque o contador soma por
+escola, e uma escola com dois ciclos que colidem na mesma sala produz dois registos de aula no mesmo
+minuto: o número continua certo, mas o **calendário** de onde ele sai deixa de ser verdadeiro.
+
+E há um achado que impede começar sem decidir: **a regra de hoje recusa exactamente o cenário que ela
+descreveu.** Está em [`PLANO-DE-OCUPACAO.md`](PLANO-DE-OCUPACAO.md) §1.

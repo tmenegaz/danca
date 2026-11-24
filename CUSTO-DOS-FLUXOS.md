@@ -2609,3 +2609,145 @@ E de ponta a ponta, pela rota verdadeira com a analítica **verdadeira** e o Git
 | `motor/servidor/raiz.js` | a leitura com cache de 15 minutos (`CACHE_DA_ANALITICA_MS`), 1 subpedido, e a conta do orçamento corrigida para 27/16 |
 | `motor/servidor/painel-html.js` | `blocoDasOperacoes` — cinco barras (o pico), a tabela dos dias, os Workers, o truncado e a nota da amostragem |
 | `experimentos/provar-a-analitica-do-cloudflare.js` | **novo** — 43 asserções |
+
+---
+
+## 20. O custo por aula, medido — e o modelo `2a` estava optimista *(25/11/2026)*
+
+> «Eu acho que o nosso cenário de custo melhorou. Então eu preciso que você atualize esse documento.»
+
+**Melhorou, e está medido.** Mas ao medir apareceu uma coisa que o documento tinha por baixo: **o
+modelo `m = 2a` conta só a geração, e uma aula não é uma geração.** É a correcção que este capítulo
+traz.
+
+### 20.1 A factura real de Novembro
+
+| | |
+|:--|--:|
+| minutos facturados (`quantity`) | **2 511 min** |
+| valor bruto (`grossAmount`) | **$15,07** |
+| desconto (`discountAmount`) | **$15,07** |
+| **a pagar (`netAmount`)** | **$0,00** |
+
+Um mês de uso intenso — 1 000 execuções entre 15 e 24/11, com o desenvolvimento inteiro em cima —
+**caberia na franquia de $12 mesmo sem o desconto de conta pública**. E com o desconto, sobram $0,40.
+
+### 20.2 A descoberta: **todos os jobs estão abaixo de 60 segundos**
+
+Medido em 16 execuções, duas por workflow:
+
+| workflow | duração medida | facturado |
+|:--|--:|--:|
+| **Gerar o ciclo** | 14 s · 31 s · 35 s · 42 s · 43 s | **1 min** |
+| Fechar os derivados | 2 s · 10 s · 13 s · 15 s · 21 s · 27 s | **1 min** |
+| Publicar o sistema | 26 s · 27 s · 28 s · 32 s · 38 s · 40 s | **1 min** |
+| Publicar as escolas (extinto) | — | 2 min (2 jobs) |
+
+**Cada execução de hoje é UM job, e cada job arredonda a UM minuto.** O `p50` de 110 s que o §12
+usava para a geração já não existe: o pandoc passou a binário estático e o job caiu para **14–43 s**.
+A unidade do custo deixou de ser «dois minutos por geração» e passou a ser **«um minuto por
+execução»** — o que torna o número de execuções a única coisa que importa.
+
+### 20.3 E um acto não é uma execução
+
+O «Guardar» do PO de 24/11 às 11:15, medido execução a execução:
+
+| instante | execução | duração | facturado |
+|:--|:--|--:|--:|
+| 11:15:40 | Fechar os derivados | 4 s, **cancelada** | 1 min |
+| 11:15:42 | Fechar os derivados | 16 s, **cancelada** | 1 min |
+| 11:15:50 | Gerar o ciclo | 19 s | 1 min |
+| 11:15:50 | Fechar os derivados | 30 s | 1 min |
+
+**Quatro execuções, quatro minutos — e dois deles foram cancelados.** Um job cancelado paga-se: o
+GitHub arredonda ao minuto o que correu, não o que foi útil.
+
+E quando dois actos caem juntos — o plano e o PO, às 11:11 e às 11:15 — são **nove execuções, nove
+minutos, cinco delas canceladas**.
+
+**A causa é a mesma em todos: cada commit é um push, e cada push acorda o `derivados.yml`, que
+observa `professores/**` e `escola/**`.** Uma gravação fazia quatro commits (índice, envelope,
+`.conf`, fontes) e cada um pagava a sua execução.
+
+### 20.4 A correcção do modelo, e o que as ondas de hoje valeram
+
+| modelo | min por aula | 2 850 aulas/mês | custo a R$ 6 | margem de R$ 929,10 |
+|:--|--:|--:|--:|--:|
+| **o do documento (`2a`)** | 2 | 5 700 | R$ 133,20 | **85,7 %** |
+| **medido ANTES das ondas (`4a`)** | 4 | 11 400 | R$ 338,40 | **63,6 %** |
+| **medido DEPOIS das ondas (`3a`)** | 3 | 8 550 | R$ 235,80 | **74,6 %** |
+
+**O que as ondas fizeram, então, não foi melhorar um cenário bom — foi recuperar 11 pontos de margem
+que estavam a ser pagos sem ninguém ver (R$ 102,60 por mês, às nove escolas cheias).** E o documento
+continua a ser optimista: o número honesto hoje é **R$ 235,80**, não R$ 133,20.
+
+**E havia uma prova a dizer 3 minutos desde 19/11/2026** — `experimentos/provar-o-custo-da-aula.js`
+—, enquanto este documento dizia 2. Mas ela acertava pelo motivo errado: afirmava `1 derivados + 2
+geração`, e hoje é `2 derivados + 1 geração`. O total coincide (3) e a decomposição é oposta — a
+geração **abaratou** (110 s → 14–43 s) e o derivados **encareceu** (1 → 2–3 execuções por gravação).
+A prova passava pelo número certo com as parcelas trocadas, e é a mesma família de erro que a decisão
+174 registou (`DOCS` que deixara de crescer). **Corrigida em 25/11/2026**: passa a afirmar os
+**componentes**, um a um, e não só a soma.
+
+A degradação que se recuperou, medida no histórico:
+
+| o quê | antes | depois | o que valeu |
+|:--|--:|--:|:--|
+| commits do **acervo** por mês | **143** (72 `.indice` + 71 envelope) | 72 | **71 execuções**, ~R$ 12,80/mês |
+| commits de **schema** por professor×ciclo | **5** (109 no histórico, 20 pastas) | 1 | **4 execuções** por ciclo novo |
+| janela de execuções do monitoramento | 11 páginas por abertura | 0 na segunda | cotas do Cloudflare, não do GitHub |
+| jobs da geração | 110 s p50 → 2 min | **14–43 s → 1 min** | metade da unidade |
+
+### 20.5 O que ainda se pode cortar — e é a próxima alavanca
+
+O que sobra num acto são **duas** execuções do `derivados.yml`, e uma delas é cancelada. Ambas
+existem porque o commit do **pacote** (`professores/**/ciclos/ciclo-*/**`) cai na mesma lista de
+`paths` que as fontes.
+
+**Se o `derivados.yml` deixar de observar o pacote gerado** — ele não precisa: o pacote não muda
+âncora nem índice, e quem o commita é o `gerar-ciclo.yml`, que já regera os índices no próprio commit
+—, um acto passa a:
+
+```
+1 geração (1 min) + 1 derivados (1 min) = 2 min por aula
+```
+
+Ou seja: **de volta ao `2a` do documento, mas agora medido e não suposto.** Às nove escolas cheias
+isso é **R$ 133,20 e 85,7 % de margem** — o cenário que ela achava que já tinha.
+
+**Não foi feito hoje, e é de propósito:** é uma mudança em `paths` de um workflow que fecha os
+derivados de tudo o que muda no repositório, e a regra é que um commit com o `GITHUB_TOKEN` não
+redispara nada. Mexer nela sem prova pode deixar um derivado por fechar. Fica **declarada como a
+alavanca seguinte**, com esta conta.
+
+### 20.6 A margem com o consumo real
+
+As escolas **não enchem a franquia** — o `breu-piano` tem 24 aulas previstas num ciclo e zero
+lançadas. Com o custo medido de 3 min/aula:
+
+| aulas/mês na conta | minutos | custo a R$ 6 | margem de R$ 929,10 |
+|--:|--:|--:|--:|
+| 500 | 1 500 | **R$ 0,00** | 100 % |
+| **1 000** | **3 000** | **R$ 36,00** | **96,1 %** ← o fim do gratuito |
+| 1 500 | 4 500 | R$ 90,00 | 90,3 % |
+| 2 000 | 6 000 | R$ 144,00 | 84,5 % |
+| 2 850 | 8 550 | R$ 235,80 | 74,6 % |
+| 3 500 | 10 500 | R$ 306,00 | 67,1 % |
+
+*(A tabela conta só as escolas. A engenharia — os commits de desenvolvimento, medidos em 522 min no
+§L9f — soma 522 min e entra na mesma conta: às 2 850 aulas, 8 550 + 522 = 9 072 min, R$ 254,59.)*
+
+**A fórmula corrigida** (`a` = aulas/mês, `c` = minutos por aula, medidos em 3):
+
+```
+minutos = c × a                                  (c = 3 medido · 2 se o derivados parar de seguir o pacote)
+custo   = 0                                      se c·a ≤ 2 000
+custo   = (c·a − 2 000) × 0,006 × 6              acima disso
+```
+
+### 20.7 O que fica decidido
+
+**DECIDIDO:** o custo por aula é **3 minutos** (medido, 25/11/2026), e não os 2 que o §12 supunha. A
+margem às nove escolas cheias é **74,6 %**, e sobe a **85,7 %** quando o `derivados.yml` deixar de
+observar o pacote. **Não há prejuízo em nenhum cenário plausível** — o zero continua a exigir um
+parque muito acima do que a operação real produz, e a factura de Novembro fechou em **$0,00**.

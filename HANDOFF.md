@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-24T16:54:42-0300`
-Commit atual: `7f834e90` — feat(estrutura): os schemas do ciclo passam de cinco commits a um, e a analítica do Cloudflare já está habilitada
+Gerado em: `2026-11-24T17:19:46-0300`
+Commit atual: `0e2340db` — feat(estrutura): a analítica do Cloudflare ligada ao painel — os pedidos e as operações de KV por dia
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+0e2340db feat(estrutura): a analítica do Cloudflare ligada ao painel — os pedidos e as operações de KV por dia
 7f834e90 feat(estrutura): os schemas do ciclo passam de cinco commits a um, e a analítica do Cloudflare já está habilitada
 c179465f fix(estrutura): a implementação do lote, que o commit anterior não levou
 1251dd90 feat(estrutura): o ato passa a custar um commit, e não quatro
@@ -101,7 +102,6 @@ ad7d1c8a docs(estrutura): escada 130/320/500 com dólar a R$ 6, e a margem não 
 f286c3b1 chore(estrutura): o REGISTRO partido por ano — índice e arquivo anual
 112a15b8 docs(registro): a mesa dos N ciclos, e a factura medida das execuções
 a0d0fe6b feat(ciclo-01): a mesa dos N ciclos, e o ciclo zero que a guarda deixava passar
-74a69836 docs(registro): a geração que falhou sem erro à vista, e a regra que a fecha
 ```
 
 ## Por professor
@@ -195,66 +195,69 @@ a0d0fe6b feat(ciclo-01): a mesa dos N ciclos, e o ciclo zero que a guarda deixav
 
 ## Última entrada do REGISTRO
 
-## 25/11/2026 — A analítica do Cloudflare já estava habilitada: a limitação declarada era falsa
+## 25/11/2026 — O custo por aula medido (3 min, não 2), o contador custa zero, e a regra da sala recusa o que ela pediu
 
-**O pedido.** «Precisa habilitar no worker do Cloudflare a permissão de analítica para você poder
-fazer aqui um monitoramento dos pedidos que são feitos por dia no worker, a escrita de KV por dia e a
-leitura de KV por dia. Como é que eu faço isso?»
+**Três coisas, e a terceira é a que bloqueia.**
 
-**A resposta, e ela corrige o produto: não é preciso habilitar nada.** O Worker `danca` já tem o
-secret `CLOUDFLARE_API_TOKEN`, e o token **já tem** `Account Analytics: Read`. E o painel dizia, em
-letra escrita desde 17/11/2026, que «a leitura de analítica exige um token com permissão de analítica,
-**que este Worker não tem**». **Era falso.** Uma limitação declarada que é falsa não é neutra: faz
-quem lê desistir de pedir o número, e faz quem podia resolver acreditar que há algo a resolver.
+### 1. O custo: o modelo `2a` estava optimista
 
-**O que passou a ser medido**, dia a dia, nos últimos 7 dias. O pico da janela:
+A factura real de Novembro: **2 511 min, $15,07 bruto, $15,07 de desconto, $0,00 a pagar.** Mas ao
+medir os jobs apareceu o que faltava: **todos os jobs estão abaixo de 60 s, e cada um factura 1
+minuto** — a geração, que o §12 media a 110 s p50, está hoje em **14–43 s**. E **um acto não é uma
+execução**: o «Guardar» do PO de 24/11 às 11:15 acordou **4 execuções — 3 do `derivados` (2
+canceladas) e 1 geração** —, e as canceladas pagam-se.
 
-| operação | pico | cota/dia | % |
-|:--|--:|--:|--:|
-| Pedidos ao Worker | 2 962 (20/11) | 100 000 | 3,0 % |
-| Leituras de KV | 12 804 (20/11) | 100 000 | 12,8 % |
-| **Escritas de KV** | **234 (20/11)** | **1 000** | **23,4 %** |
-| Listagens de KV | 61 (23/11) | 1 000 | 6,1 % |
-| Apagamentos de KV | 31 (23/11) | 1 000 | 3,1 % |
+| modelo | min/aula | 2 850 aulas | custo a R$ 6 | margem |
+|:--|--:|--:|--:|--:|
+| o do documento (`2a`) | 2 | 5 700 | R$ 133,20 | 85,7 % |
+| **medido antes das ondas (`4a`)** | 4 | 11 400 | R$ 338,40 | 63,6 % |
+| **medido depois (`3a`)** | 3 | 8 550 | **R$ 235,80** | **74,6 %** |
 
-**A leitura que corrige a expectativa:** o recurso que aperta **não é o que parecia**. Os pedidos
-estão a 0,5–3 % de 100 000; as **escritas de KV** são o mais perto do tecto, e a cota é de 1 000 por
-dia, não 100 000.
+**As ondas não melhoraram um cenário bom — recuperaram 11 pontos de margem** (R$ 102,60/mês às nove
+escolas cheias) que estavam a ser pagos sem ninguém ver. E o número honesto hoje é **R$ 235,80**, não
+R$ 133,20. A alavanca seguinte, declarada com a conta: o `derivados.yml` deixar de observar o pacote
+gerado — leva um acto a **2 min** e devolve a margem a **85,7 %**.
 
-**Três decisões de desenho, e as três saíram de medição.** (1) **Uma consulta, não duas** — as duas
-famílias vivem debaixo de `viewer.accounts`, e cada chamada ao GraphQL é um subpedido num orçamento
-de 50. (2) **A granularidade é o DIA** — a primeira sonda agregou por `datetime` com `limit: 10000` e
-deu **9 113 grupos num só dia**, com um tecto que corta em silêncio; por `date` são **2 grupos por
-dia**, e a soma dos dois modos no mesmo dia confere (2 029 pelos dois lados, diferença zero). (3) **O
-alerta lê o PICO, não o hoje** — a cota é diária e volta a zero, e o pico é estável; o hoje fica ao
-lado, porque é a outra pergunta.
+### 2. O contador de aulas custa ZERO minutos de GitHub
 
-**O que não se inventa.** O zero de um dia sem tráfego é um **facto** e entra a zero; o zero de uma
-leitura falhada não se escreve. E as quatro falhas são **declaradas** com o motivo: sem token, 403
-(com a permissão nomeada), `errors` no corpo com HTTP 200 (o GraphQL devolve assim — ler só o `data`
-publicaria metade dos números como se fossem todos), e rede a rebentar. Chegar ao tecto de 1 000
-grupos faz do número um **mínimo**, e diz-se. E estes números são **do fornecedor**, de conjuntos com
-amostragem adaptativa: em volume baixo exactos, em volume alto extrapolações dele — está dito no
-painel.
+`aulas-dadas.js:112` já lê `ciclos.json` por `lerAsset()` — **do ASSETS, que não é rede**. O
+`montar-publicacao.js` já junta todas as variantes de uma escola. E o `ciclos.json` real tem
+`n, data, inicio, fim, marco, lancada, ancora, prazo, config` — conferido no `ciclo-01-breu-piano`.
 
-**Validado.** `provar-a-analitica-do-cloudflare.js` **43/43**, com o **controlo negativo** que
-importa na secção E: olhando só o hoje, um parque com as escritas a 90 % no pico dava «folga». A
-prova é vermelha sem a mudança (`git stash -u`). De ponta a ponta, pela rota verdadeira com a
-analítica **verdadeira**: **fria 1 chamada ao GraphQL, quente 0**, e o **pior indicador da casa a ler
-23,4 %**. As quatro conferências verdes; as provas dos módulos tocados sem regressões.
+O que falta é **uma função**: `contarAulasDoMes({ ciclos, competencia })`. A comparação com a
+franquia, os quatro estados, o excedente e a disciplina do `null ≠ 0` **já existem** em
+`comercial.situacaoDaFranquia`. Os passos 1 a 5 do plano **não custam um minuto**; o passo 6 (o botão
+«criar a aula N») custa o que uma aula já custa.
 
-**Onde entrou.** `motor/servidor/analitica-cloudflare.js` (novo), `motor/nucleo/monitoramento.js`,
-`motor/servidor/raiz.js` (cache de 15 min, orçamento 27/16), `motor/servidor/painel-html.js`
-(`blocoDasOperacoes`), `experimentos/provar-a-analitica-do-cloudflare.js` (novo), `.gitignore`,
-`CUSTO-DOS-FLUXOS.md` (§19), `ESTADO-ATUAL.md` (fotografia e decisão 185), `HANDOFF.md`.
+### 3. A regra da sala recusa exactamente o cenário que ela descreveu — **medido**
 
-**E uma regressão que a mudança causou, e o que ela ensinou.** `provar-monitoramento` passou a
-**104/105**: a asserção dizia `naoMedido.length === 3`, e a lista passou a ter **cinco** — as
-**listagens** e os **apagamentos** estavam declarados nas cotas do plano desde o início e nunca eram
-nomeados. Uma cota que existe e não se nomeia é uma cota que ninguém vigia. A prova passou a afirmar
-a **forma** — tudo o que não se mediu aparece, com a cota do plano ao lado, e fica vazia quando se
-mede — em vez da contagem. É a mesma família de erro que a decisão 174 já registou: uma prova que
-fixa um número do produto fica vermelha sobre um mundo melhor, e o remédio é afirmar a regra.
+Ela: «ciclos diferentes que podem estar no mesmo período […] o que diferencia é o dia da semana […]
+ou o horário». O código, em `estado-da-turma.js:181`: **«Uma sala recebe UMA Turma por vez: duas
+Turmas na mesma sala são duas aulas no mesmo horário, no mesmo lugar.»**
+
+Correndo a função verdadeira com duas curadorias na mesma sala e horas diferentes (14h e 16h):
+`salasOcupadas` responde **ocupada**, e a mensagem diz «no mesmo horário» sobre duas aulas a 14h e
+16h — e acrescenta «não há nenhuma outra sala livre», empurrando a escola a criar uma sala que não
+precisa.
+
+**É um bloqueio, e não um detalhe:** a escola que tem balé 1 às 14h e balé 2 às 16h na mesma sala
+recebe **409**. A premissa de 09/11 era «uma sala = um horário»; a Sala é o ritmo, e tem vários.
+
+O plano está em `PLANO-DE-OCUPACAO.md`, com a regra formalizada (intervalos por dia, meio-abertos,
+com período), os três recursos (**sala, professor, elenco/aluna**), os casos-limite, a decisão que
+fica aberta sobre a regra das alunas por modalidade, e o que a mudança quebra — incluindo
+**`provar-mudanca-de-sala`, 41 asserções**, que afirma a regra antiga e terá de ser reescrita.
+
+**Onde entrou.** `CUSTO-DOS-FLUXOS.md` (§20), `PLANO-CONTADOR-DE-AULAS.md` (§9),
+`PLANO-DE-OCUPACAO.md` (novo), `ESTADO-ATUAL.md` (fotografia e decisão 186), `HANDOFF.md`.
+
+**E uma prova que acertava pelo motivo errado.** `provar-o-custo-da-aula.js` diz **3 minutos** desde
+19/11/2026, enquanto este documento dizia 2 — mas ela afirmava `1 derivados + 2 geração`, e hoje é
+`2 derivados + 1 geração`. O total coincide e a decomposição é **oposta**: a geração abaratou (110 s →
+14–43 s) e o derivados encareceu (1 → 2–3 execuções por gravação). A prova passava pelo número certo
+com as parcelas trocadas — a família de erro da decisão 174. Corrigida no mesmo dia: passa a afirmar
+os **componentes**, um a um (12 → 14 asserções), e o `2a` do documento foi substituído pelo **`3a`**
+medido.
 
 ## O que está pendente
 

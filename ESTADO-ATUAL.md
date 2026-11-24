@@ -4,8 +4,29 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **a analítica do Cloudflare já estava habilitada, e a limitação
-> declarada era falsa.** Ela perguntou como se habilita a permissão de analítica para medir «os
+> **Última fotografia:** 25/11/2026 — **o custo por aula é 3 minutos, e não 2; o contador custa zero; e
+> a regra da sala recusa o que ela pediu.** Três coisas, e a terceira é um bloqueio.
+> **O custo, medido:** a factura de Novembro fechou em **$0,00** (2 511 min, $15,07 bruto, $15,07 de
+> desconto), mas ao medir os jobs apareceu o que faltava — **todos os jobs estão abaixo de 60 s e cada
+> um factura 1 minuto**, e a geração, que o §12 media a 110 s p50, está hoje em **14–43 s**. E **um
+> acto não é uma execução**: o «Guardar» do PO de 24/11 às 11:15 acordou **4 execuções — 3 do
+> `derivados` (2 canceladas) e 1 geração** —, e as canceladas pagam-se. O modelo `2a` dava **85,7 %**
+> de margem; **medido antes das ondas era `4a` e 63,6 %**; **medido depois é `3a` e 74,6 %**
+> (R$ 235,80). **As ondas não melhoraram um cenário bom — recuperaram 11 pontos de margem** que
+> estavam a ser pagos sem ninguém ver. E a alavanca seguinte está declarada com a conta: o
+> `derivados.yml` deixar de observar o pacote gerado leva um acto a **2 min** e devolve os **85,7 %**.
+> **O contador de aulas custa ZERO minutos de GitHub** — `aulas-dadas.js` já lê `ciclos.json` do
+> **ASSETS, que não é rede**, e o `ciclos.json` real tem `data` e `lancada` por aula. Falta **uma
+> função** (`contarAulasDoMes`); a comparação com a franquia, os quatro estados e a disciplina do
+> `null ≠ 0` já existem. **E o bloqueio:** ela descreveu ciclos simultâneos que se separam por dia e
+> horário, e a regra de 09/11 diz que **«uma sala recebe UMA Turma por vez»** — medido, duas
+> curadorias na mesma sala a 14h e a 16h recebem **409**, com a frase «duas aulas no mesmo horário»
+> sobre duas aulas que não são. O plano (`PLANO-DE-OCUPACAO.md`) formaliza a regra por intervalos,
+> nos três recursos — **sala, professor e elenco** —, e declara o que a mudança quebra: as **41
+> asserções** de `provar-mudanca-de-sala`.
+>
+> **Fotografia anterior (25/11/2026 — a analítica do Cloudflare já estava habilitada, e a limitação
+> declarada era falsa).** Ela perguntou como se habilita a permissão de analítica para medir «os
 > pedidos que são feitos por dia no worker, a escrita de KV por dia e a leitura de KV por dia».
 > **Resposta: não é preciso habilitar nada.** O Worker `danca` já tem o `CLOUDFLARE_API_TOKEN` e o
 > token já tem `Account Analytics: Read` — e o painel dizia, em letra escrita desde 17/11/2026, «que
@@ -2327,7 +2348,10 @@ Verificado nesta fotografia, com os comandos da §9.
 `PLANO-AULA-E-OBSERVACAO.md` · `PLANO-TABELA-DE-ATIVIDADES.md` · `PLANO-NAVEGACAO.md` ·
 `PLANO-INDICES.md` · `PLANO-CICLO-DA-TURMA.md` · `PLANO-PERGUNTAS-DA-PROVENIENCIA.md` ·
 `PLANO-FLUXOS-DE-DERIVACAO.md` (os nove passos dos fluxos, um a um) ·
-`CUSTO-DOS-FLUXOS.md` (os minutos de CI medidos, por gesto) ·
+`CUSTO-DOS-FLUXOS.md` (os minutos de CI medidos, por gesto — §20 para o custo por aula) ·
+`PLANO-CONTADOR-DE-AULAS.md` (a franquia em aulas, contada; §9 para o impacto de o implementar) ·
+`PLANO-DE-OCUPACAO.md` (sala, professor e elenco: a colisão de horário, e o bloqueio da regra de
+09/11) ·
 `DIAGNOSTICO-IDENTIDADE.md` · `IMPLEMENTACAO-IDENTIDADE.md` · `ARQUITETURA-*.md` · `IDEIA-*.md`
 
 ### Código
@@ -4350,6 +4374,24 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      sem tráfego é facto; zero de falha não se escreve; as quatro falhas são declaradas com o motivo;
      o truncado diz-se; e os números são do fornecedor, com amostragem adaptativa. **DECIDIDO** e
      **APLICADO** 25/11/2026.
+
+186. **O CUSTO POR AULA É 3 MINUTOS, NÃO 2 — E A REGRA DA SALA RECUSA O QUE ELA PEDIU.** Três
+     decisões, e a terceira é um bloqueio. **(1) O modelo `2a` estava optimista.** Medido: todos os
+     jobs estão abaixo de 60 s, cada um factura **1 minuto**, e a geração caiu de 110 s p50 para
+     **14–43 s**; mas **um acto não é uma execução** — o «Guardar» do PO acorda **4 execuções** (3 do
+     `derivados`, 2 canceladas, e um cancelado paga-se). Margem: **85,7 %** no modelo, **63,6 %**
+     medido antes das ondas (`4a`), **74,6 %** medido depois (`3a`, R$ 235,80). **As ondas
+     recuperaram 11 pontos de margem** que estavam a ser pagos sem ninguém ver. A alavanca seguinte,
+     com a conta: o `derivados.yml` deixar de observar o pacote gerado → **2 min por aula** e os
+     **85,7 %**. **(2) O contador de aulas custa zero minutos de GitHub** — lê `ciclos.json` do
+     ASSETS, e o `ciclos.json` real tem `data` e `lancada`; falta **uma função**. **(3) A regra da
+     sala bloqueia o cenário dela:** `estado-da-turma.js:181` diz «uma sala recebe UMA Turma por
+     vez», e medido, duas curadorias na mesma sala a 14h e 16h recebem **409** com a frase «duas
+     aulas no mesmo horário». A premissa de 09/11 era «uma sala = um horário»; a Sala é o ritmo e tem
+     vários. O plano (`PLANO-DE-OCUPACAO.md`) põe a regra em intervalos por dia, nos **três
+     recursos** — sala, professor, elenco/aluna —, e declara que `provar-mudanca-de-sala` (**41
+     asserções**) terá de ser reescrita. **DECIDIDO** (o custo e o desenho) e **PENDENTE** (duas
+     perguntas de §8 do plano de ocupação: a regra das alunas por modalidade, e a turma sem hora).
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a

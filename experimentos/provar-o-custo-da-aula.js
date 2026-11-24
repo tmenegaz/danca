@@ -135,12 +135,30 @@ async function principal() {
   /* =========================================================================================== */
   console.log('\nC. A conta, com os minutos medidos — e o que ela corrige');
 
-  /* Os minutos por workflow são os MEDIDOS na API (`CUSTO-DOS-FLUXOS.md` §2): um job, arredondado
-   * ao minuto. O que esta prova junta é a única parte que faltava: quantas execuções o gesto pede. */
-  const MIN_DERIVADOS = 1;
-  const MIN_GERAR = 2;
-  const porAula = a.disparos.length * MIN_GERAR + MIN_DERIVADOS;
-  provar('uma aula custa 3 minutos facturados: 1 do `derivados` + 2 do `Gerar o ciclo`',
+  /* OS COMPONENTES MUDARAM A 25/11/2026, E O TOTAL NÃO — que é o pior caso para uma prova.
+   *
+   * O que aqui estava: `MIN_DERIVADOS = 1` e `MIN_GERAR = 2`, somando 3. Era verdade a 19/11/2026: a
+   * geração media 110 s p50 (→ 2 minutos) e uma gravação acordava **uma** execução do derivados.
+   *
+   * MEDIDO A 25/11/2026, e os dois lados mudaram:
+   *   · a geração caiu para **14–43 s** com o pandoc estático → **1 minuto**, e não 2;
+   *   · uma gravação acorda **2 a 3** execuções do derivados (um commit por escrita, e cada push é
+   *     uma execução) → **2**, depois do lote do acervo que juntou o índice e o envelope.
+   *
+   * 2 × 1 + 1 × 1 = **3**, e 1 × 1 + 1 × 2 = **3**: o mesmo total por caminhos opostos. A prova
+   * passava pelo número certo com a decomposição errada — a família de erro que a decisão 174 já
+   * registou (`DOCS` que deixara de crescer) e que aqui se fecha afirmando os COMPONENTES.
+   *
+   * As fontes: `CUSTO-DOS-FLUXOS.md` §20 (os jobs medidos, todos abaixo de 60 s) e a contagem de
+   * execuções de um acto real (o «Guardar» do PO de 24/11 às 11:15). */
+  const MIN_GERAR = 1;        // medido: 14–43 s, um job, arredonda a 1 minuto
+  const DERIVADOS_POR_AULA = 2; // medido: 2 a 3 por acto; 2 depois do lote do acervo
+  const porAula = a.disparos.length * MIN_GERAR + DERIVADOS_POR_AULA;
+  provar('a geração custa 1 minuto facturado (14–43 s medidos, não os 110 s de 19/11)',
+    MIN_GERAR === 1, MIN_GERAR);
+  provar('uma gravação acorda 2 execuções do derivados (eram 1 antes do lote do acervo)',
+    DERIVADOS_POR_AULA === 2, DERIVADOS_POR_AULA);
+  provar('uma aula custa 3 minutos facturados: 2 do `derivados` + 1 do `Gerar o ciclo`',
     porAula === 3, porAula);
 
   /* A CAPACIDADE, pela fórmula do §L9f (`(2 000 − engenharia) ÷ minutos por aula`), com a única

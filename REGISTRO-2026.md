@@ -61157,3 +61157,67 @@ nomeados. Uma cota que existe e não se nomeia é uma cota que ninguém vigia. A
 a **forma** — tudo o que não se mediu aparece, com a cota do plano ao lado, e fica vazia quando se
 mede — em vez da contagem. É a mesma família de erro que a decisão 174 já registou: uma prova que
 fixa um número do produto fica vermelha sobre um mundo melhor, e o remédio é afirmar a regra.
+
+## 25/11/2026 — O custo por aula medido (3 min, não 2), o contador custa zero, e a regra da sala recusa o que ela pediu
+
+**Três coisas, e a terceira é a que bloqueia.**
+
+### 1. O custo: o modelo `2a` estava optimista
+
+A factura real de Novembro: **2 511 min, $15,07 bruto, $15,07 de desconto, $0,00 a pagar.** Mas ao
+medir os jobs apareceu o que faltava: **todos os jobs estão abaixo de 60 s, e cada um factura 1
+minuto** — a geração, que o §12 media a 110 s p50, está hoje em **14–43 s**. E **um acto não é uma
+execução**: o «Guardar» do PO de 24/11 às 11:15 acordou **4 execuções — 3 do `derivados` (2
+canceladas) e 1 geração** —, e as canceladas pagam-se.
+
+| modelo | min/aula | 2 850 aulas | custo a R$ 6 | margem |
+|:--|--:|--:|--:|--:|
+| o do documento (`2a`) | 2 | 5 700 | R$ 133,20 | 85,7 % |
+| **medido antes das ondas (`4a`)** | 4 | 11 400 | R$ 338,40 | 63,6 % |
+| **medido depois (`3a`)** | 3 | 8 550 | **R$ 235,80** | **74,6 %** |
+
+**As ondas não melhoraram um cenário bom — recuperaram 11 pontos de margem** (R$ 102,60/mês às nove
+escolas cheias) que estavam a ser pagos sem ninguém ver. E o número honesto hoje é **R$ 235,80**, não
+R$ 133,20. A alavanca seguinte, declarada com a conta: o `derivados.yml` deixar de observar o pacote
+gerado — leva um acto a **2 min** e devolve a margem a **85,7 %**.
+
+### 2. O contador de aulas custa ZERO minutos de GitHub
+
+`aulas-dadas.js:112` já lê `ciclos.json` por `lerAsset()` — **do ASSETS, que não é rede**. O
+`montar-publicacao.js` já junta todas as variantes de uma escola. E o `ciclos.json` real tem
+`n, data, inicio, fim, marco, lancada, ancora, prazo, config` — conferido no `ciclo-01-breu-piano`.
+
+O que falta é **uma função**: `contarAulasDoMes({ ciclos, competencia })`. A comparação com a
+franquia, os quatro estados, o excedente e a disciplina do `null ≠ 0` **já existem** em
+`comercial.situacaoDaFranquia`. Os passos 1 a 5 do plano **não custam um minuto**; o passo 6 (o botão
+«criar a aula N») custa o que uma aula já custa.
+
+### 3. A regra da sala recusa exactamente o cenário que ela descreveu — **medido**
+
+Ela: «ciclos diferentes que podem estar no mesmo período […] o que diferencia é o dia da semana […]
+ou o horário». O código, em `estado-da-turma.js:181`: **«Uma sala recebe UMA Turma por vez: duas
+Turmas na mesma sala são duas aulas no mesmo horário, no mesmo lugar.»**
+
+Correndo a função verdadeira com duas curadorias na mesma sala e horas diferentes (14h e 16h):
+`salasOcupadas` responde **ocupada**, e a mensagem diz «no mesmo horário» sobre duas aulas a 14h e
+16h — e acrescenta «não há nenhuma outra sala livre», empurrando a escola a criar uma sala que não
+precisa.
+
+**É um bloqueio, e não um detalhe:** a escola que tem balé 1 às 14h e balé 2 às 16h na mesma sala
+recebe **409**. A premissa de 09/11 era «uma sala = um horário»; a Sala é o ritmo, e tem vários.
+
+O plano está em `PLANO-DE-OCUPACAO.md`, com a regra formalizada (intervalos por dia, meio-abertos,
+com período), os três recursos (**sala, professor, elenco/aluna**), os casos-limite, a decisão que
+fica aberta sobre a regra das alunas por modalidade, e o que a mudança quebra — incluindo
+**`provar-mudanca-de-sala`, 41 asserções**, que afirma a regra antiga e terá de ser reescrita.
+
+**Onde entrou.** `CUSTO-DOS-FLUXOS.md` (§20), `PLANO-CONTADOR-DE-AULAS.md` (§9),
+`PLANO-DE-OCUPACAO.md` (novo), `ESTADO-ATUAL.md` (fotografia e decisão 186), `HANDOFF.md`.
+
+**E uma prova que acertava pelo motivo errado.** `provar-o-custo-da-aula.js` diz **3 minutos** desde
+19/11/2026, enquanto este documento dizia 2 — mas ela afirmava `1 derivados + 2 geração`, e hoje é
+`2 derivados + 1 geração`. O total coincide e a decomposição é **oposta**: a geração abaratou (110 s →
+14–43 s) e o derivados encareceu (1 → 2–3 execuções por gravação). A prova passava pelo número certo
+com as parcelas trocadas — a família de erro da decisão 174. Corrigida no mesmo dia: passa a afirmar
+os **componentes**, um a um (12 → 14 asserções), e o `2a` do documento foi substituído pelo **`3a`**
+medido.
