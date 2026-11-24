@@ -77,6 +77,25 @@ variantes_de() {
     | sed "s|.*/ciclo-$2-||; s|\.conf$||" | grep -vE '^[0-9]+$' | LC_ALL=C sort -u || true
 }
 
+# OS ARQUIVOS ANUAIS DO REGISTRO (24/11/2026) — a partição do ficheiro único.
+#
+# Até 24/11/2026 havia um `REGISTRO.md` de 4,3 MB e 60 173 linhas. Passou a haver um `REGISTRO.md`
+# que é ÍNDICE e um `REGISTRO-<ANO>.md` por ano, com as entradas. Este script lê os ANUAIS — o
+# índice não tem entrada nenhuma (não tem um único `## `), e lê-lo daria «última entrada» vazia.
+#
+# A ORDEM É A DO NOME, e é isso que faz o ano novo entrar no fim sem ninguém editar isto: `sort`
+# põe `REGISTRO-2026.md` antes de `REGISTRO-2027.md`. O `awk` de baixo trata os ficheiros como um
+# fluxo só, portanto a «última entrada» continua a ser a do último ano.
+#
+# Compatibilidade: um repositório anterior à partição (só `REGISTRO.md`) continua a funcionar, e um
+# repositório já partido não lê o índice. As duas coisas ao mesmo tempo não acontecem hoje, e a
+# ordem da lista resolve o caso se acontecerem.
+registros=()
+while IFS= read -r f; do registros+=("$f"); done < <(ls -1 REGISTRO-*.md 2>/dev/null | LC_ALL=C sort)
+if [ "${#registros[@]}" -eq 0 ] && [ -f REGISTRO.md ]; then
+  registros=(REGISTRO.md)
+fi
+
 {
   echo "# Handoff — Projeto Ciclo (o produto é o Sistema Lastro)"
   echo
@@ -209,15 +228,15 @@ variantes_de() {
   echo
   echo "## Última entrada do REGISTRO"
   echo
-  if [ -f REGISTRO.md ]; then
-    awk '/^## /{bloco=$0"\n"; conteudo=""} /^## /{proximo=1; next} proximo{conteudo=conteudo $0 "\n"} END{printf "%s%s", bloco, conteudo}' REGISTRO.md
+  if [ "${#registros[@]}" -gt 0 ]; then
+    awk '/^## /{bloco=$0"\n"; conteudo=""} /^## /{proximo=1; next} proximo{conteudo=conteudo $0 "\n"} END{printf "%s%s", bloco, conteudo}' "${registros[@]}"
   else
-    echo "(REGISTRO.md ainda não existe)"
+    echo "(REGISTRO ainda não existe)"
   fi
   echo
   echo "## O que está pendente"
   echo
-  if [ -f REGISTRO.md ]; then
+  if [ "${#registros[@]}" -gt 0 ]; then
     awk -v n=5 '
     # F1 — colheita limitada de pendências + índice das anteriores.
     # n = blocos recentes emitidos por inteiro (default 5).
@@ -242,7 +261,8 @@ variantes_de() {
     /^## / {
       dentro = 0
       nent++
-      ent_ini[nent] = NR
+      ent_ini[nent] = FNR
+      ent_arq[nent] = FILENAME
       ent_tit[nent] = substr($0, 4)
       ent_dat[nent] = normdata(ent_tit[nent])
       next
@@ -289,11 +309,11 @@ variantes_de() {
           sub(/^[^ \t]+[ \t]+/, "", nome)
           d = ent_dat[e]
           if (d == "") d = substr(ent_tit[e], 1, 10)
-          printf "- **%s** — %s → `REGISTRO.md` L%d%s\n", d, encurtar(nome), ent_ini[e], (blk_risc[i] ? " *(superado)*" : "")
+          printf "- **%s** — %s → `%s` L%d%s\n", d, encurtar(nome), ent_arq[e], ent_ini[e], (blk_risc[i] ? " *(superado)*" : "")
         }
       }
     }
-    ' REGISTRO.md
+    ' "${registros[@]}"
   fi
   for p in $professores; do
     for c in $(ciclos_de "$p"); do

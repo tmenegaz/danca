@@ -134,7 +134,9 @@ repositories*. **É a proprietária quem o faz. Nunca um agente, nunca um workfl
 
 - Leia [README.md](README.md) para a visão geral e [REGRAS.md](REGRAS.md) para as regras pedagógicas e de versionamento.
 - Para ciclos, consulte [README-ciclos.md](README-ciclos.md); para decisões de método e captura, consulte [METODO.md](METODO.md), [PROTOCOLO.md](PROTOCOLO.md) e [ARQUITETURA-CAPTURA.md](ARQUITETURA-CAPTURA.md).
-- Verifique [HANDOFF.md](HANDOFF.md), [REGISTRO.md](REGISTRO.md) e [CONGELAMENTO.md](CONGELAMENTO.md) antes de alterar infraestrutura ou assumir que uma decisão está em aberto.
+- Verifique [HANDOFF.md](HANDOFF.md), [REGISTRO.md](REGISTRO.md) (o índice — as entradas vivem nos
+  `REGISTRO-<ANO>.md`) e [CONGELAMENTO.md](CONGELAMENTO.md) antes de alterar infraestrutura ou
+  assumir que uma decisão está em aberto.
 - Para gerar/validar ciclos, auditar contra as regras ou editar o deck, use os agentes de `.github/agents/` (`ciclo-entrega`, `ciclo-auditor`, `deck-rizoma`); eles dividem o trabalho por fronteira de escrita e nenhum deles edita fontes.
 - **Qualquer coisa que apareça na tela** — um formulário, um botão, uma lista, uma secção nova — nasce do **catálogo das peças** de [IDENTIDADE-VISUAL.md](IDENTIDADE-VISUAL.md), e não do zero. Nenhuma classe se inventa: ou é peça da folha, ou é gancho declarado em `tools/check-identidade.js`. O resumo executável está em [.github/instructions/identidade-visual.instructions.md](.github/instructions/identidade-visual.instructions.md), e a checagem **8 (Peça)** reprova o que escapar. Antes de dizer «pronto»: `node tools/check-identidade.js`.
 - Preserve alterações existentes no worktree. Não faça commits, branches ou resets sem solicitação explícita.
@@ -165,7 +167,7 @@ repositories*. **É a proprietária quem o faz. Nunca um agente, nunca um workfl
 
 ## Infraestrutura e versionamento
 
-- A infraestrutura listada em [CONGELAMENTO.md](CONGELAMENTO.md) só muda com motivo declarado, entrada em `REGISTRO.md` e commit próprio.
+- A infraestrutura listada em [CONGELAMENTO.md](CONGELAMENTO.md) só muda com motivo declarado, entrada no registo (`REGISTRO-<ANO>.md`) e commit próprio.
 - Instale os hooks locais com `tools/instalar-hooks.sh`. Mensagens de commit seguem `tipo(escopo): descrição` e exigem os rodapés `Refs:`, `Regras:` e `Auditoria:`.
 - Prefira alterações pequenas e valide o fluxo afetado antes de concluir. O ambiente documentado usa `pdflatex`; não troque o engine sem verificar as dependências locais.
 

@@ -40,10 +40,11 @@ Parta da data e do commit da linha «Última fotografia». Não reanalise o repo
 Altere **apenas** as secções afetadas. Nunca reescreva o documento inteiro — o custo é o motivo
 de ele existir. Atualize a linha «Última fotografia» com data e commit.
 
-### 4. A decisão vai para o REGISTRO.md
+### 4. A decisão vai para o REGISTRO
 
-Aqui fica uma linha na §6. O motivo, as alternativas e as consequências vão para o
-`REGISTRO.md`, no fim do ficheiro (ordem cronológica crescente), com o formato de
+Aqui fica uma linha na §6. O motivo, as alternativas e as consequências vão para o arquivo
+**anual** do registo (`REGISTRO-<ANO>.md`), no fim do ficheiro (ordem cronológica crescente) —
+o `REGISTRO.md` é só o índice, e escrever lá não publica marco nenhum. Formato em
 [registro-md.instructions.md](../../instructions/registro-md.instructions.md).
 
 ### 5. Validar e escrever o resultado

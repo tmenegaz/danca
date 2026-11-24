@@ -1,11 +1,25 @@
 ---
-description: "Convenções de edição do REGISTRO.md: ordem cronológica (recente no fim), estrutura das cinco seções, motivo declarado para documento congelado, nota de correção datada, e o rodapé Refs/Regras/Auditoria do commit."
-applyTo: "REGISTRO.md"
+description: "Convenções de edição do REGISTRO (índice `REGISTRO.md` + anuais `REGISTRO-<ANO>.md`): ordem cronológica (recente no fim), estrutura das cinco seções, motivo declarado para documento congelado, nota de correção datada, e o rodapé Refs/Regras/Auditoria do commit."
+applyTo: "**/REGISTRO*.md"
 ---
-# REGISTRO.md — marcos metodológicos
+# REGISTRO — marcos metodológicos
 
 Log **descritivo** do sistema (P-06), não caderno pedagógico. Registra o que foi decidido e por
 quê, para que a decisão seja rastreável depois de o contexto da conversa se perder.
+
+## Dois ficheiros, uma regra (24/11/2026)
+
+O registo é **partido por ano** desde 24/11/2026, quando o ficheiro único chegou a 4,3 MB e 60 173
+linhas:
+
+| ficheiro | o que é | como se mexe |
+|:--|:--|:--|
+| `REGISTRO.md` | **índice** — uma linha por ano, e a regra | só a tabela dos anuais, quando nasce um ano |
+| `REGISTRO-<ANO>.md` | **as entradas** do ano, por extenso | **acrescenta-se ao fim**; nunca se reordena |
+
+**Uma entrada nova vai para o arquivo do ANO dela**, no fim. O `REGISTRO.md` não recebe entradas —
+ele é o mapa. `tools/gerar-handoff.sh` lê os anuais por ordem de nome e extrai a última entrada do
+conjunto; escrever no índice não publica marco nenhum.
 
 ## Ordem: a mais recente no FIM
 
