@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-24T08:29:43-0300`
-Commit atual: `aefcd3d2` — fix(ciclo-01): o manifesto declara tudo o que o escritor grava
+Gerado em: `2026-11-24T09:58:47-0300`
+Commit atual: `a0d0fe6b` — feat(ciclo-01): a mesa dos N ciclos, e o ciclo zero que a guarda deixava passar
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,10 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+a0d0fe6b feat(ciclo-01): a mesa dos N ciclos, e o ciclo zero que a guarda deixava passar
+74a69836 docs(registro): a geração que falhou sem erro à vista, e a regra que a fecha
+00436bea chore(entrega): gerar o pacote de demi-plie/01/breu-piano
+8278192c chore(estrutura): fechar os derivados — âncoras e índices
 aefcd3d2 fix(ciclo-01): o manifesto declara tudo o que o escritor grava
 5d322d4b chore(estrutura): fechar os derivados — âncoras e índices
 0ea82c68 feat(ciclo): o «Guardar» do PO grava as fontes de breu-piano num commit só
@@ -98,10 +102,6 @@ d72feca1 feat(acervo): envelope/.indice.json
 36f5202c chore(estrutura): fechar os derivados — âncoras e índices
 04001327 feat(acervo): envelope/anamnese-20261123-1055.json
 32335396 feat(acervo): envelope/.indice.json
-ec4230f9 feat(estrutura): o «Gravar» das habilitações só acende quando o pedido mudaria
-f40dc797 feat(estrutura): habilitar demi-plie em bale-classico
-305171e6 fix(template): a seta só está onde ela a pediu, e gravar as habilitações fecha o formulário
-2741f55d audit(experimentos): a criação da escola alimenta a lista dos professores
 ```
 
 ## Por professor
@@ -195,83 +195,75 @@ f40dc797 feat(estrutura): habilitar demi-plie em bale-classico
 
 ## Última entrada do REGISTRO
 
-## 24/11/2026 — O manifesto declara tudo o que o escritor grava, e a geração volta a fechar
+## 24/11/2026 — A mesa dos N ciclos: o isolamento medido, e o ciclo zero que a guarda deixava passar
 
-**O PEDIDO.** «Eu estou com a escola Breu. Aí eu fiz toda a configuração para professor, que é o
-demi-plié. […] Aí eu fiz o plano de ensino. Eu fiz também o plano de observação, mandei gerar. E eu
-ainda não tenho o ciclo, não tenho a aula, então não gerou os documentos. E não tem nenhum erro no
-action do GitHub. Preciso que você investigue.»
+**A PERGUNTA, em duas partes.** «Preciso saber se tem para quando a gente tem n ciclos e se esses
+ciclos não se misturam, o conteúdo deles. Esse isolamento é muito importante porque a derivação não
+pode, de cada ciclo e de cada parte dentro do ciclo, não pode se misturar um com o outro e tem que
+respeitar a regra de proveniência.» E, na segunda metade: «agora que já temos vários ajustes e temos
+várias aulas dentro de um mesmo ciclo, como é que está a estimativa dos custos, principalmente o
+nosso principal gargalo que é o workflow do GitHub?»
 
-**A PRIMEIRA MEDIÇÃO CORRIGIU O PEDIDO, e sem isso a investigação ia para o lado errado.** A
-execução «Gerar o ciclo · demi-plie/01/breu-piano» de 24/11 11:16 (run `45382567181`) está
-**vermelha** — `conclusion: failure`, passo 7 «Gerar e validar o pacote». O que estava verde era a
-«Fechar os derivados» (as âncoras e os índices), que é outra execução e outro trabalho. Não havia
-erro nenhum no ecrã dela porque o erro mora no registo da execução, não na página.
+**O QUE JÁ EXISTIA, e o que era.** Cinco provas, e cada uma trava uma dimensão:
+`provar-ciclos-e-anamnese` (a sequência estrita, o buraco que não se tapa, a exclusão que guarda o
+último porque o `parentHash` do seguinte aponta para ele, e o padrão do ciclo que não come a variante
+vizinha), `provar-relacoes-do-ciclo` (um PO só nasce sobre um plano que existe e do MESMO ciclo),
+`provar-ciclo-herdado-do-plano` e `provar-ciclo-do-painel-do-po` (o ciclo do PO não se digita —
+herda-se do plano), `provar-a-aula-diz-so-o-que-e-dela` (a Aula 01 e a Aula 02 não imprimem o mesmo
+§1 nem a mesma régua) e `provar-isolamento-entre-escolas` (uma ESCOLA não alcança o dado de outra).
 
-**O LOG, e o defeito não estava em nenhum dos sítios que os erros nomeiam.** Vinte erros:
-`P-17/P-21` («ciclo com aula precisa declarar `harmonizacao` no DOCS do manifesto»), dois links de
-`aula-01.html` para `notacao.html`, um de `plano.html` para `referencias.html`, e dezasseis
-«âncora inexistente em aula-01.html → `#<bloco>-<exercício>-ob<N>`». A causa é uma só: o manifesto
-da variante dizia `DOCS="plano aula-01 captura-aula-01"` e o escritor tinha gravado, ao lado,
-`-harmonizacao.md`, `-notacao.md`, `-glossario-codigo_de_danca.md` e `-referencias.md`. O gerador
-publica o que o `DOCS` declara — as quatro fontes existiam e não entravam no pacote. E a aula só
-ganha as secções de exercício quando o gerador a compõe com a notação, o que exige `notacao` na
-lista: as dezasseis âncoras que a tabela dos objetivos cita nasciam de uma fonte que ia ser
-publicada para uma página que ia ser gerada sem elas.
+**O QUE NÃO EXISTIA, e é o que a pergunta pede.** Nenhuma punha **dois ciclos da mesma turma** na
+mesma árvore e perguntava o que esta pergunta. E o caso é o pior possível, de propósito: a variante é
+`<escola>-<turma>` (`varianteDoContexto`) e **não leva o ciclo** — dois ciclos da mesma turma
+diferem, em todo o caminho, por `ciclo-NN` e mais nada.
 
-**PORQUE ACONTECIA, e não era um caso de escola.** Havia **duas regras para a mesma lista**.
-`docsGerados` (em `escrever-ciclo.js`) sabia a lista inteira e só era chamada quando o manifesto
-ainda **não** tinha `aula-01`; o caminho normal — o «Guardar» do plano grava primeiro e já lá põe
-`aula-01` — caía no ramo que só sabe acrescentar aulas (`docsComAsAulas`). O segundo ramo é um
-subconjunto do primeiro, e por isso nada falhava: a lista simplesmente parava de crescer, em
-silêncio, no primeiro ciclo que nascesse por ali.
+**`experimentos/provar-ciclos-independentes.js`, 34 asserções.** A · o caminho carrega o ciclo, `1` e
+`01` dão o mesmo ficheiro (normalização, não um segundo), e um contexto sem ciclo é RECUSADO. B ·
+duas passagens do escritor sobre a mesma árvore não produzem um caminho em comum, e o ciclo 01 fica
+**byte a byte** igual. C · a aula de cada ciclo diz o seu número e o seu marcador, e nenhuma fonte de
+um ciclo contém o marcador do outro (a pergunta é feita a **todas** as fontes, não só à aula). D · a
+trava da aula dada é **por ciclo**: a aula 01 lançada do 01 não impede a aula 01 do 02 de nascer — se
+fosse global, o ciclo novo nascia sem a primeira aula, em silêncio. E · o `DOCS` é por manifesto, e
+gravar o 02 não acrescenta documento nenhum ao 01. F · controlo negativo: sem `ciclo-NN` no caminho
+os dois ciclos colidem no mesmo ficheiro — sem ele, a prova mediria o nome das chaves.
 
-**A CORREÇÃO É A REGRA DE 21/11 OUTRA VEZ — uma lista, um dono.** `docsCompletos` passa a viver em
-`motor/nucleo/aulas-do-ciclo.js`: a família das aulas de `docsComAsAulas`, mais harmonização,
-notação, glossário e referências, na ordem do pacote, e **sempre só a acrescentar** — um documento
-que o escritor não conhece (`pre-requisitos`, `musicalidade-aluna`, `caderno-NN`,
-`apanhado-historico`, `guia-de-observacao-NN`) fica onde está, porque a ordem em que estava é a
-ordem do menu publicado. Os dois caminhos chamam-na; `docsGerados` fica como adaptador dela.
+**E A MESA ENCONTROU UM DEFEITO, que é exactamente o que uma mesa serve para fazer.** A guarda dos
+caminhos dizia `if (!professor || !ciclo || !variante)`, e `ciclo` vinha de
+`String(ctx.ciclo || '').trim().padStart(2, '0')`. Só que `''.padStart(2, '0')` é `'00'`, e `'00'` é
+verdadeiro: **a guarda nunca disparava**, e um contexto sem ciclo escrevia em `ciclo-00-…` — um ciclo
+zero que ninguém pediu. O sinal de que isto já tinha mordido estava à vista:
+`motor/servidor/rotas.js` tem um `/^0+$/.test(ciclo)` à mão no apagar do ciclo. Duas leituras da
+mesma regra, e a do caminho estava errada.
 
-**Duas coisas caíram do mesmo movimento, e são defeito, não arrumação.** (1) `docsComAsAulas`
-devolvia a lista intacta quando não faltava aula nenhuma — `aula-01 aula-02 captura-aula-01
-captura-aula-02` ficava assim, e a mesma lista em duas ordens dava dois menús; passa a normalizar a
-família sempre, e só não muda nada quando já está na ordem certa. (2) `gerar-ciclo.sh` lia
-`fonte_md notacao` **direto do repositório** para montar a tabela dos objetivos, mesmo quando
-`notacao` não estava no `DOCS` — citava a âncora de uma página que não ia ter exercícios. A tabela
-passa a só citar o que a página vai ter.
+**A correção é uma leitura só.** `numeroDoCiclo(ctx)` em `escrever-plano.js` — devolve `''` quando não
+há ciclo ou quando é só zeros, e é ela que os cinco construtores de caminho usam (`caminhoDaFonte`,
+`caminhoDoSchemaDeCaptura`, `caminhoDaDeclaracaoDeCaptura`, `caminhoDoPlano`, `caminhoDoConf`). Quem
+chama recusa com a mensagem que já tinha; a diferença é que agora ela é alcançável.
 
-**A REPARAÇÃO DO MANIFESTO É A PRÓPRIA REGRA, não uma linha escrita à mão.** O `.conf` da
-`breu-piano` foi passado por `docsCompletos` e ficou `plano harmonizacao aula-01 captura-aula-01
-notacao glossario-codigo_de_danca referencias`. A âncora da cadeia foi refeita (`hash-ciclo.sh`) —
-e ela **muda de conteúdo**, porque a lista de fontes cobertas passa a incluir os quatro documentos
-que agora são publicados: o manifesto declara, a âncora cobre.
+**A CADEIA ENTRE CICLOS, medida à mão no mesmo dia.** Na bancada, o ciclo 02 nasce com
+`parentHash` = `hash` do 01 e `cadeia: 01-breu-piano → 02-breu-piano`. Editado o **plano do 01**
+depois de o 02 estar ancorado, o `hash-ciclo.sh --check` do 02 **recusa** (exit **1**, não 0): «o
+ciclo anterior mudou — a cadeia de ciclo-02-breu-piano deixou de bater», com os dois hashes e o
+remédio. Reancorado o 02, ele adopta o pai novo, o 01 **não é tocado**, e o `--check` volta a verde.
+E é o `derivados.yml` que o faz sozinho a cada push: `--check` por manifesto, reancoragem quando
+diverge (código 1), e **recusa** quando o que mudou foi o dicionário (código 2) — renovar o selo ali
+apagaria o único sinal de que o ciclo precisa de ser REGERADO.
 
-**MEDIDO, e a medida é o invariante e não uma lista.** A `provar-aula-dada.js` ganhou a secção F:
-«toda a fonte `.md` que o escritor grava nesta passagem está declarada no `DOCS`» — lido do que ele
-escreveu, não de uma cópia envelhecida da lista. **47/47**; contra o código anterior (`aefcd3d2^`)
-reprova **11** asserções, e o escritor aparece a gravar **seis** fontes sem declarar nenhuma.
-Controlo do outro lado, na mesma secção: um documento que o escritor não gera sobrevive no lugar
-onde estava, e um manifesto já completo não é tocado (a lista não reescreve o que está certo).
-A geração local com o mesmo commit passa de **20 erros** a `OK: 0 erro(s), 1 aviso` — 9 páginas,
-259 links.
+**O CUSTO, medido nas execuções reais e não estimado.** Mil execuções entre 15/11 e 24/11 (10 dias):
+**485 minutos de relógio**, e **1102 minutos facturáveis** — porque o GitHub cobra **cada job
+arredondado ao minuto**, e um job cancelado também paga o seu. A diferença é de **2,3×**, e é a
+primeira coisa a saber sobre esta factura. Por workflow: «Fechar os derivados» 394 execuções → **414
+min** (102 de trabalho real), com **246 canceladas** — a coalescência a funcionar, e cada cancelada a
+custar o seu minuto; «Publicar o sistema» 230 → 233 min; «Gerar o ciclo» 81 → 131 min, com 10 falhas
+e 4 canceladas; «Publicar as escolas» 84 → 89; «Regerar os índices» 87 → 87; «Publicar a raiz» 66 →
+66; «Criar a escola» 20 → 44. **Média: 110 minutos facturáveis por dia**, com o pico de 392 a
+20/11. Hoje a factura é **zero**, porque o repositório é **público** e o Actions é gratuito nele — o
+número que interessa é o da promessa comercial (§L9c do `PLANEJAMENTO-LASTRO`), e a 110 min/dia o
+teto gratuito de um repositório privado (2000 min/mês) cobre ~18 dias de trabalho como este.
 
-**E ao ar.** A execução refeita (`45384285428`, mesmos inputs) concluiu **success**; o pacote
-publicado tem as nove páginas, e em `breu.padd.com.br/piano/` o plano, a aula, a notação, as
-referências, o glossário e a folha respondem 200 — as dezasseis âncoras do plano existem todas na
-aula ao vivo. `harmonizacao.html` responde 404 **por desenho**: ela vive só no pacote desde
-23/10/2026 (`FORA_DA_PUBLICACAO`, em `tools/montar-publicacao.js`).
-
-**Com o quê.** `motor/nucleo/aulas-do-ciclo.js` (`docsCompletos`, e a normalização da família em
-`docsComAsAulas`), `motor/servidor/escrever-ciclo.js` (o `if` de dois ramos passa a uma chamada;
-`docsGerados` fica como adaptador), `tools/gerar-ciclo.sh` (a guarda da tabela),
-`professores/demi-plie/ciclos/ciclo-01-breu-piano.conf` e o `.fipp` reparados pela regra,
-`experimentos/provar-aula-dada.js` (secção F).
-
-**O QUE FICA POR DIZER, e é a pergunta que ela ainda não fez.** A lista de documentos declara o que
-o escritor grava — mas o escritor não escreve `-pre-requisitos.md` nem `-musicalidade-aluna.md`, e
-um ciclo cujo plano os peça fica com a lista a apontar ficheiros que ninguém derivou. Não é o caso
-do `breu-piano` (não os pede), e não se mexeu nisso: derivar esses dois é trabalho de outra sessão.
+**Com o quê.** `experimentos/provar-ciclos-independentes.js` (**novo**), `.gitignore` (a entrada do
+allowlist, com o motivo), `motor/servidor/escrever-plano.js` (`numeroDoCiclo`), `motor/servidor/
+escrever-ciclo.js` (os três construtores de caminho passam a usá-la).
 
 ## O que está pendente
 

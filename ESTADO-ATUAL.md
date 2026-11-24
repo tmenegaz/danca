@@ -4,7 +4,26 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 24/11/2026 — **o manifesto declara tudo o que o escritor grava.** Ela
+> **Última fotografia:** 24/11/2026 — **a mesa dos N ciclos.** Pergunta dela: «preciso saber se tem
+> para quando a gente tem n ciclos e se esses ciclos não se misturam, o conteúdo deles». Havia cinco
+> provas, e cada uma travava uma dimensão (a sequência estrita, o PO que herda o ciclo do plano, a
+> exclusão que guarda o último, a Aula 01 e a Aula 02 que não imprimem o mesmo §1, o isolamento
+> entre ESCOLAS) — **nenhuma punha dois ciclos da mesma turma** na mesma árvore. E o caso é o pior
+> de propósito: a variante é `<escola>-<turma>` e não leva o ciclo, de modo que dois ciclos da mesma
+> turma diferem, em todo o caminho, por `ciclo-NN` e mais nada. **`provar-ciclos-independentes`
+> (34/34)**: nada colide, o ciclo 01 fica byte a byte igual, nenhuma fonte de um ciclo contém o
+> marcador do outro, e a trava da aula dada é **por ciclo** (a aula 01 lançada do 01 não impede a do
+> 02 de nascer). **E a mesa encontrou um defeito na primeira corrida:** a guarda dos caminhos dizia
+> `if (!ciclo)` sobre um valor que vinha de `''.padStart(2,'0')` = `'00'` — verdadeiro —, e um
+> contexto sem ciclo escrevia em `ciclo-00-…`. `numeroDoCiclo` passa a ser a leitura única.
+> **A cadeia entre ciclos, medida:** editado o plano do 01 depois de o 02 estar ancorado, o `--check`
+> do 02 **recusa** (exit 1, com os dois hashes e o remédio); reancorado, adopta o pai novo e o 01 não
+> é tocado — e é o `derivados.yml` que o faz a cada push. **O custo, medido:** mil execuções em 10
+> dias dão **485 min de relógio e 1102 min facturáveis** (o GitHub cobra cada job arredondado ao
+> minuto, cancelados incluídos — 2,3×); média de **110 min/dia**, e hoje a factura é **zero** porque
+> o repositório é público.
+>
+> **Fotografia anterior (24/11/2026 — o manifesto declara tudo o que o escritor grava).** Ela
 > configurou a `breu` de ponta a ponta (professor `demi-plié`, plano de ensino, plano de observação,
 > «Gerar») e não nasceu ciclo, aula nem documento — «e não tem nenhum erro no action do GitHub».
 > **A execução estava vermelha**: «Gerar o ciclo · demi-plie/01/breu-piano» (run `45382567181`)
@@ -3952,6 +3971,15 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      `guia-de-observacao-NN`) **fica onde está**, porque a ordem declarada é a ordem do menu
      publicado. E **a tabela dos objetivos só cita a âncora de exercício quando `notacao` está na
      lista** — o que a página não vai ter, a tabela não cita. **DECIDIDO** 24/11/2026.
+175. **CADA CICLO É UM MUNDO FECHADO, E A PROVA É UMA SÓ PARA OS N.** O que isola dois ciclos não é
+     um `if` — é o **caminho carregar o ciclo** (`ciclo-NN` em toda fonte derivada) e a leitura ser
+     **por ciclo** em cada sítio que decide alguma coisa. Dois ciclos da mesma turma são o pior caso,
+     porque a variante (`<escola>-<turma>`) não leva o ciclo: diferem por `ciclo-NN` e mais nada.
+     **A trava da aula dada é por ciclo** — `aulas[NN]` do `-dados.json` de um ciclo não tranca a
+     aula do outro, senão o ciclo novo nasce sem a primeira aula, em silêncio. **Um ciclo não é
+     zero:** um contexto sem ciclo é RECUSADO, não convertido em `00` (`numeroDoCiclo`). **E a cadeia
+     atravessa os ciclos** — o `parentHash` do 02 é o `hash` do 01; editar o 01 faz o `--check` do 02
+     recusar, e o `derivados.yml` reancora o 02 ao pai novo sem tocar no 01. **DECIDIDO** 24/11/2026.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
@@ -4864,7 +4892,18 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (24/11/2026 — o manifesto declara tudo o que o escritor grava)
+### Executado nesta fotografia (24/11/2026 — a mesa dos N ciclos)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-ciclos-independentes.js` (**nova**) | **34/34**. §A o caminho carrega o ciclo, `1` e `01` dão o mesmo ficheiro, e um contexto sem ciclo é **recusado**. §B duas passagens do escritor na mesma árvore não produzem um caminho em comum, e o ciclo 01 fica **byte a byte** igual. §C a aula de cada ciclo diz o seu número e o seu marcador, e **nenhuma** fonte de um ciclo contém o marcador do outro. §D a trava da aula dada é **por ciclo**: a aula 01 lançada do 01 não impede a do 02 de nascer. §E o `DOCS` é por manifesto. §F controlo negativo: sem `ciclo-NN` no caminho, os dois colidem no mesmo ficheiro |
+| o defeito que a mesa encontrou | antes da correção, a asserção «um contexto SEM ciclo é recusado» **falhava**: `''.padStart(2,'0')` é `'00'`, e a guarda `if (!ciclo)` nunca disparava — o contexto escrevia em `ciclo-00-…`. O `rotas.js` já tinha um `/^0+$/.test(ciclo)` à mão, a cicatriz de uma vez anterior |
+| `provar-aula-dada` · `provar-relacoes-do-ciclo` · `provar-ciclos-e-anamnese` · `provar-um-commit-por-guardar` · `provar-derivados-do-po` | 47/47 · 23/23 · 34/34 · 22/22 · 16/16 — as duas primeiras famílias depois da correção do `numeroDoCiclo` |
+| `provar-manifesto-do-plano` · `provar-o-commit-do-po` · `provar-orcamento-do-guardar` · `provar-criar-aula` · `provar-o-portao-da-aula-dada` | falham, e **igual sem esta mudança** (conferido com `stash`): os dois primeiros por um `ciclo-01.conf` de escola e envelopes da `breu` que já não existem no disco, o terceiro por `python3` fora do `PATH` do processo, o quarto por ler `ciclo-01-breu-rosa/`, que o expurgo levou |
+| a cadeia entre ciclos, **medida à mão** numa bancada | com o ciclo 02 ancorado (`parentHash` = `hash` do 01, `cadeia: 01-breu-piano → 02-breu-piano`), editar o plano do 01 faz o `--check` do 02 **recusar** — exit **1**, «a cadeia de ciclo-02-breu-piano deixou de bater», com os dois hashes e o remédio. Reancorado, adopta o pai novo, o 01 não é tocado, e o `--check` volta a **0**. **NÃO está numa prova automática**: quem o corre a cada push é o passo «Reancorar os ciclos que divergiram» do `derivados.yml` |
+| o custo, medido nas execuções reais | **1000 execuções** entre 15/11 e 24/11: **485 min de relógio**, **1102 min facturáveis** (job arredondado ao minuto, cancelados incluídos — 2,3×). Por workflow: derivados 394→414 min (246 canceladas), publicar 230→233, gerar 81→131 (10 falhas), publicar-escolas 84→89, regerar-índices 87→87, raiz 66→66, criar-escola 20→44. **110 min/dia**, pico de **392** a 20/11. **Hoje a factura é zero**: o repositório é público |
+
+### Executado na fotografia anterior (24/11/2026 — o manifesto declara tudo o que o escritor grava)
 
 | Verificação | Resultado |
 |:--|:--|

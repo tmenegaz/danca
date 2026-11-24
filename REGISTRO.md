@@ -60101,3 +60101,73 @@ aula ao vivo. `harmonizacao.html` responde 404 **por desenho**: ela vive só no 
 o escritor grava — mas o escritor não escreve `-pre-requisitos.md` nem `-musicalidade-aluna.md`, e
 um ciclo cujo plano os peça fica com a lista a apontar ficheiros que ninguém derivou. Não é o caso
 do `breu-piano` (não os pede), e não se mexeu nisso: derivar esses dois é trabalho de outra sessão.
+
+## 24/11/2026 — A mesa dos N ciclos: o isolamento medido, e o ciclo zero que a guarda deixava passar
+
+**A PERGUNTA, em duas partes.** «Preciso saber se tem para quando a gente tem n ciclos e se esses
+ciclos não se misturam, o conteúdo deles. Esse isolamento é muito importante porque a derivação não
+pode, de cada ciclo e de cada parte dentro do ciclo, não pode se misturar um com o outro e tem que
+respeitar a regra de proveniência.» E, na segunda metade: «agora que já temos vários ajustes e temos
+várias aulas dentro de um mesmo ciclo, como é que está a estimativa dos custos, principalmente o
+nosso principal gargalo que é o workflow do GitHub?»
+
+**O QUE JÁ EXISTIA, e o que era.** Cinco provas, e cada uma trava uma dimensão:
+`provar-ciclos-e-anamnese` (a sequência estrita, o buraco que não se tapa, a exclusão que guarda o
+último porque o `parentHash` do seguinte aponta para ele, e o padrão do ciclo que não come a variante
+vizinha), `provar-relacoes-do-ciclo` (um PO só nasce sobre um plano que existe e do MESMO ciclo),
+`provar-ciclo-herdado-do-plano` e `provar-ciclo-do-painel-do-po` (o ciclo do PO não se digita —
+herda-se do plano), `provar-a-aula-diz-so-o-que-e-dela` (a Aula 01 e a Aula 02 não imprimem o mesmo
+§1 nem a mesma régua) e `provar-isolamento-entre-escolas` (uma ESCOLA não alcança o dado de outra).
+
+**O QUE NÃO EXISTIA, e é o que a pergunta pede.** Nenhuma punha **dois ciclos da mesma turma** na
+mesma árvore e perguntava o que esta pergunta. E o caso é o pior possível, de propósito: a variante é
+`<escola>-<turma>` (`varianteDoContexto`) e **não leva o ciclo** — dois ciclos da mesma turma
+diferem, em todo o caminho, por `ciclo-NN` e mais nada.
+
+**`experimentos/provar-ciclos-independentes.js`, 34 asserções.** A · o caminho carrega o ciclo, `1` e
+`01` dão o mesmo ficheiro (normalização, não um segundo), e um contexto sem ciclo é RECUSADO. B ·
+duas passagens do escritor sobre a mesma árvore não produzem um caminho em comum, e o ciclo 01 fica
+**byte a byte** igual. C · a aula de cada ciclo diz o seu número e o seu marcador, e nenhuma fonte de
+um ciclo contém o marcador do outro (a pergunta é feita a **todas** as fontes, não só à aula). D · a
+trava da aula dada é **por ciclo**: a aula 01 lançada do 01 não impede a aula 01 do 02 de nascer — se
+fosse global, o ciclo novo nascia sem a primeira aula, em silêncio. E · o `DOCS` é por manifesto, e
+gravar o 02 não acrescenta documento nenhum ao 01. F · controlo negativo: sem `ciclo-NN` no caminho
+os dois ciclos colidem no mesmo ficheiro — sem ele, a prova mediria o nome das chaves.
+
+**E A MESA ENCONTROU UM DEFEITO, que é exactamente o que uma mesa serve para fazer.** A guarda dos
+caminhos dizia `if (!professor || !ciclo || !variante)`, e `ciclo` vinha de
+`String(ctx.ciclo || '').trim().padStart(2, '0')`. Só que `''.padStart(2, '0')` é `'00'`, e `'00'` é
+verdadeiro: **a guarda nunca disparava**, e um contexto sem ciclo escrevia em `ciclo-00-…` — um ciclo
+zero que ninguém pediu. O sinal de que isto já tinha mordido estava à vista:
+`motor/servidor/rotas.js` tem um `/^0+$/.test(ciclo)` à mão no apagar do ciclo. Duas leituras da
+mesma regra, e a do caminho estava errada.
+
+**A correção é uma leitura só.** `numeroDoCiclo(ctx)` em `escrever-plano.js` — devolve `''` quando não
+há ciclo ou quando é só zeros, e é ela que os cinco construtores de caminho usam (`caminhoDaFonte`,
+`caminhoDoSchemaDeCaptura`, `caminhoDaDeclaracaoDeCaptura`, `caminhoDoPlano`, `caminhoDoConf`). Quem
+chama recusa com a mensagem que já tinha; a diferença é que agora ela é alcançável.
+
+**A CADEIA ENTRE CICLOS, medida à mão no mesmo dia.** Na bancada, o ciclo 02 nasce com
+`parentHash` = `hash` do 01 e `cadeia: 01-breu-piano → 02-breu-piano`. Editado o **plano do 01**
+depois de o 02 estar ancorado, o `hash-ciclo.sh --check` do 02 **recusa** (exit **1**, não 0): «o
+ciclo anterior mudou — a cadeia de ciclo-02-breu-piano deixou de bater», com os dois hashes e o
+remédio. Reancorado o 02, ele adopta o pai novo, o 01 **não é tocado**, e o `--check` volta a verde.
+E é o `derivados.yml` que o faz sozinho a cada push: `--check` por manifesto, reancoragem quando
+diverge (código 1), e **recusa** quando o que mudou foi o dicionário (código 2) — renovar o selo ali
+apagaria o único sinal de que o ciclo precisa de ser REGERADO.
+
+**O CUSTO, medido nas execuções reais e não estimado.** Mil execuções entre 15/11 e 24/11 (10 dias):
+**485 minutos de relógio**, e **1102 minutos facturáveis** — porque o GitHub cobra **cada job
+arredondado ao minuto**, e um job cancelado também paga o seu. A diferença é de **2,3×**, e é a
+primeira coisa a saber sobre esta factura. Por workflow: «Fechar os derivados» 394 execuções → **414
+min** (102 de trabalho real), com **246 canceladas** — a coalescência a funcionar, e cada cancelada a
+custar o seu minuto; «Publicar o sistema» 230 → 233 min; «Gerar o ciclo» 81 → 131 min, com 10 falhas
+e 4 canceladas; «Publicar as escolas» 84 → 89; «Regerar os índices» 87 → 87; «Publicar a raiz» 66 →
+66; «Criar a escola» 20 → 44. **Média: 110 minutos facturáveis por dia**, com o pico de 392 a
+20/11. Hoje a factura é **zero**, porque o repositório é **público** e o Actions é gratuito nele — o
+número que interessa é o da promessa comercial (§L9c do `PLANEJAMENTO-LASTRO`), e a 110 min/dia o
+teto gratuito de um repositório privado (2000 min/mês) cobre ~18 dias de trabalho como este.
+
+**Com o quê.** `experimentos/provar-ciclos-independentes.js` (**novo**), `.gitignore` (a entrada do
+allowlist, com o motivo), `motor/servidor/escrever-plano.js` (`numeroDoCiclo`), `motor/servidor/
+escrever-ciclo.js` (os três construtores de caminho passam a usá-la).
