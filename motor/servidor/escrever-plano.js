@@ -37,6 +37,27 @@ function decodificarBase64(b64) {
 }
 
 /**
+ * O NÚMERO DO CICLO, COM DOIS DÍGITOS — E VAZIO QUANDO NÃO HÁ CICLO (24/11/2026).
+ *
+ * PORQUE ISTO EXISTE, e o defeito era a guarda a fingir que protegia. O caminho de toda fonte
+ * derivada fazia `String(ctx.ciclo || '').trim().padStart(2, '0')` e depois perguntava
+ * `if (!ciclo) throw`. Só que `''.padStart(2, '0')` é `'00'`, e `'00'` é verdadeiro: a guarda
+ * NUNCA disparava, e um contexto sem ciclo escrevia em `ciclo-00-…` — um ciclo zero que ninguém
+ * pediu. Medido em 24/11/2026 na prova `provar-ciclos-independentes` («um contexto SEM ciclo é
+ * recusado»), e o `motor/servidor/rotas.js` já tinha um `/^0+$/.test(ciclo)` à mão no apagar do
+ * ciclo — a cicatriz de uma vez anterior em que isto mordeu.
+ *
+ * Devolve `''` (e quem chama recusa, com a mensagem que já tinha) em vez de inventar `00`.
+ */
+function numeroDoCiclo(contexto) {
+  const bruto = String((contexto && contexto.ciclo) || '').trim();
+  if (!bruto) return '';
+  const numero = bruto.padStart(2, '0');
+  // `0`, `00`, `000` — um ciclo não é zero. É a mesma recusa do `rotas.js`, no sítio onde nasce.
+  return /^0+$/.test(numero) ? '' : numero;
+}
+
+/**
  * O caminho da fonte a partir do contexto — a MESMA regra do `-po.md`
  * (`caminhoDoPO`), trocando o sufixo por `-plano.md`. O `professor` é o SLUG da
  * pasta; sem escola/professor/ciclo, o caminho não pode ser composto e o
@@ -50,7 +71,7 @@ function decodificarBase64(b64) {
 function caminhoDoPlano(contexto) {
   const ctx = contexto || {};
   const professor = String(ctx.professor || '').trim();
-  const ciclo = String(ctx.ciclo || '').trim().padStart(2, '0');
+  const ciclo = numeroDoCiclo(ctx);
   const variante = varianteDoContexto(ctx);
   if (!professor || !ciclo || !variante) {
     throw new Error('contexto incompleto para a fonte do plano: precisa de professor, ciclo e escola');
@@ -62,7 +83,7 @@ function caminhoDoPlano(contexto) {
 function caminhoDoConf(contexto) {
   const ctx = contexto || {};
   const professor = String(ctx.professor || '').trim();
-  const ciclo = String(ctx.ciclo || '').trim().padStart(2, '0');
+  const ciclo = numeroDoCiclo(ctx);
   const variante = varianteDoContexto(ctx);
   return 'professores/' + professor + '/ciclos/ciclo-' + ciclo + '-' + variante + '.conf';
 }
@@ -195,7 +216,7 @@ async function comporManifestoDaTurma({ f, cabecalhos, url, caminho, contexto, p
     plano,
     identidade,
     escola,
-    ciclo: String(contexto.ciclo || '').padStart(2, '0'),
+    ciclo: numeroDoCiclo(contexto),
     docs: atual.existe ? docsDoConf(atual.texto) : undefined,
   });
 
@@ -371,6 +392,7 @@ function criarEscritorDePlano({ token, dono, repo, ref, lerTurmas, fetchImpl }) 
 }
 
 module.exports = {
+  numeroDoCiclo,
   caminhoDoPlano,
   caminhoDoConf,
   criarEscritorDePlano,

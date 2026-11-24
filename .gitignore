@@ -1893,6 +1893,14 @@ experimentos/modelo-formulario/*
 # com controle negativo, o `git add` do pathspec vazio morre com 128.
 !experimentos/provar-os-restos-do-expurgo.js
 
+# A PROVA DOS N CICLOS (24/11/2026): dois ciclos da MESMA turma no mesmo repositório, e a pergunta
+# dela — «os ciclos não se misturam, o conteúdo deles?». A variante é `<escola>-<turma>` e não leva
+# o ciclo, de modo que dois ciclos da mesma turma diferem, em todo o caminho, por `ciclo-NN` e mais
+# nada: é o pior caso, e é o que a prova monta. Mede também o defeito que ela encontrou na primeira
+# corrida — um contexto SEM ciclo escrevia em `ciclo-00-…`, porque `''.padStart(2,'0')` é `'00'` e
+# a guarda `if (!ciclo)` nunca disparava.
+!experimentos/provar-ciclos-independentes.js
+
 # A PROVA DOS DADOS DA ESCOLA (23/11/2026). Ela quis o CNPJ da `breu` que acabara de expurgar, e ele
 # já não existia em sítio nenhum: o expurgo limpa `bastidores/<slug>/`, e o cadastro da escola vive
 # lá. A chave nova (`cadastros/<slug>`) fica FORA dos dois prefixos, e é isso que a faz sobreviver —

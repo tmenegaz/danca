@@ -28,7 +28,8 @@
  */
 
 const { escreverPO, ACEITE, API_VERSAO, varianteDoContexto, dicaDeAuth } = require('./escrever-po.js');
-const { codificarBase64, decodificarBase64, caminhoDoConf } = require('./escrever-plano.js');
+const { codificarBase64, decodificarBase64, caminhoDoConf, numeroDoCiclo } =
+  require('./escrever-plano.js');
 const { orcamentoDe } = require('./subpedidos.js');
 const { cifrarEnvelopeDeDados } = require('./cifrar-envelope.js');
 const { respostaDo } = require('../nucleo/derivar-po.js');
@@ -58,7 +59,7 @@ const { aulasLancadas, podeRegenerar, numeroDaAula, aulasDeclaradasPeloPlano, do
 // definição é UMA só, em `escrever-po.js`, e é ela que os três escritores usam.
 function caminhoDaFonte(contexto, sufixo) {
   const professor = String(contexto.professor || '').trim();
-  const ciclo = String(contexto.ciclo || '').trim().padStart(2, '0');
+  const ciclo = numeroDoCiclo(contexto);
   const variante = varianteDoContexto(contexto);
   if (!professor || !ciclo || !variante) {
     throw new Error('contexto incompleto para a fonte do ciclo: precisa de professor, ciclo e escola');
@@ -69,7 +70,10 @@ function caminhoDaFonte(contexto, sufixo) {
 /** O caminho do schema de captura — POR PROFESSOR/CICLO, com um `porVariante` por escola. */
 function caminhoDoSchemaDeCaptura(contexto) {
   const professor = String(contexto.professor || '').trim();
-  const ciclo = String(contexto.ciclo || '').trim().padStart(2, '0');
+  const ciclo = numeroDoCiclo(contexto);
+  if (!professor || !ciclo) {
+    throw new Error('contexto incompleto para o schema da captura: precisa de professor e ciclo');
+  }
   return 'professores/' + professor + '/ciclos/ciclo-' + ciclo + '-captura-schema.json';
 }
 
@@ -91,7 +95,7 @@ function caminhoDoSchemaDeCaptura(contexto) {
  */
 function caminhoDaDeclaracaoDeCaptura(contexto) {
   const professor = String(contexto.professor || '').trim();
-  const ciclo = String(contexto.ciclo || '').trim().padStart(2, '0');
+  const ciclo = numeroDoCiclo(contexto);
   const variante = varianteDoContexto(contexto);
   if (!professor || !ciclo || !variante) {
     throw new Error('contexto incompleto para a declaração da captura: precisa de professor,'
