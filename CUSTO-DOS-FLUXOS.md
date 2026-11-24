@@ -2499,3 +2499,113 @@ que não reescreve nada nem faz um segundo commit.
 **32 asserções**, todas verdes; e a secção D é vermelha sem a mudança (conferido com `git stash`:
 4 de 32 falham, e a mensagem diz o que viu em vez de rebentar num `TypeError` — foi preciso
 corrigir a prova para isso).
+
+---
+
+## 19. A analítica do Cloudflare — o número que faltava, e a frase que era falsa *(25/11/2026)*
+
+> «Precisa habilitar no worker do Cloudflare a permissão de analítica para você poder fazer aqui um
+> monitoramento dos pedidos que são feitos por dia no worker, a escrita de KV por dia e a leitura de
+> KV por dia. Como é que eu faço isso?»
+
+### 19.1 A resposta é: já está — e o painel dizia o contrário
+
+Desde 17/11/2026 o `resumirCloudflare` declarava, em letra escrita:
+
+> «a leitura de analítica exige um token do Cloudflare com permissão de analítica, **que este Worker
+> não tem**»
+
+**Medido a 25/11/2026, com o token que o Worker já tem: tem.** O secret `CLOUDFLARE_API_TOKEN` está
+no Worker `danca`, e o token responde ao GraphQL. A sonda devolveu `kvOperationsAdaptiveGroups` com
+2 615 leituras e 25 escritas de 23/11, e `workersInvocationsAdaptive` com os pedidos por script.
+
+**Uma limitação declarada que é falsa é pior do que uma omissão.** Ela não é neutra: faz quem lê
+desistir de pedir o número, e faz quem podia resolver acreditar que há algo a resolver. Foi a
+proprietária que a desconfiou — e a desconfiança estava certa.
+
+### 19.2 O que se mede, agora
+
+| dia | pedidos | leituras KV | escritas KV | listagens | apagamentos |
+|:--|--:|--:|--:|--:|--:|
+| 18/11 | 2 482 | 10 032 | 114 (**11,4 %**) | 5 | 8 |
+| 19/11 | 2 391 | 10 089 | 62 (6,2 %) | 3 | 8 |
+| **20/11** | 2 962 | **12 804** | **234 (23,4 %)** | 2 | 8 |
+| 21/11 | 2 029 | 6 630 | 50 (5,0 %) | 0 | 4 |
+| 22/11 | 1 223 | 4 792 | 10 (1,0 %) | 26 | 6 |
+| 23/11 | 819 | 2 615 | 25 (2,5 %) | 61 | 31 |
+| 24/11 | 512 | 1 697 | 15 (1,5 %) | 11 | 5 |
+
+*(percentagens sobre as cotas do plano gratuito; lidas em 25/11/2026. Por Worker, no período:
+`lastro-teste` 9 844 pedidos, `danca` 2 574.)*
+
+**A leitura que importa, e é uma correção de expectativa:** o recurso que aperta **não é o que
+parecia**. Os pedidos estão a **0,5–3 %** de 100 000. As **escritas de KV** são o mais perto do tecto
+— **23,4 %** em 20/11, e a cota é de **1 000 por dia**. As listagens, que já se sabiam caras, estão a
+61 de 1 000.
+
+### 19.3 Três decisões de desenho, e as três são de medição
+
+**Uma consulta, não duas.** As duas famílias vivem debaixo de `viewer.accounts`, e cada chamada ao
+GraphQL é **um subpedido** — o orçamento do Worker é de 50 por invocação e o painel já gasta 16 a 27.
+Foi preciso verificar que uma consulta com os dois nós devolve os dois: devolve.
+
+**A granularidade é o DIA, e isso foi medido contra a armadilha.** A primeira sonda agregou por
+`datetime` (minuto) com `limit: 10000` sobre sete dias: **9 113 grupos num só dia com tráfego**, e um
+tecto que corta **em silêncio**. A agregação por `date` dá **2 grupos por dia** (um por script) e
+nenhum risco de corte. E confere: somados os dois modos no mesmo dia, **2 029 pelos dois lados,
+diferença zero**. A agregação por minuto não foi posta de lado por ser mais fina — foi posta de lado
+por ter um tecto que mente.
+
+**O alerta lê o PICO, não o hoje.** A cota é diária e volta a zero à meia-noite UTC. Hoje às 0,5 %
+não diz nada sobre o risco; o dia em que se escreveram 234 chaves diz tudo. E o pico é **estável** —
+não oscila com a hora a que se abre o painel, ao contrário do número do dia. O hoje fica ao lado,
+porque é a outra pergunta («como está agora?»). Na página, a barra é o pico e a linha de baixo diz
+«hoje».
+
+### 19.4 O que não se inventa
+
+- **O zero de um dia sem tráfego é um facto**, e por isso entra a zero: a pergunta é «quantos pedidos
+  houve» e a resposta é nenhum. É o oposto do zero de uma leitura falhada, que não se escreve.
+- **O que falha é declarado, e nunca zerado.** Sem token; **403** (com a permissão nomeada — é o caso
+  que a frase antiga descrevia); **`errors` no corpo com HTTP 200** (o GraphQL devolve assim, e ler só
+  o `data` publicaria metade dos números como se fossem todos); rede a rebentar. Nos quatro,
+  `ok: false` com motivo, e o painel volta a dizer que não mediu — agora com o **motivo da falha**.
+- **Chegar ao tecto de 1 000 grupos faz do número um mínimo**, e diz-se na página.
+- **Estes números são do fornecedor, não nossos.** Vêm de conjuntos com **amostragem adaptativa**: em
+  volume baixo são exactos, em volume alto são extrapolações do Cloudflare. Está dito no painel, e é a
+  diferença entre mostrar o número do fornecedor e apresentar uma segunda conta como se fosse igual.
+
+### 19.5 A cache, e porquê 15 minutos
+
+A cota é **diária**; o número muda de hora a hora, não de segundo a segundo. A janela de execuções do
+GitHub ficou com 2 minutos porque um run novo entra a qualquer momento; esta ficou com **15**, porque
+nada muda entre duas aberturas do painel. `0` subpedidos na segunda abertura, medido.
+
+### 19.6 A prova
+
+`experimentos/provar-a-analitica-do-cloudflare.js` — **43 asserções**, com um Cloudflare de mentira
+que conta as chamadas e serve o que lhe mandarem. As sete secções, e as que mais importam:
+
+- **B** — os dias sem tráfego entram a **zero**, e um dia que falta na resposta não é o mesmo que um
+  dia com zero pedidos;
+- **D** — as quatro falhas declaradas, com a permissão **nomeada** no 403;
+- **E** — o pico a mandar no alerta, com o **controlo negativo**: olhando só o hoje, este parque dava
+  «folga» com as escritas a 90 % no pico;
+- **G** — o aviso do «não mede» **desaparece** quando se mede, e a frase falsa sobre a permissão não
+  está na página; e **volta**, com o motivo da falha, quando não se mede.
+
+**Vermelha sem a mudança** (conferido com `git stash -u`: rebenta por não achar o módulo).
+
+E de ponta a ponta, pela rota verdadeira com a analítica **verdadeira** e o GitHub de mentira:
+**fria 1 chamada ao GraphQL, quente 0**, com os sete dias, as cinco operações e os dois scripts — e o
+**pior indicador da casa a ler 23,4 %**, que é a cota das escritas de KV.
+
+### 19.7 O que mudou
+
+| ficheiro | o quê |
+|:--|:--|
+| `motor/servidor/analitica-cloudflare.js` | **novo** — a consulta, o dia a dia, as quatro acções, o truncado e as falhas declaradas |
+| `motor/nucleo/monitoramento.js` | `operacoesDoCloudflare`, `resumirCloudflare` com `analitica`, o motivo da falha no lugar da frase fixa, e `fraccaoOperacoes` no pior indicador |
+| `motor/servidor/raiz.js` | a leitura com cache de 15 minutos (`CACHE_DA_ANALITICA_MS`), 1 subpedido, e a conta do orçamento corrigida para 27/16 |
+| `motor/servidor/painel-html.js` | `blocoDasOperacoes` — cinco barras (o pico), a tabela dos dias, os Workers, o truncado e a nota da amostragem |
+| `experimentos/provar-a-analitica-do-cloudflare.js` | **novo** — 43 asserções |

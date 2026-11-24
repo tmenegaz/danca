@@ -360,8 +360,31 @@ function conferir(titulo, condicao, dado) {
     });
     conferir('a ocupação soma chaves e bytes das escolas',
       cf.chaves === 200 && Math.round(cf.armazenamentoGb * 1024) === 3, [cf.chaves, cf.armazenamentoGb]);
+    /* A FORMA, E NÃO O NÚMERO (25/11/2026). Aqui esteve `length === 3`, e o número passou a ser
+     * cinco quando as LISTAGENS e os APAGAMENTOS entraram na lista — as duas estavam declaradas nas
+     * cotas desde o início e nunca eram nomeadas, e uma cota que existe e não se nomeia é uma cota
+     * que ninguém vigia. Uma prova que fixa a contagem fica vermelha sobre um mundo melhor; o que
+     * ela tem de afirmar é a REGRA: tudo o que não se mediu aparece, com a cota ao lado. */
     conferir('…e lista o que NÃO foi medido, com a cota ao lado',
-      cf.naoMedido.length === 3 && cf.naoMedido.every((n) => Number(n.cota) > 0), cf.naoMedido);
+      cf.naoMedido.length === 5 && cf.naoMedido.every((n) => Number(n.cota) > 0), cf.naoMedido);
+    /* E as cotas que ele nomeia são as do plano, uma a uma — nomear uma cota que não existe seria
+     * tão errado como não nomear a que existe. */
+    const cotasDoPlano = [cf.cotas.pedidosDia, cf.cotas.leiturasKvDia, cf.cotas.escritasKvDia,
+      cf.cotas.listasKvDia, cf.cotas.apagamentosKvDia];
+    conferir('…e cada uma leva a cota do plano, e não um número inventado',
+      cf.naoMedido.every((n) => cotasDoPlano.indexOf(Number(n.cota)) !== -1),
+      cf.naoMedido.map((n) => n.cota));
+    /* QUANDO SE MEDE, A LISTA FICA VAZIA — e o aviso do painel desaparece com ela. */
+    const comAnalitica = monitor.resumirCloudflare({
+      escolas: [{ slug: 'breu' }], chaves: {},
+      analitica: { ok: true, truncado: false, janela: { desde: '2026-11-19', ate: '2026-11-25', dias: 7 },
+        hoje: { dia: '2026-11-25', pedidos: 1, leituras: 2, escritas: 3, listas: 4, apagamentos: 5 },
+        dias: [{ dia: '2026-11-20', pedidos: 10, leituras: 20, escritas: 30, listas: 40, apagamentos: 50 }],
+        porScript: [] },
+    });
+    conferir('…e com a analítica lida a lista fica vazia',
+      comAnalitica.naoMedido.length === 0 && comAnalitica.motivoNaoMedido === null,
+      [comAnalitica.naoMedido.length, comAnalitica.motivoNaoMedido]);
     conferir('…e diz PORQUE não foi medido, em vez de mostrar zero',
       /analítica|analytics/i.test(cf.motivoNaoMedido), cf.motivoNaoMedido);
     /* SEM CHAVES LIDAS, a escola aparece com `medido: false` — não desaparece da lista. */

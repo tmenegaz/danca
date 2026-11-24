@@ -33,6 +33,7 @@ const comercial = require('../nucleo/comercial.js');
 const monitoramento = require('../nucleo/monitoramento.js');
 /* O QUE O MONITOR LÊ DO MUNDO — GitHub, KV — separado da CONTA, para a conta se medir sem rede. */
 const leituraDoMonitor = require('./leitura-do-monitor.js');
+const analiticaDoCf = require('./analitica-cloudflare.js');
 /* O diagnóstico do endereço próprio (`/api/dominio`) — o mesmo módulo que o provisionamento usa
  * para criar o registo e a rota. É de propósito: o diagnóstico não pode ter uma segunda opinião
  * sobre o que é «ter endereço». */
@@ -4326,6 +4327,7 @@ async function fetch(request, env) {
         medidos: {}, lidoEm: null, chavesEm: null, chaves: {},
         conferencia: null, conferenciaEm: null, facturado: null, facturadoEm: null,
         visibilidade: null, visibilidadeEm: null, janela: null, janelaEm: null,
+        analitica: null, analiticaEm: null,
       };
       try {
         const texto = kv && typeof kv.get === 'function' ? await kv.get('monitor/cache') : null;
@@ -4394,10 +4396,14 @@ async function fetch(request, env) {
       }
 
       /* MEDIR OS JOBS QUE FALTAM, com tecto. A conta dos subpedidos, CORRIGIDA a 25/11/2026 com o
-       * filtro no pedido e a janela em cache:
+       * filtro no pedido, a janela em cache e a analítica do Cloudflare:
        *
-       *   abertura FRIA  — 11 páginas de runs + 12 medições + 2 de KV + 1 de listagem = 26
-       *   abertura QUENTE — 0 páginas + 12 medições + 2 de KV + 1 de listagem = 15
+       *   abertura FRIA  — 11 páginas de runs + 12 medições + 2 de KV + 1 de listagem + 1 de
+       *                    analítica = 27
+       *   abertura QUENTE — 0 páginas + 12 medições + 2 de KV + 1 de listagem + 1 de analítica = 16
+       *
+       * (a analítica entra depois de as chaves serem lidas, e é UM pedido para as duas famílias —
+       * pedidos ao Worker e operações de KV vão na mesma consulta.)
        *
        * (a facturação e a conferência somam 1 ou 2, e são de 6 em 6 horas). O comentário antigo
        * dizia «30 páginas + 12 + 2 + 1 = 45» — era verdade antes do filtro, e uma conta de orçamento
@@ -4538,7 +4544,35 @@ async function fetch(request, env) {
        * é «sei, e não há nenhuma». */
       cache.chaves = podarChavesDeEscolasMortas(chaves, token ? escolas : null);
 
-      const cloudflare = monitoramento.resumirCloudflare({ escolas, chaves });
+      /* A ANALÍTICA DO CLOUDFLARE — os pedidos e as operações de KV por dia (25/11/2026).
+       *
+       * ERA O NÚMERO QUE FALTAVA. O painel dizia «não se mede» com uma razão que era falsa («este
+       * Worker não tem a permissão») — tem-na, e a sonda de 25/11/2026 devolveu números reais. Um
+       * subpedido por leitura, porque as duas famílias vão na MESMA consulta.
+       *
+       * A CACHE DE 15 MINUTOS não é zelo: a cota do Cloudflare é DIÁRIA, e o número muda de hora a
+       * hora, não de segundo a segundo. Abrir o painel cinco vezes em dois minutos com o mesmo
+       * número é o comportamento certo — e cinco subpedidos para o mesmo número não é.
+       *
+       * A JANELA É DE 7 DIAS e não só hoje, porque o alerta é o PICO: hoje às 0,5% não diz nada
+       * sobre o risco, e o dia em que se escreveram 234 chaves diz tudo. */
+      const CACHE_DA_ANALITICA_MS = 15 * 60 * 1000;
+      const cfToken = env && env.CLOUDFLARE_API_TOKEN;
+      let analitica = cache.analitica || null;
+      if (!analitica || !cache.analiticaEm ||
+          (Date.now() - Date.parse(cache.analiticaEm)) > CACHE_DA_ANALITICA_MS) {
+        analitica = await analiticaDoCf.analiticaDoCloudflare({
+          token: cfToken, accountId: ACCOUNT_ID, agora: agoraIso, dias: 7,
+        });
+        /* SÓ SE GUARDA O QUE SE LEU. Uma falha guardada faria o painel dizer «não medido» durante
+         * quinze minutos depois de uma falha de rede de dois segundos. */
+        if (analitica && analitica.ok) {
+          cache.analitica = analitica;
+          cache.analiticaEm = agoraIso;
+        }
+      }
+
+      const cloudflare = monitoramento.resumirCloudflare({ escolas, chaves, analitica });
 
       const contadores = await lerContadoresDoCorreio(kv);
       const correio = monitoramento.resumirCorreio({ contadores, hoje });
@@ -4593,6 +4627,9 @@ async function fetch(request, env) {
              * `janelaEm`: o número é o do mês, e pára de o ser quando o dia avança sem ele. */
             janela: cache.janela || null,
             janelaEm: cache.janelaEm || null,
+            /* A ANALÍTICA DO CLOUDFLARE (25/11/2026) — 15 minutos, e só o que se leu. */
+            analitica: cache.analitica || null,
+            analiticaEm: cache.analiticaEm || null,
           }));
         }
       } catch (erro) { /* a cache não derruba a leitura */ }

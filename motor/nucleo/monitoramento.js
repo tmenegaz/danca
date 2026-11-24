@@ -584,13 +584,75 @@ function resumirCorreio({ contadores, hoje, plano, cotas } = {}) {
 }
 
 /**
- * A OCUPAÇÃO DO CLOUDFLARE — o que se consegue medir sem token de analytics.
+ * AS OPERAÇÕES DO CLOUDFLARE, DIA A DIA — a leitura que passou a existir a 25/11/2026.
+ *
+ * A FRASE QUE ISTO CORRIGE, e era falsa: o painel dizia que a leitura de analítica «exige um token
+ * com permissão de analítica, que este Worker não tem». Medido com o token que o Worker já tem: tem.
+ * Uma limitação declarada que é falsa é pior do que uma omissão — faz quem lê desistir de pedir o
+ * número.
+ *
+ * O QUE ENTRA NO ALERTA É O **PICO**, e não o dia de hoje. A cota do Cloudflare é diária e volta a
+ * zero à meia-noite UTC: hoje às 0,5 % não diz nada sobre o risco, e o dia em que se escreveu 234
+ * chaves diz tudo. O pico é a evidência do que a operação faz, e é estável — não oscila com a hora a
+ * que se abre o painel. O hoje fica ao lado, porque é a outra pergunta («como está agora?»).
+ *
+ * @param {object} analitica o que `analiticaDoCloudflare` devolveu
+ * @param {object} base      as cotas (`COTAS.cloudflare`)
+ */
+const OPERACOES_DO_CLOUDFLARE = [
+  { campo: 'pedidos', rotulo: 'Pedidos ao Worker', cota: 'pedidosDia' },
+  { campo: 'leituras', rotulo: 'Leituras de KV', cota: 'leiturasKvDia' },
+  { campo: 'escritas', rotulo: 'Escritas de KV', cota: 'escritasKvDia' },
+  { campo: 'listas', rotulo: 'Listagens de KV', cota: 'listasKvDia' },
+  { campo: 'apagamentos', rotulo: 'Apagamentos de KV', cota: 'apagamentosKvDia' },
+];
+
+function operacoesDoCloudflare(analitica, base) {
+  if (!analitica || !analitica.ok) return null;
+  const dias = Array.isArray(analitica.dias) ? analitica.dias : [];
+  if (!dias.length) return null;
+  const porOperacao = [];
+  for (const op of OPERACOES_DO_CLOUDFLARE) {
+    const cota = Math.max(0, Number(base[op.cota]) || 0);
+    let pico = 0;
+    let diaDoPico = null;
+    for (const d of dias) {
+      const v = Number(d[op.campo]) || 0;
+      if (v > pico) { pico = v; diaDoPico = d.dia; }
+    }
+    const hoje = analitica.hoje ? (Number(analitica.hoje[op.campo]) || 0) : null;
+    porOperacao.push({
+      operacao: op.campo, rotulo: op.rotulo, cota,
+      hoje, pico, diaDoPico,
+      fraccaoHoje: hoje == null || !cota ? null : hoje / cota,
+      fraccaoPico: !cota ? null : pico / cota,
+    });
+  }
+  /* O PIOR É O PIOR DAS CINCO, e não a média: quatro operações folgadas e uma a 90% é uma a 90%. */
+  const fraccoes = porOperacao.map((o) => o.fraccaoPico).filter((f) => typeof f === 'number');
+  return {
+    ok: true,
+    janela: analitica.janela || null,
+    hoje: analitica.hoje || null,
+    dias,
+    porScript: Array.isArray(analitica.porScript) ? analitica.porScript : [],
+    porOperacao,
+    fraccaoPico: fraccoes.length ? Math.max(...fraccoes) : 0,
+    /* O TRUNCADO VAI JUNTO: num parque grande os grupos chegam ao tecto de 1 000 e o número passa a
+     * ser um mínimo. Um mínimo apresentado como total é a mentira que o painel existe para evitar. */
+    truncado: analitica.truncado === true,
+  };
+}
+
+/**
+ * A OCUPAÇÃO DO CLOUDFLARE — a de sempre (armazenamento) mais as operações por dia (25/11/2026).
  *
  * `escolas` é a lista das vivas (`{slug}`) e `chaves` é o mapa `{ <escola>: {total, bytes} }` que a
- * rota lê com `kv.list()`. O que NÃO se mede daqui — pedidos e operações de KV por dia — vai dito
- * como `naoMedido`, com o motivo. É a diferença entre um painel e um enfeite.
+ * rota lê com `kv.list()`. `analitica` é o que `analiticaDoCloudflare` devolveu — e quando não vem,
+ * ou quando vem falhada, o que não se mediu vai dito em `naoMedido` com o MOTIVO VERDADEIRO da
+ * falha. É a diferença entre um painel e um enfeite.
  */
-function resumirCloudflare({ escolas, chaves, cotas } = {}) {
+function resumirCloudflare({ escolas, chaves, cotas, analitica } = {}) {
   const base = cotas || COTAS.cloudflare;
   const vivas = Array.isArray(escolas) ? escolas : [];
   const mapa = chaves || {};
@@ -609,6 +671,7 @@ function resumirCloudflare({ escolas, chaves, cotas } = {}) {
   }
   const gb = 1024 * 1024 * 1024;
   const armazenamentoGb = totalBytes / gb;
+  const operacoes = operacoesDoCloudflare(analitica, base);
   return {
     provedor: 'cloudflare',
     escolas: porEscola.length,
@@ -618,17 +681,23 @@ function resumirCloudflare({ escolas, chaves, cotas } = {}) {
     armazenamentoGb,
     totalArmazenamentoGb: base.armazenamentoKvGb,
     fraccaoArmazenamento: fracao(armazenamentoGb, base.armazenamentoKvGb),
-    /* AS OPERAÇÕES POR DIA, declaradas e não inventadas. A API de analytics do Cloudflare exige um
-     * token com permissão de leitura de analítica, que este Worker não tem — e um número inventado
-     * aqui seria pior do que a ausência dele, porque ninguém o iria conferir. */
-    naoMedido: [
+    /* AS OPERAÇÕES POR DIA — MEDIDAS DESDE 25/11/2026 (ver `analiticaDoCloudflare`). O que fica
+     * declarado é só o que a leitura não devolveu, e o motivo é o da falha, não uma frase feita. */
+    operacoes,
+    fraccaoOperacoes: operacoes ? operacoes.fraccaoPico : null,
+    naoMedido: operacoes ? [] : [
       { o: 'pedidos ao Worker por dia', cota: base.pedidosDia },
-      { o: 'escritas de KV por dia', cota: base.escritasKvDia },
       { o: 'leituras de KV por dia', cota: base.leiturasKvDia },
+      { o: 'escritas de KV por dia', cota: base.escritasKvDia },
+      { o: 'listagens de KV por dia', cota: base.listasKvDia },
+      { o: 'apagamentos de KV por dia', cota: base.apagamentosKvDia },
     ],
-    motivoNaoMedido: 'a leitura de analítica exige um token do Cloudflare com permissão de '
-      + 'analítica, que este Worker não tem. O número está no painel do Cloudflare, em Workers → '
-      + 'Metrics. A ocupação abaixo é medida; as operações por dia não são.',
+    /* O MOTIVO VEM DA FALHA, e não de uma frase fixa. Era aqui que estava escrito «que este Worker
+     * não tem» — e o Worker tem. Agora, quando falha, diz-se o que o Cloudflare respondeu. */
+    motivoNaoMedido: operacoes ? null
+      : ((analitica && analitica.motivo)
+        || 'a analítica do Cloudflare não foi lida nesta abertura — o número está em Workers → '
+          + 'Metrics, no painel do Cloudflare.'),
     cotas: base,
   };
 }
@@ -1229,7 +1298,12 @@ function retrato({ github, correio, cloudflare, receita: r, inadimplencia: inad,
   });
   /* O ALERTA É O PIOR DOS QUATRO, e não a média: uma cota a 95% e três a 10% é uma cota a 95%. */
   const fraccoes = [github && github.fraccao, correio && correio.fraccao, correio && correio.fraccaoDia,
-    cloudflare && cloudflare.fraccaoArmazenamento, emAulas && emAulas.fraccao]
+    cloudflare && cloudflare.fraccaoArmazenamento,
+    /* AS OPERAÇÕES DO CLOUDFLARE ENTRAM NO ALERTA (25/11/2026). Sem esta linha, um parque com as
+     * escritas de KV a 90 % e as outras cotas a 10 % dava «folga» — e a escrita de KV é a cota mais
+     * apertada da casa: 1 000 por dia, contra 100 000 leituras. */
+    cloudflare && cloudflare.fraccaoOperacoes,
+    emAulas && emAulas.fraccao]
     .filter((f) => typeof f === 'number');
   const pior = fraccoes.length ? Math.max(...fraccoes) : 0;
   return {

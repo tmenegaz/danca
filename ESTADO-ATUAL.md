@@ -4,7 +4,30 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **os schemas do ciclo custavam 109 commits, e passam a um.**
+> **Última fotografia:** 25/11/2026 — **a analítica do Cloudflare já estava habilitada, e a limitação
+> declarada era falsa.** Ela perguntou como se habilita a permissão de analítica para medir «os
+> pedidos que são feitos por dia no worker, a escrita de KV por dia e a leitura de KV por dia».
+> **Resposta: não é preciso habilitar nada.** O Worker `danca` já tem o `CLOUDFLARE_API_TOKEN` e o
+> token já tem `Account Analytics: Read` — e o painel dizia, em letra escrita desde 17/11/2026, «que
+> este Worker não tem». **Uma limitação declarada que é falsa não é neutra:** faz quem lê desistir de
+> pedir o número. **O que passou a ser medido, no pico da janela de 7 dias:** pedidos 2 962 de
+> 100 000 (**3,0 %**), leituras de KV 12 804 (**12,8 %**), **escritas de KV 234 de 1 000 (23,4 %)**,
+> listagens 61 (6,1 %), apagamentos 31 (3,1 %) — e **o recurso que aperta não é o que parecia**: os
+> pedidos estão a 0,5–3 %, e as **escritas de KV**, com cota de 1 000 por dia, são as que estão mais
+> perto do tecto. **Três decisões, as três de medição:** **uma consulta e não duas** (as duas famílias
+> vivem debaixo de `viewer.accounts`, e cada chamada é um subpedido num orçamento de 50); **a
+> granularidade é o DIA** — a primeira sonda agregou por `datetime` com `limit: 10000` e deu **9 113
+> grupos num só dia** com um tecto que corta em silêncio, e por `date` são **2 grupos por dia**, com a
+> soma dos dois modos a conferir (2 029 pelos dois lados, diferença zero); e **o alerta lê o PICO**,
+> não o hoje — a cota é diária e volta a zero, e o pico é estável. **O que não se inventa:** o zero de
+> um dia sem tráfego é um facto e entra a zero; o de uma leitura falhada não se escreve; as quatro
+> falhas são declaradas com o motivo (sem token, 403 com a permissão nomeada, `errors` com HTTP 200,
+> rede a rebentar); o truncado diz-se; e os números são **do fornecedor**, de conjuntos com amostragem
+> adaptativa. **43 asserções**, com o controlo negativo que importa: olhando só o hoje, um parque com
+> as escritas a 90 % no pico dava «folga». De ponta a ponta pela rota verdadeira: **fria 1 chamada ao
+> GraphQL, quente 0**, e o **pior indicador a ler 23,4 %**.
+>
+> **Fotografia anterior (25/11/2026 — os schemas do ciclo custavam 109 commits, e passam a um).**
 > «Aí você tem que me dizer se der para economizar também com isso [o `.conf`], a gente economiza,
 > senão deixa assim.» **O `.conf` não compensa, e a resposta é essa:** ele é escrito antes de o
 > acervo entrar, num ponto em que não há lote aberto, e juntá-lo exigiria levantar a fila ao nível da
@@ -4312,6 +4335,22 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      **2 615 leituras e 25 escritas** de KV a 23/11. A limitação declarada no `resumirCloudflare` está
      **errada**, e fica como dívida a fechar. **DECIDIDO** e **APLICADO** 25/11/2026.
 
+185. **A ANALÍTICA DO CLOUDFLARE JÁ ESTAVA HABILITADA — E A LIMITAÇÃO DECLARADA ERA FALSA.** «Precisa
+     habilitar no worker do Cloudflare a permissão de analítica para […] os pedidos que são feitos por
+     dia no worker, a escrita de KV por dia e a leitura de KV por dia. Como é que eu faço isso?» **Não
+     é preciso habilitar nada:** o Worker já tem o `CLOUDFLARE_API_TOKEN` e o token já tem `Account
+     Analytics: Read`. O painel dizia o contrário desde 17/11/2026 — «que este Worker não tem» —, e
+     **uma limitação declarada que é falsa é pior do que uma omissão**, porque faz desistir de pedir o
+     número. **O que se mede agora, no pico da janela:** pedidos **3,0 %**, leituras de KV **12,8 %**,
+     **escritas de KV 23,4 %** (a cota mais apertada: 1 000/dia), listagens 6,1 %, apagamentos 3,1 %.
+     **O desenho, e as três decisões são de medição:** uma consulta para as duas famílias (cada
+     chamada é um subpedido); agregação por **dia** e não por minuto (a de minuto deu 9 113 grupos num
+     só dia, com tecto que corta em silêncio; a de dia dá 2, e as duas somam o mesmo); e o alerta pelo
+     **pico** e não pelo hoje (cota diária, e o pico é estável). **O que não se inventa:** zero de dia
+     sem tráfego é facto; zero de falha não se escreve; as quatro falhas são declaradas com o motivo;
+     o truncado diz-se; e os números são do fornecedor, com amostragem adaptativa. **DECIDIDO** e
+     **APLICADO** 25/11/2026.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -5223,7 +5262,21 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (25/11/2026 — os schemas num commit, e a analítica do Cloudflare)
+### Executado nesta fotografia (25/11/2026 — a analítica do Cloudflare ligada ao painel)
+
+| Verificação | Resultado |
+|:--|:--|
+| a permissão de analítica, **medida** | o Worker `danca` tem o secret `CLOUDFLARE_API_TOKEN`, e o token responde ao GraphQL. `kvOperationsAdaptiveGroups` → **2 615 leituras** e **25 escritas** de 23/11; `workersInvocationsAdaptive` → os pedidos por script. **Não é preciso habilitar nada** |
+| o pico da janela de 7 dias (18 a 24/11) | pedidos **2 962** de 100 000 (**3,0 %**) · leituras KV **12 804** (**12,8 %**) · **escritas KV 234** de 1 000 (**23,4 %**) · listagens **61** (6,1 %) · apagamentos **31** (3,1 %). Por Worker: `lastro-teste` 9 844, `danca` 2 574 |
+| a granularidade, **medida contra a armadilha** | por `datetime` com `limit: 10000`: **9 113 grupos num só dia**, e um tecto que corta em silêncio. Por `date`: **2 grupos por dia**. Somados os dois modos no mesmo dia: **2 029 pelos dois lados, diferença zero** |
+| `node experimentos/provar-a-analitica-do-cloudflare.js` (**nova**) | **43/43**. §A uma consulta e o filtro no pedido. §B os dias sem tráfego a **zero**, e um dia que falta não é o mesmo que zero pedidos. §C as quatro acções do KV e uma inventada que não entra em lado nenhum. §D as **quatro falhas declaradas**, com a permissão nomeada no 403. §E o **pico** a mandar no alerta, com o controlo negativo (só o hoje dava «folga» com as escritas a 90 %). §F o truncado. §G a página, e o aviso do «não mede» a desaparecer |
+| a prova depende da mudança | **vermelha sem ela** (`git stash -u`: rebenta por não achar o módulo) |
+| de ponta a ponta, pela rota **verdadeira** com a analítica **verdadeira** | **fria 1 chamada ao GraphQL, quente 0**; os 7 dias, as 5 operações e os 2 scripts; e o **pior indicador da casa a ler 23,4 %** — que é a cota das escritas de KV |
+| as quatro conferências | `check-identidade` **0 problemas** (23) · `check-schemas` verde · `check-sem-destruicao` verde · `check-github-headers` 5 ok. **A classe `cota-bloco` que eu tinha inventado saiu** — a marcação passou a ser a das outras cotas |
+| a regressão que a mudança causou, e o que ela ensinou | `provar-monitoramento` 104/105: a asserção dizia `naoMedido.length === 3`, e passaram a ser **5** — as **listagens** e os **apagamentos** estavam declarados nas cotas desde o início e nunca eram nomeados, e uma cota que existe e não se nomeia é uma cota que ninguém vigia. A prova passou a afirmar a **forma** (tudo o que não se mediu aparece, com a cota do plano ao lado) e não a contagem — a lição de sempre: uma prova que fixa um número de produto fica vermelha sobre um mundo melhor |
+| as provas dos módulos tocados | 0 regressões depois disso (com `provar-teste` a ser a instável conhecida: **não toca no monitor**, e passa **3/3 isolada**) |
+
+### Executado nesta fotografia anterior (25/11/2026 — os schemas num commit, e a analítica do Cloudflare)
 
 | Verificação | Resultado |
 |:--|:--|

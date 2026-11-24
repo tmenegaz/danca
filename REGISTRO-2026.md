@@ -61096,3 +61096,64 @@ remédio é o runner serializar as provas de navegador, e o runner é `tools/`, 
 **Onde entrou.** `motor/servidor/schemas-do-ciclo.js`,
 `experimentos/provar-schemas-do-professor.js`, `CUSTO-DOS-FLUXOS.md` (§18), `ESTADO-ATUAL.md`
 (a fotografia e a decisão 184), `HANDOFF.md`.
+
+## 25/11/2026 — A analítica do Cloudflare já estava habilitada: a limitação declarada era falsa
+
+**O pedido.** «Precisa habilitar no worker do Cloudflare a permissão de analítica para você poder
+fazer aqui um monitoramento dos pedidos que são feitos por dia no worker, a escrita de KV por dia e a
+leitura de KV por dia. Como é que eu faço isso?»
+
+**A resposta, e ela corrige o produto: não é preciso habilitar nada.** O Worker `danca` já tem o
+secret `CLOUDFLARE_API_TOKEN`, e o token **já tem** `Account Analytics: Read`. E o painel dizia, em
+letra escrita desde 17/11/2026, que «a leitura de analítica exige um token com permissão de analítica,
+**que este Worker não tem**». **Era falso.** Uma limitação declarada que é falsa não é neutra: faz
+quem lê desistir de pedir o número, e faz quem podia resolver acreditar que há algo a resolver.
+
+**O que passou a ser medido**, dia a dia, nos últimos 7 dias. O pico da janela:
+
+| operação | pico | cota/dia | % |
+|:--|--:|--:|--:|
+| Pedidos ao Worker | 2 962 (20/11) | 100 000 | 3,0 % |
+| Leituras de KV | 12 804 (20/11) | 100 000 | 12,8 % |
+| **Escritas de KV** | **234 (20/11)** | **1 000** | **23,4 %** |
+| Listagens de KV | 61 (23/11) | 1 000 | 6,1 % |
+| Apagamentos de KV | 31 (23/11) | 1 000 | 3,1 % |
+
+**A leitura que corrige a expectativa:** o recurso que aperta **não é o que parecia**. Os pedidos
+estão a 0,5–3 % de 100 000; as **escritas de KV** são o mais perto do tecto, e a cota é de 1 000 por
+dia, não 100 000.
+
+**Três decisões de desenho, e as três saíram de medição.** (1) **Uma consulta, não duas** — as duas
+famílias vivem debaixo de `viewer.accounts`, e cada chamada ao GraphQL é um subpedido num orçamento
+de 50. (2) **A granularidade é o DIA** — a primeira sonda agregou por `datetime` com `limit: 10000` e
+deu **9 113 grupos num só dia**, com um tecto que corta em silêncio; por `date` são **2 grupos por
+dia**, e a soma dos dois modos no mesmo dia confere (2 029 pelos dois lados, diferença zero). (3) **O
+alerta lê o PICO, não o hoje** — a cota é diária e volta a zero, e o pico é estável; o hoje fica ao
+lado, porque é a outra pergunta.
+
+**O que não se inventa.** O zero de um dia sem tráfego é um **facto** e entra a zero; o zero de uma
+leitura falhada não se escreve. E as quatro falhas são **declaradas** com o motivo: sem token, 403
+(com a permissão nomeada), `errors` no corpo com HTTP 200 (o GraphQL devolve assim — ler só o `data`
+publicaria metade dos números como se fossem todos), e rede a rebentar. Chegar ao tecto de 1 000
+grupos faz do número um **mínimo**, e diz-se. E estes números são **do fornecedor**, de conjuntos com
+amostragem adaptativa: em volume baixo exactos, em volume alto extrapolações dele — está dito no
+painel.
+
+**Validado.** `provar-a-analitica-do-cloudflare.js` **43/43**, com o **controlo negativo** que
+importa na secção E: olhando só o hoje, um parque com as escritas a 90 % no pico dava «folga». A
+prova é vermelha sem a mudança (`git stash -u`). De ponta a ponta, pela rota verdadeira com a
+analítica **verdadeira**: **fria 1 chamada ao GraphQL, quente 0**, e o **pior indicador da casa a ler
+23,4 %**. As quatro conferências verdes; as provas dos módulos tocados sem regressões.
+
+**Onde entrou.** `motor/servidor/analitica-cloudflare.js` (novo), `motor/nucleo/monitoramento.js`,
+`motor/servidor/raiz.js` (cache de 15 min, orçamento 27/16), `motor/servidor/painel-html.js`
+(`blocoDasOperacoes`), `experimentos/provar-a-analitica-do-cloudflare.js` (novo), `.gitignore`,
+`CUSTO-DOS-FLUXOS.md` (§19), `ESTADO-ATUAL.md` (fotografia e decisão 185), `HANDOFF.md`.
+
+**E uma regressão que a mudança causou, e o que ela ensinou.** `provar-monitoramento` passou a
+**104/105**: a asserção dizia `naoMedido.length === 3`, e a lista passou a ter **cinco** — as
+**listagens** e os **apagamentos** estavam declarados nas cotas do plano desde o início e nunca eram
+nomeados. Uma cota que existe e não se nomeia é uma cota que ninguém vigia. A prova passou a afirmar
+a **forma** — tudo o que não se mediu aparece, com a cota do plano ao lado, e fica vazia quando se
+mede — em vez da contagem. É a mesma família de erro que a decisão 174 já registou: uma prova que
+fixa um número do produto fica vermelha sobre um mundo melhor, e o remédio é afirmar a regra.

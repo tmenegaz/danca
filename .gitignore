@@ -1616,6 +1616,16 @@ experimentos/modelo-formulario/*
 # e a degradação para o caminho de sempre quando não há API de Git. 30 asserções.
 !experimentos/provar-o-ato-num-commit.js
 
+# A ANALÍTICA DO CLOUDFLARE (25/11/2026). «Precisa habilitar no worker do Cloudflare a permissão de
+# analítica para você poder fazer aqui um monitoramento dos pedidos que são feitos por dia no worker, a
+# escrita de KV por dia e a leitura de KV por dia.» A resposta é que JÁ ESTÁ — e o painel dizia o
+# contrário, com a frase «que este Worker não tem». A prova mede a consulta única para as duas
+# famílias, os dias sem tráfego a ZERO (que é um facto, não uma ausência), as quatro acções do KV, as
+# quatro falhas DECLARADAS e nunca zeradas (sem token, 403, `errors` com HTTP 200, rede a rebentar), o
+# PICO a mandar no alerta com o controlo negativo certo, o truncado a declarar-se, e a página com as
+# barras e o aviso do «não mede» a desaparecer. 43 asserções.
+!experimentos/provar-a-analitica-do-cloudflare.js
+
 # O FINANCEIRO QUE FICA (23/11/2026, à tarde). A regra de 17/11 era o contrário — expurgar a escola
 # levava as mensalidades dela —, e ela corrigiu: «A parte financeira não pode expurgar, ela fica
 # para histórico. E aí a gente diz numa linha seguinte que essa escola foi expurgada.» O livro vive

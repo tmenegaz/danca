@@ -2799,6 +2799,72 @@ function blocoDasAulas(a) {
     '</div>';
 }
 
+/**
+ * AS OPERAÇÕES DO CLOUDFLARE — a metade que passou a ser medida a 25/11/2026.
+ *
+ * DUAS PERGUNTAS, DUAS RESPOSTAS, e por isso duas colunas. «Como está agora?» é o número de hoje;
+ * «quanto é que isto já apertou?» é o PICO da janela, e é o pico que manda na barra e no alerta —
+ * a cota é diária e volta a zero, de modo que hoje às 0,5 % não diz nada sobre o risco, e o dia em
+ * que se escreveram 234 chaves diz tudo. A barra mostra o pico; a ficha mostra hoje.
+ *
+ * A BARRA É A MESMA PEÇA das outras cotas (`barraDaCota`) e o selo é o mesmo (`seloDoNivel`): nada
+ * aqui inventa uma forma nova para o mesmo conceito.
+ */
+function blocoDasOperacoes(operacoes) {
+  if (!operacoes || !operacoes.ok) return '';
+  const ops = Array.isArray(operacoes.porOperacao) ? operacoes.porOperacao : [];
+  if (!ops.length) return '';
+  const janela = operacoes.janela || {};
+  /* SEM CLASSE NOVA. A marcação é a mesma das outras cotas — um `<p>` com o nome e o selo, a
+   * `barraDaCota` (a peça da folha) e um `<p class="sub">` com o número —, e nada aqui inventa uma
+   * forma para o mesmo conceito. A regra da identidade vale também para o que parece só arrumação:
+   * uma `div` com nome próprio é uma peça, e uma peça nasce na folha. */
+  const barras = ops.map((o) => '<p><strong>' + esc(o.rotulo) + '</strong> ' +
+    seloDoNivel(o.fraccaoPico || 0) + '</p>' +
+    barraDaCota({
+      fraccao: o.fraccaoPico || 0,
+      nivel: (o.fraccaoPico || 0) >= 0.95 ? 'agora' : ((o.fraccaoPico || 0) >= 0.8 ? 'atencao' : 'folga'),
+      rotulo: 'O dia mais cheio da janela',
+      doQue: 'da cota de ' + numero(o.cota) + ' por dia',
+    }) +
+    '<p class="sub">Pico: <strong>' + numero(o.pico) + '</strong>'
+      + (o.diaDoPico ? ' em ' + esc(quando(o.diaDoPico + 'T12:00:00Z').slice(0, 10)) : '')
+      + ' · hoje: <strong>' + (o.hoje == null ? '—' : numero(o.hoje)) + '</strong>'
+      + (o.hoje == null ? '' : ' (' + pct(o.fraccaoHoje) + ')') + '</p>').join('');
+
+  const linhasDias = (operacoes.dias || []).map((d) => '<tr>' +
+    '<td>' + esc(quando(d.dia + 'T12:00:00Z').slice(0, 10)) + '</td>' +
+    '<td>' + numero(d.pedidos) + '</td>' +
+    '<td>' + numero(d.leituras) + '</td>' +
+    '<td>' + numero(d.escritas) + '</td>' +
+    '<td>' + numero(d.listas) + '</td>' +
+    '<td>' + numero(d.apagamentos) + '</td>' +
+    '</tr>').join('');
+
+  const scripts = (operacoes.porScript || []).map((s) => '<li>' + esc(s.script) + ' — <strong>' +
+    numero(s.pedidos) + '</strong> pedido(s)</li>').join('');
+
+  return '<h3>O que se faz num dia</h3>' +
+    '<p>Medido no Cloudflare, dia a dia, para os últimos ' + (janela.dias || 7) + ' dias (' +
+    esc(janela.desde || '') + ' a ' + esc(janela.ate || '') + '). A cota é <strong>diária</strong> e '
+    + 'volta a zero à meia-noite UTC — por isso a barra mostra o <strong>dia mais cheio</strong> da '
+    + 'janela, e não o de hoje.</p>' +
+    barras +
+    (linhasDias
+      ? '<div class="rolagem-caixa"><table><thead><tr><th>Dia</th><th>Pedidos</th>' +
+        '<th>Leituras</th><th>Escritas</th><th>Listagens</th><th>Apagamentos</th>' +
+        '</tr></thead><tbody>' + linhasDias + '</tbody></table></div>'
+      : '') +
+    (scripts ? '<p class="sub">Por Worker: </p><ul>' + scripts + '</ul>' : '') +
+    (operacoes.truncado
+      ? '<div class="aviso"><p><strong>O número está cortado.</strong> A leitura chegou ao tecto de '
+        + '1 000 grupos e o que está acima é um <em>mínimo</em>, não o total.</p></div>'
+      : '') +
+    '<p class="sub">Estes números vêm dos conjuntos <strong>com amostragem adaptativa</strong> do '
+    + 'Cloudflare: em volume baixo são exactos, em volume alto são extrapolações dele. Não são uma '
+    + 'segunda conta nossa — são o número do fornecedor.</p>';
+}
+
 function blocoDoCloudflare(cf) {
   if (!cf) return '';
   const c = cf.cotas;
@@ -2822,18 +2888,22 @@ function blocoDoCloudflare(cf) {
     '<span>Chaves no KV: <strong>' + cf.chaves + '</strong></span>' +
     '<span>Ocupado: <strong>' + (cf.bytes ? (cf.bytes / 1024 / 1024).toFixed(2).replace('.', ',') + ' MB' : 'tamanho não medido') + '</strong></span>' +
     '</div>' +
-    /* O ARMAZENAMENTO É O ÚNICO QUE SE MEDE DAQUI, e é o que menos aperta: 1 GB é muito para
-     * fichas de 15 KB. A barra existe para o número não ser uma surpresa no dia em que crescer. */
+    /* O ARMAZENAMENTO É MEDIDO DESDE O INÍCIO, e é o que menos aperta: 1 GB é muito para fichas de
+     * 15 KB. A barra existe para o número não ser uma surpresa no dia em que crescer. */
     barraDaCota({ fraccao: cf.fraccaoArmazenamento, nivel: 'folga', rotulo: 'Armazenamento do KV' }) +
     '<p>' + pct(cf.fraccaoArmazenamento) + ' do armazenamento de ' + c.armazenamentoKvGb + ' GB</p>' +
     (linhas
       ? '<div class="rolagem-caixa"><table><thead><tr><th>Escola</th><th>Chaves</th><th>Tamanho</th>' +
         '</tr></thead><tbody>' + linhas + '</tbody></table></div>'
       : '') +
-    /* O QUE NÃO SE MEDE, DITO. É a parte que faz a diferença entre um painel e um enfeite. */
-    '<div class="aviso"><p><strong>O que este painel não mede</strong>, e porquê:</p>' +
-    '<ul>' + naoMedido + '</ul>' +
-    '<p>' + esc(cf.motivoNaoMedido) + '</p></div>' +
+    blocoDasOperacoes(cf.operacoes) +
+    /* O QUE NÃO SE MEDE, DITO — e quando nada falta, este aviso não existe. Era ele que dizia «o
+     * Worker não tem a permissão de analítica», e tinha-a. */
+    (naoMedido
+      ? '<div class="aviso"><p><strong>O que este painel não mede</strong>, e porquê:</p>' +
+        '<ul>' + naoMedido + '</ul>' +
+        '<p>' + esc(cf.motivoNaoMedido) + '</p></div>'
+      : '') +
     '<p class="sub">Fonte das cotas: ' + esc(c.fonte) + ' — lido em ' + esc(c.lidoEm) + '.</p>' +
     '</div>';
 }
