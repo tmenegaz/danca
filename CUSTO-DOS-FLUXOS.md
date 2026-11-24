@@ -2441,3 +2441,61 @@ GitHub.
 | `motor/servidor/acervo-envelopes.js` | `abrirLote`/`fecharLote`/`emLote`; `escrever`/`criar` acumulam; `conteudo` vê o pendente; `apagar` fecha o lote antes; degradação um-a-um |
 | `motor/nucleo/porta.js` | `elicitar` abre o lote no início e fecha-o antes do `return`; o `ok` do commit manda no `gravado`; a resposta diz `commitDoLote`/`escritasDoLote` |
 | `experimentos/provar-o-ato-num-commit.js` | **novo** — 30 asserções |
+
+---
+
+## 18. O `.conf` não compensa; os schemas compensavam muito *(25/11/2026)*
+
+A pergunta dela, e a resposta vem em duas metades: **uma delas é não**, e a outra é um achado que
+muda a conta.
+
+> «Aí você tem que me dizer se der para economizar também com isso, a gente economiza, senão deixa
+> assim.»
+
+### 18.1 O `.conf`: não compensa, e o motivo é medido
+
+O `.conf` é escrito por `escrever-plano.js` (`atualizarManifesto`) **antes** de o acervo entrar, e
+num ponto do fluxo em que não há lote aberto — o acervo só é tocado depois. Juntá-lo exigiria
+levantar a fila ao nível da rota, atravessando três módulos (`rotas.js` → `escrever-plano.js` →
+`porta.js`), com o `escritor` a devolver as escritas que quer ver juntadas e o chamador a compô-las.
+
+E o ganho seria **um commit**, não quatro. **Não compensa**, e a razão de não compensar está medida
+abaixo: o que sobra depois do lote do acervo é pequeno, e o que era grande era outra coisa.
+
+### 18.2 O achado: 109 commits de schema, cinco por pasta
+
+O histórico, contado com `git log --all --grep='feat(schema)'`:
+
+| | |
+|:--|--:|
+| commits `feat(schema): os schemas do ciclo na pasta de …` | **109** |
+| pastas de professor com **exactamente cinco** | **20** |
+
+`garantirSchemasDoCiclo` percorria os cinco sufixos (`schema`, `po-schema`, `plano-schema`,
+`aula-schema`, `captura-schema`) e fazia **um `PUT /contents` por cada** — cinco commits, cinco
+pushes, cinco execuções do `derivados.yml`, que observa `professores/**`. Cada execução custa **1
+minuto** (o job arredonda ao minuto) e o `cancel-in-progress` mata as quatro seguintes — **e um job
+cancelado paga-se**.
+
+**20 atos × 4 commits a mais = 80 minutos** de CI gastos a escrever cinco ficheiros para a mesma
+pasta, no mesmo segundo. E acontece de novo em cada professor × ciclo novo.
+
+### 18.3 O que mudou
+
+Os `GET` continuam um por schema — só se escreve o que **falta**, e um schema existente é do
+professor. As escritas é que passaram a ir num `gravarArquivosNumCommit` só. E **degrada**: se o
+adaptador não falar a API de Git (as bancadas com `fetchImpl` falso), volta-se ao `PUT` por
+ficheiro, que é o que sempre valeu. Nada muda na ordem que importa: os schemas continuam a existir
+antes da fonte.
+
+### 18.4 A prova
+
+`experimentos/provar-schemas-do-professor.js` — a secção **D** é a nova, e tem os dois lados: um
+repositório de mentira que **fala as cinco rotas do Git** e conta os commits (**um**, com os cinco
+ficheiros dentro, e **zero** `PUT`), e o `repoVirtual` de antes, que só conhece `/contents/` e
+obriga à degradação (**cinco `PUT`, os cinco schemas entram na mesma**). Mais a segunda passagem,
+que não reescreve nada nem faz um segundo commit.
+
+**32 asserções**, todas verdes; e a secção D é vermelha sem a mudança (conferido com `git stash`:
+4 de 32 falham, e a mensagem diz o que viu em vez de rebentar num `TypeError` — foi preciso
+corrigir a prova para isso).

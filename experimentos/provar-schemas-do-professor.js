@@ -75,6 +75,47 @@ function repoVirtual(inicial) {
   return { arquivos, escritas, leituras, f };
 }
 
+/**
+ * O MESMO REPOSITÓRIO, MAS COM A API DE GIT — e é ele que mede o ganho (25/11/2026).
+ *
+ * O `repoVirtual` acima só conhece `/contents/`. Com ele, o `gravarArquivosNumCommit` responde
+ * «não li a referência» e o provisionador **degrada** para cinco `PUT` — o que é o comportamento
+ * certo, mas faz a secção A medir o caminho de recurso e não o caminho normal. Esta variante fala
+ * as cinco rotas do Git (referência, commit, árvore, commit novo, referência nova) e CONTA os
+ * commits, para se poder afirmar o número que a mudança existe para baixar.
+ */
+function repoComGit(inicial) {
+  const base = repoVirtual(inicial);
+  const commits = [];
+  let sha = 's0';
+  const f = async (url, opcoes) => {
+    const u = String(url);
+    const metodo = (opcoes && opcoes.method) || 'GET';
+    if (u.includes('/git/ref/heads/')) {
+      return { ok: true, status: 200, json: async () => ({ object: { sha } }) };
+    }
+    if (u.includes('/git/commits/')) {
+      return { ok: true, status: 200, json: async () => ({ tree: { sha: 't-' + sha } }) };
+    }
+    if (u.includes('/git/trees') && metodo === 'POST') {
+      const corpo = JSON.parse(opcoes.body);
+      for (const e of corpo.tree) base.arquivos.set(e.path, e.content);
+      commits.push(corpo.tree.map((e) => e.path));
+      sha = 's' + commits.length;
+      return { ok: true, status: 201, json: async () => ({ sha: 'arv-' + commits.length }) };
+    }
+    if (u.includes('/git/commits') && metodo === 'POST') {
+      return { ok: true, status: 201, json: async () => ({ sha: 'c' + commits.length }) };
+    }
+    if (u.includes('/git/refs/heads/') && metodo === 'PATCH') {
+      return { ok: true, status: 200, json: async () => ({}) };
+    }
+    const r = await base.f(url, opcoes);
+    return Object.assign({ ok: r.status >= 200 && r.status < 300 }, r);
+  };
+  return { arquivos: base.arquivos, escritas: base.escritas, leituras: base.leituras, commits, f };
+}
+
 // O MOLDE REAL do repositório — a prova lê os schemas de verdade, não texto inventado.
 //
 // DESDE 01/11/2026 O MOLDE NÃO ESTÁ NO REPOSITÓRIO VIRTUAL, e isso é o que se prova: o
@@ -326,7 +367,53 @@ async function prova() {
   }
 }
 
-prova().then(() => {
+/**
+ * D. UM COMMIT PARA OS CINCO (25/11/2026).
+ *
+ * A medida que decidiu a mudança, no histórico: `git log --grep='feat(schema)'` dá 109 commits, e
+ * 20 pastas de professor têm exactamente CINCO cada. Cinco commits são cinco pushes, e cada um
+ * acorda o `derivados.yml` — que observa `professores/**` —, e cada execução custa 1 minuto
+ * (arredonda ao minuto) mesmo quando é cancelada. 20 atos × 4 a mais = 80 minutos.
+ *
+ * O controlo negativo é o `repoVirtual`: sem a API de Git, o provisionador degrada para cinco
+ * `PUT` e os cinco schemas entram na mesma. É o que garante que o ganho não custou a função.
+ */
+async function secaoD() {
+  console.log('\nD. Os cinco schemas vão num commit só — e sem a API de Git, degradam');
+  {
+    const comGit = repoComGit({});
+    const r = await garantirSchemasDoCiclo({
+      token: 'x', dono: 'd', repo: 'r', professor: 'p', ciclo: '01', fetchImpl: comGit.f,
+    });
+    checar('criou os cinco', r.criados.length === SUFIXOS.length, JSON.stringify(r.criados));
+    checar('num COMMIT só, e não em cinco', comGit.commits.length === 1, comGit.commits.length);
+    /* `(comGit.commits[0] || [])`: sem o commit único, o índice 0 não existe, e uma prova que
+     * rebenta com `TypeError` esconde o que mediu. Uma asserção falha dizendo o que viu. */
+    checar('e os cinco vão dentro dele',
+      (comGit.commits[0] || []).length === SUFIXOS.length, comGit.commits[0]);
+    checar('nenhum PUT /contents foi usado', comGit.escritas.length === 0, comGit.escritas);
+
+    /* E o controlo negativo — o caminho de sempre, quando não há API de Git. */
+    const semGit = repoVirtual({});
+    const r2 = await garantirSchemasDoCiclo({
+      token: 'x', dono: 'd', repo: 'r', professor: 'p', ciclo: '01', fetchImpl: semGit.f,
+    });
+    checar('NEGATIVO: sem a API de Git, os cinco entram na mesma', r2.criados.length === SUFIXOS.length,
+      JSON.stringify(r2.criados));
+    checar('NEGATIVO: e por cinco PUT, que é o caminho de sempre',
+      semGit.escritas.length === SUFIXOS.length, semGit.escritas.length);
+
+    /* A segunda passagem não reescreve nada — nem por commit nem por PUT. */
+    const outra = await garantirSchemasDoCiclo({
+      token: 'x', dono: 'd', repo: 'r', professor: 'p', ciclo: '01', fetchImpl: comGit.f,
+    });
+    checar('a segunda passagem não escreve nada', outra.criados.length === 0
+      && outra.pulados.length === SUFIXOS.length, JSON.stringify(outra.criados));
+    checar('e não faz um segundo commit', comGit.commits.length === 1, comGit.commits.length);
+  }
+}
+
+prova().then(secaoD).then(() => {
   console.log('\n' + (falhas ? falhas + ' de ' + n + ' asserções FALHARAM' : n + ' asserções, todas passaram'));
   process.exit(falhas ? 1 : 0);
 });

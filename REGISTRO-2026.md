@@ -61048,3 +61048,51 @@ conta.
 **Onde entrou.** `motor/servidor/acervo-envelopes.js`, `motor/nucleo/porta.js`,
 `experimentos/provar-o-ato-num-commit.js` (novo), `.gitignore`, `CUSTO-DOS-FLUXOS.md` (§17),
 `ESTADO-ATUAL.md` (a fotografia e a decisão 183), `HANDOFF.md`.
+
+## 25/11/2026 — O `.conf` não compensa; os schemas custavam 109 commits, e passam a um
+
+**A pergunta dela.** «Você disse que o que fica de fora é o `.conf` […] Aí você tem que me dizer se
+der para economizar também com isso, a gente economiza, senão deixa assim.»
+
+**O `.conf`: não compensa, e a resposta é essa.** Ele é escrito por `escrever-plano.js` **antes** de o
+acervo entrar, num ponto em que não há lote aberto; juntá-lo exigiria levantar a fila ao nível da
+rota, atravessando três módulos. E o ganho seria **um commit**, não quatro.
+
+**E a pergunta fez encontrar outra coisa, maior.** `git log --all --grep='feat(schema)'` dá **109
+commits**, e **20 pastas de professor têm exactamente cinco** cada: o `garantirSchemasDoCiclo`
+percorria os cinco sufixos e fazia **um `PUT /contents` por cada** — cinco commits, cinco pushes,
+cinco execuções do `derivados.yml`, que observa `professores/**`. Cada execução custa **1 minuto**
+(arronda ao minuto) e o `cancel-in-progress` mata as quatro seguintes — **e um job cancelado
+paga-se**. **20 atos × 4 a mais = 80 minutos** gastos a escrever cinco ficheiros para a mesma pasta.
+
+**O que mudou.** Os `GET` continuam um por schema — só se escreve o que falta —, e as escritas vão
+num `gravarArquivosNumCommit` só. Degrada para o `PUT` por ficheiro quando o adaptador não fala a API
+de Git, que é o caso das bancadas. A ordem que importa fica: os schemas antes da fonte.
+
+**A prova.** Secção **D** nova em `provar-schemas-do-professor.js`: um repositório de mentira que
+fala as cinco rotas do Git conta **um** commit com os cinco dentro e **zero** `PUT`; o `repoVirtual`
+de antes, que só conhece `/contents/`, obriga à degradação e os cinco entram na mesma. **32
+asserções**; e a secção D é vermelha sem a mudança (4 de 32), com a mensagem a dizer o que viu — foi
+preciso corrigir a prova, que rebentava num `TypeError` e escondia o que medira.
+
+**E a resposta à segunda pergunta dela — o Cloudflare.** Não é preciso habilitar nada: o Worker
+`danca` **já tem** o `CLOUDFLARE_API_TOKEN`, e o token **já tem** `Account Analytics: Read`, medido
+pelo GraphQL (`kvOperationsAdaptiveGroups` devolveu 2 615 leituras e 25 escritas de 23/11;
+`workersInvocationsAdaptive` devolveu os pedidos por script). **A limitação declarada no
+`resumirCloudflare` está errada** — o comentário diz «exige um token com permissão de analítica, que
+este Worker não tem», e tem. Fica registado como a dívida a fechar: o monitor passa a poder medir os
+pedidos e as operações de KV por dia.
+
+**E uma dívida medida de caminho, que apareceu a medir isto.** A suite completa dá **1 a 2
+«regressões» que mudam de prova em cada corrida** — `provar-teste`, depois
+`provar-o-parametro-do-plano`, depois `provar-as-tabelas-do-bloco` —, e **as três passam isoladas**
+(exit 0, medido). Nenhuma delas está na linha de base, e por isso cada uma é anunciada como
+regressão quando o paralelismo (6 de cada vez) a faz perder uma asserção. **Conferido com `git stash`
+e a árvore limpa: a suite sem mudança nenhuma dá 2 regressões.** São provas de NAVEGADOR (puppeteer +
+servidor HTTP) a competir por recursos. O efeito é o pior possível para um gate: o `pre-commit` e o
+`conferir.yml` podem barrar um commit bom, e quem for ver não encontra nada. Fica declarado — o
+remédio é o runner serializar as provas de navegador, e o runner é `tools/`, congelado.
+
+**Onde entrou.** `motor/servidor/schemas-do-ciclo.js`,
+`experimentos/provar-schemas-do-professor.js`, `CUSTO-DOS-FLUXOS.md` (§18), `ESTADO-ATUAL.md`
+(a fotografia e a decisão 184), `HANDOFF.md`.

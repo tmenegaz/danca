@@ -106,6 +106,25 @@ async function garantirSchemasDoCiclo({ token, dono, repo, ref, professor, ciclo
     return deBase64(dados.content || '');
   };
 
+  /* UM COMMIT PARA OS CINCO, E NÃO CINCO COMMITS (25/11/2026).
+   *
+   * MEDIDO NO HISTÓRICO, e é o número que decidiu a mudança: `git log --grep='feat(schema)'` dá
+   * **109 commits**, e 20 pastas de professor têm exactamente **cinco** cada. Cinco commits são
+   * cinco pushes — e o `derivados.yml` observa `professores/**`, de modo que cada um acorda uma
+   * execução. Cada execução custa **1 minuto** (o job arredonda ao minuto), e as intermédias são
+   * canceladas pelo `cancel-in-progress` — **e um job cancelado paga-se**.
+   *
+   * A conta: 20 atos × 4 commits a mais = **80 minutos** de CI gastos a escrever ficheiros que iam
+   * todos para a mesma pasta, no mesmo instante. E o mesmo vale para cada professor/ciclo novo.
+   *
+   * A FORMA: lê-se o que falta (os GET continuam, um por schema, porque só se escreve o que FALTA
+   * — um schema já existente é do professor), e as escritas vão todas num `gravarArquivosNumCommit`.
+   * Nada muda na ordem que importa: os schemas continuam a existir antes da fonte.
+   *
+   * E SE ELE FALHAR, DEGRADA. O commit único é o caminho curto; o `PUT` por ficheiro é o que
+   * sempre funcionou, e continua a haver — um adaptador que não fale a API de Git (as bancadas com
+   * `fetchImpl` falso) não pode deixar o ciclo sem validação. É a mesma lição do lote do acervo. */
+  const pendentes = [];
   for (const sufixo of SUFIXOS) {
     const destino = pasta + 'ciclo-' + nn + '-' + sufixo + '.json';
     try {
@@ -130,24 +149,58 @@ async function garantirSchemasDoCiclo({ token, dono, repo, ref, professor, ciclo
         continue;
       }
 
-      const resposta = await f(raiz + destino, {
+      pendentes.push({ destino, texto });
+    } catch (erro) {
+      relatorio.ok = false;
+      relatorio.erros.push(destino + ': ' + (erro && erro.message ? erro.message : String(erro)));
+    }
+  }
+
+  if (!pendentes.length) return relatorio;
+
+  const MENSAGEM = 'feat(schema): os schemas do ciclo na pasta de ' + prof;
+  let porCommit = null;
+  try {
+    const { gravarArquivosNumCommit } = require('./escrever-ciclo.js');
+    porCommit = await gravarArquivosNumCommit({
+      token, dono, repo, ref: ref || 'main',
+      arquivos: pendentes.map((p) => ({ caminho: p.destino, conteudo: p.texto })),
+      mensagem: MENSAGEM,
+      fetchImpl: f,
+    });
+  } catch (erro) {
+    porCommit = null;
+  }
+
+  if (porCommit && porCommit.ok) {
+    for (const p of pendentes) relatorio.criados.push(p.destino);
+    return relatorio;
+  }
+
+  /* A VOLTA ATRÁS, UM A UM. Chega-se aqui quando o adaptador não fala a API de Git (o
+   * `gravarArquivosNumCommit` responde «não li a referência») ou quando o commit foi recusado. O
+   * `PUT /contents` por ficheiro é o que sempre valeu, e agora custa o que custava — mas só neste
+   * caso, e só para o que falta. */
+  for (const p of pendentes) {
+    try {
+      const resposta = await f(raiz + p.destino, {
         method: 'PUT',
         headers: cabecalhos,
         body: JSON.stringify({
-          message: 'feat(schema): os schemas do ciclo na pasta de ' + prof,
-          content: base64De(texto),
+          message: MENSAGEM,
+          content: base64De(p.texto),
           ...(ref ? { branch: ref } : {}),
         }),
       });
       if (resposta.status >= 200 && resposta.status < 300) {
-        relatorio.criados.push(destino);
+        relatorio.criados.push(p.destino);
       } else {
         relatorio.ok = false;
-        relatorio.erros.push('PUT ' + destino + ' recusado: HTTP ' + resposta.status);
+        relatorio.erros.push('PUT ' + p.destino + ' recusado: HTTP ' + resposta.status);
       }
     } catch (erro) {
       relatorio.ok = false;
-      relatorio.erros.push(destino + ': ' + (erro && erro.message ? erro.message : String(erro)));
+      relatorio.erros.push(p.destino + ': ' + (erro && erro.message ? erro.message : String(erro)));
     }
   }
 

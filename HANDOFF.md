@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-24T15:40:27-0300`
-Commit atual: `e803f8a0` — fix(estrutura): o monitoramento deixou de reler o mês a cada abertura
+Gerado em: `2026-11-24T16:34:17-0300`
+Commit atual: `c179465f` — fix(estrutura): a implementação do lote, que o commit anterior não levou
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,8 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+c179465f fix(estrutura): a implementação do lote, que o commit anterior não levou
+1251dd90 feat(estrutura): o ato passa a custar um commit, e não quatro
 e803f8a0 fix(estrutura): o monitoramento deixou de reler o mês a cada abertura
 0692e5a0 feat(estrutura): o §7.1 não existe (e aqui não ajudaria), e o aviso do ponto de migração
 c1199018 feat(estrutura): a escada aplicada, o simulado das extensões e a política de mora
@@ -100,8 +102,6 @@ f286c3b1 chore(estrutura): o REGISTRO partido por ano — índice e arquivo anua
 a0d0fe6b feat(ciclo-01): a mesa dos N ciclos, e o ciclo zero que a guarda deixava passar
 74a69836 docs(registro): a geração que falhou sem erro à vista, e a regra que a fecha
 00436bea chore(entrega): gerar o pacote de demi-plie/01/breu-piano
-8278192c chore(estrutura): fechar os derivados — âncoras e índices
-aefcd3d2 fix(ciclo-01): o manifesto declara tudo o que o escritor grava
 ```
 
 ## Por professor
@@ -195,53 +195,53 @@ aefcd3d2 fix(ciclo-01): o manifesto declara tudo o que o escritor grava
 
 ## Última entrada do REGISTRO
 
-## 25/11/2026 — O agrupamento dentro do ato: quatro commits passam a um, e o caminho de sempre fica por baixo
+## 25/11/2026 — O `.conf` não compensa; os schemas custavam 109 commits, e passam a um
 
-**O que ela aprovou.** «O agrupamento que falta é dentro do ato e não dentro das aulas. Então vamos
-fazer esse ponto para economizar ainda mais. É importante que isso não estrague nada do que está
-funcionando.»
+**A pergunta dela.** «Você disse que o que fica de fora é o `.conf` […] Aí você tem que me dizer se
+der para economizar também com isso, a gente economiza, senão deixa assim.»
 
-**A medida, e é pior do que «2 a 4».** Nos runs de 23 e 24/11: **21 execuções do «Fechar os
-derivados», 7 canceladas**, duração somada dos jobs **274 s = 4,6 min**, e **21 minutos facturados**
-— cada job arredonda ao minuto. **4,6× de desperdício.** As sete canceladas duraram **22 segundos**
-ao todo e custaram **sete minutos**.
+**O `.conf`: não compensa, e a resposta é essa.** Ele é escrito por `escrever-plano.js` **antes** de o
+acervo entrar, num ponto em que não há lote aberto; juntá-lo exigiria levantar a fila ao nível da
+rota, atravessando três módulos. E o ganho seria **um commit**, não quatro.
 
-**O ato, commit a commit.** O «Guardar» das 11:11:53 às 11:12:30 de 24/11 fez **quatro pushes em
-nove segundos**: `envelope/.indice.json`, `envelope/plano-….json`, o `.conf`, e as dez fontes. Os
-quatro disparam o `derivados.yml`, que observa `escola/**` e `professores/**`. O escritor das fontes
-**já estava resolvido** desde 22/10/2026; o que faltava eram os **três pequenos**.
+**E a pergunta fez encontrar outra coisa, maior.** `git log --all --grep='feat(schema)'` dá **109
+commits**, e **20 pastas de professor têm exactamente cinco** cada: o `garantirSchemasDoCiclo`
+percorria os cinco sufixos e fazia **um `PUT /contents` por cada** — cinco commits, cinco pushes,
+cinco execuções do `derivados.yml`, que observa `professores/**`. Cada execução custa **1 minuto**
+(arronda ao minuto) e o `cancel-in-progress` mata as quatro seguintes — **e um job cancelado
+paga-se**. **20 atos × 4 a mais = 80 minutos** gastos a escrever cinco ficheiros para a mesma pasta.
 
-**A causa não é o CI, é a forma da escrita.** Cada uma dessas três é um `PUT /contents` — um commit
-cada, e cada commit é um push. E `gravarArquivosNumCommit` gasta **cinco subpedidos por commit**:
-quatro commits são **vinte** num orçamento de **cinquenta** por invocação do Worker. Um commit são
-cinco.
+**O que mudou.** Os `GET` continuam um por schema — só se escreve o que falta —, e as escritas vão
+num `gravarArquivosNumCommit` só. Degrada para o `PUT` por ficheiro quando o adaptador não fala a API
+de Git, que é o caso das bancadas. A ordem que importa fica: os schemas antes da fonte.
 
-**O desenho.** `acervo-envelopes.js` ganhou um **lote** — `abrirLote`/`fecharLote`/`emLote`.
-Dentro dele `guardar`/`criar` acumulam e `ler` vê o pendente; o fecho aplica tudo com **um** commit,
-pela mesma `gravarArquivosNumCommit`. **Sem lote nada muda**, e é o controlo negativo da prova. O
-`criado` pergunta-se **antes** de guardar (o primeiro defeito: escrito ao contrário, todo o envelope
-novo passava por edição). Lote vazio não faz commit. O `apagar` **fecha** o lote antes, porque o
-commit único não sabe apagar. E o `elicitar` é a fronteira do pedido — abre no início, fecha antes
-do `return`, e o `ok` que vale é o do **commit**, não o da promessa.
+**A prova.** Secção **D** nova em `provar-schemas-do-professor.js`: um repositório de mentira que
+fala as cinco rotas do Git conta **um** commit com os cinco dentro e **zero** `PUT`; o `repoVirtual`
+de antes, que só conhece `/contents/`, obriga à degradação e os cinco entram na mesma. **32
+asserções**; e a secção D é vermelha sem a mudança (4 de 32), com a mensagem a dizer o que viu — foi
+preciso corrigir a prova, que rebentava num `TypeError` e escondia o que medira.
 
-**A regressão que a mudança quase causou, e o que ela ensinou.** `provar-escola-do-documento` passou
-de 8/8 para 7/8: um `fetchImpl` que só conhece `/contents/` e a árvore — o das bancadas — não fala a
-API de Git do commit único, o fecho reprovava, e **o ato deixava de gravar**. Um ganho de cota não
-pode custar a gravação: o fecho passou a **degradar** para as escritas uma a uma, pela mesma
-`escrever` de sempre, e a resposta diz `degradado: true` com o motivo. Sem essa marca, o painel
-diria «um commit» sobre quatro.
+**E a resposta à segunda pergunta dela — o Cloudflare.** Não é preciso habilitar nada: o Worker
+`danca` **já tem** o `CLOUDFLARE_API_TOKEN`, e o token **já tem** `Account Analytics: Read`, medido
+pelo GraphQL (`kvOperationsAdaptiveGroups` devolveu 2 615 leituras e 25 escritas de 23/11;
+`workersInvocationsAdaptive` devolveu os pedidos por script). **A limitação declarada no
+`resumirCloudflare` está errada** — o comentário diz «exige um token com permissão de analítica, que
+este Worker não tem», e tem. Fica registado como a dívida a fechar: o monitor passa a poder medir os
+pedidos e as operações de KV por dia.
 
-**O que fica fora, e é dito.** O `.conf` continua num commit próprio (é escrito por
-`escrever-plano.js`, antes de o acervo entrar; juntá-lo exigiria a fila ao nível da rota, que
-atravessa três módulos) — o corte medido é de **quatro para três** neste ponto, e o ganho não o
-conta.
+**E uma dívida medida de caminho, que apareceu a medir isto.** A suite completa dá **1 a 2
+«regressões» que mudam de prova em cada corrida** — `provar-teste`, depois
+`provar-o-parametro-do-plano`, depois `provar-as-tabelas-do-bloco` —, e **as três passam isoladas**
+(exit 0, medido). Nenhuma delas está na linha de base, e por isso cada uma é anunciada como
+regressão quando o paralelismo (6 de cada vez) a faz perder uma asserção. **Conferido com `git stash`
+e a árvore limpa: a suite sem mudança nenhuma dá 2 regressões.** São provas de NAVEGADOR (puppeteer +
+servidor HTTP) a competir por recursos. O efeito é o pior possível para um gate: o `pre-commit` e o
+`conferir.yml` podem barrar um commit bom, e quem for ver não encontra nada. Fica declarado — o
+remédio é o runner serializar as provas de navegador, e o runner é `tools/`, congelado.
 
-**Validado.** `provar-o-ato-num-commit.js` **30/30**, e **vermelha sem a mudança** (conferido com
-`git stash`). As provas dos módulos tocados: **0 regressões**. As quatro conferências verdes.
-
-**Onde entrou.** `motor/servidor/acervo-envelopes.js`, `motor/nucleo/porta.js`,
-`experimentos/provar-o-ato-num-commit.js` (novo), `.gitignore`, `CUSTO-DOS-FLUXOS.md` (§17),
-`ESTADO-ATUAL.md` (a fotografia e a decisão 183), `HANDOFF.md`.
+**Onde entrou.** `motor/servidor/schemas-do-ciclo.js`,
+`experimentos/provar-schemas-do-professor.js`, `CUSTO-DOS-FLUXOS.md` (§18), `ESTADO-ATUAL.md`
+(a fotografia e a decisão 184), `HANDOFF.md`.
 
 ## O que está pendente
 

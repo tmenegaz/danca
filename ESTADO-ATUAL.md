@@ -4,7 +4,27 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **o ato passou a custar um commit, e não quatro.** «O
+> **Última fotografia:** 25/11/2026 — **os schemas do ciclo custavam 109 commits, e passam a um.**
+> «Aí você tem que me dizer se der para economizar também com isso [o `.conf`], a gente economiza,
+> senão deixa assim.» **O `.conf` não compensa, e a resposta é essa:** ele é escrito antes de o
+> acervo entrar, num ponto em que não há lote aberto, e juntá-lo exigiria levantar a fila ao nível da
+> rota; o ganho seria **um** commit. **Mas a pergunta fez encontrar outra coisa, e é grande:**
+> `git log --all --grep='feat(schema)'` dá **109 commits**, e **20 pastas de professor têm exactamente
+> cinco** cada. O `garantirSchemasDoCiclo` fazia **um `PUT /contents` por schema** — cinco commits,
+> cinco pushes, cinco execuções do `derivados.yml`, que observa `professores/**`. Cada execução custa
+> **1 minuto** e o `cancel-in-progress` mata as quatro seguintes — **e um job cancelado paga-se**.
+> **20 atos × 4 a mais = 80 minutos** gastos a escrever cinco ficheiros para a mesma pasta, no mesmo
+> segundo. Agora as escritas vão num **`gravarArquivosNumCommit`** só; os `GET` continuam um por
+> schema (só se escreve o que falta), a ordem mantém-se (os schemas antes da fonte), e **degrada**
+> para o `PUT` por ficheiro quando o adaptador não fala a API de Git — o caso das bancadas. **32
+> asserções**, e a secção nova é vermelha sem a mudança. **E a segunda pergunta dela, o Cloudflare:
+> não é preciso habilitar nada** — o Worker `danca` **já tem** o `CLOUDFLARE_API_TOKEN` e o token
+> **já tem** `Account Analytics: Read`, medido pelo GraphQL: `kvOperationsAdaptiveGroups` devolveu
+> **2 615 leituras e 25 escritas** de 23/11, e `workersInvocationsAdaptive` devolveu os pedidos por
+> script. **A limitação declarada no `resumirCloudflare` está errada** — o comentário diz que o Worker
+> não tem a permissão, e tem.
+>
+> **Fotografia anterior (25/11/2026 — o ato passou a custar um commit, e não quatro).** «O
 > agrupamento que falta é dentro do ato e não dentro das aulas […] É importante que isso não estrague
 > nada do que está funcionando.» **A medida, e é pior do que «2 a 4»:** nos runs de 23 e 24/11, **21
 > execuções do «Fechar os derivados», 7 canceladas**, **4,6 min de trabalho e 21 min facturados** —
@@ -4277,6 +4297,21 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      continua num commit próprio, e o corte medido nesse ponto é de **quatro para três**.
      **DECIDIDO** e **APLICADO** 25/11/2026.
 
+184. **O `.conf` NÃO COMPENSA; OS SCHEMAS DO CICLO CUSTAVAM 109 COMMITS E PASSAM A UM.** A pergunta
+     dela — «se der para economizar também com isso, a gente economiza, senão deixa assim» — tem duas
+     metades, e a segunda é um achado. **O `.conf` fica como está:** é escrito por `escrever-plano.js`
+     antes de o acervo entrar, num ponto em que não há lote aberto; juntá-lo exigiria levantar a fila
+     ao nível da rota, atravessando três módulos, e o ganho seria **um** commit. **Os schemas, esses,
+     custavam caro:** `git log --all --grep='feat(schema)'` dá **109 commits**, e 20 pastas de
+     professor têm **exactamente cinco** — porque `garantirSchemasDoCiclo` fazia um `PUT /contents`
+     por sufixo. Cinco commits são cinco pushes, e cada um acorda o `derivados.yml`; cada execução
+     custa 1 minuto e as quatro seguintes são canceladas — **e um cancelado paga-se.** **80 minutos**
+     em 20 atos. Agora vão num `gravarArquivosNumCommit` só, com degradação para o `PUT` por ficheiro
+     quando não há API de Git. **E o Cloudflare não precisa de habilitação nenhuma:** o Worker já tem
+     o `CLOUDFLARE_API_TOKEN` e o token já tem `Account Analytics: Read` — medido pelo GraphQL, com
+     **2 615 leituras e 25 escritas** de KV a 23/11. A limitação declarada no `resumirCloudflare` está
+     **errada**, e fica como dívida a fechar. **DECIDIDO** e **APLICADO** 25/11/2026.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -5188,7 +5223,18 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (25/11/2026 — o agrupamento dentro do ato)
+### Executado nesta fotografia (25/11/2026 — os schemas num commit, e a analítica do Cloudflare)
+
+| Verificação | Resultado |
+|:--|:--|
+| os commits de schema, contados no histórico | `git log --all --grep='feat(schema)'` → **109 commits**; **20 pastas** de professor com **exactamente 5** cada. Cinco `PUT /contents`, cinco pushes, cinco execuções do `derivados.yml` a 1 minuto cada, quatro canceladas **e pagas**. **80 minutos** em 20 atos |
+| `node experimentos/provar-schemas-do-professor.js` | **32/32**. A secção **D** é nova: com um repositório que fala as cinco rotas do Git, **um commit** com os cinco ficheiros e **zero** `PUT`; com o `repoVirtual` de antes (só `/contents/`), os cinco entram por **cinco `PUT`** — a degradação. E a segunda passagem não escreve nada nem faz segundo commit |
+| a secção D depende da mudança | **vermelha sem ela** (4 de 32), conferido com `git stash` |
+| o `.conf` — a pergunta dela | **não compensa.** É escrito por `escrever-plano.js` antes de o acervo entrar, sem lote aberto; juntá-lo exigiria a fila ao nível da rota. O ganho seria **1** commit |
+| a permissão de analítica do Cloudflare, **medida** | o Worker `danca` tem o secret `CLOUDFLARE_API_TOKEN`, e o token responde ao GraphQL: `kvOperationsAdaptiveGroups` devolveu **2 615 leituras e 25 escritas** de 23/11; `workersInvocationsAdaptive` devolveu os pedidos por script. **Não é preciso habilitar nada** — e a limitação declarada no `resumirCloudflare` está **errada** |
+| a suite completa, e a instabilidade que ela tem | **182/278 verdes, 95 conhecidas** — e **1 a 2 «regressões» que MUDAM de prova em cada corrida** (`provar-teste`, `provar-o-parametro-do-plano`, `provar-as-tabelas-do-bloco`), todas de navegador e **todas verdes isoladas** (exit 0). **Conferido com `git stash` e a árvore limpa: a suite sem mudança nenhuma dá 2 regressões.** É o paralelismo (6 de cada vez) a competir por recursos, e é dívida do runner — declarada |
+
+### Executado nesta fotografia anterior (25/11/2026 — o agrupamento dentro do ato)
 
 | Verificação | Resultado |
 |:--|:--|
