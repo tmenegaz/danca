@@ -1,0 +1,29 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: professores/demi-plie/ciclos/ciclo-01-breu-piano.conf e os .md deste ciclo, mais a base ciclo-01.conf quando existe.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# Selo do alfabeto (notacao_*): fora da fórmula — diz com que código o documento foi
+# escrito, e é o que o --check compara para o alfabeto não mudar em silêncio.
+
+id: ciclo-01-breu-piano
+type: Ciclo
+professor: demi-plie
+ciclo: 01
+variante: breu-piano
+hash_conteudo: 95bc5ca1ad22ec2677b06a0640d43c1bb7c89ffde376ae4a962d8ad9081d33a6
+parentHash: 
+hash: 89b6ab567e01fac754566ded55d52eff4af50f7df7c3746cecafff96baf9e02d
+algoritmo: SHA-256
+po: ausente — este ciclo ainda não tem PO declarado
+po_state: 
+ancorado_em: 2026-11-24
+notacao: Código de dança
+notacao_modalidade: bale-classico
+notacao_alfabeto: ballet-classico
+notacao_versao: 64
+notacao_sha: 7f2f0c56435f5ed22c568fc5f88ae88ce9a3d2b9d158b9ed04f4b6c1d944b5f0
+notacao_vocabulario_sha: e061d8d48f595ca5c2d714cf948af9d11b02ab7f245394b15129fd8c865e8d0c
+cobertura:
+  - professores/demi-plie/ciclos/ciclo-01-breu-piano-plano.md
+  - professores/demi-plie/ciclos/ciclo-01-breu-piano.conf
+  - professores/demi-plie/ciclos/ciclo-01.conf
