@@ -1,0 +1,71 @@
+{
+  "escola": "Breu",
+  "blocos": {
+    "Bloco 1 — Solo": {
+      "chave": "solo",
+      "rotulo": "Solo",
+      "grao": "aluna",
+      "colunas": {
+        "transferir o peso entre os pés sem perder o alinhamento": {
+          "chave": "transferir_o_peso_entre_os_pes_sem_perder_o_alinhamento",
+          "tipo": "rubrica"
+        }
+      }
+    },
+    "Bloco 2 — Barra": {
+      "chave": "barra",
+      "rotulo": "Barra",
+      "grao": "aluna",
+      "colunas": {
+        "transferir o peso entre os pés sem perder o alinhamento": {
+          "chave": "transferir_o_peso_entre_os_pes_sem_perder_o_alinhamento",
+          "tipo": "rubrica"
+        }
+      }
+    },
+    "Bloco 3 — Centro": {
+      "chave": "centro",
+      "rotulo": "Centro",
+      "grao": "aluna",
+      "colunas": {
+        "transferir o peso entre os pés sem perder o alinhamento": {
+          "chave": "transferir_o_peso_entre_os_pes_sem_perder_o_alinhamento",
+          "tipo": "rubrica"
+        }
+      }
+    },
+    "Bloco 4 — Musicalidade": {
+      "chave": "musicalidade",
+      "rotulo": "Musicalidade",
+      "grao": "aluna",
+      "colunas": {
+        "transferir o peso entre os pés sem perder o alinhamento": {
+          "chave": "transferir_o_peso_entre_os_pes_sem_perder_o_alinhamento",
+          "tipo": "rubrica"
+        }
+      }
+    },
+    "Bloco 5 — Expressão": {
+      "chave": "expressao",
+      "rotulo": "Expressão",
+      "grao": "aluna",
+      "colunas": {
+        "transferir o peso entre os pés sem perder o alinhamento": {
+          "chave": "transferir_o_peso_entre_os_pes_sem_perder_o_alinhamento",
+          "tipo": "rubrica"
+        }
+      }
+    },
+    "Linha de base revisitada": {
+      "chave": "linha_de_base",
+      "rotulo": "Linha de base",
+      "grao": "aluna",
+      "colunas": {
+        "Observado na aula": {
+          "chave": "observado_na_aula",
+          "tipo": "rubrica"
+        }
+      }
+    }
+  }
+}
