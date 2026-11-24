@@ -4325,7 +4325,7 @@ async function fetch(request, env) {
       let cache = {
         medidos: {}, lidoEm: null, chavesEm: null, chaves: {},
         conferencia: null, conferenciaEm: null, facturado: null, facturadoEm: null,
-        visibilidade: null, visibilidadeEm: null,
+        visibilidade: null, visibilidadeEm: null, janela: null, janelaEm: null,
       };
       try {
         const texto = kv && typeof kv.get === 'function' ? await kv.get('monitor/cache') : null;
@@ -4340,17 +4340,70 @@ async function fetch(request, env) {
        * no dia 1, que é onde a fatura começa.
        *
        * E é a JANELA INTEIRA, não uma amostra: o tecto de 5 páginas lia 500 das 2.810 execuções do
-       * mês e apresentava 500 como total. 30 páginas de 100 cobrem o mês dentro do orçamento de
-       * subpedidos do Worker. */
+       * mês e apresentava 500 como total.
+       *
+       * O FILTRO PASSA A IR NO PEDIDO (25/11/2026). Antes lia-se a lista de execuções página a
+       * página e deitava-se fora o que fosse de outro mês — pagando 26 páginas para guardar 11.
+       * MEDIDO: 26 páginas / 2 600 execuções em 97,8 s sem filtro; 11 páginas / 1 000 em 54,7 s com
+       * `created=>=2026-11-01`. O `total_count` devolve ZERO com o filtro — não se lê como «não há
+       * execuções»; e a listagem filtrada tem tecto de 1 000 (10 páginas), que é o que `truncado`
+       * declara. */
       const primeiroDoMes = hoje.slice(0, 8) + '01';
-      const janela = await leituraDoMonitor.runsDoGithub({
-        token, dono: DONO, repo: REPO, desdeIso: primeiroDoMes + 'T00:00:00Z', agora: agoraIso, paginas: 30,
-      });
 
-      /* MEDIR OS JOBS QUE FALTAM, com tecto. A conta dos subpedidos: 30 páginas de runs + 12
-       * medições + 2 de KV + 1 de listagem = 45, dentro dos 50 do plano gratuito. Cada abertura
-       * acrescenta 12 execuções medidas, e a calibragem por fluxo faz o resto — não é preciso medir
-       * 2.810 para saber quanto 2.810 custam. */
+      /* A JANELA PASSA A TER CACHE, E É AQUI QUE ESTAVA A LENTIDÃO (25/11/2026).
+       *
+       * «Quando eu entro aqui em danca.padd.com.br/monitoramento, a API demora muito tempo para
+       * carregar. E eu tenho a impressão que isso acontece porque a consulta está sem critério.»
+       *
+       * MEDIDO: sem filtro, a paginação do mês lia **26 páginas e 2 600 execuções em 97,8 s** — e
+       * lia tudo outra vez a cada abertura, porque a janela não tinha cache nenhuma (a cache
+       * guardava a medição de cada run, e não a LISTA). Onze pedidos por abertura, em série.
+       *
+       * O QUE A CACHE PODE GUARDAR SEM MENTIR: a lista dos runs do mês. Um run que já fechou não
+       * muda — duração, conclusão e nome ficam. O que muda é haver runs NOVOS, e por isso o prazo
+       * é curto (2 minutos) e o `lidoEm` vai junto: quem chega depois de dois minutos paga outra
+       * vez, e é isso que faz o número acompanhar o dia. A abertura seguinte, essa, é grátis.
+       *
+       * `truncado` TAMBÉM SE GUARDA. Se a leitura anterior ficou pelo tecto de páginas, guardar a
+       * lista sem essa marca faria o painel apresentar uma janela incompleta como completa — que é
+       * o defeito que a janela inteira existe para evitar. */
+      const CACHE_DA_JANELA_MS = 2 * 60 * 1000;
+      const janelaVelha = !cache.janela || !cache.janelaEm ||
+        (Date.now() - Date.parse(cache.janelaEm)) > CACHE_DA_JANELA_MS ||
+        /* E se o mês virou, a janela guardada é de outro mês: não serve. */
+        (cache.janela && cache.janela.desde && cache.janela.desde.slice(0, 7) !== mes);
+      /* O `ok` VAI JUNTO (25/11/2026). A cache guarda a lista, e a lista só existe quando a leitura
+       * deu certo — mas o painel pergunta `janela.ok` para dizer se a janela abriu, e um objecto
+       * vindo do KV não traz esse campo: a resposta passaria a dizer «a janela falhou» sobre uma
+       * leitura que correu bem. Um campo que falta não é um «não». */
+      let janela = cache.janela && Array.isArray(cache.janela.runs)
+        ? Object.assign({ ok: true, motivo: null }, cache.janela) : null;
+      let janelaDaCache = Boolean(janela) && !janelaVelha;
+      if (janelaVelha) {
+        janela = await leituraDoMonitor.runsDoGithub({
+          token, dono: DONO, repo: REPO, desdeIso: primeiroDoMes + 'T00:00:00Z',
+          agora: agoraIso, paginas: 10,
+        });
+        janelaDaCache = false;
+        /* Só se guarda o que se conseguiu ler. Uma leitura falhada não se guarda: guardá-la faria o
+         * painel dizer «sem execuções» durante os dois minutos seguintes a uma falha de rede. */
+        if (janela && janela.ok) {
+          cache.janela = { runs: janela.runs, desde: janela.desde, truncado: Boolean(janela.truncado) };
+          cache.janelaEm = agoraIso;
+        }
+      }
+
+      /* MEDIR OS JOBS QUE FALTAM, com tecto. A conta dos subpedidos, CORRIGIDA a 25/11/2026 com o
+       * filtro no pedido e a janela em cache:
+       *
+       *   abertura FRIA  — 11 páginas de runs + 12 medições + 2 de KV + 1 de listagem = 26
+       *   abertura QUENTE — 0 páginas + 12 medições + 2 de KV + 1 de listagem = 15
+       *
+       * (a facturação e a conferência somam 1 ou 2, e são de 6 em 6 horas). O comentário antigo
+       * dizia «30 páginas + 12 + 2 + 1 = 45» — era verdade antes do filtro, e uma conta de orçamento
+       * que envelhece é uma conta que deixa de avisar. Cada abertura acrescenta 12 execuções
+       * medidas, e a calibragem por fluxo faz o resto: não é preciso medir 2.810 para saber quanto
+       * 2.810 custam. */
       /* O ORÇAMENTO DE SUBPEDIDOS DO WORKER, explícito (17/11/2026).
        *
        * O plano gratuito dá **50 subpedidos por invocação**, e este painel faz três coisas caras:
@@ -4358,7 +4411,8 @@ async function fetch(request, env) {
        * (1 por escola). Com 20 escolas a soma passa dos 50 e a rota inteira caía — um monitor que
        * derruba a página que o mostra. As parcelas passam a ser atribuídas por conta e saldo:
        * facturação (1) + conferência (1) + listagens (até 8) saem primeiro, e o que sobra divide-se
-       * entre páginas (30) e medições (até 12). Abaixo de 8 escolas sobra o máximo para as duas. */
+       * entre páginas (tecto de 10, desde o filtro de 25/11/2026) e medições (até 12). Abaixo de 8
+       * escolas sobra o máximo para as duas. */
       const ORCAMENTO = 50;
       const TECTO_DE_MEDICOES = 12;
       const TECTO_DE_ESCOLAS = 8;
@@ -4512,6 +4566,9 @@ async function fetch(request, env) {
 
       const retrato = monitoramento.retrato({
         github, correio, cloudflare, receita, inadimplencia, migracaoDasEscolas,
+        /* A JANELA VEIO DA CACHE? A página diz (25/11/2026) — com dois minutos de validade, quem
+         * olha tem de saber se o número é deste instante ou do anterior. */
+        janelaDaCache, janelaLidaEm: cache.janelaEm || null,
         cambio,
         /* OS CUSTOS DE HOJE SÃO ZERO, e é o número certo: os três planos em uso são gratuitos.
          * Quando um deles passar a ser pago, este é o valor que entra na coluna «diferença». */
@@ -4531,6 +4588,11 @@ async function fetch(request, env) {
             facturado: cache.facturado || null, facturadoEm: cache.facturadoEm || null,
             visibilidade: cache.visibilidade || null,
             visibilidadeEm: cache.visibilidadeEm || null,
+            /* A JANELA (25/11/2026) — «medidos» guarda a conta de cada run; isto guarda a LISTA, que
+             * é o que custa onze pedidos a cada abertura. O prazo é curto (2 min) e vem declarado no
+             * `janelaEm`: o número é o do mês, e pára de o ser quando o dia avança sem ele. */
+            janela: cache.janela || null,
+            janelaEm: cache.janelaEm || null,
           }));
         }
       } catch (erro) { /* a cache não derruba a leitura */ }
@@ -4539,6 +4601,11 @@ async function fetch(request, env) {
         return new Response(JSON.stringify(Object.assign({ ok: true }, retrato, {
           medidosAgora, listouAgora, truncado: Boolean(janela.truncado),
           janelaOk: Boolean(janela.ok), janelaMotivo: janela.motivo || null,
+          /* DE ONDE VEIO A JANELA, e de quando (25/11/2026). Um número sem a sua idade é um número
+           * que engana: com a cache de dois minutos, quem olha o painel tem de poder saber se está a
+           * ver o mês de agora ou o de dois minutos atrás. E `nanquim` nenhum — é o mesmo campo que
+           * a página mostra ao lado da hora da leitura. */
+          janelaDaCache, janelaLidaEm: cache.janelaEm || null,
         }), null, 2), {
           status: 200,
           headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' },

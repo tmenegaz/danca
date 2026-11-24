@@ -4,7 +4,32 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **o §7.1 não existe, e o ponto de migração passou a ser dito.** Ela
+> **Última fotografia:** 25/11/2026 — **o monitoramento deixou de reler o mês a cada abertura.** Ela
+> sentiu-o antes de eu o medir — «a API demora muito tempo para carregar […] tenho a impressão que isso
+> acontece porque a consulta está sem critério» —, e a hipótese estava **meio certa**: a janela **já
+> era o ciclo** (dia 1 ao hoje, desde 17/11), e o que não tinha critério era a **paginação**. O corte do
+> mês era aplicado *depois* de a lista vir: **medido com `curl`, 26 páginas e 2 600 execuções em 97,8 s
+> sem filtro, contra 11 páginas e 1 000 em 54,7 s** com `created=>=2026-11-01` no pedido. O filtro
+> passou a ir no URL, e com ele duas verdades que ficaram escritas: **`total_count` devolve ZERO** com o
+> filtro (não é «não há execuções»), e a listagem filtrada **para em 1 000** — acima disso a janela é
+> `truncado`, e diz-se. **Mas a causa maior era outra, e ela não a podia ver:** a janela **não tinha
+> cache nenhuma**. Havia cache para os jobs, para as chaves de KV, para a factura e para a visibilidade
+> — não para a lista de execuções, a única que se paga em **páginas**. Cada abertura relia o mês de
+> fábrica: onze pedidos em série, sempre. Agora a lista fica **2 minutos**, com **validade por mês**,
+> com o **`truncado` guardado** (senão a abertura seguinte apresentaria uma janela incompleta como
+> completa), com **leitura falhada não guardada**, e com o **`ok` restituído** — um objecto vindo do KV
+> não traz esse campo, e sem isso o painel diria «a janela falhou» sobre uma leitura que correu bem.
+> **Medido de ponta a ponta**, com a rota verdadeira em processo e um GitHub de mentira que conta os
+> pedidos: **fria 11 páginas + 12 medições; quente 0 páginas + 12 medições**. A poupança em segundos
+> (~32 s) é **derivada**, e está dita como derivada — o tempo de rede não se mede contra um GitHub de
+> mentira; o que **está** medido é a contagem de pedidos. **A idade do número passou a ser dita na
+> página** — «As execuções do mês são as de 25/11 às 08:58 — relidas a cada dois minutos» —, e
+> `janelaDaCache` é `null`, não `false`, quando não se sabe. **O controlo negativo apanhou um defeito
+> meu:** o prazo era lido com `Number('2 * 60 * 1000')`, que dá `NaN`, e a cache **nunca caducava** —
+> os dois controlos passavam sem medir nada, mesma família do `.every` sobre leitura vazia. **181/276
+> provas, 0 regressões.**
+>
+> **Fotografia anterior (25/11/2026 — o §7.1 não existe, e o ponto de migração passou a ser dito).** Ela
 > desconfiou de mim — «isso já não foi feito? […] Você precisa medir isso» — e tinha razão em desconfiar:
 > **o agrupamento das gerações não está implementado.** O `disparar.js` faz um `POST` imediato por
 > pedido, sem janela; o `concurrency` do `gerar-ciclo.yml` **serializa** (para não sobrescrever o pacote)
@@ -4181,6 +4206,33 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      do ponto) e **sem degrau** (o Avançado acima da franquia, que não pode ser calado). **DECIDIDO** e
      **APLICADO** 25/11/2026.
 
+182. **O MONITORAMENTO RELÊ O MÊS A CADA ABERTURA — E A CAUSA MAIOR NÃO ERA A QUE ELA NOMEOU.**
+     «A API demora muito tempo para carregar. E eu tenho a impressão que isso acontece porque a
+     consulta está sem critério. Os planos se renovam a cada 30 dias.» A hipótese estava **meio
+     certa**: a janela **já era o ciclo** (dia 1 ao hoje, desde 17/11/2026, quando o painel dizia
+     3.623 min de uma cota em que a factura dizia 1.930), e o `Resend` já era mensal **e** diário. O
+     que não tinha critério era a **paginação** — o corte do mês era aplicado *depois* de a lista
+     vir. **Medido com `curl`: 26 páginas e 2 600 execuções em 97,8 s sem filtro, contra 11 páginas e
+     1 000 em 54,7 s** com `created=>=2026-11-01` no pedido. O filtro passou a ir no **URL**, e com
+     ele duas verdades escritas no código: **`total_count` devolve ZERO** com o filtro (não se lê
+     como «não há execuções»), e a listagem filtrada **para em 1 000** — acima disso é `truncado`, e
+     diz-se. **E a causa maior era a cache que não havia:** havia para os jobs, para o KV, para a
+     factura e para a visibilidade, **não para a lista de execuções** — a única que se paga em
+     páginas. Cada abertura relia o mês de fábrica: onze pedidos em série, sempre. A janela passou a
+     ficar **2 minutos**, com **validade por mês**, com o **`truncado` guardado** (senão a abertura
+     seguinte apresentaria uma janela incompleta como completa), com **leitura falhada não guardada**
+     (senão uma falha de rede virava «sem execuções» por dois minutos), e com o **`ok` restituído**
+     ao objecto vindo do KV — **um campo que falta não é um «não»**. **Medido de ponta a ponta**, com
+     a rota verdadeira em processo: **fria 11 páginas + 12 medições + 3; quente 0 páginas + 12 + 2.**
+     Onze pedidos a menos por abertura; a poupança em segundos (~32 s) é **derivada** e está dita como
+     derivada — o tempo de rede não se mede contra um GitHub de mentira, e o que está medido é a
+     contagem de pedidos. **A idade do número é dita na página** («As execuções do mês são as de 25/11
+     às 08:58 — relidas a cada dois minutos»), e só quando veio da cache: dizer «agora» em cada
+     abertura é ruído. **O controlo negativo apanhou um defeito meu:** o prazo era lido com
+     `Number('2 * 60 * 1000')`, que dá `NaN`, e `qualquer coisa > NaN` é sempre falso — a cache
+     **nunca caducava**, e os dois controlos passavam sem medir nada. É a família do `.every` sobre
+     leitura vazia: uma validação que não mede nada não falha. **DECIDIDO** e **APLICADO** 25/11/2026.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -5092,7 +5144,20 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (24/11/2026 — as ondas de higiene, cache e limpeza da suite)
+### Executado nesta fotografia (25/11/2026 — o monitoramento deixou de reler o mês)
+
+| Verificação | Resultado |
+|:--|:--|
+| o filtro no pedido, **medido com `curl`** | **26 páginas e 2 600 execuções em 97,8 s** sem filtro, contra **11 páginas e 1 000 em 54,7 s** com `created=>=2026-11-01`. O tempo é a soma dos pedidos em série, que é como o Worker os faz |
+| duas consequências declaradas no código | `total_count` devolve **ZERO** com o filtro — não é «não há execuções»; e a listagem filtrada **para em 1 000** (10 páginas), acima disso `truncado`. O tecto de páginas da rota desceu de 30 para **10** |
+| `node experimentos/provar-a-velocidade-do-monitoramento.js` (**nova**) | **26/26**. §A o URL leva `created=>=AAAA-MM-01` e `per_page=100`. §B a paginação para quando a página sai do corte (2 páginas lidas, nenhuma quarta pedida). §C chegar ao tecto de páginas **declara-se** truncado. §D a segunda abertura não volta ao GitHub. §E **controlo negativo**: três minutos depois volta a pagar, e uma janela de outro mês não serve. §F a idade da janela chega ao retrato e à página |
+| a medida de ponta a ponta, com a rota verdadeira em processo | GitHub de mentira que conta pedidos, KV em memória que persiste entre aberturas: **fria 11 páginas + 12 medições + 3 outros · quente 0 + 12 + 2**, `janelaDaCache` `false` → `true` → `true`. **Onze pedidos a menos por abertura.** A poupança em segundos (~32 s, a 2,87 s/página) é **derivada** dos dois pontos acima, e está dita como derivada |
+| a conta dos subpedidos, corrigida | o comentário dizia `30 + 12 + 2 + 1 = 45` de 50; hoje são **26 na fria** e **15 na quente**, mais 1–2 de factura e conferência (de 6 em 6 horas) |
+| o defeito que o controlo negativo apanhou | o prazo da cache era lido com `Number('2 * 60 * 1000')` → `NaN`, e `x > NaN` é sempre falso: a cache **nunca caducava** e os dois controlos passavam sem medir nada. Passou a ler o prazo como expressão e a afirmar que é finito antes de o usar |
+| `node tools/correr-provas.js` | **276 provas, 181 verdes, 95 falhas conhecidas, 3 por tecto, 0 regressões** em **191,7 s**. Antes desta fotografia: 275/180/95 |
+| `check-identidade` · `check-schemas` · `check-sem-destruicao` · `check-github-headers` | **0 problemas** (23 verificações) · verde · verde · 5 verificações ok |
+
+### Executado nesta fotografia anterior (24/11/2026 — as ondas de higiene, cache e limpeza da suite)
 
 | Verificação | Resultado |
 |:--|:--|

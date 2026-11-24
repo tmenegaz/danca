@@ -49,8 +49,22 @@ async function runsDoGithub({ token, dono, repo, dias, agora, desdeIso, fetchImp
   const lista = [];
   let truncado = false;
   for (let p = 1; p <= paginas; p += 1) {
+    /* O CORTE VAI NO PEDIDO, E NÃO SÓ NO FILTRO DE CÁ (25/11/2026).
+     *
+     * Medido no repositório: sem filtro, a paginação do mês lia **26 páginas e 2 600 execuções**
+     * para usar menos de mil, em **97,8 s**. O `created=>=AAAA-MM-01` é um filtro do SERVIDOR — o
+     * GitHub devolve só o que interessa —, e o mesmo mês passou a **11 páginas em 54,7 s**.
+     *
+     * O limite que se declara: as listagens filtradas do GitHub devolvem **até 1 000 resultados**
+     * (10 páginas de 100). Num mês com mais de mil execuções a janela fica TRUNCADA, e o chamador
+     * diz isso em vez de apresentar mil como se fosse o mês. É a mesma disciplina do `p === paginas`
+     * abaixo: um número incompleto tem de se declarar incompleto.
+     *
+     * O filtro é só um atalho — o filtro de cá continua a correr, porque `created` e
+     * `run_started_at` podem divergir em segundos numa execução que esperou na fila. */
     const url = 'https://api.github.com/repos/' + dono + '/' + repo + '/actions/runs'
-      + '?per_page=100&page=' + p;
+      + '?per_page=100&page=' + p
+      + '&created=' + encodeURIComponent('>=' + corte.slice(0, 10));
     let r = null;
     try {
       r = await f(url, {

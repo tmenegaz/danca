@@ -1597,6 +1597,16 @@ experimentos/modelo-formulario/*
 # frase só com elas diria «paga 90 aulas a menos» a quem está a 230 de 320. 34 asserções.
 !experimentos/provar-o-ponto-de-migracao.js
 
+# A VELOCIDADE DO MONITORAMENTO (25/11/2026). «Quando eu entro aqui em danca.pdd.com.br/monitoramento,
+# a API demora muito tempo para carregar. E eu tenho a impressão que isso acontece porque a consulta
+# está sem critério.» A hipótese dela estava meio certa: a janela JÁ era o ciclo (dia 1 ao hoje), o
+# que não tinha critério era a PAGINAÇÃO — lia-se o repositório e deitava-se fora o que fosse de
+# outro mês. E havia uma terceira causa, que ela não podia ver: a janela não tinha cache nenhuma.
+# A prova mede o filtro no pedido, a paragem no corte, o tecto de 1 000 declarado, a segunda abertura
+# a não pagar — e o CONTROLO NEGATIVO, que é o que a impede de passar por a rota nunca pedir nada. 26
+# asserções.
+!experimentos/provar-a-velocidade-do-monitoramento.js
+
 # O FINANCEIRO QUE FICA (23/11/2026, à tarde). A regra de 17/11 era o contrário — expurgar a escola
 # levava as mensalidades dela —, e ela corrigiu: «A parte financeira não pode expurgar, ela fica
 # para histórico. E aí a gente diz numa linha seguinte que essa escola foi expurgada.» O livro vive

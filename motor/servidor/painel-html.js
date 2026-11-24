@@ -3196,7 +3196,15 @@ function paginaDoMonitoramento({ retrato, cambio, visibilidade, recado, aba }) {
     '<span>Resend: <strong>' + ((r.correio && r.correio.enviados) || 0) + ' de ' + ((r.correio && r.correio.total) || 0) + '</strong></span>' +
     '<span>Receita: <strong>' + reaisDeCentavos((r.receita && r.receita.mrrCentavos) || 0) + '/mês</strong></span>' +
     '</div>' +
-    (r.agora ? '<p class="sub">Lido em ' + esc(quando(r.agora)) + '.</p>' : '') +
+    (r.agora ? '<p class="sub">Lido em ' + esc(quando(r.agora)) + '.' +
+      /* A IDADE DA JANELA, DITA (25/11/2026). A lista de execuções do mês passou a ficar em cache
+       * dois minutos — é o que faz a segunda abertura ser instantânea em vez de onze pedidos. Mas
+       * um número sem a sua idade engana: quem abre o painel tem de saber se está a ver o mês de
+       * agora ou o de dois minutos atrás. Quando a janela vem fresca, não se diz nada — dizer
+       * «agora» em cada abertura é ruído. */
+      (r.janelaDaCache && r.janelaLidaEm
+        ? ' As execuções do mês são as de ' + esc(quando(r.janelaLidaEm)) + ' — relidas a cada dois minutos.'
+        : '') + '</p>' : '') +
     '</div>';
 
   const abas = [['consumo', 'O consumo'], ['receita', 'A receita'], ['migracao', 'A migração']];

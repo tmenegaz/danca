@@ -2188,3 +2188,134 @@ mais**, mesmo sem se contar uma única aula.
 | `motor/servidor/painel-html.js` | `blocoDaMigracaoDasEscolas`, na aba da receita, **depois** da inadimplência: a ordem é a do dinheiro — a receita diz o tamanho, a inadimplência diz quem está fora dele, e esta diz quem devia pagar mais e não está |
 | `motor/servidor/raiz.js` | calculado do **mesmo `extrato`** que a receita e a inadimplência já leem — uma segunda leitura dos contratos daria uma segunda lista de quem contactar |
 | `experimentos/provar-o-ponto-de-migracao.js` | **novo** — 34 asserções, com os controlos dos dois lados da fronteira, do topo que não pode ser calado, e do dinheiro que cresce enquanto as aulas encolhem |
+
+---
+
+## 16. O monitoramento lento: duas causas, e uma delas ela não podia ver *(25/11/2026)*
+
+> «Quando eu entro aqui em danca.pdd.com.br/monitoramento, a API demora muito tempo para carregar. E
+> eu tenho a impressão que isso acontece porque a consulta está sem critério. Os planos se renovam a
+> cada 30 dias, então a consulta precisa ser só do mês corrente. Tanto para o Cloudflare, não sei se
+> está sendo feito também, quanto para o workflow do GitHub, quanto para o do envio de e-mails.»
+
+A hipótese dela estava **meio certa**, e vale separar as metades — porque uma delas já estava
+resolvida desde 17/11/2026 e a outra não, e a terceira ela não podia ver.
+
+### 16.1 O que já estava certo
+
+A janela **já era o ciclo**: começa no dia 1 e vai até hoje (`primeiroDoMes`), e não é uma janela
+rolante de 30 dias. Isso foi decidido em 17/11/2026, quando o painel dizia 3.623 min de uma cota em
+que a factura dizia 1.930 — medir 30 dias rolantes e comparar com um tecto mensal compara duas coisas
+que não se somam. **A parte «só do mês corrente» do pedido já estava feita.**
+
+O `Resend` também já era mensal **e** diário (`resumirCorreio`), e o `Cloudflare` não tem cota de
+operações exposta a este Worker — o painel diz isso em vez de mostrar um zero com cara de medição.
+
+### 16.2 A causa que faltava: a paginação sem critério
+
+O corte do mês era aplicado **depois** de a lista vir. Lia-se a lista de execuções do repositório,
+página a página, e deitava-se fora o que fosse de outro mês — pagando 26 páginas para guardar 11.
+
+| | páginas | execuções lidas | tempo |
+|:--|--:|--:|--:|
+| lista sem filtro, a paginar até ao fim | 26 | 2 600 | **97,8 s** |
+| `created=>=2026-11-01` no pedido | 11 | 1 000 | **54,7 s** |
+
+*(medido neste repositório, com `curl`, em 25/11/2026 — a coluna do tempo é a soma dos pedidos em
+série, que é como o Worker os faz.)*
+
+O filtro passou a ir **no URL**: `created=>=AAAA-MM-01`. Duas consequências que ficaram declaradas no
+código, porque as duas enganam quem não as souber:
+
+- **`total_count` devolve ZERO** quando o `created` vai no pedido. Não se lê como «não há execuções»;
+  o número que serve é o `runs.length`.
+- **As listagens filtradas do GitHub param em 1 000 resultados** (10 páginas de 100). Num mês com
+  mais de mil execuções a janela fica **truncada**, e o `truncado` di-lo. Apresentar mil como se
+  fosse o mês é a mesma mentira que o resto do painel existe para evitar.
+
+O tecto de páginas da rota desceu de 30 para **10**, que é onde o filtro para — pedir a 30ª página
+de uma listagem filtrada é pedir uma página que não existe.
+
+### 16.3 A causa maior, e a que ela não podia nomear: a janela não tinha cache
+
+O painel já tinha cache para os **jobs** de cada execução (`medidos`), para as chaves de **KV**
+(`chaves`), para a **factura** e para a **visibilidade**. Não tinha para a **lista de execuções** —
+a coisa mais cara das quatro, porque é a única que se paga em **páginas**, e não em pedidos soltos.
+
+Consequência: **cada abertura do painel relia o mês de fábrica.** Onze pedidos em série, sempre,
+mesmo que a página fosse aberta duas vezes no mesmo minuto.
+
+O que passou a haver, e o que ela guarda sem mentir:
+
+- a **lista** dos runs do mês, com o `lidoEm` — prazo de **2 minutos**;
+- **`truncado` também se guarda**, senão a abertura seguinte apresentaria uma janela incompleta como
+  completa;
+- **uma leitura falhada não se guarda** — guardá-la faria o painel dizer «sem execuções» durante dois
+  minutos depois de uma falha de rede;
+- **o mês entra na validade**: uma janela guardada em Outubro não serve em Novembro;
+- **o `ok` é restituído** ao objecto que vem do KV. Um objecto guardado não traz esse campo, e sem
+  isto o painel passaria a dizer «a janela falhou» sobre uma leitura que correu bem. *Um campo que
+  falta não é um «não».*
+
+### 16.4 A conta dos subpedidos, corrigida
+
+O comentário do orçamento dizia `30 páginas + 12 medições + 2 de KV + 1 de listagem = 45` de 50. Era
+verdade antes do filtro. Agora:
+
+| abertura | páginas de runs | medições | KV | listagem | **total** |
+|:--|--:|--:|--:|--:|--:|
+| **fria** (primeira, ou passados 2 min) | 11 | 12 | 2 | 1 | **26** |
+| **quente** (dentro dos 2 min) | 0 | 12 | 2 | 1 | **15** |
+
+Mais 1 ou 2 para a factura e a conferência, que são de 6 em 6 horas. Uma conta de orçamento que
+envelhece é uma conta que deixa de avisar — e foi por isso que ela passou a estar escrita com as
+parcelas de hoje.
+
+As 12 medições continuam a acontecer em cada abertura, e é de propósito: medir os jobs de um run é o
+que calibra o custo por fluxo, e cada abertura acrescenta 12 execuções medidas. Não é preciso medir
+2.810 para saber quanto 2.810 custam — mas é preciso continuar a medir algumas.
+
+### 16.5 A medida de ponta a ponta, e o que ela vale
+
+A rota correu em processo, com um GitHub de mentira que conta os pedidos e um KV em memória que
+**persiste entre as aberturas**:
+
+| abertura | páginas de runs | medições | outros | `janelaDaCache` |
+|:--|--:|--:|--:|:--|
+| 1 (fria) | **11** | 12 | 3 | `false` |
+| 2 (quente) | **0** | 12 | 2 | `true` |
+| 3 (quente) | **0** | 12 | 2 | `true` |
+
+Onze pedidos a menos por abertura, e é isso que o número de rede mede: a **2,87 s por página**,
+derivado dos dois pontos acima (15 páginas a menos, 43,1 s a menos), a segunda abertura poupa cerca de
+**32 s** — *derivado, não medido*, porque o tempo de rede não se mede contra um GitHub de mentira.
+
+O que **está** medido é a contagem de pedidos, e é ela que a prova afirma.
+
+### 16.6 O que ficou dito na página
+
+Um número em cache sem a sua idade engana. O retrato leva `janelaDaCache` e `janelaLidaEm`, e a
+página escreve-os: *«As execuções do mês são as de 25/11/2026 às 08:58 — relidas a cada dois
+minutos.»* Quando a janela vem fresca, não se diz nada — dizer «agora» em cada abertura é ruído. E
+`janelaDaCache` é `null` e não `false` quando não se sabe: um campo que falta não é um «não».
+
+### 16.7 O que mudou
+
+| ficheiro | o quê |
+|:--|:--|
+| `motor/servidor/leitura-do-monitor.js` | `created=>=AAAA-MM-01` no URL de `runsDoGithub`; o tecto de 1 000 declarado em `truncado` |
+| `motor/servidor/raiz.js` | `CACHE_DA_JANELA_MS` (2 min) com validade por mês, `truncado` e `ok` guardados, leitura falhada não guardada; tecto de páginas 30 → 10; a conta dos subpedidos corrigida |
+| `motor/nucleo/monitoramento.js` | `janelaDaCache` e `janelaLidaEm` no `retrato`, `null` quando não se sabe |
+| `motor/servidor/painel-html.js` | a idade da janela escrita no cabeçalho do monitoramento, só quando veio da cache |
+| `experimentos/provar-a-velocidade-do-monitoramento.js` | **novo** — 26 asserções, com os dois controlos negativos |
+
+### 16.8 O controlo negativo, e o defeito que ele apanhou
+
+A prova simula a cache e tem de provar que ela **se recusa** a servir: passados três minutos, volta a
+pagar; e uma janela de outro mês não serve. Na primeira execução, os dois controlos passaram **sem
+medir nada** — o prazo era lido com `Number('2 * 60 * 1000')`, que dá `NaN`, e `qualquer coisa > NaN`
+é sempre falso, ou seja, a cache **nunca caducava**.
+
+É a mesma família de erro que o `.every` sobre uma leitura vazia: uma validação que não mede nada não
+falha. A prova passou a ler o prazo como **expressão** (multiplicando as parcelas) e a afirmar que ele
+é finito antes de o usar.

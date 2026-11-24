@@ -1212,7 +1212,7 @@ function projectarAulas({ aulasVendidas, precoDaAulaCentavos, cambio, referencia
  * mesma separação do `mensalidades.js`: o mês e o dia de uma cota são os do fuso da escola.
  */
 function retrato({ github, correio, cloudflare, receita: r, inadimplencia: inad, aulas, cambio,
-  migracaoDasEscolas, custosAtuaisUsd, agora } = {}) {
+  migracaoDasEscolas, janelaDaCache, janelaLidaEm, custosAtuaisUsd, agora } = {}) {
   const migracao = impactoDaMigracao({ receita: r, cambio, custosAtuaisUsd });
   /* A CONTA EM AULAS entra no retrato (25/11/2026), e entra como COTA — é ela que responde à
    * pergunta dela («quando é que os meus custos aumentam?»), e uma cota que não está no pior
@@ -1239,6 +1239,10 @@ function retrato({ github, correio, cloudflare, receita: r, inadimplencia: inad,
     cloudflare: cloudflare || null,
     aulas: emAulas || null,
     migracaoDasEscolas: migrarEscolas || null,
+    /* DE ONDE VEIO A JANELA (25/11/2026). `null` quando não se sabe — e não `false`, que afirmaria
+     * «foi ao GitHub» sobre uma leitura que ninguém fez. */
+    janelaDaCache: typeof janelaDaCache === 'boolean' ? janelaDaCache : null,
+    janelaLidaEm: janelaLidaEm || null,
     receita: r || null,
     /* A INADIMPLÊNCIA ENTRA NO RETRATO (17/11/2026): é a mesma família da receita — dinheiro que
      * devia ter entrado e não entrou —, e é a lista de quem contactar. Vai separada da receita

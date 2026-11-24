@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-24T15:00:55-0300`
-Commit atual: `c1199018` — feat(estrutura): a escada aplicada, o simulado das extensões e a política de mora
+Gerado em: `2026-11-24T15:22:01-0300`
+Commit atual: `0692e5a0` — feat(estrutura): o §7.1 não existe (e aqui não ajudaria), e o aviso do ponto de migração
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+0692e5a0 feat(estrutura): o §7.1 não existe (e aqui não ajudaria), e o aviso do ponto de migração
 c1199018 feat(estrutura): a escada aplicada, o simulado das extensões e a política de mora
 ad7d1c8a docs(estrutura): escada 130/320/500 com dólar a R$ 6, e a margem não depende do nº de escolas
 87fdbdc0 docs(estrutura): o tecto dos 100% é do dono da conta, e a escada pede 139/320/500
@@ -101,7 +102,6 @@ a0d0fe6b feat(ciclo-01): a mesa dos N ciclos, e o ciclo zero que a guarda deixav
 8278192c chore(estrutura): fechar os derivados — âncoras e índices
 aefcd3d2 fix(ciclo-01): o manifesto declara tudo o que o escritor grava
 5d322d4b chore(estrutura): fechar os derivados — âncoras e índices
-0ea82c68 feat(ciclo): o «Guardar» do PO grava as fontes de breu-piano num commit só
 ```
 
 ## Por professor
@@ -195,71 +195,61 @@ aefcd3d2 fix(ciclo-01): o manifesto declara tudo o que o escritor grava
 
 ## Última entrada do REGISTRO
 
-## 25/11/2026 — O §7.1 não está feito (e nesta operação não ajudaria), e o aviso do ponto de migração
+## 25/11/2026 — O monitoramento lento: a hipótese dela estava meio certa, e a causa maior era outra
 
-**A pergunta dela, e a desconfiança era justa.** «Você diz que precisa agrupar as gerações, que isso
-corta a fatura pela metade. Mas isso já não foi feito? Eu acho que já. […] Você precisa medir isso.»
+**O pedido.** «Quando eu entro aqui em danca.pdd.com.br/monitoramento, a API demora muito tempo para
+carregar. E eu tenho a impressão que isso acontece porque a consulta está sem critério. Os planos se
+renovam a cada 30 dias, então a consulta precisa ser só do mês corrente.»
 
-**Medido, e a resposta é não — com a correcção que eu devo.** O `motor/servidor/disparar.js` faz um
-`POST` imediato ao `dispatches` por cada pedido: **não há espera, não há janela, não há agrupamento**.
-O que existe é outra coisa, e é bom distingui-la: o `concurrency` do `gerar-ciclo.yml`
-(`cancel-in-progress: false`) **serializa** — duas gerações do mesmo pacote não correm juntas para não
-o sobrescreverem, como o próprio ficheiro diz; o `concurrency` do `derivados.yml`
-(`cancel-in-progress: true`) **cancela o pendente**, e um cancelado paga-se; e a **consolidação do
-`derivados.yml` num só job** (16/11/2026) foi consolidação de **jobs**, não de **execuções**.
+**O que já estava feito, e digo-o para não a corrigir onde ela tinha razão.** A janela **já era o
+ciclo** — dia 1 ao hoje, desde 17/11/2026, quando o painel dizia 3.623 min de uma cota em que a
+factura dizia 1.930. O `Resend` já era mensal **e** diário. E o `Cloudflare` não tem cota de operações
+exposta a este Worker — o painel diz isso em vez de mostrar um zero com cara de medição.
 
-**Nos runs: 71 `Gerar o ciclo`, 4 canceladas (5,6 %)** — efeito de borda da fila, não agrupamento. E
-os intervalos de «0 minutos» entre execuções da mesma variante são o **mesmo acto a disparar duas
-vezes**, a 12–15 segundos um do outro.
+**A causa que faltava, e que era a que ela sentia: a paginação sem critério.** O corte era aplicado
+**depois** de a lista vir. Lia-se a lista do repositório página a página e deitava-se fora o que fosse
+de outro mês. **Medido com `curl` neste repositório:** 26 páginas e 2 600 execuções em **97,8 s** sem
+filtro; 11 páginas e 1 000 execuções em **54,7 s** com `created=>=2026-11-01` no pedido. O filtro
+passou a ir no URL. Duas consequências ficaram declaradas no código: **`total_count` devolve ZERO**
+com o filtro (não é «não há execuções»), e a listagem filtrada **para em 1 000** — acima disso a
+janela é `truncado`, e diz-se.
 
-**E o número que mais importa: nesta operação o agrupamento não pouparia nada.** O §7.1 foi escrito
-para «dez aulas lançadas seguidas». Na operação dela são **16 aulas por dia, uma por hora**, e uma
-geração demora **40 a 50 segundos** — a anterior termina **59 minutos antes** de a seguinte ser pedida.
-**Não há nada para agrupar.** Quando eu disse que «o §7.1 corta a factura a metade», apliquei ao
-cenário dela um ganho medido noutro. A afirmação estava errada.
+**A causa maior, e a que ela não podia nomear: a janela não tinha cache.** Havia cache para os jobs de
+cada execução, para as chaves de KV, para a factura e para a visibilidade. Não havia para a **lista de
+execuções** — a mais cara, porque se paga em **páginas**. Cada abertura relia o mês de fábrica: onze
+pedidos em série, sempre. Agora a lista fica 2 minutos, com **validade por mês**, com o **`truncado`
+guardado** (senão a abertura seguinte apresentaria uma janela incompleta como completa), com **leitura
+falhada não guardada**, e com o **`ok` restituído** — um objecto vindo do KV não traz esse campo, e sem
+isto o painel diria «a janela falhou» sobre uma leitura que correu bem.
 
-**O que a medição encontrou em vez disso, e é maior:** um único acto dispara **2 a 4 gerações** e
-**1 a 7 derivações** — um gesto de trinta segundos custa **10 minutos**. A alavanca que existe não é o
-agrupamento entre aulas, é o **agrupamento DENTRO do acto**: cada gravação pede a geração, e cada
-geração escreve em `professores/**`, que dispara a derivação outra vez. **É ela que substitui o §7.1
-na ordem de socorro da §12.8**, e a engenharia continua em primeiro (R$ 43,63/mês, 36 % do custo).
-**Cortar aulas continua a última, e essa conclusão não dependia do §7.1** — a aula custa sete centavos
-e a R$ 12 seria preciso cortar a franquia a metade.
+**A medida de ponta a ponta**, com a rota verdadeira em processo, um GitHub de mentira que conta os
+pedidos e um KV em memória que persiste entre as aberturas: **fria 11 páginas + 12 medições + 3;
+quente 0 páginas + 12 medições + 2, `janelaDaCache=true`.** Onze pedidos a menos por abertura. A
+poupança em segundos (~32 s, a 2,87 s/página) é **derivada** dos dois pontos de rede, e está dita como
+derivada — o tempo de rede não se mede contra um GitHub de mentira.
 
-**E a unidade confirma-se:** numa aula isolada, **2 min** (1 `Gerar` + 1 `derivados`) — exactamente o
-número em que a §12 se apoia.
+**A conta dos subpedidos, corrigida no comentário:** dizia `30 + 12 + 2 + 1 = 45` de 50; hoje são
+**26 na fria e 15 na quente**, com o tecto de páginas a descer de 30 para 10, que é onde o filtro para.
 
-**O AVISO DO PONTO DE MIGRAÇÃO, implementado no monitoramento.** «É ali que você vai me dizer quando
-vale a pena então migrar. É o ponto de migração da escola. E aí que eu vou pedir para o consultor
-entrar em contato.»
+**O controle negativo, e o defeito que ele apanhou.** A prova simula a cache e tem de provar que ela se
+recusa a servir — três minutos depois, e com uma janela de outro mês. Na primeira execução os dois
+controlos passaram **sem medir nada**: o prazo era lido com `Number('2 * 60 * 1000')`, que dá `NaN`, e
+`qualquer coisa > NaN` é sempre falso — a cache nunca caducava. Mesma família do `.every` sobre leitura
+vazia: uma validação que não mede nada não falha. Passou a ler o prazo como expressão, e a afirmar que
+é finito antes de o usar.
 
-A conta: `viragem = franquia + (preço de cima − preço de baixo) ÷ preço da extensão` → **190 aulas/mês**
-no Básico→Intermediário e **400** no Intermediário→Avançado. **No ponto a escola paga exactamente o
-preço do plano de cima e recebe menos aulas** — 190 em vez de 320 (130 a menos), 400 em vez de 500 (100
-a menos) —, e **acima do ponto o dinheiro começa a correr** (a 230 aulas no Básico, R$ 20,00/mês a mais).
+**A idade do número, dita na página.** «As execuções do mês são as de 25/11/2026 às 08:58 — relidas a
+cada dois minutos.» Quando a janela vem fresca não se diz nada — dizer «agora» em cada abertura é
+ruído. E `janelaDaCache` é `null`, não `false`, quando não se sabe: um campo que falta não é um «não».
 
-**E A PROVA CORRIGIU O MODELO.** A primeira versão media a perda pelas aulas («paga 130 aulas a
-menos»). As duas grandezas andam em **sentidos opostos**: o dinheiro perdido **cresce** com o
-crescimento (R$ 0 → 20 → 55) e as aulas «que paga sem receber» **encolhem** (130 → 90 → 20), porque a
-escola se aproxima da franquia do plano de cima. Dizer «paga 90 aulas a menos» a quem está a 230 de 320
-é verdade e é inútil. **A regra ficou: o dinheiro mede a perda, as aulas descrevem a distância.** E no
-próprio ponto a economia é **zero** — é o que faz do ponto um ponto.
+**Validado.** `provar-a-velocidade-do-monitoramento.js` **26/26**; as quatro conferências verdes
+(`check-identidade` 23, `check-schemas`, `check-sem-destruicao`, `check-github-headers` 5); a suite
+completa sem regressões.
 
-**Onde vive, e o que não é.** Na aba **da receita**, e **não** na aba «A migração» — aquela é a dos
-**fornecedores** e só gasta; esta é a das **escolas** e rende. Duas palavras iguais para duas coisas
-opostas, e o bloco **começa por dizer que não é a outra**. **Não tem botão de migrar**: mudar o plano
-de uma escola é decisão comercial com contrato, e o que ela pediu foi a lista para telefonar. Três
-listas: **migrar**, **a chegar** (acima de 80 % do ponto) e **sem degrau** — o Avançado acima da
-franquia, que **não pode ser calado** porque é a maior escola. O número que decide é o medido quando
-existe e o contratado quando não, e o bloco **diz qual está a usar**.
-
-**MEDIDO.** `provar-o-ponto-de-migracao` **34/34 (novo)**. `correr-provas --mudou` sobre os três
-módulos tocados: **0 regressões**. As quatro conferências verdes: `check-identidade` (23),
-`check-schemas`, `check-sem-destruicao`, `check-github-headers` (5).
-
-**Onde entrou.** `motor/nucleo/monitoramento.js`, `motor/servidor/painel-html.js`,
-`motor/servidor/raiz.js`, `experimentos/provar-o-ponto-de-migracao.js` (novo), `.gitignore`,
-`CUSTO-DOS-FLUXOS.md` (§14 e §15), `ESTADO-ATUAL.md` (a fotografia e a decisão 180), `HANDOFF.md`.
+**Onde entrou.** `motor/servidor/leitura-do-monitor.js`, `motor/servidor/raiz.js`,
+`motor/nucleo/monitoramento.js`, `motor/servidor/painel-html.js`,
+`experimentos/provar-a-velocidade-do-monitoramento.js` (novo), `.gitignore`, `CUSTO-DOS-FLUXOS.md`
+(§16), `ESTADO-ATUAL.md` (a fotografia e a decisão 182), `HANDOFF.md`.
 
 ## O que está pendente
 

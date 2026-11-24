@@ -60944,3 +60944,59 @@ módulos tocados: **0 regressões**. As quatro conferências verdes: `check-iden
 **Onde entrou.** `motor/nucleo/monitoramento.js`, `motor/servidor/painel-html.js`,
 `motor/servidor/raiz.js`, `experimentos/provar-o-ponto-de-migracao.js` (novo), `.gitignore`,
 `CUSTO-DOS-FLUXOS.md` (§14 e §15), `ESTADO-ATUAL.md` (a fotografia e a decisão 180), `HANDOFF.md`.
+
+## 25/11/2026 — O monitoramento lento: a hipótese dela estava meio certa, e a causa maior era outra
+
+**O pedido.** «Quando eu entro aqui em danca.pdd.com.br/monitoramento, a API demora muito tempo para
+carregar. E eu tenho a impressão que isso acontece porque a consulta está sem critério. Os planos se
+renovam a cada 30 dias, então a consulta precisa ser só do mês corrente.»
+
+**O que já estava feito, e digo-o para não a corrigir onde ela tinha razão.** A janela **já era o
+ciclo** — dia 1 ao hoje, desde 17/11/2026, quando o painel dizia 3.623 min de uma cota em que a
+factura dizia 1.930. O `Resend` já era mensal **e** diário. E o `Cloudflare` não tem cota de operações
+exposta a este Worker — o painel diz isso em vez de mostrar um zero com cara de medição.
+
+**A causa que faltava, e que era a que ela sentia: a paginação sem critério.** O corte era aplicado
+**depois** de a lista vir. Lia-se a lista do repositório página a página e deitava-se fora o que fosse
+de outro mês. **Medido com `curl` neste repositório:** 26 páginas e 2 600 execuções em **97,8 s** sem
+filtro; 11 páginas e 1 000 execuções em **54,7 s** com `created=>=2026-11-01` no pedido. O filtro
+passou a ir no URL. Duas consequências ficaram declaradas no código: **`total_count` devolve ZERO**
+com o filtro (não é «não há execuções»), e a listagem filtrada **para em 1 000** — acima disso a
+janela é `truncado`, e diz-se.
+
+**A causa maior, e a que ela não podia nomear: a janela não tinha cache.** Havia cache para os jobs de
+cada execução, para as chaves de KV, para a factura e para a visibilidade. Não havia para a **lista de
+execuções** — a mais cara, porque se paga em **páginas**. Cada abertura relia o mês de fábrica: onze
+pedidos em série, sempre. Agora a lista fica 2 minutos, com **validade por mês**, com o **`truncado`
+guardado** (senão a abertura seguinte apresentaria uma janela incompleta como completa), com **leitura
+falhada não guardada**, e com o **`ok` restituído** — um objecto vindo do KV não traz esse campo, e sem
+isto o painel diria «a janela falhou» sobre uma leitura que correu bem.
+
+**A medida de ponta a ponta**, com a rota verdadeira em processo, um GitHub de mentira que conta os
+pedidos e um KV em memória que persiste entre as aberturas: **fria 11 páginas + 12 medições + 3;
+quente 0 páginas + 12 medições + 2, `janelaDaCache=true`.** Onze pedidos a menos por abertura. A
+poupança em segundos (~32 s, a 2,87 s/página) é **derivada** dos dois pontos de rede, e está dita como
+derivada — o tempo de rede não se mede contra um GitHub de mentira.
+
+**A conta dos subpedidos, corrigida no comentário:** dizia `30 + 12 + 2 + 1 = 45` de 50; hoje são
+**26 na fria e 15 na quente**, com o tecto de páginas a descer de 30 para 10, que é onde o filtro para.
+
+**O controle negativo, e o defeito que ele apanhou.** A prova simula a cache e tem de provar que ela se
+recusa a servir — três minutos depois, e com uma janela de outro mês. Na primeira execução os dois
+controlos passaram **sem medir nada**: o prazo era lido com `Number('2 * 60 * 1000')`, que dá `NaN`, e
+`qualquer coisa > NaN` é sempre falso — a cache nunca caducava. Mesma família do `.every` sobre leitura
+vazia: uma validação que não mede nada não falha. Passou a ler o prazo como expressão, e a afirmar que
+é finito antes de o usar.
+
+**A idade do número, dita na página.** «As execuções do mês são as de 25/11/2026 às 08:58 — relidas a
+cada dois minutos.» Quando a janela vem fresca não se diz nada — dizer «agora» em cada abertura é
+ruído. E `janelaDaCache` é `null`, não `false`, quando não se sabe: um campo que falta não é um «não».
+
+**Validado.** `provar-a-velocidade-do-monitoramento.js` **26/26**; as quatro conferências verdes
+(`check-identidade` 23, `check-schemas`, `check-sem-destruicao`, `check-github-headers` 5); a suite
+completa sem regressões.
+
+**Onde entrou.** `motor/servidor/leitura-do-monitor.js`, `motor/servidor/raiz.js`,
+`motor/nucleo/monitoramento.js`, `motor/servidor/painel-html.js`,
+`experimentos/provar-a-velocidade-do-monitoramento.js` (novo), `.gitignore`, `CUSTO-DOS-FLUXOS.md`
+(§16), `ESTADO-ATUAL.md` (a fotografia e a decisão 182), `HANDOFF.md`.
