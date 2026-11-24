@@ -1235,6 +1235,89 @@ function montarShard(shard) {
   console.log('publicação do shard «' + shard + '» montada: ' + escolas.length + ' escola(s)');
 }
 
+/**
+ * A MINIFICAÇÃO DO QUE VAI AO BROWSER (24/11/2026).
+ *
+ * O QUE MOTIVOU, medido. `porta/index.html` saía com **545 KB**, dos quais **490 KB** eram um
+ * `<script>` inline e **234 KB** (49 %) eram COMENTÁRIO de fonte. `raiz/index.html`, 127 KB com
+ * 30 KB de comentário. Ia tudo para o parser do browser em cada carregamento — e o brotli do
+ * Cloudflare reduzia-o a 143 KB e 32 KB, respectivamente, o que quer dizer que dois terços do
+ * que se transferia era texto que ninguém executa.
+ *
+ * O QUE SE MINIFICA, e só isto: os `<script>` INLINE (sem `src`) e os `<style>`. Os ficheiros
+ * `.js`/`.css` partilhados de `assets/` **não se tocam** — são comparados byte a byte entre
+ * escolas por `garantirAssetsPartilhados`, e são pequenos.
+ *
+ * AS FONTES NÃO SE TOCAM. Isto corre sobre a ÁRVORE MONTADA (`publicacao/`), depois de todas as
+ * páginas estarem escritas. `porta/index.html`, `raiz/index.html` e o que o gerador escreve
+ * ficam como estão: o `check-identidade` lê as fontes, e uma fonte minificada deixaria de poder
+ * ser lida por quem tem de a ler.
+ *
+ * SEM `esbuild`, AVISA E NÃO MINIFICA. Não é uma dependência declarada — vem com o `wrangler` —,
+ * e um deploy que falha por causa de uma optimização seria pior do que um deploy 2× maior. O
+ * aviso é alto o suficiente para ninguém se enganar sobre o que subiu.
+ *
+ * Devolve o número de blocos minificados, para o chamador poder dizê-lo.
+ */
+function minificarInline(html) {
+  let esbuild;
+  try { esbuild = require('esbuild'); } catch (erro) { return { html, blocos: 0, semEsbuild: true }; }
+  let blocos = 0;
+  const saida = String(html).replace(/<(script|style)([^>]*)>([\s\S]*?)<\/\1>/g, (todo, tag, attrs, corpo) => {
+    if (tag === 'script' && /\bsrc\s*=/.test(attrs)) return todo;
+    if (!corpo || !corpo.trim()) return todo;
+    try {
+      const r = esbuild.transformSync(corpo, {
+        loader: tag === 'script' ? 'js' : 'css',
+        minify: true,
+        charset: 'utf8',
+        // O ALVO É O QUE OS BROWSERS DE HOJE JÁ ENTENDEM. Sem isto o `esbuild` transpila para
+        // ES5 e reescreve o código todo — maior e mais lento do que o original.
+        target: 'es2020',
+      });
+      blocos += 1;
+      return '<' + tag + attrs + '>' + r.code + '</' + tag + '>';
+    } catch (erro) {
+      /* Um bloco que não compila como JS isolado (um `type="text/template"`, por exemplo) fica
+       * como está. Minificar não é compilar: o que já funcionava tem de continuar a funcionar. */
+      return todo;
+    }
+  });
+  return { html: saida, blocos };
+}
+
+/**
+ * A PASSAGEM FINAL: minificar TODAS as páginas da árvore montada.
+ *
+ * Corre depois de `percorrer` (que lhes põe a barra de hoje) porque é a última coisa a mexer no
+ * ficheiro — minificar antes seria trabalho deitado fora por quem escrevesse a seguir.
+ */
+function minificarArvore(destino) {
+  if (!fs.existsSync(destino)) return { paginas: 0, blocos: 0, antes: 0, depois: 0, semEsbuild: false };
+  const conta = { paginas: 0, blocos: 0, antes: 0, depois: 0, semEsbuild: false };
+  const percorrer = (dir) => {
+    for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
+      const completo = path.join(dir, item.name);
+      if (item.isDirectory()) { percorrer(completo); continue; }
+      if (!/\.html$/.test(item.name)) continue;
+      const html = fs.readFileSync(completo, 'utf8');
+      const r = minificarInline(html);
+      if (r.semEsbuild) { conta.semEsbuild = true; return; }
+      conta.paginas += 1;
+      conta.antes += Buffer.byteLength(html, 'utf8');
+      if (r.blocos) {
+        conta.blocos += r.blocos;
+        fs.writeFileSync(completo, r.html, 'utf8');
+        conta.depois += Buffer.byteLength(r.html, 'utf8');
+      } else {
+        conta.depois += Buffer.byteLength(html, 'utf8');
+      }
+    }
+  };
+  percorrer(destino);
+  return conta;
+}
+
 function principal() {
   const iShard = process.argv.indexOf('--shard');
   if (iShard !== -1) return montarShard(String(process.argv[iShard + 1] || '').trim());
@@ -1492,6 +1575,17 @@ function principal() {
   };
   percorrer(destino);
 
+  /* A MINIFICAÇÃO, DEPOIS DA BARRA (24/11/2026) — é a última coisa a mexer nos ficheiros. Ver
+   * `minificarArvore`: os `<script>` inline e os `<style>`, nunca as fontes nem os `assets/`. */
+  const minificado = minificarArvore(destino);
+  if (minificado.semEsbuild) {
+    console.log('  AVISO: `esbuild` não está instalado — as páginas sobem SEM minificação.');
+  } else if (minificado.blocos) {
+    console.log('  minificado: ' + minificado.blocos + ' bloco(s) inline em ' + minificado.paginas
+      + ' página(s) — ' + (minificado.antes / 1024).toFixed(0) + ' KB → '
+      + (minificado.depois / 1024).toFixed(0) + ' KB');
+  }
+
   /* A CÓPIA PARTILHADA, ao fim e não ao princípio: só depois de a escola estar montada é que se
    * sabe se a folha dela coincide com a que já lá está. */
   const partilhados = garantirAssetsPartilhados(destino, escola);
@@ -1514,6 +1608,9 @@ function principal() {
 if (require.main === module) principal();
 
 module.exports = {
+  /* A MINIFICAÇÃO, exportada para a prova (24/11/2026): ela mede o que se ganha e o que NÃO se
+   * toca, e uma prova que reconstruísse a passagem mediria a prova. */
+  minificarInline, minificarArvore,
   documentosDaTurma, dadosDoPlano, itemDoPlano, menuDaEscola,
   /* A LISTA DAS ESCOLAS DE UM SHARD, exportada para a prova (15/11/2026): é ela que decide o que
    * uma publicação de shard sobe, e o erro dela (uma árvore vazia) apaga N escolas de uma vez. */

@@ -1,5 +1,6 @@
 {
   "devDependencies": {
+    "esbuild": "^0.28.1",
     "jsdom": "^29.1.1",
     "pagecrypt": "^7.1.0",
     "wrangler": "^4.147.0"

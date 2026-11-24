@@ -60402,3 +60402,65 @@ meia hora de laço).
 **O que ainda não está feito.** As 95 falhas de asserção continuam sem trïagem — não se sabe
 quantas são provas desatualizadas e quantas são defeitos do sistema. É o próximo trabalho da
 suite, e agora há uma ferramenta para o fazer (`node tools/correr-provas.js --verboso`).
+
+## 24/11/2026 — A minificação do que vai ao browser: 545 KB → 200 KB, e 143 → 51 KB comprimidos
+
+**O PEDIDO.** «Adicione uma etapa determinística de minificação no `montar-publicacao.js` […]
+aplicada exclusivamente aos arquivos gerados para publicação/deploy, removendo os ~234 KB de
+comentários de `/plano-observacao/` e os ~30 KB de `raiz/index.html` […] Mantenha os arquivos-fonte
+intactos para que o `check-identidade` continue validando o código-fonte.»
+
+**O QUE MOTIVOU, medido.** `porta/index.html` saía com **545 KB**, dos quais **490 KB** eram um
+`<script>` inline e **234 KB (49 %)** eram comentário de fonte. `raiz/index.html`, 127 KB com 30 KB
+de comentário. Tudo ia para o parser do browser em cada carregamento de cada escola — e o brotli
+reduzia a 143 KB e 32 KB, o que quer dizer que dois terços do que se transferia era texto que
+ninguém executa.
+
+| ficheiro | bruto | brotli |
+|:--|--:|--:|
+| `porta/index.html` | 545 KB → **200 KB** | 143 KB → **51 KB** |
+| `raiz/index.html` | 127 KB → **71 KB** | 32 KB → **20 KB** |
+
+E na árvore montada da `breu`: **28 blocos inline em 14 páginas — 1680 KB → 852 KB**.
+
+**O QUE SE MINIFICA, e só isto:** os `<script>` **inline** (sem `src`) e os `<style>`. Os
+`.js`/`.css` de `assets/` **não se tocam** — são comparados byte a byte entre escolas por
+`garantirAssetsPartilhados`, e uma minificação por-pacote faria uma escola divergir da outra.
+
+**AS FONTES NÃO SE TOCAM.** A passagem corre sobre a **árvore montada** (`publicacao/`), depois de
+`percorrer` lhe pôr a barra de hoje — é a última coisa a mexer nos ficheiros. `porta/index.html`,
+`raiz/index.html` e o que o gerador escreve ficam como estão, e é isso que mantém o
+`check-identidade` a poder lê-los.
+
+**SEM `esbuild`, AVISA E NÃO MINIFICA.** O `esbuild` **não era** uma dependência declarada — vinha
+como transitiva do `wrangler`, e uma transitiva desaparece num bump de menor. Passou a estar em
+`devDependencies` (`^0.28.1`). E o carregamento é tolerante: um deploy que falha por causa de uma
+optimização seria pior do que um deploy 2× maior, mas o aviso é alto — `AVISO: esbuild não está
+instalado — as páginas sobem SEM minificação`.
+
+**Duas coisas que a prova obrigou a corrigir, e são minhas:** o marcador do comentário da Porta é
+escrito com **duas barras** e eu procurava o delimitador de bloco; e o parser de **CSS** do esbuild
+é **permissivo** (medido: `.a { color: ` passa e sai `.a{color:}`), portanto o caso que exercita a
+guarda «um bloco que não compila fica como está» é o do **JS** (`const = 1;` — que ele recusa de
+facto), não o do CSS.
+
+**Motivo declarado — os congelados.** `tools/montar-publicacao.js` está congelado
+(`CONGELAMENTO.md`) e **mudou**, em commit próprio. A mudança **acrescenta** um passo no fim da
+montagem e duas funções (`minificarInline`, `minificarArvore`); **não altera** nenhuma regra de
+montagem: os caminhos, a árvore, o `nav.json`, o `escola.json`, a cópia partilhada de `/assets/` e a
+recusa de unificar folhas que divirjam ficam exactamente como estavam. **Não muda** a fórmula de
+hash, a cobertura das fontes, os validadores, as regras nem as pétreas.
+
+**MEDIDO.** `experimentos/provar-minificacao-do-payload.js` (**nova**) **29/29**: tira o comentário
+e não muda o que o código faz; o `<script src>` não se toca; o `<style>` minifica-se com as chaves
+fechadas; um bloco que não compila fica como está; um bloco vazio não é tocado; a árvore conta 2
+páginas e 2 blocos num tmp e **não toca um `.css` solto**; as fontes do repositório continuam com
+os comentários; e o controlo negativo mede os 234 KB que a passagem remove.
+`provar-pagina-publica` 79/79, `check-identidade` 0 problemas, e `montar-publicacao.js breu` diz
+«minificado: 28 bloco(s) inline em 14 página(s) — 1680 KB → 852 KB».
+
+**O que ainda não está feito.** Não se mediu em produção depois do deploy (`curl` a comparar o
+`content-length` de `/piano/plano-observacao/` antes e depois). E as páginas **já geradas nos
+pacotes do repositório** (`professores/*/ciclos/ciclo-*/`) continuam com os comentários: elas são
+**saída versionada** e só mudam quando alguém as regerar — a minificação vale para o que a montagem
+publica, não para o que o Git guarda.
