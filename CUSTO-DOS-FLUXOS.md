@@ -1104,252 +1104,298 @@ não garantia.
   ordem é dela.
 
 ---
-
-## 10. Lucro, custo e margem — a conta da escola que trabalha 16 horas por dia *(25/11/2026)*
+## 10. Lucro, custo e margem — quantas escolas se sustentam *(25/11/2026, corrigida no mesmo dia)*
 
 > «Eu preciso saber isso para saber qual é o excedente e aí eu consigo basear os meus custos porque
-> daí eu só calculo esse excedente e subtraio do valor da receita.»
-> — a proprietária, 25/11/2026
+> daí eu só calculo esse excedente e subtraio do valor da receita.» — a proprietária, 25/11/2026
+>
+> «Cada plano roda uma quantidade de aulas. A quantidade de aulas que a pessoa contrata é o limite.
+> […] Você disse que não tem limite. Tem limite. […] Acho que você está confundindo versão antiga do
+> plano com a nova.» — a mesma, 25/11/2026, e **estava certa**: ver a §10.11.
 
-**A pergunta, com os parâmetros dela:** uma escola **em cada plano**, cada uma **isolada**, funcionando
-**16 horas por dia com uma aula por hora** — 16 aulas por dia —, **partilhando o mesmo workflow**, com
-o repositório **privado**. Há lucro ou prejuízo?
+**A pergunta:** com uma escola **em cada plano**, cada uma isolada, funcionando **16 horas por dia com
+uma aula por hora**, **partilhando o mesmo workflow**, em repositório privado — há lucro ou prejuízo? E
+quantas escolas se sustentam?
 
-**A resposta curta: há lucro, e a infraestrutura não é o que o limita.** A margem fica entre **90 % e
-100 %** em todos os modelos; o custo mensal de uma escola sozinha é **R$ 0,00**, e o das três juntas é
-**R$ 28,99**. O que aperta é outra coisa, e está na §10.9: **a franquia de aulas do plano**, que não é
-infraestrutura — é a promessa comercial.
+**A resposta, e são duas frases.** Há lucro em **todos** os planos e em **qualquer** número de escolas:
+**não existe um ponto a partir do qual o prejuízo começa**, porque o custo marginal de uma escola é
+sempre uma fracção da receita dela. A margem **desce** à medida que se sobe de plano — de **90,7 %** no
+Básico a **62,9 %** no Avançado —, mas **nunca chega a zero**: para isso o runner teria de ficar
+**2,7× mais lento**, e no Avançado, que é o caso mais apertado.
 
-### 10.1 A unidade mudou: a aula é 2,12 min, e não 3
+### 10.1 A unidade: 2,0 minutos por aula, e o ciclo é que a segura
 
-O §1 deste documento fixou **3 min por aula** e essa foi a unidade que a franquia comercial adoptou.
-**Já não é a de hoje**, e a diferença não vem de uma estimativa — vem do job.
+Medido a 25/11/2026 sobre 1 000 execuções da API:
 
-| workflow | runs | mediana | acima de 60 s | factura média |
-|:--|--:|--:|--:|--:|
-| **`Gerar o ciclo`** (desde 21/11, pós-TeX) | 16 | **40 s** | 12 % | **1,12 min** |
-| **`Fechar os derivados`** | 395 | **11 s** | 4 de 395 (1 %) | **1,00 min** |
-| **uma aula** | | | | **2,12 min** |
+| workflow | runs | mediana | factura |
+|:--|--:|--:|--:|
+| **`Gerar o ciclo`** (desde 21/11, pós-TeX) | 16 | **40 s** | **1,00 min** |
+| **`Fechar os derivados`** | 395 | 11 s | **1,00 min** |
+| **uma aula** | | | **2,00 min** |
 
-Medido a 25/11/2026 sobre 1 000 execuções da API. O `Gerar o ciclo` vinha de **1,55 min** (73 runs
-desde 20/11, 44 % acima de 60 s) e caiu a **1,12 min** quando o TeX saiu do caminho — o §7.8 previu
-isto e o número chegou.
+O `Gerar o ciclo` vinha de **1,55 min** (73 runs desde 20/11) e caiu a **1,12** quando o TeX saiu do
+caminho — o §7.8 previu-o. **O 1,12 é a média de ciclos de uma aula**; num ciclo de 24 aulas o job fica
+em **47 s**, que arredonda ao mesmo minuto. Por isso a unidade de trabalho é **1,00**, e não 1,12.
 
 > **E a lição do §3 continua a mandar:** não é a média que factura, é o arredondamento. A 40 s o job
-> está a **20 s da fronteira**; a 61 s custa o dobro. Toda esta conta vive ou morre nessa distância.
+> está a **20 s da fronteira**; a 61 s custa o dobro. Toda esta conta vive nessa distância.
+
+**O ciclo tem 24 aulas** — medido no único plano de ciclo que existe neste repositório
+(`ciclo-01-breu-piano-plano.md`, «Número total de aulas: 24», de um calendário real de 3×/semana × 8
+semanas). E é o ciclo que limita o laço da geração: ver a §10.3.
 
 ### 10.2 «Partilhando o mesmo workflow» — o que isso faz, e o que não faz
 
-A intuição é razoável e a resposta é incómoda: **a partilha não poupa minuto nenhum neste cenário.**
+A intuição é razoável e a resposta é incómoda: **a partilha não poupa minuto nenhum.**
 
-O mecanismo que existe chama-se `concurrency` com `cancel-in-progress` (o §7.6): quando dois gestos
-caem quase ao mesmo tempo, o segundo **cancela** o primeiro em vez de o deixar correr. Ele **lança e
-cancela** — não funde, não adia, não junta trabalho. E a factura arredonda **ao minuto por job**, pelo
-que um job cancelado aos 4 s custa o mesmo que um que correu 60 (é a correcção de 20/11/2026, e é
-medida: 246 das 395 execuções de `Fechar os derivados` foram canceladas, a mediana delas com 4 s).
+O mecanismo que existe é o `concurrency` com `cancel-in-progress` (§7.6): quando dois gestos caem quase
+ao mesmo tempo, o segundo **cancela** o primeiro. Ele **lança e cancela** — não funde, não adia, não
+junta trabalho. E a factura arredonda **ao minuto por job**, pelo que um job cancelado aos 4 s custa o
+mesmo que um que correu 60 (correcção de 20/11/2026, e é medida: **246 das 395** execuções de `Fechar
+os derivados` foram canceladas).
 
-**Mas em 16 aulas por dia o problema não se põe:** as aulas são **de hora a hora**, e uma execução
-demora 11 a 49 segundos. Não há sobreposição nenhuma, logo o `concurrency` **nunca dispara**. A partilha
-do workflow é real — é o mesmo ficheiro, o mesmo runner, a mesma cota —, mas ela **não reduz a
-contagem de execuções**: 16 aulas são 16 `Fechar os derivados` e 16 `Gerar o ciclo`.
+**Mas a 16 aulas por dia o problema não se põe:** uma execução demora 11 a 49 segundos e as aulas são
+de hora a hora — não há sobreposição, e o `concurrency` **nunca dispara**. A partilha do workflow é
+real (o mesmo ficheiro, o mesmo runner, a mesma cota), mas **não reduz a contagem de execuções**: 16
+aulas são 16 `Fechar os derivados` e 16 `Gerar o ciclo`.
 
-**O que pouparia era outra coisa**, e ainda não existe: o §7.1 (agrupar as gerações dos lançamentos).
-Sem ele, cada aula paga a sua geração inteira.
+**O que pouparia é o §7.1** (agrupar as gerações dos lançamentos), e não existe.
 
-### 10.3 O laço é `O(N)` — e isto é a única descoberta estrutural desta secção
+### 10.3 O laço percorre o ciclo — e o ciclo é que o trava *(corrigido)*
 
-O `tools/gerar-ciclo.sh` percorre **todas as aulas do ciclo a cada geração**: um `node
-tools/validar-aula-ciclo.js` por aula (linha ~344) e **duas páginas `pandoc` por aula** — o
-`aula-NN.html` e o `captura-aula-NN.html` — no laço `for doc in $TODOS` (linha ~1227). Não há
-incrementalidade no *render*: o que é incremental é a **escrita** das fontes (`escrever-ciclo.js`
-salta as que não mudaram), e não o trabalho de as transformar em página.
+O `tools/gerar-ciclo.sh` percorre **todas as aulas do ciclo a cada geração**: um `validar-aula-ciclo.js`
+por aula (linha ~344) e **duas páginas `pandoc` por aula** (linha ~1227). Não há incrementalidade no
+*render*; o que é incremental é a **escrita** das fontes (`escrever-ciclo.js` salta as que não mudaram).
 
-Medido nesta máquina, por micro-bancada:
+Medido nesta máquina, por micro-bancada: **59 ms** por página de `pandoc` (20 chamadas em 1,187 s) e
+**32 ms** por validação (50 em 1,629 s) — **150 ms por aula**. E acrescenta-se à base de 40 s, que é
+onde o job já está.
 
-| passo | medida | por aula |
-|:--|--:|--:|
-| `pandoc` (20 chamadas em 1,187 s) | 59 ms/página | 118 ms (2 páginas) |
-| validação da aula (50 chamadas em 1,629 s) | 32 ms | 32 ms |
-| **custo marginal de uma aula no ciclo** | | **150 ms** |
+**A pergunta que decide tudo é qual é o N — e a primeira versão desta secção respondeu mal.** Ela
+supôs que a geração de uma escola a 16 aulas/dia percorria as 352 aulas do mês, e daí tirou uma soma
+quadrática de 1 076 min. **Não é isso:** o laço percorre as aulas **do ciclo**, e o ciclo tem **24**. O
+que uma escola a 352 aulas/mês tem são **~15 ciclos de 24**, e cada geração paga o seu próprio ciclo,
+não o mês.
 
-**A consequência:** a duração do job cresce com o número de aulas que o ciclo já tem. E o ciclo de
-uma escola a 16 aulas/dia **acumula 352 aulas no mês** — a geração da última aula re-renderiza as 352.
-O custo do mês é uma **soma quadrática**, não 352 vezes uma constante.
+| aulas no ciclo | 24×0,30 s | total | min facturados |
+|--:|--:|--:|--:|
+| **24** (o ciclo real) | 7,2 s | 47,2 s | **1** |
+| 50 | 15,0 s | 55,0 s | **1** |
+| 66 | 19,8 s | 59,8 s | **1** |
+| **67** | 20,1 s | **60,1 s** | **2** ← **a fronteira** |
+| 200 | 60,0 s | 100,0 s | 2 |
+| 352 (o que eu supus) | 105,6 s | 145,6 s | 3 |
+| 467 | 140,1 s | 180,1 s | 4 |
 
-| aulas no mês | escala ×1 | escala ×2 | **escala ×3** | modelo A (constante) |
-|--:|--:|--:|--:|--:|
-| 110 | 220 min | 264 | 286 | 343 |
-| **352** | 923 | **1 076** | 1 228 | 1 098 |
-| 440 | 1 187 | 1 428 | 1 668 | 1 373 |
-| 800 | 2 534 | 3 336 | 4 136 | 2 496 |
+**A fronteira está às 67 aulas num só ciclo.** Abaixo disso o laço não custa um minuto a mais — e o
+maior ciclo que este repositório sabe declarar tem **24**. **A unidade de 2,0 min por aula não depende
+do tamanho do mês: depende de o ciclo ficar abaixo das 67 aulas.**
 
-- **modelo A** é `2,12 min/aula` constante — a conta que a §10.1 autoriza **e que só é válida com uma
-  aula por ciclo**, que é o caso de **todos** os ciclos já gerados neste repositório (o maior tem 1).
-- **modelo B** é a soma dos jobs reais, com `fixed = 40 s` (a mediana medida a 1 aula) e
-  `150 ms × escala` por aula.
-- **a escala é a única coisa não medida**: quanto o runner é mais lento do que esta máquina. Não se
-  inventa; toma-se **×2** como caso de trabalho e **×3** como caso de segurança, e diz-se que é
-  declarado.
+> **O que fica por medir, e é honesto dizê-lo:** nenhum ciclo deste repositório passou de **uma** aula
+> gerada, pelo que a curva acima é **calculada** a partir de duas micro-bancadas, não observada num
+> job. O ensaio que a fecha é gerar um ciclo com 50 aulas e ler a duração. Enquanto não for feito, o
+> número que sustenta esta secção é o que se **observou**: 40 s de base medidos em 16 execuções, e o
+> resto abaixo da fronteira.
 
-**Os dois modelos dão o mesmo para 352 aulas** (1 076 e 1 098 min), e é isso que dá confiança à conta:
-o crescimento do laço e o arredondamento compensam-se. A diferença explode só acima de ~600 aulas no
-mesmo ciclo, e aí o modelo B é **pior** — e é o verdadeiro.
+### 10.4 A franquia de cada plano — e o que acontece acima dela
 
-### 10.4 A tabela
+Cada plano entrega uma **quantidade de aulas contratada**, e é esse o limite. Está no catálogo, em
+`biblioteca/comercial/planos.json → assinaturas[].aulas`:
 
-16 aulas/dia × 22 dias úteis = **352 aulas/mês**, um ciclo por escola, modelo B com escala ×2
-(**3,06 min/aula**), câmbio **5,40** (`CAMBIO_USD_BRL`, o que o painel usa — o §2 deste documento
-escreve 5,50; a diferença é 1,9 % e não muda nenhuma conclusão, mas fica dito qual é qual).
+| plano | aulas/mês | preço | R$/aula | acima da franquia |
+|:--|--:|--:|--:|:--|
+| **Básico** | **100** | R$ 69,90 | R$ 0,699 | excedente a **R$ 0,50/aula** |
+| **Intermediário** | **300** | R$ 99,90 | R$ 0,333 | excedente a **R$ 0,50/aula** |
+| **Avançado** | **800** | R$ 139,90 | R$ 0,175 | excedente a **R$ 0,50/aula** |
+
+O excedente tem nome e preço: `pacotesDeAulas` — 20 aulas por R$ 10, 50 por R$ 25, 100 por R$ 50 —
+sempre a **R$ 0,50 a aula**, e o comentário do catálogo diz por que é esse valor: tem de ser **mais caro
+que a aula do plano seguinte** (senão ninguém migra) e **mais barato que a aula do Básico** (senão
+ninguém compra no degrau de entrada). A migração do Básico acontece às **160 aulas**, a do
+Intermediário às **380**.
+
+**E o sistema já sabe calcular isto:** `comercial.situacaoDaFranquia({ contrato, aulasUsadas })`
+devolve os quatro estados — `folga` · `perto` · `limite` · `passou` —, o `excedente`, o `restantes` e a
+frase. **O que falta não é a regra: é quem lhe dê o número.** O contador de aulas do mês está
+desenhado e não implementado ([`PLANO-CONTADOR-DE-AULAS.md`](PLANO-CONTADOR-DE-AULAS.md) §3.3), e a
+distinção que ele guarda é a que interessa: `aulasUsadas: null` («não contei») não é `0` («não lançou
+nenhuma»).
+
+### 10.5 A tabela — uma escola em cada plano, dentro da franquia
+
+É o caso **normal**, e é o que a pergunta dela quer dizer: o cliente contrata 100, 300 ou 800 aulas e
+não passa disso.
+
+| | Básico | Intermediário | Avançado |
+|:--|--:|--:|--:|
+| aulas contratadas | 100 | 300 | 800 |
+| minutos de Actions (× 2,0) | 200 | 600 | 1 600 |
+| **receita** | **R$ 69,90** | **R$ 99,90** | **R$ 139,90** |
+| custo de CI | **R$ 0,00** | **R$ 0,00** | **R$ 0,00** |
+| **lucro** | **R$ 69,90** | **R$ 99,90** | **R$ 139,90** |
+| **margem** | **100 %** | **100 %** | **100 %** |
+
+**Cada uma sozinha custa zero** — 200, 600 e 1 600 minutos contra os 2 000 do plano gratuito. Só a
+partir da **segunda escola do Avançado** é que a cota estoura.
+
+### 10.6 Quantas escolas — e onde (não) começa o prejuízo
+
+Ela perguntou: «quantas escolas eu consigo ter lucro?» A resposta é **todas**, e a razão é aritmética:
+**o custo de uma escola é uma fracção da receita dela**, qualquer que seja o N.
+
+Ela perguntou também se «o custo aumenta mais do que a receita». **Não:** a receita e o custo crescem
+os dois **linearmente**, ao mesmo ritmo, porque o preço do minuto é constante (US$ 0,006). O que a
+escada do GitHub acrescenta são **dois valores fixos** — US$ 4 (Team) e US$ 21 (Enterprise) —, que
+pesam **menos** à medida que o N cresce.
+
+**As quatro configurações que ela pediu, com 3 escolas dentro da franquia:**
+
+| configuração | minutos | receita | custo de CI | lucro | **margem** |
+|:--|--:|--:|--:|--:|--:|
+| **3 × Básico** | 600 | R$ 209,70 | R$ 0,00 | R$ 209,70 | **100,0 %** |
+| **3 × Intermediário** | 1 800 | R$ 299,70 | R$ 0,00 | R$ 299,70 | **100,0 %** |
+| **3 × Avançado** | 4 800 | R$ 419,70 | R$ 79,92 | R$ 339,78 | **81,0 %** |
+| **1 de cada** | 2 400 | R$ 309,70 | R$ 12,96 | R$ 296,74 | **95,8 %** |
+
+**E a margem com N crescente, no plano mais apertado — que é o Avançado:**
+
+| N escolas | minutos | degrau | custo | lucro | margem |
+|--:|--:|:--|--:|--:|--:|
+| 1 | 1 600 | Free | R$ 0,00 | R$ 139,90 | 100,0 % |
+| 2 | 3 200 | Team + excedente | R$ 28,08 | R$ 251,72 | 90,0 % |
+| 3 | 4 800 | Team + excedente | R$ 79,92 | R$ 339,78 | 81,0 % |
+| 5 | 8 000 | Team + excedente | R$ 183,60 | R$ 515,90 | 73,8 % |
+| 10 | 16 000 | Team + excedente | R$ 442,80 | R$ 956,20 | 68,3 % |
+| 20 | 32 000 | Team + excedente | R$ 961,20 | R$ 1 836,80 | 65,6 % |
+| 50 | 80 000 | Team + excedente | R$ 2 516,40 | R$ 4 478,60 | **64,0 %** |
+
+**A margem desce e depois aplana — nunca cruza o zero.** O piso de cada plano é o custo de uma escola
+dividido pela receita dela:
+
+| plano | custo de uma escola | receita | **piso da margem** | o zero exigiria |
+|:--|--:|--:|--:|:--|
+| Básico | R$ 6,48 | R$ 69,90 | **90,7 %** | **21,6 min/aula** — 10,8× o de hoje |
+| Intermediário | R$ 19,44 | R$ 99,90 | **80,5 %** | 10,3 min/aula — 5,1× |
+| **Avançado** | **R$ 51,84** | **R$ 139,90** | **62,9 %** | **5,4 min/aula — 2,7× o de hoje** |
+
+**O caso mais apertado é o Avançado, e mesmo nele o runner teria de ficar 2,7 vezes mais lento para o
+prejuízo aparecer.** O Avançado é o mais apertado porque é o que dá mais aulas por real: 800 aulas por
+R$ 139,90 são R$ 0,175 a aula, e cada aula custa R$ 0,065 de CI — o compute fica com **37 %** do que a
+escola paga. No Básico fica com **9 %**.
+
+### 10.7 O caso de 16 horas por dia — acima da franquia, e o excedente é que paga
+
+352 aulas/mês passa a franquia do Básico (100) e a do Intermediário (300); só o Avançado a comporta.
+Acima da franquia a escola **paga excedente**, e é ele que sustenta a conta:
 
 | | Básico | Intermediário | Avançado | **soma** |
 |:--|--:|--:|--:|--:|
 | aulas no mês | 352 | 352 | 352 | 1 056 |
-| franquia do plano | 100 | 300 | 800 | — |
-| aulas de excedente (R$ 0,50) | 252 | 52 | 0 | 304 |
+| excedente (R$ 0,50) | 252 | 52 | 0 | 304 |
 | **receita** | **R$ 195,90** | **R$ 125,90** | **R$ 139,90** | **R$ 461,70** |
-| minutos de Actions | 1 076 | 1 076 | 1 076 | 3 228 |
-| **custo de CI** | **R$ 0,00** | **R$ 0,00** | **R$ 0,00** | **R$ 28,99** |
-| **lucro** | R$ 195,90 | R$ 125,90 | R$ 139,90 | **R$ 432,71** |
-| **margem** | **100,0 %** | **100,0 %** | **100,0 %** | **93,7 %** |
+| minutos (× 2,0) | 704 | 704 | 704 | 2 112 |
+| **custo de CI** | R$ 0,00 | R$ 0,00 | R$ 0,00 | **R$ 3,63** |
+| **lucro** | R$ 195,90 | R$ 125,90 | R$ 139,90 | **R$ 458,07** |
+| **margem** | 100,0 % | 100,0 % | 100,0 % | **99,2 %** |
 
-**E se a escola abrir 30 dias em vez de 22** — que é o que «16 horas por dia» pode querer dizer — são
-**480 aulas/mês** e **1 602 min** por escola (linha de 480 na tabela da §10.3). A conclusão não muda:
-**1 602 < 2 000**, a primeira continua gratuita; a segunda leva o total a 3 204 min e custa
-**US$ 5,22**. A receita, essa, sobe: no Básico são 380 aulas de excedente e **R$ 259,90**; o
-Intermediário fica em **R$ 189,90** e o Avançado em **R$ 139,90** — **R$ 589,70** no total. Mas o
-CI sobe mais do que a receita: as três juntas são 4 806 min, **US$ 14,84 = R$ 80,11**, e a margem
-**desce** a **86,4 %** (era 93,7 % a 22 dias). É a primeira vez nesta secção que o custo cresce mais
-depressa do que a receita — e o motivo é o laço da §10.3: **480 aulas custam 1,5× o que 352
-custavam** (1 602 contra 1 076 min), e o excedente da fatura cresce nessa proporção.
+**As 2 112 min passam os 2 000 do gratuito por 112 — US$ 0,67, R$ 3,63.** Com **30 dias** em vez de
+22 são 480 aulas e 960 min por escola: as três somam 2 880 min, o degrau é o **Team** (US$ 4,00 =
+R$ 21,60) e a receita sobe a R$ 589,70 — margem **96,3 %**.
 
-**A leitura que importa, e são três factos:**
+**E o preço já empurra esta escola para cima sozinho:** a 352 aulas ela paga **R$ 0,557/aula** no
+Básico e **R$ 0,397** no Avançado. Uma escola que trabalhe 16 horas por dia **poupa dinheiro** mudando
+para o Avançado, e o ponto de viragem é às 240 aulas — ela está 47 % acima dele.
 
-1. **Uma escola sozinha não custa nada.** 1 076 min contra os 2 000 do plano gratuito: **54 % da cota**
-   consumida, **R$ 0,00** de factura. O excedente puro (US$ 0,006/min) só fica mais caro do que os
-   **US$ 4 fixos do Team** acima de **2 667 min**; as três escolas juntas, a 3 228 min, já passam esse
-   ponto — e por isso o degrau da soma é o Team, e não o excedente solto.
-2. **A margem é de 90 a 100 %, e não é frágil.** Com o runner 3× mais lento são 3 684 min, US$ 8,10,
-   R$ 43,76 — **margem 90,5 %**. Para a margem cair a 50 % seria preciso o CI custar **R$ 230,85/mês**,
-   o que são **9 458 min no mês** — **2,9× o cenário dela**, já com o runner três vezes mais lento. A
-   conclusão não tem como virar.
-3. **O custo não é a infraestrutura — é a franquia.** A escola a 16 aulas/dia está **3,5× acima** do
-   Básico e **1,17× acima** do Intermediário. Nenhuma dessas é uma questão de servidor; é uma questão
-   de **contrato**. Ver a §10.9.
+### 10.8 O `teto.aulas: null` — o que ele é, e o que ele não é
 
-### 10.5 A fórmula do excedente — o que ela pediu
+**A primeira versão desta secção leu isto ao contrário, e a correcção é dela.** Escreveu-se que «não há
+teto» e que «o sistema não tem como dizer à escola que ela está fora do plano». **As duas coisas são
+falsas**, e o que se passa é outro:
 
-```
-minutos_mês = Σ_escolas ( Σ_{k=1..N} ⌈(40 + 0,15·k·escala) / 60⌉ + N )   +  engenharia_min
-                                                                ↑
-                                                    N = nº de `Fechar os derivados` (1 por aula)
+- **A promessa comercial é a franquia** — 100/300/800 aulas por mês. Está escrita, é o limite, e acima
+  dela há **excedente com preço**. Não há um estado «fora do plano»; há uma factura.
+- **O `teto.aulas` do `planos.json` é outra coisa**: é o parâmetro **interno** com que o §L9c calcula a
+  capacidade da infraestrutura — quantas aulas/mês gera a escola no **tamanho máximo de referência**
+  (20 professores, 500 alunas). Está `null` por decisão, e o próprio catálogo diz porquê: «um teto
+  comercial é uma promessa, e a promessa é a franquia (100/300/800)».
+- **A C25 está resolvida**, não aberta: a 17/11/2026 a proprietária decidiu **contar 440** para a
+  escola no tamanho máximo, que é a leitura **prudente** — «Eu acho que a gente tem que contar com a
+  capacidade menor, né? Para a gente ser prudente.» E a razão de não se poder derivar o número é dela:
+  depende de a escola cobrar **percentual** ou **hora-aula**, e esse modelo de negócio ainda não existe.
 
-custo_US$ = 0                                                    se minutos ≤ 2 000
-          = min( (minutos−2 000)×0,006 ,  4 + (minutos−3 000)×0,006 )   acima disso
-custo_R$  = custo_US$ × 5,40
-margem    = (receita − custo_R$) / receita
-```
+**Consequência para esta secção:** a C25 não tem nada a ver com a margem comercial. O que ela decide é
+**quantas escolas cabem na cota**, e esse número **muda com a unidade que aqui se mede**. As tabelas da
+§10.6 usam a franquia, que é a grandeza certa para a pergunta do lucro.
 
-**A forma curta, para planear à mão**, e é a que ela quer usar: com escala ×2, um ciclo que acumula
-352 aulas custa **3,06 min/aula**; arredonda-se a **3,1** e fica:
+> **E há uma divergência que fica declarada, porque é do mesmo tipo.** O §L9c e o
+> [`PLANO-CONTADOR-DE-AULAS.md`](PLANO-CONTADOR-DE-AULAS.md) §7.2 dizem **«3 escolas no tamanho
+> máximo»** — e fizeram essa conta com **1 min por aula**: `(2 000 − 522 de engenharia) ÷ 440 = 3,4`.
+> Com a unidade medida nesta secção, **2,0 min por aula**, são `1 478 ÷ 880 = 1,7` — **uma escola**, e
+> não três. **Não se corrige o §L9c aqui**: ele é o sítio da capacidade, e mexer-lhe pede a sua própria
+> medição da engenharia. O que fica dito é que **a decisão da C25 (contar 440) continua válida** — o
+> que muda é a capacidade que dela se tira, e ela é **menor** do que o §L9c escreveu, não maior.
 
-```
-custo_R$ = max(0, (escolas × aulas_mês × 3,1 + engenharia − 2 000)) × 0,006 × 5,40
-```
+### 10.9 Quando migrar — os gatilhos, com os números de hoje
 
-**E o número que ela não pediu mas decide a conta: a `engenharia`.** Medido entre 15 e 24/11/2026 —
-**1 212 min em 10 dias, média de 121 min por dia de trabalho**, com a amplitude de 18 (dia de arrumação)
-a 392 (o dia das três ondas). **Um mês de desenvolvimento consome a cota de uma escola inteira a 16
-aulas/dia** (1 212 contra 1 076), e é 38 % das três. A engenharia não é um custo do produto — mas a
-factura não sabe por que gastou o minuto, e por isso ela entra na fórmula.
-
-**Capacidade, ao ritmo dela:** `⌊2 000 ÷ 1 076⌋` = **1 escola** no gratuito; a segunda leva o total a
-2 152 min e custa **US$ 0,91/mês** (é excedente puro: 152 min, e ainda fica abaixo dos 2 667 em que o
-Team compensa). Com **660 min** de engenharia (30 min/dia × 22) a primeira ainda cabe no gratuito
-(1 736 min) e a segunda já pede o **Team** (2 812 min, US$ 4,00). Com a engenharia **medida** de
-1 212 min no mês, a primeira sozinha custa **US$ 1,73**.
-
-### 10.6 Isto fecha a C25 — no extremo alto
-
-A C25 está aberta desde 17/11/2026 com dois números e um factor de 4 entre eles: **110 aulas/mês** (a
-resposta que a fechou) e **440** (§L9c, «20 professores × 1 aula/dia × 22 dias»). O efeito, escrito no
-`planos.json`: «um factor de 4 muda a capacidade de 13 escolas para 3».
-
-**O cenário dela — 352 aulas/mês — cai no extremo alto.** Uma escola a 16 aulas/dia não é a escola de
-110 aulas; é a de 440. E a capacidade que o §L9c anunciou («cinco escolas no caso comum = $0») vale
-para o caso **comum**, que é 130 min/escola/mês (5 aulas/dia): a 352 aulas/mês a escola custa
-**8× mais**, e cinco delas custariam 5 380 min.
-
-> **E os dois números do `planos.json` («13 escolas ou 3») já não são os de hoje, e isso é uma
-> correcção a este documento.** Eles foram escritos sobre o modelo de **1 min por aula** do §L9f.
-> Sobre a unidade actual — **3,06 min/aula**, no modelo B com escala ×2 — a mesma cota dá
-> **7 escolas** a 110 aulas/mês (264 min cada) e **1 escola** a 440 (1 428 min). O factor de 4
-> deixou de mudar a capacidade de 13 para 3: **muda-a de 7 para 1.**
-
-> **O que fica por decidir, e é dela:** se o **teto comercial** é 110 ou 440 aulas/mês. O cenário dos
-> 16 h/dia **não decide** a C25 — ele mostra que o extremo alto é alcançável, e que o número escrito no
-> catálogo tem de ser um dos dois. Escrever `teto.aulas` é mudar uma chave no `planos.json`.
-
-### 10.7 Quando migrar — os gatilhos, com os números de hoje
-
-| degrau | custo | gatilho **correto** | a 16 aulas/dia |
+| degrau | custo | gatilho **correto** | a que distância está |
 |:--|--:|:--|:--|
-| GitHub Free | US$ 0 | até 2 000 min | **1 escola** |
-| Free + excedente | até US$ 4 | 2 000 – 2 667 min | a 2ª escola |
-| **GitHub Team** | US$ 4/pessoa | acima de **2 667 min** | **3 escolas** (3 228 min) |
-| GitHub Enterprise | US$ 21/pessoa | acima de 5 833 min | **5 escolas** |
-| Cloudflare Paid | US$ 5/conta | 1 000 escritas de KV/dia | **não medido** — o fluxo da escola não foi contado (ver §10.10) |
-| Resend Pro | US$ 20 | 3 000 e-mails/mês ou **100/dia** | não medido |
+| GitHub Free | US$ 0 | até 2 000 min | **3 do Básico** (600) e **3 do Intermediário** (1 800) cabem; **1 do Avançado** (1 600) cabe, **2 já não** (3 200) |
+| Free + excedente | até US$ 4 | 2 000 – 2 667 min | **3 do Avançado** (4 800) já passaram; **4 do Intermediário** (2 400) caem aqui |
+| **GitHub Team** | US$ 4/pessoa | acima de **2 667 min** | **3 do Avançado** (4 800 min) |
+| GitHub Enterprise | US$ 21/pessoa | acima de 5 833 min | **a 4ª do Avançado** (6 400 min) |
+| Cloudflare Paid | US$ 5/conta | 1 000 escritas de KV/dia | **não medido** (§10.10) |
+| Resend Pro | US$ 20 | 3 000 e-mails/mês ou **100/dia** | **não medido** (§10.10) |
 
-> **Uma divergência a corrigir no planeamento, e ela é de documento, não de conta.** O §L9d escreve o
-> gatilho do Team como «acima de 2 000 min facturados»; o §L9c, que fez a conta ao cêntimo, escreve
-> **2 667** — e o §L9c é o certo: entre 2 000 e 2 667 o excedente custa entre US$ 0 e US$ 4, e o Team
-> custa US$ 4 fixos. **Migrar aos 2 000 min paga mais do que esperar.** A escada do §L9d é a que o
-> painel vai implementar; se ela for implementada como está escrita, **o painel manda migrar cedo
-> demais**. Fica declarado para a próxima sessão que mexer no painel.
+> **Uma divergência entre dois documentos do planeamento, e ela manda migrar cedo demais.** O §L9d
+> escreve o gatilho do Team como «acima de 2 000 min facturados»; o §L9c, que fez a conta ao cêntimo,
+> escreve **2 667**. O §L9c é o certo: entre 2 000 e 2 667 o excedente custa entre US$ 0 e US$ 4, e o
+> Team custa US$ 4 fixos. **A escada do §L9d é a que o painel vai implementar**, e implementada como
+> está escrita faria o painel recomendar a migração **antes** de ela compensar. Fica declarado;
+> corrigir é mexer no painel.
 
-### 10.8 O que é medição, e o que é modelo
-
-O §9 já diz que este documento é multiplicação de tempos medidos. Esta secção acrescenta-lhe um
-cuidado que é **maior** do que o das outras, porque o objecto mudou:
+### 10.10 O que é medição, e o que é modelo
 
 | o que | estatuto |
 |:--|:--|
 | duração de cada workflow (mediana, cauda, % acima de 60 s) | **medido** — API dos runs, 1 000 execuções |
+| 24 aulas por ciclo | **medido** — o plano do `ciclo-01-breu-piano` |
 | `pandoc` 59 ms/página e validação 32 ms/aula | **medido** — micro-bancada nesta máquina |
-| 40 s de base do `Gerar o ciclo` | **medido** — mediana de 16 runs pós-TeX |
-| a escala ×2 do runner | **declarado** — o runner não é esta máquina, e não se mediu a razão |
-| **o crescimento do laço com N** | **extrapolado** — **nenhum ciclo deste repositório tem mais de 1 aula**, logo a curva não foi observada em lado nenhum |
-| a factura em repositório **privado** | **modelo** — o repositório é público e o `/timing` responde `billable.UBUNTU.total_ms = 0` em todas as execuções; o modelo é o do §L9f, **conferido contra a factura real com 3,5 % de erro** |
+| **a curva do laço acima das 24 aulas** | **calculado** a partir das duas micro-bancadas — **nenhum ciclo aqui passou de uma aula gerada** |
+| a factura em repositório **privado** | **modelo** — o repositório é público e o `/timing` responde `billable.UBUNTU.total_ms = 0` em todas as execuções; o modelo é o do §L9f, conferido contra a factura real com 3,5 % de erro |
 
-**A lacuna que mais pode mexer no número** é a quinta. Ensaiada a sensibilidade: a **escala ×5**, 352
-aulas custam 1 534 min por escola em vez de 1 076 — e **a conclusão não muda** (1 534 < 2 000, a escola
-continua no gratuito; com duas, a factura passa de US$ 0,91 a US$ 4,41). Mas o número certo não é
-nenhum destes: é o que sair do ensaio. O ensaio é barato e está identificado — **gerar um ciclo com 50
-aulas numa escola de teste e ler a duração do job** — e fica como o próximo passo. **Não se escreve um
-número que ninguém mediu**; escreve-se o intervalo, e é o que aqui está.
+**O ensaio que fecha a lacuna** é barato e está identificado: **gerar um ciclo com 50 aulas e ler a
+duração do job**. Ele mede a única coisa que aqui é calculada em vez de observada — e o resultado, seja
+qual for, **não muda a conclusão**: a fronteira do minuto está às **67** aulas num ciclo só, e um ciclo
+de 50 fica em **55 s**, abaixo dela.
 
-### 10.9 A consequência comercial — e ela não é sobre servidores
+### 10.11 O que eu errei nesta secção, e a correcção *(25/11/2026, mesmo dia)*
 
-A 16 aulas/dia a escola paga, no Básico, `69,90 + 252 × 0,50 = R$ 195,90` por 352 aulas — **R$ 0,557
-por aula**. No Avançado paga `139,90 ÷ 352` = **R$ 0,397 por aula**. **A escola que trabalha 16 horas
-por dia poupa dinheiro mudando para o Avançado**, e é exactamente o que a tabela de extensões do
-`planos.json` foi desenhada para fazer: o ponto de viragem do Básico para o Avançado é às **240 aulas**
-(R$ 69,90 + 140 × 0,50 = R$ 139,90), e ela está 47 % acima dele.
+Três erros, todos meus, e a correcção é dela — ela viu dois de fora:
 
-**O preço já resolve isto sozinho.** O que não está resolvido é o **teto**: o `teto.aulas` do catálogo
-é `null`, e uma escola a 352 aulas/mês é 3,5× o Básico e 1,17× o Intermediário — sem teto escrito, o
-sistema não tem como dizer à escola que ela está fora do plano que comprou. É a C25, e agora tem um
-número real a pedir a decisão: **352**, medido, e não hipotético.
+1. **«Não há teto.»** Falso. A franquia é o teto — **100/300/800** —, está no catálogo em
+   `assinaturas[].aulas`, e acima dela há excedente a R$ 0,50. Confundi o `teto.aulas` (parâmetro
+   interno do §L9c, `null` por decisão) com a franquia comercial. Ver a §10.8.
+2. **«A C25 está aberta.»** Falso. Está **resolvida** a 17/11/2026: conta-se **440** para a escola no
+   tamanho máximo, e o `null` do `teto.aulas` é deliberado. Ver a §10.8.
+3. **«A geração percorre as 352 aulas do mês.»** Falso. Percorre as aulas **do ciclo**, e o ciclo tem
+   **24**. Daí saiu uma soma quadrática de 1 076 min por escola que não existe: são **704**. Ver a
+   §10.3.
 
-### 10.10 O que o Cloudflare e o Resend custam neste cenário
+**O que sobrevive da primeira versão:** a unidade de 2 min por aula medida nos jobs, a explicação de
+que «partilhar o workflow» não poupa minuto, a divergência §L9c × §L9d no gatilho do Team, e a
+conclusão de que **a infraestrutura não é o que limita a margem**. O que muda é **quanto**: a margem a
+16 aulas/dia é **99,2 %** e não 93,7 %, e **não existe** um número de escolas a partir do qual dá
+prejuízo.
+
+### 10.12 O que o Cloudflare e o Resend custam neste cenário
 
 **Zero, e o motivo não é medição — é o tecto.** O §L9c retirou a estimativa de escritas de KV («≈120/dia
 por escola») precisamente por ser palpite, e **não se repete o erro com um número novo**. O que se sabe
-é o limite: **1 000 escritas de KV por dia** no plano gratuito, **100 e-mails por dia** no Resend. O
-que se não sabe é quanto uma escola a 16 aulas/dia escreve e envia.
+é o limite: **1 000 escritas de KV por dia** no plano gratuito, **100 e-mails por dia** no Resend. O que
+se não sabe é quanto uma escola escreve e envia.
 
 **E a aula não é o que envia correio** — verificado no código: o `correio.enviar` de `bastidores.js`
-(linha ~24 001) nasce do **pedido de anamnese**, não do lançamento. O risco do correio é outro, e é o
-que o §L9d já escreveu: **um lote**. Uma escola com 90 alunas que peça as 90 anamneses no mesmo dia
-gasta 90 dos 100 e-mails do dia — e isso acontece uma vez, no arranque, não a cada aula. **Enquanto não
-houver medição, nenhum dos dois entra na conta**; o painel do §L9d é o sítio onde ela vai nascer.
+(linha ~24 001) nasce do **pedido de anamnese**, não do lançamento. O risco do correio é o que o §L9d já
+escreveu: **um lote**. Uma escola com 90 alunas que peça as 90 anamneses no mesmo dia gasta 90 dos 100
+e-mails do dia — e isso acontece no arranque, não a cada aula. **Enquanto não houver medição, nenhum
+dos dois entra na conta.**

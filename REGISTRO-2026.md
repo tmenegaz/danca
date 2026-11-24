@@ -60610,3 +60610,56 @@ verdes.
 
 **Onde entrou.** `CUSTO-DOS-FLUXOS.md` (§10, a secção nova), `ESTADO-ATUAL.md` (§6), `HANDOFF.md`
 (regenerado).
+
+## 25/11/2026 — Correção da entrada anterior: a franquia é o teto, a C25 está fechada, e o laço percorre o ciclo
+
+**Nota de correção, datada, sobre a entrada «Lucro, custo e margem», de hoje.** Ela leu-a e corrigiu
+três coisas. **As três estavam erradas, e as três são dela.**
+
+**1. «Não há teto.» Falso — e o teto é a franquia.** «Cada plano roda uma quantidade de aulas. A
+quantidade de aulas que a pessoa contrata é o limite. […] Você disse que não tem limite. Tem limite.»
+Está no catálogo desde sempre: `biblioteca/comercial/planos.json → assinaturas[].aulas` — **100 / 300 /
+800** aulas por mês, a R$ 0,699 / 0,333 / 0,175 por aula. Acima da franquia há **excedente com preço**
+(`pacotesDeAulas`, sempre a **R$ 0,50** a aula, desenhado para ser mais caro do que a aula do plano
+seguinte e mais barato do que a do Básico). E a regra já sabe calcular-se:
+`comercial.situacaoDaFranquia({contrato, aulasUsadas})` devolve `folga` · `perto` · `limite` ·
+`passou`, o excedente, o restantes e a frase. **O que falta não é a regra — é o número:**
+`contarAulasDoMes` não existe, e está desenhado no [`PLANO-CONTADOR-DE-AULAS.md`](PLANO-CONTADOR-DE-AULAS.md) §3.3.
+
+**2. «A C25 está aberta.» Falso — está resolvida.** A 17/11/2026 ela decidiu **contar 440** aulas/mês
+para a escola no tamanho máximo: «Eu acho que a gente tem que contar com a capacidade menor, né? Para a
+gente ser prudente.» E o `teto.aulas: null` é **deliberado**, com a razão escrita no próprio catálogo:
+«um teto comercial é uma promessa, e a promessa é a franquia (100/300/800)». O `teto` era o parâmetro
+**interno** do §L9c para a capacidade da infraestrutura — outra grandeza, outro dono. Confundi os dois
+e anunciei como pendência uma decisão de oito dias antes.
+
+**3. «A geração percorre as 352 aulas do mês.» Falso — percorre as aulas do ciclo, e o ciclo tem 24.**
+O `ciclo-01-breu-piano-plano.md` declara «Número total de aulas: 24» (3×/semana × 8 semanas). O laço do
+`gerar-ciclo.sh` percorre as aulas **daquele ciclo**, pelo que uma escola a 352 aulas/mês tem **~15
+ciclos de 24**, e cada geração paga o seu ciclo. A soma quadrática de **1 076 min** que a entrada
+anterior publicou não existe: são **704**. A fronteira do minuto está às **67 aulas num só ciclo** — a
+24 não se toca, e por isso a unidade é constante: **2,0 min por aula** (1,00 de `Gerar o ciclo`, mediana
+40 s em 16 runs pós-TeX, + 1,00 de `Fechar os derivados`, 395 runs).
+
+**O que isso faz à resposta.** A pergunta dela era «quantas escolas eu consigo ter lucro?». A resposta
+**continua a ser todas** — mas pelos números certos, e não pelos que eu publiquei: a margem **desce**
+com N e **aplana** num piso que depende do plano — **90,7 %** no Básico, **80,5 %** no Intermediário,
+**62,9 %** no Avançado —, e **não existe um número de escolas a partir do qual dá prejuízo**, porque o
+custo de uma escola é sempre uma fração da receita dela. O zero exigiria **21,6 / 10,3 / 5,4 min por
+aula**: no caso mais apertado (Avançado), o runner **2,7× mais lento** do que hoje. E a 16 aulas/dia as
+três escolas custam **R$ 3,63** contra **R$ 461,70** de receita — **margem 99,2 %**, e não os 93,7 %
+que eu tinha escrito.
+
+**Uma divergência que fica declarada, e não se corrige aqui.** O §L9c e o §7.2 do plano do contador
+dizem «3 escolas no tamanho máximo», e fizeram a conta com **1 min por aula**
+(`(2 000 − 522) ÷ 440 = 3,4`). Com a unidade medida, 2,0 min, são `1 478 ÷ 880 = 1,7` — **uma escola**.
+A decisão da C25 continua válida; o que muda é a capacidade que dela se tira, e é **menor**. Corrigir o
+§L9c pede a sua própria medição da engenharia, e não se fez.
+
+**MEDIDO.** API dos runs do GitHub (1 000 execuções); o plano do ciclo (24 aulas); micro-bancada do
+`pandoc` (59 ms/página, 20 chamadas em 1,187 s) e do validador (32 ms, 50 em 1,629 s). As quatro
+conferências verdes: `check-identidade` (23), `check-schemas`, `check-sem-destruicao`,
+`check-github-headers` (5).
+
+**Onde entrou.** `CUSTO-DOS-FLUXOS.md` (§10 reescrita — §10.1 a §10.12, com a §10.11 a listar os três
+erros), `ESTADO-ATUAL.md` (a fotografia e a decisão 176), `HANDOFF.md` (regenerado).

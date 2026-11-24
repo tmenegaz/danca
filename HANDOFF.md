@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-24T13:35:19-0300`
-Commit atual: `7344f1aa` — feat(experimentos): provas seletivas no commit, e o primeiro portão de pull_request
+Gerado em: `2026-11-24T13:50:42-0300`
+Commit atual: `5ef4d5d9` — docs(estrutura): a variante dos 30 dias, e a margem que desce a 86,4 %
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,8 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+5ef4d5d9 docs(estrutura): a variante dos 30 dias, e a margem que desce a 86,4 %
+9bb55975 docs(estrutura): a aula custa 2,12 min, e a margem da escola a 16 h/dia é 93,7 %
 7344f1aa feat(experimentos): provas seletivas no commit, e o primeiro portão de pull_request
 726a0653 feat(entrega): a minificação do que vai ao browser — 545 KB viram 200
 8c5645c3 chore(experimentos): vinte e nove provas apagadas — as que mediam o que já não existe
@@ -100,8 +102,6 @@ aefcd3d2 fix(ciclo-01): o manifesto declara tudo o que o escritor grava
 a61a47d4 feat(acervo): envelope/.indice.json
 6799d7a2 chore(estrutura): fechar os derivados — âncoras e índices
 a2701173 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
-229a322a feat(plano): o plano elicitado vira a fonte do ciclo
-ed583594 feat(acervo): envelope/plano-20261124-0811.json
 ```
 
 ## Por professor
@@ -195,75 +195,58 @@ ed583594 feat(acervo): envelope/plano-20261124-0811.json
 
 ## Última entrada do REGISTRO
 
-## 25/11/2026 — Lucro, custo e margem: a escola que trabalha 16 horas por dia
+## 25/11/2026 — Correção da entrada anterior: a franquia é o teto, a C25 está fechada, e o laço percorre o ciclo
 
-**O que ela pediu.** «Eu preciso saber isso para saber qual é o excedente e aí eu consigo basear os
-meus custos porque daí eu só calculo esse excedente e subtraio do valor da receita.» Com os
-parâmetros ditos por ela: **uma escola em cada plano, cada uma isolada**, funcionando **16 horas por
-dia com uma aula por hora**, **partilhando o mesmo workflow**, em **repositório privado**.
+**Nota de correção, datada, sobre a entrada «Lucro, custo e margem», de hoje.** Ela leu-a e corrigiu
+três coisas. **As três estavam erradas, e as três são dela.**
 
-**A resposta: há lucro, e a infraestrutura não é o que o limita.** 16 aulas/dia × 22 dias úteis = 352
-aulas/mês, um ciclo por escola, **3,06 min/aula**: uma escola sozinha usa **1 076 dos 2 000 min** e
-custa **R$ 0,00**. As três juntas são 3 228 min, **US$ 5,37 = R$ 28,99**, contra **R$ 461,70** de
-receita — **lucro R$ 432,71, margem 93,7 %**. Com o runner três vezes mais lento a margem cai a
-**90,5 %**. A margem só chegaria a 50 % com **9 458 min/mês**, que é 2,9× o cenário dela.
+**1. «Não há teto.» Falso — e o teto é a franquia.** «Cada plano roda uma quantidade de aulas. A
+quantidade de aulas que a pessoa contrata é o limite. […] Você disse que não tem limite. Tem limite.»
+Está no catálogo desde sempre: `biblioteca/comercial/planos.json → assinaturas[].aulas` — **100 / 300 /
+800** aulas por mês, a R$ 0,699 / 0,333 / 0,175 por aula. Acima da franquia há **excedente com preço**
+(`pacotesDeAulas`, sempre a **R$ 0,50** a aula, desenhado para ser mais caro do que a aula do plano
+seguinte e mais barato do que a do Básico). E a regra já sabe calcular-se:
+`comercial.situacaoDaFranquia({contrato, aulasUsadas})` devolve `folga` · `perto` · `limite` ·
+`passou`, o excedente, o restantes e a frase. **O que falta não é a regra — é o número:**
+`contarAulasDoMes` não existe, e está desenhado no [`PLANO-CONTADOR-DE-AULAS.md`](PLANO-CONTADOR-DE-AULAS.md) §3.3.
 
-**A unidade mudou, e é medido.** O §1 do `CUSTO-DOS-FLUXOS.md` fixou **3 min/aula** e dela fez a
-unidade comercial. Hoje são **2,12**: `Gerar o ciclo` caiu de **1,55** para **1,12 min** (16 runs desde
-21/11, mediana **40 s**, 12 % acima de 60 s) quando o TeX saiu do caminho, e `Fechar os derivados` é
-**1,00** (395 runs, mediana 11 s, 4 acima de 60 s).
+**2. «A C25 está aberta.» Falso — está resolvida.** A 17/11/2026 ela decidiu **contar 440** aulas/mês
+para a escola no tamanho máximo: «Eu acho que a gente tem que contar com a capacidade menor, né? Para a
+gente ser prudente.» E o `teto.aulas: null` é **deliberado**, com a razão escrita no próprio catálogo:
+«um teto comercial é uma promessa, e a promessa é a franquia (100/300/800)». O `teto` era o parâmetro
+**interno** do §L9c para a capacidade da infraestrutura — outra grandeza, outro dono. Confundi os dois
+e anunciei como pendência uma decisão de oito dias antes.
 
-**«Partilhando o mesmo workflow» não poupa minuto — e neste cenário nem chega a disparar.** O
-`concurrency` com `cancel-in-progress` **lança e cancela**; não funde. E a factura arredonda ao minuto
-por job, pelo que um job cancelado aos 4 s custa o mesmo que um de 60 (246 das 395 execuções de
-`Fechar os derivados` foram canceladas). De hora a hora não há sobreposição nenhuma — 16 aulas são 16
-execuções de cada workflow. O que pouparia é o §7.1 (agrupar as gerações), que não existe.
+**3. «A geração percorre as 352 aulas do mês.» Falso — percorre as aulas do ciclo, e o ciclo tem 24.**
+O `ciclo-01-breu-piano-plano.md` declara «Número total de aulas: 24» (3×/semana × 8 semanas). O laço do
+`gerar-ciclo.sh` percorre as aulas **daquele ciclo**, pelo que uma escola a 352 aulas/mês tem **~15
+ciclos de 24**, e cada geração paga o seu ciclo. A soma quadrática de **1 076 min** que a entrada
+anterior publicou não existe: são **704**. A fronteira do minuto está às **67 aulas num só ciclo** — a
+24 não se toca, e por isso a unidade é constante: **2,0 min por aula** (1,00 de `Gerar o ciclo`, mediana
+40 s em 16 runs pós-TeX, + 1,00 de `Fechar os derivados`, 395 runs).
 
-**A descoberta estrutural: o laço é `O(N)`.** O `gerar-ciclo.sh` re-renderiza **todas** as aulas do
-ciclo a cada geração — duas páginas `pandoc` por aula e uma validação `node` por aula. Medido nesta
-máquina: **59 ms/página** e **32 ms/aula**, ou **150 ms por aula no ciclo**. O ciclo de uma escola a 16
-aulas/dia acumula 352 aulas no mês, pelo que a última geração paga as 352. Modelo B (soma dos jobs
-reais) dá **1 076 min** para 352 aulas com escala ×2 — praticamente igual ao modelo A constante
-(1 098), e é essa coincidência que dá confiança à conta. Acima de ~600 aulas o modelo B é pior, e é o
-verdadeiro.
+**O que isso faz à resposta.** A pergunta dela era «quantas escolas eu consigo ter lucro?». A resposta
+**continua a ser todas** — mas pelos números certos, e não pelos que eu publiquei: a margem **desce**
+com N e **aplana** num piso que depende do plano — **90,7 %** no Básico, **80,5 %** no Intermediário,
+**62,9 %** no Avançado —, e **não existe um número de escolas a partir do qual dá prejuízo**, porque o
+custo de uma escola é sempre uma fração da receita dela. O zero exigiria **21,6 / 10,3 / 5,4 min por
+aula**: no caso mais apertado (Avançado), o runner **2,7× mais lento** do que hoje. E a 16 aulas/dia as
+três escolas custam **R$ 3,63** contra **R$ 461,70** de receita — **margem 99,2 %**, e não os 93,7 %
+que eu tinha escrito.
 
-**A correcção que esta secção deve ao catálogo.** O `planos.json` diz «um factor de 4 muda a capacidade
-de 13 escolas para 3». Esses números foram escritos sobre o modelo de **1 min/aula** do §L9f. Sobre a
-unidade actual, a mesma cota dá **7 escolas** a 110 aulas/mês (264 min cada) e **1 escola** a 440
-(1 428 min). O factor de 4 muda a capacidade **de 7 para 1**.
+**Uma divergência que fica declarada, e não se corrige aqui.** O §L9c e o §7.2 do plano do contador
+dizem «3 escolas no tamanho máximo», e fizeram a conta com **1 min por aula**
+(`(2 000 − 522) ÷ 440 = 3,4`). Com a unidade medida, 2,0 min, são `1 478 ÷ 880 = 1,7` — **uma escola**.
+A decisão da C25 continua válida; o que muda é a capacidade que dela se tira, e é **menor**. Corrigir o
+§L9c pede a sua própria medição da engenharia, e não se fez.
 
-**A consequência comercial não é sobre servidores, é sobre a franquia.** A escola a 16 aulas/dia está
-**3,5× acima** do Básico (100) e **1,17× acima** do Intermediário (300); só o Avançado (800) a
-comporta. E o preço já resolve isto sozinho: a 352 aulas ela paga **R$ 0,557/aula** no Básico e
-**R$ 0,397/aula** no Avançado — o ponto de viragem é às 240 aulas, e ela está 47 % acima. O que falta é
-o **teto**: `teto.aulas` é `null`, e a C25 passa a ter um número real a pedir decisão — **352**, medido,
-entre os 110 e os 440 que estavam em discussão.
+**MEDIDO.** API dos runs do GitHub (1 000 execuções); o plano do ciclo (24 aulas); micro-bancada do
+`pandoc` (59 ms/página, 20 chamadas em 1,187 s) e do validador (32 ms, 50 em 1,629 s). As quatro
+conferências verdes: `check-identidade` (23), `check-schemas`, `check-sem-destruicao`,
+`check-github-headers` (5).
 
-**Uma divergência entre dois documentos do planeamento, e ela manda migrar cedo demais.** O §L9d escreve
-o gatilho do GitHub Team como «acima de 2 000 min facturados»; o §L9c, que fez a conta ao cêntimo,
-escreve **2 667**. O §L9c é o certo: entre 2 000 e 2 667 o excedente custa entre US$ 0 e US$ 4, e o
-Team custa US$ 4 fixos. **A escada do §L9d é a que o painel vai implementar**, e implementada como está
-escrita faria o painel recomendar a migração **antes** de ela compensar. Fica declarado; corrigir é
-mexer no painel, e isso não se fez aqui.
-
-**O que é modelo e o que é medição.** Medido: a duração de cada workflow, os 59 ms de `pandoc`, os 32 ms
-de validação, os 40 s de base. **Declarado**: a escala ×2 do runner (não se mediu a razão).
-**Extrapolado**: o crescimento do laço com N — **nenhum ciclo deste repositório tem mais de uma aula**,
-logo a curva não foi observada em lado nenhum. **Modelo**: a factura em privado, porque o repositório é
-público e o `/timing` responde `billable.UBUNTU.total_ms = 0` em todas as execuções; o modelo é o do
-§L9f, conferido contra a factura real com 3,5 % de erro.
-
-**O ensaio que fecha a maior lacuna, e que não se fez.** Gerar um ciclo com **50 aulas** numa escola de
-teste e ler a duração do job. É barato e é o próximo passo. Ensaiada a sensibilidade até ×5, 352 aulas
-custam 1 534 min e **a conclusão não muda** — mas o número certo é o que sair do ensaio, e não se
-escreve um número que ninguém mediu.
-
-**MEDIDO.** `node tools/check-identidade.js` (23 conferências, 0 problemas), `node tools/check-schemas.js`,
-`node tools/check-sem-destruicao.js`, `node tools/check-github-headers.js` (5 conferências) — todos
-verdes.
-
-**Onde entrou.** `CUSTO-DOS-FLUXOS.md` (§10, a secção nova), `ESTADO-ATUAL.md` (§6), `HANDOFF.md`
-(regenerado).
+**Onde entrou.** `CUSTO-DOS-FLUXOS.md` (§10 reescrita — §10.1 a §10.12, com a §10.11 a listar os três
+erros), `ESTADO-ATUAL.md` (a fotografia e a decisão 176), `HANDOFF.md` (regenerado).
 
 ## O que está pendente
 

@@ -4,24 +4,26 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **lucro, custo e margem.** Pergunta dela: «Eu preciso saber
-> isso para saber qual é o excedente e aí eu consigo basear os meus custos porque daí eu só calculo
-> esse excedente e subtraio do valor da receita» — com uma escola por plano, **16 horas por dia, uma
-> aula por hora**, partilhando o workflow, em repositório privado. **A resposta é lucro, e a
-> infraestrutura não é o que o limita.** Medido sobre 1 000 execuções: `Gerar o ciclo` caiu de 1,55
-> para **1,12 min** quando o TeX saiu, e `Fechar os derivados` é 1,00 — **2,12 min por aula**, e não
-> os 3 do `CUSTO-DOS-FLUXOS.md` §1. **Uma escola sozinha usa 1 076 dos 2 000 min e custa R$ 0,00**;
-> as três, uma por plano, são **R$ 28,99** contra **R$ 461,70** de receita — **lucro R$ 432,71,
-> margem 93,7 %**, e 90,5 % com o runner três vezes mais lento. **A descoberta que muda o desenho:** a
-> geração re-renderiza **todas** as aulas do ciclo a cada execução (duas páginas `pandoc` de 59 ms +
-> 32 ms de validação por aula, medidos), pelo que uma escola a 16 aulas/dia **paga mais caro à medida
-> que o mês avança** — e nenhum ciclo deste repositório tem mais de uma aula, pelo que essa curva é
-> **extrapolada** e está declarada como tal. **E «partilhar o mesmo workflow» não poupa minuto
-> nenhum** — o `concurrency` lança e cancela, a factura arredonda ao minuto por job, e de hora a hora
-> não há sobreposição. **O que aperta é a franquia, não o servidor:** a 16 aulas/dia o cliente está
-> 3,5× acima do Básico, e o preço já o empurra para o Avançado (R$ 0,557 → R$ 0,397 por aula). A C25
-> passa a ter um número real a pedir decisão — **352 aulas/mês** — e fica corrigido o `planos.json`,
-> que ainda diz «13 escolas ou 3»: sobre a unidade de hoje são **7 ou 1**.
+> **Última fotografia:** 25/11/2026 — **quantas escolas se sustentam.** Pergunta dela: «quantas
+> escolas eu consigo ter lucro? […] parece que o meu custo aumenta mais do que a minha receita na
+> medida em que eu tenho mais escola». **A resposta é: todas, e não existe ponto de prejuízo** —
+> porque o custo de uma escola é sempre uma fracção da receita dela, e a escada do GitHub só acrescenta
+> dois valores fixos (US$ 4 e US$ 21) que pesam **menos** à medida que o N cresce. A margem **desce**
+> com N e **aplana** num piso que depende do **plano**: **90,7 %** no Básico, **80,5 %** no
+> Intermediário, **62,9 %** no Avançado — e o zero exigiria o runner **2,7× mais lento**, no caso mais
+> apertado. **A unidade é 2,0 min por aula**, e é o ciclo que a segura: `Gerar o ciclo` mede 40 s
+> (16 runs pós-TeX) e `Fechar os derivados` 1,00 (395 runs), e o laço da geração percorre as aulas
+> **do ciclo**, que tem **24** — a fronteira do minuto só é tocada às **67 aulas num ciclo só**.
+> **E ela corrigiu-me em três coisas, todas certas:** a franquia **existe e é o teto** (100/300/800,
+> em `assinaturas[].aulas`, com excedente a R$ 0,50 acima); a **C25 está resolvida** desde 17/11/2026
+> (conta-se 440, e o `teto.aulas: null` é deliberado — «um teto comercial é uma promessa, e a promessa
+> é a franquia»); e **a geração não percorre o mês** — percorre o ciclo, pelo que os 1 076 min que eu
+> escrevi eram uma soma quadrática que não existe: são **704**. A 16 aulas/dia as três escolas custam
+> **R$ 3,63** contra **R$ 461,70** de receita — margem **99,2 %**, e não 93,7 %. «Partilhar o mesmo
+> workflow» continua a não poupar minuto nenhum (o `concurrency` lança e cancela, e a factura
+> arredonda ao minuto por job). **O contador que daria o número à franquia está desenhado e não
+> implementado** — `comercial.situacaoDaFranquia` já devolve `folga`/`perto`/`limite`/`passou`; falta
+> quem lhe dê o `aulasUsadas` do mês.
 >
 > **Fotografia anterior (24/11/2026 — a mesa dos N ciclos).** Pergunta dela: «preciso saber se tem
 > para quando a gente tem n ciclos e se esses ciclos não se misturam, o conteúdo deles». Havia cinco
@@ -4000,20 +4002,22 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      atravessa os ciclos** — o `parentHash` do 02 é o `hash` do 01; editar o 01 faz o `--check` do 02
      recusar, e o `derivados.yml` reancora o 02 ao pai novo sem tocar no 01. **DECIDIDO** 24/11/2026.
 
-176. **A AULA CUSTA 2,12 MINUTOS, O CUSTO CRESCE DENTRO DO CICLO, E O QUE APERTA É A FRANQUIA — NÃO O
-     SERVIDOR.** Medido a 25/11/2026 sobre 1 000 execuções: `Gerar o ciclo` caiu de **1,55** para
-     **1,12 min** (mediana 40 s, 16 runs desde 21/11) quando o TeX saiu, e `Fechar os derivados` é
-     **1,00** — **2,12 min por aula**, e não os 3 do §1 do `CUSTO-DOS-FLUXOS.md`. **A geração
-     re-renderiza TODAS as aulas do ciclo a cada execução** (duas páginas `pandoc` de 59 ms + uma
-     validação `node` de 32 ms por aula), de modo que o custo de uma escola a 16 aulas/dia **cresce
-     dentro do próprio mês**: 352 aulas custam **1 076 min**, contra os 746 de um modelo constante.
-     **Uma escola sozinha é R$ 0,00** (54 % da cota gratuita); as três, uma por plano, são **R$ 28,99**
-     contra **R$ 461,70** de receita — **margem 93,7 %**, e 90,5 % com o runner três vezes mais lento.
-     **E «partilhar o mesmo workflow» não poupa minuto nenhum:** o `concurrency` lança e cancela, a
-     factura arredonda ao minuto por job, e a uma aula por hora não há sequer sobreposição.
-     **DECIDIDO** 25/11/2026 — a decisão é a de **não migrar** e a de ler a franquia, não o servidor:
-     a 16 aulas/dia o cliente está 3,5× acima do Básico e o preço já o empurra para o Avançado
-     (R$ 0,557 → R$ 0,397 por aula), e o que falta é o `teto.aulas`, que a C25 mantém `null`.
+176. **A AULA CUSTA 2,0 MINUTOS, O CICLO É QUE A SEGURA, E NÃO HÁ NÚMERO DE ESCOLAS QUE DÊ PREJUÍZO.**
+     Medido a 25/11/2026 sobre 1 000 execuções: `Gerar o ciclo` mede **40 s** (16 runs desde 21/11) e
+     `Fechar os derivados` **1,00 min** (395 runs) — **2,0 min por aula**, e não os 3 do §1 do
+     `CUSTO-DOS-FLUXOS.md`. **A geração re-renderiza todas as aulas do ciclo a cada execução** (duas
+     páginas `pandoc` de 59 ms + uma validação de 32 ms por aula), mas **o laço percorre o CICLO, não
+     o mês**: um ciclo tem **24 aulas**, e a fronteira do minuto só é tocada às **67** — pelo que a
+     unidade é constante. **O custo de uma escola é fração da receita dela, sempre:** os pisos da
+     margem são **90,7 %** (Básico), **80,5 %** (Intermediário) e **62,9 %** (Avançado), e o zero
+     exigiria **21,6 / 10,3 / 5,4 min por aula** — no caso mais apertado, o runner **2,7× mais lento**.
+     **A margem desce com N e aplana; nunca cruza o zero**, porque o preço do minuto é constante e a
+     escada só acrescenta dois valores fixos. **E «partilhar o mesmo workflow» não poupa minuto
+     nenhum:** o `concurrency` lança e cancela, a factura arredonda ao minuto por job, e a uma aula por
+     hora não há sobreposição. **DECIDIDO** 25/11/2026: **não há gatilho de prejuízo a vigiar** — o que
+     se vigia é o minuto facturado, e a franquia é o limite comercial (100/300/800 em
+     `assinaturas[].aulas`, com excedente a R$ 0,50 acima). A 16 aulas/dia o cliente está 3,5× acima
+     do Básico e o preço já o empurra para o Avançado (R$ 0,557 → R$ 0,397 por aula).
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
