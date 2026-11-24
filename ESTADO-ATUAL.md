@@ -4,7 +4,25 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **o equilíbrio da escada.** Depois de a §10 fechar a conta do
+> **Última fotografia:** 25/11/2026 — **a escada fechada: 130 / 320 / 500, com o dólar a R$ 6.**
+> «Eu vou ficar com a proposta A, ela é a mais vantajosa para mim e também é razoável com a escola.» A
+> conta refeita com a escolha dela e com o dólar de referência que ela fixou: às nove escolas cheias o
+> custo **cai** de R$ 175,20 para **R$ 121,20** e a margem **sobe** de 81,1 % para **87,0 %**. **As
+> aulas por semana:** 30,0 no Básico (5,0/dia, 1 sala), 73,8 no Intermediário (12,3/dia, 2 salas),
+> 115,4 no Avançado (19,2/dia, 3 salas). **A migração:** às **190** aulas/mês o Básico deixa de
+> compensar (43,8/semana) e às **400** o Intermediário (92,3/semana); a extensão vale a pena entre
+> 131–190, 321–400 e **501+** — e no Avançado ela é a única saída e custa **1,79×** a aula do plano.
+> **O custo é R$ 0,00 até 1 000 aulas/mês na conta inteira** e depois **R$ 0,072 por aula, para
+> sempre**; **a margem não depende do número de escolas** (converge para 90,6 / 79,7 / 76,3 %) porque o
+> custo e a receita crescem ambos com as aulas — o que desce é a fatia gratuita, e ela acaba uma vez.
+> **O prejuízo só começa com o dólar a R$ 46,00** e os 50 % a R$ 23,00: oito vezes o que ela declarou
+> suportar. **E a alavanca que ela propôs é fraca, medido:** cortar 10 % da franquia poupa R$ 0,94 /
+> 2,30 / 3,60 por mês. A ordem certa, se o gatilho aparecer, é a engenharia (1 212 min/mês, 36 % do
+> custo), a consolidação dos jobs (§7.1) e só no fim a franquia. **O que se vigia é o total de aulas
+> lançadas no mês, não o número de escolas.** Falta escrever as três franquias no `planos.json` — o
+> sistema ainda promete a escada antiga.
+>
+> **Fotografia anterior (25/11/2026 — o equilíbrio da escada).** Depois de a §10 fechar a conta do
 > lucro, ela trouxe a viabilidade prática — «4 h/dia, 6 dias» no Básico, «12 h ou 2 salas» no
 > Intermediário, «31 aulas/dia é impossível numa sala» no Avançado — e ela **confere ao minuto** com as
 > franquias (3,8 · 11,5 · 30,8 aulas/dia). **E é por isso que o cenário dos 16 h/dia estava errado como
@@ -4052,6 +4070,25 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      generoso) e a extensão passa a compensar até às 259 aulas em vez de 160 — **mais 120 aulas de
      extensão antes de o upgrade compensar**, o que é bom se a extensão se quer vender. **RECOMENDADO**
      25/11/2026; a decisão comercial é dela.
+
+178. **A ESCADA É 130 / 320 / 500, O DÓLAR DE REFERÊNCIA É R$ 6, E NÃO HÁ PREJUÍZO EM NENHUM CENÁRIO
+     PLAUSÍVEL.** Escolha dela: «Eu vou ficar com a proposta A, ela é a mais vantajosa para mim e também
+     é razoável com a escola.» **Aulas por semana** (mês = 4,33): **30,0** no Básico (5,0/dia),
+     **73,8** no Intermediário (12,3/dia), **115,4** no Avançado (19,2/dia). **Migração, com a extensão
+     a R$ 0,50:** Básico → Intermediário às **190 aulas/mês** (43,8/semana), Intermediário → Avançado às
+     **400** (92,3/semana); a janela em que a extensão compensa é 131–190, 321–400 e **501+** — no
+     Avançado não há plano acima, e a extensão passa a custar **1,79×** a aula do plano. **O custo é
+     R$ 0,00 até 1 000 aulas/mês na conta inteira** (7 do Básico, 3 do Intermediário, 2 do Avançado) e
+     depois **R$ 0,072 por aula, para sempre**. **A margem não depende do número de escolas** — converge
+     para o piso e fica lá (90,6 / 79,7 / 76,3 %), porque o custo é proporcional às aulas e a receita
+     também; o que desce é a fatia gratuita, e ela acaba uma vez. **A R$ 6**: 3 de cada na franquia
+     cheia = **R$ 121,20** contra R$ 929,10 → **87,0 %**; com metade da franquia, **97,4 %**. **O
+     prejuízo só começa a R$ 46,00** e os 50 % só a R$ 23,00 — oito vezes o que ela declarou suportar.
+     **A alavanca dela é fraca, e mediu-se:** uma aula custa R$ 0,072, pelo que cortar 10 % da franquia
+     poupa R$ 0,94 / 2,30 / 3,60 por mês. Se o gatilho aparecer, a ordem é **engenharia** (1 212 min/mês,
+     36 % do custo, não é promessa), **§7.1** (corta a unidade para metade) e só no fim a franquia.
+     **O que se vigia é o total de aulas lançadas no mês** — não o número de escolas. **DECIDIDO**
+     25/11/2026. **Por escrever:** as franquias do `planos.json` continuam 100 / 300 / 800.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a

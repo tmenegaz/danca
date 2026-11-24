@@ -60732,3 +60732,73 @@ operação real de uma escola nunca foi observada. As quatro conferências verde
 
 **Onde entrou.** `CUSTO-DOS-FLUXOS.md` (§11 — §11.1 a §11.8), `ESTADO-ATUAL.md` (a fotografia e a
 decisão 177), `HANDOFF.md` (regenerado).
+
+## 25/11/2026 — A escada é 130/320/500, com o dólar a R$ 6 — e não há prejuízo em nenhum cenário plausível
+
+**A decisão é dela.** «Eu vou ficar com a proposta A, ela é a mais vantajosa para mim e também é
+razoável com a escola.» **A escada passa a 130 / 320 / 500** (era 100 / 300 / 800), e o **dólar de
+referência é R$ 6,00** — «para a gente ter uma sobra», porque «o dólar está sempre oscilando ali entre
+quatro e pouco, cinco e 50, mas pode ser que chegue a seis».
+
+**E o resultado é melhor do que o da escada anterior:** às nove escolas cheias o custo **cai** de
+R$ 175,20 para **R$ 121,20** (a R$ 6) e a margem **sobe** de 81,1 % para **87,0 %**.
+
+**As aulas por semana** (mês = 52 ÷ 12 = 4,33): Básico **30,0/semana** (5,0/dia, 1 sala);
+Intermediário **73,8** (12,3/dia, 2 salas × 6,2); Avançado **115,4** (19,2/dia, 3 salas × 6,4).
+
+**Os pontos de migração, com a extensão a R$ 0,50:** Básico → Intermediário às **190 aulas/mês**
+(**43,8/semana**); Intermediário → Avançado às **400** (**92,3/semana**). Em espelho, a **janela em que
+a extensão é o melhor negócio para a escola**: no Básico de 131 a 190 (30,2 a 43,8/semana), no
+Intermediário de 321 a 400 (74,1 a 92,3/semana), e no Avançado **de 501 em diante** — porque **não há
+plano acima**, e aí a extensão custa **1,79× a aula do próprio plano**.
+
+**E é por isso que «o que vier é lucro» é literal:** a extensão custa **R$ 0,072** de CI e vende-se a
+**R$ 0,50** — **85,6 % de margem**, melhor do que a do Intermediário (76,9 %) e a do Avançado (74,3 %).
+
+**Quando os custos aumentam — uma vez só.** O custo é **R$ 0,00 até 1 000 aulas/mês na conta inteira**
+(2 000 min), e depois é **R$ 0,072 por aula, para sempre**. Em escolas: **7 do Básico**, **3 do
+Intermediário**, **2 do Avançado**, ou **3 (uma de cada) com 100 min de sobra**.
+
+**A descoberta tranquilizadora: a margem não depende do número de escolas.** Como o custo é
+proporcional às aulas e a receita também, a margem converge para o piso do plano e **fica lá** — 90,6 %
+no Básico, 79,7 % no Intermediário, 76,3 % no Avançado (a N=30). **O que desce é a fatia gratuita, e ela
+acaba uma vez.** Não há número de escolas em que o negócio vire.
+
+**A sensibilidade ao dólar, com 3 de cada na franquia cheia (2 850 aulas, 5 700 min, receita
+R$ 929,10):** R$ 4,00 → **91,3 %**; R$ 5,40 → 88,3 %; **R$ 6,00 → 87,0 %** (custo R$ 121,20); R$ 8,00 →
+82,6 %; R$ 10,00 → 78,3 %; R$ 12,00 → 73,9 %; **R$ 23,00 → 50,0 %**; **R$ 46,00 → 0 %**. O prejuízo só
+começa a um dólar **oito vezes** o que ela declarou suportar. Por plano, o zero chega a R$ 44,81
+(Básico), R$ 26,02 (Intermediário) e **R$ 23,32 (Avançado)** — o primeiro a apertar, e ainda assim só
+a R$ 11,66 para os 50 %.
+
+**Sem a franquia cheia — que é o caso real, e ela disse-o** («as escolas não chegam a tudo isso de
+aula») —, com metade: 1 425 aulas, 2 850 min, **R$ 24,00**, margem **97,4 %**. Com um terço, **R$ 0,00**.
+
+**A engenharia é a maior rubrica depois das escolas.** Os 1 212 min/mês medidos entre 15 e 24/11 somados
+às nove escolas dão 6 912 min → **R$ 164,83**: **R$ 43,63 a mais, 36 % do total**, e é a única que ela
+controla sem tocar na promessa comercial.
+
+**A alavanca que ela propôs é fraca, e é preciso dizê-lo antes de ela a usar.** Uma aula custa
+**R$ 0,072**: cortar 10 % da franquia poupa **R$ 0,94** (Básico), **R$ 2,30** (Intermediário) e
+**R$ 3,60** (Avançado) por mês, e tira 13, 32 e 50 aulas da promessa. **Para poupar R$ 100/mês seriam
+precisas 1 389 aulas — mais do que a conta inteira.** A ordem certa, se o gatilho aparecer, é o
+gratuito (já usado), a **engenharia** (36 %, não é promessa a ninguém), a **consolidação dos jobs**
+(§7.1, corta a unidade de 2,0 para 1,0 min e reduz esta factura a metade) e só no fim a franquia.
+
+**A linha de alarme:** a **única coisa a vigiar é o total de aulas lançadas no mês**, todas as escolas
+somadas — não o número de escolas nem o plano de cada uma. É ele que decide se a conta está nos R$ 0 ou
+nos R$ 121.
+
+**POR ESCREVER, e é o que falta:** as três franquias continuam **100 / 300 / 800** em
+`biblioteca/comercial/planos.json → assinaturas[].aulas`. **Enquanto não forem escritas, o sistema
+promete a escada antiga** — o painel, o Financeiro e o `situacaoDaFranquia` leem aquele ficheiro.
+Escrevê-las é mudar três números e publicar; **não se fez porque é decisão comercial acabada de tomar, e
+porque o commit do catálogo merece ser o dele**, com o motivo declarado.
+
+**MEDIDO.** As franquias, os preços e a extensão, do `planos.json`; o custo do minuto e a unidade de
+2,0 min/aula, da §10. **Calculado:** as aulas por semana (franquia ÷ 4,33), a viabilidade da operação
+(nunca observada) e a sensibilidade ao dólar. As quatro conferências verdes: `check-identidade` (23),
+`check-schemas`, `check-sem-destruicao`, `check-github-headers` (5).
+
+**Onde entrou.** `CUSTO-DOS-FLUXOS.md` (§12 — §12.1 a §12.10), `ESTADO-ATUAL.md` (a fotografia e a
+decisão 178), `HANDOFF.md` (regenerado).
