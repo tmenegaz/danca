@@ -10,9 +10,9 @@ type: Ciclo
 professor: demi-plie
 ciclo: 01
 variante: breu-piano
-hash_conteudo: 0871073d9f2fd225011a84be7f3949053e80774128a8dff40a9622c5350be91a
+hash_conteudo: 4159f705a5f3178bff5c4582b78225c3632536cc772786fa688c1adcaf5f0b98
 parentHash: 
-hash: 09aa810e4535342b8d7e791d114cc3a8dedddac94fe279eeb0cbc347378e43ce
+hash: 722580618ab1570170b0f4a3be2dbca08228c994f7cea3023f340dd00a4de8b7
 algoritmo: SHA-256
 po: professores/demi-plie/ciclos/ciclo-01-breu-piano-po.md
 po_state: Input_PO_Validado
@@ -27,7 +27,11 @@ cobertura:
   - professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.md
   - professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-aula-01.md
   - professores/demi-plie/ciclos/ciclo-01-breu-piano-dados.json
+  - professores/demi-plie/ciclos/ciclo-01-breu-piano-glossario-codigo_de_danca.md
+  - professores/demi-plie/ciclos/ciclo-01-breu-piano-harmonizacao.md
+  - professores/demi-plie/ciclos/ciclo-01-breu-piano-notacao.md
   - professores/demi-plie/ciclos/ciclo-01-breu-piano-plano.md
   - professores/demi-plie/ciclos/ciclo-01-breu-piano-po.md
+  - professores/demi-plie/ciclos/ciclo-01-breu-piano-referencias.md
   - professores/demi-plie/ciclos/ciclo-01-breu-piano.conf
   - professores/demi-plie/ciclos/ciclo-01.conf

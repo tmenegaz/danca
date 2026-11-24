@@ -827,10 +827,22 @@ PY
     # da FONTE da notação, que é quem declara as âncoras (`### N. Bloco — Exercício {#id}`).
     # Passa-se só a aula que tem exercícios declarados hoje: a notação é o documento do ciclo que
     # os compõe, e o mapa abaixo cresce quando ela crescer.
+    #
+    # A ÂNCORA SÓ SE CITA SE A PÁGINA QUE A CARREGA VAI EXISTIR (24/11/2026). A aula ganha as
+    # secções `### N. Bloco — Exercício {#id}` quando o gerador a compõe COM a notação — e isso
+    # exige `notacao` no `DOCS` (é o laço das fontes, acima, que copia o `.md` para `$TMP/src`).
+    # A tabela lia `fonte_md notacao` direto do repositório e citava 16 âncoras que a aula não
+    # tinha: o `check-pacote` reprovou-as como «âncora inexistente em aula-01.html» no run
+    # `45382567181`, e a causa não era a tabela — era o `DOCS` sem `notacao`. Fica a guarda do
+    # lado de cá: o que a página não vai ter, a tabela não cita.
     EXERCICIOS_ARG=()
-    if [ -f "$(fonte_md notacao)" ]; then
-      EXERCICIOS_ARG=(--exercicios "aula-01=$(fonte_md notacao)")
-    fi
+    case " $DOCS " in
+      *" notacao "*)
+        if [ -f "$(fonte_md notacao)" ]; then
+          EXERCICIOS_ARG=(--exercicios "aula-01=$(fonte_md notacao)")
+        fi
+        ;;
+    esac
     node "$RAIZ/tools/tabela-objetivos.js" "$PACOTE/plano-$CICLO.json" $DOCS \
       ${EXERCICIOS_ARG[@]+"${EXERCICIOS_ARG[@]}"} > "$TMP/objetivos.md" \
       || { echo "erro: não consegui montar «Objetivos por bloco e por aula» (plano-$CICLO.json)." >&2; exit 1; }

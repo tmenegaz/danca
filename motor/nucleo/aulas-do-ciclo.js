@@ -188,8 +188,7 @@ function docsComAsAulas(docs, plano) {
     if (lista.indexOf('aula-' + nn) === -1) faltam.push('aula-' + nn);
     if (lista.indexOf('captura-aula-' + nn) === -1) faltam.push('captura-aula-' + nn);
   }
-  if (!faltam.length) return lista;
-  /* A FAMÍLIA É REESCOLhIDA, e não remendada. Inserir a aula nova antes da primeira captura que
+  /* A FAMÍLIA É REESCOLHIDA, e não remendada. Inserir a aula nova antes da primeira captura que
      já exista dá `aula-01 aula-02 captura-aula-02 captura-aula-01` — funcional, e com a captura da
      Aula 01 a fechar a família da 02. A ordem do gerador é plano · harmonização · (aula, captura)
      por aula · notação · glossário · referências, e é essa que sai daqui: a família inteira é
@@ -205,12 +204,77 @@ function docsComAsAulas(docs, plano) {
   for (const nn of [...aulas].sort((a, b) => Number(a) - Number(b))) {
     familia.push('aula-' + nn, 'captura-aula-' + nn);
   }
+  /* SEM AULA NOVA, A ORDEM AINDA ASSIM SE NORMALIZA (24/11/2026). A saída antecipada que aqui
+   * estava (`if (!faltam.length) return lista`) deixava `aula-01 aula-02 captura-aula-01
+   * captura-aula-02` como estava: a mesma lista declarada em duas ordens dava dois menús, e dois
+   * caminhos que reescrevem o manifesto divergiam sobre o que é «não mudar nada». A prova da aula
+   * dada mede-o («a aula 01 continua no princípio»), e o invariante é o mesmo de cima: família
+   * inteira, em ordem numérica. Quando já está assim, devolve-se a lista — sem mudança, sem
+   * commit. */
+  if (!faltam.length && lista.filter(ehDaFamilia).join(' ') === familia.join(' ')) return lista;
   const ancora = lista.findIndex((d) => /^aula-\d+$/.test(d));
   const onde = ancora === -1
     ? fora.findIndex((d) => /^captura-aula-\d+$/.test(d))
     : fora.filter((d) => lista.indexOf(d) < ancora).length;
   const ondeCerto = onde === -1 ? fora.length : onde;
   return fora.slice(0, ondeCerto).concat(familia, fora.slice(ondeCerto));
+}
+
+/**
+ * O `DOCS` COMPLETO — TUDO O QUE O ESCRITOR DO CICLO ESCREVE (24/11/2026).
+ *
+ * O DEFEITO, medido no run `45382567181` («Gerar o ciclo · demi-plie/01», 24/11 11:16): o
+ * manifesto da variante `breu-piano` ficou `DOCS="plano aula-01 captura-aula-01"` — mas o escritor
+ * tinha gravado `-harmonizacao.md`, `-notacao.md`, `-glossario-codigo_de_danca.md` e
+ * `-referencias.md` ao lado. O gerador só publica o que o `DOCS` declara, e o pacote saiu com
+ * **20 erros**: `P-17/P-21` (ciclo com aula sem harmonização declarada), dois links para
+ * `notacao.html` e um para `referencias.html` — três páginas que existiam em fonte e não no
+ * pacote —, e as 16 âncoras `#<bloco>-<exercício>-ob<N>` que a tabela dos objetivos cita no
+ * `plano.html` e que a aula só ganha quando o gerador compõe a aula COM a notação (o que exige
+ * `notacao` no `DOCS`).
+ *
+ * PORQUE ACONTECIA, e não era um caso de escola. Havia DUAS regras para a mesma lista:
+ * `docsGerados` sabia a lista inteira (plano · harmonização · aulas · notação/glossário ·
+ * referências) e só corria quando o manifesto ainda NÃO tinha `aula-01`; o caminho normal — o
+ * plano é gravado primeiro e já lá põe `aula-01` — caía no ramo que só sabe acrescentar aulas
+ * (`docsComAsAulas`). Na primeira gravação que passasse por ali, a lista parava de crescer para
+ * sempre. A correção é a regra de 21/11 outra vez: **uma lista, um dono.**
+ *
+ * A LISTA SÓ CRESCE, e é essa a parte que não pode ser generosa: um documento que o manifesto já
+ * declara e que esta função não conhece (`pre-requisitos`, `musicalidade-aluna`, `caderno-NN`,
+ * `apanhado-historico`, `guia-de-observacao-NN`) fica **onde está** — a ordem em que estava é a
+ * ordem do menu publicado, e ninguém a reordena por arrumação. O que falta entra ao lado do
+ * vizinho que a ordem canónica lhe dá: depois do último documento que a antecede, ou antes do
+ * primeiro que a segue.
+ *
+ * `opcoes.notacao` é o nome da notação escolhida no plano e `opcoes.glossario` o documento do
+ * glossário (`glossario-<slug>`) — passados de fora porque o `slugDe` é do `derivar-ciclo.js` e
+ * uma segunda cópia de uma regra de slug diverge ao primeiro parêntese. Sem notação escolhida não
+ * há nem `notacao` nem glossário: o escritor também não os grava.
+ */
+function docsCompletos(docs, plano, opcoes) {
+  const base = docsComAsAulas(docs, plano);
+  const notacao = (opcoes && opcoes.notacao) || '';
+  const glossario = (opcoes && opcoes.glossario) || '';
+  const familia = base.filter((d) => /^(captura-)?aula-\d+$/.test(d));
+  const ordem = ['plano', 'harmonizacao']
+    .concat(familia, notacao ? ['notacao'].concat(glossario ? [glossario] : []) : [], ['referencias']);
+  const lista = base.slice();
+  const inserir = (token) => {
+    const i = ordem.indexOf(token);
+    const antes = ordem.slice(0, i).filter((t) => lista.indexOf(t) !== -1);
+    const depois = ordem.slice(i + 1).filter((t) => lista.indexOf(t) !== -1);
+    if (depois.length) {
+      const j = lista.indexOf(depois[0]);
+      lista.splice(j, 0, token);
+    } else if (antes.length) {
+      lista.splice(lista.indexOf(antes[antes.length - 1]) + 1, 0, token);
+    } else {
+      lista.push(token);
+    }
+  };
+  for (const token of ordem) if (lista.indexOf(token) === -1) inserir(token);
+  return lista;
 }
 
 /** As que podem — na ordem em que foram declaradas, sem repetir. */
@@ -229,5 +293,5 @@ function aulasRegeneraveis(declaradas, lancadas) {
 module.exports = {
   numeroDaAula, aulasLancadas, podeRegenerar, aulasRegeneraveis,
   chaveDaAula, aulaSeguinte, aulasDeclaradasPeloPlano,
-  lerChaveDaAula, CAMPOS_DA_AULA, docsComAsAulas,
+  lerChaveDaAula, CAMPOS_DA_AULA, docsComAsAulas, docsCompletos,
 };

@@ -97,8 +97,13 @@ const CONF = [
 ].join('\n') + '\n';
 const SCHEMA = JSON.stringify({ _declaracao: { porVariante: {} } }, null, 2);
 
-/** O GitHub falso que PERSISTE: o que uma passagem escreve, a seguinte lê. */
-function githubFalso(inicial) {
+/**
+ * O GitHub falso que PERSISTE: o que uma passagem escreve, a seguinte lê.
+ *
+ * `confTexto` permite servir um manifesto DIFERENTE do `CONF` — é o que a secção F precisa para
+ * medir um ciclo que nasce com a lista curta, que é o estado real da variante `breu-piano`.
+ */
+function githubFalso(inicial, confTexto) {
   const chamadas = [];
   const arquivos = Object.assign({}, inicial || {});
   const f = async (url, init) => {
@@ -109,7 +114,7 @@ function githubFalso(inicial) {
     if (metodo === 'GET' && /\/contents\//.test(u)) {
       const caminho = decodeURIComponent(u.split('/contents/')[1].split('?')[0]);
       if (/\.conf$/.test(caminho)) {
-        return { status: 200, ok: true, json: async () => ({ sha: 's1', content: Buffer.from(CONF).toString('base64') }) };
+        return { status: 200, ok: true, json: async () => ({ sha: 's1', content: Buffer.from(confTexto === undefined ? CONF : confTexto).toString('base64') }) };
       }
       if (/captura-schema\.json$/.test(caminho)) {
         return { status: 200, ok: true, json: async () => ({ sha: 's2', content: Buffer.from(SCHEMA).toString('base64') }) };
@@ -303,6 +308,88 @@ function dadosCom(lancadas) {
       semNada[0] === 'plano' && semNada[1] === 'harmonizacao'
       && semNada[semNada.length - 1] === 'referencias',
       semNada);
+  }
+
+  /* ======================================================================================== */
+  console.log('\nF · O MANIFESTO DECLARA TUDO O QUE O ESCRITOR GRAVA (24/11/2026)');
+  /* ======================================================================================== */
+  /* O DEFEITO, medido no run `45382567181` (24/11 11:16, «Gerar o ciclo · demi-plie/01»): o
+   * escritor gravou `-harmonizacao.md`, `-notacao.md`, `-glossario-codigo_de_danca.md` e
+   * `-referencias.md`, e o manifesto ficou `DOCS="plano aula-01 captura-aula-01"`. O gerador só
+   * publica o que o `DOCS` declara: 20 erros no `check-pacote`, entre eles `P-17/P-21` e 16
+   * âncoras de exercício que a aula só ganha quando é composta com a notação.
+   *
+   * A ASSERÇÃO QUE FECHA A CLASSE NÃO É UMA LISTA — é o invariante, lido do que o escritor
+   * escreveu nesta passagem: **toda a fonte `.md` que ele grava está declarada no `DOCS`**. Uma
+   * lista copiada para o teste envelhece com a lista; o invariante não. */
+  {
+    const CONF_CURTO = [
+      'CICLO="01"', 'ESCOLA="batata"', 'NOME="Ciclo 01 — batata"', 'DURACOES="60"',
+      'VOLUME_MIN="3"', 'VOLUME_MAX="5"',
+      'DOCS="plano aula-01 captura-aula-01"',
+      'DIAS="segunda 18:00"',
+    ].join('\n') + '\n';
+    const gh = githubFalso({}, CONF_CURTO);
+    const escrever = criarEscritorDeCiclo({
+      token: 'gh', dono: 'tmenegaz', repo: 'danca', ref: 'main', senhaCripto: 'segredo', fetchImpl: gh.fetch,
+    });
+    const r = await escrever({ plano: PLANO, po: PO, contexto: CTX });
+
+    const conf = gh.arquivos[BASE + '/ciclo-01-batata-sala-rosa.conf'];
+    provar('o manifesto foi gravado (o teste não passa por vacuidade)',
+      typeof conf === 'string' && /^DOCS="/m.test(conf), conf);
+    const docs = ((/^DOCS="([^"]*)"/m.exec(conf || '') || [, ''])[1]).trim().split(/\s+/).filter(Boolean);
+
+    /* O INVARIANTE. `-po.md` é fonte e não documento publicado (não entra em DOCS por desenho);
+       `-dados.json` também não é documento. Tudo o resto que ele gravou tem de estar declarado. */
+    const gravadas = (r.escritas || [])
+      .map((e) => e.caminho)
+      .filter((c) => new RegExp('^' + BASE + '/ciclo-01-batata-sala-rosa-.+\\.md$').test(c))
+      .map((c) => c.slice(c.lastIndexOf('ciclo-01-batata-sala-rosa-') + 'ciclo-01-batata-sala-rosa-'.length, -3))
+      .filter((d) => d !== 'po');
+    provar('o escritor gravou fontes nesta passagem (senão o invariante não mede nada)',
+      gravadas.length > 0, gravadas);
+    const naoDeclaradas = gravadas.filter((d) => docs.indexOf(d) === -1);
+    provar('TODA a fonte que ele gravou está declarada no DOCS', naoDeclaradas.length === 0,
+      { gravadas, naoDeclaradas, docs });
+
+    provar('a harmonização entra na lista', docs.indexOf('harmonizacao') !== -1, docs);
+    provar('a notação entra na lista', docs.indexOf('notacao') !== -1, docs);
+    provar('…e o glossário dela', docs.indexOf('glossario-codigo_de_danca') !== -1, docs);
+    provar('…e as referências', docs.indexOf('referencias') !== -1, docs);
+    provar('a ordem é a do manifesto de referência',
+      docs.join(' ') === 'plano harmonizacao aula-01 captura-aula-01 notacao glossario-codigo_de_danca referencias',
+      docs);
+    provar('o relatório diz o que acrescentou',
+      Boolean(r.docs && Array.isArray(r.docs.acrescentadas) && r.docs.acrescentadas.length), r.docs);
+
+    /* O CONTROLO DO OUTRO LADO: um documento que o escritor NÃO conhece não se perde. */
+    const CONF_COM_EXTRA = CONF_CURTO.replace('DOCS="plano aula-01 captura-aula-01"',
+      'DOCS="pre-requisitos plano aula-01 captura-aula-01 musicalidade-aluna"');
+    const gh2 = githubFalso({}, CONF_COM_EXTRA);
+    const escrever2 = criarEscritorDeCiclo({
+      token: 'gh', dono: 'tmenegaz', repo: 'danca', ref: 'main', senhaCripto: 'segredo', fetchImpl: gh2.fetch,
+    });
+    await escrever2({ plano: PLANO, po: PO, contexto: CTX });
+    const conf2 = gh2.arquivos[BASE + '/ciclo-01-batata-sala-rosa.conf'];
+    const docs2 = ((/^DOCS="([^"]*)"/m.exec(conf2 || '') || [, ''])[1]).trim().split(/\s+/).filter(Boolean);
+    provar('um documento que o escritor não gera sobrevive (`pre-requisitos`)',
+      docs2.indexOf('pre-requisitos') !== -1, docs2);
+    provar('…e outro do mesmo tipo também (`musicalidade-aluna`)',
+      docs2.indexOf('musicalidade-aluna') !== -1, docs2);
+    provar('…e não foram atirados para o fim: a ordem que estava é a que fica',
+      docs2[0] === 'pre-requisitos', docs2);
+
+    /* A LISTA COMPLETA NÃO SE REESCREVE: um manifesto já completo não gera commit de lista. */
+    const CONF_COMPLETO = CONF_COM_EXTRA.replace('DOCS="pre-requisitos plano aula-01 captura-aula-01 musicalidade-aluna"',
+      'DOCS="pre-requisitos plano harmonizacao aula-01 captura-aula-01 musicalidade-aluna notacao glossario-codigo_de_danca referencias"');
+    const gh3 = githubFalso({}, CONF_COMPLETO);
+    const escrever3 = criarEscritorDeCiclo({
+      token: 'gh', dono: 'tmenegaz', repo: 'danca', ref: 'main', senhaCripto: 'segredo', fetchImpl: gh3.fetch,
+    });
+    const r3 = await escrever3({ plano: PLANO, po: PO, contexto: CTX });
+    provar('um manifesto já completo não é tocado (a lista não reescreve o que está certo)',
+      Boolean(r3.docs && r3.docs.nota) && !r3.docs.acrescentadas, r3.docs);
   }
 
   console.log('\n' + (total - falhas) + '/' + total + ' asserções'

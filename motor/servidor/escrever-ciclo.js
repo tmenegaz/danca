@@ -50,7 +50,7 @@ const {
   notacaoEscolhida,
 } = require('../nucleo/derivar-ciclo.js');
 /* QUE AULAS UMA REGENERAÇÃO PODE ESCREVER (21/11/2026) — a regra é UMA e vive lá. */
-const { aulasLancadas, podeRegenerar, numeroDaAula, aulasDeclaradasPeloPlano, docsComAsAulas } =
+const { aulasLancadas, podeRegenerar, numeroDaAula, aulasDeclaradasPeloPlano, docsCompletos } =
   require('../nucleo/aulas-do-ciclo.js');
 
 // O caminho de uma fonte derivada, a partir do contexto — a MESMA regra dos `-po.md`/`-plano.md`.
@@ -526,33 +526,21 @@ function docsAtuais(texto) {
 }
 
 /**
- * A lista completa de `DOCS` do ciclo «do zero»: o que o derivador gera, na ordem do manifesto
- * de referência (plano, harmonização, aulas, captura, notação+glossário, referências).
+ * A lista completa de `DOCS` do ciclo — delega na regra única (`docsCompletos`).
  *
- * AS AULAS QUE JÁ ESTÃO DECLARADAS SOBREVIVEM (21/11/2026). Antes, esta função devolvia sempre
- * `aula-01`/`captura-aula-01`, e a lista substituía a linha inteira do `.conf`: um ciclo que já
- * tivesse a aula 02 — criada pelo botão de criar a aula, quando ele existir — perdia-a do `DOCS`
- * na primeira gravação que passasse por aqui, e a fonte deixava de compor o pacote sem que
- * ninguém a tivesse apagado. «As outras ficam e não se apagam» é a regra; a lista só CRESCE.
+ * ESTA FUNÇÃO JÁ FOI A SEGUNDA CÓPIA. Ela sabia a lista inteira (plano · harmonização · aulas ·
+ * notação/glossário · referências) e só era chamada quando o manifesto ainda não tinha `aula-01`;
+ * o caminho normal — o plano é gravado primeiro e já lá põe `aula-01` — caía num ramo que só
+ * sabia acrescentar aulas, e a lista parava de crescer. O `DOCS` da variante `breu-piano` ficou
+ * `plano aula-01 captura-aula-01` com quatro fontes gravadas fora dele, e a geração falhou com 20
+ * erros (`45382567181`). Fica como adaptador da regra, para os chamadores antigos e a prova.
  */
 function docsGerados({ plano, atuais }) {
   const notacao = notacaoEscolhida(plano);
-  /* Toda a família de aula já declarada, na ordem em que estava. `aula-01`/`captura-aula-01` é
-   * o mínimo de um ciclo que nasce; o resto vem do que o manifesto já tinha. */
-  const declaradas = (Array.isArray(atuais) ? atuais : [])
-    .filter((d) => /^(captura-)?aula-\d+$/.test(d));
-  const aulas = ['01'];
-  for (const d of declaradas) {
-    const m = /^(captura-)?aula-(\d+)$/.exec(d);
-    if (!m) continue;
-    if (!m[1] && aulas.indexOf(m[2]) === -1) aulas.push(m[2]);
-  }
-  aulas.sort((a, b) => Number(a) - Number(b));
-  const docs = ['plano', 'harmonizacao'];
-  for (const nn of aulas) docs.push('aula-' + nn, 'captura-aula-' + nn);
-  if (notacao) docs.push('notacao', 'glossario-' + slugDe(notacao));
-  docs.push('referencias');
-  return docs;
+  return docsCompletos((Array.isArray(atuais) ? atuais : []).join(' '), plano, {
+    notacao,
+    glossario: notacao ? 'glossario-' + slugDe(notacao) : '',
+  });
 }
 
 /**
@@ -1001,34 +989,31 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
     }
 
     const atuais = docsAtuais(confTexto);
-    if (!atuais.includes('aula-01')) {
-      /* AS AULAS JÁ DECLARADAS SOBREVIVEM À LISTA NOVA (21/11/2026) — ver `docsGerados`. */
-      const novoDocs = docsGerados({ plano, atuais });
-      confTexto = confTexto.replace(/^DOCS="[^"]*"/m, 'DOCS="' + novoDocs.join(' ') + '"');
-      relatorio.docs = { ok: true, docs: novoDocs };
+    /* A LISTA COMPLETA, NUMA REGRA SÓ (24/11/2026).
+     *
+     * Aqui havia um `if`: com `aula-01` AUSENTE corria `docsGerados` (a lista inteira); com
+     * `aula-01` presente — que é o caso normal, porque o «Guardar» do plano já a pôs lá —
+     * corria `docsComAsAulas`, que só sabe acrescentar aulas. A segunda metade é um subconjunto da
+     * primeira, e o efeito foi medido: o manifesto da variante `breu-piano` ficou
+     * `DOCS="plano aula-01 captura-aula-01"` com `-harmonizacao.md`, `-notacao.md`,
+     * `-glossario-codigo_de_danca.md` e `-referencias.md` gravados ao lado, e a geração falhou
+     * com 20 erros (`45382567181`): `P-17/P-21`, três links para páginas que não foram
+     * publicadas e 16 âncoras para exercícios que a aula só ganha quando o gerador a compõe com a
+     * notação — o que exige `notacao` no `DOCS`.
+     *
+     * A notação e o glossário são os MESMOS com que as fontes foram gravadas acima (`fontes`):
+     * um nome, uma condição. Sem notação escolhida o escritor não grava os dois ficheiros, e a
+     * lista também não os declara. */
+    const lista = docsCompletos(atuais.join(' '), plano, {
+      notacao,
+      glossario: notacao ? 'glossario-' + slugDe(notacao) : '',
+    });
+    if (lista.join(' ') !== atuais.join(' ')) {
+      const acrescentadas = lista.filter((d) => atuais.indexOf(d) === -1);
+      confTexto = confTexto.replace(/^DOCS="[^"]*"/m, 'DOCS="' + lista.join(' ') + '"');
+      relatorio.docs = { ok: true, docs: lista, acrescentadas };
     } else {
-      /* A LISTA CRESCE COM AS AULAS QUE O PLANO DECLARA (21/11/2026) — e é aqui que o ciclo ganha
-       * a Aula 02. A regra é a mesma do `escrever-plano.js`: a aula existe quando o plano declara
-       * a sequência dela. Se só o manifesto do plano crescesse, o `DOCS` diria `aula-02` e o
-       * ficheiro não existiria — o gerador falharia a procurá-lo; se só este crescesse, o
-       * documento nunca seria derivado. Os dois crescem pela MESMA função.
-       *
-       * SÓ ACRESCENTA. A lista que está é a do manifesto, com o que alguém lá pôs; reescrevê-la
-       * por `docsGerados` apagaria uma entrada que não é deste derivador (um documento extra de
-       * uma variante antiga), e apagar é a única coisa que este caminho nunca faz. */
-      /* A REGRA É UMA SÓ, e esta era a TERCEIRA cópia (21/11/2026). As outras duas
-       * (`escrever-plano.js` e `compor-conf.js`) já foram chamadas a `docsComAsAulas`; esta ficou
-       * com a conta escrita à mão, e três cópias da mesma lista divergem na primeira correcção —
-       * foi exactamente esse o defeito do dia, com o caminho composto a preservar o `DOCS` que os
-       * outros dois cresciam. */
-      const lista = docsComAsAulas(atuais.join(' '), plano);
-      if (lista.join(' ') !== atuais.join(' ')) {
-        const acrescentadas = lista.filter((d) => atuais.indexOf(d) === -1);
-        confTexto = confTexto.replace(/^DOCS="[^"]*"/m, 'DOCS="' + lista.join(' ') + '"');
-        relatorio.docs = { ok: true, docs: lista, acrescentadas };
-      } else {
-        relatorio.docs = { ok: true, nota: 'DOCS já declara as aulas do plano' };
-      }
+      relatorio.docs = { ok: true, nota: 'DOCS já declara tudo o que o ciclo tem' };
     }
 
     if (confTexto !== conf.texto) {
