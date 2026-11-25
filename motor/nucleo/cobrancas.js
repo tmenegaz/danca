@@ -35,6 +35,48 @@ function competenciaDe(mes) {
   return /^[0-9]{4}-(0[1-9]|1[0-2])$/.test(valor) ? valor : null;
 }
 
+/**
+ * A COBRANÇA PODE SER UM LINK, E NÃO SÓ UM DOCUMENTO (25/11/2026).
+ *
+ * «Para me transferir R$ 0,01 pela conta do Nubank ou de outros bancos pelo Pix, entre em
+ * https://nubank.com.br/cobrar/sjlvj/6b06b7b4-… O banco gera desse jeito, percebe que tem um link,
+ * então eu preciso que esse link fique habilitado, porque daí o usuário, o cliente, ele vai clicar no
+ * link e vai fazer o pagamento.»
+ *
+ * SÃO DOIS FORMATOS, e a diferença é de quem faz o trabalho: o **documento** copia-e-cola é para o
+ * cliente colar no aplicativo do banco dele; o **link** já resolve o pagamento — o cliente carrega e
+ * o banco dele abre com os dados preenchidos. O sistema não escolhe: guarda o que ela colou e, se o
+ * que ela colou tiver um link, mostra-o clicável ao lado.
+ *
+ * O PADRÃO É UM SÓ, E É ESTA CONSTANTE. O `painel-html.js` emite-a para o cliente no próprio script
+ * (`new RegExp(<isto>)`) em vez de escrever uma segunda regex — duas regexes seriam duas respostas a
+ * «isto é um link?», e a que sobrasse seria a que ninguém leu. O `painel-html.js` também a usa do
+ * lado do servidor, pela função abaixo.
+ *
+ * A VALIDAÇÃO NÃO É A REGEX, É O `URL` — que existe no Node e no navegador, e é o mesmo parser. A
+ * regex só recorta o candidato; quem diz «isto é um endereço válido» é o `URL`. E só `http`/`https`
+ * passam: um `javascript:` colado por engano não pode virar um botão. */
+const PADRAO_DA_URL = '\\bhttps?:\\/\\/[^\\s<>"\']+';
+
+/** O primeiro endereço `http(s)` do texto, já normalizado, ou `null`. */
+function urlDaCobranca(texto) {
+  const bruto = String(texto == null ? '' : texto);
+  let achado = null;
+  try {
+    achado = bruto.match(new RegExp(PADRAO_DA_URL, 'i'));
+  } catch (erro) {
+    achado = null;
+  }
+  if (!achado) return null;
+  try {
+    const u = new URL(achado[0]);
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') return null;
+    return u.href;
+  } catch (erro) {
+    return null;
+  }
+}
+
 /** O documento como se guarda: `\r\n` → `\n`, e sem espaço a mais nas pontas. */
 function normalizarTexto(texto) {
   return String(texto == null ? '' : texto).replace(/\r\n?/g, '\n').trim();
@@ -65,7 +107,10 @@ function cobrancaDe(mapa, escola, mes) {
   if (!achada || typeof achada !== 'object') return null;
   const texto = normalizarTexto(achada.texto);
   if (!texto) return null;
-  return { texto, em: achada.em || null, por: achada.por || null };
+  /* O `url` é DERIVADO, nunca guardado (25/11/2026). Guardá-lo seria guardar a mesma coisa duas
+   * vezes, e no dia em que a regra de reconhecimento mudasse o campo antigo diria outra coisa que o
+   * texto. Derivado, ele vale sempre o que o texto vale agora. */
+  return { texto, em: achada.em || null, por: achada.por || null, url: urlDaCobranca(texto) };
 }
 
 /** Todas as cobranças de uma escola, como `{ '2026-11': {texto, em} }`. Vazio quando não há. */
@@ -174,13 +219,16 @@ function emAberto(daEscola, meses) {
     if (!m || m.status === 'pago' || !m.venceu) continue;
     const c = cobrancaDe({ escola: 'x', x: mapa }, 'x', m.mes);
     if (!c) continue;
-    saida.push({ mes: String(m.mes), nome: m.nome || String(m.mes), texto: c.texto, em: c.em });
+    saida.push({ mes: String(m.mes), nome: m.nome || String(m.mes), texto: c.texto, em: c.em,
+      url: c.url });
   }
   return saida;
 }
 
 module.exports = {
   LIMITE_DO_TEXTO,
+  PADRAO_DA_URL,
+  urlDaCobranca,
   competenciaDe,
   normalizarTexto,
   mapaVazio,

@@ -5865,7 +5865,27 @@ function painelDoPixDaEscola(pix, s, nomeDaEscola, cobrancas) {
    * caso é real, porque a chave só se configura num ecrã que não é este. */
   const blocosDasCobrancas = (Array.isArray(cobrancas) ? cobrancas : []).map((c, i) => {
     const id = 'escola-cobranca-' + (i + 1);
+    /* O LINK DO BANCO VEM PRIMEIRO, QUANDO EXISTE (25/11/2026).
+     *
+     * «Eu preciso que esse link fique habilitado, porque daí o usuário, o cliente, ele vai clicar no
+     * link e vai fazer o pagamento, quer seja pelo aplicativo que ele usa no celular […] ou quer
+     * seja pelo site do banco que ele usa também para fazer o pagamento.»
+     *
+     * A ORDEM É A DA FACILIDADE, e é a diferença entre os dois formatos: o link resolve o pagamento
+     * num toque; o documento copia-e-cola exige que o cliente saia do sítio, abra o banco dele e
+     * cole. Quem tem o link não deve ter de descobrir que também há um documento — por isso o botão
+     * vem acima, e a caixa do texto (com o «Copiar») fica abaixo, para quem precisar.
+     *
+     * `rel="noopener noreferrer"`: `noopener` impede a página do banco de mexer nesta por
+     * `window.opener`, e `noreferrer` evita mandar-lhe o endereço desta página — que é de
+     * administração e não tem nada que viajar para fora. */
+    const url = cobrancasDoNucleo.urlDaCobranca(c.texto);
     return '<label class="campo-rotulo" for="' + id + '">Cobrança de ' + esc(c.nome) + '</label>'
+      + (url
+        ? '<p><a class="acao pequena" href="' + esc(url) + '" target="_blank"'
+          + ' rel="noopener noreferrer" title="abrir a cobrança no banco, numa janela nova">'
+          + 'Pagar no banco</a></p>'
+        : '')
       + '<p class="par-associar">'
       + '<textarea id="' + id + '" rows="4" readonly aria-label="Pix da cobrança de '
       + esc(c.nome) + '">' + esc(c.texto) + '</textarea>'
@@ -5978,9 +5998,27 @@ function paginaFinanceiro(escola, contexto, aparencia, dados) {
      * passado nao se reescreve), e nao ha o que carregar. */
     const cobranca = cobrancasPorMes[String(m.mes || '')];
     const idCobranca = 'mes-pix-' + String(m.mes || '').replace(/[^0-9a-z-]/gi, '');
+    /* O LINK DO BANCO, AQUI TAMBÉM (25/11/2026) — e é o sítio que ela nomeou.
+     *
+     * «É só quando eu entro mesmo no ver o mês a mês que precisa de ajuste para ser como link.»
+     *
+     * A CÉLULA PASSA A TER DUAS COISAS QUANDO O QUE ESTÁ GUARDADO É UM LINK: o botão que leva ao
+     * banco, e — abaixo, menor — a caixa do texto com o «Copiar», para quem preferir pagar pelo
+     * aplicativo do próprio banco. Quando o que está guardado é um documento copia-e-cola, fica só
+     * a caixa: um botão que levasse a lado nenhum seria pior do que não haver botão.
+     *
+     * O `rel` é o mesmo do cartão da escola, e pela mesma razão: `noopener` impede a página do
+     * banco de mexer nesta, e `noreferrer` não deixa o endereço desta página viajar para fora. */
+    const urlDaCobranca = cobranca && cobranca.texto
+      ? cobrancasDoNucleo.urlDaCobranca(cobranca.texto) : null;
     let acao;
     if (cobranca && cobranca.texto) {
-      acao = '<p class="par-associar">'
+      acao = (urlDaCobranca
+        ? '<p><a class="acao pequena" href="' + esc(urlDaCobranca) + '" target="_blank"'
+          + ' rel="noopener noreferrer"'
+          + ' title="abrir a cobrança no banco, numa janela nova">Pagar no banco</a></p>'
+        : '')
+        + '<p class="par-associar">'
         + '<textarea id="' + idCobranca + '" rows="3" readonly aria-label="Pix da mensalidade de '
         + esc(m.nome) + '">' + esc(cobranca.texto) + '</textarea>'
         + '<button type="button" class="acao secundario pequena" data-copiar="' + idCobranca + '"'

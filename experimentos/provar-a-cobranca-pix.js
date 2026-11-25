@@ -27,7 +27,9 @@
  *   C. o FINANCEIRO — a coluna existe, com um campo que guarda as quebras de linha;
  *   D. a PÁGINA DA ESCOLA — o conteúdo por baixo da chave, e nada quando não há nada;
  *   E. o MÊS A MÊS — a coluna «Pagar» passou a ser a do Pix;
- *   F. os controlos negativos.
+ *   F. os controlos negativos;
+ *   G. o LINK DO BANCO — reconhecido, mostrado nos três sítios, e escondido quando o que está
+ *      guardado é um documento copia-e-cola.
  *
  *   node experimentos/provar-a-cobranca-pix.js
  */
@@ -64,6 +66,11 @@ function kvDeBolso(inicial) {
 
 /* O DOCUMENTO DELA, à letra: um Pix copia-e-cola tem uma linha comprida e, por baixo, o que a
  * ferramenta do banco escreve. As quebras de linha são o que tem de sobreviver. */
+/* O LINK QUE O BANCO DELA GERA (25/11/2026) — o formato real, copiado do pedido. */
+const URL_DO_BANCO = 'https://nubank.com.br/cobrar/sjlvj/6b06b7b4-7f6d-4311-9141-efced0b17233';
+/* A MENSAGEM DO BANCO, à letra: o endereço vem DENTRO de uma frase. É o que ela cola. */
+const MENSAGEM = 'Para me transferir R$ 0,01 pela conta do Nubank ou de outros bancos pelo Pix, '
+  + 'entre em\n\n' + URL_DO_BANCO;
 const PAYLOAD = '00020126580014BR.GOV.BCB.PIX0136chave-do-nubank\n'
   + '5204000053039865802BR5920SISTEMA LASTRO6009PASSO FUNDO\n'
   + '62070503***6304ABCD';
@@ -366,10 +373,159 @@ function situacaoComMesAberto(extra) {
       cobrancas.emAberto({ [MES]: { texto: 'a' } }, null).length === 0);
   }
 
+  /* ── G. O LINK DO BANCO ──────────────────────────────────────────────────────────────── */
+  console.log('\nG. O LINK DO BANCO — «eu preciso que esse link fique habilitado»');
+
+  {
+    provar('o link do banco é reconhecido dentro da mensagem do banco',
+      cobrancas.urlDaCobranca(MENSAGEM) === URL_DO_BANCO, cobrancas.urlDaCobranca(MENSAGEM));
+    provar('…e sozinho, sem texto em volta', cobrancas.urlDaCobranca(URL_DO_BANCO) === URL_DO_BANCO);
+    /* O CONTROL O QUE IMPORTA: um documento copia-e-cola NÃO é um link. Se o reconhecedor aceitasse
+     * qualquer texto, cada cobrança deste sistema virava um botão que não leva a lado nenhum. */
+    provar('um Pix copia-e-cola NÃO vira link', cobrancas.urlDaCobranca(PAYLOAD) === null);
+    provar('CONTROLO: um `javascript:` não vira link', cobrancas.urlDaCobranca('javascript:alert(1)') === null);
+    provar('CONTROLO: um `data:` também não', cobrancas.urlDaCobranca('data:text/html,<b>x') === null);
+    provar('CONTROLO: um esquema sem endereço não conta', cobrancas.urlDaCobranca('https://') === null);
+    provar('…e sem `http(s)` não há link nenhum', cobrancas.urlDaCobranca('www.nubank.com.br/cobrar') === null);
+
+    /* O PADRÃO É UM SÓ. O cliente recebe o do servidor, emitido no script — e é isto que impede duas
+     * respostas a «isto é um link?». */
+    const htmlDoFinanceiro = painel.paginaFinanceira({
+      pix: {}, descontos: [], escolas: [],
+      extrato: [Object.assign({}, situacaoComMesAberto(), {
+        escola: 'breu', nome: 'Breu', frase: 'x', cobrancas: {},
+      })],
+      catalogo: comercial.catalogoDaPagina(),
+    });
+    provar('o script do cliente recebe o PADRÃO do servidor, e não uma segunda regex',
+      htmlDoFinanceiro.indexOf('new RegExp(' + JSON.stringify(cobrancas.PADRAO_DA_URL)) !== -1,
+      (htmlDoFinanceiro.match(/new RegExp\([^)]*\)/) || [''])[0]);
+    provar('…e o cliente valida com o mesmo `URL` do servidor, aceitando só http(s)',
+      /new URL\(/.test(htmlDoFinanceiro) && /protocol==="https:"/.test(htmlDoFinanceiro));
+  }
+
+  {
+    /* O FINANCEIRO — «vai aparecer lá no meu financeiro como link também quando eu colar». */
+    const comLink = painel.paginaFinanceira({
+      pix: {}, descontos: [], escolas: [],
+      extrato: [Object.assign({}, situacaoComMesAberto(), {
+        escola: 'breu', nome: 'Breu', frase: 'x',
+        cobrancas: { [MES]: { texto: URL_DO_BANCO } },
+      })],
+      catalogo: comercial.catalogoDaPagina(),
+    });
+    const etiqueta = (comLink.match(/<a[^>]*data-cobranca-link="breu-2026-11"[^>]*>/) || [''])[0];
+    provar('o financeiro mostra o link do banco quando o que está guardado é um link',
+      /href="https:\/\/nubank\.com\.br\/cobrar\//.test(etiqueta), etiqueta);
+    provar('…abre numa janela nova', /target="_blank"/.test(etiqueta), etiqueta);
+    provar('…e não entrega o endereço desta página ao banco (`noopener noreferrer`)',
+      /rel="noopener noreferrer"/.test(etiqueta), etiqueta);
+
+    const semLink = painel.paginaFinanceira({
+      pix: {}, descontos: [], escolas: [],
+      extrato: [Object.assign({}, situacaoComMesAberto(), {
+        escola: 'breu', nome: 'Breu', frase: 'x',
+        cobrancas: { [MES]: { texto: PAYLOAD } },
+      })],
+      catalogo: comercial.catalogoDaPagina(),
+    });
+    const etiquetaMuda = (semLink.match(/<a[^>]*data-cobranca-link="breu-2026-11"[^>]*>/) || [''])[0];
+    provar('com um documento copia-e-cola, o link fica ESCONDIDO — e não a apontar para nada',
+      /\shidden/.test(etiquetaMuda) && !/href/.test(etiquetaMuda), etiquetaMuda);
+  }
+
+  {
+    /* O «PAGAR» DA ESCOLA — «lá no financeiro da escola é que vai aparecer como link». */
+    const s = situacaoComMesAberto();
+    const comLink = bastidores.cartaoDaEscola({
+      escola: 'breu', cadastro: { escolaNome: 'Breu' }, situacao: s, pix: { chave: '0215' },
+      cobrancas: { [MES]: { texto: MENSAGEM } },
+    });
+    provar('o «Pagar» da escola mostra o link do banco',
+      /<a[^>]*href="https:\/\/nubank\.com\.br\/cobrar\/[^"]*"[^>]*>Pagar no banco<\/a>/.test(comLink));
+    /* A COMPARAÇÃO É COM A CAIXA, e não com o `id` solto: o `id` aparece primeiro no `for=` do
+     * rótulo, e medir contra ele diria que o link está depois de si mesmo. */
+    provar('…e ele vem ACIMA da caixa do documento — o link resolve o pagamento num toque',
+      comLink.indexOf('Pagar no banco') < comLink.indexOf('<textarea id="escola-cobranca-1"'),
+      { link: comLink.indexOf('Pagar no banco'), caixa: comLink.indexOf('<textarea id="escola-cobranca-1"') });
+    provar('…com o mesmo `noopener noreferrer`',
+      /rel="noopener noreferrer"[^>]*>Pagar no banco</.test(comLink));
+
+    const semLink = bastidores.cartaoDaEscola({
+      escola: 'breu', cadastro: { escolaNome: 'Breu' }, situacao: s, pix: { chave: '0215' },
+      cobrancas: { [MES]: { texto: PAYLOAD } },
+    });
+    provar('com um documento copia-e-cola, a escola NÃO vê botão nenhum — vê a caixa e o Copiar',
+      !/Pagar no banco/.test(semLink) && /escola-cobranca-1/.test(semLink));
+  }
+
+  {
+    /* O MÊS A MÊS — «é só quando eu entro mesmo no ver o mês a mês que precisa de ajuste para ser
+     * como link». */
+    const s = situacaoComMesAberto();
+    const comLink = bastidores.paginaFinanceiro('breu', {}, {}, {
+      situacao: s, cadastro: { escolaNome: 'Breu' }, pix: { chave: '0215' },
+      cobrancas: { [MES]: { texto: URL_DO_BANCO } },
+    });
+    provar('o mês a mês mostra o link do banco',
+      /<a[^>]*href="https:\/\/nubank\.com\.br\/cobrar\/[^"]*"[^>]*>Pagar no banco<\/a>/.test(comLink));
+    provar('…e mantém a caixa do texto, para quem paga pelo aplicativo do próprio banco',
+      /mes-pix-2026-11/.test(comLink));
+    provar('…com o link ACIMA da caixa', comLink.indexOf('Pagar no banco') < comLink.indexOf('mes-pix-2026-11'));
+
+    const semLink = bastidores.paginaFinanceiro('breu', {}, {}, {
+      situacao: s, cadastro: { escolaNome: 'Breu' }, pix: { chave: '0215' },
+      cobrancas: { [MES]: { texto: PAYLOAD } },
+    });
+    provar('com um documento copia-e-cola, o mês a mês não inventa um botão',
+      !/Pagar no banco/.test(semLink) && /mes-pix-2026-11/.test(semLink));
+  }
+
+  {
+    /* O LINK É VIVO — «como link também QUANDO EU COLAR». A página não recarrega ao gravar, e por
+     * isso o link tem de nascer da própria tecla: é o que este bloco mede, em jsdom. */
+    let jsdom = null;
+    try { jsdom = require('jsdom'); } catch (e) { jsdom = null; }
+    if (!jsdom) {
+      console.log('  NÃO FEITO — sem jsdom nesta máquina; o link vivo não corre.');
+    } else {
+      const html = painel.paginaFinanceira({
+        pix: {}, descontos: [], escolas: [],
+        extrato: [Object.assign({}, situacaoComMesAberto(), {
+          escola: 'breu', nome: 'Breu', frase: 'x', cobrancas: {},
+        })],
+        catalogo: comercial.catalogoDaPagina(),
+      });
+      const dom = new jsdom.JSDOM(html, {
+        runScripts: 'dangerously', url: 'https://danca.padd.com.br/financeiro',
+      });
+      const d = dom.window.document;
+      const campo = d.getElementById('cob-breu-2026-11');
+      const link = d.querySelector('[data-cobranca-link="breu-2026-11"]');
+      const escrever = (v) => {
+        campo.value = v;
+        campo.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+      };
+      provar('ao abrir, o campo está vazio e o link escondido', !!campo && !!link && link.hidden === true,
+        link && link.hidden);
+      escrever(PAYLOAD);
+      provar('colar um documento copia-e-cola deixa o link escondido', link.hidden === true, link.hidden);
+      escrever(URL_DO_BANCO);
+      provar('colar o link do banco MOSTRA o botão, com o endereço certo',
+        link.hidden === false && link.getAttribute('href') === URL_DO_BANCO,
+        { oculto: link.hidden, href: link.getAttribute('href') });
+      escrever('');
+      provar('apagar o campo volta a escondê-lo', link.hidden === true
+        && !link.hasAttribute('href'), link.hidden);
+      dom.window.close();
+    }
+  }
+
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + provas + ' asserções: ela cola o Pix do banco na coluna do mês, a cobrança '
       + 'reaparece por baixo da chave no «Pagar» da escola e na coluna do mês a mês, com as quebras '
-      + 'de linha intactas — e um mês sem cobrança continua a ter o caminho para a chave.'
+      + 'de linha intactas — e um mês sem cobrança continua a ter o caminho para a chave. O LINK do '
+      + 'banco é reconhecido e mostrado nos três sítios, e um Pix copia-e-cola não vira botão.'
     : 'FALHARAM ' + falhas + ' de ' + provas + ' asserções.'));
   process.exit(falhas === 0 ? 0 : 1);
 })();

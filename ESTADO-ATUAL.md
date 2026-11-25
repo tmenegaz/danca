@@ -4,8 +4,13 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **a cobrança Pix passou a ter uma coluna onde ela cola o
-> documento do banco, e o documento reaparece onde a escola paga.** `financeiro/cobrancas` é uma
+> **Última fotografia:** 25/11/2026 — **a cobrança pode ser um link, e o cliente carrega nele para
+> pagar.** O banco gera um endereço além do documento copia-e-cola, e o botão «Pagar no banco»
+> aparece nos três sítios onde a cobrança vive: o financeiro (vivo, enquanto ela cola), o «Pagar» da
+> escola e o «mês a mês». O padrão é um só — emitido no script do cliente a partir do módulo —, a
+> validação é o `URL` (o mesmo parser nos dois lados) e só `http`/`https` passam. Antes disso, no
+> mesmo dia: **a cobrança Pix passou a ter uma coluna onde ela cola o documento do banco, e o
+> documento reaparece onde a escola paga.** `financeiro/cobrancas` é uma
 > chave global (`{escola: {mês: {texto, em}}}`), lida uma vez por página; a coluna «Cobrança (Pix)»
 > fica no extrato do financeiro, e o mesmo documento aparece por baixo da chave no «Pagar» da escola
 > e na coluna do «mês a mês» — que **deixou de ser a do botão Pagar**. As quebras de linha do
@@ -4557,6 +4562,22 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      (`mudou:false`) e não recarrega a página. **PROVADO** por `provar-a-cobranca-pix.js` (54), com
      quatro controlos negativos; duas asserções de `provar-financeiro-da-escola` foram **reescritas**
      — são as que mediam o que ela mandou mudar.
+
+201. **A COBRANÇA TAMBÉM PODE SER UM LINK — e o cliente carrega nele para pagar.** O Nubank gera um
+     endereço (`https://nubank.com.br/cobrar/…`) além do documento copia-e-cola, e ela pediu que
+     ficasse **habilitado**: «daí o usuário, o cliente, ele vai clicar no link e vai fazer o
+     pagamento». São dois formatos com trabalhos diferentes — o documento cola-se no aplicativo do
+     banco, o link resolve num toque — e o sistema **não escolhe**: guarda o que ela colou e, se
+     houver link, mostra-o ao lado. **APLICADO nos três sítios que ela nomeou:** o financeiro («quando
+     eu colar»), o «Pagar» da escola e o «mês a mês» — com o botão **acima** do documento. **O PADRÃO
+     É UM SÓ:** vive em `cobrancas.js` (`PADRAO_DA_URL`) e é **emitido** no script do cliente
+     (`new RegExp(<o do módulo>)`), para não haver duas respostas a «isto é um link?». **A VALIDAÇÃO
+     NÃO É A REGEX, É O `URL`** — o mesmo parser no Node e no navegador — e só `http`/`https` passam.
+     **O LINK É VIVO** (`input`), porque a página não recarrega ao gravar; sem script, o `hidden` do
+     servidor é a reserva. `rel="noopener noreferrer"` — não deixar a página do banco mexer nesta, nem
+     o endereço de administração viajar para fora. **PROVADO** pela secção G de
+     `provar-a-cobranca-pix.js` (**79** no total), com jsdom a medir os quatro estados do link e cinco
+     controlos negativos.
 
 188. **A SALA NOVA NÃO PODE CRIAR COLISÃO EM SILÊNCIO — e as mensagens não sugerem resolução.** A
      edição da Sala já corria a cadeia, mas a cadeia relê o ritmo e deriva o plano; **não conferia a

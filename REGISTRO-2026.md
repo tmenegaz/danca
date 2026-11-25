@@ -61890,3 +61890,56 @@ medir o nome antigo reprovaria sobre um acerto, que é o defeito que esta casa j
 cliente), `motor/servidor/bastidores.js` (`dadosDaEscolaParaAProducao`, `painelDoPixDaEscola`, a
 coluna do mês a mês), `experimentos/provar-a-cobranca-pix.js` (novo),
 `experimentos/provar-financeiro-da-escola.js`, `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+### 25/11/2026 — a cobrança pode ser um LINK, e o cliente carrega nele para pagar
+
+**O que ela mandou, e é o formato real do banco:** «Para me transferir R$ 0,01 pela conta do Nubank ou
+de outros bancos pelo Pix, entre em https://nubank.com.br/cobrar/sjlvj/6b06b7b4-… O banco gera desse
+jeito, percebe que tem um link, então eu preciso que esse link fique habilitado, porque daí o usuário,
+o cliente, ele vai clicar no link e vai fazer o pagamento, quer seja pelo aplicativo que ele usa no
+celular […] ou quer seja pelo site do banco que ele usa também para fazer o pagamento.»
+
+**São DOIS formatos, e a diferença é de quem faz o trabalho.** O **documento** copia-e-cola é para o
+cliente colar no aplicativo do banco dele; o **link** já resolve o pagamento — carrega e o banco abre
+com os dados preenchidos. O sistema não escolhe: guarda o que ela colou e, se o que ela colou tiver um
+link, mostra-o clicável. As duas coisas convivem na mesma célula, com o botão por cima (resolve num
+toque) e a caixa do texto por baixo (para quem prefere colar).
+
+**Os três sítios, e são os que ela nomeou:** o financeiro («vai aparecer lá no meu financeiro como
+link também **quando eu colar**»), o nicho «Pagar» da escola («lá no financeiro da escola é que vai
+aparecer como link») e o «mês a mês» («é só quando eu entro mesmo no ver o mês a mês que precisa de
+ajuste para ser como link»). No mês a mês e no «Pagar» o botão fica **acima** do documento.
+
+**O PADRÃO É UM SÓ, e é a parte que se podia perder.** O reconhecedor vive em `cobrancas.js`
+(`PADRAO_DA_URL` + `urlDaCobranca`), e o `painel-html.js` **emite-o para o cliente** no próprio script
+(`new RegExp(<o padrão do módulo>)`) — não escreve uma segunda regex. Duas seriam duas respostas a
+«isto é um link?», e a que sobrasse seria a que ninguém leu. A prova mede-o: o HTML emitido tem de
+conter exactamente `new RegExp(JSON.stringify(PADRAO_DA_URL))`.
+
+**A VALIDAÇÃO NÃO É A REGEX, É O `URL`** — o mesmo parser no Node e no navegador. A regex só recorta o
+candidato dentro do texto (a mensagem do banco tem o endereço no meio de uma frase); quem diz «isto é
+um endereço válido» é o `URL`, e **só `http`/`https` passam**. Controlo negativo a correr: tirando as
+duas guardas, `javascript:alert(1)` e `data:text/html,…` passam a ser «links» e a prova reprova.
+
+**O LINK É VIVO — «como link também QUANDO EU COLAR».** A página do financeiro não recarrega ao gravar
+(é a decisão do commit anterior, para não perder o que estava escrito nos outros meses), e por isso o
+link não pode nascer do servidor sozinho: o cliente recalcula-o a cada `input`, com o mesmo padrão e o
+mesmo `URL`. A prova corre a página em jsdom e mede os quatro estados: vazio → escondido; documento
+copia-e-cola → escondido; link → visível com o `href` certo; apagar → escondido outra vez. Sem script,
+o `hidden` do servidor é a reserva: aparece quando há link guardado, e não aparece quando não há.
+
+**`rel="noopener noreferrer"`, e as duas partes têm motivo.** `noopener` impede a página do banco de
+mexer nesta por `window.opener`; `noreferrer` evita mandar-lhe o endereço desta página — que é de
+administração da plataforma e não tem nada que viajar para fora.
+
+**A prova.** `provar-a-cobranca-pix.js` ganhou a secção **G**, e passou de 54 para **79 asserções**:
+o reconhecedor (dentro da mensagem, sozinho, e as quatro recusas — Pix copia-e-cola, `javascript:`,
+`data:`, esquema sem endereço), a emissão do padrão para o cliente, os três sítios, e o link vivo em
+jsdom. **Cinco controlos negativos a correr** (os quatro da secção anterior mais as duas guardas do
+esquema). Uma asserção minha estava errada e foi corrigida: comparava o link com o `id` solto da
+cobrança, que aparece primeiro no `for=` do rótulo — passou a comparar com a `<textarea>`.
+
+**Onde entrou.** `motor/nucleo/cobrancas.js` (`PADRAO_DA_URL`, `urlDaCobranca`, e o `url` derivado em
+`cobrancaDe`/`emAberto`), `motor/servidor/painel-html.js` (a célula do financeiro, o link e o cliente),
+`motor/servidor/bastidores.js` (`painelDoPixDaEscola` e a coluna do mês a mês),
+`experimentos/provar-a-cobranca-pix.js`, `ESTADO-ATUAL.md`, `HANDOFF.md`.

@@ -40,6 +40,10 @@ const fuso = require('../nucleo/fuso.js');
  * lista. Não se escreve uma segunda: o rodapé, o `hidden` e o `data-por-pagina` são o acordo, e um
  * segundo acordo é uma segunda coisa para corrigir. */
 const paginacao = require('../nucleo/paginacao.js');
+/* O RECONHECEDOR DO LINK DA COBRANÇA (25/11/2026) — a MESMA regra que o cliente usa, e é por isso
+ * que ele entra aqui: o padrão é emitido no script (`new RegExp(<PADRAO_DA_URL>)`) e não copiado
+ * para lá. Duas regexes seriam duas respostas a «isto é um link?». */
+const cobrancasDoNucleo = require('../nucleo/cobrancas.js');
 
 /**
  * OS MINUTOS DE UM PERÍODO DE ENSAIO (17/11/2026) — um número, num sítio só.
@@ -1823,7 +1827,25 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
       if (expurgada) return '<td><span class="sub">—</span></td>';
       const guardada = (c.cobrancas && c.cobrancas[m.mes]) ? String(c.cobrancas[m.mes].texto || '') : '';
       const id = 'cob-' + esc(c.escola) + '-' + esc(m.mes);
+      /* O LINK DO BANCO, QUANDO O QUE ELA COLOU É UM LINK (25/11/2026).
+       *
+       * «O banco gera desse jeito, percebe que tem um link, então eu preciso que esse link fique
+       * habilitado, porque daí o usuário, o cliente, ele vai clicar no link e vai fazer o
+       * pagamento. […] vai aparecer lá no meu financeiro como link também quando eu colar.»
+       *
+       * «QUANDO EU COLAR» é o que faz este link ser VIVO: ele nasce a partir do que está guardado, e
+       * o script volta a calculá-lo a cada tecla (`input`), com o mesmo padrão emitido daqui. Sem
+       * isso a página teria de recarregar — e recarregar por cada mês colado perderia o que estava
+       * escrito nos outros meses.
+       *
+       * O `hidden` do lado do servidor é a reserva sem script: com o JavaScript desligado, o link
+       * aparece quando há link guardado, e não aparece quando não há. */
+      const urlGuardada = cobrancasDoNucleo.urlDaCobranca(guardada);
       return '<td>' +
+        '<a class="acao pequena" data-cobranca-link="' + esc(c.escola) + '-' + esc(m.mes) + '"'
+        + (urlGuardada ? ' href="' + esc(urlGuardada) + '"' : ' hidden')
+        + ' target="_blank" rel="noopener noreferrer"'
+        + ' title="abrir a cobrança no banco, numa janela nova">Pagar no banco</a>' +
         '<textarea id="' + id + '" rows="2"'
         + ' placeholder="cole aqui o Pix que o banco gerou para este mês">'
         + esc(guardada) + '</textarea>' +
@@ -2534,16 +2556,33 @@ const SCRIPT_DO_FINANCEIRO = '<script>(function(){' +
    * leitura de cada escola do índice — e a lista perderia a posição e o que estava escrito nos
    * outros meses. O que se faz é acertar a assinatura no botão e dizer «gravado» na própria linha.
    * É o mesmo cuidado que a página da escola teve com o seu próprio estado. */
+  /* O PADRÃO É O DO SERVIDOR, EMITIDO AQUI (25/11/2026). Uma segunda regex escrita à mão neste
+   * script seria uma segunda resposta a «isto é um link?» — e a que sobrasse seria a que ninguém
+   * leu. O `new URL` que valida é o mesmo parser do Node e do navegador; a regex só recorta o
+   * candidato dentro do texto. */
+  'var padraoDaUrl=new RegExp(' + JSON.stringify(cobrancasDoNucleo.PADRAO_DA_URL) + ',"i");' +
+  'var urlDaCobranca=function(texto){' +
+  '  var achado=String(texto==null?"":texto).match(padraoDaUrl);if(!achado)return null;' +
+  '  try{var u=new URL(achado[0]);' +
+  '    return (u.protocol==="https:"||u.protocol==="http:")?u.href:null;}catch(e){return null;}};' +
   'var caixasDeCobranca=document.querySelectorAll("[data-cobranca-gravar]");' +
   'for(var cb=0;cb<caixasDeCobranca.length;cb++)(function(b){' +
   '  var escola=b.getAttribute("data-cobranca-gravar"),mes=b.getAttribute("data-mes");' +
   '  var campo=document.getElementById("cob-"+escola+"-"+mes);' +
   '  var recado=document.querySelector(\'[data-cobranca-recado="\'+escola+\'-\'+mes+\'"]\');' +
+  '  var link=document.querySelector(\'[data-cobranca-link="\'+escola+\'-\'+mes+\'"]\');' +
   '  function dizer(txt,erro){if(!recado)return;recado.hidden=!txt;recado.textContent=txt||"";' +
   '    recado.className=erro?"aviso alerta":"aviso";}' +
   '  if(!campo)return;' +
+  '  function acertarOLink(){' +
+  '    if(!link)return;' +
+  '    var url=urlDaCobranca(campo.value);' +
+  '    if(url){link.setAttribute("href",url);link.hidden=false;}' +
+  '    else{link.removeAttribute("href");link.hidden=true;}' +
+  '  }' +
   '  campo.addEventListener("input",function(){' +
   '    b.disabled=(String(campo.value||"").trim()===String(b.getAttribute("data-cobranca-assinatura")||"").trim());' +
+  '    acertarOLink();' +
   '    dizer("",false);});' +
   '  b.addEventListener("click",function(){' +
   '    var texto=String(campo.value||"");' +

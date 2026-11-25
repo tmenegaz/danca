@@ -1686,7 +1686,10 @@ experimentos/modelo-formulario/*
 # baixo da chave no nicho «Pagar» da escola e na coluna do mês a mês, que deixou de ser a do botão
 # «Pagar». O que a prova mede, e é o que se podia perder em silêncio: as QUEBRAS DE LINHA do
 # documento sobrevivem ao percurso inteiro — um `\s+` a mais na normalização estraga-o e a cobrança
-# deixa de colar no banco. 54 asserções, com quatro controlos negativos a correr.
+# deixa de colar no banco. E o LINK do banco: o Nubank gera um endereço, e o cliente tem de o poder
+# carregar nos três sítios. O reconhecedor é um só — o padrão é emitido no script do cliente a partir
+# do módulo, e não copiado para lá —, valida com o `URL` (o mesmo parser no Node e no navegador) e só
+# aceita http(s). 79 asserções, com cinco controlos negativos a correr.
 !experimentos/provar-a-cobranca-pix.js
 
 # O FINANCEIRO QUE FICA (23/11/2026, à tarde). A regra de 17/11 era o contrário — expurgar a escola
