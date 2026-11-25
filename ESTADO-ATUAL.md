@@ -4479,8 +4479,16 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      faixa e não persistiu» — era meu: o «Derivar» repunha o ritmo **só na faixa 1**, com a reposição
      de antes das faixas, que escrevia os dias e as horas da sala em **todos** os blocos. A segunda
      faixa não chegava ao formulário nem ao corpo, e desaparecia ao gravar sem erro nenhum.
-     `pintarFaixasNaSala` repõe cada bloco com o seu ritmo. Dois defeitos meus na mesma sessão, os
-     dois da mesma família: **um campo novo que não chega a quem o lê**. A costura que faltava medir —
+     `pintarFaixasNaSala` repõe cada bloco com o seu ritmo. **E um terceiro no mesmo dia:** a guarda
+     da **derivação da Turma** é chamada com um objecto construído à mão e não levava `faixa` — ela
+     escolhia a faixa, a tela enviava-a, e a guarda olhava para um objecto onde ela não estava
+     (relato: «escolhi a faixa […] e dá a mensagem: é preciso dizer qual delas esta Turma ocupa»).
+     O mesmo objecto levava `alunas: []`, e as colisões de elenco deixavam de ser vistas ao derivar.
+     A guarda desceu para depois de `alunasFinais`. Do lado da tela, `pintarDaSala()` só corria
+     quando o nome da sala casava com um registo vigente — «Piano» contra «Sala do Piano» caía fora
+     e o campo nunca era pintado; passou a pintar sempre. Quatro defeitos meus na mesma sessão,
+     todos da mesma família: **um campo novo que não chega a quem o lê**, e as construções à mão são
+     o sítio onde ele se perde em silêncio. A costura que faltava medir —
      o formulário a enviar para a rota verdadeira — está em `provar-o-ciclo-das-faixas.js` (**33**,
      vermelha sem a mudança).
 

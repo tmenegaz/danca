@@ -61443,3 +61443,44 @@ rota verdadeira para ver o que fica gravado. **Vermelha sem a mudança** (5 falh
 `salaEmFocoNoRegisto`, `parDaFaixa`; o bloco `#vinc-outras-faixas` e a conferência do par por faixa em
 `turma-professor`; a reposição do formulário a chamar `pintarFaixasNaSala`), `experimentos/provar-o-ciclo-das-faixas.js` (novo, **33**), `.gitignore`, `PLANO-DE-OCUPACAO.md`,
 `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+## 25/11/2026 — A Turma escolhia a faixa e o servidor dizia que não: a guarda da derivação não a recebia
+
+**O relato, e é o meu defeito outra vez:** «Na turma eu cliquei em derivar, a sala é a sala do piano […]
+a faixa horária desta turma eu escolhi aqui […] das 16:00 às 16:55 […] e eu escolhi a primeira […] Aí dá
+a seguinte mensagem de erro: A sala «Piano» tem 2 faixas horárias […] e é preciso dizer qual delas esta
+Turma ocupa.»
+
+**A causa, e é a mesma família dos três defeitos anteriores desta sessão:** a guarda da ocupação é
+chamada com um objecto **construído à mão** — não é a `nova`, que ainda não existe naquele ponto —, e o
+campo novo de um objecto construído à mão **não chega a quem o lê por si**. No sítio da *criação* eu
+tinha acrescentado `faixa`; no sítio da *derivação*, não. Ela escolheu a faixa, a tela enviou-a, e a
+guarda olhou para um objecto onde ela não estava.
+
+**E havia uma segunda omissão no mesmo objecto:** `alunas: []`. O efeito não se via no caminho feliz — era
+a **colisão de elenco a deixar de ser vista** sempre que se derivava uma Turma. A versão nova nasce com
+as alunas de hoje, e são elas que têm de entrar na conta. Corrigido para `alunasFinais`, que já estava
+calculado — mas **depois** da guarda, e por isso a guarda teve de descer: uma guarda que corre antes do
+dado que precisa é uma guarda que confere o que não existe.
+
+**E uma terceira, do lado da tela:** o `pintarDaSala()` só corria quando o nome da sala da curadoria
+casava com o `nome` de um registo vigente (`posSala !== -1`). Uma curadoria que guarda o nome antigo —
+«Piano» donde o registo se chama «Sala do Piano» — caía fora, o campo das faixas **nunca era pintado**, e
+o envio ia vazio. Passou a pintar sempre, e a faixa que a Turma já ocupa volta ao campo ao abrir em
+«Derivar» — um gesto que não toca na faixa não pode obrigar a escolhê-la outra vez.
+
+**A prova que faltava, e agora existe.** `provar-o-ciclo-das-faixas.js` ganhou a secção G, com o cenário
+dela **à letra**: a sala «Piano», duas faixas (seg/qua/sex 16:00–16:55 e seg/qua 17:00–18:10), a Turma
+que escolhe a primeira. Derivar **com** a faixa é aceite; **sem** é recusado com o recurso `faixa`. O
+controlo negativo repõe a omissão e reproduz a mensagem de erro dela **palavra por palavra** — o que
+prova que a asserção mede o defeito e não um cenário parecido. **42 asserções** no total.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (a guarda da derivação desceu para depois de
+`alunasFinais`, com `faixa: faixaDerivada` e `alunas: alunasFinais`; `faixaDerivada` resolvida acima e
+reutilizada na `nova`; `pintarDaSala()` sem a condição do `posSala`; a faixa reposta no `#cufaixa` ao
+abrir a Turma), `experimentos/provar-o-ciclo-das-faixas.js` (secção G), `REGISTRO-2026.md`,
+`ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+**A lição, escrita porque já custou quatro vezes nesta sessão:** um campo novo numa estrutura não chega a
+todas as construções à mão que a copiam. As construções à mão são o sítio onde o campo se perde em
+silêncio, e são exactamente as que nenhuma leitura de código denuncia.

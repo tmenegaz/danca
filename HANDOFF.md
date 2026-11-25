@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-24T21:54:24-0300`
-Commit atual: `620a43b5` — feat(estrutura): o «+» da faixa horária e o campo que a escolhe na Turma
+Gerado em: `2026-11-24T22:07:26-0300`
+Commit atual: `ed0b341b` — fix(estrutura): as faixas não persistiam, e o par passa a ser por faixa
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,10 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+ed0b341b fix(estrutura): as faixas não persistiam, e o par passa a ser por faixa
+f666bbb2 chore(entrega): gerar o pacote de demi-plie/01/breu-piano
+e181db15 chore(estrutura): fechar os derivados — âncoras e índices
+00df9fe4 feat(ciclo): o «Guardar» do PO grava as fontes de breu-piano num commit só
 620a43b5 feat(estrutura): o «+» da faixa horária e o campo que a escolhe na Turma
 90879840 feat(estrutura): a sala ganha faixas — N aulas por dia, N modalidades, N professores
 1c8bf816 feat(estrutura): a ocupação entra nas rotas — e o modelo que falta nela
@@ -98,10 +102,6 @@ ad7d1c8a docs(estrutura): escada 130/320/500 com dólar a R$ 6, e a margem não 
 87fdbdc0 docs(estrutura): o tecto dos 100% é do dono da conta, e a escada pede 139/320/500
 36c09bc6 docs(estrutura): a franquia é o teto, a C25 está fechada, e o laço percorre o ciclo
 5ef4d5d9 docs(estrutura): a variante dos 30 dias, e a margem que desce a 86,4 %
-9bb55975 docs(estrutura): a aula custa 2,12 min, e a margem da escola a 16 h/dia é 93,7 %
-7344f1aa feat(experimentos): provas seletivas no commit, e o primeiro portão de pull_request
-726a0653 feat(entrega): a minificação do que vai ao browser — 545 KB viram 200
-8c5645c3 chore(experimentos): vinte e nove provas apagadas — as que mediam o que já não existe
 ```
 
 ## Por professor
@@ -128,7 +128,7 @@ ad7d1c8a docs(estrutura): escada 130/320/500 com dólar a R$ 6, e a margem não 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `e81a3e1cf08c` | (vazio) | — |
-| breu-piano | ciclo-01-breu-piano.fipp | `722580618ab1` | (vazio) | Input_PO_Validado |
+| breu-piano | ciclo-01-breu-piano.fipp | `a18f3383c48e` | (vazio) | Input_PO_Validado |
 
 ### fernando-franciose — 0 ciclo(s)
 
@@ -195,51 +195,46 @@ ad7d1c8a docs(estrutura): escada 130/320/500 com dólar a R$ 6, e a margem não 
 
 ## Última entrada do REGISTRO
 
-## 25/11/2026 — As faixas não persistiam: o «Derivar» repunha só a primeira — e o par passa a ser por faixa
+## 25/11/2026 — A Turma escolhia a faixa e o servidor dizia que não: a guarda da derivação não a recebia
 
-**O relato dela:** «Eu cliquei em derivar e acrescentei mais uma carga horária aqui, cliquei no sinal
-de mais para acrescentar a faixa horária e não deu certo, não persistiu. E também não consegui vincular
-outra modalidade.»
+**O relato, e é o meu defeito outra vez:** «Na turma eu cliquei em derivar, a sala é a sala do piano […]
+a faixa horária desta turma eu escolhi aqui […] das 16:00 às 16:55 […] e eu escolhi a primeira […] Aí dá
+a seguinte mensagem de erro: A sala «Piano» tem 2 faixas horárias […] e é preciso dizer qual delas esta
+Turma ocupa.»
 
-**As duas causas, e são independentes.** A primeira é um **defeito meu**, e a bancada reproduziu-o à
-primeira: o «Derivar» repunha o ritmo na faixa 1 e deixava os outros blocos como estavam — nenhum. A
-reposição era a de antes das faixas: desmarcava as pílulas do documento inteiro, marcava as de
-`t.dias` (que o `querySelector` só encontrava na faixa 1) e escrevia `t.horarios` em **todos** os
-`.hora-do-dia` da página. Com duas faixas, o resultado era a faixa 1 certa e as outras a repetir os
-dias dela; e ao gravar, a faixa que faltava **desaparecia sem erro nenhum** — os dois sintomas com uma
-causa só. `pintarFaixasNaSala` repõe cada bloco com o seu ritmo, e as horas são escritas **depois** do
-`sincronizarHoras`, que limpa a hora dos dias não marcados.
+**A causa, e é a mesma família dos três defeitos anteriores desta sessão:** a guarda da ocupação é
+chamada com um objecto **construído à mão** — não é a `nova`, que ainda não existe naquele ponto —, e o
+campo novo de um objecto construído à mão **não chega a quem o lê por si**. No sítio da *criação* eu
+tinha acrescentado `faixa`; no sítio da *derivação*, não. Ela escolheu a faixa, a tela enviou-a, e a
+guarda olhou para um objecto onde ela não estava.
 
-A segunda é o que ela pediu explicitamente: **o par (modalidade, professor) era um por sala**, e uma
-sala com balé às 9h e jazz às 10h ficava com o mesmo docente nas duas — e com uma modalidade só.
+**E havia uma segunda omissão no mesmo objecto:** `alunas: []`. O efeito não se via no caminho feliz — era
+a **colisão de elenco a deixar de ser vista** sempre que se derivava uma Turma. A versão nova nasce com
+as alunas de hoje, e são elas que têm de entrar na conta. Corrigido para `alunasFinais`, que já estava
+calculado — mas **depois** da guarda, e por isso a guarda teve de descer: uma guarda que corre antes do
+dado que precisa é uma guarda que confere o que não existe.
 
-**O que ficou feito.** A aba Salas continua a perguntar o par da faixa 1 no bloco de cima (é o que
-quase todas as salas têm, e trocá-lo partiria tudo o que lê aquele passo) e ganhou o bloco «Quem dá as
-outras faixas desta sala» — uma linha por faixa, com modalidade e professor próprios, recortados um
-pelo outro como no bloco de cima. `parDaFaixa` lê o par da **faixa escolhida**, com a raiz como
-reserva, e a rota da Turma deriva de lá o professor e a modalidade: sem isso, a Turma das 10h nascia
-com o docente da das 9h, e o plano de ensino sairia assinado por quem não dá aquela aula. A rota
-`turma-professor` confere o par de **cada** faixa pela mesma função, e uma faixa que não passa recusa a
-gravação inteira — gravar metade deixaria uma sala com uma faixa a apontar um professor que a escola
-não tem, e o erro só apareceria no dia em que alguém a abrisse. A recusa diz **qual** faixa falhou.
+**E uma terceira, do lado da tela:** o `pintarDaSala()` só corria quando o nome da sala da curadoria
+casava com o `nome` de um registo vigente (`posSala !== -1`). Uma curadoria que guarda o nome antigo —
+«Piano» donde o registo se chama «Sala do Piano» — caía fora, o campo das faixas **nunca era pintado**, e
+o envio ia vazio. Passou a pintar sempre, e a faixa que a Turma já ocupa volta ao campo ao abrir em
+«Derivar» — um gesto que não toca na faixa não pode obrigar a escolhê-la outra vez.
 
-**Um segundo defeito meu, apanhado a escrever a prova:** `garantirSeq` usava `/^f(\d+)$/` dentro de uma
-string JS, e `\d` entre aspas simples reduz-se a `d` — a expressão na página ficava `/^f(d+)$/`, que
-nunca casa com `f2`, e o «+» voltava a dar `f2` a uma sala que já tinha `f2`. Duas faixas com o mesmo
-id é a Turma de uma a apontar para a outra. Passou a `[0-9]`, que não tem esse problema.
+**A prova que faltava, e agora existe.** `provar-o-ciclo-das-faixas.js` ganhou a secção G, com o cenário
+dela **à letra**: a sala «Piano», duas faixas (seg/qua/sex 16:00–16:55 e seg/qua 17:00–18:10), a Turma
+que escolhe a primeira. Derivar **com** a faixa é aceite; **sem** é recusado com o recurso `faixa`. O
+controlo negativo repõe a omissão e reproduz a mensagem de erro dela **palavra por palavra** — o que
+prova que a asserção mede o defeito e não um cenário parecido. **42 asserções** no total.
 
-**A costura que faltava medir, e é a lição.** As duas provas que já existiam mediam metades: uma o DOM
-(`provar-as-faixas-na-tela`), a outra a rota com um corpo **escrito à mão** (`provar-mudanca-de-sala`).
-Nenhuma media o que o formulário realmente envia depois de abrir uma sala existente — e foi por essa
-costura que o defeito passou. `provar-o-ciclo-das-faixas.js` (**33 asserções**) faz o caminho inteiro:
-abre a sala, confere que as faixas voltam, clica no «+», lê o corpo que a tela produz, e entrega-o à
-rota verdadeira para ver o que fica gravado. **Vermelha sem a mudança** (5 falhas).
-
-**Onde entrou.** `motor/servidor/bastidores.js` (`pintarFaixasNaSala`, `clonarFaixaVazia`,
-`garantirSeq`, `faixasComOPar`, `pintarParesDasFaixas`, `repintarProfessoresDaFaixa`,
-`salaEmFocoNoRegisto`, `parDaFaixa`; o bloco `#vinc-outras-faixas` e a conferência do par por faixa em
-`turma-professor`; a reposição do formulário a chamar `pintarFaixasNaSala`), `experimentos/provar-o-ciclo-das-faixas.js` (novo, **33**), `.gitignore`, `PLANO-DE-OCUPACAO.md`,
+**Onde entrou.** `motor/servidor/bastidores.js` (a guarda da derivação desceu para depois de
+`alunasFinais`, com `faixa: faixaDerivada` e `alunas: alunasFinais`; `faixaDerivada` resolvida acima e
+reutilizada na `nova`; `pintarDaSala()` sem a condição do `posSala`; a faixa reposta no `#cufaixa` ao
+abrir a Turma), `experimentos/provar-o-ciclo-das-faixas.js` (secção G), `REGISTRO-2026.md`,
 `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+**A lição, escrita porque já custou quatro vezes nesta sessão:** um campo novo numa estrutura não chega a
+todas as construções à mão que a copiam. As construções à mão são o sítio onde o campo se perde em
+silêncio, e são exactamente as que nenhuma leitura de código denuncia.
 
 ## O que está pendente
 

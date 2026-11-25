@@ -17326,7 +17326,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    if (TURMAS[si] && turmasDaCu.length && TURMAS[si].nome === turmasDaCu[0]) posSala = si;' +
     '  }' +
     '  document.getElementById("cuturma").value = turmasDaCu.length ? turmasDaCu[0] : "";' +
-    '  if (posSala !== -1) pintarDaSala();' +
+    /* A SALA É PINTADA SEMPRE, e não só quando o nome casa com a lista (25/11/2026).
+     *
+     * O `posSala !== -1` comparava o nome da sala da curadoria com o `nome` dos registos vigentes.
+     * Uma curadoria que guarda o nome antigo — «Piano» donde o registo se chama «Sala do Piano» —
+     * caía fora, o campo das faixas nunca era pintado, e o «Derivar» enviava a faixa vazia. O
+     * sintoma era a recusa a pedir a faixa que a pessoa acabou de escolher. */
+    '  pintarDaSala();' +
+    /* E A FAIXA ESCOLHIDA VOLTA AO CAMPO (25/11/2026). Sem isto, abrir em «Derivar» uma Turma que
+     * já ocupa a segunda faixa mostrava a lista e deixava-a por escolher — e um gesto que não toca
+     * na faixa não pode obrigar a escolhê-la outra vez. */
+    '  var selFaixa = document.getElementById("cufaixa");' +
+    '  if (selFaixa && c.faixa) selFaixa.value = String(c.faixa);' +
     // O NÍVEL VEM DA CURADORIA (03/11/2026). O grau é reposto DEPOIS de a tradição estar
     // escolhida — a lista dele depende dela —, e o que a curadoria não declarar cai no que a
     // turma guarda de antes: é o mesmo `nivelEfetivo` do núcleo, aplicado à mão aqui porque a
@@ -29551,25 +29562,6 @@ function parDaFaixa(sala, id) {
      *
      * Era aqui que a derivação recusava o caso legítimo: a Sala de destino ocupada por OUTRA Turma
      * em horário diferente dava 409. Agora só recusa se houver sobreposição. */
-    if (turmaFinal) {
-      const todasAsSalasDeriv = await turmas(kv, escola);
-      /* O professor é o DERIVADO — o par final já resolvido acima (corpo → sala → anterior) —, e
-       * não o do corpo: `corpo.professor` pode vir vazio, e aí o que vale é o da sala. E o elenco
-       * também conta: a versão nova nasce com o elenco de hoje (`linhaDeBaseFinal`). */
-      const choqueDeriv = conferirOcupacao({
-        curadoria: {
-          id: anterior.id,
-          turmas: [turmaFinal],
-          professor: professorDerivado,
-          alunas: [],
-        },
-        lista, salas: todasAsSalasDeriv,
-        excetoId: anterior.id,
-      });
-      if (choqueDeriv) {
-        return json(409, Object.assign({ ok: false, erro: choqueDeriv.frase }, choqueDeriv.conflito));
-      }
-    }
     /* O ELENCO DO MOMENTO, CARIMBADO — e não declarado por quem edita (05/11/2026).
      *
      * As alunas saíram do formulário da curadoria: quem as declara é a linha de base enviada para
@@ -29611,6 +29603,40 @@ function parDaFaixa(sala, id) {
       return json(400, {
         ok: false, erro: fraseDaCuradoriaIncompleta(faltaDeriv), falta: faltaDeriv.map(([c]) => c),
       });
+    }
+    /* A FAIXA DA VERSÃO NOVA — resolvida AQUI, e não no `nova` mais abaixo, porque a guarda da
+     * ocupação precisa dela. Herda a da anterior quando o corpo não diz outra: a versão nova é o
+     * mesmo horário na mesma sala, salvo quando o gesto é mudar de faixa. */
+    const faixaDerivada = corpo.faixa === undefined
+      ? (anterior.faixa || null)
+      : (String(corpo.faixa || '').trim() || null);
+    /* A SALA FINAL TAMBÉM SE CONFERE — pela MESMA regra da criação, e o `excetoId` é a versão de
+     * ONDE se deriva: ela deixa de ocupar no momento em que a nova passa a valer, e sem esta
+     * exclusão derivar uma Turma sem lhe tocar na sala seria recusado por ela mesma.
+     *
+     * A FAIXA E O ELENCO FALTAVAM AQUI (25/11/2026), e ela apanhou-o no ar: «escolhi a faixa
+     * horária desta turma […] e dá a seguinte mensagem de erro: é preciso dizer qual delas esta
+     * Turma ocupa». O objecto desta guarda é construído À MÃO — não é a `nova`, que ainda não
+     * existe —, e por isso um campo novo na Turma não chega a ele por si. A faixa ia vazia e a
+     * sala com duas faixas respondia «diz qual» a um pedido que já a tinha dito. O elenco ia `[]`,
+     * e as colisões de elenco deixavam de ser vistas na derivação — a mesma omissão, outra
+     * consequência. */
+    if (turmaFinal) {
+      const todasAsSalasDeriv = await turmas(kv, escola);
+      const choqueDeriv = conferirOcupacao({
+        curadoria: {
+          id: anterior.id,
+          turmas: [turmaFinal],
+          professor: professorDerivado,
+          alunas: alunasFinais,
+          faixa: faixaDerivada,
+        },
+        lista, salas: todasAsSalasDeriv,
+        excetoId: anterior.id,
+      });
+      if (choqueDeriv) {
+        return json(409, Object.assign({ ok: false, erro: choqueDeriv.frase }, choqueDeriv.conflito));
+      }
     }
     /* DERIVAR TAMBÉM CONFERE A HABILITAÇÃO (07/11/2026; com o par novo a 09/11/2026). O par pode
      * ter mudado, e a modalidade nova tem de ser uma que o professor final declare. Recusar aqui
@@ -29690,10 +29716,8 @@ function parDaFaixa(sala, id) {
       nivel: niveisDeriv.nivel,
       nivelReferencia: niveisDeriv.nivelReferencia,
       turmas: turmaFinal ? [turmaFinal] : [],
-      // A FAIXA ACOMPANHA A DERIVAÇÃO (25/11/2026): a versão nova herda a faixa da anterior — é o
-      // mesmo horário na mesma sala —, salvo se o corpo declarar outra. Uma Turma que muda de faixa
-      // é uma mudança de horário, e é a ocupação que a confere contra as outras daquela sala.
-      faixa: corpo.faixa === undefined ? (anterior.faixa || null) : (String(corpo.faixa || '').trim() || null),
+      // A FAIXA ACOMPANHA A DERIVAÇÃO — resolvida acima, porque a guarda da ocupação a precisa.
+      faixa: faixaDerivada,
       // O ELENCO ACOMPANHA A DERIVAÇÃO (07/11/2026): a versão nova nasce com o elenco que a
       // anterior tinha, salvo se o corpo declarar outro. O nome é o do elenco escolhido, e o da
       // anterior quando ele não mudou — o registo não perde a etiqueta do corpo que declarou.

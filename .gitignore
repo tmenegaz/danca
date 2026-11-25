@@ -1651,7 +1651,9 @@ experimentos/modelo-formulario/*
 # metades — uma o DOM, a outra a rota com um corpo escrito à mão —, e nenhuma media o que o formulário
 # REALMENTE envia depois de abrir uma sala existente. Era essa costura que o defeito atravessava:
 # o «Derivar» repunha só a faixa 1, e a segunda desaparecia ao gravar, sem erro nenhum. Mede também o
-# par (modalidade, professor) por faixa — docentes diferentes, ou o mesmo nas duas. 33 asserções.
+# par (modalidade, professor) por faixa — docentes diferentes, ou o mesmo nas duas — e a DERIVAÇÃO DA
+# TURMA, que era o defeito seguinte: a guarda é chamada com um objecto construído à mão, e o campo novo
+# não chegava a ele. 42 asserções.
 !experimentos/provar-o-ciclo-das-faixas.js
 
 # O FINANCEIRO QUE FICA (23/11/2026, à tarde). A regra de 17/11 era o contrário — expurgar a escola

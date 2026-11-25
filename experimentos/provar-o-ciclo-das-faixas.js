@@ -273,6 +273,20 @@ console.log('\nE. O PAR POR FAIXA — docentes diferentes, ou o mesmo nas duas')
     Array.isArray(corpo.faixas) && corpo.faixas.length === 2 && corpo.faixas[1].professor === undefined,
     corpo.faixas[1]);
 
+  /* A FAIXA ESCOLHIDA VAI NO CORPO — e é o que faltava do lado da tela.
+   *
+   * O CAMINHO DELA: abrir a Turma em «Derivar» é a função da curadoria que escreve a sala no
+   * `#cuturma` e chama `pintarDaSala()`. A bancada faz o mesmo — escrever o campo e pintar —,
+   * porque é esse par de gestos que enche a lista das faixas. */
+  d.getElementById('cuturma').value = 'Sala do Piano';
+  w.pintarDaSala();
+  const selF = d.getElementById('cufaixa');
+  provar('o campo da faixa existe e tem as duas faixas', selF && selF.querySelectorAll('option').length === 3,
+    selF && selF.querySelectorAll('option').length);
+  selF.value = 'f1';
+  /* O corpo do PEDIDO da Turma não é o `camposDaSala` — é outro. O que se mede aqui é que o
+   * `select` está vivo e com as faixas certas; o envio é medido pela asserção da página que exige
+   * o campo na validação, e pela rota nas secções anteriores. */
   /* E A COMPOSIÇÃO, exercitada à parte — é ela que junta o par ao ritmo. */
   const compostas = w.faixasComOPar(corpo.faixas, 'Balé clássico', 'pe-torto');
   provar('a composição põe na faixa 1 o par do bloco de cima',
@@ -371,6 +385,131 @@ console.log('\nF. O PAR POR FAIXA NA ROTA — conferido um a um, e gravado');
   provar('…e um professor que a escola não tem recusa a gravação inteira', r3.status === 400, r3.status);
   provar('…e a recusa diz QUAL faixa falhou', /Na faixa 2/.test(String((r3.json || {}).erro || '')),
     (r3.json || {}).erro);
+}
+
+/* ── G. DERIVAR UMA TURMA PARA UMA SALA COM DUAS FAIXAS ─────────────────── */
+console.log('\nG. A TURMA QUE ESCOLHE A FAIXA — o erro relatado a 25/11/2026');
+
+{
+  /* O DEFEITO, à letra: «Na turma eu cliquei em derivar, a sala é a sala do piano […] a faixa
+   * horária desta turma eu escolhi aqui, segunda, quarta e sexta, das 16:00 às 16:55 […] e eu
+   * escolhi a primeira […] Aí dá a seguinte mensagem de erro: A sala «Piano» tem 2 faixas horárias
+   * […] e é preciso dizer qual delas esta Turma ocupa.»
+   *
+   * A CAUSA: a guarda da derivação é chamada com um objecto construído À MÃO — não é a `nova`, que
+   * ainda não existe —, e não levava `faixa`. O campo novo não chega a quem o lê por si. E o elenco
+   * ia `[]`, o que apagava as colisões de elenco da derivação.
+   *
+   * Aqui prova-se o CAMINHO INTEIRO: a rota com a faixa escolhida aceita; sem faixa, recusa e diz
+   * qual é o recurso em falta. */
+  const SALA_PIANO = () => ({
+    id: 'piano', nome: 'Piano', ordem: 0, frequencia: 3, ativo: true,
+    dias: ['seg', 'qua', 'sex'], horarios: { seg: '16:00', qua: '16:00', sex: '16:00' },
+    duracaoMin: 55, periodoInicio: '2026-01-01', periodoFim: '2026-12-31',
+    modalidade: 'Balé clássico', professor: 'demi-plie',
+    faixas: [
+      { id: 'f1', dias: ['seg', 'qua', 'sex'], horarios: { seg: '16:00', qua: '16:00', sex: '16:00' },
+        duracaoMin: 55, periodoInicio: '2026-01-01', periodoFim: '2026-12-31',
+        modalidade: 'Balé clássico', professor: 'demi-plie' },
+      { id: 'f2', dias: ['seg', 'qua'], horarios: { seg: '17:00', qua: '17:00' },
+        duracaoMin: 70, periodoInicio: '2026-01-01', periodoFim: '2026-12-31',
+        modalidade: 'Balé clássico', professor: 'demi-plie' },
+    ],
+  });
+  const TURMA_NA_F1 = () => ({
+    id: 'demi-plie-bale-piano', professor: 'demi-plie', modalidade: 'Balé clássico',
+    tradicao: 'RAD', turmas: ['Piano'], faixa: 'f1', linhaDeBase: '', alunas: [],
+    repertorio: [], grau: '', nivel: '', nivelReferencia: '',
+  });
+
+  const ambiente = (curadorias) => {
+    const kv = new Map();
+    kv.set('bastidores/' + ESCOLA + '/turmas', JSON.stringify([SALA_PIANO()]));
+    kv.set('bastidores/' + ESCOLA + '/curadorias', JSON.stringify(curadorias));
+    kv.set('bastidores/' + ESCOLA + '/professores', JSON.stringify([
+      { nome: 'Demi Plie', slug: 'demi-plie', modalidades: { 'bale-classico': ['RAD'] },
+        rubrica: { nome: 'Régua do Demi', niveis: [{ nome: 'Iniciante' }, { nome: 'Avançado' }] } },
+    ]));
+    const store = {
+      async get(c) { return kv.has(c) ? kv.get(c) : null; },
+      async put(c, v) { kv.set(c, String(v)); },
+      async delete(c) { kv.delete(c); },
+      async list() { return { keys: [...kv.keys()].map((name) => ({ name })) }; },
+    };
+    return {
+      kv,
+      env: {
+        PADD_KV: store, ESCOLA_SLUG: ESCOLA, ESCOLA_HABILITADA: 'sim',
+        SENHA_ADMIN: SENHA, SENHA_PROFESSOR: 'outra',
+        PROFESSOR_NOME: 'Dono', PROFESSOR_SLUG: 'dono', GITHUB_TOKEN: 'token-de-prova',
+      },
+    };
+  };
+  const pedir = async (a, corpo) => {
+    const original = globalThis.fetch;
+    globalThis.fetch = async () => new Response('{}', { status: 404 });
+    try {
+      const r = await bastidores.fetch(new Request(
+        'https://' + ESCOLA + '.tmenegaz77.workers.dev/api/bastidores/curadoria-derivar', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo),
+        }), a.env);
+      return { status: r.status, json: await r.json().catch(() => null) };
+    } finally { globalThis.fetch = original; }
+  };
+
+  /* O GESTO DELA: derivar escolhendo a PRIMEIRA faixa. */
+  const a1 = ambiente([TURMA_NA_F1()]);
+  const r1 = await pedir(a1, { derivarDe: 'demi-plie-bale-piano', faixa: 'f1', senhaDirecao: SENHA });
+  provar('derivar com a faixa ESCOLHIDA é aceite — o erro que ela viu não acontece',
+    r1.status === 201, { status: r1.status, json: r1.json });
+
+  if (r1.status === 201) {
+    const gravadas = JSON.parse(a1.kv.get('bastidores/' + ESCOLA + '/curadorias'));
+    const nova = gravadas.find((c) => c && !c.substituidaPor);
+    provar('…e a versão nova fica com a faixa escolhida', nova && nova.faixa === 'f1', nova && nova.faixa);
+  }
+
+  /* SEM ESCOLHER, a recusa é a da faixa — e é ela que diz o recurso. */
+  const a2 = ambiente([Object.assign({}, TURMA_NA_F1(), { faixa: null })]);
+  const r2 = await pedir(a2, { derivarDe: 'demi-plie-bale-piano', senhaDirecao: SENHA });
+  provar('derivar SEM faixa numa sala com duas é recusado', r2.status === 409, r2.status);
+  provar('…e a recusa é a da faixa, com as faixas nomeadas',
+    (r2.json || {}).recurso === 'faixa' && /16:00\u201316:55/.test(String((r2.json || {}).erro || '')),
+    (r2.json || {}).erro);
+
+  /* A HERANÇA: o corpo não diz nada e a anterior tem `f2` — a nova herda-a e não é recusada. */
+  const a3 = ambiente([Object.assign({}, TURMA_NA_F1(), { faixa: 'f2' })]);
+  const r3 = await pedir(a3, { derivarDe: 'demi-plie-bale-piano', senhaDirecao: SENHA });
+  provar('sem dizer faixa, a nova herda a da anterior — e não é recusada', r3.status === 201, r3.status);
+
+  /* O ELENCO CONTA NA DERIVAÇÃO. Antes ia `alunas: []` no objecto da guarda, e o efeito não era
+   * visível no caminho feliz: era a colisão de elenco a deixar de ser vista quando se derivava. A
+   * versão nova nasce com as alunas de hoje, e são elas que têm de entrar na conta.
+   *
+   * Aqui a anterior tem uma aluna e a versão nova é derivada na MESMA faixa de outra Turma que já
+   * a tem — as duas no mesmo horário. A guarda tem de ver o choque e recusá-lo pelo ELENCO. */
+  const a4 = ambiente([
+    Object.assign({}, TURMA_NA_F1(), { id: 'demi-plie-bale-piano', alunas: ['Aluna A'], faixa: 'f1' }),
+    { id: 'outra-bale-piano', professor: 'outro-prof', modalidade: 'Balé clássico', tradicao: 'RAD',
+      turmas: ['Piano'], faixa: 'f1', alunas: [], linhaDeBase: '', repertorio: [],
+      grau: '', nivel: '', nivelReferencia: '' },
+    { id: 'terceira', professor: 'demi-plie', modalidade: 'Balé clássico', tradicao: 'RAD',
+      turmas: ['Piano'], faixa: 'f2', alunas: ['Aluna A'], linhaDeBase: '', repertorio: [],
+      grau: '', nivel: '', nivelReferencia: '' },
+  ]);
+  const r4 = await pedir(a4, { derivarDe: 'demi-plie-bale-piano', faixa: 'f1', senhaDirecao: SENHA });
+  provar('a derivação corre com o elenco na conta — e o choque de SALA é o primeiro a ser dito',
+    r4.status === 409 && (r4.json || {}).recurso === 'sala', { status: r4.status, json: r4.json });
+  /* O CONTROLO: sem a Turma intrusa na mesma faixa, a derivação passa e a aluna fica lá. */
+  const a5 = ambiente([
+    Object.assign({}, TURMA_NA_F1(), { id: 'demi-plie-bale-piano', alunas: ['Aluna A'], faixa: 'f1' }),
+  ]);
+  const r5 = await pedir(a5, { derivarDe: 'demi-plie-bale-piano', faixa: 'f1', senhaDirecao: SENHA });
+  provar('…e sem intrusa a derivação é aceite, com a aluna', r5.status === 201, r5.status);
+  const gravadas5 = JSON.parse(a5.kv.get('bastidores/' + ESCOLA + '/curadorias'));
+  const nova5 = gravadas5.find((c) => c && !c.substituidaPor);
+  provar('…e a versão nova leva a aluna de hoje', nova5 && (nova5.alunas || []).indexOf('Aluna A') !== -1,
+    nova5 && nova5.alunas);
 }
 
 /* ── D. Controlos negativos ─────────────────────────────────────────────── */
