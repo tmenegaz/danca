@@ -3,11 +3,12 @@
   "slug": "demi-plie",
   "nome": "Demi Plié",
   "modalidades": [
-    "bale-classico"
+    "bale-classico",
+    "contemporaneo"
   ],
   "tradicoes": {
     "bale-classico": []
   },
   "criado": "2026-11-15",
-  "atualizado": "2026-11-23"
+  "atualizado": "2026-11-25"
 }
