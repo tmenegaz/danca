@@ -1,5 +1,5 @@
 {
-  "versao": 6,
+  "versao": 7,
   "nomes": [
     "anamnese-20261123-1055.json",
     "plano-20261124-0811.json",
@@ -16,6 +16,7 @@
       "ciclo": null,
       "ajuste_de": null,
       "gerado_em": "2026-11-23T10:55",
+      "variante": null,
       "aluna": "Vavá",
       "alunaId": "vava",
       "modalidade": "Balé clássico",
@@ -29,6 +30,7 @@
       "ciclo": "01",
       "ajuste_de": null,
       "gerado_em": "2026-11-24T08:11",
+      "variante": null,
       "objetivo": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
       "turma": "Piano",
       "repertorio": [
@@ -47,6 +49,7 @@
       "ciclo": "01",
       "ajuste_de": "plano-20261124-0811",
       "gerado_em": "2026-11-25T06:27",
+      "variante": null,
       "objetivo": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
       "turma": "Piano",
       "repertorio": [
@@ -65,6 +68,7 @@
       "ciclo": "01",
       "ajuste_de": null,
       "gerado_em": "2026-11-24T08:15",
+      "variante": null,
       "sujeitos": [
         "Vavá"
       ],
@@ -80,6 +84,7 @@
       "ciclo": "01",
       "ajuste_de": "po-20261124-0815",
       "gerado_em": "2026-11-25T06:27",
+      "variante": null,
       "sujeitos": [
         "Vavá"
       ],
