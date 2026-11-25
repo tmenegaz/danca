@@ -62297,3 +62297,139 @@ lê o contador para interromper o uso. O limite já tem contador; falta quem o l
 leitor), `motor/servidor/painel-html.js` (o excedente discriminado e o valor do botão),
 `experimentos/provar-o-contador.js` (novo), `PLANO-CONTADOR-DE-AULAS.md` (§10),
 `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+---
+
+## 25/11/2026 — O plano consultoria: os sete limites, o mês que corre da entrega, e o congelamento calculado
+
+**O pedido, e é o limitador inteiro:** «enquanto eu estou fazendo a consultoria […] depois que eu
+terminar o processo […] eu vou deixar para a escola esse ambiente configurado com o nome dela,
+disponível para ela usar por um mês. Só que vai ter um limite. […] esse limite não se renova, tá? […]
+depois ele fica completamente congelado […] Ela só pode ler as coisas. […] Aí se a escola pagar, ela
+contratar, aí eu clico em habilitar e a escola fica livre dentro daquele plano.»
+
+**O nome é dela, decidido hoje:** «a gente pode chamar de plano consultoria, alguma coisa assim,
+porque aí fica claro para mim que se trata daquele consultor». E, no mesmo diálogo, a distinção que
+faltava: **onerar ≠ interromper**. Na consultoria o teto **interrompe** o uso (só lê, como uma escola
+desabilitada); no plano pago a franquia **onera** — o excedente de R$ 8,00 por aula que o commit
+anterior passou a cobrar.
+
+### Os sete, e a regra que os faz caber numa função
+
+`motor/nucleo/cotas.js` é **puro**: recebe o contrato e as contagens, devolve «cabe» ou a frase. Não
+lê KV, não conta pessoas, não sabe o que é um ecrã — e é por isso que a regra se mede sem bancada. Os
+números vivem no catálogo (`planos.json → consultoria.limites`), com `publico: false`: a entrada
+existe para o motor, não para a oferta.
+
+**O REGIME MANDA, e é o §ADITIVO §2.** Numa assinatura paga, professores e alunas são referência
+interna e **não bloqueiam**; na consultoria os sete são paredes. Uma `travaDaCota` que aplicasse a
+mesma regra aos dois teria transformado os planos pagos no que o aditivo proíbe.
+
+**Duas espécies de teto, e a diferença é o que faz «não se renova» ser verdade.** Gente, salas,
+turmas e modalidades são **concorrentes**: quem sai liberta o lugar, e apagar um professor para criar
+outro é permitido. As **aulas são de vida**: um livro de identidades
+(`professor/variante/numero`) no registo comercial, que só cresce — apagar um ciclo apagaria o dado
+no disco, e a vaga voltaria por uma porta lateral. O livro não é um contador: é uma lista que se pode
+conferir, e a mesma aula registada duas vezes continua a ser uma.
+
+### O relógio: um mês é do calendário, não 30 dias
+
+`fuso.fimDeUmMes` soma um mês à **data local** e fecha no último instante do dia local, guardado em
+UTC. Entregue a 25/11 às 17:00 locais, o mês termina a **25/12 às 23:59:59** — 26/12 às 02:59:59 UTC,
+que é o exemplo do próprio plano. 31/01 + um mês dá **28/02**, e não 02/03. Cortar os dígitos do ISO —
+o defeito que o `fuso.js` já pagou uma vez — daria um vencimento às 21:00 do dia anterior, e a escola
+perderia um dia inteiro sem ninguém entender porquê.
+
+**`entregueEm` é um facto único**: não se recalcula, não se reinicia ao «Habilitar», e uma segunda
+entrega responde **409** com a razão. `terminaEm` é gravado **uma vez** — um valor derivado de
+«agora» mudaria com o relógio e faria a data mentir. E **a prorrogação existe** («se a escola disser
+me dá mais um mês, eu dou»), mas não é um botão de renovação: conta **do fim que já estava marcado**,
+leva motivo, e fica no histórico como elo com autor.
+
+### O congelamento é calculado — e é isso que o separa da inadimplência
+
+`comercial.estadoEfetivo` devolve `expirada` quando o prazo passou e o plano não é pago. **Não há
+cron**, e a razão é a do `estadoDaAula`: um agendador dependeria de um relógio que o produto não tem,
+correria no fuso errado, e escreveria o estado **antes** de alguém o ler — tornando o congelamento um
+facto consumado em vez de uma leitura.
+
+**O estado GRAVADO continua `ativa`, e isso não é descuido: é o D3.** `estadoDoExpurgo` só aceita
+apagar uma `suspensa` com `desabilitadaEm` e carência vencida. Uma `expirada` guardada como `ativa`
+**não é apagável automaticamente** — o fim de uma demonstração não é dívida (L12), e tratá-lo pela
+régua da inadimplência bloquearia quem nunca deveu nada. A prova mede as duas coisas: o veredicto do
+expurgo (`pode: false`) e a carência a correr **depois** de ela clicar «Desabilitar».
+
+**Duas frases, porque são dois factos.** A do `suspensa` manda «regularizar» e fala de pagamento em
+atraso; a da `expirada` diz o que aconteceu — a demonstração terminou — e qual é a saída.
+
+**E «Habilitar» sozinho não é uma porta de fuga:** o estado guardado muda para `ativa` (é o que o
+botão faz), mas sem plano pago o efectivo continua `expirada` e a escola abre em só-leitura. A única
+porta é o contrato.
+
+### As sete travas, e a armadilha que o plano nomeou
+
+| dimensão | onde recusa | o que conta |
+|:--|:--|:--|
+| professores | `POST /api/bastidores/professor` | activos, e o **titular conta** |
+| alunas | `POST /api/bastidores/aluna` | activas, no **cadastro** (não no elenco) |
+| salas | `POST /api/bastidores/turma` | `ativo !== false` — «Salas» é `turmas` no KV |
+| modalidades | a mesma rota | **só se a modalidade for nova** |
+| turmas | `POST /api/bastidores/curadoria` | vigentes — «Turmas» é `curadorias` no KV |
+| ciclos | **no `criarDisparador`** | ciclos **publicados**; regerar não consome |
+| aulas | **no lançamento** | o livro de vida |
+
+**A modalidade só ocupa lugar se for nova** — uma segunda sala de balé numa escola que só tem balé não
+gasta a segunda vaga. A primeira versão da trava fazia a pergunta errada («quantas salas há?») e
+recusaria a terceira sala de balé de uma escola de balé.
+
+**O ciclo nasce por três pontes**, e a trava vive onde as três passam. Se ficasse numa rota só, o
+teto funcionaria no botão A e não no B — o pior sintoma possível. A ponte de Node declara-se **muda**
+(`ok: true, motivo: 'ponte de desenvolvimento'`): ela não tem KV nem ASSETS, e a declaração está no
+código em vez de num silêncio. A prova lê os três ficheiros e exige a opção em cada um.
+
+**A leitura é estrita.** Uma escola sem alunas e uma leitura falhada não podem dar a mesma resposta:
+`lerLista(..., estrito)` lança, e o `null` que sai daí **recusa** na trava em vez de deixar passar um
+limite que não se mediu.
+
+### A Q9, resolvida pela medição — e contra o D5
+
+O plano deixou aberta a pergunta que decide a aritmética: a aula 01 conta ao gerar o ciclo (D5) ou só
+quando é lançada? **O dado medido diz o contrário do D5** — o `ciclo-01-breu-piano-dados.json` tem
+`lancamentos: 0` e as 24 aulas com `lancada: false`, incluindo a 01.
+
+Ficou a **leitura B**: a aula 01 conta **quando é lançada**. A razão é a disciplina da casa — *decidir
+não é tornar verdadeiro*. A alternativa (A) exigiria que o gerador escrevesse o registo da aula 01 no
+acto de gerar, o que não se fez: seria uma segunda escrita no `-dados.json` pelo `gerar-ciclo.sh`, com
+o risco de o registo e o formulário discordarem.
+
+**A consequência, dita sem rodeios:** dois ciclos gastam **0** das 3 aulas, e o teto é o das **três
+primeiras aulas lançadas**, independentemente de quantos ciclos existam. O §10.1 do plano («2 ciclos
+gastam 2 das 3») **não vale**, e o texto da oferta tem de dizer a regra certa. Se ela preferir A, é
+uma linha no gerador — e fica declarado para não se descobrir por acidente.
+
+### O que não se fez
+
+- **A faixa na página da Produção** — ela está no mês a mês, que é onde o extrato vive.
+- **A página congelada com o caminho para contratar** — o `402` já recusa e já diz a frase; falta a
+  navegação com o link comercial.
+- **O texto da oferta** (F7) — depende do que se quer vender (Q2).
+- **O cadastro do consultor** — «isso a gente vai precisar mais para frente», e é uma frente nova.
+- **O `consultoria` no `<select>` do contrato** — hoje entra pela criação.
+
+**As provas.** `experimentos/provar-a-escola-em-consultoria.js`, **70 asserções** em doze blocos — o
+catálogo, a criação, as sete travas N/N+1, a trava ligada a um KV a sério, o relógio (com o caso dela
+ao minuto), a faixa, o congelamento, a não-renovação, o expurgo, o pagamento, as três pontes, e a
+distinção onerar × interromper. Bateria completa: **288 provas, 195 verdes, 93 conhecidas, 0
+regressões**. `check-identidade`: 23 checagens, todas ok.
+
+**Onde entrou.** `motor/nucleo/cotas.js` (novo), `motor/nucleo/comercial.js` (`estadoEfetivo`,
+`periodoDaConsultoria`, `planoPago`, `MENSAGEM_DA_EXPIRADA`, e o `consultoria` em `validarEscolha`),
+`motor/nucleo/fuso.js` (`fimDeUmMes`), `motor/nucleo/lancamento.js` (`cota` e `registar`),
+`motor/servidor/disparar.js` (a cota antes do disparo), `motor/servidor/bastidores.js` (as quatro
+travas de rota, as contagens, a faixa e o botão do painel), `motor/servidor/contador-da-escola.js`
+(`cotaDeCiclos`), `motor/servidor/cloudflare.js` (a cota e o livro no lançamento),
+`motor/servidor/producao.js` (o `expirada` no `ehEscrita`), `motor/servidor/raiz.js` (a rota da
+entrega e a lista das vivas), `motor/servidor/painel-html.js` (o estado efectivo e os botões),
+`biblioteca/comercial/planos.json` (a entrada `consultoria`),
+`experimentos/provar-a-escola-em-consultoria.js` (novo), `PLANO-DA-ESCOLA-EM-CONSULTORIA.md` (§17),
+`ESTADO-ATUAL.md`, `HANDOFF.md`.

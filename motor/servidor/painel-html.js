@@ -313,15 +313,53 @@ function tabelaDeEscolas(escolas, modo, ordem, professores) {
           : '<br><span class="selo discreto">a nascer há ' + (minutosANascer === 0
             ? 'menos de 1 min' : minutosANascer + ' min') + '</span>' + run))
       : '';
+    /* O ESTADO QUE A LISTA MOSTRA É O EFECTIVO (25/11/2026) — «o que esta escola pode fazer», e não
+     * «o que está gravado». As duas coisas divergem numa consultoria cujo mês terminou: o registo
+     * continua `ativa` (é o que faz o congelamento não iniciar a carência) e o efectivo é
+     * `expirada`. Mostrar o gravado seria dizer «ativa» de uma escola que só lê. */
+    const efetivo = String(e.estadoEfetivo || e.estadoComercial || estadoComercial || 'ativa');
     const selo = e.expurgada
       ? '<span class="selo discreto">apagada</span>'
       : (aNascer
         ? procedencia
-        : (estadoComercial === 'suspensa'
+        : (efetivo === 'suspensa'
         ? '<span class="selo alerta">suspensa</span>'
-        : (estadoComercial === 'aguardando'
+        : (efetivo === 'expirada'
+          ? '<span class="selo alerta">demonstração terminada</span>'
+        : (efetivo === 'aguardando'
           ? '<span class="selo discreto">a aguardar conciliação</span>'
-          : '<span class="selo ok">ativa</span>')));
+          : '<span class="selo ok">ativa</span>'))));
+    /* A CONSULTORIA, NA MESMA CÉLULA (25/11/2026) — o prazo e o botão que o faz começar.
+     *
+     * NÃO É UMA COLUNA NOVA: a tabela já rola, e uma coluna que só tem conteúdo em algumas linhas
+     * lê-se como avaria. O que se precisa de saber é «quantos dias faltam» e «entregar / prorrogar»,
+     * e é isso que fica ao lado do estado — o mesmo sítio onde ela já lê se a escola abre. */
+    const consultoria = (e.consultoria && typeof e.consultoria === 'object') ? e.consultoria : null;
+    const ehConsultoria = String(e.plano || '') === 'consultoria' || Boolean(consultoria);
+    const daConsultoria = (e.expurgada || !ehConsultoria) ? '' : (() => {
+      const prazo = consultoria && consultoria.terminaEm
+        ? '<br><span class="sub">termina em ' + esc(fuso.quandoLocal(consultoria.terminaEm))
+          + (Array.isArray(consultoria.prorrogacoes) && consultoria.prorrogacoes.length
+            ? ' (prorrogada ' + consultoria.prorrogacoes.length + '×)' : '') + '</span>'
+        : '<br><span class="sub">ambiente montado, ainda não entregue — o mês começa na entrega</span>';
+      const aulas = Number(e.tetoDeAulas) > 0
+        ? '<br><span class="sub">aulas processadas: ' + esc(String(Number(e.aulasDaConsultoria) || 0))
+          + ' de ' + esc(String(e.tetoDeAulas)) + '</span>'
+        : '';
+      /* UMA ENTREGA, UM BOTÃO QUE SE APAGA. Entregue, o botão deixa de existir — porque entregar de
+       * novo não reinicia o mês, e um botão que recusa é pior do que um botão que não está lá. No
+       * lugar dele fica a prorrogação, que é o acto declarado para «mais um mês». */
+      const botao = (consultoria && consultoria.entregueEm)
+        ? '<button class="acao pequena secundario" type="button" data-consultoria="prorrogar" '
+          + 'data-escola="' + esc(e.slug) + '" '
+          + 'title="acrescentar um mês ao prazo, contado do fim que já estava marcado">'
+          + 'Prorrogar 1 mês</button>'
+        : '<button class="acao pequena" type="button" data-consultoria="entregar" '
+          + 'data-escola="' + esc(e.slug) + '" '
+          + 'title="começar o mês da demonstração — o prazo conta de agora, e não se reinicia">'
+          + 'Entregar à escola</button>';
+      return prazo + aulas + '<br>' + botao;
+    })();
 
     const celulas = ['<td>' + rotulo + '</td>'];
     // O PROFESSOR, um ou vários, e NÃO É LIGAÇÃO DE SITE: uma pessoa não tem subdomínio. O nome
@@ -418,7 +456,7 @@ function tabelaDeEscolas(escolas, modo, ordem, professores) {
         '>Desabilitar</button>' +
         '</div></td>');
     }
-    celulas.push('<td>' + selo + '</td>');
+    celulas.push('<td>' + selo + daConsultoria + '</td>');
     if (recorte !== 'vivas') {
       celulas.push('<td>' + (e.expurgada
         ? '<a href="/escolas-apagadas/' + encodeURIComponent(e.slug) + '">Abrir o registo</a>'
@@ -1278,7 +1316,11 @@ const SCRIPT_DO_COFRE = '<script>(function(){' +
  */
 const SCRIPT_DO_ACESSO = '<script>(function(){' +
   'var botoes=document.querySelectorAll("[data-comercial]");' +
-  'if(!botoes.length)return;' +
+  /* SEM SAÍDA ANTECIPADA (25/11/2026). Aqui esteve `if(!botoes.length)return;`, e ele deixou de ser
+   * seguro no dia em que este script passou a ligar DUAS famílias de botões: uma lista sem botões de
+   * acesso mas com o «Entregar à escola» sairia do script antes de os ligar, e o botão ficaria
+   * inerte sem nada dizer. O laço abaixo já trata uma lista vazia — a saída só servia para o caso que
+   * agora existe. */
   /* O RECADO, SEM SOMBRA. Aqui esteve `function recado(t,erro){ … var t=document.querySelector(…) }`
    * — e o `var t` de dentro apagava o parâmetro: a mensagem que se lia era o `toString` de um
    * `<table>`. Um nome que já significa uma coisa não pode significar outra três linhas abaixo. */
@@ -1324,6 +1366,32 @@ const SCRIPT_DO_ACESSO = '<script>(function(){' +
   '      recado("falha de rede — nada foi alterado",true);});' +
   '  });' +
   '})(botoes[i]);' +
+  /* A ENTREGA E A PRORROGAÇÃO DA CONSULTORIA (25/11/2026) — o mesmo desenho do `[data-comercial]`,
+   * e pela mesma razão: filtrar por `getAttribute` e nunca por um selector construído, que é uma
+   * string a atravessar três linguagens. A recusa aparece no mesmo `recado`, ao lado da tabela: um
+   * ecrã de dinheiro com dois sítios de mensagem é um ecrã onde uma delas se perde. */
+  '(function(){' +
+  '  var daCota=document.querySelectorAll("[data-consultoria]");' +
+  '  if(!daCota.length)return;' +
+  '  for(var m=0;m<daCota.length;m++)(function(b){' +
+  '    b.addEventListener("click",function(){' +
+  '      var escola=b.getAttribute("data-escola"),acao=b.getAttribute("data-consultoria");' +
+  '      if(!escola||!acao)return;' +
+  '      var irmaos=daLinha(escola);' +
+  '      ligar(irmaos,true);' +
+  '      recado((acao==="entregar"?"a entregar ":"a prorrogar ")+escola+"…",false);' +
+  '      fetch("/api/escola/consultoria",{method:"POST",headers:{"Content-Type":"application/json"},' +
+  '        body:JSON.stringify({escola:escola,acao:acao}),cache:"no-store"})' +
+  '      .then(function(r){return r.json().catch(function(){return {};});})' +
+  '      .then(function(d){' +
+  '        if(d&&d.ok){location.reload();return;}' +
+  '        ligar(irmaos,false);' +
+  '        recado((d&&d.erro)||"não foi possível mudar o período",true);})' +
+  '      .catch(function(){ligar(irmaos,false);' +
+  '        recado("falha de rede — nada foi alterado",true);});' +
+  '    });' +
+  '  })(daCota[m]);' +
+  '})();' +
   '})();</script>';
 
 function paginaDasVivas({ escolas, ordem, professores }) {

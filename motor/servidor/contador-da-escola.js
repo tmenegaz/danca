@@ -181,7 +181,69 @@ function criarContadorDaEscola({ env, kv, escola } = {}) {
   return { chave, ler, reconciliar, resumoDoMes };
 }
 
+/**
+ * A COTA DE CICLOS DE UMA ESCOLA (25/11/2026) — a pergunta «este ciclo é novo?», feita ao ASSETS.
+ *
+ * O pacote publicado é a prova de que o ciclo nasceu: se a variante já tem um `ciclos.json`, o
+ * disparo é uma REGENERAÇÃO e não consome vaga nenhuma. Não há contador de ciclos no KV porque não
+ * é preciso — o facto está no que já está publicado, e uma lista escrita aqui seria uma segunda
+ * verdade a envelhecer.
+ *
+ * `variante` é a do alvo do disparo. Sem ela, devolve «não sei» e NÃO trava: uma ponte que não sabe
+ * de que ciclo se fala não pode recusar por um limite que não mediu.
+ */
+async function cotaDeCiclos({ env, escola, variante } = {}) {
+  const slug = String(escola == null ? '' : escola).trim();
+  const v = String(variante == null ? '' : variante).trim();
+  const cotas = require('../nucleo/cotas.js');
+  const kv = env && env.PADD_KV;
+  if (!slug || !v) return { ok: true, motivo: 'sem variante — não há o que contar' };
+  const lerAsset = async (caminho) => {
+    if (!env || !env.ASSETS || typeof env.ASSETS.fetch !== 'function') return null;
+    try {
+      const r = await env.ASSETS.fetch('https://assets.local' + caminho);
+      return r && r.ok ? await r.text() : null;
+    } catch (erro) { return null; }
+  };
+  let contrato = null;
+  if (kv && typeof kv.get === 'function') {
+    try {
+      const bruto = await kv.get('bastidores/' + slug + '/comercial');
+      contrato = bruto ? JSON.parse(bruto) : null;
+    } catch (erro) { contrato = null; }
+  }
+  if (cotas.regimeDoContrato(contrato) !== 'consultoria') return { ok: true, regime: 'assinatura' };
+  const prefixo = prefixoDaArvore(env);
+  const publicado = async (varianteDaVez) => Boolean(await lerAsset(
+    prefixo + '/' + encodeURIComponent(varianteDaVez) + '/ciclos.json'));
+  if (await publicado(v)) return { ok: true, motivo: 'regeração do mesmo ciclo' };
+  /* QUANTOS CICLOS EXISTEM = quantas salas da escola já têm pacote publicado. As salas vêm do KV
+   * (a chave `turmas`, que é «Salas» na tela); cada uma dá a sua variante. Uma sala sem pacote não
+   * conta, e uma sala que não se conseguiu ler conta como zero — e o zero, aqui, é honesto: o que
+   * está a ser medido é o que está PUBLICADO, e o que não se leu não está. */
+  let salas = [];
+  if (kv && typeof kv.get === 'function') {
+    try {
+      const bruto = await kv.get('bastidores/' + slug + '/turmas');
+      const lista = bruto ? JSON.parse(bruto) : [];
+      salas = Array.isArray(lista) ? lista.filter((t) => t && t.ativo !== false) : [];
+    } catch (erro) { salas = []; }
+  }
+  let publicados = 0;
+  const vistas = new Set();
+  for (const t of salas) {
+    const daSala = pastaDaTurma(t.id, slug);
+    if (!daSala || vistas.has(daSala)) continue;
+    vistas.add(daSala);
+    if (await publicado(daSala)) publicados += 1;
+  }
+  const trava = cotas.travaDaCota({ contrato, dimensao: 'ciclos', usados: publicados });
+  if (trava.cabe) return { ok: true, regime: 'consultoria', publicados };
+  return { ok: false, erro: trava.erro, cota: true, dimensao: 'ciclos' };
+}
+
 module.exports = {
+  cotaDeCiclos,
   chaveDaContagem,
   pastaDaTurma,
   lerCiclosDaEscola,

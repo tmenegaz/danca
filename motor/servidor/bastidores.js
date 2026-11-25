@@ -452,6 +452,9 @@ function escolaDe(env, url) {
 const { hashSenha, salAleatorio } = require('../nucleo/senha.js');
 // O ESTADO COMERCIAL — a mesma leitura que a porta faz, para as duas respostas dizerem o mesmo.
 const comercialDoNucleo = require('../nucleo/comercial.js');
+/* OS SETE LIMITES DA CONSULTORIA (25/11/2026) — ver `motor/nucleo/cotas.js`. Puro: recebe a
+ * contagem, devolve «cabe» ou a frase. Quem conta é este ficheiro, que tem as listas à mão. */
+const cotasDoNucleo = require('../nucleo/cotas.js');
 /* O CONTRATO E O EXTRATO DA ESCOLA, DO LADO DELA (16/11/2026). «Se ela estiver inadimplente ou se
  * chegar a data do vencimento e ela quiser pagar, ela pode clicar, então tem um botão de ação onde
  * ela pode clicar em pagar. Ali vai aparecer então a chave Pix.» O núcleo é o mesmo que serve o
@@ -2241,8 +2244,44 @@ async function gerarOsCiclosDasTurmas(env, escola, turmas, recados) {
     });
   };
 
+  /* OS CICLOS QUE JÁ EXISTEM, lidos do ASSETS — o pacote publicado é a prova de que o ciclo nasceu
+   * (25/11/2026). É o que distingue REGERAR (o `ciclos.json` já lá está, não consome vaga) de CRIAR
+   * (não está). O Worker não tem o repositório à mão, e uma lista escrita aqui seria uma segunda
+   * verdade a envelhecer; o asset é a mesma fonte que a página lê.
+   *
+   * A leitura é por variante, e as variantes saem das salas que este gesto vai gerar — que é
+   * exactamente o conjunto que interessa para a conta. */
+  const prefixoDoPacote = prefixoDaArvore(env);
+  const cicloPublicado = async (variante) => {
+    if (!variante || !env || !env.ASSETS || typeof env.ASSETS.fetch !== 'function') return null;
+    try {
+      const r = await env.ASSETS.fetch('https://assets.local' + prefixoDoPacote + '/'
+        + encodeURIComponent(variante) + '/ciclos.json');
+      return r && r.ok ? true : false;
+    } catch (erro) { return null; }
+  };
+  const jaPublicados = [];
+  for (const a of alvos) {
+    const v = varianteDoAlvo(a.turma);
+    if (v && (await cicloPublicado(v))) jaPublicados.push(a.professor + '/' + a.ciclo + '/' + a.turma);
+  }
+
   const disparar = criarDisparador({
     token: (env && env.GITHUB_TOKEN) || null, dono: 'tmenegaz', repo: 'danca', workflow: 'gerar-ciclo.yml',
+    /* O TETO DE CICLOS DA CONSULTORIA (25/11/2026) — no DISPARADOR, e não numa rota.
+     *
+     * «No máximo dois ciclos.» A conta é de ciclos DISTINTOS desta escola: regerar o mesmo ciclo não
+     * consome uma vaga, e é por isso que a pergunta é «este alvo já está publicado?», e não «quantos
+     * disparos já houve?». Um ciclo em voo não conta — ele ainda não existe, e contá-lo faria o
+     * segundo alvo do MESMO gesto ser recusado por causa do primeiro. */
+    cota: async (ctx) => {
+      const chaveDoAlvo = String((ctx && ctx.professor) || '') + '/' + String((ctx && ctx.ciclo) || '')
+        + '/' + String((ctx && ctx.turma) || '');
+      if (jaPublicados.indexOf(chaveDoAlvo) !== -1) return { ok: true, motivo: 'regeração do mesmo ciclo' };
+      return travaDaConsultoria({
+        kv: env && env.PADD_KV, escola, dimensao: 'ciclos', contar: () => jaPublicados.length,
+      });
+    },
   });
   if (typeof disparar !== 'function') {
     return {
@@ -5581,6 +5620,91 @@ function fimDaVista() {
  * pagamento. Quem habilita é ela, no painel do `danca`; quem concilia é ela, à mão. Um botão de
  * «marcar pago» do lado da escola seria a escola a declarar-se em dia sozinha.
  */
+/**
+ * A TRAVA DE UMA DIMENSÃO DO PLANO CONSULTORIA, com a contagem feita AQUI (25/11/2026).
+ *
+ * É o único sítio que responde «esta escola ainda pode criar mais um?», e há-de ser o único: uma
+ * segunda cópia da regra divergiria da primeira no dia em que os sete números mudassem.
+ *
+ * `contar` é uma função que devolve o número, ou `null` quando não conseguiu — e o `null` RECUSA,
+ * porque uma leitura falhada não é uma escola vazia (`cotas.travaDaCota` di-lo por palavras).
+ *
+ * O CONTRATO É LIDO UMA VEZ e serve para as duas perguntas: o regime (que decide se há teto) e a
+ * mensagem. Numa assinatura paga devolve `{ok: true}` sem contar nada — o §ADITIVO §2 proíbe
+ * bloquear gente num plano pago, e essa é a razão de o regime vir primeiro.
+ */
+async function travaDaConsultoria({ kv, escola, dimensao, contar }) {
+  let contrato = null;
+  try { contrato = await comercialDoNucleo.lerComercial(kv, escola); } catch (erro) { contrato = null; }
+  if (cotasDoNucleo.regimeDoContrato(contrato) !== 'consultoria') return { ok: true, regime: 'assinatura' };
+  let usados = null;
+  try {
+    usados = await contar(contrato);
+  } catch (erro) { usados = null; }
+  const trava = cotasDoNucleo.travaDaCota({ contrato, dimensao, usados });
+  if (trava.cabe) return Object.assign({ ok: true }, trava);
+  return Object.assign({ ok: false, erro: trava.erro }, trava);
+}
+
+/**
+ * AS CONTAGENS DAS SETE DIMENSÕES, para o painel e para a faixa da escola (25/11/2026).
+ *
+ * Cada uma é uma leitura que já existe. A que não se conseguiu ler sai `null` — e o ecrã mostra
+ * «—», nunca «0»: a diferença entre «não conta» e «zero» é a mesma que a franquia já respeita.
+ *
+ * AS REGRAS DE CONTAGEM, e cada uma tem uma razão:
+ *   · professor desligado não conta (o lugar fica livre), e o TITULAR conta — é literal na letra
+ *     dela: «o titular e mais um»;
+ *   · aluna desligada não conta; o CADASTRO é que conta, não o elenco nem a curadoria;
+ *   · sala é `turmas` no KV e turma é `curadorias` — os nomes da tela estão trocados no código, e é
+ *     esta a armadilha que o plano nomeia;
+ *   · modalidade conta a que está EM USO nas faixas das salas activas, e não a declarada no perfil.
+ */
+async function contagensDaConsultoria({ env, kv, escola, contagem }) {
+  const saida = { professores: null, alunas: null, ciclos: null, modalidades: null, aulas: null,
+    salas: null, turmas: null };
+  const dono = String(slugDoDono(env) || '').trim() ? 1 : 0;
+  /* A LEITURA É ESTRITA — e a diferença é a que o §13 do plano exige: uma escola sem alunas e uma
+   * leitura falhada NÃO podem dar a mesma resposta. `lerLista` em modo estrito lança, e o `null` que
+   * sai daqui RECUSA na trava em vez de deixar passar um limite que não se mediu. */
+  const estrito = true;
+  try {
+    const lista = await lerLista(kv, RAIZ + '/' + escola + '/professores', estrito);
+    saida.professores = dono + lista.filter((p) => !desligamento.estaDesligado(p)).length;
+  } catch (erro) { saida.professores = null; }
+  try {
+    const registos = await lerLista(kv, RAIZ + '/' + escola + '/alunas', estrito);
+    saida.alunas = registos.filter((r) => !r.desligadaEm).length;
+  } catch (erro) { saida.alunas = null; }
+  let salas = null;
+  try {
+    salas = await lerLista(kv, RAIZ + '/' + escola + '/turmas', estrito);
+    saida.salas = salas.filter((t) => t && t.ativo !== false).length;
+    const modalidades = new Set();
+    for (const t of salas) {
+      if (!t || t.ativo === false) continue;
+      const faixas = Array.isArray(t.faixas) && t.faixas.length ? t.faixas : [t];
+      for (const f of faixas) {
+        const m = String((f && f.modalidade) || '').trim();
+        if (m) modalidades.add(m);
+      }
+    }
+    saida.modalidades = modalidades.size;
+  } catch (erro) { saida.salas = null; saida.modalidades = null; }
+  try {
+    const curs = await lerLista(kv, RAIZ + '/' + escola + '/curadorias', estrito);
+    saida.turmas = curs.filter((c) => c && !c.substituidaPor).length;
+  } catch (erro) { saida.turmas = null; }
+  /* OS CICLOS e AS AULAS vêm de fora: os ciclos são o índice do acervo (que a raiz sabe ler) e as
+   * aulas são o livro de identidades do registo comercial — as duas coisas que este ficheiro não
+   * tem sem ir buscá-las a sítios que custam rede. `contagem` é o que o chamador já leu. */
+  if (contagem && typeof contagem === 'object') {
+    if (Object.prototype.hasOwnProperty.call(contagem, 'ciclos')) saida.ciclos = contagem.ciclos;
+    if (Object.prototype.hasOwnProperty.call(contagem, 'aulas')) saida.aulas = contagem.aulas;
+  }
+  return saida;
+}
+
 async function dadosDaEscolaParaAProducao(env, kv, escola) {
   const vazio = { ok: false, cadastro: null, contrato: null, situacao: null, pix: null };
   if (!kv || typeof kv.get !== 'function' || !escola) return vazio;
@@ -5652,6 +5776,11 @@ async function dadosDaEscolaParaAProducao(env, kv, escola) {
      * mês mostra todas, porque ali o assunto é o extrato e o documento de um mês pago é o registo
      * de como ele foi pago. Filtrar aqui obrigaria a página do extrato a pedir outra leitura. */
     cobrancas: daEscola,
+    /* AS CONTAGENS DOS SETE LIMITES (25/11/2026). Vão no mesmo corpo porque a faixa da consultoria
+     * é desenhada com elas, e pedi-las noutra chamada seria uma segunda ida ao KV para a mesma
+     * página. Ciclos e aulas vêm de fora (o índice e o livro), e saem `null` quando não se leram. */
+    contagensDaConsultoria: await contagensDaConsultoria({ env, kv, escola,
+      contagem: { ciclos: null, aulas: null } }).catch(() => null),
     ensaio: ensaio && Number(ensaio.minutosPorPeriodo) > 0 ? ensaio : null,
     situacao: Object.assign({}, situacao, {
       frase: mensalidadesDoNucleo.fraseDaSituacao(situacao.situacao),
@@ -6235,7 +6364,64 @@ function paginaFinanceiro(escola, contexto, aparencia, dados) {
       + ' Quem liga e desliga é a administração, no financeiro do painel.</p>'
     : '';
 
-  const fichaDoPlano = avisoDoEnsaio + planoDoContrato + avisoDaMudanca;
+  /* A FAIXA DA CONSULTORIA (25/11/2026) — o prazo, o consumo dos sete limites, e a saída.
+   *
+   * «Durante o mês: uma faixa discreta com o fim ("Demonstração até 25/12/2026") e o consumo dos
+   * sete limites. Sem pop-up, sem janela comercial a cada acesso.» A regra é a do §8.1 do plano, e a
+   * razão é de quem usa: um aviso que interrompe a cada visita é um aviso que se aprende a fechar.
+   *
+   * OS NÚMEROS SÃO OS QUE O MOTOR APLICA, e não uma segunda conta: `resumoDasCotas` compara com os
+   * limites do catálogo, e é a mesma função que as rotas chamam para recusar. Uma faixa que
+   * calculasse os seus próprios números diria «2/2» sobre uma escola a quem o motor já permite o
+   * terceiro — ou o contrário, que é pior.
+   *
+   * Quando uma dimensão não se conseguiu contar, ela sai «—». É a mesma disciplina do consumo da
+   * franquia: um zero inventado sobre uma contagem que não se fez é uma afirmação falsa. */
+  const contratoDoCartao = (dados && dados.contrato) || null;
+  const periodoDaFaixa = comercialDoNucleo.periodoDaConsultoria(contratoDoCartao);
+  const resumoDasCotas = (contratoDoCartao && cotasDoNucleo.regimeDoContrato(contratoDoCartao) === 'consultoria')
+    ? cotasDoNucleo.resumoDasCotas({
+      contrato: contratoDoCartao,
+      contagens: Object.assign(
+        {},
+        (dados && dados.contagensDaConsultoria) || {},
+        { aulas: cotasDoNucleo.aulasNoLivro(contratoDoCartao.aulasDaConsultoria) },
+      ),
+    })
+    : null;
+  const avisoDaConsultoria = (() => {
+    if (!resumoDasCotas) return '';
+    const efetivo = comercialDoNucleo.estadoEfetivo({ contrato: contratoDoCartao });
+    if (efetivo === 'expirada') {
+      return '<p class="aviso alerta" role="status">' + esc(comercialDoNucleo.MENSAGEM_DA_EXPIRADA)
+        + (periodoDaFaixa && periodoDaFaixa.terminaEm
+          ? ' (' + esc(fusoDoNucleo.diaLocal(periodoDaFaixa.terminaEm)) + ')' : '') + '</p>';
+    }
+    const nomes = {
+      professores: 'professores', alunas: 'alunas', ciclos: 'ciclos',
+      modalidades: 'modalidades', aulas: 'aulas', salas: 'salas', turmas: 'turmas',
+    };
+    const consumos = cotasDoNucleo.DIMENSOES
+      .map((d) => nomes[d] + ' ' + (resumoDasCotas.dimensoes[d] ? resumoDasCotas.dimensoes[d].texto : '—'))
+      .join(' · ');
+    const prazo = periodoDaFaixa && periodoDaFaixa.terminaEm
+      ? 'Demonstração até ' + esc(fusoDoNucleo.diaLocal(periodoDaFaixa.terminaEm))
+      : 'O mês da demonstração começa quando a escola for entregue';
+    /* NOS ÚLTIMOS 7 DIAS, O AVISO MUDA DE TOM — «no fim, o acesso passa a só-leitura». É a
+     * diferença entre uma faixa que informa e uma faixa que avisa: quem lê «faltam 3 dias» decide
+     * antes, e quem descobre no dia seguinte já bateu na parede. */
+    const dias = periodoDaFaixa && periodoDaFaixa.terminaEm
+      ? Math.ceil((Date.parse(periodoDaFaixa.terminaEm) - Date.now()) / 86400000) : null;
+    const fim = (dias !== null && dias >= 0 && dias <= 7)
+      ? ' Faltam ' + dias + ' dia(s): no fim, o acesso passa a só-leitura e o que está criado '
+        + 'continua legível.'
+      : '';
+    return '<p class="aviso"' + (fim ? ' role="status"' : '')
+      + '><strong>' + prazo + '</strong> — ' + esc(consumos) + '.' + esc(fim)
+      + (resumoDasCotas.frase ? ' ' + esc(resumoDasCotas.frase) : '') + '</p>';
+  })();
+
+  const fichaDoPlano = avisoDoEnsaio + avisoDaConsultoria + planoDoContrato + avisoDaMudanca;
 
   const barra = meses.length
     ? '<div class="caixa filtrar">'
@@ -24365,10 +24551,18 @@ async function fetch(request, env, extras) {
     {
       const donoConta = String(donoSlug || '').trim() ? 1 : 0;
       const aTrabalhar = lista.filter((p) => !desligamento.estaDesligado(p)).length;
+      const quantos = donoConta + aTrabalhar;
+      /* O TETO DA CONSULTORIA, ANTES DO PISO (25/11/2026). No plano consultoria o número é uma
+       * parede: 2 professores, «o titular e mais um». No plano pago é uma referência que avisa e
+       * não bloqueia — e é por isso que as duas perguntas existem, nesta ordem. */
+      const cota = await travaDaConsultoria({
+        kv, escola, dimensao: 'professores', contar: () => quantos,
+      });
+      if (!cota.ok) return json(409, { ok: false, erro: cota.erro, cota: true, dimensao: 'professores' });
       const trava = comercialDoNucleo.travaDoPiso({
         contrato: await comercialDoNucleo.lerComercial(kv, escola),
         eixo: 'professores',
-        cadastrados: donoConta + aTrabalhar,
+        cadastrados: quantos,
       });
       if (!trava.cabe) return json(409, Object.assign({ ok: false }, trava));
     }
@@ -24557,6 +24751,13 @@ async function fetch(request, env, extras) {
      * E CONTA AS ACTIVAS (18/11/2026): o lugar de quem saiu fica livre. Uma escola que apagou cinco
      * alunas não pode continuar a pagar por cinco lugares que ninguém ocupa. */
     {
+      /* O TETO DA CONSULTORIA, ANTES DO PISO (25/11/2026) — a mesma ordem e a mesma razão da rota
+       * do professor. Conta-se o CADASTRO activo: o elenco e a curadoria são outra coisa e podem
+       * repetir a mesma aluna. */
+      const cota = await travaDaConsultoria({
+        kv, escola, dimensao: 'alunas', contar: () => activas.length,
+      });
+      if (!cota.ok) return json(409, { ok: false, erro: cota.erro, cota: true, dimensao: 'alunas' });
       const trava = comercialDoNucleo.travaDoPiso({
         contrato: await comercialDoNucleo.lerComercial(kv, escola),
         eixo: 'alunos',
@@ -25431,12 +25632,20 @@ async function fetch(request, env, extras) {
      * de uma resposta em que o campo não existia — a frase continuava a culpar a senha. */
     let comercial = null;
     try { comercial = await comercialDoNucleo.lerComercial(kv, escola); } catch (erro) { comercial = null; }
-    if (comercial && comercial.estado === 'suspensa') {
+    /* O ESTADO EFECTIVO, E NÃO O GUARDADO (25/11/2026). Uma consultoria cujo mês terminou está
+     * guardada `ativa` e é `expirada` na prática — e a tela do professor tem de o saber para mostrar
+     * a faixa e para não o deixar escrever sem explicação. O `suspensa` continua a vir primeiro
+     * porque é um facto dela; a `expirada` vem depois, e com a frase que diz o que aconteceu. */
+    const efetivo = comercial ? comercialDoNucleo.estadoEfetivo({ contrato: comercial }) : null;
+    if (efetivo === 'suspensa' || efetivo === 'expirada') {
       return json(200, {
         ok: true,
         professor: veredicto.nome,
-        suspensa: true,
-        erro: comercialDoNucleo.MENSAGEM_DA_SUSPENSAO,
+        suspensa: efetivo === 'suspensa' || undefined,
+        expirada: efetivo === 'expirada' || undefined,
+        erro: efetivo === 'expirada'
+          ? comercialDoNucleo.MENSAGEM_DA_EXPIRADA
+          : comercialDoNucleo.MENSAGEM_DA_SUSPENSAO,
       });
     }
     return json(200, { ok: true, professor: veredicto.nome });
@@ -25608,6 +25817,47 @@ async function fetch(request, env, extras) {
       });
     }
     const lista = await turmas(kv, escola);
+    /* O TETO DE SALAS DA CONSULTORIA (25/11/2026). «Sala» aqui é a chave `turmas` do KV — a
+     * armadilha dos nomes que o plano nomeia: a tela diz «Salas» e o código diz `turmas`. E a
+     * MODALIDADE é a que está em uso nas faixas, não a declarada no perfil do professor: uma
+     * modalidade que ninguém pratica não ocupa lugar nenhum.
+     *
+     * Conta-se o que existe ANTES desta: a sala que se está a criar é a N+1. */
+    {
+      const activas = lista.filter((t) => t && t.ativo !== false);
+      const cotaSalas = await travaDaConsultoria({
+        kv, escola, dimensao: 'salas', contar: () => activas.length,
+      });
+      if (!cotaSalas.ok) return json(409, { ok: false, erro: cotaSalas.erro, cota: true, dimensao: 'salas' });
+      /* A MODALIDADE SÓ OCUPA LUGAR SE FOR NOVA. Uma segunda sala da mesma modalidade não gasta uma
+       * segunda vaga — o limite é de modalidades DISTINTAS, e contá-la outra vez recusaria a terceira
+       * sala de balé de uma escola que só tem balé. É por isso que a pergunta é «esta sala introduz
+       * uma modalidade que ainda não existe?», e não «quantas salas já há?». */
+      const emUso = new Set();
+      for (const t of activas) {
+        const faixas = Array.isArray(t.faixas) && t.faixas.length ? t.faixas : [t];
+        for (const f of faixas) {
+          const m = String((f && f.modalidade) || '').trim();
+          if (m) emUso.add(m);
+        }
+      }
+      const doCorpo = new Set();
+      const declarada = String((nova && nova.modalidade) || '').trim();
+      if (declarada) doCorpo.add(declarada);
+      for (const f of Array.isArray(nova && nova.faixas) ? nova.faixas : []) {
+        const m = String((f && f.modalidade) || '').trim();
+        if (m) doCorpo.add(m);
+      }
+      const novaModalidade = [...doCorpo].some((m) => !emUso.has(m));
+      if (novaModalidade) {
+        const cotaModalidade = await travaDaConsultoria({
+          kv, escola, dimensao: 'modalidades', contar: () => emUso.size,
+        });
+        if (!cotaModalidade.ok) {
+          return json(409, { ok: false, erro: cotaModalidade.erro, cota: true, dimensao: 'modalidades' });
+        }
+      }
+    }
     // O NOME só colide com uma turma VIGENTE (16/10/2026). Uma turma substituída mantém o
     // nome — é assim que a curadoria e o plano continuam a encontrá-la —, e recusar por causa
     // dela impediria a própria derivação.
@@ -29168,6 +29418,20 @@ function parDaFaixa(sala, id) {
     }
     const lista = await curadorias(kv, escola);
     const turmaPedida = turmasPedidas[0] || '';
+    /* O TETO DE TURMAS DA CONSULTORIA (25/11/2026). «Turma» aqui é a chave `curadorias` do KV — a
+     * segunda metade da armadilha dos nomes: a tela diz «Turmas» e o código diz `curadorias`.
+     *
+     * Contam-se as VIGENTES: uma curadoria substituída é história, e não ocupa lugar. E a
+     * verificação vem antes de a turma nascer — depois, o custo já foi pago e a linha já existe. */
+    {
+      const vigentes = lista.filter((c) => c && !c.substituidaPor).length;
+      const cotaTurmas = await travaDaConsultoria({
+        kv, escola, dimensao: 'turmas', contar: () => vigentes,
+      });
+      if (!cotaTurmas.ok) {
+        return json(409, { ok: false, erro: cotaTurmas.erro, cota: true, dimensao: 'turmas' });
+      }
+    }
     /* A TURMA NÃO NASCE SEM QUEM A DIRIJA (18/11/2026) — ver `faltaNaSalaParaATurma`.
      *
      * A guarda fica AQUI, e não em `faltaNaCuradoria`, por uma razão de facto: os três campos que
@@ -30401,6 +30665,10 @@ module.exports = {
   /* A PÁGINA DO MÊS A MÊS, exportada para a prova (17/11/2026): ela recebe o dado já lido e
    * devolve a página — a bancada pode desenhá-la sem subir o Worker, como faz com o cartão. */
   paginaFinanceiro,
+  /* AS DUAS PEÇAS DA CONSULTORIA, exportadas para a prova (25/11/2026). A prova mede a FUNÇÃO que
+   * as rotas chamam, e não a rota com uma senha forjada — o que está em causa é a regra (o regime
+   * decide se há teto) e a contagem (o que conta e o que não conta), e as duas medem-se sem bancada. */
+  travaDaConsultoria, contagensDaConsultoria,
   /* A LEITURA DO «A ESCOLA» — cadastro, contrato, chave e extrato —, exportada para a prova do
    * relógio de ensaio (17/11/2026). O que se quer afirmar é que a chave `ensaio` de UMA escola não
    * chega a outra, e isso é uma pergunta sobre o que a leitura devolve para dois KV distintos;

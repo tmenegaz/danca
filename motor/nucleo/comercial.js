@@ -151,6 +151,51 @@ function calcular({ assinatura, lotes, pacotes } = {}) {
  */
 function validarEscolha(pedido, { podeDispensar = false } = {}) {
   const p = pedido || {};
+  const pedido_ = String(p.plano || p.assinatura || '').trim().toLowerCase();
+  /* O PLANO CONSULTORIA (25/11/2026) — a quarta porta da criação, e a única que não se vende.
+   *
+   * Ele não está na escada de assinaturas e não tem preço: é o ambiente da escola que ainda está em
+   * consultoria. Por isso não passa pelo `calcular` — não há lotes nem pacotes a somar —, e tem um
+   * caminho próprio que devolve a MESMA FORMA que os outros planos, para a criação não ter dois
+   * códigos.
+   *
+   * SÓ A PORTA DO PROPRIETÁRIO O PODE CRIAR (`podeDispensar`). No público, um `plano: 'consultoria'`
+   * seria uma escola grátis pedida pela própria escola: a recusa nomeia a saída em vez de um código.
+   */
+  if (pedido_ === 'consultoria' || pedido_ === 'demonstracao') {
+    if (!podeDispensar) {
+      return {
+        ok: false,
+        erro: 'o plano consultoria é criado pela administração do Sistema Lastro, e não pela página '
+          + 'da escola. Escolha um dos planos para criar a sua.',
+      };
+    }
+    const c = (CATALOGO && CATALOGO.consultoria) || {};
+    return {
+      ok: true,
+      escolha: {
+        plano: 'consultoria',
+        planoNome: c.nome || 'Plano consultoria',
+        lotesProfessores: [],
+        lotesAlunos: [],
+        pacotes: [],
+        valorCentavos: 0,
+        valor: '0,00',
+        extensoes: [],
+        /* A `capacidade` sai do LIMITE dos professores e das alunas, e não de uma referência: numa
+         * consultoria os dois são paredes, e a página tem de mostrar o mesmo número que o motor
+         * aplica. */
+        capacidade: {
+          professores: Number((c.limites && c.limites.professores) || 0),
+          alunos: Number((c.limites && c.limites.alunas) || 0),
+        },
+        periodicidade: (c.duracaoMeses || 1) + ' mês',
+        pagamento: 'dispensado-pelo-proprietario',
+      },
+      calculo: null,
+      consultoria: true,
+    };
+  }
   const plano = assinaturaPorId(p.plano || p.assinatura);
   if (!plano) return { ok: false, erro: 'escolha o plano da escola' };
   const calculo = calcular({
@@ -583,9 +628,35 @@ function catalogoDaPagina() {
 const ESTADO_PADRAO = 'ativa';
 const ESTADOS = ['aguardando', 'ativa', 'suspensa'];
 
-/** A frase da recusa. UMA, escrita uma vez, para os dois lados dizerem a mesma coisa. */
+/* O ESTADO EFECTIVO (25/11/2026) — `expirada` NÃO SE GUARDA, CALCULA-SE.
+ *
+ * «Ele fica desabilitado automaticamente depois desse prazo de um mês.» O estado guardado continua a
+ * ser o que sempre foi (`aguardando` · `ativa` · `suspensa`); `expirada` é o JUÍZO de um instante, e
+ * o resultado de uma comparação — nunca um cron que escreve.
+ *
+ * PORQUE CALCULADO E NÃO UM CRON. Um agendador que escrevesse `suspensa` no vencimento dependeria de
+ * um relógio que o produto não tem, correria no fuso errado, e escreveria o estado ANTES de alguém o
+ * ler — tornando o congelamento um facto consumado em vez de uma leitura. O cálculo no pedido é
+ * idempotente, não precisa de agendador, e chega a todos os leitores ao mesmo tempo. É a mesma
+ * disciplina do `estadoDaAula`: o estado é o juízo de um instante, e quem tem um `agora` é quem o
+ * calcula.
+ *
+ * PORQUE O ESTADO GUARDADO FICA `ativa` — e isto não é descuido, é o que faz o D3 funcionar:
+ * `estadoDoExpurgo` só aceita apagar uma escola `suspensa` com `desabilitadaEm` e carência vencida.
+ * Uma `expirada` guardada como `ativa` NÃO é apagável automaticamente. O fim de uma demonstração
+ * não é dívida (L12), e tratá-lo pela régua da inadimplência bloquearia quem nunca deveu nada. */
+const ESTADOS_EFETIVOS = ['aguardando', 'ativa', 'suspensa', 'expirada'];
+
+/** A frase da recusa do `suspensa`. UMA, escrita uma vez, para os dois lados dizerem a mesma coisa. */
 const MENSAGEM_DA_SUSPENSAO = 'O acesso desta escola está suspenso: é possível ler o que já foi '
   + 'criado, mas não criar nem editar. Fale com o Sistema Lastro para regularizar.';
+
+/* A FRASE DA EXPIRADA É OUTRA, e a diferença é de facto, não de estilo: uma escola que parou de
+ * pagar não é a mesma coisa que uma demonstração que chegou ao fim. A do `suspensa` manda
+ * «regularizar» e fala de pagamento em atraso; esta diz o que ACONTECEU — quando terminou — e qual
+ * é a saída. Duas frases porque são dois factos (L12: «o fim do período gratuito não é dívida»). */
+const MENSAGEM_DA_EXPIRADA = 'O período de demonstração terminou. O que está criado continua '
+  + 'legível; para continuar a criar, contrate um plano.';
 
 /**
  * O estado comercial, do KV da escola. Ausente ou ilegível → `ativa` (ver `ESTADO_PADRAO`).
@@ -607,6 +678,78 @@ async function lerComercial(kv, escola) {
   return Object.assign({}, registo, { estado });
 }
 
+/**
+ * O CONTRATO É DE UM PLANO PAGO? A pergunta que decide se o congelamento ainda se aplica.
+ *
+ * «Aí se a escola pagar, ela contratar, aí eu clico em habilitar e a escola fica livre dentro
+ * daquele plano.» Pagar é o que LEVANTA o congelamento; «Habilitar» sozinho, não — e é por isso que
+ * esta função existe separada do estado.
+ *
+ * Um plano é pago quando o seu id está na escada de assinaturas do catálogo. O `consultoria` não
+ * está, e a comparação é com o catálogo e não com uma lista escrita aqui: uma segunda lista de
+ * planos pagos envelheceria no dia em que a escada mudasse.
+ */
+function planoPago(plano) {
+  const id = String(plano == null ? '' : plano).trim().toLowerCase();
+  if (!id) return false;
+  return Boolean(assinaturaPorId(id));
+}
+
+/**
+ * O PERÍODO DA CONSULTORIA — o que foi entregue, e até quando.
+ *
+ * Devolve `null` quando não há período: uma escola que nunca foi entregue não tem prazo a correr.
+ * Nota que ela TEM limites desde a criação (o teto total, sem loophole) — o que não tem é relógio.
+ */
+function periodoDaConsultoria(contrato) {
+  const c = contrato || {};
+  const p = c.periodoDeConsultoria;
+  if (!p || typeof p !== 'object') return null;
+  const entregueEm = String(p.entregueEm || '').trim() || null;
+  const terminaEm = String(p.terminaEm || '').trim() || null;
+  if (!entregueEm && !terminaEm) return null;
+  return {
+    entregueEm,
+    terminaEm,
+    convertidaEm: String(p.convertidaEm || '').trim() || null,
+    /* UMA PRORROGAÇÃO É UM FACTO DECLARADO (25/11/2026). «Se a escola que está em teste disser para
+     * mim: me dá mais um mês de teste, eu dou mais um mês de teste.» Ela existe, mas não é um botão
+     * de renovação: é um elo no histórico, com motivo e data, e o número de prorrogações fica à
+     * vista — «não se renova» continua verdadeiro, e uma excepção tem dono. */
+    prorrogacoes: Array.isArray(p.prorrogacoes) ? p.prorrogacoes.slice() : [],
+  };
+}
+
+/**
+ * O ESTADO EFECTIVO — o que a escola PODE FAZER agora, e não só o que está gravado.
+ *
+ * A ordem das perguntas é a ordem das consequências, e cada degrau vence o seguinte:
+ *
+ *   1. `suspensa` guardada → `suspensa`. Uma escola suspensa por ela não é uma demonstração: o
+ *      primeiro facto manda, e é o que inicia a carência do expurgo.
+ *   2. `aguardando` guardada → `aguardando`. Ninguém conciliou o pagamento; não há o que ler.
+ *   3. plano PAGO → `ativa`. O contrato levanta o congelamento, e o período fica como história.
+ *   4. há período e o prazo passou → `expirada`.
+ *   5. caso contrário → `ativa`.
+ *
+ * O degrau 3 vem antes do 4 de propósito: é a garantia de que «Habilitar» sozinho não é uma porta
+ * de fuga — se ela clicar sem contrato pago, o efectivo continua `expirada` e a escola abre em
+ * só-leitura. A única porta é o contrato.
+ */
+function estadoEfetivo({ contrato, agora } = {}) {
+  const c = contrato || {};
+  const guardado = ESTADOS.indexOf(String(c.estado || '')) !== -1 ? String(c.estado) : ESTADO_PADRAO;
+  if (!c || !Object.keys(c).length) return guardado;
+  if (guardado === 'suspensa' || guardado === 'aguardando') return guardado;
+  if (planoPago(c.plano || c.assinatura)) return 'ativa';
+  const periodo = periodoDaConsultoria(c);
+  if (!periodo || !periodo.terminaEm) return guardado;
+  const fim = Date.parse(periodo.terminaEm);
+  const hoje = agora ? Date.parse(String(agora)) : Date.now();
+  if (Number.isNaN(fim) || Number.isNaN(hoje)) return guardado;
+  return hoje > fim ? 'expirada' : guardado;
+}
+
 /** O mesmo, a partir do `env` de uma escola (o `ESCOLA_SLUG` diz de quem é o registo). */
 async function comercialDaEscola(env) {
   return lerComercial(env && env.PADD_KV, env && env.ESCOLA_SLUG);
@@ -619,6 +762,11 @@ module.exports = {
   ESTADO_PADRAO,
   ESTADOS,
   MENSAGEM_DA_SUSPENSAO,
+  MENSAGEM_DA_EXPIRADA,
+  ESTADOS_EFETIVOS,
+  planoPago,
+  periodoDaConsultoria,
+  estadoEfetivo,
   lerComercial,
   comercialDaEscola,
   assinaturaPorId,

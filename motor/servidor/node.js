@@ -79,6 +79,14 @@ function montar() {
     dono: 'tmenegaz',
     repo: 'danca',
     workflow: 'gerar-ciclo.yml',
+    /* A COTA DE CICLOS — E A PONTE DE NODE É DECLARADA (25/11/2026).
+     *
+     * O plano exige que AS TRÊS pontes passem a cota, senão o teto funciona no botão A e não no
+     * botão B. Esta é a ponte de desenvolvimento: corre em Node, não tem `env` nem `ASSETS` nem o
+     * KV da escola, e portanto não tem como contar. O que ela faz é DIZER ISSO — `ok: true` com o
+     * motivo —, e não fingir uma contagem que não fez. A prova mede as três pontes e exige que a
+     * de produção RECUSE; esta declara-se muda, e a declaração está aqui em vez de num silêncio. */
+    cota: async () => ({ ok: true, motivo: 'ponte de desenvolvimento — sem KV nem ASSETS para contar' }),
   });
   const escreverPO = criarEscritorDePO({
     token: process.env.GITHUB_TOKEN || null,

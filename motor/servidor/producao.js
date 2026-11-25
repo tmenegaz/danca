@@ -1035,19 +1035,40 @@ async function fetch(request, env) {
         'pagamento. Assim que estiver liberada, este mesmo endereço abre a escola.</p>' +
         '<p class="nota">Escola: <code>' + esc(env.ESCOLA_SLUG) + '</code></p>', 503);
     }
-    if (comercial && comercial.estado === 'suspensa' && ehEscrita(request, path)) {
+    /* O CONGELAMENTO DA CONSULTORIA (25/11/2026) — o mesmo `ehEscrita`, um estado novo.
+     *
+     * «Ele fica desabilitado automaticamente depois desse prazo de um mês […] Ela só pode ler as
+     * coisas.» O estado é CALCULADO (`estadoEfetivo`), não gravado: o que está no KV continua
+     * `ativa`, e é isso que faz o congelamento não iniciar a carência do expurgo — o fim de uma
+     * demonstração não é dívida (L12), e tratá-lo pela régua da inadimplência bloquearia quem nunca
+     * deveu nada.
+     *
+     * A RECUSA É O MESMO 402 E A MESMA FORMA, com OUTRA FRASE. Duas frases porque são dois factos:
+     * a do `suspensa` manda «regularizar» e fala de pagamento em atraso; esta diz o que aconteceu —
+     * a demonstração terminou — e qual é a saída. A frase vem do núcleo, para a rota da senha do
+     * professor dizer a mesma. */
+    const efetivo = comercial
+      ? comercialDoNucleo.estadoEfetivo({ contrato: comercial }) : null;
+    const suspensa = efetivo === 'suspensa';
+    const expirada = efetivo === 'expirada';
+    if ((suspensa || expirada) && ehEscrita(request, path)) {
       /* A RECUSA É UM 402, e não um 403: não é «não tens permissão», é «o acesso está suspenso» —
        * e a diferença importa a quem lê o erro. O corpo é JSON quando o pedido é de uma rota de
        * dados (a página mostra a mensagem), e texto quando é uma navegação. */
       /* A FRASE VEM DO NÚCLEO, e não daqui: a rota da senha do professor diz a MESMA, e duas
        * cópias de uma frase são duas frases à espera de divergir. */
-      const mensagem = comercialDoNucleo.MENSAGEM_DA_SUSPENSAO;
+      const mensagem = expirada
+        ? comercialDoNucleo.MENSAGEM_DA_EXPIRADA
+        : comercialDoNucleo.MENSAGEM_DA_SUSPENSAO;
       if (path.startsWith('/api/')) {
-        return new Response(JSON.stringify({ ok: false, erro: mensagem, suspensa: true }), {
+        return new Response(JSON.stringify(Object.assign(
+          { ok: false, erro: mensagem }, expirada ? { expirada: true } : { suspensa: true },
+        )), {
           status: 402, headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' },
         });
       }
-      return respostaEstado('Acesso suspenso', '<p>' + esc(mensagem) + '</p>', 402);
+      return respostaEstado(expirada ? 'Demonstração terminada' : 'Acesso suspenso',
+        '<p>' + esc(mensagem) + '</p>', 402);
     }
   }
 

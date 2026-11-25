@@ -4,7 +4,19 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **o contador de aulas existe, e o excedente é uma linha.** A
+> **Última fotografia:** 25/11/2026 — **o plano consultoria existe, e o mês corre da entrega.** A
+> escola que está em consultoria ganhou o nome que ela decidiu — **plano consultoria** — e os sete
+> limites duros: 2 professores (o titular e mais um), 5 alunas, 2 ciclos, 2 modalidades, 3 aulas, 2
+> salas, 3 turmas. O mês começa no botão **«Entregar à escola»** e fecha no último instante do dia
+> local (`fuso.fimDeUmMes`); a partir daí o estado **`expirada`** é **calculado** — sem cron — e a
+> escola só lê. Ele **não inicia a carência do expurgo**, e o estado guardado continua `ativa`: é
+> isso que impede que o fim de uma demonstração se confunda com inadimplência. **Pagar é a única
+> porta** que levanta o congelamento; «Habilitar» sozinho, não. Os sete tetos recusam N+1 no motor —
+> professores e alunas na rota, salas e modalidades na rota da sala, turmas na da curadoria, ciclos
+> no `criarDisparador` (**as três pontes**), aulas no lançamento —, e cada recusa nomeia o limite e
+> a saída. As aulas são o único teto **de vida**: um livro de identidades no registo comercial, que
+> não se lê do disco, e por isso apagar um ciclo não devolve vagas. Antes disso, no mesmo dia: **o
+> contador de aulas existe, e o excedente é uma linha.** A
 > franquia deixou de ser um número no ecrã: uma aula conta quando está no `aulas` do `-dados.json`
 > (na prática `lancada === true`), uma vez por número, no mês da **data da aula** — e o total é
 > derivado, nunca guardado. A contagem guarda-se como **conjunto de factos** (`piano/01 →
@@ -7518,6 +7530,27 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **25/11/2026** — **O plano consultoria e o mês de demonstração.** O limitador da escola em
+  consultoria, com o nome que ela decidiu. Os sete limites vivem no catálogo
+  (`planos.json → consultoria.limites`), com `publico: false` — a entrada existe para o motor e não
+  para a oferta —, e a regra é **pura** (`motor/nucleo/cotas.js`): recebe a contagem, devolve «cabe»
+  ou a frase. **O regime manda**: numa assinatura paga nenhuma das sete recusa (§ADITIVO §2), e é por
+  isso que a mesma função serve os dois. **Gente, salas, turmas e modalidades são teto CONCORRENTE**
+  (quem sai liberta o lugar); **as aulas são de VIDA** — um livro de identidades
+  (`professor/variante/numero`) que só cresce, e por isso apagar um ciclo não devolve vaga. O mês
+  começa na **entrega**, não na criação, e fecha no último instante do dia **local** — cortar os
+  dígitos do ISO daria um vencimento às 21:00 do dia anterior, e a escola perderia um dia. O estado
+  **`expirada` é calculado**, não gravado: sem cron, idempotente, e é o estado guardado `ativa` que
+  faz o congelamento **não** iniciar a carência. A recusa é o mesmo `402` do `suspensa`, com **outra
+  frase** — uma escola que parou de pagar não é uma demonstração que acabou. A **prorrogação** existe
+  e é um acto declarado (conta do fim já marcado, com motivo, e fica no histórico). As sete travas
+  estão ligadas, incluindo os **ciclos no `criarDisparador`** — as três pontes, senão o teto
+  funcionava no botão A e não no B. `provar-a-escola-em-consultoria` **70** asserções.
+  **Duas coisas declaradas, e uma delas corrige o plano:** a **Q9** ficou na leitura **B** por
+  medição (a aula 01 só conta quando é lançada — o dado diz `lancada: false` nas 24), e por isso
+  dois ciclos gastam **0** das 3 aulas, e não 2; e **onerar ≠ interromper** — na consultoria o teto
+  interrompe, no plano pago a franquia gera excedente a R$ 8,00.
 
 - **25/11/2026** — **O contador de aulas: a franquia deixa de ser um número no ecrã.** A regra é a do
   `PLANO-CONTADOR-DE-AULAS.md` §2 — uma aula conta quando está no `aulas` do `-dados.json`, uma vez

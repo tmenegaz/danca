@@ -636,3 +636,69 @@ usam as peças do catálogo, e nenhuma classe se inventa.
    estiverem fechados.
 7. **Pagar levanta o congelamento; «Habilitar» sozinho, não.**
 8. **A L12 é substituída, e a substituição tem de ser registada.**
+
+---
+
+## 17. O que ficou implementado — 25/11/2026
+
+> «Segue para o próximo passo.»
+
+**F1, F2, F3, F4 (as sete), F5 e metade da F6.** O portão do §11 — «o botão «Entregar à escola» só é
+ligado quando F4 inteira e F5 estiverem feitas» — está **cumprido**: as sete travas estão ligadas e o
+livro das aulas existe, e é por isso que o botão pode ser ligado.
+
+### 17.1 Onde cada peça ficou
+
+| Fase | O que é | Onde |
+|:--|:--|:--|
+| **F1** | os sete limites, puros, com o regime | `motor/nucleo/cotas.js` |
+| **F2** | a entrada `consultoria` (nome dela) e a criação | `biblioteca/comercial/planos.json`, `comercial.validarEscolha` |
+| **F3** | a entrega, o fim do mês, o estado efectivo | `fuso.fimDeUmMes`, `comercial.estadoEfetivo`, `POST /api/escola/consultoria` |
+| **F4** | as sete recusas | `travaDaConsultoria` (professores, alunas, salas, modalidades, turmas), `cotaDeCiclos` (ciclos, no `criarDisparador`), `lancamento.cota` (aulas) |
+| **F5** | o livro de identidades | `cotas.registarNoLivro`, escrito pelo Worker no `registar` do lançamento |
+| **F6** | a faixa da escola e a linha do painel | `bastidores.paginaFinanceiro`, `painel-html` (estado efectivo + «Entregar» / «Prorrogar») |
+| **F8** | a incorporação | esta secção, o `REGISTRO-2026.md` e o `ESTADO-ATUAL.md` |
+
+**A prova:** `experimentos/provar-a-escola-em-consultoria.js` — **70 asserções**, os dez blocos do §12
+e os que a decisão de hoje acrescentou (a prorrogação, onerar × interromper, as três pontes). Medida
+contra o `HEAD` anterior: o ficheiro nem carrega, porque `cotas.js` não existe — o A/B é o próprio
+nascimento do módulo.
+
+### 17.2 A Q9 — resolvida pela MEDIÇÃO, e contra o D5
+
+O §10.1-bis deixou uma contradição por fechar: **D5 diz que a aula 01 conta ao gerar o ciclo**, e o
+dado medido diz o contrário — o `ciclo-01-breu-piano-dados.json` de 25/11 tem `lancamentos: 0` e as
+24 aulas com `lancada: false`, incluindo a 01.
+
+**Ficou a leitura B**: a aula 01 conta **quando é lançada**, como qualquer outra. A razão é a
+disciplina da casa — *decidir não é tornar verdadeiro* —, e a alternativa (A) exigiria que o gerador
+escrevesse o registo da aula 01 no acto de gerar, o que **não** foi feito: seria uma segunda escrita
+no `-dados.json` pelo `gerar-ciclo.sh`, com o risco de o registo e o formulário discordarem.
+
+**A consequência, dita sem rodeios:** dois ciclos gastam **0** das 3 aulas, e o teto de 3 é o das
+**três primeiras aulas lançadas**, independentemente de quantos ciclos existam. O §10.1 («2 ciclos
+gastam 2 das 3») **não vale** — e o texto da oferta (F7) tem de dizer a regra certa: «dois ciclos
+planeados e três aulas processadas».
+
+**Se ela preferir A**, é uma linha no gerador: escrever `aulas['01']` com o carimbo da geração. Fica
+declarado aqui para não se descobrir por acidente.
+
+### 17.3 O que continua por fazer
+
+| # | O que falta | Porque não agora |
+|:--|:--|:--|
+| **F6** | a faixa na **página da escola** (Produção) | a faixa está no mês a mês, que é onde o extrato vive; a Produção tem o cartão do contrato, e o lugar da faixa lá é uma decisão de desenho |
+| **F6** | a página congelada com o caminho para contratar | o `402` já recusa e já diz a frase; falta a página de navegação com o link comercial |
+| **F7** | o texto do mês e dos limites na página de planos | depende da Q2 (o que se quer vender) |
+| — | o **cadastro do consultor** (qual escola, quem atende) | é uma frente nova, e ela disse que «isso a gente vai precisar mais para frente» |
+| — | a escolha do plano consultoria **no formulário do financeiro** | hoje ele entra pelo `plano: 'consultoria'` na criação; o `<select>` do contrato ainda oferece só os três pagos |
+
+### 17.4 O que o §10.2 dizia, e ficou medido no código
+
+- **5 alunas para 3 turmas** (Q1): a travagem conta o **cadastro** de alunas e as turmas **vigentes**,
+  e não exige elenco. Uma terceira turma sem elenco passa — a Q1 continua aberta como decisão
+  comercial, mas **não é um defeito do limitador**.
+- **2 salas para 3 turmas** (§10.3): a validação de ocupação não foi tocada; o teto de salas conta
+  `ativo !== false`, e uma sala com duas faixas continua a ser uma sala.
+- **A modalidade só ocupa lugar se for nova** — uma segunda sala de balé numa escola que só tem balé
+  não gasta a segunda vaga. É a diferença entre «modalidades distintas» e «salas com modalidade».

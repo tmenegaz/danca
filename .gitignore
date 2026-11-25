@@ -2037,3 +2037,9 @@ experimentos/modelo-formulario/*
 # contra o preço do pacote, e a cópia que a raiz lê — com o controlo negativo que discrimina (a mesma
 # aula registada duas vezes tem de continuar a contar uma).
 !experimentos/provar-o-contador.js
+
+# O PLANO CONSULTORIA (25/11/2026). Os sete limites são uma promessa comercial e o congelamento é
+# a única coisa que impede uma escola de trabalhar sem pagar: uma regra que só existe na máquina de
+# quem a escreveu não protege ninguém. Mede o mês no calendário local, o só-leitura, a não-renovação
+# das aulas, e que as três pontes do ciclo passam a cota.
+!experimentos/provar-a-escola-em-consultoria.js

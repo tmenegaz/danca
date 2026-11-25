@@ -102,10 +102,26 @@ async function dispararGeracao({
  * Sem turma no contexto, a variante É a escola — o caso das escolas de uma turma só,
  * e o comportamento anterior fica intacto (a prova confere os dois).
  */
-function criarDisparador({ token, dono, repo, workflow, ref }) {
+function criarDisparador({ token, dono, repo, workflow, ref, cota }) {
   if (!token) return null;
   return async (contexto) => {
     const ctx = contexto || {};
+    /* A COTA, ANTES DO DISPARO (25/11/2026) — e o sítio é este, e não uma rota.
+     *
+     * O ciclo nasce por TRÊS pontes (`bastidores.js`, `node.js`, `cloudflare.js`), todas por esta
+     * função. Uma trava numa rota só deixaria as outras duas abertas, e o sintoma seria o pior de
+     * todos: o teto a funcionar no botão A e a não funcionar no botão B. A regra é uma, e vive onde
+     * as três passam.
+     *
+     * A verificação é ANTES do `workflow_dispatch` porque depois dele o custo já foi pago e o ciclo
+     * já existe. `cota` é injectada por quem tem o KV; sem ela nada é travado, e a prova declara
+     * quais pontes a fornecem — uma ponte muda é uma porta aberta em silêncio. */
+    if (typeof cota === 'function') {
+      const veredicto = await cota(ctx);
+      if (veredicto && veredicto.ok === false) {
+        return { ok: false, motivo: 'cota', erro: veredicto.erro || 'o limite de ciclos desta escola já foi atingido' };
+      }
+    }
     return dispararGeracao({
       token,
       dono,

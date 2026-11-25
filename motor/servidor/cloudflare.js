@@ -29,6 +29,9 @@ const { contarSubpedidos, LIMITE_PADRAO } = require('./subpedidos.js');
 const repoEscola = require('./repo-escola.js');
 const acervo = require('./acervo-envelopes.js');
 const { criarAcervoDeLancamentos, consolidarDoKv, DONO_PADRAO, REPO_PADRAO, REF_PADRAO } = require('./acervo-lancamentos.js');
+/* AS COTAS DA CONSULTORIA (25/11/2026) — ver `motor/nucleo/cotas.js`. */
+const cotasDoNucleo = require('../nucleo/cotas.js');
+const { cotaDeCiclos } = require('./contador-da-escola.js');
 const Cifra = require('../../tools/lib-cifra.js');
 // O ÍNDICE DO ACERVO (20/10/2026, fase 4): a camada de I/O de `nucleo/indices.js`.
 const { criarIndice } = require('./indice-acervo.js');
@@ -256,7 +259,83 @@ function criarLancamento(env) {
    * «não dada» pelo índice, que é exactamente o defeito que este trabalho veio corrigir. Quem
    * cifra é a GERAÇÃO, ao montar a cópia pública (`cifrar-envelope.js`): a fonte em claro, o
    * pacote publicado cifrado. É a mesma divisão do `-dados.json` desde o princípio. */
-  return { autorizar: senhaDaEscola(env) };
+  /* A COTA DAS AULAS DA CONSULTORIA (25/11/2026) — a verificação antes, o registo depois.
+   *
+   * As duas vivem aqui porque é aqui que o KV existe. O núcleo do lançamento (`lancamento.js`) só
+   * sabe perguntar e registar; quem responde é esta ponte, com o catálogo e o registo comercial.
+   *
+   * O QUE CONTA COMO «AULA NOVA»: uma chave `professor/variante/numero` que ainda não está no
+   * livro. É o que faz a regra ser «não se renova»: relançar a mesma aula (o ajuste) não gasta uma
+   * segunda vaga, e apagar o ciclo não devolve a que já foi gasta — o livro não se lê do disco. */
+  const livroDaEscola = async (slug) => {
+    const kv = env && env.PADD_KV;
+    if (!kv || typeof kv.get !== 'function') return null;
+    try {
+      const bruto = await kv.get('bastidores/' + slug + '/comercial');
+      const registo = bruto ? JSON.parse(bruto) : null;
+      return { kv, registo: registo || null };
+    } catch (erro) {
+      return null;
+    }
+  };
+  const chavesNovas = ({ dados, professor, variante, livro }) => {
+    const aulas = (dados && dados.aulas) || {};
+    const novas = [];
+    for (const numero of Object.keys(aulas)) {
+      const chave = cotasDoNucleo.chaveDaAulaNoLivro({ professor, variante, numero });
+      if (chave && !Object.prototype.hasOwnProperty.call(livro.aulas, chave)) {
+        novas.push({ chave, numero, data: String((aulas[numero] && aulas[numero].data) || '') });
+      }
+    }
+    return novas;
+  };
+  const cota = async ({ dados, professor, escola: escolaDoPedido, variante }) => {
+    const slug = String(escolaDoPedido || (env && env.ESCOLA_SLUG) || '').trim();
+    const lido = await livroDaEscola(slug);
+    /* SEM KV NÃO SE TRAVA — e diz-se. É a bancada de desenvolvimento, onde não há registo
+     * comercial; inventar um teto sobre um estado que não existe seria pior do que não travar. */
+    if (!lido || !lido.registo) return { ok: true, motivo: 'sem registo comercial' };
+    const contrato = lido.registo;
+    const livro = cotasDoNucleo.lerLivroDeAulas(contrato.aulasDaConsultoria);
+    const novas = chavesNovas({ dados, professor, variante, livro });
+    if (!novas.length) return { ok: true, novas: 0 };
+    /* A CONTA É «DEPOIS DE ENTRAR, CABE?», e não «cabe mais uma?» — porque um lançamento pode
+     * trazer MAIS DO QUE UMA aula (o ajuste de um dia, ou o resumo de um período), e recusar ao
+     * segundo seria gravar metade do que a pessoa pediu. */
+    const jaGastas = cotasDoNucleo.aulasNoLivro(livro);
+    const limites = cotasDoNucleo.limitesDoRegime(contrato);
+    if (!limites) return { ok: true, novas: novas.length, motivo: 'sem teto neste regime' };
+    const limite = limites.aulas;
+    if (jaGastas + novas.length > limite) {
+      return {
+        ok: false, cota: true, dimensao: 'aulas',
+        erro: cotasDoNucleo.fraseDaRecusa({ dimensao: 'aulas', limite, usados: limite }),
+      };
+    }
+    return { ok: true, novas: novas.length };
+  };
+  const registar = async ({ dados, professor, escola: escolaDoPedido, variante }) => {
+    const slug = String(escolaDoPedido || (env && env.ESCOLA_SLUG) || '').trim();
+    const lido = await livroDaEscola(slug);
+    if (!lido || !lido.registo) return { ok: false, motivo: 'sem registo comercial' };
+    let livro = cotasDoNucleo.lerLivroDeAulas(lido.registo.aulasDaConsultoria);
+    const novas = chavesNovas({ dados, professor, variante, livro: livro });
+    if (!novas.length) return { ok: true, novas: 0 };
+    const quando = new Date().toISOString();
+    for (const n of novas) livro = cotasDoNucleo.registarNoLivro(livro, {
+      professor, variante, numero: n.numero,
+    }, n.data || quando);
+    try {
+      await lido.kv.put('bastidores/' + slug + '/comercial', JSON.stringify(Object.assign(
+        {}, lido.registo, { aulasDaConsultoria: livro },
+      )));
+      return { ok: true, novas: novas.length, total: cotasDoNucleo.aulasNoLivro(livro) };
+    } catch (erro) {
+      return { ok: false, erro: (erro && erro.message) || String(erro) };
+    }
+  };
+
+  return { autorizar: senhaDaEscola(env), cota, registar };
 }
 
 /** Os passos de geração, a partir do token (null = não existe). */
@@ -363,7 +442,23 @@ function passosDeGeracao(env, fetchImpl) {
    * teto, e é isso que permite ao último perguntar o que sobra antes de começar. Um contador por
    * módulo era a leitura que faltava: cada um julgava-se dentro do limite enquanto o conjunto já
    * o tinha passado. */
-  const disparar = criarDisparador({ token, dono: 'tmenegaz', repo: 'danca', workflow: 'gerar-ciclo.yml' });
+  const disparar = criarDisparador({
+    token, dono: 'tmenegaz', repo: 'danca', workflow: 'gerar-ciclo.yml',
+    /* A COTA DE CICLOS TAMBÉM NESTA PONTE (25/11/2026). Esta é a ponte da CADEIA, e o que ela faz
+     * quase sempre é REGERAR um pacote que já existe — e regerar não consome vaga. A pergunta é
+     * portanto «esta variante já está publicada?», e é a mesma das outras pontes: a regra é uma, e
+     * vive em `cotas.js`.
+     *
+     * O `prefixoDaArvore` é o mesmo que o índice das aulas usa: no shard o pacote vive debaixo do
+     * prefixo da escola, e um caminho sem ele responde 404 — e um 404 lido como «não existe» faria
+     * um ciclo que existe contar como novo. */
+    cota: async (ctx) => {
+      const escolaDoCtx = String((ctx && ctx.escola) || (env && env.ESCOLA_SLUG) || '').trim();
+      const variante = String((ctx && ctx.variante) || '').trim();
+      const lido = await cotaDeCiclos({ env, escola: escolaDoCtx, variante });
+      return lido;
+    },
+  });
   const escreverPO = criarEscritorDePO({ token, dono: 'tmenegaz', repo: 'danca', ref: 'main', derivarPO, fetchImpl });
   const escreverPlano = criarEscritorDePlano({
     token,

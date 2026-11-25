@@ -106,6 +106,25 @@
     "porPeriodo": {},
     "avista": null
   },
+  "consultoria": {
+    "_nota": "O PLANO CONSULTORIA (25/11/2026) — o nome é dela: «eu acho que a gente pode chamar de plano consultoria, alguma coisa assim, porque aí fica claro para mim que se trata daquele consultor». É o plano da escola que ainda está em consultoria, que ainda não foi habilitada e não pagou: é o ambiente montado com o nome dela, entregue por um mês, com estes sete limites duros que NÃO SE RENOVAM. No fim do mês a escola fica em só-leitura (estado calculado `expirada`), e não é apagada — o congelamento não inicia a carência do expurgo. `publico: false` porque a entrada existe para o motor e não para a oferta: um plano de demonstração ao lado dos pagos seria uma quarta porta na escada. `aulas` é a franquia que as PÁGINAS já lêem; `limites.aulas` é o teto DE VIDA da demonstração — são dois factos diferentes, e o de vida é o que não se renova. Ver PLANO-DA-ESCOLA-EM-CONSULTORIA.md.",
+    "id": "consultoria",
+    "nome": "Plano consultoria",
+    "preco": 0,
+    "aulas": 3,
+    "publico": false,
+    "duracaoMeses": 1,
+    "limites": {
+      "professores": 2,
+      "alunas": 5,
+      "ciclos": 2,
+      "modalidades": 2,
+      "aulas": 3,
+      "salas": 2,
+      "turmas": 3
+    }
+  },
+
   "pacotesDeAulas": {
     "_nota": "AS EXTENSÕES DE AULAS (§ADITIVO §5), medidas a R$ 0,50 por aula. O preço não é um custo a minimizar: é um COMANDO que escolhe onde a migração acontece. A regra que ele cumpre é a da proprietária: «o custo unitário da aula da extensão é maior do que o custo unitário da aula do próximo plano». A aula do Intermediário custa R$ 0,312 e a do Avançado R$ 0,280; a R$ 0,50 a extensão é mais cara do que o degrau para onde se migraria, e mais barata do que a aula do Básico (R$ 0,538) — no degrau de entrada ela melhora o preço médio de quem a compra. Consequência medida (com a escada 130/320/500 de 25/11/2026): a migração do Básico acontece às 190 aulas (190 de 320, 59% da franquia) e a do Intermediário às 400 (de 500, 80%). Abaixo do ponto de viragem o desembolso manda e a extensão ganha; acima, o preço por aula manda e o plano ganha. A R$ 0,20 (uma proposta anterior) a extensão ficaria MAIS BARATA do que a aula do Intermediário e ninguém migraria nunca — é o que a prova `provar-o-custo-de-uma-aula` reprova. Sobre o Avançado não há degrau acima: a extensão custa 1,79× a aula do próprio plano (era 2,86× com a franquia de 800), e é declarado — acima de 500 aulas a conversa é com a proprietária.",
     "itens": [

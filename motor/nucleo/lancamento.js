@@ -114,7 +114,7 @@ const slugDe = (indice, dados) => {
  * LANÇA `Error` (mensagem para a recusa).
  */
 async function lancar(armazenamento, corpo, opcoes) {
-  const { autorizar, cifrar, depois } = opcoes || {};
+  const { autorizar, cifrar, depois, cota, registar } = opcoes || {};
 
   // A PORTA FECHADA POR PADRÃO: sem conferência de senha injetada, o lançamento NÃO acontece.
   // A alternativa (aceitar quando ninguém injetou nada) faria de um esquecimento da ponte uma
@@ -162,6 +162,27 @@ async function lancar(armazenamento, corpo, opcoes) {
   // traz nome, presença e observação de aluna, e o índice traz a data de cada aula. Sem `cifrar`
   // — escola sem a chave no Worker — o texto vai como veio, e a resposta DIZ isso (`cifrado:
   // false`), porque guardar em claro por falta de chave não pode ser silencioso.
+  /* O TETO DAS AULAS DA CONSULTORIA — A TRAVA ANTES DE A AULA EXISTIR (25/11/2026).
+   *
+   * «No máximo três aulas podem acontecer.» A verificação é aqui, e não numa rota: o lançamento é
+   * o acto que faz a aula EXISTIR, e é o único sítio onde o facto nasce. Depois de gravar, o custo
+   * já foi pago e o ficheiro já mudou — recusar aí seria apagar trabalho em vez de o não criar.
+   *
+   * `cota` é injectado por quem tem o KV (o Worker). Sem ele — a bancada de Node, um teste — nada
+   * é travado, e é de propósito: uma função pura não inventa um estado que não tem. A ponte que
+   * não injecta fica declarada na prova, e não em silêncio.
+   *
+   * A recusa é de NEGÓCIO: `lancar` lança, e a rota traduz para `{ ok: false, erro }` com HTTP 200
+   * — que é o contrato do formulário («o cliente lê `dados.erro` e troca a mensagem útil por HTTP
+   * 500 num 5xx»). */
+  const variante = varianteDoNomeDeDados(basename(dadosDe.nome));
+  if (typeof cota === 'function') {
+    const veredicto = await cota({ dados, indice, professor, escola, ciclo, variante });
+    if (veredicto && veredicto.ok === false) {
+      throw new Error(veredicto.erro || 'o limite de aulas desta escola já foi atingido');
+    }
+  }
+
   const comCifra = typeof cifrar === 'function';
   const escritos = [];
   for (const a of [dadosDe, indiceDe]) {
@@ -185,12 +206,26 @@ async function lancar(armazenamento, corpo, opcoes) {
     escritos.push(a.nome);
   }
 
+  /* O REGISTO DA AULA NO LIVRO DA CONSULTORIA (25/11/2026) — DEPOIS de a fonte estar escrita, e
+   * sem poder derrubar o lançamento. A aula já existe no repositório; o livro é a memória de que ela
+   * existiu, e uma falha a escrevê-lo não pode desfazer o que o professor fez. Volta a ser tentado
+   * no lançamento seguinte, porque o livro é fundido a partir do payload. */
+  let registoDaCota = null;
+  if (typeof registar === 'function') {
+    try {
+      registoDaCota = await registar({ dados, indice, professor, escola, ciclo, variante });
+    } catch (erro) {
+      registoDaCota = { ok: false, erro: erro.message };
+    }
+  }
+
   const resultado = {
     ok: true, professor, escola, ciclo, escritos, cifrado: comCifra,
+    ...(registoDaCota ? { cota: registoDaCota } : {}),
     // A VARIANTE é o que a geração precisa e o resto do corpo não tem: ela vive no NOME do
     // arquivo de dados (`ciclo-01-<variante>-dados-<carimbo>.json`), que é o único sítio onde
     // o formulário a declara. Sem ela, o disparo não sabe que pacote gerar.
-    variante: varianteDoNomeDeDados(basename(dadosDe.nome)),
+    variante,
     carimbo: carimbo ? carimbo[1] : null,
   };
   /* O DEPOIS — e ele NÃO pode derrubar o lançamento. A gravação já aconteceu; o que falta é o

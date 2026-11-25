@@ -28,6 +28,8 @@ const correio = require('./correio.js');
 /* A COMPOSIÇÃO COMERCIAL (25/11/2026) — os planos, a capacidade e a conta, de uma fonte só
  * (`biblioteca/comercial/planos.json`). Nenhum preço se escreve em código. */
 const comercial = require('../nucleo/comercial.js');
+/* AS COTAS DA CONSULTORIA (25/11/2026) — ver `motor/nucleo/cotas.js`. */
+const cotasDoNucleo = require('../nucleo/cotas.js');
 const cobrancasDoNucleo = require('../nucleo/cobrancas.js');
 /* O CONTADOR DE AULAS (25/11/2026). Dois módulos porque são duas responsabilidades: o NÚCLEO soma e
  * decide (puro), e o da escola sabe onde a cópia mora. Aqui só se lê a cópia — a raiz não reconcilia,
@@ -4363,6 +4365,107 @@ async function fetch(request, env) {
   }
 
   /* =====================================================================================
+   * A ENTREGA DA ESCOLA EM CONSULTORIA — o clique que faz o mês começar (25/11/2026).
+   *
+   * «Eu vou deixar para a escola esse ambiente configurado com o nome dela, disponível para ela usar
+   * por um mês.» O mês começa AQUI, e não na criação: o tempo da consultoria não pode comer o prazo
+   * da escola, senão a escola recebe um ambiente com dois dias de validade e não entende porquê.
+   *
+   * `entregueEm` É UM FACTO ÚNICO. Não se recalcula, não se reinicia ao «Habilitar», e uma segunda
+   * entrega não o move — é ele que a auditoria lê para saber quando a promessa foi feita.
+   * `terminaEm` é gravado UMA VEZ, e não derivado de «agora»: um valor calculado a cada leitura
+   * mudaria com o relógio e faria a data mentir.
+   *
+   * A CONTA DO MÊS É A DO CALENDÁRIO LOCAL (`fuso.fimDeUmMes`): o último instante do dia local,
+   * guardado em UTC. Cortar os dígitos do ISO — o defeito que o `fuso.js` já pagou — daria um
+   * vencimento às 21:00 do dia anterior, e a escola perderia um dia sem ninguém entender.
+   * ===================================================================================== */
+
+  if (url.pathname === '/api/escola/consultoria' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    const slug = String(corpo.escola || '').trim().toLowerCase();
+    if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) {
+      return responderJson({ ok: false, erro: 'informe a escola' }, 400);
+    }
+    if (!(env && env.PADD_KV)) {
+      return responderJson({ ok: false, erro: 'PADD_KV ausente na raiz' }, 500);
+    }
+    let contrato = null;
+    try { contrato = await lerComercial(env.PADD_KV, slug); } catch (erro) { contrato = null; }
+    if (!contrato || !contrato.plano) {
+      return responderJson({ ok: false, erro: 'escola desconhecida: «' + slug + '» não tem contrato' }, 400);
+    }
+    const acao = String(corpo.acao || 'entregar').trim().toLowerCase();
+    const periodo = comercial.periodoDaConsultoria(contrato);
+    const agora = new Date().toISOString();
+
+    if (acao === 'entregar') {
+      /* UMA ENTREGA, UMA VEZ. Entregar de novo não reinicia o mês — reiniciá-lo seria exactamente
+       * a renovação que ela proibiu. A saída para «mais um mês» é a prorrogação, abaixo, que é um
+       * acto declarado e não um segundo «entregar». */
+      if (periodo && periodo.entregueEm) {
+        return responderJson({
+          ok: false,
+          erro: 'esta escola já foi entregue em ' + fuso.quandoLocal(periodo.entregueEm)
+            + ' e o mês não se reinicia. Para mais tempo, use a prorrogação.',
+          periodo,
+        }, 409);
+      }
+      const terminaEm = fuso.fimDeUmMes(agora);
+      if (!terminaEm) {
+        return responderJson({ ok: false, erro: 'não consegui calcular o fim do mês — nada foi entregue' }, 500);
+      }
+      const gravado = await gravarComercial(env.PADD_KV, slug, {
+        periodoDeConsultoria: {
+          entregueEm: agora,
+          terminaEm,
+          convertidaEm: null,
+          prorrogacoes: [],
+        },
+        nota: 'entregue à escola — o mês da demonstração começa hoje',
+      }, 'proprietario');
+      if (!gravado.ok) return responderJson({ ok: false, erro: gravado.erro }, 500);
+      return responderJson({
+        ok: true, acao: 'entregar', escola: slug,
+        entregueEm: agora, terminaEm,
+        entregueEmTexto: fuso.quandoLocal(agora), terminaEmTexto: fuso.quandoLocal(terminaEm),
+      });
+    }
+
+    if (acao === 'prorrogar') {
+      /* «Se a escola que está em teste disser para mim: me dá mais um mês de teste, eu dou mais um
+       * mês.» A prorrogação EXISTE e é um acto dela — mas não é um botão de renovação: conta a
+       * partir do fim que já estava marcado (não de hoje), leva motivo, e fica no histórico como elo.
+       * É a terceira coisa do §7: «não se renova» continua verdadeiro, e a excepção tem dono. */
+      if (!periodo || !periodo.terminaEm) {
+        return responderJson({ ok: false, erro: 'esta escola ainda não foi entregue — não há mês a prorrogar' }, 409);
+      }
+      const base = periodo.terminaEm;
+      const novoFim = fuso.fimDeUmMes(base);
+      if (!novoFim) {
+        return responderJson({ ok: false, erro: 'não consegui calcular o novo fim — nada foi alterado' }, 500);
+      }
+      const motivo = String(corpo.motivo || '').trim()
+        || 'prorrogação pedida pela escola durante a consultoria';
+      const prorrogacoes = periodo.prorrogacoes.concat([{
+        em: agora, de: base, para: novoFim, motivo, por: 'proprietario',
+      }]);
+      const gravado = await gravarComercial(env.PADD_KV, slug, {
+        periodoDeConsultoria: Object.assign({}, periodo, { terminaEm: novoFim, prorrogacoes }),
+        nota: 'demonstração prorrogada: ' + motivo,
+      }, 'proprietario');
+      if (!gravado.ok) return responderJson({ ok: false, erro: gravado.erro }, 500);
+      return responderJson({
+        ok: true, acao: 'prorrogar', escola: slug, de: base, terminaEm: novoFim,
+        terminaEmTexto: fuso.quandoLocal(novoFim), motivo,
+      });
+    }
+
+    return responderJson({ ok: false, erro: 'acção desconhecida: use «entregar» ou «prorrogar»' }, 400);
+  }
+
+  /* =====================================================================================
    * O FINANCEIRO — o ecrã onde ela põe a chave e concede descontos (25/11/2026).
    *
    * AS TRÊS ROTAS SÓ EXISTEM NO PAINEL. Elas não estão na lista do público, e a lista é uma
@@ -5296,6 +5399,17 @@ async function fetch(request, env) {
             ciclo: e.ciclo,
             total: e.total,
             estadoComercial: c.estado,
+            /* O ESTADO EFECTIVO, E A CONSULTORIA (25/11/2026). A lista passa a dizer o que a escola
+             * PODE FAZER, e não só o que está gravado: uma consultoria cujo mês terminou está
+             * `ativa` no registo e é `expirada` na prática. Vai o plano e o período — o prazo, e
+             * quantas vezes foi prorrogado —, e a contagem de aulas do livro, que é a única das sete
+             * que a raiz consegue ler sem o ASSETS da escola. */
+            estadoEfetivo: comercial.estadoEfetivo({ contrato: c }),
+            plano: c.plano || null,
+            planoNome: c.planoNome || null,
+            consultoria: comercial.periodoDaConsultoria(c),
+            aulasDaConsultoria: cotasDoNucleo.aulasNoLivro(c.aulasDaConsultoria),
+            tetoDeAulas: (cotasDoNucleo.limitesDoRegime(c) || {}).aulas || null,
             aNascer: nasceAgora.has(e.slug) || undefined,
             desabilitadaEm: c.desabilitadaEm || null,
             carenciaAte: veredicto.carenciaAte,

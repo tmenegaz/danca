@@ -127,6 +127,44 @@ function quandoLocal(iso, fuso) {
   return p ? p.dia + '/' + p.mes + '/' + p.ano + ' às ' + p.hora + ':' + p.minuto : '—';
 }
 
+/**
+ * O FIM DE UM MÊS DE CALENDÁRIO, NO FUSO DE QUEM LÊ (25/11/2026) — o `terminaEm` da consultoria.
+ *
+ * «Disponível para ela usar por um mês.» A conta é a do CALENDÁRIO LOCAL, e não a de 30 dias em
+ * milissegundos: um mês somado a 31/01 tem de dar 28/02 (ou 29), e não 02/03. E o fim é o último
+ * instante do dia local — 23:59:59.999 —, guardado em UTC: um corte às 21:00 do dia anterior (o
+ * que os dígitos do ISO dariam) faria a escola perder um dia inteiro sem ninguém entender porquê.
+ *
+ * Devolve `null` quando o que recebe não é um instante: quem chama trata a ausência, e não se
+ * inventa um prazo para uma data que não existe.
+ */
+function fimDeUmMes(iso, fuso) {
+  const p = partesLocais(iso, fuso);
+  if (!p) return null;
+  const ano = Number(p.ano);
+  const mes = Number(p.mes); // 1..12
+  const dia = Number(p.dia);
+  if (!Number.isFinite(ano) || !Number.isFinite(mes) || !Number.isFinite(dia)) return null;
+  /* O MESMO DIA NO MÊS SEGUINTE, com o dia limitado ao último daquele mês (31/01 + 1 mês = 28/02).
+   * A conta é feita em UTC, e o resultado é interpretado como data LOCAL — que é o que ela é. */
+  const alvoAno = mes === 12 ? ano + 1 : ano;
+  const alvoMes = mes === 12 ? 1 : mes + 1;
+  const ultimoDia = new Date(Date.UTC(alvoAno, alvoMes, 0)).getUTCDate();
+  const diaFinal = Math.min(dia, ultimoDia);
+  const mm = (alvoMes < 10 ? '0' : '') + alvoMes;
+  const dd = (diaFinal < 10 ? '0' : '') + diaFinal;
+  /* O último instante do dia local, escrito como instante UTC. O deslocamento é o daquele dia (a
+   * função sabe-o), e não o de hoje: um prazo que atravesse o horário de verão antigo tem de
+   * fechar à hora local certa naquele dia. */
+  const localMeiaNoite = Date.parse(alvoAno + '-' + mm + '-' + dd + 'T00:00:00Z');
+  if (Number.isNaN(localMeiaNoite)) return null;
+  const deslocamento = deslocamentoEmMinutos(new Date(localMeiaNoite), fuso);
+  /* 23:59:59.999 LOCAIS em UTC. O deslocamento diz quantos minutos o local está à frente do UTC
+   * (negativo no Brasil), e subtraí-lo converte. */
+  const fimLocal = Date.parse(alvoAno + '-' + mm + '-' + dd + 'T23:59:59.999Z');
+  return new Date(fimLocal - deslocamento * 60000).toISOString();
+}
+
 /** «09:25» — só a hora local. */
 function horaLocal(iso, fuso) {
   const p = partesLocais(iso, fuso);
@@ -199,6 +237,7 @@ module.exports = {
   diaLocal,
   quandoLocal,
   horaLocal,
+  fimDeUmMes,
   deslocamentoEmMinutos,
   etiquetaDoFuso,
 };
