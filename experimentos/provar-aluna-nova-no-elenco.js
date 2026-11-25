@@ -273,9 +273,21 @@ const RECORTE = ['cinco-posicoes-1a-pes', 'cinco-posicoes-2a-pes'];
    * vinte e cinco minutos antes. Concluir o elenco gravava e parava. Agora concluir dispara a
    * geração das variantes que ESCOLHERAM o elenco — e a resposta diz qual dos desfechos houve. */
   const FONTE = fs.readFileSync(path.join(RAIZ, 'motor/servidor/bastidores.js'), 'utf8');
+  /* A JANELA VAI ATÉ AO FIM DA TRAVESSIA, e não a um número de caracteres (25/11/2026).
+   *
+   * Era `slice(i, i + 3000)`, e em 25/11 o disparo ganhou o bloco que lê as salas e as curadorias
+   * para compor a variante da faixa — o `criarDisparador` passou a ficar a 3995 caracteres do
+   * início, fora da janela, e a asserção reprovou sobre um acerto. Uma prova que mede uma janela
+   * fixa mede o tamanho do comentário ao lado, e não o código.
+   *
+   * A janela passa a ir até ao fim de `gerarOsCiclosDasTurmas`, que é a travessia que o ato usa —
+   * as duas funções, uma a seguir à outra, e é nelas que as asserções abaixo moram. */
   const trecho = (() => {
     const i = FONTE.indexOf('async function gerarOsCiclosDoElenco');
-    return i === -1 ? '' : FONTE.slice(i, i + 3000);
+    if (i === -1) return '';
+    const depois = FONTE.indexOf('\nasync function ', i + 10);
+    const fim = depois === -1 ? FONTE.length : FONTE.indexOf('\nasync function ', depois + 10);
+    return FONTE.slice(i, fim === -1 ? FONTE.length : fim);
   })();
   provar('a conclusão do elenco dispara a geração', /gerarOsCiclosDoElenco\(env, escola, decidido\.linha\.id\)/.test(FONTE));
   provar('e o disparo é o MESMO da ponte, não um segundo (`criarDisparador` de `disparar.js`)',

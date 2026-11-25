@@ -338,7 +338,7 @@ const githubApi = require('./github-api.js');
  * repositório: o site serve o PACOTE. É a mesma peça e a mesma regra do `cloudflare.js` («o acto
  * termina na geração»), importada e não reescrita. */
 const { criarDisparador } = require('./disparar.js');
-const { varianteDoContexto } = require('./escrever-po.js');
+const { varianteDoContexto, varianteDaTurma } = require('./escrever-po.js');
 const { conteudo: ANAMNESE } = require('./corpo-seed.js');
 const { criarCloudflare } = require('../adaptadores/cloudflare.js');
 // A FORMA da barra de navegação e os destinos do SISTEMA — o mesmo módulo que o
@@ -899,6 +899,12 @@ function estadoDaAnamnese(matricula, anamneses) {
 async function turmas(kv, escola) {
   return lerLista(kv, RAIZ + '/' + escola + '/turmas');
 }
+/* O MESMO LEITOR, COM OUTRO NOME — porque `turmas` é o nome de um PARÂMETRO em
+ * `gerarOsCiclosDasTurmas`, e lá dentro a função fica sombreada. Chamá-la ali lançava
+ * `TypeError: turmas is not a function`, e a travessia morria antes de disparar a geração.
+ * Um alias declarado ao lado da definição é a forma de o dizer uma vez, em vez de renomear o
+ * parâmetro de uma função que o resto do ficheiro já conhece por esse nome. */
+const lerSalas = turmas;
 
 /**
  * A RÉGUA DA RUBRICA de uma turma: os níveis com que o resultado é medido no fim do ciclo.
@@ -2204,6 +2210,31 @@ async function gerarOsCiclosDasTurmas(env, escola, turmas, recados) {
       aviso: avisos.semPlano || 'nenhuma destas Turmas tem plano de ensino — não há ciclo para gerar.',
     };
   }
+  /* A VARIANTE DO DISPARO — e ela tem de bater com o nome do `.conf` (25/11/2026).
+   *
+   * O disparo leva ao workflow a `variante` do pacote. Ele compunha-a com `{escola, turma}`, e isso
+   * passou a estar errado para uma Sala com mais de uma faixa: o `.conf` chama-se
+   * `ciclo-01-breu-piano-bale-classico.conf` e o disparo pedia `breu-piano`. A geração não acharia
+   * o manifesto, e a resposta diria «o pacote não foi gerado» sobre um ciclo que existe.
+   *
+   * DUAS LEITURAS POR GESTO, e não por alvo: as salas (para saber se há mais de uma faixa) e as
+   * curadorias (para a modalidade). Um gesto de geração é raro e já custa uma geração inteira; o
+   * que não se pode é pagar isto por Turma num laço. */
+  /* `turmas` é o NOME DO PARÂMETRO desta função — usar a função homónima aqui dentro lançava
+   * `TypeError: turmas is not a function`, e a travessia morria antes de disparar. Apanhado por
+   * `provar-o-estilo-regera`, que é o único caminho que chega a esta travessia com uma Turma. */
+  const salasDoGesto = await lerSalas(env.PADD_KV, escola).catch(() => []);
+  const cursDoGesto = await curadorias(env.PADD_KV, escola).catch(() => []);
+  const varianteDoAlvo = (nome) => {
+    const sala = (Array.isArray(salasDoGesto) ? salasDoGesto : [])
+      .find((x) => x && String(x.nome || '').trim() === String(nome || '').trim()) || null;
+    const c = (Array.isArray(cursDoGesto) ? cursDoGesto : [])
+      .find((x) => x && !x.substituidaPor && turmasDaCuradoria(x).indexOf(String(nome || '').trim()) !== -1) || null;
+    return varianteDaTurma({
+      escola, turma: nome, faixas: sala && sala.faixas, modalidade: c && c.modalidade,
+    });
+  };
+
   const disparar = criarDisparador({
     token: (env && env.GITHUB_TOKEN) || null, dono: 'tmenegaz', repo: 'danca', workflow: 'gerar-ciclo.yml',
   });
@@ -2217,7 +2248,7 @@ async function gerarOsCiclosDasTurmas(env, escola, turmas, recados) {
     try {
       const r = await disparar({
         professor: a.professor, ciclo: a.ciclo, escola,
-        variante: varianteDoContexto({ escola, turma: a.turma }),
+        variante: varianteDoAlvo(a.turma),
       });
       /* A TURMA VAI NO DISPARO (19/11/2026). A `variante` é o NOME DO PACOTE
        * (`breu-rosa`) — serve para a geração, não para uma frase lida por quem ensina. Antes de a
@@ -2225,12 +2256,12 @@ async function gerarOsCiclosDasTurmas(env, escola, turmas, recados) {
        * «a geração de «Rosa» não partiu», e não «de «breu-rosa»». */
       disparos.push(Object.assign({
         turma: a.turma,
-        variante: varianteDoContexto({ escola, turma: a.turma }),
+        variante: varianteDoAlvo(a.turma),
       }, r));
     } catch (erro) {
       disparos.push({
         turma: a.turma,
-        variante: varianteDoContexto({ escola, turma: a.turma }),
+        variante: varianteDoAlvo(a.turma),
         ok: false, erro: erro && erro.message ? erro.message : String(erro),
       });
     }
@@ -2441,9 +2472,9 @@ async function estadoDoCicloDaTurma(env, escola, c, deps) {
       dicionario: await dicionarioDoCiclo(env, {
         professor,
         ciclo: String((plano.contexto && plano.contexto.ciclo) || '').trim(),
-        variante: varianteDoContexto({
+        variante: varianteDoContexto(Object.assign({
           escola, turma: String((plano.contexto && plano.contexto.turma) || nomeDaSala).trim(),
-        }),
+        }, (plano.contexto || {}).variante ? { variante: plano.contexto.variante } : {})),
       }),
     },
   });

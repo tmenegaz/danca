@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-24T23:16:47-0300`
-Commit atual: `71eed979` — chore(entrega): gerar o pacote de demi-plie/01/breu-piano
+Gerado em: `2026-11-24T23:41:12-0300`
+Commit atual: `b6e85dd7` — fix(estrutura): a cadeia decide sobre o docente da faixa, e o par de uma faixa e um gesto
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+b6e85dd7 fix(estrutura): a cadeia decide sobre o docente da faixa, e o par de uma faixa e um gesto
 71eed979 chore(entrega): gerar o pacote de demi-plie/01/breu-piano
 371adb16 feat(estrutura): habilitar demi-plie em bale-classico, contemporaneo
 9dd0f44c feat(estrutura): o par não se repete na mesma sala — ou o professor ou a modalidade
@@ -101,7 +102,6 @@ dfbaf973 docs(estrutura): o custo por aula é 3 minutos medidos, o contador cust
 0e2340db feat(estrutura): a analítica do Cloudflare ligada ao painel — os pedidos e as operações de KV por dia
 7f834e90 feat(estrutura): os schemas do ciclo passam de cinco commits a um, e a analítica do Cloudflare já está habilitada
 c179465f fix(estrutura): a implementação do lote, que o commit anterior não levou
-1251dd90 feat(estrutura): o ato passa a custar um commit, e não quatro
 ```
 
 ## Por professor
@@ -293,6 +293,100 @@ distintos) e ambas escrevem
 `professores/demi-plie/ciclos/ciclo-01-breu-piano-plano.md`. Fechar isso exige pôr a modalidade (ou a
 faixa) na **variante**, quando a Sala tem mais de uma faixa; o custo de compatibilidade é nulo, mas
 renomeia `.conf`, plano, PO, pasta do pacote e âncora `.fipp` — **decisão dela, e não minha.**
+
+### 25/11/2026 — a variante ganha a modalidade, e as duas Turmas da mesma sala deixam de colidir
+
+**A autorização, e a condição.** «Estamos testando e ajustando e a única escola viva é a Breu.
+Portanto pode mudar sem medo da proveniência. Mas quando eu expurgar e criar a nova escola quero que
+funcione dentro da regra da proveniência.»
+
+**O defeito, medido com a Sala dela.** As duas Turmas nasciam certas — `demi-plie-bale-classico-piano`
+e `demi-plie-danca-contemporanea-piano`, ambas `201`, ids distintos — e escreviam o MESMO ficheiro,
+porque a variante era `<escola>-<sala>` e a pasta é do professor:
+
+```
+f1 Balé clássico      -> professores/demi-plie/ciclos/ciclo-01-breu-piano-plano.md
+f2 Dança contemporânea -> professores/demi-plie/ciclos/ciclo-01-breu-piano-plano.md
+COLIDEM no ficheiro? true
+```
+
+A segunda deriva por cima da primeira, e a primeira desaparece. O pacote que estava no remoto
+(`71eed979`) reflectia só o ritmo da faixa 1.
+
+**A regra.** A variante passa a `<escola>-<sala>-<modalidade>` **quando a sala declara mais de uma
+faixa**. Três decisões dentro desta:
+
+1. **O critério é a SALA**, e não a existência de colisão. Uma variante que mudasse no dia em que uma
+   segunda Turma aparecesse renomearia o ficheiro de uma Turma que já tinha documentos.
+2. **É a modalidade, não a faixa.** `f1`/`f2` são posicionais: renumerar as faixas renomearia os
+   ficheiros de quem não mexeu em nada. A modalidade é um facto pedagógico, estável.
+3. **Nada do que existe é renomeado.** Uma sala de uma faixa não entra na condição; uma sala antiga,
+   sem o campo `faixas`, também não. A retrocompatibilidade é a **ausência** do campo.
+
+**Onde a decisão vive, e porquê.** No `comAModalidadeDaSala` da porta — que já lê a Sala, as
+curadorias e a modalidade desde 19/11/2026: **nenhuma leitura nova ao KV**. A variante entra no
+contexto do envelope, e dali para a frente todos os caminhos a herdam.
+
+**O que a mudança obrigou a tocar, e cada um por um motivo medido:**
+
+- `motor/nucleo/elicitar.js` — `variante` entra em `CAMPOS_DE_CONTEXTO`, e o contrato do envelope sobe
+  de **1.3.0 para 1.4.0** (aditivo, pelo mesmo motivo que 1.3.0 teve quando o `contexto` ganhou
+  `turma`: dois documentos a escrever no mesmo arquivo). Sem isto o `porta.elicitar` devolvia
+  `gravado: false` **em silêncio**, e a derivação parava com `escritos: 0` — foi o que aconteceu à
+  primeira tentativa, e a prova `provar-direcao-do-documento` apanhou-o.
+- `porta/envelope/elicitacao-schema.json` — `variante` no `contexto` (o `additionalProperties: false`
+  recusava o campo). Diff de 5 linhas, e a cópia do pacote estampada à mão nos dois pacotes vivos,
+  porque o `check-identidade` compara-a byte a byte com a fonte.
+- `motor/servidor/cadeia.js` — `contextoDoElo` **recalcula** a variante em vez de a herdar: ela
+  depende do cadastro, e herdá-la deixaria o documento novo com o nome velho. É a mesma doutrina do
+  ritmo e do professor.
+- `motor/servidor/escrever-plano.js` — o `.conf` **base da escola** passou a pedir `variante: ''`
+  explícita: com a variante declarada a vencer em `varianteDoContexto`, `turma: ''` já não bastava.
+- `motor/servidor/bastidores.js` — o disparo da geração compunha `{escola, turma}` e passaria a pedir
+  `breu-piano` a um `.conf` chamado `breu-piano-bale-classico.conf`; a geração não acharia o manifesto.
+  Agora lê as salas e as curadorias **uma vez por gesto** (e não por alvo) e compõe a variante da
+  Turma.
+- `motor/nucleo/porta.js` — o resumo do índice sobe a **7** e leva a variante. Sem ela, a lista dos POs
+  reconstruía a chave do registo de geração com menos do que a gravou, e «o que este PO já gerou»
+  desaparecia da tela. Uma asserção de `provar-listas-do-acervo` foi **actualizada** (a versão), e não
+  apagada — é o mecanismo que obriga quem sobe a versão a vir dizer porquê.
+
+**A prova.** `provar-a-variante-da-faixa.js`, **36 asserções**: a regra nas quatro combinações, os três
+caminhos distintos (`.conf`, `-plano.md`, `-po.md` e a âncora), o envelope, a chave do registo, o
+expurgo, e o **escritor de verdade** — com o `fetch` trocado por um que regista os caminhos `PUT`: os
+dois `-plano.md` que saem para o repositório são diferentes. Controlo negativo a correr: revertida a
+regra, **3 asserções** reprovam; sem a variante no contexto, os dois escritores gravam no mesmo sítio.
+
+**A regra da proveniência, medida e não prometida.** §E da prova: o expurgo reconhece
+`ciclo-01-breu-piano-bale-classico.{conf,plano.md,po.md,fipp,dados.json}` e a pasta do pacote pelo
+prefixo da escola e pela fronteira, e **não** reconhece o de outra escola. É a condição que ela pôs
+para a escola nova.
+
+**Três provas reprovaram o primeiro commit, e as três eram dívida que este trabalho revelou:**
+
+- `provar-aluna-nova-no-elenco` media uma **janela fixa de 3000 caracteres** de
+  `gerarOsCiclosDoElenco`. O bloco novo em `bastidores.js` empurrou o `criarDisparador` para os 3995,
+  fora da janela, e a asserção reprovou sobre um acerto. A janela passa a ir até ao fim de
+  `gerarOsCiclosDasTurmas` — uma prova que mede um número de caracteres mede o tamanho do comentário
+  ao lado, e não o código.
+- `provar-o-estilo-regera` apanhou um defeito **meu**, e não da prova: `turmas` é o nome do
+  PARÂMETRO de `gerarOsCiclosDasTurmas`, e eu chamei a função homónima lá dentro —
+  `TypeError: turmas is not a function`, e a travessia morria antes de disparar. O leitor ganhou o
+  alias `lerSalas`, declarado ao lado da definição, com o motivo escrito.
+- `provar-remocao-do-elenco` batia no tecto de 20 s do `pre-commit` (19,4 s), e a linha de base
+  tinha-a por verde porque foi medida com `--tecto=60`. **A causa foi medida, não adivinhada:** o
+  `waitForSelector('.presenca-lista')` corria em todas as aberturas, com 15 s de tecto e um
+  `.catch()` que engolia o tempo esgotado — e na aula **já lançada** a página abre em LEITURA e não
+  tem lista de presença. Eram 15 s à espera de um elemento que aquela abertura nunca ia ter. Cada
+  abertura passou a esperar só o que vai medir, e o navegador passou a ser um para as três: **19,4 s
+  → 3,7 s**, com as mesmas 26 asserções.
+
+**Onde entrou.** `motor/servidor/escrever-po.js` (`varianteDaTurma`), `motor/servidor/rotas.js`,
+`motor/servidor/cadeia.js`, `motor/servidor/bastidores.js`, `motor/servidor/escrever-plano.js`,
+`motor/nucleo/elicitar.js`, `motor/nucleo/porta.js`, `porta/envelope/elicitacao-schema.json`,
+`motor/servidor/listas-do-acervo.js`, `experimentos/provar-a-variante-da-faixa.js` (novo),
+`experimentos/provar-listas-do-acervo.js`, `experimentos/provar-aluna-nova-no-elenco.js`,
+`experimentos/provar-remocao-do-elenco.js`, `PLANO-DE-OCUPACAO.md` (§9.6), `ESTADO-ATUAL.md`, `HANDOFF.md`.
 
 ## O que está pendente
 

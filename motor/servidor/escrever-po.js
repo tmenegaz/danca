@@ -53,6 +53,40 @@ const slugificar = (valor) => String(valor == null ? '' : valor)
   .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
   .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
+/**
+ * A VARIANTE DE UMA TURMA — e a modalidade entra quando a sala tem mais do que uma faixa.
+ *
+ * O DEFEITO QUE ISTO FECHA (25/11/2026). A Sala passou a poder declarar **N aulas por dia**, cada
+ * faixa com o seu par (modalidade, professor). Com o **mesmo professor** em duas faixas de
+ * modalidades diferentes — que é o caso dela, Balé na faixa 1 e Contemporâneo na faixa 2, na Sala
+ * do Piano —, as duas Turmas têm ids distintos (`-bale-classico-`, `-danca-contemporanea-`) e
+ * escrevem o MESMO ficheiro, porque a variante é `<escola>-<sala>` e a pasta é do professor.
+ * Medido pela rota verdadeira: as duas Turmas nascem com `201` e as duas apontam para
+ * `ciclo-01-breu-piano-plano.md`. A segunda deriva por cima da primeira, e a primeira desaparece.
+ *
+ * A REGRA: a variante é `<escola>-<sala>` e, **quando a sala declara mais de uma faixa**, passa a
+ * `<escola>-<sala>-<modalidade>`. O critério é a sala, e não a existência de colisão: uma variante
+ * que mudasse quando uma segunda Turma aparecesse renomearia o ficheiro de uma Turma que já tinha
+ * documentos. Determinismo vale mais do que economia de caracteres.
+ *
+ * PORQUE A MODALIDADE E NÃO A FAIXA. `f1`/`f2` são posicionais: renumerar as faixas renomearia os
+ * ficheiros de quem não mexeu em nada. A modalidade é um facto pedagógico, estável, e é o que
+ * distingue as duas Turmas aos olhos de quem as escreve.
+ *
+ * SEM MUDANÇA PARA O QUE EXISTE: uma sala de uma faixa não entra na condição, e uma sala antiga
+ * (sem o campo `faixas`) também não. É por isso que nenhum ficheiro de hoje é renomeado.
+ */
+function varianteDaTurma({ escola, turma, faixas, modalidade }) {
+  const esc = String(escola == null ? '' : escola).trim();
+  const sufixo = slugificar(turma);
+  if (!sufixo) return esc;
+  const base = esc + '-' + sufixo;
+  const quantas = Array.isArray(faixas) ? faixas.length : 0;
+  const mod = slugificar(modalidade);
+  if (quantas > 1 && mod) return base + '-' + mod;
+  return base;
+}
+
 function varianteDoContexto(contexto) {
   const ctx = contexto || {};
   /* A VARIANTE DECLARADA VENCE (06/11/2026). Há contextos que já SABEM a variante e não têm a
@@ -63,14 +97,11 @@ function varianteDoContexto(contexto) {
    * professor via a fonte certa e o site a mostrar a aula por lançar. */
   const declarada = slugificar(ctx.variante);
   if (declarada) return declarada;
-  const escola = String(ctx.escola || '').trim();
-  const turma = String(ctx.turma || '').trim();
-  if (!turma) return escola;
-  // O `id` da turma já é um slug (`teste-2`, `bale-nivel-1`); re-escagar é a defesa
-  // contra um id que chegue de fora com o que não pode entrar num nome de ficheiro.
-  const sufixo = slugificar(turma);
-  if (!sufixo) return escola;
-  return escola + '-' + sufixo;
+  /* Sem `faixas` nem `modalidade` no contexto, `varianteDaTurma` devolve exactamente o que esta
+   * função devolvia: `<escola>` ou `<escola>-<turma>`. A composição é uma só — quem actualiza o
+   * contexto com a Sala chama `varianteDaTurma` e escreve `ctx.variante`; quem lê o envelope
+   * continua a passar por aqui. */
+  return varianteDaTurma({ escola: ctx.escola, turma: ctx.turma });
 }
 
 function caminhoDoPO(contexto) {
@@ -179,4 +210,5 @@ function dicaDeAuth(status) {
   return '';
 }
 
-module.exports = { escreverPO, criarEscritorDePO, caminhoDoPO, varianteDoContexto, dicaDeAuth, ACEITE, API_VERSAO };
+module.exports = { escreverPO, criarEscritorDePO, caminhoDoPO, varianteDoContexto, varianteDaTurma,
+  dicaDeAuth, ACEITE, API_VERSAO };

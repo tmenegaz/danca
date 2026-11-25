@@ -543,7 +543,7 @@ async function resumosDeEnvelopes(armazenamento, padrao, jaLido) {
  * `null` é o valor verdadeiro: a ausência do campo e o campo a `null` dizem a mesma coisa, e quem
  * lê trata as duas como «não declarado». É o oposto do `gerado_em` da versão 4, que estava EM
  * FALTA num registo que o tinha — aí o campo existia no dado e não no índice. */
-const VERSAO_DO_RESUMO = 6;
+const VERSAO_DO_RESUMO = 7;
 
 /**
  * OS CAMPOS QUE A DEFINIÇÃO DE HOJE ESCREVE SEMPRE — e a razão de eles existirem (24/10/2026).
@@ -587,6 +587,12 @@ function resumoDoEnvelope(envelope, nome) {
      *
      * O índice reconstrói-se sozinho: quem guarda compara a `versao` e, se for menor, refaz. */
     gerado_em: (envelope && envelope.gerado_em) || null,
+    /* A VARIANTE (25/11/2026) — ver `VERSAO_DO_RESUMO`. É ela que nomeia o ficheiro da variante, e
+     * a lista dos POs precisa dela para achar o registo da geração (`chaveDoRegistro`): a chave é
+     * `bastidores/<escola>/geracao/<variante>`, e reconstruí-la com menos do que isto é o mesmo que
+     * não a achar. `null` quando o envelope não a declara — os anteriores a hoje —, e quem lê cai
+     * na composição de sempre (`<escola>-<turma>`). */
+    variante: contexto.variante || null,
   };
   // O SUJEITO da anamnese é o apelido do CONTEXTO (não a resposta): é o que a lista mostra.
   if (fonte === 'anamnese') {

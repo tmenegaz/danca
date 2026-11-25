@@ -310,7 +310,23 @@ console.log('\nA · A CASCATA — quem sai é dito, e a ordem da revisão é a d
       'lancamento.html': 'tools/templates/lancamento.html',
     };
 
-    async function abrirCom(dadosTexto, consulta) {
+    /* UM NAVEGADOR PARA AS TRÊS ABERTURAS (25/11/2026). A prova demorava 19,4 s e o tecto do
+     * `pre-commit` é 20 s — passava em isolamento e reprovava sob paralelismo, sobre um acerto. O
+     * custo que se paga sem medir nada de novo é o arranque do Chrome, três vezes; passa a ser uma.
+     * Cada abertura continua com a sua PÁGINA (e o seu servidor), que é o que tem de ser
+     * independente — o navegador é só o motor. */
+    const navegadorDaProva = await puppeteer.launch({ executablePath: chrome, headless: 'new',
+      args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+
+    /* A ESPERA É DO QUE SE VAI LER (25/11/2026). O `waitForSelector('.presenca-lista')` corria em
+     * TODAS as aberturas, com 15 s de tecto e um `.catch()` que engolia o tempo esgotado. Na aula
+     * JÁ LANÇADA a página abre em LEITURA e não tem lista de presença — o que se lê lá é o TEXTO.
+     * Eram 15 s a esperar por um elemento que aquela abertura nunca ia ter: a prova levava 19,4 s
+     * num tecto de 20, e o `pre-commit` reprovava-a sobre um acerto. Agora cada abertura espera só
+     * o que vai medir, e o tecto do seletor desce para 8 s (a página é servida de 127.0.0.1, e o
+     * que se espera é um render, não uma rede). */
+    async function abrirCom(dadosTexto, consulta, espera) {
+      const querPresenca = !espera || espera.presenca !== false;
       const srv = http.createServer((req, res) => {
         const rel = decodeURIComponent(req.url.split('?')[0]).replace(/^\/+/, '') || 'index.html';
         if (rel === arquivoDados) {
@@ -329,11 +345,9 @@ console.log('\nA · A CASCATA — quem sai é dito, e a ordem da revisão é a d
         res.end(fs.readFileSync(alvo));
       });
       const base = await new Promise((ok) => srv.listen(0, '127.0.0.1', () => ok('http://127.0.0.1:' + srv.address().port)));
-      const navegador = await puppeteer.launch({ executablePath: chrome, headless: 'new',
-        args: ['--no-sandbox', '--disable-dev-shm-usage'] });
-      const pagina = await navegador.newPage();
+      const pagina = await navegadorDaProva.newPage();
       await pagina.goto(base + '/lancamento.html' + (consulta || ''), { waitUntil: 'networkidle0' });
-      await pagina.waitForSelector('.presenca-lista', { timeout: 15000 }).catch(() => {});
+      if (querPresenca) await pagina.waitForSelector('.presenca-lista', { timeout: 8000 }).catch(() => {});
       const nomes = await pagina.$$eval('.presenca-lista label', (els) => els.map((e) => e.textContent.trim()))
         .catch(() => []);
       const linhas = await pagina.$$eval('.captura.matriz tr th.aluna', (els) => els.map((e) => e.textContent.trim()))
@@ -342,7 +356,7 @@ console.log('\nA · A CASCATA — quem sai é dito, e a ordem da revisão é a d
        * formulário de marcação — os nomes aparecem na tabela de resultados, não numa lista de
        * caixas. É essa a superfície que prova que o passado continua legível. */
       const texto = await pagina.evaluate(() => document.body.innerText.replace(/\s+/g, ' '));
-      await navegador.close();
+      await pagina.close().catch(() => {});
       srv.close();
       return { nomes, linhas, texto };
     }
@@ -357,7 +371,7 @@ console.log('\nA · A CASCATA — quem sai é dito, e a ordem da revisão é a d
     /* 2. A AULA JÁ LANÇADA: quem lá esteve continua a ler-se, com nome. */
     /* A AULA JÁ LANÇADA abre-se pelo endereço (`?aula=NN`) — é o link que a lista das aulas dadas
      * usa. Sem ele, o formulário cai na «primeira sem dado», e com a 01 lançada não há nenhuma. */
-    const passada = await abrirCom(comAulaLancada, '?aula=' + aula);
+    const passada = await abrirCom(comAulaLancada, '?aula=' + aula, { presenca: false });
     provar('na aula JÁ LANÇADA, a aluna que saiu continua a ver-se — o passado não se reescreve',
       /Aluna C/.test(passada.texto), passada.texto.slice(0, 200));
     provar('…com o NOME dela, e não a chave (a aula lançada abre em LEITURA)',
@@ -368,6 +382,8 @@ console.log('\nA · A CASCATA — quem sai é dito, e a ordem da revisão é a d
     const velho = await abrirCom(antigo);
     provar('um ficheiro SEM `elenco` (anterior a esta regra) continua a listar o mapa inteiro',
       velho.nomes.length === 3, velho.nomes);
+
+    await navegadorDaProva.close().catch(() => {});
   }
 
   /* ======================================================================================== */

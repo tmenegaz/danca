@@ -90,8 +90,16 @@ const CONTRATO_NO_ENVELOPE = 'envelope/elicitacao-schema.json';
  * (a variante da fonte é a escola). O motivo é o de baixo: o ciclo passou a ser
  * DA TURMA, e sem a turma no contexto dois planos da mesma escola escreviam no
  * MESMO arquivo.
+ *
+ * De 1.3.0 para 1.4.0 (25/11/2026): o `contexto` ganha `variante`. ADITIVO pelo mesmo
+ * motivo de 1.3.0, um nível abaixo — a turma sozinha deixou de bastar quando uma Sala
+ * passou a declarar N aulas por dia. Duas Turmas da MESMA sala, com o mesmo professor e
+ * modalidades diferentes, tinham ids distintos e escreviam o MESMO
+ * `ciclo-NN-<escola>-<sala>-plano.md`: a segunda derivava por cima da primeira. A
+ * variante passa a `<escola>-<sala>-<modalidade>` quando a sala tem mais de uma faixa.
+ * Um envelope sem ela continua a ler-se, e a ausência significa a composição de sempre.
  */
-const VERSAO_DO_ENVELOPE = '1.3.0';
+const VERSAO_DO_ENVELOPE = '1.4.0';
 
 /**
  * Os campos do bloco `contexto` — a única parte do envelope que diz DE QUEM se
@@ -117,7 +125,16 @@ const VERSAO_DO_ENVELOPE = '1.3.0';
  * `modalidade` é controlo da escola (não é pergunta, e a tela não a mostra); `alunaId` é a
  * identidade da pessoa, e o apelido sozinho deixou de a identificar. Os dois são metadado do
  * acto, e é por isso que vivem aqui — e não nas respostas. */
-const CAMPOS_DE_CONTEXTO = ['escola', 'professor', 'ciclo', 'aluna', 'alunaId', 'modalidade', 'turma'];
+/* A `variante` ENTRA AQUI A 25/11/2026, e é ela que faz o ficheiro de uma Turma ser distinguível do
+ * de outra na mesma sala (ver `varianteDaTurma` em `motor/servidor/escrever-po.js`). Ela é metadado
+ * do acto — a escola/porta declara-a ao gravar —, e não uma pergunta: fica fora das respostas, como
+ * a `modalidade`.
+ *
+ * PORQUE PÔDE ENTRAR. O envelope é a memória do acto, e acrescentar-lhe um campo muda o digest dos
+ * envelopes NOVOS. Os que já existem não têm o campo, `varianteDoContexto` compõe a variante como
+ * sempre compôs, e nada é renomeado — a retrocompatibilidade é a AUSÊNCIA, não uma migração. */
+const CAMPOS_DE_CONTEXTO = ['escola', 'professor', 'ciclo', 'aluna', 'alunaId', 'modalidade', 'turma',
+  'variante'];
 /** Declarado em claro, não adivinhado pela extensão — como na âncora `.fipp`. */
 const DIGEST_ALGORITMO = 'sha256';
 

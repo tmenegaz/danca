@@ -4,14 +4,13 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **a cadeia passou a decidir sobre o docente da faixa, e o par de
-> uma faixa passou a ser um gesto.** Duas correcções minhas, as duas achadas ao percorrer o cenário
-> dela na Sala do Piano — o mesmo professor, Balé na faixa 1 e Contemporâneo na faixa 2. A guarda da
-> autoria lia o docente da **raiz** (espelho da faixa 1) e bloqueava o plano a dizer que o professor
-> «já não a dirige»: falso, ele dirige a faixa 2. E mudar o par de **uma** faixa respondia `200` com
-> «o par da sala não mudou», sem disparar a cadeia. Ambas com controlo negativo. **O que continua
-> medido e por decidir:** as duas Turmas são criadas e os ficheiros do ciclo **colidem** — a variante
-> é `<escola>-<sala>`. Cada faixa de uma sala pode ter o seu docente e a sua modalidade — ou o mesmo nas duas, que
+> **Última fotografia:** 25/11/2026 — **as duas Turmas da mesma sala deixaram de escrever o mesmo
+> ficheiro.** A variante passou a levar a modalidade quando a sala tem mais de uma faixa:
+> `ciclo-01-breu-piano-bale-classico-plano.md` e `ciclo-01-breu-piano-danca-contemporanea-plano.md`.
+> Medido pela rota com a Sala dela — `COLIDEM no ficheiro? false` —, e nada do que existe é renomeado,
+> porque uma sala de uma faixa não entra na condição. Antes disso, no mesmo dia: a cadeia passou a
+> decidir sobre o docente da **faixa** (lia a raiz, e bloqueava o plano com uma frase falsa), e mudar
+> o par de **uma** faixa passou a ser um gesto (respondia `200` com «o par da sala não mudou»). Cada faixa de uma sala pode ter o seu docente e a sua modalidade — ou o mesmo nas duas, que
 > é o caso comum. E o «não persistiu» que ela relatou era um defeito meu: o «Derivar» repunha o ritmo
 > só na primeira faixa, e as outras desapareciam ao gravar sem erro nenhum. A aba Salas ganhou o «+»
 > que acrescenta faixas, e a Turma passou a escolher qual ocupa — a funcionalidade existia no servidor
@@ -4496,6 +4495,25 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      pacote gerado (`71eed979`) reflecte só o ritmo da faixa 1. **PENDENTE por decisão dela**: pôr a
      modalidade (ou a faixa) na variante quando a Sala tem mais de uma faixa; custo de
      compatibilidade nulo, mas renomeia `.conf`, plano, PO, pasta do pacote e âncora `.fipp`.
+     **RESOLVIDO a 25/11/2026 — ver 198.**
+
+198. **A VARIANTE PASSOU A LEVAR A MODALIDADE — e as duas Turmas deixaram de escrever o mesmo
+     ficheiro.** Decisão dela: «pode mudar sem medo da proveniência», com a condição de que a regra
+     valha na escola nova. A variante é `<escola>-<sala>` e passa a `<escola>-<sala>-<modalidade>`
+     **quando a sala declara mais de uma faixa**. O critério é a **sala** e não a colisão: uma
+     variante que mudasse quando uma segunda Turma aparecesse renomearia o ficheiro de uma Turma que
+     já tinha documentos. É a **modalidade** e não a faixa, porque `f1`/`f2` são posicionais.
+     **APLICADO** em `varianteDaTurma` (`escrever-po.js`), decidida no `comAModalidadeDaSala` da
+     porta — que já lia a Sala, nenhuma leitura nova —, carregada no contexto do envelope (contrato
+     `1.3.0` → `1.4.0`, aditivo) e **recalculada** em `contextoDoElo`, não herdada. Os caminhos
+     (`caminhoDoPlano`, `caminhoDoPO`, `caminhoDoConf`), a pasta do pacote e a âncora `.fipp` herdam-
+     na. O resumo do índice sobe a 7 para levar a variante, senão a lista dos POs não achava o
+     registo da geração. **MEDIDO** pela rota com a Sala dela: `COLIDEM no ficheiro? false`, e os
+     dois caminhos são `ciclo-01-breu-piano-bale-classico-plano.md` e
+     `ciclo-01-breu-piano-danca-contemporanea-plano.md`. **PROVADO** por
+     `provar-a-variante-da-faixa.js` (36), incluindo o escritor de verdade, e o expurgo continua a
+     reconhecer a escola pelo prefixo. **Nada é renomeado do que existe**: uma sala de uma faixa (ou
+     sem o campo `faixas`) não entra na condição.
 
 188. **A SALA NOVA NÃO PODE CRIAR COLISÃO EM SILÊNCIO — e as mensagens não sugerem resolução.** A
      edição da Sala já corria a cadeia, mas a cadeia relê o ritmo e deriva o plano; **não conferia a

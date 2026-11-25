@@ -2125,7 +2125,13 @@ async function pagina(caminho, { env, menu, escola, curadorias, linhasDeBase, li
       /* A ESCOLA VAI NO CONTEXTO. A variante do registo e `escola-turma` (`varianteDoContexto`),
        * e o `escola` que ele le e o do CONTEXTO, nao o do modulo: sem esta chave a variante saia
        * `-bale-nivel-2-teste-2` e o registo nunca era encontrado. */
-      return { escola: env.ESCOLA_SLUG, professor: r.professor || '', ciclo: r.ciclo || '', turma };
+      /* A VARIANTE DO PRÓPRIO REGISTO, quando ele a declara (25/11/2026). Sem ela, uma Turma de
+       * uma sala com mais de uma faixa grava o registo em `…-<modalidade>` e a lista procurava em
+       * `…-<turma>` — «o que este PO já gerou» desaparecia da tela. O resumo do envelope passou a
+       * trazê-la (versão 7); quando não a traz, a composição é a de sempre. */
+      const ctx = { escola: env.ESCOLA_SLUG, professor: r.professor || '', ciclo: r.ciclo || '', turma };
+      if (r.variante) ctx.variante = r.variante;
+      return ctx;
     });
     const chaves = contextos.map((c) => (c ? chaveDoRegistro(env.ESCOLA_SLUG, c) : null));
     const porChave = new Map();

@@ -394,3 +394,50 @@ cada bloco com o seu ritmo.
 a rota com um corpo escrito à mão; **nenhuma media o que o formulário envia depois de abrir uma sala
 existente**, e foi por aí que o defeito passou. `provar-o-ciclo-das-faixas.js` faz o caminho inteiro —
 abre, repõe, clica no «+», lê o corpo, entrega-o à rota — e é vermelha sem a mudança.
+
+### 9.6 A variante ganha a modalidade — o último elo, e o único que renomeia ficheiros
+
+**O que faltava, medido com a Sala dela.** As duas Turmas eram criadas (`201`, ids distintos), a regra
+do par funcionava, o plano lia a faixa certa e a cadeia decidia sobre o docente certo. E as duas
+escreviam no MESMO ficheiro:
+
+```
+f1 Balé clássico      -> professores/demi-plie/ciclos/ciclo-01-breu-piano-plano.md
+f2 Dança contemporânea -> professores/demi-plie/ciclos/ciclo-01-breu-piano-plano.md
+COLIDEM no ficheiro? true
+```
+
+A variante era `<escola>-<sala>`, e a pasta é do professor. Com professores diferentes as pastas
+diferem; com o **mesmo professor e modalidades diferentes** — que é o caso dela — os dois ciclos
+escrevem o mesmo `.conf`, o mesmo plano, o mesmo PO e a mesma pasta de pacote.
+
+**A regra que fecha, e o critério.** A variante passa a `<escola>-<sala>-<modalidade>` **quando a sala
+declara mais de uma faixa**. O critério é a SALA, e não a existência de colisão: uma variante que
+mudasse no dia em que uma segunda Turma aparecesse renomearia o ficheiro de uma Turma que já tinha
+documentos. Determinismo vale mais do que economia de caracteres.
+
+E é a **modalidade**, não a faixa: `f1`/`f2` são posicionais, e renumerar as faixas renomearia os
+ficheiros de quem não mexeu em nada.
+
+**O que NÃO muda.** Uma sala de uma faixa não entra na condição. Uma sala antiga, sem o campo
+`faixas`, também não. Nenhum ficheiro de hoje é renomeado — a retrocompatibilidade é a **ausência**
+do campo, não uma migração.
+
+**Onde a decisão é tomada, e porquê ali.** No `comAModalidadeDaSala` da porta, que já lê a Sala, as
+curadorias e a modalidade — nenhuma leitura nova ao KV. A variante entra no **contexto do envelope**
+(campo novo, contrato `envelope` de 1.3.0 para 1.4.0, aditivo), e dali para a frente todos os
+caminhos a herdam: `caminhoDoPlano`, `caminhoDoPO`, `caminhoDoConf`, a pasta do pacote e a âncora
+`.fipp`. A cadeia **recalcula-a** em `contextoDoElo` em vez de a herdar, porque ela depende do
+cadastro — a mesma doutrina do ritmo e do professor.
+
+**A decisão dela, à letra:** «estamos testando e ajustando e a única escola viva é a Breu. Portanto
+pode mudar sem medo da proveniência. Mas quando eu expurgar e criar a nova escola quero que funcione
+dentro da regra da proveniência.» A prova `provar-a-variante-da-faixa.js` §E mede isso: o expurgo
+reconhece `ciclo-01-breu-piano-bale-classico.<ext>` pelo prefixo da escola e pela fronteira, e **não**
+reconhece o de outra escola.
+
+**A prova.** `provar-a-variante-da-faixa.js`, **36 asserções**: a regra nas quatro combinações, os três
+caminhos distintos, o envelope, a chave do registo de geração, o expurgo, e — a que interessa — o
+**escritor de verdade**, com o `fetch` trocado por um que regista os caminhos `PUT`: os dois
+`-plano.md` são diferentes. Controlo negativo a correr: revertida a regra, **3 asserções** reprovam;
+sem a variante no contexto, os dois escritores gravam no mesmo sítio.

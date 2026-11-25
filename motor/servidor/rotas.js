@@ -140,6 +140,19 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
       const modalidade = require('../nucleo/enquadramento.js')
         .enquadramentoDaTurma(sala, curadorias).modalidade;
       if (modalidade) c.modalidade = modalidade;
+      /* A VARIANTE ENTRA NO CONTEXTO, e é ela que separa duas Turmas da MESMA sala (25/11/2026).
+       *
+       * Uma Sala pode declarar N aulas por dia, cada faixa com o seu par. Duas Turmas na mesma
+       * sala com o mesmo professor e modalidades diferentes têm ids distintos e escreviam o MESMO
+       * ficheiro — medido: `ciclo-01-breu-piano-plano.md` para as duas. A variante passa a levar a
+       * modalidade quando a sala tem mais de uma faixa, e é aqui que ela é decidida: aqui estão a
+       * Sala, as curadorias e a modalidade. Dali para a frente o envelope carrega-a, e todos os
+       * caminhos (`caminhoDoPlano`, `caminhoDoPO`, `caminhoDoConf`, a âncora) a herdam.
+       *
+       * A LEITURA JÁ ESTAVA FEITA: nenhuma chamada nova ao KV. */
+      c.variante = require('./escrever-po.js').varianteDaTurma({
+        escola, turma, faixas: sala.faixas, modalidade,
+      });
       return c;
     } catch (erro) {
       return c;

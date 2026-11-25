@@ -41,6 +41,7 @@ const objetivosDoRepertorio = require('../nucleo/objetivos-do-repertorio.js');
 // O RITMO que a Sala declara, na forma das respostas do plano (09/11/2026).
 const { respostasDoRitmo, acharTurma } = require('./compor-conf.js');
 const ocupacao = require('../nucleo/ocupacao.js');
+const { varianteDaTurma } = require('./escrever-po.js');
 /* A pergunta «isto é orçamento?» tem dono — o módulo que conta os subpedidos. Há duas frases
  * para o mesmo facto (a nossa e a do Cloudflare), e aqui elas são FUNDIDAS numa só. */
 const { ehOrcamento } = require('./subpedidos.js');
@@ -328,10 +329,20 @@ function criarCadeia({
       + 'professor escreve o documento dele.';
   }
 
-  function contextoDoElo(anterior, curadoria, turma) {
+  function contextoDoElo(anterior, curadoria, turma, sala) {
     const base = Object.assign({}, (anterior && anterior.contexto) || {});
     if (escola) base.escola = escola;
     if (turma) base.turma = turma;
+    /* A VARIANTE RECALCULA-SE, E NÃO SE HERDA (25/11/2026). Ela nomeia o `.conf`, o plano, o PO, a
+     * pasta do pacote e a âncora — e depende do CADASTRO: quando a sala passa a ter mais de uma
+     * faixa, a variante daquela Turma ganha a modalidade (ver `varianteDaTurma`). Herdá-la do elo
+     * anterior deixaria o documento novo com o nome velho, e a derivação a escrever no ficheiro de
+     * outro. Recalcular é reler o cadastro — a mesma doutrina do ritmo e do professor. */
+    if (sala) {
+      base.variante = varianteDaTurma({
+        escola, turma, faixas: sala.faixas, modalidade: curadoria && curadoria.modalidade,
+      });
+    }
     /* O PROFESSOR NÃO SE REESCREVE (12/11/2026). Esta linha escrevia o professor da CURADORIA, e
      * era ela que falsificava a autoria quando a Turma trocava de mãos. O elo novo declara o
      * autor do anterior — que, pela guarda de `derivarPlano`/`derivarPO`, é quem dirige a Turma
@@ -649,7 +660,7 @@ function criarCadeia({
       'contexto-professor': (await nomeDoProfessor(professorDoElo)) || professorDoElo,
       'contexto-turma': String(turma || '').trim(),
     });
-    const contexto = contextoDoElo(anterior, curadoria, turma);
+    const contexto = contextoDoElo(anterior, curadoria, turma, sala);
     const r = await porta.elicitar(armazenamento, {
       respostas, contexto, fonte: 'plano', ajuste_de: anterior.id,
       motivo: motivo || 'a cadeia automática: o corpo da turma mudou',
@@ -739,7 +750,7 @@ function criarCadeia({
     };
     // O CONTEXTO ACOMPANHA A SALA DE HOJE (09/11/2026) — e o professor é o do elo, não o da
     // curadoria (12/11/2026): a autoria não se reescreve.
-    const contexto = contextoDoElo(anterior, curadoria, turma);
+    const contexto = contextoDoElo(anterior, curadoria, turma, sala);
     const r = await porta.elicitar(armazenamento, {
       respostas, contexto, fonte: 'po', ajuste_de: anterior.id,
       motivo: motivo || 'a cadeia automática: o plano de ensino foi derivado',

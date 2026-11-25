@@ -262,9 +262,13 @@ let ESCOLA = 'escola';
      * A 6 é a do MÉTODO DE ORIGEM (18/11/2026, a Cubana): o resumo passou a levar o que a aluna
      * marcou no item 50, e sem regerar o índice os documentos derivados não têm de onde ler a
      * origem declarada. Fixar o número aqui é o que obriga quem sobe a versão a vir dizer porquê
-     * — e a actualizar esta linha em vez de a deixar a medir a versão de ontem. */
-    provar('o resumo do índice é a versão 6 (a que traz modalidade e método de origem)',
-      porta.VERSAO_DO_RESUMO === 6, porta.VERSAO_DO_RESUMO);
+     * — e a actualizar esta linha em vez de a deixar a medir a versão de ontem.
+     *
+     * A 7 é a da VARIANTE (25/11/2026): o resumo passou a levar a variante declarada pelo envelope,
+     * e sem ela a lista dos POs reconstruía a chave do registo de geração com MENOS do que a
+     * gravou — e «o que este PO já gerou» desaparecia da tela numa sala com mais de uma faixa. */
+    provar('o resumo do índice é a versão 7 (a que traz a variante da fonte)',
+      porta.VERSAO_DO_RESUMO === 7, porta.VERSAO_DO_RESUMO);
   }
 
   console.log('\n4 · O selo diz o estado, e a caixa diz a turma — ou «sem turma»');

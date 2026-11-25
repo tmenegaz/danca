@@ -1664,6 +1664,15 @@ experimentos/modelo-formulario/*
 # plano velho ficava velho em silêncio. 18 asserções.
 !experimentos/provar-o-plano-da-faixa.js
 
+# A VARIANTE DA FAIXA (25/11/2026). O último elo da série: as duas Turmas eram criadas com ids
+# distintos e escreviam o MESMO `ciclo-01-<escola>-<sala>-plano.md`, porque a variante é
+# `<escola>-<sala>` e a pasta é do professor. Com o mesmo professor e modalidades diferentes — o caso
+# dela, Balé na faixa 1 e Contemporâneo na faixa 2 — a segunda derivava por cima da primeira. A
+# variante passa a levar a modalidade quando a sala tem mais de uma faixa, e uma sala de uma faixa
+# não muda nada do que existe. Mede também o expurgo (a escola nova tem de sair inteira) e o ESCRITOR
+# de verdade, com o `fetch` trocado por um que regista os caminhos `PUT`. 36 asserções.
+!experimentos/provar-a-variante-da-faixa.js
+
 # O FINANCEIRO QUE FICA (23/11/2026, à tarde). A regra de 17/11 era o contrário — expurgar a escola
 # levava as mensalidades dela —, e ela corrigiu: «A parte financeira não pode expurgar, ela fica
 # para histórico. E aí a gente diz numa linha seguinte que essa escola foi expurgada.» O livro vive

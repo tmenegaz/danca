@@ -216,7 +216,12 @@ async function comporManifestoDaTurma({ f, cabecalhos, url, caminho, contexto, p
     };
   }
 
-  const caminhoDaEscola = caminhoDoConf(Object.assign({}, contexto, { turma: '' }));
+  /* O `.conf` BASE DA ESCOLA — e a variante declarada sai do contexto (25/11/2026). Desde que o
+   * contexto passou a poder declarar a `variante` (a modalidade entra quando a sala tem mais de uma
+   * faixa), deixar `turma: ''` chegava para voltar à escola, mas não bastava: `varianteDoContexto`
+   * devolve a DECLARADA primeiro e ignoraria a turma vazia. O `.conf` base é o da ESCOLA, e é isso
+   * que se pede aqui — explicitamente. */
+  const caminhoDaEscola = caminhoDoConf(Object.assign({}, contexto, { turma: '', variante: '' }));
   const urlDaEscola = url.replace(/\/[^/]+$/, '/' + caminhoDaEscola.split('/').pop());
   const base = await confDaEscolaPara({
     f, url: urlDaEscola, cabecalhos, professor: String(contexto.professor || '').trim(),
