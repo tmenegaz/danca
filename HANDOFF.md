@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-25T17:34:16-0300`
-Commit atual: `a4638edf` — fix(estrutura): a descricao do exercicio volta para fora da tabela
+Gerado em: `2026-11-25T17:45:34-0300`
+Commit atual: `40143ec0` — fix(estrutura): o mapa das provas ve o path.join, e a prova da notacao volta a correr
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+40143ec0 fix(estrutura): o mapa das provas ve o path.join, e a prova da notacao volta a correr
 a4638edf fix(estrutura): a descricao do exercicio volta para fora da tabela
 9eb12e05 docs(estrutura): o custo da demonstracao medido na API — 16 min, e nao 22
 78ada910 docs(estrutura): o §22 mediu-se a si mesmo — documentar custa zero
@@ -101,7 +102,6 @@ cfe41518 chore(entrega): gerar o pacote de demi-plie/01/breu-piano
 6177f30d chore(entrega): gerar o pacote de demi-plie/01/breu-piano
 f9e49440 feat(acervo): envelope/.indice.json
 923629a5 chore(estrutura): fechar os derivados — âncoras e índices
-65b1d4b9 chore(entrega): gerar o pacote de demi-plie/01/breu-piano
 ```
 
 ## Por professor
@@ -195,122 +195,100 @@ f9e49440 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## O mapa das provas, e a prova que não corria *(25/11/2026)*
+## O plano do consultor — o cadastro, o link, e os R$ 10 *(25/11/2026)*
 
-> «pode corrigir os defeitos que vc falou»
+> «A gente vai adicionar lá em danca.padd.com.br um botão que leva até o cadastro e a listagem de
+> consultores. […] quando ele estiver ativo, ele gera esse link, manda para a dona da escola. […]
+> Ele vai cobrar R$ 120 a hora da consultoria e isso é para ele. […] Com êxito ou sem êxito, ele vai
+> me pagar R$ 10 na consultoria. […] o restante é tudo dele.»
 
-Três defeitos, e dois da mesma família: **um verificador que não verifica**. É a mesma família do
-`provar-ambiente` que imprimia «TUDO CERTO — 0 escola(s)» depois de uma migração — e é a razão pela
-qual este registo lhes dá um capítulo inteiro em vez de três linhas.
+**O que foi feito foi o plano**, e ele existe porque a pergunta dela tem duas metades que se
+confundiam: **como é que outra pessoa cria uma escola** (uma porta nova, num endereço público) e
+**quem paga o quê** (três fluxos de dinheiro, e só um passa pelo sistema).
 
-### 1. O mapa não via o `path.join`
+### O que já existia, e não se construiu de novo
 
-O `correr-provas` decide o recorte comparando o caminho mudado com o **texto** da prova. Muitas
-provas escrevem o `require` assim:
+A descoberta que encurtou o plano: quase tudo estava lá. Os **dois endereços com o host a decidir o
+modo** (`ehPaginaPublica`), o `lastro.padd.com.br` **já ligado** ao Worker `danca`, a **criação
+pública de escola** com o cadastro completo e o rollback, o **plano consultoria com os sete
+limites**, o **congelamento calculado** e o **padrão do token** no `convite.js`. O que faltava eram
+cinco peças — o cadastro do consultor, o acesso dele, a visita, a atribuição e o livro dos R$ 10.
 
-```js
-require(path.join(RAIZ, 'motor', 'nucleo', 'derivar-ciclo.js'))
-```
+### A porta nova, e a que continua fechada
 
-E nesse texto não existe `motor/nucleo/derivar-ciclo.js` — existe `motor', 'nucleo',
-'derivar-ciclo.js'`. A prova ficava **invisível exactamente para o ficheiro que mede**.
+`comercial.validarEscolha` recusa hoje `plano: 'consultoria'` a quem não é o proprietário, com a
+frase certa: «o plano consultoria é criado pela administração do Sistema Lastro, e não pela página da
+escola». Está certo: uma escola que o pedisse pela página pública estaria a pedir **um mês grátis a
+si mesma**.
 
-A correcção **normaliza** o texto antes de comparar (as aspas e a vírgula de um `path.join` passam a
-barra), em vez de enumerar as formas de escrever um caminho: uma lista de formas apodreceria no dia
-em que alguém usasse `'a' + path.sep + 'b'`.
+O link do consultor abre uma **terceira porta**, e é o **token** que a abre — não um campo do
+formulário. O plano não substitui a recusa: acrescenta-lhe uma porta. E a prova mede as duas coisas:
+a recusa continua palavra por palavra, e com `podeDispensar` o plano passa com a capacidade dos sete
+limites (e não de uma referência).
 
-### 2. A prova da notação não estava versionada
+### A regra que o plano muda, e diz que muda
 
-O `correr-provas` corre **o que está no `git ls-files`** — e isso é uma decisão certa: «uma prova
-que não está no repositório não é uma prova de ninguém, é rascunho de quem a escreveu».
+**D2 do PLANO-DA-ESCOLA-EM-CONSULTORIA dizia «o mês começa na entrega».** Neste fluxo a criação e a
+entrega são o mesmo gesto: o consultor cria a escola com a escola presente, e cobra as horas que
+passa ali dentro. Exigir um segundo clique dela pararia o negócio — ele trabalharia três horas e a
+escola não podia usar nada até ela abrir o painel.
 
-`experimentos/provar-notacao.js` existia no disco e **não estava no índice**. Ficou a dizer
-`paraNotacao('Benesh')` depois de a árvore migrar para «Código de dança» (18/11/2026) e passou
-**nove dias vermelho em silêncio** — invisível para a bateria, para o `pre-commit` e para o CI.
+Fica: `origem === 'consultor'` → `entregueEm = criadaEm`, `terminaEm = fimDeUmMes`. A porta do painel
+continua a entregar à mão. Duas portas, duas regras, e a diferença é qual delas tem uma pessoa a
+cobrar à hora.
 
-### 3. `--mudou=a --mudou=b` descartava o segundo
+### O dinheiro — três fluxos, e só um no sistema
 
-O parser usava `find`, que devolve o primeiro. Medido: `--mudou=notacao --mudou=derivador` dava
-**13** provas e `--mudou=derivador --mudou=notacao` dava **19** — para o mesmo par de caminhos. Um
-recorte que depende da **ordem dos argumentos** não falha: responde outra coisa.
+| fluxo | valor | entre quem | o sistema |
+|:--|:--|:--|:--|
+| a hora | R$ 120 | escola → consultor | regista as horas, se ele as declarar |
+| a taxa | R$ 10 | consultor → ela | **um livro**, por visita que deu escola; não é cobrança (não há cartão nem repasse) |
+| a assinatura | 69,90 / 99,90 / 139,90 | escola → ela, por Pix | já existe: conciliação e «Habilitar» |
 
-### A reescrita da prova da notação: 62 → 92 asserções
+**E os R$ 10 medidos contra o custo** (CUSTO-DOS-FLUXOS §22): **277 minutos** de cota, contra **26**
+no pior caso de uma demonstração (R$ 0,94) — **10,6 vezes**, com R$ 9,06 de margem no pior desfecho.
+A frase, em língua de risco: no cenário em que a escola não contrata nada, ela arrisca **94 centavos**
+e já recebeu dez reais.
 
-Não bastava trocar o nome. A prova estava presa ao dado de 20/10 a 02/11 — `Plié` em `8|4/4`, `Port
-de bras` em `16|3/4`, «os quatro do ciclo» —, e um fixture com a forma errada não mede o motor: mede
-o fixture. Foi a lição do `devant`, escrita neste mesmo ficheiro.
+**O que o limitador não fecha, e fica escrito:** gravar o plano de ensino e gravar o PO — são actos de
+trabalho, não de estrutura, e nenhuma escola aceitaria um tecto de «quantas vezes posso corrigir o
+plano». Seriam precisas **125 gravações** num mês para gastar os R$ 10 só com elas. A resposta a esse
+cenário não é um tecto novo: é **desactivar o consultor**, que fecha a área dele e os links que já
+espalhou no mesmo gesto.
 
-O que passou a valer:
+### A descoberta — Q2, um defeito da escada
 
-| antes | depois |
-|:--|:--|
-| `paraNotacao('Benesh')` | `notacao.NOTACAO_DO_CICLO` — a constante que a derivação usa |
-| `compor(linha('Plié','8','4/4'))` | `entradaReal(predicado)` — o exercício escolhido **por propriedade** |
-| «os quatro do ciclo» era uma lista escrita à mão | «cada verbete declarado compõe na música que declara, para a escola a que pertence» |
-| «16 tempos em 3/4» vinha do `Port de bras` | a linha parcial mede-se numa **cópia declarada** de uma entrada real |
-| duas pistas / lados vinham do `Plié` de Outubro | medem-se numa cópia, com a forma acrescentada e dito |
-| a degradação media um plano a declarar «Laban» | mede o contrário, e é mais forte: **quatro respostas diferentes no envelope produzem o MESMO documento, byte a byte** |
+A escrever o guião (§8.4) apareceu isto, medido no catálogo: **a demonstração dá 2 professores e o
+Básico dá 1.** Quem vê dois professores a funcionar e assina o plano mais barato **perde um**. É a
+pior altura para perder capacidade — e é uma decisão comercial, não técnica. O plano declara as duas
+saídas (a demonstração desce, ou o Básico sobe) e não escolhe por ela.
 
-O `entradaReal` compõe cada entrada **com a escola a que ela pertence** — as entradas com sufixo
-`@breu` só compõem para o breu, e uma prova que compusesse sem escola declará-las-ia em lacuna por um
-motivo que não é do motor.
+### A prova
 
-**O que se acrescenta numa cópia não é conteúdo editorial.** Os sinais, as descrições e a música são
-os dela; o que se acrescenta é a FORMA cujo comportamento se quer medir (uma segunda categoria, um
-`lado`, uma célula a menos). Plantar um verbete para uma asserção voltar a verde é o que este
-ficheiro já recusou uma vez, e continua a recusar — e a reposição no `finally` é ela própria uma
-asserção («o alfabeto ficou como estava»).
+`experimentos/provar-o-plano-do-consultor.js`, **49 asserções**. Recalcula do catálogo
+(`planos.json`), do dado real (`ciclos.json`, 24 aulas) e das constantes de custo, e **compara com o
+texto do plano** — é a mesma ideia do `provar-o-custo-da-consultoria`, e pela mesma razão: um
+documento que repete números envelhece, e dois documentos a dizer o mesmo número mentem juntos.
 
-### 4. O que a medição mostrou a mais: uma prova instável
+Mede também o que o plano **afirma sobre hoje**: a recusa de `consultoria` sem `podeDispensar` e a
+frase dela; e as três propriedades do token (32 hex, hash ≠ token, prazo).
 
-Ao correr a bateria para validar isto, `provar-ciclo-herdado-do-plano` apareceu como **regressão**
-numa corrida e passou em três outras. Sozinha, passa sempre. Reproduzido com seis cópias em
-paralelo: **1 falha em 6**.
+**A/B:** falseados os números no documento — o preço do Básico, os 277 minutos, a razão das 10,6
+vezes e as 125 gravações —, a prova cai a **46/49**, com as quatro asserções discriminantes a
+reprovar.
 
-```
-ReferenceError: iniciar is not defined
-```
+**Duas correcções que a prova fez ao plano, e são o motivo de ela existir:** o catálogo guarda
+`preco` em **reais** (69.9) e não centavos — o plano não dependia disso, mas o primeiro código da
+prova sim; e `10 ÷ 0,036` é **277,77**, logo o número honesto é **277** minutos inteiros e não 278, o
+que arrasta a razão para 10,6 e as gravações para 125.
 
-Uma espera fixa de 350 ms a apostar contra o carregamento assíncrono dos scripts do jsdom
-(`resources: 'usable'`). Com a máquina livre chega; com seis node a competir, não. **O defeito não
-era a espera ser curta — era ser uma espera.** Passou a esperar pela **condição que a linha seguinte
-usa** (`typeof win.iniciar === 'function'`), com tecto de 15 s, e é o tecto que falha quando algo
-está mesmo partido. **A/B: 8 de 8 sob carga, contra 5 de 6.**
+As fases ficam na §11 do plano (F1 cadastro → F5 guião), com F3 — a criação pela visita — declarada
+como a fase que não pode falhar em silêncio: uma escola criada com o plano errado, ou sem atribuição,
+só aparece no dia em que ela fizer as contas.
 
-### As provas
-
-| prova | asserções | o que mede |
-|:--|--:|:--|
-| `provar-notacao` (versionada, reescrita) | **92** | o alfabeto, a composição, a recusa, o par com o glossário, a migração da notação |
-| `provar-o-mapa-das-provas` (nova) | **14** | o recorte do `correr-provas`, pelo `--listar` dele próprio |
-
-`provar-o-mapa-das-provas` mede pelo **`--listar` do próprio corredor**, e não por uma
-reimplementação: uma prova que reimplementasse o mapa mediria a reimplementação. E tem os dois
-controlos negativos que distinguem «vê o que deve» de «vê tudo» — um caminho que ninguém cita não
-selecciona prova nenhuma, e um módulo citado por uma prova não selecciona as 293.
-
-**Um dos controlos apanhou-se a si mesmo.** O caminho inexistente estava escrito como literal neste
-ficheiro, logo a prova passou a citá-lo e a seleccionar-se a si própria: o controlo negativo media o
-contrário do que dizia. O nome passou a ser composto em tempo de execução.
-
-**A/B do mapeador, com o `HEAD` anterior num `git worktree`:** o corredor antigo, com o `--verboso`,
-não lista `provar-notacao` para `--mudou=motor/nucleo/derivar-ciclo.js` — **zero** ocorrências. Com o
-mapeador corrigido, **uma**.
-
-Bateria completa: **293 provas, 200 verdes, 93 conhecidas, 0 regressões**. `check-identidade`: 23
-checagens, todas ok.
-
-**O que fica por fazer, e é declarado.** O recorte corrigido traz **12 provas a mais** para o
-`pre-commit` em caminhos habituais (`provar-verbete`, `provar-produtos`, `provar-schemas`,
-`provar-musica-do-verbete` entre elas). Quatro dessas já falhavam e **estão na linha de base**, por
-isso não recusam um commit; mas passam a ser corridas — e um dia hão-de ser corrigidas, não
-silenciadas.
-
-**Onde entrou.** `tools/correr-provas.js` (a normalização da referência, o `--mudar=` acumulado e o
-`--listar`), `experimentos/provar-notacao.js` (reescrita e versionada),
-`experimentos/provar-o-mapa-das-provas.js` (nova),
-`experimentos/provar-ciclo-herdado-do-plano.js` (a espera por condição), `.gitignore`,
-`ESTADO-ATUAL.md`, `HANDOFF.md`.
+**Onde entrou.** `PLANO-DO-CONSULTOR.md` (novo), `experimentos/provar-o-plano-do-consultor.js`
+(novo), `.gitignore` (a prova versionada), `ESTADO-ATUAL.md` (§8 com as sete decisões),
+`HANDOFF.md`.
 
 ## O que está pendente
 

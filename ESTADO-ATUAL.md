@@ -4,7 +4,22 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **o mapa das provas passou a ver o que já devia ver, e a
+> **Última fotografia:** 25/11/2026 — **o consultor tem plano, e o plano tem número.** O
+> [PLANO-DO-CONSULTOR.md](PLANO-DO-CONSULTOR.md) desenha as cinco peças que faltam para a escola
+> poder nascer pela mão de outra pessoa: o cadastro do consultor (nome, CPF/CNPJ, equipamento,
+> activo/inactivo — **no KV**, nunca no git, com o token guardado como hash), a área dele em
+> `lastro.padd.com.br/consultor/<token>`, a **visita** como entidade (é ela que dá o link, expira em
+> 30 dias e gasta-se uma vez), a atribuição no registo comercial da escola, e o livro dos **R$ 10**
+> por consultoria. **A terceira porta da criação** é o que o plano acrescenta: hoje `consultoria` é
+> recusado ao público com a frase certa («criado pela administração»), porque uma escola que o
+> pedisse estaria a pedir um mês grátis a si mesma — o link do consultor abre essa porta **com o
+> token**, e mais nada. O plano muda **uma regra** e declara-o: numa escola criada por link, o mês
+> **começa na criação** e não na entrega (§6.1), porque ali a criação e a entrega são o mesmo gesto e
+> o contrário pararia o negócio do consultor. **Os R$ 10 medem-se contra o custo**: compram **277
+> minutos** de cota e o pior caso de uma demonstração são **26** (R$ 0,94) — **10,6 vezes**, e o
+> pior desfecho deixa R$ 9,06. E o plano **encontrou um defeito da escada (Q2)**: a demonstração dá
+> **2 professores** e o Básico dá **1** — quem assina o plano mais barato **perde** um. Antes disso,
+> no mesmo dia: **o mapa das provas passou a ver o que já devia ver, e a
 > prova da notação voltou a correr.** Duas provas não estavam a proteger nada: o `correr-provas`
 > comparava a referência **literal**, e uma prova que escreve
 > `require(path.join(RAIZ, 'motor', 'nucleo', 'derivar-ciclo.js'))` não era seleccionada quando
@@ -5109,6 +5124,25 @@ repositório; o vocabulário do repositório tem hoje **93 termos**, e o ar só 
 
 ## 8. Pendências e dúvidas
 
+### O consultor — PLANO escrito a 25/11/2026, e sete decisões que são dela
+
+O [PLANO-DO-CONSULTOR.md](PLANO-DO-CONSULTOR.md) fecha o desenho e **não implementa nada**: as cinco
+peças, as fases F1..F5 e as provas estão lá. O que fica aqui é o que **só ela pode responder**, e
+duas delas mudam o desenho:
+
+- **Q1 — os R$ 10 são por consultoria ou por sessão?** Recomendação: **por consultoria** (uma visita,
+  uma escola, dez reais). Por sessão obrigaria a definir «sessão», e ele cobra à hora.
+- **Q2 — a demonstração dá 2 professores e o Básico dá 1.** É um **defeito da escada**, medido: quem
+  assina o plano mais barato **perde** capacidade em relação à demonstração que acabou de ver. Ou a
+  demonstração desce a 1, ou o Básico sobe a 2.
+- **Q3 — o mês começa na criação?** Recomendação: **sim** para a porta do consultor. A alternativa
+  (esperar por uma entrega dela) pára o negócio de quem cobra à hora. A porta do painel continua a
+  entregar à mão.
+- **Q4** — ele declara as horas? (recomendação: sim, opcional — não muda o que recebe)
+- **Q5** — o link expira em 30 dias? (recomendação: sim)
+- **Q6** — tecto de visitas por consultor? (recomendação: não; o que protege é a desactivação)
+- **Q7** — uma visita que dê duas escolas paga duas vezes? (recomendação: não — a taxa é por visita)
+
 ### O portão da aula dada — IMPLEMENTADO a 22/11/2026, com duas portas que ele não fecha
 
 **A REGRA, nas palavras dela.** «todas as outras aulas que estão lá no nosso calendário com o botão,
@@ -7578,6 +7612,27 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **25/11/2026** — **O plano do consultor.** O cadastro (nome, CPF e/ou CNPJ, carro e habilitação,
+  notebook próprio, activo/inactivo), o acesso dele por token em `lastro.padd.com.br/consultor/<…>`,
+  a **visita** que gera o link para a escola, a **atribuição** no registo comercial e o livro dos
+  **R$ 10** por consultoria. **O que já existia e o plano usa:** os dois endereços com o host a
+  decidir o modo (`ehPaginaPublica`), o `lastro.padd.com.br` já ligado, a criação pública de escola
+  com cadastro completo, o plano consultoria com os sete limites, o congelamento calculado, e o
+  padrão do token no `convite.js`. **O que o plano muda, e declara:** numa escola criada por link, o
+  mês começa na **criação** e não na entrega (§6.1) — ali a criação e a entrega são o mesmo gesto, e
+  o contrário pararia o negócio de quem cobra à hora. **A porta nova é a terceira**, e é o token que
+  a abre: a recusa de hoje a `consultoria` pela página pública continua palavra por palavra, e há
+  asserção para isso. **O dinheiro, em três fluxos e só um no sistema:** R$ 120/h é do consultor
+  (o sistema regista as horas, se ele as declarar), R$ 10 é dela (um livro, não uma cobrança — não
+  há cartão nem repasse), e a assinatura continua a ser Pix directo com habilitação por ela. **Os
+  R$ 10 medidos contra o custo:** 277 minutos de cota, contra 26 no pior caso — 10,6×, margem de
+  R$ 9,06. E declara as duas portas que o limitador não fecha (gravar o plano e o PO), com o número
+  que seria preciso para as gastar: 125 gravações. **`provar-o-plano-do-consultor`, 49 asserções**,
+  recalcula do catálogo e do `ciclos.json` e compara com o texto do plano; A/B: falseados os números,
+  cai a 46/49. **A Q2 é um defeito encontrado a escrever:** a demonstração dá 2 professores e o
+  Básico dá 1 — quem assina perde capacidade. Fases F1..F5 na §11, provas na §12, sete decisões
+  abertas na §13.
 
 - **25/11/2026** — **O mapa das provas, e a prova que não corria.** Três defeitos, e dois deles
   do mesmo tipo: um verificador que não verifica. **(1)** O `correr-provas` decidia o recorte por

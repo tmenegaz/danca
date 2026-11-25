@@ -62771,3 +62771,100 @@ silenciadas.
 `experimentos/provar-o-mapa-das-provas.js` (nova),
 `experimentos/provar-ciclo-herdado-do-plano.js` (a espera por condição), `.gitignore`,
 `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+---
+
+## O plano do consultor — o cadastro, o link, e os R$ 10 *(25/11/2026)*
+
+> «A gente vai adicionar lá em danca.padd.com.br um botão que leva até o cadastro e a listagem de
+> consultores. […] quando ele estiver ativo, ele gera esse link, manda para a dona da escola. […]
+> Ele vai cobrar R$ 120 a hora da consultoria e isso é para ele. […] Com êxito ou sem êxito, ele vai
+> me pagar R$ 10 na consultoria. […] o restante é tudo dele.»
+
+**O que foi feito foi o plano**, e ele existe porque a pergunta dela tem duas metades que se
+confundiam: **como é que outra pessoa cria uma escola** (uma porta nova, num endereço público) e
+**quem paga o quê** (três fluxos de dinheiro, e só um passa pelo sistema).
+
+### O que já existia, e não se construiu de novo
+
+A descoberta que encurtou o plano: quase tudo estava lá. Os **dois endereços com o host a decidir o
+modo** (`ehPaginaPublica`), o `lastro.padd.com.br` **já ligado** ao Worker `danca`, a **criação
+pública de escola** com o cadastro completo e o rollback, o **plano consultoria com os sete
+limites**, o **congelamento calculado** e o **padrão do token** no `convite.js`. O que faltava eram
+cinco peças — o cadastro do consultor, o acesso dele, a visita, a atribuição e o livro dos R$ 10.
+
+### A porta nova, e a que continua fechada
+
+`comercial.validarEscolha` recusa hoje `plano: 'consultoria'` a quem não é o proprietário, com a
+frase certa: «o plano consultoria é criado pela administração do Sistema Lastro, e não pela página da
+escola». Está certo: uma escola que o pedisse pela página pública estaria a pedir **um mês grátis a
+si mesma**.
+
+O link do consultor abre uma **terceira porta**, e é o **token** que a abre — não um campo do
+formulário. O plano não substitui a recusa: acrescenta-lhe uma porta. E a prova mede as duas coisas:
+a recusa continua palavra por palavra, e com `podeDispensar` o plano passa com a capacidade dos sete
+limites (e não de uma referência).
+
+### A regra que o plano muda, e diz que muda
+
+**D2 do PLANO-DA-ESCOLA-EM-CONSULTORIA dizia «o mês começa na entrega».** Neste fluxo a criação e a
+entrega são o mesmo gesto: o consultor cria a escola com a escola presente, e cobra as horas que
+passa ali dentro. Exigir um segundo clique dela pararia o negócio — ele trabalharia três horas e a
+escola não podia usar nada até ela abrir o painel.
+
+Fica: `origem === 'consultor'` → `entregueEm = criadaEm`, `terminaEm = fimDeUmMes`. A porta do painel
+continua a entregar à mão. Duas portas, duas regras, e a diferença é qual delas tem uma pessoa a
+cobrar à hora.
+
+### O dinheiro — três fluxos, e só um no sistema
+
+| fluxo | valor | entre quem | o sistema |
+|:--|:--|:--|:--|
+| a hora | R$ 120 | escola → consultor | regista as horas, se ele as declarar |
+| a taxa | R$ 10 | consultor → ela | **um livro**, por visita que deu escola; não é cobrança (não há cartão nem repasse) |
+| a assinatura | 69,90 / 99,90 / 139,90 | escola → ela, por Pix | já existe: conciliação e «Habilitar» |
+
+**E os R$ 10 medidos contra o custo** (CUSTO-DOS-FLUXOS §22): **277 minutos** de cota, contra **26**
+no pior caso de uma demonstração (R$ 0,94) — **10,6 vezes**, com R$ 9,06 de margem no pior desfecho.
+A frase, em língua de risco: no cenário em que a escola não contrata nada, ela arrisca **94 centavos**
+e já recebeu dez reais.
+
+**O que o limitador não fecha, e fica escrito:** gravar o plano de ensino e gravar o PO — são actos de
+trabalho, não de estrutura, e nenhuma escola aceitaria um tecto de «quantas vezes posso corrigir o
+plano». Seriam precisas **125 gravações** num mês para gastar os R$ 10 só com elas. A resposta a esse
+cenário não é um tecto novo: é **desactivar o consultor**, que fecha a área dele e os links que já
+espalhou no mesmo gesto.
+
+### A descoberta — Q2, um defeito da escada
+
+A escrever o guião (§8.4) apareceu isto, medido no catálogo: **a demonstração dá 2 professores e o
+Básico dá 1.** Quem vê dois professores a funcionar e assina o plano mais barato **perde um**. É a
+pior altura para perder capacidade — e é uma decisão comercial, não técnica. O plano declara as duas
+saídas (a demonstração desce, ou o Básico sobe) e não escolhe por ela.
+
+### A prova
+
+`experimentos/provar-o-plano-do-consultor.js`, **49 asserções**. Recalcula do catálogo
+(`planos.json`), do dado real (`ciclos.json`, 24 aulas) e das constantes de custo, e **compara com o
+texto do plano** — é a mesma ideia do `provar-o-custo-da-consultoria`, e pela mesma razão: um
+documento que repete números envelhece, e dois documentos a dizer o mesmo número mentem juntos.
+
+Mede também o que o plano **afirma sobre hoje**: a recusa de `consultoria` sem `podeDispensar` e a
+frase dela; e as três propriedades do token (32 hex, hash ≠ token, prazo).
+
+**A/B:** falseados os números no documento — o preço do Básico, os 277 minutos, a razão das 10,6
+vezes e as 125 gravações —, a prova cai a **46/49**, com as quatro asserções discriminantes a
+reprovar.
+
+**Duas correcções que a prova fez ao plano, e são o motivo de ela existir:** o catálogo guarda
+`preco` em **reais** (69.9) e não centavos — o plano não dependia disso, mas o primeiro código da
+prova sim; e `10 ÷ 0,036` é **277,77**, logo o número honesto é **277** minutos inteiros e não 278, o
+que arrasta a razão para 10,6 e as gravações para 125.
+
+As fases ficam na §11 do plano (F1 cadastro → F5 guião), com F3 — a criação pela visita — declarada
+como a fase que não pode falhar em silêncio: uma escola criada com o plano errado, ou sem atribuição,
+só aparece no dia em que ela fizer as contas.
+
+**Onde entrou.** `PLANO-DO-CONSULTOR.md` (novo), `experimentos/provar-o-plano-do-consultor.js`
+(novo), `.gitignore` (a prova versionada), `ESTADO-ATUAL.md` (§8 com as sete decisões),
+`HANDOFF.md`.
