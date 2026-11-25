@@ -4,8 +4,13 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **o contrato do financeiro passou a dizer o que se contratou e
-> desde quando.** O `select` do plano mostra a franquia (`Básico — R$ 69,90 — 130 aulas/mês`), uma
+> **Última fotografia:** 25/11/2026 — **a cobrança Pix passou a ter uma coluna onde ela cola o
+> documento do banco, e o documento reaparece onde a escola paga.** `financeiro/cobrancas` é uma
+> chave global (`{escola: {mês: {texto, em}}}`), lida uma vez por página; a coluna «Cobrança (Pix)»
+> fica no extrato do financeiro, e o mesmo documento aparece por baixo da chave no «Pagar» da escola
+> e na coluna do «mês a mês» — que **deixou de ser a do botão Pagar**. As quebras de linha do
+> documento sobrevivem ao percurso inteiro, e é isso que faz o texto colar no banco. Antes disso, no
+> mesmo dia: **o contrato do financeiro passou a dizer o que se contratou e desde quando.** O `select` do plano mostra a franquia (`Básico — R$ 69,90 — 130 aulas/mês`), uma
 > linha acima do botão diz `Avançado (500 aulas/mês), sem pacote de aulas extra` com a data da
 > contratação, e o botão só acende quando o plano ou um pacote mudam — e volta a apagar-se se a
 > pessoa voltar ao que estava. A data (`contratadoEm`) é campo próprio e só é carimbada quando o
@@ -4533,6 +4538,25 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      uma mudança. **O DEFEITO AO LADO, CORRIGIDO:** a criação da escola validava os pacotes e não os
      gravava, e a escola nascia com um pacote e acordava sem ele. **PROVADO** por
      `provar-o-contrato-em-vigor.js` (37), com quatro controlos negativos a correr.
+
+200. **A COBRANÇA PIX: a coluna onde ela cola, e o documento que reaparece de três lados.** O pedido
+     tem uma condição de sucesso que é a parte difícil: o documento que a ferramenta «receber» do
+     banco entrega **tem de reaparecer** no nicho «Pagar» da escola (por baixo da chave) e no «mês a
+     mês» — «a gente vai tirar essa coluna pagar daqui e vai deixar só essa que é a do pix».
+     **APLICADO:** `financeiro/cobrancas` é uma chave **global** (`{escola:{mês:{texto,em}}}`), lida
+     **uma vez por página** e não uma por escola; a coluna «Cobrança (Pix)» no extrato; o documento
+     por baixo da chave no «Pagar»; a coluna do mês a mês substitui o «Pagar». **O QUE NÃO SE
+     NORMALIZA, E É O PONTO:** o Pix copia-e-cola é um documento — só se troca `
+` por `
+`, e o
+     controlo negativo está feito (um `\s+` a mais reprova 4 asserções). **As decisões que evitam
+     pagar duas vezes:** no «Pagar» só os meses **em aberto**; no extrato, todos; o documento **não**
+     depende de a chave da plataforma estar configurada (o Pix do banco traz a chave dentro dele); o
+     mês em aberto **sem** cobrança mantém o caminho para a caixa da chave. E o mês pago **deixou de
+     ter botão** (a regra de 17/11 caiu com a coluna). Gravar o mesmo texto não escreve no KV
+     (`mudou:false`) e não recarrega a página. **PROVADO** por `provar-a-cobranca-pix.js` (54), com
+     quatro controlos negativos; duas asserções de `provar-financeiro-da-escola` foram **reescritas**
+     — são as que mediam o que ela mandou mudar.
 
 188. **A SALA NOVA NÃO PODE CRIAR COLISÃO EM SILÊNCIO — e as mensagens não sugerem resolução.** A
      edição da Sala já corria a cadeia, mas a cadeia relê o ritmo e deriva o plano; **não conferia a

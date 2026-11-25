@@ -61818,3 +61818,75 @@ desligado e acende — o caminho que uma pessoa faz.
 `opcoes.contratoNovo`, a rota `/api/financeiro/contrato`, e `pacotes` na criação),
 `motor/nucleo/mensalidades.js` (`contratadoEm` no extrato), `experimentos/provar-o-contrato-em-vigor.js`
 (novo), `experimentos/provar-financeiro-da-escola.js`, `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+### 25/11/2026 — a cobrança Pix: a coluna onde ela cola, e o documento que reaparece de três lados
+
+**O pedido, na letra dela:** «Eu preciso de uma outra coluna, que é onde eu vou colar o QR code ou a
+chave Pix. […] Eu uso o Nubank e na área Pix do Nubank tem uma função que se chama receber. E ali eu
+digo o valor que eu vou receber e posso escrever […] o nome da escola e o que é que ela está
+pagando. […] então é basicamente um campo texto. […] quando eu colo no chat do WhatsApp, ele preserva
+a estrutura toda que essa ferramenta me entrega. Então eu quero algo assim.»
+
+E a condição de sucesso, que é a parte difícil: **o documento tem de reaparecer noutros dois sítios.**
+No nicho «Pagar» de `bastidores/estudio` — «tem que aparecer também abaixo esse conteúdo que eu
+colei. Se não tiver nada colado lá no financeiro, aparece somente a chave Pix mesmo» — e no «mês a
+mês», onde **a coluna «Pagar» sai e entra esta**.
+
+**Porque por mês, e não por escola.** A ferramenta do banco gera uma cobrança para **um valor** — o
+daquele mês, com a multa e os juros do dia quando os há («se eu tiver que cobrar multa e juros, eu
+também já faço esse controle e entrego o valor completo»). Uma cobrança por escola obrigaria a
+refazê-la a cada mês e a apagar a anterior, e o que se quer é o contrário: o registo mensal do que
+foi entregue para pagar.
+
+**Uma chave global, e não uma por escola.** `financeiro/cobrancas` →
+`{ escola: { 'AAAA-MM': { texto, em, por } } }`, ao lado de `financeiro/pix` e `financeiro/descontos`.
+As duas páginas que mostram cobranças leem-na **uma vez** — +1 leitura por página, e não +1 por
+escola. Uma chave por escola custaria uma leitura por escola no financeiro e outra na página da
+escola, que é a que a pessoa abre com pressa para pagar.
+
+**O que NÃO se normaliza, e é o ponto.** O Pix copia-e-cola é um documento: as quebras de linha e os
+agrupamentos fazem parte dele, e reformatá-lo estraga exactamente o que se vai colar na aplicação do
+banco. Só se troca o `\r\n` do Windows por `\n` — a página desenha em `<textarea>`, que conta uma
+linha por `\n` — e se apara o que vem antes e depois. A prova mede-o à letra, e o controlo negativo
+está feito: trocar essa linha por um `\s+` (o reflexo de quem «limpa espaços») reprova **quatro**
+asserções, e o documento passa a ter tudo numa linha.
+
+**As decisões que a página teve de tomar, e cada uma custa uma pessoa a pagar duas vezes:**
+
+- **na caixa «Pagar» da escola só entram as cobranças dos meses EM ABERTO.** Uma cobrança de um mês
+  já pago ao lado da que está a valer faria pagar duas vezes. A página do mês a mês mostra **todas**,
+  porque ali o assunto é o extrato: o documento de um mês pago é o registo de como ele foi pago.
+- **o documento não depende da chave da plataforma estar configurada.** O Pix do banco traz a chave
+  dentro dele. Esconder o documento porque `financeiro/pix` está em branco seria esconder o pagamento
+  que ela acabou de entregar — e é um caso real, porque a chave configura-se noutro ecrã.
+- **o mês em aberto que ainda não tem cobrança continua a ter o caminho para a caixa da chave.** O
+  «Pagar» não desapareceu do sistema; deixou de ser uma **coluna** e passou a ser a resposta de quem
+  ainda não tem documento. Sem isto, um mês em atraso ficava sem nada onde carregar.
+- **o mês pago não tem botão nenhum.** A regra de 17/11 («o botão de pagar fica visível, mas
+  desabilitado») deixou de valer com esta mudança: um botão inerte ao lado de um documento lê-se como
+  «há mais alguma coisa a fazer aqui», e é falso.
+
+**A gravação não gasta escrita sem mudança.** O botão nasce desligado e leva a assinatura do texto que
+a linha abriu; gravar o mesmo texto responde `mudou: false` e **não escreve no KV** — a rota compara
+antes, e a prova conta as escritas. E **não recarrega a página**: as outras acções do painel recarregam
+porque mudam o extrato; esta muda uma célula, e um recarregamento por mês colado perderia o que estava
+escrito nos outros meses.
+
+**A prova.** `provar-a-cobranca-pix.js`, **54 asserções**, em seis secções: o núcleo (forma,
+normalização, o que é recusado, o que é apagado), a rota (gravar, ler de volta, apagar, e as três
+recusas — escola sem contrato, mês mal formado, pedido sem a senha da direção), o financeiro, a página
+da escola, o mês a mês, e os controlos negativos. **Quatro controlos negativos a correr**: sem a
+coluna no extrato (6 reprovações), sem o conteúdo no nicho «Pagar» (3), sem a coluna do mês a mês (2)
+e com o texto normalizado a mais (4).
+
+**Duas asserções de `provar-financeiro-da-escola` foram reescritas, e não apagadas** — são as duas que
+mediam o que ela mandou mudar: «as cinco colunas do extrato» passou a exigir «Cobrança (Pix)» na
+última, e «cada linha tem um Pagar» passou a exigir que o mês pago **não** tenha botão. Deixá-las a
+medir o nome antigo reprovaria sobre um acerto, que é o defeito que esta casa já pagou noutras provas.
+
+**Onde entrou.** `motor/nucleo/cobrancas.js` (novo), `motor/servidor/raiz.js` (`chaveDasCobrancas`,
+`lerCobrancas`, `gravarCobrancas`, a rota `POST /api/financeiro/cobranca`, e as cobranças no
+`extratoDasEscolas`), `motor/servidor/painel-html.js` (a coluna «Cobrança (Pix)», a célula e o
+cliente), `motor/servidor/bastidores.js` (`dadosDaEscolaParaAProducao`, `painelDoPixDaEscola`, a
+coluna do mês a mês), `experimentos/provar-a-cobranca-pix.js` (novo),
+`experimentos/provar-financeiro-da-escola.js`, `ESTADO-ATUAL.md`, `HANDOFF.md`.

@@ -661,8 +661,13 @@ function kvCom(dados) {
     const { JSDOM: JSDOM2 } = require('jsdom');
     const d1 = new JSDOM2(paginaDoMes).window.document;
     const colunas = [...d1.querySelectorAll('#fi-meses table > thead > tr > th')].map((t) => t.textContent.trim());
-    conferir('o mês a mês é uma TABELA com as cinco colunas do extrato',
-      JSON.stringify(colunas) === JSON.stringify(['Mês', 'Vencimento', 'Valor', 'Situação', 'Pagar']),
+    /* A ÚLTIMA COLUNA PASSOU A SER A DO PIX (25/11/2026). «Também precisa ter essa coluna pix […]
+     * A gente vai tirar essa coluna pagar daqui e vai deixar só essa que é a do pix.» A asserção
+     * antiga medía «Pagar», e passou a medir «Cobrança (Pix)» — é a mudança que ela pediu, e
+     * deixá-la a medir o nome antigo reprovaria sobre um acerto. As cinco colunas continuam a ser
+     * cinco: o que mudou foi o que a última diz. */
+    conferir('o mês a mês é uma TABELA com as cinco colunas do extrato, e a última é a do Pix',
+      JSON.stringify(colunas) === JSON.stringify(['Mês', 'Vencimento', 'Valor', 'Situação', 'Cobrança (Pix)']),
       colunas);
     const linhas = [...d1.querySelectorAll('#fi-meses tbody > tr')];
     conferir('…com uma linha por mês, e nenhum cartão em volta',
@@ -711,11 +716,15 @@ function kvCom(dados) {
     const pagarDe = (tr) => tr.children[4].querySelector('button, a');
     const pagas = linhas.filter((tr) => /pago/.test(tr.children[3].textContent.trim()));
     const abertas = linhas.filter((tr) => /em aberto/.test(tr.children[3].textContent.trim()));
-    conferir('cada linha tem um Pagar, e o do mês pago está DESABILITADO (visível, inerte)',
+    /* O MÊS PAGO NÃO TEM BOTÃO NENHUM (25/11/2026), e a regra de 17/11 que aqui estava deixou de
+     * valer: «o botão de pagar fica visível, mas desabilitado» era a letra ANTES de a coluna passar
+     * a ser a do Pix. Agora a célula de um mês pago mostra o documento com que ele foi pago, e não
+     * há o que carregar — um botão inerte ao lado de um documento lê-se como «há mais alguma
+     * coisa a fazer aqui», que é falso. O que se mede passou a ser isso. */
+    conferir('o mês PAGO não tem botão de pagar — e diz porquê com um traço',
       pagas.length > 0 && pagas.every((tr) => {
         const b = pagarDe(tr);
-        return b && b.tagName === 'BUTTON' && b.hasAttribute('disabled')
-          && /^pagar$/i.test(b.textContent.trim());
+        return !b && /—/.test(tr.children[4].textContent);
       }), { pagas: pagas.length });
     conferir('…e o do mês em aberto está HABILITADO, e leva à caixa do Pix da listagem da escola',
       abertas.length > 0 && abertas.every((tr) => {

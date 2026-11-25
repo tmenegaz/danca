@@ -28,6 +28,7 @@ const correio = require('./correio.js');
 /* A COMPOSIÇÃO COMERCIAL (25/11/2026) — os planos, a capacidade e a conta, de uma fonte só
  * (`biblioteca/comercial/planos.json`). Nenhum preço se escreve em código. */
 const comercial = require('../nucleo/comercial.js');
+const cobrancasDoNucleo = require('../nucleo/cobrancas.js');
 /* O MONITOR (17/11/2026) — as cotas dos três fornecedores, a receita e o impacto da migração.
  * Vive no núcleo porque é conta pura: a rota lê os dados (GitHub, KV, livro) e ele responde. */
 const monitoramento = require('../nucleo/monitoramento.js');
@@ -1813,6 +1814,42 @@ function emDataHora(iso) {
 
 function chavePixNoKv() { return 'financeiro/pix'; }
 function chaveDosDescontos() { return 'financeiro/descontos'; }
+function chaveDasCobrancas() { return 'financeiro/cobrancas'; }
+
+/**
+ * AS COBRANÇAS PIX QUE ELA COLA NO FINANCEIRO — UMA chave, UMA leitura (25/11/2026).
+ *
+ * A FORMA É `{ escola: { 'AAAA-MM': { texto, em, por } } }`, e a chave é GLOBAL pelo mesmo motivo
+ * que o livro das mensalidades e a chave Pix são globais: o financeiro é da plataforma, não de um
+ * shard. Uma chave por escola custaria uma leitura por escola em cada página que mostra cobranças —
+ * e esta aparece em duas (o financeiro e a página da escola).
+ *
+ * NÃO LANÇA, e devolve o mapa vazio: um JSON partido no KV não pode impedir a página do financeiro
+ * de abrir. Uma leitura falhada desenha os campos vazios, e um campo vazio é a verdade — não há
+ * cobrança guardada que se possa mostrar. O que NÃO se faz é inventar uma.
+ */
+async function lerCobrancas(kv) {
+  if (!kv || typeof kv.get !== 'function') return {};
+  try {
+    const texto = await kv.get(chaveDasCobrancas());
+    if (!texto) return {};
+    return cobrancasDoNucleo.mapaEstruturado(JSON.parse(texto));
+  } catch (erro) {
+    return {};
+  }
+}
+
+/** Grava o mapa inteiro. A chave é uma só, e a escrita é idempotente por natureza: quem chama já
+ *  aplicou a mudança no mapa que leu (`cobrancasDoNucleo.gravarNoMapa`). */
+async function gravarCobrancas(kv, mapa) {
+  if (!kv || typeof kv.put !== 'function') return { ok: false, erro: 'sem KV' };
+  try {
+    await kv.put(chaveDasCobrancas(), JSON.stringify(mapa || {}));
+    return { ok: true };
+  } catch (erro) {
+    return { ok: false, erro: (erro && erro.message) || String(erro) };
+  }
+}
 
 /** `[Preencher: …]` é lacuna, não valor — e uma lacuna nunca chega à tela como dado. */
 function semLacuna(valor) {
@@ -3700,6 +3737,10 @@ async function servirAPagina(request, env, { modo }) {
 async function extratoDasEscolas({ env, escolas, agora }) {
   const kv = env && env.PADD_KV;
   const livro = await mensalidades.lerLivro(kv);
+  /* AS COBRANÇAS PIX, UMA LEITURA PARA TODAS AS ESCOLAS (25/11/2026). A chave é global
+   * (`financeiro/cobrancas`), e por isso a leitura é feita UMA vez e não uma por escola — a lição
+   * do `lerLivro` acima, aplicada à chave nova antes de ela custar. */
+  const cobrancas = await lerCobrancas(kv);
   const temHistorico = new Set((Array.isArray(livro) ? livro : [])
     .map((l) => String((l && l.escola) || '').trim()).filter(Boolean));
   const lista = [];
@@ -3735,6 +3776,10 @@ async function extratoDasEscolas({ env, escolas, agora }) {
       lotesProfessores: Array.isArray(contrato && contrato.lotesProfessores)
         ? contrato.lotesProfessores : [],
       lotesAlunos: Array.isArray(contrato && contrato.lotesAlunos) ? contrato.lotesAlunos : [],
+      /* AS COBRANÇAS DESTA ESCOLA, do mapa que já foi lido — `{ 'AAAA-MM': {texto, em} }`. Vão no
+       * extrato para a coluna «Cobrança» abrir com o que está guardado: um campo vazio numa tabela
+       * que tem uma cobrança guardada faria ela colar de novo o mesmo documento. */
+      cobrancas: cobrancasDoNucleo.cobrancasDaEscola(cobrancas, slug),
       /* O ENSAIO VAI PARA A PÁGINA, para ela poder dizer que os meses que mostra são de ensaio.
        * Sem isto, o painel passaria a ver «dezembro de 2026» em novembro de 2026 e não haveria nada
        * no ecrã a explicar de onde vem. */
@@ -4890,6 +4935,65 @@ async function fetch(request, env) {
     });
   }
 
+  /* A COBRANÇA PIX — O QUE ELA COLA, POR ESCOLA E POR MÊS (25/11/2026).
+   *
+   * «Eu preciso de uma outra coluna, que é onde eu vou colar o QR code ou a chave Pix. […] E aí eu
+   * colo o conteúdo que essa área Pix cobrança do meu banco me entrega.»
+   *
+   * O QUE ESTA ROTA NÃO FAZ, e é deliberado: não gera cobrança, não fala com o banco, não calcula
+   * multa. O documento vem da ferramenta DELA — o Nubank — e o que o sistema faz é guardá-lo e
+   * mostrá-lo a quem tem de pagar. Um payload de Pix copia-e-cola é assinado pelo banco emissor;
+   * compô-lo aqui seria emitir um documento que não é de ninguém.
+   *
+   * TEXTO VAZIO É APAGAR, e é uma resposta: ela colou, viu que estava errado, limpou o campo. A
+   * alternativa — recusar a limpeza — obrigava a ir ao KV para desfazer o que se fez no ecrã.
+   *
+   * A LEITURA E A ESCRITA SÃO A DO MESMO MAPA, e a mudança aplica-se ao que se leu. Duas escritas
+   * ao mesmo tempo na mesma chave perdem uma — mas o gesto é dela, um de cada vez, e o mapa tem o
+   * mês na folha: a segunda escrita de OUTRO mês não apaga a primeira porque relê antes de aplicar.
+   * O que se evita é o contrário do que se teme: reler não é caro (é o mesmo `get` do ecrã) e
+   * escrever às cegas apagaria as cobranças dos outros meses. */
+  if (url.pathname === '/api/financeiro/cobranca' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    const slug = String(corpo.escola || '').trim();
+    if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) {
+      return responderJson({ ok: false, erro: 'informe a escola' }, 400);
+    }
+    const kv = env && env.PADD_KV;
+    if (!kv) return responderJson({ ok: false, erro: 'PADD_KV ausente na raiz' }, 500);
+    /* A ESCOLA TEM DE EXISTIR. Uma cobrança gravada num slug desconhecido ficaria à espera no KV, e
+     * no dia em que alguém criasse essa escola ela nasceria com uma cobrança de Pix que ninguém
+     * emitiu. É a mesma guarda do ensaio e do contrato, pela mesma razão. */
+    let contrato = null;
+    try { contrato = await lerComercial(kv, slug); } catch (erro) { contrato = null; }
+    if (!contrato || !contrato.plano) {
+      return responderJson({ ok: false, erro: 'escola desconhecida: «' + slug + '» não tem contrato' }, 400);
+    }
+    const mapa = await lerCobrancas(kv);
+    const mudanca = cobrancasDoNucleo.gravarNoMapa(mapa, {
+      escola: slug, mes: corpo.mes, texto: corpo.texto, agora: new Date().toISOString(), por: 'proprietario',
+    });
+    if (!mudanca.ok) return responderJson({ ok: false, erro: mudanca.erro }, 400);
+    /* NADA MUDOU? Não se escreve. É a mesma regra da data do contrato: uma escrita que não muda o
+     * que está guardado só gasta uma escrita de KV e move o carimbo de «actualizado em». */
+    const antes = cobrancasDoNucleo.cobrancaDe(mapa, slug, mudanca.mes);
+    const depois = cobrancasDoNucleo.cobrancaDe(mudanca.mapa, slug, mudanca.mes);
+    const igual = (antes && depois && antes.texto === depois.texto) || (!antes && !depois);
+    if (!igual) {
+      const gravado = await gravarCobrancas(kv, mudanca.mapa);
+      if (!gravado.ok) return responderJson({ ok: false, erro: gravado.erro }, 500);
+    }
+    return responderJson({
+      ok: true,
+      mudou: !igual,
+      apagada: Boolean(mudanca.apagada),
+      escola: slug,
+      mes: mudanca.mes,
+      cobranca: depois,
+    });
+  }
+
   /* O ENSAIO — LIGAR E DESLIGAR O RELÓGIO COMPRIMIDO, DO LADO DE QUEM CONCILIA (17/11/2026).
    *
    * «O botão de ativar ou desativar o ensaio deve ficar no https://danca.padd.com.br/financeiro e o
@@ -5591,6 +5695,9 @@ module.exports = {
    * em produção descobre-se em produção — com o dinheiro de alguém no meio. */
   lerPix, gravarPix, lerDescontos, concederDesconto, retirarDesconto,
   carenciaAte, MESES_DE_CARENCIA,
+  /* AS COBRANÇAS PIX (25/11/2026). `lerCobrancas` é exportado porque a prova tem de medir a
+   * degradação — um KV com lixo não pode impedir o financeiro de abrir — sem subir o Worker. */
+  lerCobrancas, gravarCobrancas, chaveDasCobrancas,
   /* O REGIME DE TESTE É DECLARADO, E NÃO ADIVINHADO (16/11/2026). A prova tem de poder dizer com
    * que régua o expurgo mediu — e um número lido de uma variável local não se afirma de fora. */
   CARENCIA_DE_TESTE_MINUTOS, descricaoDaCarencia, escolasConhecidas,

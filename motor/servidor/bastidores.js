@@ -457,6 +457,7 @@ const comercialDoNucleo = require('../nucleo/comercial.js');
  * ela pode clicar em pagar. Ali vai aparecer então a chave Pix.» O núcleo é o mesmo que serve o
  * painel da proprietária: a dívida de uma escola é uma conta só, e duas contas dariam duas. */
 const mensalidadesDoNucleo = require('../nucleo/mensalidades.js');
+const cobrancasDoNucleo = require('../nucleo/cobrancas.js');
 const fusoDoNucleo = require('../nucleo/fuso.js');
 
 /** Um sal aleatório (16 bytes) em hex — para nunca guardar a senha em claro. */
@@ -5601,6 +5602,12 @@ async function dadosDaEscolaParaAProducao(env, kv, escola) {
    * segundo caminho de dados para o ensaio, e dois caminhos divergem. O KV desta chave é o mesmo
    * que já se lê três vezes aqui em cima. */
   const ensaio = await ler(RAIZ + '/' + escola + '/ensaio');
+  /* AS COBRANÇAS PIX (25/11/2026). «Tem que aparecer também abaixo esse conteúdo que eu colei.»
+   *
+   * A CHAVE É GLOBAL (`financeiro/cobrancas`) e a leitura é UMA — o mesmo padrão da chave Pix, que
+   * já se lê aqui em cima. Uma chave por escola custaria uma leitura por escola nesta página e no
+   * financeiro, e a página da escola é aberta por quem tem pressa de pagar. */
+  const cobrancas = await ler('financeiro/cobrancas');
   const livro = await mensalidadesDoNucleo.lerLivro(kv);
   const situacao = mensalidadesDoNucleo.situacaoDaEscola({
     escola, contrato, livro, ensaio,
@@ -5610,6 +5617,12 @@ async function dadosDaEscolaParaAProducao(env, kv, escola) {
     cadastro,
     contrato,
     pix: pix && pix.chave ? pix : null,
+    /* AS COBRANÇAS DESTA ESCOLA, todas — `{ 'AAAA-MM': {texto, em} }`. O LEITOR ENTREGA O FACTO e
+     * cada consumidor aplica a sua regra: o cartão «Pagar» mostra só as dos meses em aberto (uma
+     * cobrança de um mês já pago ao lado da que vale faria pagar duas vezes), e a página do mês a
+     * mês mostra todas, porque ali o assunto é o extrato e o documento de um mês pago é o registo
+     * de como ele foi pago. Filtrar aqui obrigaria a página do extrato a pedir outra leitura. */
+    cobrancas: cobrancasDoNucleo.cobrancasDaEscola(cobrancas, escola),
     ensaio: ensaio && Number(ensaio.minutosPorPeriodo) > 0 ? ensaio : null,
     situacao: Object.assign({}, situacao, {
       frase: mensalidadesDoNucleo.fraseDaSituacao(situacao.situacao),
@@ -5645,7 +5658,7 @@ async function dadosDaEscolaParaAProducao(env, kv, escola) {
  * O QUE ELE NÃO PODE FAZER: escrever. Não há botão que mude o estado comercial, o plano ou o
  * pagamento. Quem habilita é ela, no painel do `danca`; quem concilia é ela, à mão.
  */
-function cartaoDaEscola({ escola, cadastro, contrato, situacao, pix }) {
+function cartaoDaEscola({ escola, cadastro, contrato, situacao, pix, cobrancas }) {
   const c = cadastro || {};
   const s = situacao || {};
   const nome = String(c.escolaNome || escola || '').trim();
@@ -5700,7 +5713,8 @@ function cartaoDaEscola({ escola, cadastro, contrato, situacao, pix }) {
     + '<div class="trio-painel" data-painel="situacao" id="es-painel-situacao" hidden>'
     + painelDaSituacaoDaEscola(s) + '</div>'
     + '<div class="trio-painel" data-painel="pagar" id="es-painel-pagar" hidden>'
-    + painelDoPixDaEscola(pix, s, nome) + '</div>'
+    + painelDoPixDaEscola(pix, s, nome,
+      cobrancasDoNucleo.emAberto(cobrancas, s.meses)) + '</div>'
     + '</li></ul>';
 }
 
@@ -5826,12 +5840,43 @@ function painelDaSituacaoDaEscola(s) {
  * falha na hora, falha no dia em que o dinheiro não aparece. A peça é o `.par-associar`: o
  * controle e o botão na mesma linha, como no «+» do verbete.
  */
-function painelDoPixDaEscola(pix, s, nomeDaEscola) {
+function painelDoPixDaEscola(pix, s, nomeDaEscola, cobrancas) {
+  const vencidos = (Array.isArray(s && s.meses) ? s.meses : []).filter((m) => m.venceu);
+  /* O CONTEÚDO QUE ELA COLOU NO FINANCEIRO, ABAIXO DA CHAVE (25/11/2026).
+   *
+   * «Quando eu expando aparece a chave Pix cadastrada, que foi eu que cadastrei, e tem que
+   * aparecer também abaixo esse conteúdo que eu colei. Se não tiver nada colado lá no financeiro,
+   * aparece somente a chave Pix mesmo.»
+   *
+   * A CHAVE FICA ACIMA, numa linha, como ela decidiu — e o documento vem depois. A ordem não é
+   * estética: a chave é o pagamento de sempre (um Pix manual, com a descrição escrita à mão) e o
+   * documento é o pagamento de hoje; se o documento faltar, a chave sozinha continua a servir.
+   *
+   * O PAGAMENTO É UM `<textarea readonly>`, e não um `<pre>`: é o que faz o botão «Copiar» valer
+   * (ele lê `campo.value` e selecciona o campo), é o que preserva as quebras de linha do documento
+   * do banco, e é a MESMA peça em que ela colou no financeiro — o que se vê é o que se colou.
+   *
+   * UM BLOCO POR MÊS EM ABERTO QUE TENHA COBRANÇA. Com dois meses em atraso e duas cobranças, a
+   * escola tem de saber qual documento paga qual mês — e é o nome do mês que o diz.
+   *
+   * E ELE NÃO DEPENDE DA CHAVE ESTAR CONFIGURADA (é a correcção de um defeito meu, apanhado ao
+   * escrever esta função): o documento do banco traz a chave DENTRO dele. Escondê-lo porque a chave
+   * da plataforma não está no sistema seria esconder o pagamento que ela acabou de entregar — e o
+   * caso é real, porque a chave só se configura num ecrã que não é este. */
+  const blocosDasCobrancas = (Array.isArray(cobrancas) ? cobrancas : []).map((c, i) => {
+    const id = 'escola-cobranca-' + (i + 1);
+    return '<label class="campo-rotulo" for="' + id + '">Cobrança de ' + esc(c.nome) + '</label>'
+      + '<p class="par-associar">'
+      + '<textarea id="' + id + '" rows="4" readonly aria-label="Pix da cobrança de '
+      + esc(c.nome) + '">' + esc(c.texto) + '</textarea>'
+      + '<button type="button" class="acao secundario pequena" data-copiar="' + id + '"'
+      + ' title="copiar o Pix desta cobrança">Copiar</button>'
+      + '</p>';
+  }).join('');
   if (!pix || !pix.chave) {
     return '<p class="trio-nota">A chave Pix ainda não está configurada no sistema. Para pagar, '
-      + 'fale com a administração do Sistema Lastro.</p>';
+      + 'fale com a administração do Sistema Lastro.</p>' + blocosDasCobrancas;
   }
-  const vencidos = (Array.isArray(s && s.meses) ? s.meses : []).filter((m) => m.venceu);
   return '<p class="trio-frase">Pague por Pix para <strong>' + esc(pix.titular || 'o Sistema Lastro')
     + '</strong>.</p>'
     + '<p class="trio-nota"><strong>Na descrição do Pix escreva duas coisas:</strong> o nome da '
@@ -5850,7 +5895,8 @@ function painelDoPixDaEscola(pix, s, nomeDaEscola) {
     + ' title="copiar a chave para a área de transferência">Copiar</button>'
     + '</p>'
     + '<p class="trio-nota">Confirmado o pagamento, o mês passa a «pago». A conciliação é feita '
-    + 'em até 24 horas.</p>';
+    + 'em até 24 horas.</p>'
+    + blocosDasCobrancas;
 }
 
 /**
@@ -5873,6 +5919,16 @@ function paginaFinanceiro(escola, contexto, aparencia, dados) {
   const c = (dados && dados.cadastro) || {};
   const nome = String(c.escolaNome || escola || '').trim();
   const meses = Array.isArray(s.meses) ? s.meses : [];
+  /* AS COBRANÇAS PIX DESTA ESCOLA, por mês (25/11/2026). «Quando entrar em ver mês a mês […] também
+   * precisa ter essa coluna pix.» Vem do mesmo leitor do cartão (`dadosDaEscolaParaAProducao`), uma
+   * leitura só para os dois sítios da mesma página.
+   *
+   * AQUI ENTRAM TODAS, e não só as dos meses em aberto: esta página é o EXTRATO — mostra os meses
+   * pagos e os que faltam pagar —, e esconder a cobrança de um mês já pago faria o histórico
+   * perder o documento com que ele foi pago. A regra de «só os abertos» é do cartão «Pagar», que
+   * existe para pagar AGORA; aqui o assunto é o registo. */
+  const cobrancasPorMes = (dados && dados.cobrancas && typeof dados.cobrancas === 'object')
+    ? dados.cobrancas : {};
 
   const dia = (iso) => {
     const v = String(iso || '');
@@ -5906,11 +5962,35 @@ function paginaFinanceiro(escola, contexto, aparencia, dados) {
      * O CAMINHO É O DA LISTAGEM DA ESCOLA: `?abrir=pagar` chega à Produção e abre a caixa do Pix —
      * a mesma caixa, não uma segunda cópia da chave nesta página. Uma chave escrita em dois sítios
      * é a primeira a divergir. */
-    const acao = pago
-      ? '<button type="button" class="acao secundario pequena" disabled'
-        + ' aria-disabled="true" title="este mês está pago">Pagar</button>'
-      : '<a class="acao pequena" href="/bastidores/estudio?abrir=pagar#a-escola"'
+    /* A COLUNA «PAGAR» PASSOU A SER A COLUNA DO PIX (25/11/2026).
+     *
+     * «Também precisa ter essa coluna pix, tá? E aí a gente tem um botão que se chama pagar. […]
+     * A gente vai tirar essa coluna pagar daqui e vai deixar só essa que é a do pix. E a pessoa
+     * copia e cola e faz o pagamento.»
+     *
+     * ENTAO A CELULA E O DOCUMENTO, quando existe, e o caminho para a caixa do Pix quando não
+     * existe. O «Pagar» nao desapareceu por completo, e e deliberado: um mes em aberto sem
+     * cobranca gerada continua a precisar de um sitio para onde ir — e esse sitio e a caixa que
+     * tem a chave. O que deixou de haver e a COLUNA «Pagar» como acao propria; o que ha e uma
+     * coluna so, que diz o que se paga e da o que copiar.
+     *
+     * O MES PAGO NAO TEM BOTAO NENHUM: o documento com que foi pago fica a vista, em leitura (o
+     * passado nao se reescreve), e nao ha o que carregar. */
+    const cobranca = cobrancasPorMes[String(m.mes || '')];
+    const idCobranca = 'mes-pix-' + String(m.mes || '').replace(/[^0-9a-z-]/gi, '');
+    let acao;
+    if (cobranca && cobranca.texto) {
+      acao = '<p class="par-associar">'
+        + '<textarea id="' + idCobranca + '" rows="3" readonly aria-label="Pix da mensalidade de '
+        + esc(m.nome) + '">' + esc(cobranca.texto) + '</textarea>'
+        + '<button type="button" class="acao secundario pequena" data-copiar="' + idCobranca + '"'
+        + ' title="copiar o Pix deste mês">Copiar</button></p>';
+    } else if (pago) {
+      acao = '<span class="sub">—</span>';
+    } else {
+      acao = '<a class="acao pequena" href="/bastidores/estudio?abrir=pagar#a-escola"'
         + ' title="abrir a chave Pix para pagar este mês">Pagar</a>';
+    }
     return '<tr><td>' + esc(m.nome) + '</td>'
       + '<td>' + esc(dia(m.vencimento)) + '</td>'
       + '<td>' + esc(valor) + '</td>'
@@ -6031,7 +6111,7 @@ function paginaFinanceiro(escola, contexto, aparencia, dados) {
       + '<div class="rolagem-caixa" tabindex="0">'
       + '<table><thead><tr><th scope="col">Mês</th><th scope="col">Vencimento</th>'
       + '<th scope="col">Valor</th><th scope="col">Situação</th>'
-      + '<th scope="col">Pagar</th></tr></thead>'
+      + '<th scope="col">Cobrança (Pix)</th></tr></thead>'
       + '<tbody>' + meses.map(linha).join('') + '</tbody></table>'
       + '</div>'
       + paginacao.marcacao()

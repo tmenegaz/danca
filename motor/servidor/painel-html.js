@@ -1800,6 +1800,47 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
         : (c.estadoComercial === 'suspensa'
           ? '<span class="selo falha">desabilitada</span>'
           : '<span class="selo discreto">a aguardar</span>'));
+    /* A COLUNA «COBRANÇA» — O PIX QUE ELA COLA, POR MÊS (25/11/2026).
+     *
+     * «Eu preciso de uma outra coluna, que é onde eu vou colar o QR code ou a chave Pix. […] eu colo
+     * o conteúdo que essa área Pix cobrança do meu banco me entrega. […] quando eu colo no chat do
+     * WhatsApp, ele preserva a estrutura toda que essa ferramenta me entrega. Então eu quero algo
+     * assim.»
+     *
+     * PORQUE UM `<textarea>` E NÃO UM `<input>`: o documento do Pix tem quebras de linha, e um campo
+     * de uma linha ou as come ou obriga a rolar de lado. O `<textarea>` é a peça da folha que já
+     * guarda um texto com a sua forma (`#dicfrase`, `#vb-frase`) — e é a mesma que a página da
+     * escola usa para mostrar o que foi colado, para o que ela vê ser o que ela colou.
+     *
+     * O BOTÃO NASCE DESLIGADO E ACENDE COM A EDIÇÃO, como o do contrato: um botão sempre pronto
+     * convida a carregar por rotina, e cada carregamento é uma escrita no KV. A assinatura é o
+     * texto que a linha abriu, escrita no próprio botão — e não uma cópia numa variável do script,
+     * que se perde quando o painel é dobrado e redesenhado.
+     *
+     * A ESCOLA EXPURGADA NÃO TEM COLUNA: o registo comercial dela já não existe, e a rota recusa
+     * gravar sobre uma escola desconhecida. Mostrar o campo seria oferecer um gesto que falha. */
+    const celulaDaCobranca = (m) => {
+      if (expurgada) return '<td><span class="sub">—</span></td>';
+      const guardada = (c.cobrancas && c.cobrancas[m.mes]) ? String(c.cobrancas[m.mes].texto || '') : '';
+      const id = 'cob-' + esc(c.escola) + '-' + esc(m.mes);
+      return '<td>' +
+        '<textarea id="' + id + '" rows="2"'
+        + ' placeholder="cole aqui o Pix que o banco gerou para este mês">'
+        + esc(guardada) + '</textarea>' +
+        '<p class="par-associar">' +
+        '<button class="acao pequena secundario" type="button" disabled'
+        + ' data-cobranca-gravar="' + esc(c.escola) + '" data-mes="' + esc(m.mes) + '"'
+        + ' data-cobranca-assinatura="' + esc(guardada) + '"'
+        + ' title="gravar a cobrança deste mês">Gravar</button>' +
+        (guardada
+          ? '<button class="acao pequena secundario" type="button"'
+            + ' data-copiar="' + id + '" title="copiar o Pix deste mês">Copiar</button>'
+          : '') +
+        '</p>' +
+        '<p class="aviso" data-cobranca-recado="' + esc(c.escola) + '-' + esc(m.mes) + '" hidden></p>' +
+        '</td>';
+    };
+
     const linhas = meses.map((m) => '<tr data-mes="' + esc(m.mes) + '">' +
       '<td><strong>' + esc(m.nome || m.mes) + '</strong></td>' +
       '<td>' + seloDaEscola + '</td>' +
@@ -1828,11 +1869,16 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
           ? '<span class="sub">—</span>'
           : '<button class="acao pequena" type="button" data-pagar="' + esc(c.escola) + '"'
             + ' data-mes="' + esc(m.mes) + '">Marcar pago</button>')) + '</td>' +
+      celulaDaCobranca(m) +
       '</tr>').join('');
 
     const corpoDaTabela = linhas
       ? '<div class="rolagem-caixa"><table><thead><tr><th>Mês</th><th>Escola</th>' +
         '<th>Vencimento</th><th>Valor</th><th>Situação</th><th>Pago / ação</th>' +
+        /* A COLUNA NOVA FICA NO FIM, e não ao lado do «Marcar pago»: as duas são gestos dela, mas o
+         * «pago» é a conciliação (o dinheiro entrou) e a cobrança é a entrega do documento (o
+         * dinheiro ainda não entrou). Encostá-las faria confundir uma com a outra. */
+        (expurgada ? '' : '<th>Cobrança (Pix)</th>') +
         '</tr></thead><tbody>' + linhas + '</tbody></table></div>'
       : (expurgada
         ? ''
@@ -2474,6 +2520,48 @@ const SCRIPT_DO_FINANCEIRO = '<script>(function(){' +
   '    .catch(function(){b.disabled=false;dizer("falha de rede — nada foi alterado",true);});' +
   '  });' +
   '})(gravarContrato[k]);' +
+  /* ── A COBRANÇA PIX DE CADA MÊS (25/11/2026) ────────────────────────────────────────────
+   *
+   * «Eu preciso de uma outra coluna, que é onde eu vou colar o QR code ou a chave Pix. […] eu colo o
+   * conteúdo que essa área Pix cobrança do meu banco me entrega.»
+   *
+   * O BOTÃO ACENDE COM A EDIÇÃO, e a assinatura inicial está escrita nele. É a mesma regra do
+   * contrato, e pela mesma razão: um botão sempre pronto convida a carregar por rotina, e cada
+   * carregamento é uma escrita de KV sobre um texto que não mudou.
+   *
+   * NÃO RECARREGA A PÁGINA. As outras ações do painel recarregam porque mudam o extrato (um
+   * pagamento, um plano); esta muda UMA célula, e um recarregamento por cada mês colado seria uma
+   * leitura de cada escola do índice — e a lista perderia a posição e o que estava escrito nos
+   * outros meses. O que se faz é acertar a assinatura no botão e dizer «gravado» na própria linha.
+   * É o mesmo cuidado que a página da escola teve com o seu próprio estado. */
+  'var caixasDeCobranca=document.querySelectorAll("[data-cobranca-gravar]");' +
+  'for(var cb=0;cb<caixasDeCobranca.length;cb++)(function(b){' +
+  '  var escola=b.getAttribute("data-cobranca-gravar"),mes=b.getAttribute("data-mes");' +
+  '  var campo=document.getElementById("cob-"+escola+"-"+mes);' +
+  '  var recado=document.querySelector(\'[data-cobranca-recado="\'+escola+\'-\'+mes+\'"]\');' +
+  '  function dizer(txt,erro){if(!recado)return;recado.hidden=!txt;recado.textContent=txt||"";' +
+  '    recado.className=erro?"aviso alerta":"aviso";}' +
+  '  if(!campo)return;' +
+  '  campo.addEventListener("input",function(){' +
+  '    b.disabled=(String(campo.value||"").trim()===String(b.getAttribute("data-cobranca-assinatura")||"").trim());' +
+  '    dizer("",false);});' +
+  '  b.addEventListener("click",function(){' +
+  '    var texto=String(campo.value||"");' +
+  '    b.disabled=true;dizer("a gravar…",false);' +
+  '    fetch("/api/financeiro/cobranca",{method:"POST",headers:{"Content-Type":"application/json"},' +
+  '      body:JSON.stringify({escola:escola,mes:mes,texto:texto}),cache:"no-store"})' +
+  '    .then(function(r){return r.json().catch(function(){return {};});})' +
+  '    .then(function(d){' +
+  '      if(d&&d.ok){' +
+  '        b.setAttribute("data-cobranca-assinatura",String(campo.value||"").trim());' +
+  '        dizer(d.mudou?(d.apagada?"cobrança apagada":"cobrança gravada"):"nada mudou",false);' +
+  '        return;' +
+  '      }' +
+  '      b.disabled=false;' +
+  '      dizer((d&&d.erro)||"não foi possível gravar a cobrança",true);})' +
+  '    .catch(function(){b.disabled=false;dizer("falha de rede — nada foi alterado",true);});' +
+  '  });' +
+  '})(caixasDeCobranca[cb]);' +
   '})();</script>';
 
 /**
