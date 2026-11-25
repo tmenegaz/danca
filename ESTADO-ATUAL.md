@@ -17,8 +17,10 @@
 > **começa na criação** e não na entrega (§6.1), porque ali a criação e a entrega são o mesmo gesto e
 > o contrário pararia o negócio do consultor. **Os R$ 10 medem-se contra o custo**: compram **277
 > minutos** de cota e o pior caso de uma demonstração são **26** (R$ 0,94) — **10,6 vezes**, e o
-> pior desfecho deixa R$ 9,06. E o plano **encontrou um defeito da escada (Q2)**: a demonstração dá
-> **2 professores** e o Básico dá **1** — quem assina o plano mais barato **perde** um. Antes disso,
+> pior desfecho deixa R$ 9,06. E o plano **levantou uma pergunta (Q2) que se desfez ao medir**: o Básico
+> **inclui** 1 professor, mas **vai até 2** — o teto de cada degrau é o piso do degrau de cima menos
+> um, e os dois professores da demonstração continuam lá. O erro era ler o piso como se fosse parede,
+> e fica registado por ser a família de erro que esta casa persegue. Antes disso,
 > no mesmo dia: **o mapa das provas passou a ver o que já devia ver, e a
 > prova da notação voltou a correr.** Duas provas não estavam a proteger nada: o `correr-provas`
 > comparava a referência **literal**, e uma prova que escreve
@@ -5132,16 +5134,18 @@ duas delas mudam o desenho:
 
 - **Q1 — os R$ 10 são por consultoria ou por sessão?** Recomendação: **por consultoria** (uma visita,
   uma escola, dez reais). Por sessão obrigaria a definir «sessão», e ele cobra à hora.
-- **Q2 — a demonstração dá 2 professores e o Básico dá 1.** É um **defeito da escada**, medido: quem
-  assina o plano mais barato **perde** capacidade em relação à demonstração que acabou de ver. Ou a
-  demonstração desce a 1, ou o Básico sobe a 2.
-- **Q3 — o mês começa na criação?** Recomendação: **sim** para a porta do consultor. A alternativa
-  (esperar por uma entrega dela) pára o negócio de quem cobra à hora. A porta do painel continua a
-  entregar à mão.
-- **Q4** — ele declara as horas? (recomendação: sim, opcional — não muda o que recebe)
+- ~~**Q2**~~ — **DECIDIDO 25/11/2026: deixar como está.** Não há perda: o Básico **inclui** 1
+  professor e **vai até 2**, porque o teto de cada degrau é o piso do degrau de cima menos um
+  (`comercial.tetoDoPlano`). A pergunta nasceu de ler o piso como se fosse parede.
+- ~~**Q3**~~ — **DECIDIDO 25/11/2026: o mês começa na criação**, na porta do consultor. A porta do
+  painel continua a entregar à mão.
+- **Q4** — ~~ele declara as horas?~~ **DECIDIDO 25/11/2026: sim, opcional.**
+- **Q4-bis** — ~~como gera o link?~~ **DECIDIDO 25/11/2026: na área dele**, e é ela que lhe manda o
+  endereço ao activar.
 - **Q5** — o link expira em 30 dias? (recomendação: sim)
 - **Q6** — tecto de visitas por consultor? (recomendação: não; o que protege é a desactivação)
 - **Q7** — uma visita que dê duas escolas paga duas vezes? (recomendação: não — a taxa é por visita)
+- **Q8** — ele activa-se a si mesmo? (recomendação: não — nasce inactivo, e o «Activar» é dela)
 
 ### O portão da aula dada — IMPLEMENTADO a 22/11/2026, com duas portas que ele não fecha
 
@@ -7630,9 +7634,11 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   R$ 9,06. E declara as duas portas que o limitador não fecha (gravar o plano e o PO), com o número
   que seria preciso para as gastar: 125 gravações. **`provar-o-plano-do-consultor`, 49 asserções**,
   recalcula do catálogo e do `ciclos.json` e compara com o texto do plano; A/B: falseados os números,
-  cai a 46/49. **A Q2 é um defeito encontrado a escrever:** a demonstração dá 2 professores e o
-  Básico dá 1 — quem assina perde capacidade. Fases F1..F5 na §11, provas na §12, sete decisões
-  abertas na §13.
+  cai a 46/49. **A Q2 desfez-se ao medir:** o Básico *inclui* 1 professor e *vai até* 2 (o teto é o piso do
+  degrau de cima menos um), e `limitesDoRegime` devolve `null` numa assinatura — os limites são do
+  regime da consultoria. **Quatro decisões tomadas a 25/11/2026:** os R$ 10 são **por consultoria**;
+  o mês começa **na criação**; ele **declara as horas** (opcional); e o link é gerado **na área dele**.
+  Fases F1..F5 na §11, provas na §12, e Q5..Q8 com recomendação na §13.
 
 - **25/11/2026** — **O mapa das provas, e a prova que não corria.** Três defeitos, e dois deles
   do mesmo tipo: um verificador que não verifica. **(1)** O `correr-provas` decidia o recorte por

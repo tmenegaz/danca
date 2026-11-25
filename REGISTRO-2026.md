@@ -62835,16 +62835,23 @@ plano». Seriam precisas **125 gravações** num mês para gastar os R$ 10 só c
 cenário não é um tecto novo: é **desactivar o consultor**, que fecha a área dele e os links que já
 espalhou no mesmo gesto.
 
-### A descoberta — Q2, um defeito da escada
+### A pergunta que se desfez ao medir — Q2
 
-A escrever o guião (§8.4) apareceu isto, medido no catálogo: **a demonstração dá 2 professores e o
-Básico dá 1.** Quem vê dois professores a funcionar e assina o plano mais barato **perde um**. É a
-pior altura para perder capacidade — e é uma decisão comercial, não técnica. O plano declara as duas
-saídas (a demonstração desce, ou o Básico sobe) e não escolhe por ela.
+A escrever o guião (§8.4) o plano afirmou um defeito: «a demonstração dá 2 professores e o Básico dá
+1 — quem assina perde um». **Estava errado, e o erro era de leitura.** O número de professores de um
+plano é um **piso** — o que ele inclui —, e o **teto** de cada degrau é o piso do degrau de cima
+menos um (`comercial.tetoDoPlano`). O teto do Básico é **2 professores e 39 alunas**: os dois
+professores da demonstração continuam lá. E `limitesDoRegime` devolve **`null`** numa assinatura — as
+sete paredes são do regime da **consultoria**, e não do plano pago.
+
+**A decisão dela foi «deixar como está» — e é a certa por um motivo melhor do que «é intencional»:
+não há nada para mudar.** O erro fica registado porque é a família que esta casa persegue: um número
+lido fora do seu sítio, a produzir uma conclusão que soa a rigor. A asserção que o substituiu mede a
+**regra** (piso, teto, regime), e não a leitura que eu tinha feito dela.
 
 ### A prova
 
-`experimentos/provar-o-plano-do-consultor.js`, **49 asserções**. Recalcula do catálogo
+`experimentos/provar-o-plano-do-consultor.js`, **54 asserções**. Recalcula do catálogo
 (`planos.json`), do dado real (`ciclos.json`, 24 aulas) e das constantes de custo, e **compara com o
 texto do plano** — é a mesma ideia do `provar-o-custo-da-consultoria`, e pela mesma razão: um
 documento que repete números envelhece, e dois documentos a dizer o mesmo número mentem juntos.
@@ -62853,13 +62860,23 @@ Mede também o que o plano **afirma sobre hoje**: a recusa de `consultoria` sem 
 frase dela; e as três propriedades do token (32 hex, hash ≠ token, prazo).
 
 **A/B:** falseados os números no documento — o preço do Básico, os 277 minutos, a razão das 10,6
-vezes e as 125 gravações —, a prova cai a **46/49**, com as quatro asserções discriminantes a
+vezes e as 125 gravações —, a prova cai a **46/54**, com as quatro asserções discriminantes a
 reprovar.
 
 **Duas correcções que a prova fez ao plano, e são o motivo de ela existir:** o catálogo guarda
 `preco` em **reais** (69.9) e não centavos — o plano não dependia disso, mas o primeiro código da
 prova sim; e `10 ÷ 0,036` é **277,77**, logo o número honesto é **277** minutos inteiros e não 278, o
 que arrasta a razão para 10,6 e as gravações para 125.
+
+### As quatro decisões dela, tomadas na mesma sessão
+
+| | a pergunta | **DECIDIDO** |
+|:--|:--|:--|
+| **Q1** | os R$ 10 são por consultoria ou por sessão? | **por consultoria** — uma visita que deu escola, dez reais |
+| **Q2** | a demonstração dá 2 professores e o Básico dá 1 | **deixar como está** — e não há perda: o Básico vai até 2 |
+| **Q3** | o mês começa em quê? | **na criação**, na porta do consultor. O painel continua a entregar à mão |
+| **Q4** | ele declara as horas? | **sim, opcional** — não muda o que recebe |
+| **Q4-bis** | como gera o link? | **na área dele**, e é ela que lhe manda o endereço ao activar |
 
 As fases ficam na §11 do plano (F1 cadastro → F5 guião), com F3 — a criação pela visita — declarada
 como a fase que não pode falhar em silêncio: uma escola criada com o plano errado, ou sem atribuição,

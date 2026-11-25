@@ -392,11 +392,18 @@ que ainda não tem problema.
 |:--|:--|:--|
 | a escola pediu o 6.º aluno, ou o 2.º ciclo, ou a 3.ª aula | bateu no limite da demonstração | «isto é o plano, não o sistema: o Básico já lhe dá 10 alunas e 130 aulas por mês» |
 | a escola perguntou «e depois do mês?» | já está a planear | é o momento; a pergunta é dela, não uma venda |
-| a escola quer dois professores | a demonstração dá 2, o Básico dá 1 | **atenção, e é uma armadilha real:** o Básico é mais pequeno do que a demonstração em professores. Quem precisa de 2 vai para o Intermediário |
+| a escola quer dois professores | a demonstração dá 2, e o Básico **inclui** 1 | «o Básico inclui um professor e **vai até dois** — os dois que você viu continuam lá. Se um dia forem três, o degrau é o Intermediário» |
 
-**A última linha é um defeito da escada, e fica declarado (Q2).** A demonstração dá 2 professores; o
-Básico dá 1. Uma escola que viu dois professores a funcionar e assina o Básico **perde um**. Ou a
-demonstração passa a 1 professor, ou o Básico passa a 2 — e é decisão dela, não do plano.
+**A última linha é onde quase se escreveu um defeito que não existe (25/11/2026).** A primeira
+versão deste plano dizia: «a demonstração dá 2 professores e o Básico dá 1 — quem assina perde um».
+**É falso, e a razão está medida:** o número de professores de um plano é um **piso** — o que ele
+inclui —, e o **teto** de cada degrau é derivado do degrau de cima menos um
+(`comercial.tetoDoPlano`). O teto do Básico é **2 professores** e **39 alunas**, exactamente o que a
+demonstração dá. Não se perde nada, e não há parede nenhuma: numa assinatura paga
+`limitesDoRegime` devolve `null` — os limites são do regime da consultoria, e não do plano pago.
+
+**O erro era ler o piso como se fosse parede.** Fica registado porque é a família de erro que este
+projecto persegue: um número lido fora do seu sítio a produzir uma conclusão que soa a rigor.
 
 ### 8.5 O que ele não diz, nunca
 
@@ -471,7 +478,12 @@ Cada uma mede um comportamento que, sem ela, se descobre em produção.
 | `provar-o-link-do-consultor` | o token é aleatório, guardado como hash, expira e gasta-se uma vez; a desactivação fecha os links já espalhados | um token gasto, expirado ou de consultor inactivo responde **404** |
 | `provar-a-escola-do-consultor` | a criação pela visita nasce `consultoria`, `ativa`, com `entregueEm = criadaEm`, com os sete limites e com a atribuição no registo | a **mesma** criação pela porta pública continua a **recusar** `consultoria`, palavra por palavra como hoje |
 | `provar-o-livro-do-consultor` | cada visita que deu escola soma R$ 10; a expirada soma zero; o recebido não se apaga | marcar recebido duas vezes não soma duas vezes |
-| `provar-o-guiao-do-consultor` | os números do §8 são os do catálogo (preços, franquias, R$ 8) | mudar o catálogo faz a prova reprovar até o guião mudar |
+| `provar-o-guiao-do-consultor` | os números do §8 são os do catálogo (preços, franquias, piso e teto, R$ 8) | mudar o catálogo faz a prova reprovar até o guião mudar |
+
+**E há uma já escrita, para o próprio plano:** `experimentos/provar-o-plano-do-consultor.js`
+(**54 asserções**) recalcula do catálogo, do `ciclos.json` real e das constantes de custo, e compara
+com o texto deste documento. É ela que impede os números de apodrecerem — e foi ela que desfez o
+«defeito» do §8.4: com o piso e o teto à frente, o Básico aceita os dois professores da demonstração.
 
 **A última é a que impede o guião de apodrecer** — é a mesma ideia do
 `provar-o-custo-da-consultoria`: um documento que repete números é um documento que envelhece, e dois
@@ -485,12 +497,14 @@ Nenhuma destas trava a F1, e três mudam o desenho. Ficam com a recomendação d
 
 | # | a pergunta | recomendação |
 |:--|:--|:--|
-| **Q1** | os R$ 10 são **por consultoria** (por escola criada) ou por **sessão**? | **por consultoria**: uma visita, uma escola, dez reais. Por sessão obrigaria a definir o que é uma sessão, e ele cobra à hora |
-| **Q2** | a demonstração dá **2 professores** e o Básico dá **1** (§8.4) | ou a demonstração desce a 1, ou o Básico sobe a 2. Hoje o cliente **perde** capacidade ao assinar — e é a pior altura para perder |
-| **Q3** | o mês da escola começa na **criação** (§6.1), e não na entrega | **sim.** A alternativa pára o negócio dele: três horas de trabalho sem a escola poder usar nada |
-| **Q4** | o consultor **declara as horas** na área dele? | **sim, opcional.** Não muda o que ele recebe — é o registo que lhe permite mostrar o que fez, e a ela ver o tamanho do serviço |
+| ~~**Q1**~~ | ~~os R$ 10 são por consultoria ou por sessão?~~ | **DECIDIDO 25/11/2026 — por consultoria:** uma visita que deu escola, dez reais. Por sessão obrigaria a definir o que é uma sessão |
+| ~~**Q2**~~ | ~~a demonstração dá 2 professores e o Básico dá 1~~ | **DECIDIDO 25/11/2026 — deixar como está, e o motivo é que não há perda:** o Básico **vai até 2 professores**. A pergunta nasceu de ler o piso como se fosse parede (§8.4) |
+| ~~**Q3**~~ | ~~o mês da escola começa na criação (§6.1)~~ | **DECIDIDO 25/11/2026 — na criação.** A alternativa pararia o negócio de quem cobra à hora |
+| **Q4** | o consultor **declara as horas** na área dele? | **DECIDIDO 25/11/2026 — sim, opcional.** Não muda o que ele recebe; é o registo que lhe permite mostrar o que fez |
 | **Q5** | o link expira em **30 dias**? | sim. É o mesmo prazo de um mês de demonstração, e um link que não expira é uma porta que ninguém fecha |
 | **Q6** | ele pode gerar **quantas visitas** quiser? | **sim, sem tecto — mas o painel conta.** Um tecto aqui não protege de nada: o que protege é a desactivação, e essa é dela |
+| ~~**Q4-bis**~~ | ~~como é que ele gera o link?~~ | **DECIDIDO 25/11/2026 — pela área dele**, `lastro.padd.com.br/consultor/<token>`: ela manda-lhe o endereço ao activar (§3, acto 2). Não é ela que gera no painel |
+| **Q8** | o consultor pode **activar-se** a si mesmo, ou só ela? | só ela. Nasce inactivo, e o «Activar» é o gesto que abre a porta (§3, acto 1) |
 | **Q7** | uma visita que dá escola **duas vezes** por engano (rollback e nova criação) paga **duas vezes**? | não: a taxa é por **visita**, e o token gasta-se na primeira criação que passa. Uma segunda escola exige um segundo link |
 
 ---

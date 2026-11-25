@@ -169,18 +169,40 @@ provar('o convite declara um prazo em dias', Number(convite.DIAS_DE_VALIDADE) ==
   provar('e o hash não é o token', hash !== token && /^[0-9a-f]{64}$/.test(hash), hash && hash.length);
   provar('dois tokens nunca são iguais', convite.novoToken() !== convite.novoToken());
 
-  /* ── §F a descoberta da Q2 ───────────────────────────────────────────────────────────────── */
+  /* ── §F a Q2 — a pergunta que nasceu de um erro, e a medição que o desfez ──────────────────── */
 
-  console.log('\n§F a Q2 — a demonstração dá mais professores do que o plano mais barato');
+  console.log('\n§F a Q2 — o piso do plano NÃO é uma parede');
 
+  /* A PRIMEIRA VERSÃO DESTA PROVA AFIRMAVA UM DEFEITO QUE NÃO EXISTE: «a demonstração dá 2
+   * professores e o Básico dá 1 — quem assina PERDE um». Ela decidiu «deixar como está» e estava
+   * certa por um motivo melhor do que «é intencional»: **o número de professores de um plano é um
+   * PISO**, e o TETO de cada degrau é o piso do degrau de cima menos um. O teto do Básico é 2 — e
+   * não se perde nada. O erro era ler o piso como se fosse parede; a asserção que o substitui mede
+   * a REGRA, e não a leitura que eu fiz dela. */
   const professoresDaDemo = Number(CATALOGO.consultoria.limites.professores);
-  const professoresDoBasico = Number(assinatura('basico').professores);
+  const pisoDoBasico = comercial.pisoDoPlano('basico');
+  const tetoDoBasico = comercial.tetoDoPlano('basico');
   provar('a demonstração dá 2 professores', professoresDaDemo === 2, professoresDaDemo);
-  provar('e o Básico dá 1 — quem assina PERDE um', professoresDoBasico === 1, professoresDoBasico);
-  provar('é um defeito declarado, e o plano diz o nome dele',
-    professoresDoBasico < professoresDaDemo && /perde um/.test(PLANO), null);
-  provar('…e aponta as duas saídas',
-    /demonstração passa a 1 professor, ou o Básico passa a 2/.test(PLANO), null);
+  provar('o Básico INCLUI 1 — é o piso, o que o preço cobre', pisoDoBasico.professores === 1, pisoDoBasico);
+  provar('e VAI ATÉ 2 — o teto é o piso do degrau de cima menos um',
+    tetoDoBasico.professores === 2, tetoDoBasico);
+  provar('logo os dois professores da demonstração continuam dentro do Básico — NÃO se perde nada',
+    professoresDaDemo <= tetoDoBasico.professores, { demo: professoresDaDemo, teto: tetoDoBasico.professores });
+  provar('e o teto das alunas também cobre as 5 da demonstração',
+    Number(CATALOGO.consultoria.limites.alunas) <= tetoDoBasico.alunos,
+    { demo: CATALOGO.consultoria.limites.alunas, teto: tetoDoBasico.alunos });
+  /* E NÃO HÁ PAREDE NENHUMA NUMA ASSINATURA: `limitesDoRegime` devolve `null` para o regime pago.
+   * É a razão de fundo — o limitador é da consultoria. */
+  const cotas = require(path.join(RAIZ, 'motor/nucleo/cotas.js'));
+  provar('numa assinatura paga não há teto aplicado (o limitador é da consultoria)',
+    cotas.limitesDoRegime({ plano: 'basico' }) === null, cotas.limitesDoRegime({ plano: 'basico' }));
+  provar('e na consultoria há, com os sete',
+    Object.keys(cotas.limitesDoRegime({ plano: 'consultoria' }) || {}).length === 7,
+    cotas.limitesDoRegime({ plano: 'consultoria' }));
+  provar('o plano declara a correcção, e diz qual era o erro',
+    /piso.*como se fosse parede|ler o piso como se fosse parede/s.test(PLANO), null);
+  provar('…e não afirma mais que se perde um professor',
+    !/perde um professor|PERDE um/.test(PLANO) || /não há perda/i.test(PLANO), null);
 
   /* ── §G o controlo negativo ─────────────────────────────────────────────────────────────── */
 
