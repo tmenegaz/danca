@@ -244,15 +244,20 @@ console.log('\nG. A MENSAGEM — o recurso, o dia e as duas horas');
   conferir('e as DUAS horas', /14:00–15:00/.test(frase) && /14:30–15:30/.test(frase), frase);
   conferir('nomeia quem ocupa', /Balé 2/.test(frase));
   /* E o caminho — a recusa que não diz o que fazer é uma parede. */
-  conferir('e diz o que se pode fazer', /Mude a hora ou o dia/.test(frase));
+  /* SEM SUGESTÃO DE RESOLUÇÃO (decisão dela, 25/11/2026): «a gente não vai dar sugestão de como
+   * resolver nada. Resolver esses conflitos é papel do usuário e não nosso.» A recusa diz o FACTO
+   * — quem ocupa, que dia, que horas — e pára. A asserção mede a ausência, e é o par da que mede o
+   * facto: uma sem a outra deixaria passar tanto a parede como o vazio. */
+  conferir('…e NÃO diz o que se pode fazer — a resolução é de quem usa',
+    !/Mude a hora/.test(frase) && !/use outra sala/.test(frase), frase);
 
   const prof = O.motivoDoConflito({ recurso: 'professor', nome: 'demi-plie', de: '14:00', ate: '15:00',
     dia: 'segunda', outroDe: '14:00', outroAte: '15:00', comRotulo: 'Jazz' }, { rotulo: 'Balé 1' });
   conferir('a do professor não sugere «outro professor» — não há', /Um professor não está em duas Turmas/.test(prof), prof);
   const al = O.motivoDoConflito({ recurso: 'elenco', nome: 'Aluna A', de: '14:00', ate: '15:00',
     dia: 'segunda', outroDe: '14:00', outroAte: '15:00', comRotulo: 'Jazz' }, { rotulo: 'Balé 1' });
-  conferir('a do elenco diz que ela PODE estar nas duas, só não naquele horário',
-    /pode estar nas duas Turmas/.test(al), al);
+  conferir('a do elenco diz o que é facto — a mesma pessoa, o mesmo dia e hora',
+    /Uma pessoa não está em dois lugares ao mesmo tempo/.test(al), al);
 }
 
 /* ── H. Os controlos negativos ──────────────────────────────────────────── */
@@ -277,6 +282,108 @@ console.log('\nH. OS CONTROLES NEGATIVOS');
   conferir('`minutosDe` recusa o que não é hora', O.minutosDe('24:00') === null && O.minutosDe('9:00') === null);
   conferir('`minutosDe` aceita 00:00 e 23:59', O.minutosDe('00:00') === 0 && O.minutosDe('23:59') === 1439);
   conferir('e `horaDe` faz o caminho de volta', O.horaDe(870) === '14:30' && O.horaDe(0) === '00:00');
+}
+
+/* ── I. A SALA COM FAIXAS — N aulas, N modalidades, N professores ─────────── */
+console.log('\nI. A SALA COM FAIXAS — o espaço é um, o que acontece nele é N');
+{
+  /* O que ela descreveu a 25/11/2026, à letra: «a sala do piano […] ali pode acontecer N aulas durante
+   * o dia e de N modalidades, de N professores, com N elencos.» */
+  const PIANO = {
+    nome: 'Sala do Piano',
+    faixas: [
+      { id: 'f1', dias: ['segunda'], horarios: { segunda: '09:00' }, duracaoMin: 60,
+        modalidade: 'Balé Clássico', professor: 'pe-torto' },
+      { id: 'f2', dias: ['segunda'], horarios: { segunda: '10:00' }, duracaoMin: 60,
+        modalidade: 'Jazz', professor: 'outra-pessoa' },
+      { id: 'f3', dias: ['segunda'], horarios: { segunda: '11:00' }, duracaoMin: 60,
+        modalidade: 'Contemporâneo', professor: 'terceira' },
+    ],
+  };
+  const mapa = { 'Sala do Piano': PIANO };
+  const turma = (extra) => Object.assign({ turmas: ['Sala do Piano'] }, extra || {});
+  const ocupaDe = (extra) => O.ocupacaoDaCuradoria(turma(extra), { salasPorNome: mapa });
+
+  conferir('uma sala com três faixas dá três faixas, não uma',
+    O.faixasDaSala(PIANO).length === 3, O.faixasDaSala(PIANO).length);
+  conferir('o rótulo da faixa diz os dias e as horas',
+    O.rotuloDaFaixa(O.faixasDaSala(PIANO)[0]) === 'segunda · 09:00–10:00',
+    O.rotuloDaFaixa(O.faixasDaSala(PIANO)[0]));
+
+  const f1 = ocupaDe({ id: 't1', faixa: 'f1', alunas: ['Aluna A'] });
+  const f2 = ocupaDe({ id: 't2', faixa: 'f2', alunas: ['Aluna B'] });
+  const f3 = ocupaDe({ id: 't3', faixa: 'f3', alunas: ['Aluna C'] });
+  conferir('cada turma ocupa SÓ a sua faixa — uma hora, e não as três',
+    f1.intervalos.length === 1, f1.intervalos);
+  conferir('…e a modalidade e o professor vêm da faixa, não da sala',
+    JSON.stringify(f2.professores) === '["outra-pessoa"]', f2.professores);
+  conferir('três turmas, três faixas encadeadas na MESMA sala → nenhuma colide',
+    O.conflitosEntre(f1, f2).length === 0 && O.conflitosEntre(f2, f3).length === 0
+      && O.conflitosEntre(f1, f3).length === 0,
+    [...O.conflitosEntre(f1, f2), ...O.conflitosEntre(f2, f3)]);
+  /* O caso que ela descreveu: N modalidades, N professores, N elencos, o mesmo espaço. */
+  conferir('…e o mesmo espaço com três modalidades e três professores é LEGÍTIMO',
+    O.conflitosDaCuradoria({ curadoria: turma({ id: 't2', faixa: 'f2' }), outras: [turma({ id: 't1', faixa: 'f1' }), turma({ id: 't3', faixa: 'f3' })], salasPorNome: mapa }).length === 0);
+
+  /* A sobreposição continua a mandar: duas faixas que se tocam colidem, mesmo sendo faixas. */
+  const LONGA = {
+    nome: 'Sala Longa',
+    faixas: [
+      { id: 'a', dias: ['segunda'], horarios: { segunda: '09:00' }, duracaoMin: 120 },
+      { id: 'b', dias: ['segunda'], horarios: { segunda: '10:00' }, duracaoMin: 60 },
+    ],
+  };
+  const la = O.ocupacaoDaCuradoria({ id: 'la', turmas: ['Sala Longa'], faixa: 'a' }, { salasPorNome: { 'Sala Longa': LONGA } });
+  const lb = O.ocupacaoDaCuradoria({ id: 'lb', turmas: ['Sala Longa'], faixa: 'b' }, { salasPorNome: { 'Sala Longa': LONGA } });
+  conferir('duas faixas da mesma sala que se sobrepõem COLIDEM (09–11 contra 10–11)',
+    O.conflitosEntre(la, lb).some((c) => c.recurso === 'sala'), O.conflitosEntre(la, lb).map((c) => c.recurso));
+
+  /* O mesmo professor em duas faixas encadeadas não colide; sobrepostas, sim. */
+  const MESMO_PROF = {
+    nome: 'Sala Dupla',
+    faixas: [
+      { id: 'x', dias: ['segunda'], horarios: { segunda: '09:00' }, duracaoMin: 60, professor: 'demi' },
+      { id: 'y', dias: ['segunda'], horarios: { segunda: '10:00' }, duracaoMin: 60, professor: 'demi' },
+      { id: 'z', dias: ['segunda'], horarios: { segunda: '09:30' }, duracaoMin: 60, professor: 'demi' },
+    ],
+  };
+  const m = (id) => O.ocupacaoDaCuradoria({ id, turmas: ['Sala Dupla'], faixa: id }, { salasPorNome: { 'Sala Dupla': MESMO_PROF } });
+  conferir('o mesmo professor em faixas ENCADEADAS não colide',
+    O.conflitosEntre(m('x'), m('y')).length === 0);
+  conferir('…e em faixas SOBREPOSTAS colide pelo professor',
+    O.conflitosEntre(m('x'), m('z')).some((c) => c.recurso === 'professor'));
+
+  /* SEM ESCOLHA NÃO SE INVENTA: a sala com três faixas e a turma sem `faixa`. */
+  const sem = ocupaDe({ id: 't9' });
+  conferir('uma turma sem faixa numa sala com várias é DITA, e não adivinhada',
+    sem.faixasEmFalta.length === 1 && sem.faixasEmFalta[0].motivo === 'ambigua', sem.faixasEmFalta);
+  conferir('…e não ocupa nada enquanto não escolher', sem.intervalos.length === 0);
+  conferir('…e a lista de faixas vai na resposta, para a tela poder perguntar',
+    sem.faixasEmFalta[0].faixas.length === 3 && sem.faixasEmFalta[0].faixas[0].rotulo === 'segunda · 09:00–10:00',
+    sem.faixasEmFalta[0].faixas);
+  const errada = ocupaDe({ id: 't8', faixa: 'nao-existe' });
+  conferir('uma faixa que já não existe é dita, e não ignorada',
+    errada.faixasEmFalta[0].motivo === 'desconhecida', errada.faixasEmFalta);
+
+  /* A COMPATIBILIDADE: uma sala antiga, só com a raiz, vale como uma faixa e não pede nada. */
+  const antiga = O.ocupacaoDaCuradoria({ id: 'old', turmas: ['Estúdio 1'] }, { salasPorNome: SALAS });
+  conferir('uma sala antiga (ritmo na raiz) é UMA faixa, e a turma não precisa de dizer qual',
+    antiga.faixasEmFalta.length === 0 && antiga.intervalos.length === 2, antiga.intervalos);
+
+  /* O PERÍODO POR FAIXA: o termo seguinte na mesma sala sem duplicar a sala. */
+  const SUCESSAO = {
+    nome: 'Sala Rosa',
+    faixas: [
+      { id: 'p1', dias: ['segunda'], horarios: { segunda: '18:00' }, duracaoMin: 60, periodoInicio: '2026-02-01', periodoFim: '2026-06-30' },
+      { id: 'p2', dias: ['segunda'], horarios: { segunda: '18:00' }, duracaoMin: 60, periodoInicio: '2026-08-01', periodoFim: '2026-12-15' },
+    ],
+  };
+  const s1 = O.ocupacaoDaCuradoria({ id: 's1', turmas: ['Sala Rosa'], faixa: 'p1' }, { salasPorNome: { 'Sala Rosa': SUCESSAO } });
+  const s2 = O.ocupacaoDaCuradoria({ id: 's2', turmas: ['Sala Rosa'], faixa: 'p2' }, { salasPorNome: { 'Sala Rosa': SUCESSAO } });
+  conferir('duas faixas no mesmo dia e hora, PERÍODOS que não se tocam → não colidem',
+    O.conflitosEntre(s1, s2).length === 0);
+  const s3 = O.ocupacaoDaCuradoria({ id: 's3', turmas: ['Sala Rosa'], faixa: 'p1' }, { salasPorNome: { 'Sala Rosa': SUCESSAO } });
+  conferir('…e duas turmas na MESMA faixa colidem', O.conflitosEntre(s1, s3).length > 0);
 }
 
 console.log('\n' + ok + '/' + (ok + ko) + ' · ' + (ko ? ko + ' falha(s)' : 'sem falhas'));

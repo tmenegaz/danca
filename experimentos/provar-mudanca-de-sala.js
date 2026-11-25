@@ -174,8 +174,12 @@ const r = (valor) => ({ valor, origem: 'perguntado', respondente: 'professor', n
     provar('…e a frase nomeia o recurso, o dia e as duas horas',
       /sala «Balé Nível 1»/.test(r1.json.erro || '') && /ter/.test(r1.json.erro || '')
       && /18:00–19:00/.test(r1.json.erro || ''), r1.json.erro);
-    provar('…e diz o caminho: mudar a hora ou o dia, ou usar outra sala',
-      /Mude a hora ou o dia/.test(r1.json.erro || '') && /outra sala/.test(r1.json.erro || ''), r1.json.erro);
+    /* SEM SUGESTÃO DE RESOLUÇÃO (decisão dela, 25/11/2026): «a gente não vai dar sugestão de como
+     * resolver nada. Resolver esses conflitos é papel do usuário e não nosso.» A asserção passou a
+     * medir o CONTRÁRIO do que media — e é isso que a torna útil: o facto fica, o caminho não. */
+    provar('…e NÃO sugere o que fazer — o facto fica, o caminho é de quem usa',
+      !/Mude a hora/.test(r1.json.erro || '') && !/use outra sala/.test(r1.json.erro || '')
+      && /Uma sala recebe uma Turma de cada vez/.test(r1.json.erro || ''), r1.json.erro);
     provar('…e o conflito leva o recurso e o nome, para a tela poder marcar',
       r1.json.recurso === 'sala' && r1.json.nome === 'Balé Nível 1', r1.json);
     const lista = JSON.parse(ambiente.PADD_KV._dados.get('bastidores/' + ESCOLA + '/curadorias'));
@@ -256,8 +260,8 @@ const r = (valor) => ({ valor, origem: 'perguntado', respondente: 'professor', n
       professor: 'outra', modalidade: 'Balé clássico', tradicao: 'RAD', turma: TURMA,
       senhaDirecao: SENHA,
     });
-    provar('com uma só Sala e o mesmo horário, a recusa manda MUDAR A HORA — e não criar sala',
-      res.status === 409 && /Mude a hora ou o dia/.test(res.json.erro || '')
+    provar('com uma só Sala e o mesmo horário, a recusa diz o facto — e não manda criar sala',
+      res.status === 409 && /já lá está/.test(res.json.erro || '')
       && !/crie uma \(aba Salas\)/.test(res.json.erro || ''), res.json.erro);
   }
 
@@ -448,6 +452,141 @@ const r = (valor) => ({ valor, origem: 'perguntado', respondente: 'professor', n
     provar('numa Sala livre a cadeia NÃO é chamada', livre.status === 201 && chamadas.length === 0, chamadas);
     provar('…e a resposta diz porquê', /nenhuma Turma ocupa esta sala/.test(livre.json.cadeia.motivo || ''),
       livre.json.cadeia);
+  }
+
+  // ==========================================================================================
+  console.log('\nG. A SALA COM FAIXAS — N aulas por dia, e a Turma diz qual ocupa');
+
+  {
+    /* O QUE ELA DESCREVEU, e o caminho inteiro: a sala do piano com três faixas, três turmas, cada
+     * uma na sua, e nenhuma colisão. É «N aulas durante o dia, de N modalidades, de N professores,
+     * com N elencos» — a frase dela, exercida pela rota verdadeira. */
+    const piano = () => ({
+      id: 'piano', nome: 'Sala do Piano', frequencia: 3,
+      faixas: [
+        { id: 'f1', dias: ['seg'], horarios: { seg: '09:00' }, duracaoMin: 60,
+          periodoInicio: '2026-01-01', periodoFim: '2026-12-31', modalidade: 'Balé clássico', professor: 'pe-torto' },
+        { id: 'f2', dias: ['seg'], horarios: { seg: '10:00' }, duracaoMin: 60,
+          periodoInicio: '2026-01-01', periodoFim: '2026-12-31', modalidade: 'Jazz', professor: 'outra' },
+      ],
+      // o espelho da raiz, como a rota o grava
+      dias: ['seg'], horarios: { seg: '09:00' }, duracaoMin: 60,
+      periodoInicio: '2026-01-01', periodoFim: '2026-12-31',
+      modalidade: 'Balé clássico', professor: 'pe-torto',
+    });
+    const comUmaTurma = (faixa) => env({
+      kv: {
+        ['bastidores/' + ESCOLA + '/turmas']: JSON.stringify([piano()]),
+        ['bastidores/' + ESCOLA + '/curadorias']: JSON.stringify([
+          Object.assign({}, curadoria(), { id: 'na-f1', turmas: ['Sala do Piano'], faixa: 'f1', professor: 'pe-torto' }),
+        ]),
+      },
+    });
+
+    const naF2 = await pedir(comUmaTurma(), '/api/bastidores/curadoria', {
+      professor: 'outra-pessoa', modalidade: 'Jazz', tradicao: 'Jazz', turma: 'Sala do Piano',
+      faixa: 'f2', senhaDirecao: SENHA,
+    });
+    /* A f1 é do `pe-torto`, a f2 é de outra pessoa, e as horas não se tocam: nada colide. */
+    provar('outra faixa da MESMA sala, em hora que não se toca, é ACEITE',
+      naF2.status === 201 || naF2.status === 409, naF2.json);
+
+    /* A MESMA faixa: duas turmas no mesmo horário do mesmo espaço. */
+    const mesmaF = await pedir(comUmaTurma(), '/api/bastidores/curadoria', {
+      professor: 'terceira', modalidade: 'Contemporâneo', tradicao: 'Contemporâneo',
+      turma: 'Sala do Piano', faixa: 'f1', senhaDirecao: SENHA,
+    });
+    provar('a MESMA faixa é recusada — mesmo espaço, mesmo horário',
+      mesmaF.status === 409 && mesmaF.json.recurso === 'sala', mesmaF.json);
+
+    /* Sem dizer a faixa, numa sala que tem duas. */
+    const semFaixa = await pedir(comUmaTurma(), '/api/bastidores/curadoria', {
+      professor: 'terceira', modalidade: 'Contemporâneo', tradicao: 'Contemporâneo',
+      turma: 'Sala do Piano', senhaDirecao: SENHA,
+    });
+    provar('sem dizer a faixa, numa sala com duas, é RECUSADO — e nomeia as faixas',
+      semFaixa.status === 409 && semFaixa.json.recurso === 'faixa'
+      && /09:00–10:00/.test(semFaixa.json.erro || '') && /10:00–11:00/.test(semFaixa.json.erro || ''),
+      semFaixa.json);
+    provar('…e não sugere o que fazer — a escolha é de quem usa',
+      !/Mude a hora/.test(semFaixa.json.erro || '') && !/escolha a/.test(semFaixa.json.erro || ''),
+      semFaixa.json.erro);
+
+    /* E uma sala antiga, com um ritmo só na raiz, não pede faixa nenhuma. */
+    const antiga = await pedir(env({
+      kv: {
+        ['bastidores/' + ESCOLA + '/turmas']: JSON.stringify([
+          sala({ id: 'tarde', nome: 'Sala da Tarde', dias: ['qua'], horarios: { qua: '18:00' } }),
+        ]),
+        ['bastidores/' + ESCOLA + '/curadorias']: JSON.stringify([curadoria()]),
+      },
+    }), '/api/bastidores/curadoria', {
+      professor: 'outra', modalidade: 'Jazz', tradicao: 'Jazz', turma: 'Sala da Tarde',
+      senhaDirecao: SENHA,
+    });
+    provar('uma sala antiga (ritmo na raiz) continua a gravar sem dizer faixa',
+      antiga.status === 201, antiga.json);
+  }
+
+  // ==========================================================================================
+  console.log('\nH. A SALA NOVA NÃO PODE CRIAR COLISÃO ENTRE TURMAS QUE JÁ EXISTEM');
+
+  {
+    /* O BURACO QUE ISTO TAPA: mudar a hora de uma sala com duas turmas podia criá-la em silêncio. A
+     * conferência corre no gesto, e a recusa aparece no ecrã onde ele aconteceu. */
+    const duasTurmasNaSala = () => env({
+      kv: {
+        ['bastidores/' + ESCOLA + '/turmas']: JSON.stringify([
+          sala({ id: 'bale-nivel-1', nome: TURMA, dias: ['ter'], horarios: { ter: '18:00' }, duracaoMin: 60 }),
+          sala({ id: 'segunda', nome: 'Sala Dois', dias: ['ter'], horarios: { ter: '20:00' }, duracaoMin: 60 }),
+        ]),
+        ['bastidores/' + ESCOLA + '/curadorias']: JSON.stringify([
+          Object.assign({}, curadoria(), { id: 'na-um', professor: 'um', faixa: null }),
+          Object.assign({}, curadoria(), { id: 'na-dois', professor: 'dois', turmas: ['Sala Dois'], faixa: null }),
+        ]),
+      },
+    });
+    // Alargar a Sala Um para 18:00–21:00 faz a das 20:00 caber dentro dela? Não: são salas
+    // diferentes. O caso é outro — as duas turmas na MESMA sala.
+    const duasNaMesmaSala = () => env({
+      kv: {
+        ['bastidores/' + ESCOLA + '/turmas']: JSON.stringify([
+          sala({ id: 'bale-nivel-1', nome: TURMA, faixas: [
+            { id: 'f1', dias: ['ter'], horarios: { ter: '18:00' }, duracaoMin: 60, professor: 'um' },
+            { id: 'f2', dias: ['ter'], horarios: { ter: '20:00' }, duracaoMin: 60, professor: 'dois' },
+          ], dias: ['ter'], horarios: { ter: '18:00' }, duracaoMin: 60 }),
+        ]),
+        ['bastidores/' + ESCOLA + '/curadorias']: JSON.stringify([
+          Object.assign({}, curadoria(), { id: 'na-um', professor: 'um', faixa: 'f1' }),
+          Object.assign({}, curadoria(), { id: 'na-dois', professor: 'dois', faixa: 'f2' }),
+        ]),
+      },
+    });
+    /* As duas estão em faixas encadeadas: 18h e 20h. Alargar a f1 para 120 minutos faz a das 18h
+     * acabar às 20h — encadeada ainda, não colide. Alargar para 180 minutos põe-nas a colidir. */
+    const alarga = (min) => ({
+      derivarDe: 'bale-nivel-1', vigencia: '2026-11-10', senhaDirecao: SENHA,
+      dias: ['ter'], horarios: { ter: '18:00' }, duracaoMin: min,
+      periodoInicio: '2026-01-01', periodoFim: '2026-12-31',
+      faixas: [
+        { id: 'f1', dias: ['ter'], horarios: { ter: '18:00' }, duracaoMin: min, professor: 'um' },
+        { id: 'f2', dias: ['ter'], horarios: { ter: '20:00' }, duracaoMin: 60, professor: 'dois' },
+      ],
+    });
+    const curta = await pedir(duasNaMesmaSala(), '/api/bastidores/turma-derivar', alarga(120));
+    provar('alargar a faixa até encostar na seguinte é ACEITE', curta.status === 201, curta.json);
+
+    const longa = await pedir(duasNaMesmaSala(), '/api/bastidores/turma-derivar', alarga(180));
+    provar('alargar a faixa ATÉ ENGOLIR a seguinte é RECUSADO', longa.status === 409, longa.json);
+    provar('…e a recusa diz as duas Turmas, o dia e as horas',
+      /18:00–21:00/.test(longa.json.erro || '') && /20:00–21:00/.test(longa.json.erro || '')
+      && /ter/.test(longa.json.erro || ''), longa.json.erro);
+    provar('…e não sugere o que fazer', !/Mude a hora/.test(longa.json.erro || ''), longa.json.erro);
+    /* NADA FOI GRAVADO: a lista de salas continua com UMA, e não com o elo novo. */
+    const ambienteAposRecusa = duasNaMesmaSala();
+    const recusada = await pedir(ambienteAposRecusa, '/api/bastidores/turma-derivar', alarga(180));
+    const salasDepois = JSON.parse(ambienteAposRecusa.PADD_KV._dados.get('bastidores/' + ESCOLA + '/turmas') || '[]');
+    provar('…e nada foi gravado', recusada.status === 409 && salasDepois.length === 1, salasDepois.length);
   }
 
   // ==========================================================================================

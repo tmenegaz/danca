@@ -3629,7 +3629,7 @@ function normalizarTurma(corpo) {
    *
    * Ver `motor/nucleo/enquadramento.js` para a regra inteira — e para as três leituras que
    * ficariam ambíguas sem ela. */
-  return {
+  const sala = {
     id: idDe(nome),
     nome: nome,
     ordem: ordem,
@@ -3687,8 +3687,111 @@ function normalizarTurma(corpo) {
      * avanço do passo 1 (`faltaDaTurma`, no cliente) para uma sala NOVA. */
     modalidade: String(corpo.modalidade || '').trim(),
     professor: String(corpo.professor || '').trim(),
+    /* AS FAIXAS — UMA SALA, N AULAS POR DIA (25/11/2026).
+     *
+     * A decisão dela, por extenso: «a sala do piano […] ali pode acontecer N aulas durante o dia e de
+     * N modalidades, de N professores, com N elencos.» Cada faixa leva dias, hora de início,
+     * duração, PERÍODO e o par (modalidade, professor) — o par desce para a faixa porque com ele na
+     * Sala a sala só podia ter uma modalidade o dia inteiro, que é exactamente o que ela negou.
+     *
+     * A RAIZ CONTINUA A SER A FAIXA 1, e é isso que deixa todas as salas de hoje funcionarem sem
+     * migração: `normalizarFaixas` espelha a primeira faixa nos campos da raiz, e a leitura
+     * (`faixasDaSala`) usa a raiz quando não há `faixas`. Uma sala antiga lê-se como uma faixa; uma
+     * sala nova grava as duas formas e não parte nenhum leitor (P-03). */
+    faixas: normalizarFaixas(corpo, { dias, horarios, duracaoMin: inteiro(corpo.duracaoMin),
+      periodoInicio: String(corpo.periodoInicio || '').trim(),
+      periodoFim: String(corpo.periodoFim || '').trim(),
+      modalidade: String(corpo.modalidade || '').trim(),
+      professor: String(corpo.professor || '').trim() }),
     ativo: corpo.ativo !== false,
   };
+  return espelharFaixa1NaRaiz(sala);
+}
+
+/**
+ * AS FAIXAS DE UMA SALA, normalizadas — `[{id, dias, horarios, duracaoMin, periodoInicio,
+ * periodoFim, modalidade, professor}]`.
+ *
+ * Devolve SEMPRE pelo menos uma faixa, e a primeira é o espelho da raiz: é o que faz a sala antiga,
+ * que só manda `dias`/`horarios`/`duracaoMin`, continuar a gravar como sempre gravou — com uma faixa
+ * que repete a raiz —, e a sala nova juntar-lhe as outras.
+ *
+ * O `id` vem do corpo quando é válido e ÚNICO, e só na falta se numera. Preservá-lo é o que permite
+ * à Turma continuar a apontar para a mesma faixa depois de a direção lhe mudar a hora: um id
+ * renumerado por posição deixaria todas as Turmas da sala com uma referência morta de uma vez.
+ */
+function normalizarFaixas(corpo, raiz) {
+  const crus = Array.isArray(corpo && corpo.faixas) ? corpo.faixas : [];
+  const validas = crus.filter((f) => f && typeof f === 'object');
+  const base = validas.length ? validas : [{}];
+  const usados = new Set();
+  const saida = [];
+  for (let i = 0; i < base.length; i += 1) {
+    const bruta = base[i];
+    const dias = (Array.isArray(bruta.dias) ? bruta.dias : String(bruta.dias || '').split(','))
+      .map(normalizarDia).filter(Boolean).filter((d, j, arr) => arr.indexOf(d) === j);
+    const crusHoras = (bruta.horarios && typeof bruta.horarios === 'object' && !Array.isArray(bruta.horarios))
+      ? bruta.horarios : {};
+    const horarios = {};
+    for (const d of dias) {
+      const h = String(crusHoras[d] == null ? '' : crusHoras[d]).trim();
+      if (/^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(h)) horarios[d] = h;
+    }
+    let id = String(bruta.id || '').trim();
+    if (!id || usados.has(id)) {
+      let n = i + 1;
+      while (usados.has('f' + n)) n += 1;
+      id = 'f' + n;
+    }
+    usados.add(id);
+    const inteiro = (v) => (v === undefined || v === null || String(v).trim() === ''
+      || !Number.isFinite(Number(v)) ? null : Number(v));
+    /* A FAIXA 1 HERDA A RAIZ — e não o contrário. É a direcção que preserva: quem grava pelo
+     * formulário antigo manda a raiz, e a faixa 1 passa a ser essa. Quem manda `faixas` traz tudo. */
+    const daRaiz = i === 0 && !validas.length;
+    saida.push({
+      id,
+      dias: daRaiz ? raiz.dias : dias,
+      horarios: daRaiz ? raiz.horarios : horarios,
+      duracaoMin: daRaiz ? raiz.duracaoMin : inteiro(bruta.duracaoMin),
+      /* O PERÍODO TAMBÉM HERDA A RAIZ, e pela mesma razão do par: uma sala antiga que ganha a
+       * segunda faixa declara o período UMA vez, na raiz, e não o repete em cada faixa. Quem declara
+       * o período na faixa manda — é essa a liberdade que a faixa nova dá (o termo seguinte na
+       * mesma sala). O que se evita é a faixa vazia APAGAR o período da raiz no espelho. */
+      periodoInicio: String((daRaiz ? raiz.periodoInicio : (bruta.periodoInicio || raiz.periodoInicio)) || '').trim(),
+      periodoFim: String((daRaiz ? raiz.periodoFim : (bruta.periodoFim || raiz.periodoFim)) || '').trim(),
+      modalidade: String((daRaiz ? raiz.modalidade : (bruta.modalidade || raiz.modalidade)) || '').trim(),
+      professor: String((daRaiz ? raiz.professor : (bruta.professor || raiz.professor)) || '').trim(),
+    });
+  }
+  return saida;
+}
+
+/**
+ * O ESPELHO DA FAIXA 1 NA RAIZ DA SALA — porque há leitores que ainda não sabem o que é uma faixa.
+ *
+ * O calendário, o plano de ensino e as provas leem `dias`/`horarios`/`duracaoMin`/`periodoInicio` da
+ * raiz. Escrever as faixas **sem** espelhar deixaria esses leitores a ver uma sala sem ritmo no dia em
+ * que a direção acrescentasse a segunda faixa — e o defeito apareceria longe da causa.
+ *
+ * A direcção é esta e não a inversa: a raiz passa a ser a faixa 1. Uma sala antiga, gravada pelo
+ * formulário que só manda a raiz, sai daqui exatamente como entrou.
+ */
+function espelharFaixa1NaRaiz(turma) {
+  const t = turma || {};
+  const faixas = Array.isArray(t.faixas) ? t.faixas : [];
+  if (!faixas.length) return t;
+  const p = faixas[0];
+  return Object.assign({}, t, {
+    dias: Array.isArray(p.dias) ? p.dias : [],
+    horarios: (p.horarios && typeof p.horarios === 'object') ? p.horarios : {},
+    duracaoMin: p.duracaoMin,
+    frequencia: (Array.isArray(p.dias) && p.dias.length) || t.frequencia,
+    periodoInicio: p.periodoInicio || '',
+    periodoFim: p.periodoFim || '',
+    modalidade: p.modalidade || '',
+    professor: p.professor || '',
+  });
 }
 
 /** Monta o objeto-termo canónico a partir do que a Produção envia. */
@@ -4202,29 +4305,44 @@ function conferirOcupacao({ curadoria: nova, lista, salas, excetoId }) {
     const nome = String((s && s.nome) || '').trim();
     if (nome) salasPorNome[nome] = s;
   }
-  const conflitos = ocupacao.conflitosDaCuradoria({
-    curadoria: nova, outras: lista, salasPorNome, excetoId,
-    rotuloDe: rotuloDaOcupante,
-  });
-  if (conflitos === null) return null;
+  /* A FAIXA PRIMEIRO (25/11/2026). Uma Sala pode ter várias aulas por dia — «a sala do piano»
+   * recebe balé às 9h e jazz às 10h —, e cada uma é uma faixa com o seu par (modalidade, professor) e
+   * o seu período. A Turma diz QUAL ocupa. Sem essa escolha o dado está incompleto, e escolher a
+   * primeira por conta própria poria a Turma a ocupar o horário errado em silêncio. */
+  const minha = ocupacao.ocupacaoDaCuradoria(nova, { salasPorNome, rotulo: rotuloDaOcupante(nova) });
+  if (minha.faixasEmFalta.length) {
+    return {
+      conflito: { recurso: 'faixa', nome: minha.faixasEmFalta[0].sala },
+      frase: ocupacao.motivoDaFaixaEmFalta(minha.faixasEmFalta[0]),
+    };
+  }
   /* OS DIAS SEM HORA RECUSAM A GRAVAÇÃO (decisão dela, 25/11/2026) — e é a decisão mais dura das
    * quatro, de propósito: sem a hora não há intervalo, e sem intervalo não há regra. Saltar em
    * silêncio deixaria a colisão por conferir exactamente nas Turmas antigas, que são as que já
-   * estão gravadas. O dado fica completo, e a mensagem nomeia os dias. */
-  for (const nome of (Array.isArray(nova && nova.turmas) ? nova.turmas : [])) {
-    const s = salasPorNome[String(nome).trim()];
-    if (!s) continue;
-    const faltam = ocupacao.diasSemHora(s);
+   * estão gravadas. O dado fica completo, e a mensagem nomeia os dias.
+   *
+   * A CONFERÊNCIA É POR FAIXA, e não pela sala: é a faixa que tem dias e horas. Ler a raiz da sala
+   * daria «nada em falta» a uma sala antiga que ganhou faixas, e o dia sem hora de uma faixa nova
+   * passaria. */
+  for (const faixa of minha.faixas) {
+    const faltam = ocupacao.diasSemHora(faixa);
     if (faltam.length) {
+      const nomeDaSala = String((minha.salas || [])[minha.faixas.indexOf(faixa)] || '').trim();
+      const qual = minha.faixas.length > 1 ? ' (faixa ' + ocupacao.rotuloDaFaixa(faixa) + ')' : '';
       return {
-        conflito: { recurso: 'hora', nome: String(nome).trim(), dias: faltam },
-        frase: 'A sala «' + String(nome).trim() + '» não declara a hora de início em ' +
+        conflito: { recurso: 'hora', nome: nomeDaSala, dias: faltam },
+        frase: 'A sala «' + nomeDaSala + '»' + qual + ' não declara a hora de início em ' +
           faltam.join(', ') + '. Sem a hora não se pode conferir se ela colide com outra Turma, ' +
           'e gravar assim deixaria a colisão por verificar. Declare a hora ' +
           (faltam.length === 1 ? 'desse dia' : 'desses dias') + ' na aba Salas, e grave de novo.',
       };
     }
   }
+  const conflitos = ocupacao.conflitosDaCuradoria({
+    curadoria: nova, outras: lista, salasPorNome, excetoId,
+    rotuloDe: rotuloDaOcupante,
+  });
+  if (conflitos === null) return null;
   if (!conflitos.length) return null;
   return {
     conflito: conflitos[0],
@@ -4232,6 +4350,67 @@ function conferirOcupacao({ curadoria: nova, lista, salas, excetoId }) {
   };
 }
 
+
+/**
+ * O QUE A SALA NOVA FARIA ÀS TURMAS QUE JÁ A OCUPAM (25/11/2026) — a conferência que faltava no FLUXO.
+ *
+ * A decisão dela, por extenso: «quando a gente faz a alteração em uma derivação em qualquer um
+ * desses, vai girar o fluxo e vai bater lá na turma […] tem que aparecer na tela em que a pessoa está
+ * fazendo o processo, a validação dizendo, ó, você não pode fazer isso porque tá colidindo com tal
+ * coisa.»
+ *
+ * O BURACO QUE ISTO TAPA, medido: a edição da Sala já corria a cadeia (`mudanca-de-sala`), mas a
+ * cadeia relê o ritmo e deriva o plano — **não conferia a ocupação**. Mudar a hora de uma sala que
+ * já tem duas turmas podia criar uma colisão **em silêncio**: nenhuma das duas era regravada, e o
+ * conflito só aparecia no dia em que alguém voltasse a mexer numa delas.
+ *
+ * Compara as turmas **entre si** — e não a nova contra as outras —, porque o que a sala nova muda é
+ * a relação de todas elas com o tempo. Devolve `null` quando não há nada a dizer, ou `{ frase,
+ * conflito }` com o primeiro choque, para a tela mostrar ali mesmo.
+ */
+function conflitosQueASalaCriaria({ nova, lista, curadorias: listaDeCuradorias }) {
+  if (!nova || !Array.isArray(lista) || !Array.isArray(listaDeCuradorias)) return null;
+  const salasPorNome = {};
+  for (const s of lista) {
+    const nome = String((s && s.nome) || '').trim();
+    if (nome && nome !== String(nova.nome || '').trim()) salasPorNome[nome] = s;
+  }
+  salasPorNome[String(nova.nome || '').trim()] = nova;
+  const nome = String(nova.nome || '').trim();
+  const ocupantes = listaDeCuradorias.filter((c) => c && !c.substituidaPor && !c.encerrada_em
+    && turmasDaCuradoria(c).indexOf(nome) !== -1);
+  if (ocupantes.length < 2) return null;
+  const ocupa = (c) => ocupacao.ocupacaoDaCuradoria(c, { salasPorNome, rotulo: rotuloDaOcupante(c) });
+  for (let i = 0; i < ocupantes.length; i += 1) {
+    const a = ocupa(ocupantes[i]);
+    if (a.faixasEmFalta.length) {
+      return {
+        conflito: { recurso: 'faixa', nome: a.faixasEmFalta[0].sala },
+        frase: ocupacao.motivoDaFaixaEmFalta(a.faixasEmFalta[0]),
+      };
+    }
+    for (let j = i + 1; j < ocupantes.length; j += 1) {
+      const b = ocupa(ocupantes[j]);
+      if (b.faixasEmFalta.length) {
+        return {
+          conflito: { recurso: 'faixa', nome: b.faixasEmFalta[0].sala },
+          frase: ocupacao.motivoDaFaixaEmFalta(b.faixasEmFalta[0]),
+        };
+      }
+      const choques = ocupacao.conflitosEntre(a, b);
+      if (choques.length) {
+        const c = choques[0];
+        return {
+          conflito: c,
+          frase: 'Com este ritmo, a sala «' + nome + '» passa a ter duas Turmas no mesmo horário: '
+            + ocupacao.motivoDoConflito(c, { rotulo: b.rotulo || rotuloDaOcupante(ocupantes[j]) }),
+          turmas: [a.rotulo || rotuloDaOcupante(ocupantes[i]), b.rotulo || rotuloDaOcupante(ocupantes[j])],
+        };
+      }
+    }
+  }
+  return null;
+}
 
 /** O nome do professor DONO, com a sobreposição editável no KV. O dono vive como SECRET
  *  (PROFESSOR_NOME) e o nome ajustado nos Bastidores fica no KV — o KV vence, para o nome
@@ -24845,8 +25024,11 @@ async function fetch(request, env, extras) {
     /* `modalidade` E `professor` ENTRAM NA LISTA (18/11/2026). Sem eles aqui, mudar a modalidade
      * de uma sala não gravava nada: a lista é o que a edição e a derivação COPIAM do formulário
      * para o registo, e um campo fora dela é um campo que o ecrã aceita e o servidor ignora. */
+    /* `faixas` ENTROU NA LISTA (25/11/2026), e a omissão dela era um defeito medido: a derivação
+     * descartava as faixas que o formulário mandava e ficava com as do registo anterior — o elo
+     * novo nascia com o ritmo velho e a alteração da sala não acontecia, sem erro nenhum. */
     const CAMPOS_DO_FORMULARIO = ['nome', 'frequencia', 'dias', 'horarios', 'duracaoMin',
-      'periodoInicio', 'periodoFim', 'modalidade', 'professor'];
+      'periodoInicio', 'periodoFim', 'modalidade', 'professor', 'faixas'];
     /* O PAR (modalidade, professor) GRAVA-SE AQUI, NA MESMA ESCRITA QUE O RITMO (19/11/2026).
      *
      * Ele era um SEGUNDO pedido (`/turma-professor`), encadeado no callback deste, e a cadeia
@@ -24898,7 +25080,14 @@ async function fetch(request, env, extras) {
      * do `.catch` que escreve no `.res`: o trabalho feito, com a resposta errada por cima. */
     const professorAntes = String(alvo.professor || '').trim();
     const modalidadeAntes = String(alvo.modalidade || '').trim();
-    lista[indice] = Object.assign({}, alvo, ajustado, { id: novoId });
+    /* A SALA NOVA PODE CRIAR UMA COLISÃO ENTRE TURMAS QUE JÁ EXISTEM (25/11/2026) — e a conferência
+     * é feita AQUI, antes de gravar, para a recusa aparecer no ecrã onde o gesto aconteceu. */
+    const salaNova = Object.assign({}, alvo, ajustado, { id: novoId });
+    const choqueDaSala = conflitosQueASalaCriaria({
+      nova: salaNova, lista, curadorias: await curadorias(kv, escola),
+    });
+    if (choqueDaSala) return json(409, Object.assign({ ok: false, erro: choqueDaSala.frase }, choqueDaSala.conflito));
+    lista[indice] = salaNova;
     await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(lista));
     const parMudouNaEdicao = (ajustado.professor && String(ajustado.professor).trim() !== professorAntes)
       || (ajustado.modalidade && String(ajustado.modalidade).trim() !== modalidadeAntes);
@@ -24990,8 +25179,11 @@ async function fetch(request, env, extras) {
     // A NOTA SAIU DA LISTA (03/11/2026): o campo deixou de ser pedido, e um campo que não se
     // copia fica onde está no registo anterior. É a mesma técnica do enquadramento — a memória
     // não se reescreve, e uma turma que tinha nota não a perde por ser ajustada.
+    /* `faixas` ENTROU NA LISTA (25/11/2026), e a omissão dela era um defeito medido: a derivação
+     * descartava as faixas que o formulário mandava e ficava com as do registo anterior — o elo
+     * novo nascia com o ritmo velho e a alteração da sala não acontecia, sem erro nenhum. */
     const CAMPOS_DO_FORMULARIO = ['nome', 'frequencia', 'dias', 'horarios', 'duracaoMin',
-      'periodoInicio', 'periodoFim', 'modalidade', 'professor'];
+      'periodoInicio', 'periodoFim', 'modalidade', 'professor', 'faixas'];
     /* O PAR VAI NO ELO NOVO, NA MESMA ESCRITA (19/11/2026) — a mesma razão do `turma-editar`, e
      * aqui com uma consequência a mais: o elo novo nasce com um `id` diferente, e um segundo pedido
      * a apontar para a sala ANTIGA escreveria o professor no elo que desceu ao histórico. A lista
@@ -25040,6 +25232,16 @@ async function fetch(request, env, extras) {
         erro: 'a turma ajustada precisa de ' + fraseDaFalta(falta) + '.',
         falta,
       });
+    }
+    /* A SALA NOVA PODE CRIAR UMA COLISÃO ENTRE TURMAS QUE JÁ EXISTEM (25/11/2026). Derivar a sala é
+     * mudar o ritmo debaixo das turmas que a ocupam: sem esta conferência, a colisão nascia em
+     * silêncio e só aparecia quando alguém voltasse a mexer numa delas. A recusa chega no ecrã onde
+     * o gesto aconteceu — é o que ela pediu. */
+    const choqueDaSalaNova = conflitosQueASalaCriaria({
+      nova, lista, curadorias: await curadorias(kv, escola),
+    });
+    if (choqueDaSalaNova) {
+      return json(409, Object.assign({ ok: false, erro: choqueDaSalaNova.frase }, choqueDaSalaNova.conflito));
     }
     /* A DURAÇÃO MUDOU? PERGUNTA-SE ANTES DE DERIVAR (20/11/2026).
      *
@@ -28440,6 +28642,11 @@ function parDaSalaNoCorpo(corpo, registo) {
           turmas: turmasPedidas,
           professor: slugificar(professor),
           alunas: alunasPedidas,
+          /* A FAIXA VAI AQUI, e a omissão dela custou uma asserção: sem este campo a guarda via a
+           * Turma sem faixa, e uma sala com duas respondia «é preciso dizer qual» a um pedido que
+           * já a tinha dito. O objecto desta conferência é uma construção à mão, e um campo novo na
+           * Turma não chega a ele por si — é o preço de não passar a `nova`, que ainda não existe. */
+          faixa: String(corpo.faixa || '').trim() || null,
         },
         lista, salas: todasAsSalas,
         excetoId: atual ? atual.id : null,
@@ -28457,6 +28664,14 @@ function parDaSalaNoCorpo(corpo, registo) {
       professor: slugificar(professor),
       modalidade,
       tradicao,
+      /* A FAIXA DA SALA QUE ESTA TURMA OCUPA (25/11/2026). Uma sala pode ter N aulas por dia, com N
+       * modalidades e N professores — «a sala do piano» recebe balé às 9h e jazz às 10h —, e a Turma
+       * diz qual delas ocupa. A ocupação lê SÓ essa: tomá-la por ocupante de todas recusaria turmas
+       * legítimas da mesma sala em horas diferentes.
+       *
+       * Sem escolha, `conferirOcupacao` recusa quando a sala tem mais de uma (`motivoDaFaixaEmFalta`),
+       * e não escolhe por conta própria. Uma sala antiga, com um ritmo só, não precisa de dizer nada. */
+      faixa: String(corpo.faixa || '').trim() || null,
       // O NÍVEL DA RELAÇÃO, e não da turma: mover a turma de nível é editar isto, e o calendário,
       // os conteúdos e os lançamentos dela não são tocados.
       grau: niveis.grau,
@@ -28965,6 +29180,10 @@ function parDaSalaNoCorpo(corpo, registo) {
       nivel: niveisDeriv.nivel,
       nivelReferencia: niveisDeriv.nivelReferencia,
       turmas: turmaFinal ? [turmaFinal] : [],
+      // A FAIXA ACOMPANHA A DERIVAÇÃO (25/11/2026): a versão nova herda a faixa da anterior — é o
+      // mesmo horário na mesma sala —, salvo se o corpo declarar outra. Uma Turma que muda de faixa
+      // é uma mudança de horário, e é a ocupação que a confere contra as outras daquela sala.
+      faixa: corpo.faixa === undefined ? (anterior.faixa || null) : (String(corpo.faixa || '').trim() || null),
       // O ELENCO ACOMPANHA A DERIVAÇÃO (07/11/2026): a versão nova nasce com o elenco que a
       // anterior tinha, salvo se o corpo declarar outro. O nome é o do elenco escolhido, e o da
       // anterior quando ele não mudou — o registo não perde a etiqueta do corpo que declarou.

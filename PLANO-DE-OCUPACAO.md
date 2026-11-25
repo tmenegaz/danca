@@ -231,16 +231,16 @@ que os nomeia.
 
 ---
 
-## 9. O estado da obra — 25/11/2026
+## 9. O estado da obra — 25/11/2026 (a tabela fica; o resto do dia vem em §9.1 a §9.5)
 
 | # | passo | estado |
 |:--|:--|:--|
 | 1 | `motor/nucleo/ocupacao.js` — a regra pura | **FEITO** |
-| 2 | a prova, com os casos-limite | **FEITO** — `experimentos/provar-a-ocupacao.js`, **49 asserções** |
+| 2 | a prova, com os casos-limite | **FEITO** — `provar-a-ocupacao.js`, **65 asserções** |
 | 3 | trocar a pergunta do `salasOcupadas` pela regra nova, nos dois sítios | **FEITO** |
 | 4 | acrescentar professor e elenco às rotas | **FEITO** — na regra e nas duas rotas |
-| 5 | reescrever as asserções de `provar-mudanca-de-sala` | **FEITO** — **48 asserções** |
-| 6 | a tela: a faixa horária na aba Salas | **por fazer** |
+| 5 | reescrever as asserções de `provar-mudanca-de-sala` | **FEITO** — **58 asserções** |
+| 6 | a tela: a faixa horária na aba Salas | **por fazer** — é o passo 9 de §9.5 |
 
 ### 9.1 O que os passos 3 a 5 fizeram, e o que eles **não** conseguiram
 
@@ -270,22 +270,95 @@ gravar. Duas saídas, e é decisão de produto:
 2. **O ritmo passa para a curadoria** — a Sala fica o espaço físico, sem horas, e cada Turma declara
    o seu ritmo. É a leitura mais próxima de «a turma atende nesses dias, com essa duração».
 
-Enquanto nenhuma das duas entrar, a regra nova **endurece** (passa a ver professor e elenco, que a
-antiga não via) e **não desbloqueia** o caso das duas horas — e dizê-lo ao contrário seria vender o
-que não está feito.
+**A resposta chegou a 25/11, e foi a 1 — com um acrescento que eu não tinha visto:** o par
+(modalidade, professor) e o período **também** descem para a faixa, porque com eles na Sala a sala só
+podia ter uma modalidade o dia inteiro. `faixasDaSala`, `normalizarFaixas` e `espelharFaixa1NaRaiz`
+são essa resposta; o que falta é a tela (§9.5, passo 9).
 
-### 9.2 O que a mudança partiu, e como se corrigiu
+### 9.2 A SALA COM FAIXAS — «N aulas, N modalidades, N professores» (25/11/2026)
 
-Três provas ficaram vermelhas, e **as três estavam a medir sobre um mundo que a regra nova
-proíbe** — não sobre um defeito do código:
+**A correcção que ela fez, e o erro era meu.** A tabela dos cenários dizia «mesma sala, mesmo dia,
+horas que não se tocam → recusa». **A regra sempre permitiu** — o caso está na prova desde o primeiro
+dia (`O CASO DELA: 14h e 16h na mesma sala → NÃO colidem`). O que eu descrevi como recusa era o
+**modelo**: a Sala declarava uma hora por dia, e duas turmas no mesmo registo ficavam com a mesma
+hora. Confundir a regra com o modelo numa linha de tabela foi o erro, e ele custou uma ronda.
+
+**E a linha 10 era a chave do resto.** Eu escrevi «o professor é declarado na curadoria *ou* na sala».
+Medido: desde 18/11/2026 a Turma **deriva** o professor e a modalidade **da Sala**
+(`bastidores.js:28165`, `faltaNaSalaParaATurma`). Não são duas fontes — é uma, com uma cópia antiga
+que pode ter derivado.
+
+**O que a frase dela obriga.** «Ali pode acontecer N aulas durante o dia e de N modalidades, de N
+professores, com N elencos.» Com o par (professor, modalidade) na **Sala**, a sala do piano só podia
+ter uma modalidade o dia inteiro. Logo o par desce para a **faixa** — e o período com ele, senão dois
+termos na mesma sala obrigavam a duplicar a sala, que é o problema de agora uma dimensão ao lado.
+
+| o quê | onde fica |
+|:--|:--|
+| **nome** — «a do piano», «a rosa», «a do janelão» | Sala |
+| **faixa**: dias, hora de início, duração (→ hora final), período, modalidade, professor | Sala (**+**) |
+| **qual faixa esta turma ocupa** | **Turma** — o vínculo, e é aqui que a validação decide |
+| **elenco, nível, tradição** | Turma |
+
+**Duas formas convivem, e é isso que dispensa migração.** Uma Sala que ainda declara o ritmo na raiz
+— todas as que existem — vale como **uma faixa só** (`faixasDaSala`). Gravar faixas **espelha a faixa
+1 na raiz** (`espelharFaixa1NaRaiz`), para o calendário, o plano e as provas — que leem a raiz —
+continuarem a ver o ritmo. Nenhum registo antigo se toca (P-03/P-04).
+
+### 9.3 O buraco do fluxo, medido, e o que o fecha
+
+A edição da Sala **já corria a cadeia** (`mudanca-de-sala`), mas a cadeia relê o ritmo e deriva o
+plano — **não conferia a ocupação**. Mudar a hora de uma sala com duas turmas podia criar uma colisão
+**em silêncio**: nenhuma delas era regravada, e o conflito só aparecia no dia em que alguém voltasse a
+mexer numa delas.
+
+`conflitosQueASalaCriaria` compara as turmas **entre si** com a sala nova, e as duas rotas da sala
+(`turma-editar` e `turma-derivar`) **recusam com 409** quando o gesto criaria a colisão — no ecrã onde
+o gesto aconteceu, que é o que ela pediu.
+
+**E as mensagens deixaram de sugerir.** «Mude a hora ou o dia de uma delas» saiu das três frases: «a
+gente não vai dar sugestão de como resolver nada. Resolver esses conflitos é papel do usuário e não
+nosso.» O facto fica — quem ocupa, que dia, que horas, que recurso — e o caminho é de quem usa.
+
+### 9.4 O que a mudança partiu, e como se corrigiu
+
+Cinco provas ficaram vermelhas, e **nenhuma era defeito da regra**: quatro mediam sobre um mundo que a
+regra nova proíbe, e uma media a sugestão que a decisão removeu.
 
 | prova | o que aconteceu | correção |
 |:--|:--|:--|
-| `provar-derivacao-da-turma` | as Turmas C, D, E, F, G e H nasciam **todas** às 09:00 de terça, com o mesmo professor. Agora é o mesmo docente à mesma hora em seis salas | cada uma com o seu horário |
-| `provar-identidade-da-turma` | as duas salas da escola nasciam às 19:00 de terça, quinta e sábado. A recusa do professor chegava antes da regra do elenco que a prova queria medir | `Piano` às 20:00 |
-| a mesma | «um elenco COM alunas é recusado pela regra da aluna» — a regra foi substituída | passa a **aceite**, com a recusa por sobreposição provada em `provar-a-ocupacao.js` |
+| `provar-derivacao-da-turma` | as Turmas C, D, E, F, G e H nasciam **todas** às 09:00 de terça, com o mesmo professor | cada uma com o seu horário |
+| `provar-identidade-da-turma` | as duas salas nasciam às 19:00; a recusa do professor chegava antes da regra do elenco | `Piano` às 20:00 |
+| a mesma | «um elenco COM alunas é recusado pela regra da aluna» — a regra foi substituída | passa a **aceite** |
+| `provar-transferencia-e-desligamento` | salas **sem hora**, que a decisão 2 recusa | hora em cada sala |
+| `provar-a-ocupacao` e `provar-mudanca-de-sala` | mediam «Mude a hora ou o dia» / «pode estar nas duas» | passam a medir a **ausência** da sugestão |
 
-E uma quarta, minha, apanhada pelo controlo negativo: a asserção que devia provar que o **professor
-da Sala** entra na união passava **sem** a linha que a implementa — porque a curadoria do caso já
-declarava o mesmo professor. Reescrita com a curadoria a declarar um substituto e a Sala o docente,
-o controlo negativo dá **3 falhas** sem a linha e 49/49 com ela.
+E **três defeitos meus**, apanhados pelas provas: (1) a guarda da Turma era chamada com um objecto
+construído à mão que não levava `faixa`, e a sala com duas respondia «é preciso dizer qual» a um
+pedido que já a tinha dito; (2) `faixas` ficou fora de `CAMPOS_DO_FORMULARIO`, e a **derivação da sala
+descartava as faixas que o formulário mandava** — o elo novo nascia com o ritmo velho, sem erro
+nenhum; (3) o período da faixa vazia **apagava** o período da raiz no espelho.
+
+**E uma asserção minha que passava sem a linha que a implementa**: a que devia provar que o professor
+da Sala entra na união passava porque a curadoria do caso já declarava o mesmo professor. Reescrita, o
+controlo negativo dá **3 falhas** sem a linha.
+
+### 9.5 O estado da obra — 25/11/2026, fim do dia
+
+| # | passo | estado |
+|:--|:--|:--|
+| 1 | `motor/nucleo/ocupacao.js` — a regra pura | **FEITO** |
+| 2 | a prova da regra | **FEITO** — `provar-a-ocupacao.js`, **65 asserções** |
+| 3 | a guarda nos dois sítios de gravação da Turma | **FEITO** |
+| 4 | professor e elenco nas rotas | **FEITO** |
+| 5 | as asserções de `provar-mudanca-de-sala` | **FEITO** — **58 asserções** |
+| 6 | **as faixas no núcleo e nas rotas** | **FEITO** — `faixasDaSala`, `faixaEscolhida`, `normalizarFaixas`, `espelharFaixa1NaRaiz` |
+| 7 | **a colisão criada pela Sala recusa no gesto** | **FEITO** — `conflitosQueASalaCriaria`, nas duas rotas |
+| 8 | **sem sugestão de resolução nas mensagens** | **FEITO** |
+| 9 | **a tela: o «+» na Sala e a escolha da faixa na Turma** | **POR FAZER** |
+
+**O passo 9 é o que falta, e é o único.** O modelo, as rotas e as provas estão fechados: uma sala com
+três faixas e três turmas, uma em cada, é aceite pela rota verdadeira; a mesma faixa com duas turmas é
+recusada; e alargar uma faixa até engolir a seguinte é recusado no gesto, com as duas turmas nomeadas.
+O que não existe ainda é **o botão** que cria a segunda faixa e **o campo** que a escolhe — e sem os
+dois a funcionalidade não é alcançável por quem usa.

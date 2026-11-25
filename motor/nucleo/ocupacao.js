@@ -85,25 +85,107 @@ function duracaoDe(turma) {
 }
 
 /**
- * OS INTERVALOS DE UMA SALA — `[{dia, inicio, fim, inicioTexto, fimTexto}]`, ou `null` quando a Sala
- * não os declara.
+ * AS FAIXAS DE UMA SALA — `[{id, dias, horarios, duracaoMin, periodoInicio, periodoFim, modalidade,
+ * professor}]`.
+ *
+ * A SALA É O ESPAÇO; A FAIXA É O QUE ACONTECE NELE (25/11/2026, decisão dela por extenso).
+ *
+ * «Ali pode acontecer N aulas durante o dia e de N modalidades, de N professores, com N elencos.»
+ * Com um ritmo só por Sala isso era falso: a sala do piano teria **uma** modalidade e **um**
+ * professor o dia inteiro. Por isso o par (modalidade, professor) e o período descem para a faixa, e
+ * a Sala fica o nome do espaço físico — «a sala do piano», «a rosa», «a do janelão».
+ *
+ * DUAS FORMAS CONVIVEM, E ISSO É DELIBERADO. Uma Sala que ainda declara `dias`/`horarios`/
+ * `duracaoMin`/`periodoInicio` na raiz — todas as que existem hoje — vale como **uma faixa só**, e
+ * não precisa de ser reescrita para continuar a funcionar. `sala.faixas` é aditivo: quando existe e
+ * tem conteúdo, manda; quando não existe, a raiz é a faixa 1. Nenhum registo antigo se toca (P-03).
+ */
+function faixasDaSala(sala) {
+  const s = sala || {};
+  const cruas = Array.isArray(s.faixas) ? s.faixas.filter((f) => f && typeof f === 'object') : [];
+  if (cruas.length) {
+    return cruas.map((f, i) => ({
+      id: String(f.id || '').trim() || ('f' + (i + 1)),
+      dias: Array.isArray(f.dias)
+        ? f.dias.map(String).map((d) => d.trim()).filter(Boolean)
+        : String(f.dias || '').split(',').map((d) => d.trim()).filter(Boolean),
+      horarios: (f.horarios && typeof f.horarios === 'object' && !Array.isArray(f.horarios)) ? f.horarios : {},
+      duracaoMin: duracaoDe(f),
+      periodoInicio: String(f.periodoInicio || '').trim(),
+      periodoFim: String(f.periodoFim || '').trim(),
+      /* O PAR DA FAIXA HERDA O DA SALA QUANDO NÃO O DECLARA. É o que faz uma sala antiga, com um
+       * professor e uma modalidade na raiz, continuar a dizer quem dá a aula depois de ganhar a
+       * segunda faixa — sem obrigar a preencher de novo a primeira. */
+      modalidade: String(f.modalidade || s.modalidade || '').trim(),
+      professor: String(f.professor || s.professor || '').trim(),
+    }));
+  }
+  return [{
+    id: null,   // a raiz não tem id: é a faixa única, e é assim que a turma antiga a encontra
+    dias: Array.isArray(s.dias) ? s.dias.map(String) : [],
+    horarios: (s.horarios && typeof s.horarios === 'object') ? s.horarios : {},
+    duracaoMin: duracaoDe(s),
+    periodoInicio: String(s.periodoInicio || '').trim(),
+    periodoFim: String(s.periodoFim || '').trim(),
+    modalidade: String(s.modalidade || '').trim(),
+    professor: String(s.professor || '').trim(),
+  }];
+}
+
+/**
+ * QUAL FAIXA A TURMA OCUPA — e o motivo quando não há resposta.
+ *
+ * `motivo` é `null` quando se sabe:
+ *
+ *   · `'ambigua'`      — a Sala tem mais de uma faixa e a Turma não diz qual. Recusa-se: escolher a
+ *                        primeira por conta própria poria a Turma a ocupar o horário errado em
+ *                        silêncio, que é o defeito que esta regra existe para acabar;
+ *   · `'desconhecida'` — a Turma aponta para uma faixa que já não existe (o id mudou);
+ *   · `'sem-faixa'`    — a Sala não declara faixa nenhuma.
+ *
+ * Com UMA só faixa, a escolha é implícita e não se pergunta nada: é o caso de todas as salas de hoje,
+ * e pedir o id de uma faixa única seria fricção sem ganho.
+ */
+function faixaEscolhida(faixas, id) {
+  const lista = Array.isArray(faixas) ? faixas : [];
+  if (!lista.length) return { faixa: null, motivo: 'sem-faixa' };
+  const pedido = String(id == null ? '' : id).trim();
+  if (pedido) {
+    const achada = lista.find((f) => String(f.id == null ? '' : f.id) === pedido);
+    return achada ? { faixa: achada, motivo: null } : { faixa: null, motivo: 'desconhecida' };
+  }
+  if (lista.length === 1) return { faixa: lista[0], motivo: null };
+  return { faixa: null, motivo: 'ambigua' };
+}
+
+/** Os intervalos de UMA faixa. `null` quando a faixa não os declara — ver `intervalosDaSala`. */
+function intervalosDaFaixa(faixa) {
+  const f = faixa || {};
+  const duracao = duracaoDe(f);
+  if (duracao === null) return null;
+  const dias = Array.isArray(f.dias) ? f.dias : [];
+  if (!dias.length) return null;
+  const saida = [];
+  for (const dia of dias) {
+    const inicio = minutosDe(f.horarios && f.horarios[dia]);
+    if (inicio === null) return null;   // um dia sem hora torna a faixa inteira inconferível
+    saida.push({ dia: String(dia), inicio, fim: inicio + duracao, inicioTexto: horaDe(inicio), fimTexto: horaDe(inicio + duracao) });
+  }
+  return saida;
+}
+
+/**
+ * OS INTERVALOS DE UMA SALA — os da FAIXA que a Turma ocupa.
+ *
+ * Sem `faixaId`, devolve os da faixa única; uma Sala com várias faixas e sem escolha devolve `null`,
+ * porque «todas as faixas» seria a resposta errada: uma Turma das 9h não ocupa a sala às 11h.
  *
  * `null` e não `[]`: uma Sala sem hora e uma Sala sem dias são coisas diferentes, e quem chama tem de
  * as poder distinguir. `[]` seria «não ocupa nada», que é uma afirmação.
  */
-function intervalosDaSala(sala) {
-  const s = sala || {};
-  const duracao = duracaoDe(s);
-  if (duracao === null) return null;
-  const dias = Array.isArray(s.dias) ? s.dias : [];
-  if (!dias.length) return null;
-  const saida = [];
-  for (const dia of dias) {
-    const inicio = minutosDe(s.horarios && s.horarios[dia]);
-    if (inicio === null) return null;   // um dia sem hora torna a Sala inteira inconferível
-    saida.push({ dia: String(dia), inicio, fim: inicio + duracao, inicioTexto: horaDe(inicio), fimTexto: horaDe(inicio + duracao) });
-  }
-  return saida;
+function intervalosDaSala(sala, faixaId) {
+  const escolha = faixaEscolhida(faixasDaSala(sala), faixaId);
+  return escolha.faixa ? intervalosDaFaixa(escolha.faixa) : null;
 }
 
 /**
@@ -220,8 +302,10 @@ function ocupacaoDaCuradoria(curadoria, { salasPorNome, rotulo } = {}) {
   const intervalos = [];
   const declaradas = [];
   const professores = [];
+  const faixasEmFalta = [];
+  const faixas = [];
   let periodo = null;
-  /* QUEM DÁ A AULA: a curadoria e a sala, os dois. Ver `conflitosEntre` para a razão. */
+  /* QUEM DÁ A AULA: a curadoria e a FAIXA, os dois. Ver `conflitosEntre` para a razão. */
   const juntarProfessor = (v) => {
     const s = String(v || '').trim();
     if (s && professores.indexOf(s) === -1) professores.push(s);
@@ -230,14 +314,25 @@ function ocupacaoDaCuradoria(curadoria, { salasPorNome, rotulo } = {}) {
   for (const nome of nomes) {
     const sala = mapa[nome] || null;
     if (!sala) continue;
+    const escolha = faixaEscolhida(faixasDaSala(sala), c.faixa);
+    /* A FAIXA TEM DE ESTAR ESCOLHIDA, e sem ela não se inventa ocupação nenhuma. `faixasEmFalta` é
+     * devolvido para a ROTA recusar; aqui não se lança nem se decide — este módulo não conhece a
+     * mensagem. O que NÃO se faz é cair para «todas as faixas»: uma Turma das 9h não ocupa a sala às
+     * 11h, e tomá-la por ocupante recusaria turmas legítimas. */
+    if (!escolha.faixa) {
+      faixasEmFalta.push({ sala: nome, motivo: escolha.motivo, faixas: faixasDaSala(sala).map((f) => ({ id: f.id, rotulo: rotuloDaFaixa(f) })) });
+      continue;
+    }
+    const faixa = escolha.faixa;
     declaradas.push(sala);
-    juntarProfessor(sala.professor);
-    const do_ = intervalosDaSala(sala);
+    faixas.push(faixa);
+    juntarProfessor(faixa.professor);
+    const do_ = intervalosDaFaixa(faixa);
     if (do_) intervalos.push(...do_);
-    /* O PERÍODO DA CURADORIA É A UNIÃO DOS PERÍODOS DAS SUAS SALAS — o mais largo. Comparar por
-     * igualdade de objectos seria frágil, e o que interessa é a janela em que ela existe. */
-    const ini = String(sala.periodoInicio || '').trim();
-    const fim = String(sala.periodoFim || '').trim();
+    /* O PERÍODO É O DA FAIXA — cada faixa tem o seu, e é isso que permite o termo seguinte na mesma
+     * sala sem duplicar a sala. A curadoria com mais de uma sala fica com o mais largo. */
+    const ini = String(faixa.periodoInicio || '').trim();
+    const fim = String(faixa.periodoFim || '').trim();
     if (ini || fim) {
       periodo = periodo || { inicio: null, fim: null };
       if (ini && (!periodo.inicio || ini < periodo.inicio)) periodo.inicio = ini;
@@ -254,7 +349,27 @@ function ocupacaoDaCuradoria(curadoria, { salasPorNome, rotulo } = {}) {
     intervalos,
     periodo,
     declaradas,
+    faixas,
+    faixa: c.faixa == null ? null : String(c.faixa),
+    faixasEmFalta,
   };
+}
+
+/** O rótulo de uma faixa, para a tela e para a mensagem: «seg, qua · 09:00–10:00». */
+function rotuloDaFaixa(faixa) {
+  const f = faixa || {};
+  const dias = Array.isArray(f.dias) ? f.dias : [];
+  const horas = dias.map((d) => String((f.horarios || {})[d] || '')).filter(Boolean).sort();
+  const duracao = duracaoDe(f);
+  const partes = [];
+  if (dias.length) partes.push(dias.join(', '));
+  if (horas.length && duracao !== null) {
+    const inicio = minutosDe(horas[0]);
+    partes.push(horaDe(inicio) + '–' + horaDe(inicio + duracao));
+  } else if (horas.length) {
+    partes.push(horas[0]);
+  }
+  return partes.join(' · ') || 'faixa sem ritmo';
 }
 
 /**
@@ -325,19 +440,44 @@ function motivoDoConflito(conflito, { rotulo } = {}) {
    * composto lê-se como o que é: a descrição de quem está a ser gravado. */
   const eu = rotulo ? 'A Turma (' + rotulo + ')' : 'A Turma que se está a gravar';
 
+  /* SEM SUGESTÃO DE RESOLUÇÃO (decisão dela, 25/11/2026): «a gente não vai dar sugestão de como
+   * resolver nada, não. Isso é completamente discricionário de quem está usando o sistema.» A frase
+   * diz o FACT — quem ocupa, que dia, que horas, que recurso — e pára. O que fazer com isso é de
+   * quem está a gravar. */
   if (c.recurso === 'sala') {
     return eu + ' fica na sala «' + nome + '» ' + quando + ', e «' + quem + '» já lá está ' + dele +
-      '. Uma sala recebe uma Turma de cada vez, no mesmo horário — em horas diferentes podem ser ' +
-      'duas. Mude a hora ou o dia de uma delas, ou use outra sala.';
+      '. Uma sala recebe uma Turma de cada vez, no mesmo horário.';
   }
   if (c.recurso === 'professor') {
     return eu + ' fica com o professor «' + nome + '» ' + quando + ', e «' + quem + '» já lhe ' +
-      'ocupa esse horário ' + dele + '. Um professor não está em duas Turmas ao mesmo tempo. Mude a ' +
-      'hora ou o dia de uma delas.';
+      'ocupa esse horário ' + dele + '. Um professor não está em duas Turmas ao mesmo tempo.';
   }
   return eu + ' inclui «' + nome + '» e fica ' + quando + ', e «' + quem + '» já a tem nesse ' +
-    'horário ' + dele + '. Uma pessoa não está em dois lugares ao mesmo tempo — pode estar nas duas ' +
-    'Turmas, mas não neste dia e hora. Mude a hora ou o dia de uma delas.';
+    'horário ' + dele + '. Uma pessoa não está em dois lugares ao mesmo tempo.';
+}
+
+/**
+ * A FRASE DA FAIXA EM FALTA — a segunda recusa que a faixa introduz.
+ *
+ * Uma Sala com mais de uma faixa e uma Turma que não diz qual delas ocupa são um dado incompleto, e
+ * escolher a primeira por conta própria poria a Turma a ocupar o horário errado em silêncio. A frase
+ * nomeia as faixas, para a escola escolher — e não decide por ela.
+ */
+function motivoDaFaixaEmFalta(falta) {
+  const f = falta || {};
+  const sala = String(f.sala || '—');
+  const opcoes = (Array.isArray(f.faixas) ? f.faixas : []).map((x) => '«' + (x.rotulo || x.id) + '»');
+  if (f.motivo === 'desconhecida') {
+    return 'A faixa horária escolhida para a sala «' + sala + '» já não existe. As faixas dela hoje ' +
+      'são ' + (opcoes.length ? opcoes.join(', ') : 'nenhuma') + '.';
+  }
+  if (f.motivo === 'sem-faixa') {
+    return 'A sala «' + sala + '» não declara nenhuma faixa horária — sem dias, hora e duração não ' +
+      'se pode conferir se ela colide com outra Turma.';
+  }
+  return 'A sala «' + sala + '» tem ' + (opcoes.length || 'várias') + ' faixas horárias (' +
+    opcoes.join(', ') + ') e é preciso dizer qual delas esta Turma ocupa: um espaço com várias aulas ' +
+    'por dia não é o mesmo horário para todas.';
 }
 
 module.exports = {
@@ -345,6 +485,10 @@ module.exports = {
   horaDe,
   diasSemHora,
   duracaoDe,
+  faixasDaSala,
+  faixaEscolhida,
+  intervalosDaFaixa,
+  rotuloDaFaixa,
   intervalosDaSala,
   periodosTocamSe,
   sobrepoemNoDia,
@@ -352,4 +496,5 @@ module.exports = {
   ocupacaoDaCuradoria,
   conflitosDaCuradoria,
   motivoDoConflito,
+  motivoDaFaixaEmFalta,
 };

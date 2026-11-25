@@ -17073,8 +17073,7 @@ documentação: os dois documentos de identidade citam a C15 quatro vezes cada u
 no topo e no 2.8) e `IDENTIDADE-VISUAL.md` (a glosa ao lado do parágrafo que declara a C15
 aberta).
 
-**Com o quê.** `PLANEJAMENTO-LASTRO.md` §3 (a C15 e a sua justificação), `motor/servidor/
-bastidores.js` (`senhaDaEscolaOk`, onde a identidade existe no dado e não é usada).
+**Com o quê.** `PLANEJAMENTO-LASTRO.md` §3 (a C15 e a sua justificação), `motor/servidor/bastidores.js` (`senhaDaEscolaOk`, onde a identidade existe no dado e não é usada).
 
 **Referências.** `PLANEJAMENTO-LASTRO.md` §3 C15; `IDENTIDADE-VISUAL.md` (a aparência e o
 catálogo planeado); `IMPLEMENTACAO-IDENTIDADE.md` (Fases 2 e 3).
@@ -61300,3 +61299,58 @@ negativo que não fica vermelho não é um controlo.
 **Onde entrou.** `motor/servidor/bastidores.js` (a guarda nos dois sítios; `alunasComprometidas`
 apagada), `motor/nucleo/ocupacao.js` (o professor da Sala na união), `experimentos/provar-mudanca-de-sala.js`, `experimentos/provar-a-ocupacao.js`, `experimentos/provar-derivacao-da-turma.js`,
 `experimentos/provar-identidade-da-turma.js`, `experimentos/provar-transferencia-e-desligamento.js`, `PLANO-DE-OCUPACAO.md` (§9 reescrito), `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+## 25/11/2026 — A sala ganha faixas horárias: N aulas por dia, N modalidades, N professores
+
+**A correcção dela veio antes do código, e a linha errada era a minha.** A tabela dos cenários que
+apresentei dizia «mesma sala, mesmo dia, horas que não se tocam → **recusa**». **A regra sempre
+permitiu** — o caso está em `provar-a-ocupacao.js` desde o primeiro dia: «O CASO DELA: 14h e 16h na
+mesma sala, no mesmo dia → NÃO colidem». O que eu descrevi como recusa era o **modelo**: a Sala
+declarava uma hora por dia, e duas turmas no mesmo registo ficavam com a mesma hora. Confundir a regra
+com o modelo na mesma linha de tabela custou uma ronda inteira.
+
+**A outra linha, a 10, era a chave do resto.** Eu escrevi «o professor é declarado na curadoria *ou*
+na sala, os dois contam». Medido: desde 18/11/2026 a Turma **deriva** o professor e a modalidade **da
+Sala** (`bastidores.js:28165`, `faltaNaSalaParaATurma`). Não são duas fontes: é uma, com uma cópia
+antiga que pode ter derivado.
+
+**O que a frase dela obrigou, e é mais do que eu tinha proposto.** «A sala do piano […] ali pode
+acontecer N aulas durante o dia e de N modalidades, de N professores, com N elencos.» Com o par
+(professor, modalidade) na **Sala**, a sala do piano só podia ter **uma** modalidade o dia inteiro.
+Logo o par desce para a **faixa** — e o período com ele, senão o termo seguinte na mesma sala obrigava
+a duplicar a sala, que é o problema de agora uma dimensão ao lado. Ela confirmou os dois.
+
+**O que ficou feito.** `faixasDaSala` lê a Sala como uma lista de faixas, e uma Sala que ainda declara
+o ritmo na raiz — **todas as que existem** — vale como uma faixa só: nenhum registo se toca.
+`normalizarFaixas` grava as faixas e `espelharFaixa1NaRaiz` põe a faixa 1 na raiz, para o calendário,
+o plano e as provas continuarem a ler o ritmo sem saber que as faixas existem. `faixaEscolhida` diz
+qual a Turma ocupa, e recusa-se a adivinhar quando a sala tem mais de uma: escolher a primeira poria a
+Turma a ocupar o horário errado em silêncio.
+
+**O buraco do fluxo, medido.** A edição da Sala já corria a cadeia, mas a cadeia relê o ritmo e deriva
+o plano — **não conferia a ocupação**. Mudar a hora de uma sala com duas turmas podia criar uma
+colisão **em silêncio**, e o conflito só apareceria quando alguém voltasse a mexer numa delas.
+`conflitosQueASalaCriaria` compara as turmas entre si com a sala nova, e as duas rotas da sala
+recusam com 409 **no gesto**, no ecrã onde ele aconteceu — que é o que ela pediu.
+
+**E as mensagens deixaram de sugerir.** «Mude a hora ou o dia de uma delas» saiu das três frases:
+«a gente não vai dar sugestão de como resolver nada. Resolver esses conflitos é papel do usuário e não
+nosso.» O facto fica; o caminho é de quem usa. Quatro asserções mediam a sugestão e passaram a medir a
+**ausência** dela — inverteram de sentido, e é isso que as torna úteis.
+
+**Três defeitos meus, apanhados pelas provas, e os três da mesma família** — o campo novo que não
+chega a quem o lê: (1) a guarda da Turma era chamada com um objecto construído à mão que não levava
+`faixa`, e a sala com duas respondia «é preciso dizer qual» a um pedido que já a tinha dito; (2)
+`faixas` ficou fora de `CAMPOS_DO_FORMULARIO`, e a **derivação da sala descartava** as faixas que o
+formulário mandava — o elo novo nascia com o ritmo velho, sem erro nenhum; (3) o período da faixa
+vazia **apagava** o período da raiz no espelho. Nenhum destes aparecia a ler o código: os três
+apareceram a correr a rota verdadeira.
+
+**O que falta, e é só um passo.** A **tela**: o botão «+» que cria a segunda faixa na Sala, e o campo
+que a escolhe na Turma. O modelo, as rotas e as provas estão fechados — `provar-a-ocupacao` **65**,
+`provar-mudanca-de-sala` **58**, suite **185/280 com 0 regressões** —, mas sem os dois botões a
+funcionalidade não é alcançável por quem usa, e dizê-lo ao contrário seria vender o que não está feito.
+
+**Onde entrou.** `motor/nucleo/ocupacao.js` (`faixasDaSala`, `faixaEscolhida`, `intervalosDaFaixa`,
+`rotuloDaFaixa`, `motivoDaFaixaEmFalta`, e as três mensagens sem sugestão), `motor/servidor/bastidores.js` (`normalizarFaixas`, `espelharFaixa1NaRaiz`, `conflitosQueASalaCriaria`, `faixa` na
+curadoria e nas duas rotas da sala, `faixas` em `CAMPOS_DO_FORMULARIO`), `experimentos/provar-a-ocupacao.js` (secção I e as duas da mensagem), `experimentos/provar-mudanca-de-sala.js` (secções G e H), `PLANO-DE-OCUPACAO.md` (§9), `ESTADO-ATUAL.md`, `HANDOFF.md`.

@@ -4,7 +4,16 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **a ocupação entrou nas rotas, e o modelo que falta.**
+> **Última fotografia:** 25/11/2026 — **a sala ganhou faixas horárias: N aulas por dia, N modalidades,
+> N professores.** A regra da ocupação está nas duas rotas, e a Sala passou a poder declarar **mais do
+> que uma aula por dia** — cada faixa com dias, hora, duração, **período, modalidade e professor**, que
+> desceram para a faixa por decisão dela. A Turma diz qual faixa ocupa, e uma sala com várias **recusa**
+> a Turma que não diz qual. Uma sala antiga, com o ritmo na raiz, vale como uma faixa só: **nenhum
+> registo se toca.** A Sala que criaria colisão entre turmas existentes é **recusada no gesto**, e as
+> mensagens deixaram de sugerir resolução. **Falta a tela** — o «+» e o campo —, e sem ela não é
+> alcançável por quem usa.
+> **A correcção que ela fez:** a tabela que apresentei dizia «recusa» onde a regra sempre permitiu; o
+> que estava limitado era o modelo, e é isso que esta fotografia muda.
 > A regra nova está **ligada aos dois sítios de gravação** (criar e derivar): pergunta «quem ocupa este
 > dia, a esta hora?», nomeia o recurso, o dia e as duas horas, e a regra antiga das alunas por
 > modalidade foi **substituída** (`alunasComprometidas` apagada). **E a implementação revelou o que
@@ -4406,7 +4415,31 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      `alunasComprometidas` foi **apagada** — a regra das alunas por modalidade foi substituída, como
      ela decidiu. `provar-mudanca-de-sala` **48 asserções**, `provar-a-ocupacao` **49**.
 
-187. **O ACHADO QUE A IMPLEMENTAÇÃO REVELOU: A CURADORIA NÃO TEM RITMO PRÓPRIO.** Ela declara
+187. **A SALA GANHOU FAIXAS: N AULAS POR DIA, N MODALIDADES, N PROFESSORES — e o problema era o
+     MODELO, não a regra.** A tabela que apresentei dizia «mesma sala, mesmo dia, horas que não se
+     tocam → recusa»; **a regra sempre permitiu**, e o que eu descrevi como recusa era a Sala declarar
+     uma hora por dia. Foi corrigido por ela, e a decisão **APLICADA**: `faixasDaSala` lê a Sala como
+     lista de faixas (uma Sala antiga, com o ritmo na raiz, vale como **uma** faixa — nenhum registo se
+     toca), `normalizarFaixas` grava-as e `espelharFaixa1NaRaiz` põe a faixa 1 na raiz para o
+     calendário e o plano continuarem a ler o ritmo. **Cada faixa leva dias, hora, duração, PERÍODO,
+     modalidade e professor** — o par e o período desceram para a faixa por decisão dela (confirmado:
+     com eles na Sala, a sala do piano só poderia ter uma modalidade o dia inteiro). A Turma escolhe a
+     faixa (`faixa`), e uma sala com várias **recusa** a Turma que não diz qual: escolher a primeira
+     poria a Turma a ocupar o horário errado em silêncio. **DECIDIDO** e **APLICADO**; falta a **tela**
+     (o «+» na Sala e o campo na Turma), sem a qual não é alcançável por quem usa. `provar-a-ocupacao`
+     **65**, `provar-mudanca-de-sala` **58**, suite **185/280 com 0 regressões**.
+
+188. **A SALA NOVA NÃO PODE CRIAR COLISÃO EM SILÊNCIO — e as mensagens não sugerem resolução.** A
+     edição da Sala já corria a cadeia, mas a cadeia relê o ritmo e deriva o plano; **não conferia a
+     ocupação**. Medido: mudar a hora de uma sala com duas turmas podia criar a colisão **em silêncio**,
+     e o conflito só apareceria quando alguém voltasse a mexer numa delas. `conflitosQueASalaCriaria`
+     compara as turmas **entre si** com a sala nova, e as duas rotas da sala (`turma-editar`,
+     `turma-derivar`) **recusam com 409 no gesto** — no ecrã onde aconteceu, que é o que ela pediu.
+     E «Mude a hora ou o dia de uma delas» **saiu** das três mensagens: *«a gente não vai dar sugestão
+     de como resolver nada. Resolver esses conflitos é papel do usuário e não nosso.»* O facto fica —
+     recurso, dia, as duas horas, quem ocupa — e o caminho é de quem usa. **APLICADO**.
+
+189. **O ACHADO QUE A IMPLEMENTAÇÃO REVELOU: A CURADORIA NÃO TEM RITMO PRÓPRIO.** Ela declara
      `turmas: [nome]` — o nome do registo da Sala —, e o ritmo (dias, hora de cada dia, duração,
      período) vive **só** no registo da Sala (`bastidores.js:3636-3656`). Duas curadorias no mesmo
      registo têm, por construção, o mesmo dia e a mesma hora. **Medido na rota verdadeira**
@@ -4414,10 +4447,9 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      expressável no modelo de dados de hoje** — ou as duas apontam para o mesmo registo e têm a mesma
      hora, ou apontam para registos diferentes e são duas salas aos olhos do sistema. A regra pura
      aceita horas diferentes quando os ritmos são diferentes; **o que falta é onde os gravar.** A
-     regra nova, por agora, **endurece** (vê professor e elenco, que a antiga não via) e **não
-     desbloqueia** o caso das duas horas. **PENDENTE**, e é decisão de produto — duas saídas em
-     `PLANO-DE-OCUPACAO.md` §9.1: (1) a Sala passa a guardar **faixas horárias** e cada curadoria
-     reserva as suas; (2) o **ritmo passa para a curadoria** e a Sala fica o espaço físico sem horas.
+     regra nova **endurece** (vê professor e elenco, que a antiga não via). **RESOLVIDO** pela decisão
+     187: a Sala guarda faixas horárias, o ritmo **não** passa para a curadoria (a curadoria é a Turma,
+     e o vínculo é dela), e a Turma diz qual faixa ocupa. A saída 2 foi **descartada por ela**.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
