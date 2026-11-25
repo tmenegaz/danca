@@ -2848,6 +2848,11 @@ medidas:
 escola e as duas gravações de factura custarem um minuto em vez de três e dois, o total cai a 18 e o
 valor a R$ 0,65. Orçamenta-se pelo número de cima: **22 min, R$ 0,79**.
 
+**E este capítulo mediu-se a si mesmo.** O commit que o escreveu (`df41c5e6`) **não acordou
+workflow nenhum** — as últimas execuções do Actions param no commit anterior —, o que confirma a
+terceira coluna da tabela por fora: **documentar custa 0 min**. Os 22 minutos são todos de actos que
+geram ou lançam, e nenhum deles é de leitura.
+
 ### 22.2 Porque é que o limitador é o orçamento, e não uma restrição comercial
 
 A conta acima **não depende de bom comportamento nenhum**: ela é o **tecto**, porque os sete limites
