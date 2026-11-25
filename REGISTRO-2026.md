@@ -61397,3 +61397,49 @@ mesmo docente nas duas. É o passo 10 de `PLANO-DE-OCUPACAO.md` §9.5.
 o bloco `#cu-faixa-bloco` e `pintarFaixasDaSala` na Turma; a `faixa` no corpo e na validação),
 `experimentos/provar-as-faixas-na-tela.js` (novo, **51**), `.gitignore`, `PLANO-DE-OCUPACAO.md` §9.5,
 `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+## 25/11/2026 — As faixas não persistiam: o «Derivar» repunha só a primeira — e o par passa a ser por faixa
+
+**O relato dela:** «Eu cliquei em derivar e acrescentei mais uma carga horária aqui, cliquei no sinal
+de mais para acrescentar a faixa horária e não deu certo, não persistiu. E também não consegui vincular
+outra modalidade.»
+
+**As duas causas, e são independentes.** A primeira é um **defeito meu**, e a bancada reproduziu-o à
+primeira: o «Derivar» repunha o ritmo na faixa 1 e deixava os outros blocos como estavam — nenhum. A
+reposição era a de antes das faixas: desmarcava as pílulas do documento inteiro, marcava as de
+`t.dias` (que o `querySelector` só encontrava na faixa 1) e escrevia `t.horarios` em **todos** os
+`.hora-do-dia` da página. Com duas faixas, o resultado era a faixa 1 certa e as outras a repetir os
+dias dela; e ao gravar, a faixa que faltava **desaparecia sem erro nenhum** — os dois sintomas com uma
+causa só. `pintarFaixasNaSala` repõe cada bloco com o seu ritmo, e as horas são escritas **depois** do
+`sincronizarHoras`, que limpa a hora dos dias não marcados.
+
+A segunda é o que ela pediu explicitamente: **o par (modalidade, professor) era um por sala**, e uma
+sala com balé às 9h e jazz às 10h ficava com o mesmo docente nas duas — e com uma modalidade só.
+
+**O que ficou feito.** A aba Salas continua a perguntar o par da faixa 1 no bloco de cima (é o que
+quase todas as salas têm, e trocá-lo partiria tudo o que lê aquele passo) e ganhou o bloco «Quem dá as
+outras faixas desta sala» — uma linha por faixa, com modalidade e professor próprios, recortados um
+pelo outro como no bloco de cima. `parDaFaixa` lê o par da **faixa escolhida**, com a raiz como
+reserva, e a rota da Turma deriva de lá o professor e a modalidade: sem isso, a Turma das 10h nascia
+com o docente da das 9h, e o plano de ensino sairia assinado por quem não dá aquela aula. A rota
+`turma-professor` confere o par de **cada** faixa pela mesma função, e uma faixa que não passa recusa a
+gravação inteira — gravar metade deixaria uma sala com uma faixa a apontar um professor que a escola
+não tem, e o erro só apareceria no dia em que alguém a abrisse. A recusa diz **qual** faixa falhou.
+
+**Um segundo defeito meu, apanhado a escrever a prova:** `garantirSeq` usava `/^f(\d+)$/` dentro de uma
+string JS, e `\d` entre aspas simples reduz-se a `d` — a expressão na página ficava `/^f(d+)$/`, que
+nunca casa com `f2`, e o «+» voltava a dar `f2` a uma sala que já tinha `f2`. Duas faixas com o mesmo
+id é a Turma de uma a apontar para a outra. Passou a `[0-9]`, que não tem esse problema.
+
+**A costura que faltava medir, e é a lição.** As duas provas que já existiam mediam metades: uma o DOM
+(`provar-as-faixas-na-tela`), a outra a rota com um corpo **escrito à mão** (`provar-mudanca-de-sala`).
+Nenhuma media o que o formulário realmente envia depois de abrir uma sala existente — e foi por essa
+costura que o defeito passou. `provar-o-ciclo-das-faixas.js` (**33 asserções**) faz o caminho inteiro:
+abre a sala, confere que as faixas voltam, clica no «+», lê o corpo que a tela produz, e entrega-o à
+rota verdadeira para ver o que fica gravado. **Vermelha sem a mudança** (5 falhas).
+
+**Onde entrou.** `motor/servidor/bastidores.js` (`pintarFaixasNaSala`, `clonarFaixaVazia`,
+`garantirSeq`, `faixasComOPar`, `pintarParesDasFaixas`, `repintarProfessoresDaFaixa`,
+`salaEmFocoNoRegisto`, `parDaFaixa`; o bloco `#vinc-outras-faixas` e a conferência do par por faixa em
+`turma-professor`; a reposição do formulário a chamar `pintarFaixasNaSala`), `experimentos/provar-o-ciclo-das-faixas.js` (novo, **33**), `.gitignore`, `PLANO-DE-OCUPACAO.md`,
+`ESTADO-ATUAL.md`, `HANDOFF.md`.

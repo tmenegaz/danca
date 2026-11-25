@@ -375,7 +375,22 @@ duas faixas devolveriam os dias de todas — a faixa 1 ficaria com os dias da 2.
 a faixa 2 fica só com o dia dela. E o mesmo erro de âmbito estava na `sincronizarHoras`, que passou a
 receber o bloco.
 
-**O passo 10 é o que falta, e é o único.** O par (modalidade, professor) continua a ser **um por
-sala**, escolhido no «Associar», e cada faixa herda-o. O modelo já o guarda por faixa e a regra já o
-lê por faixa, mas a tela ainda não o pergunta por faixa: uma sala com balé às 9h e jazz às 10h tem,
-por agora, o mesmo docente nas duas. Dizê-lo ao contrário seria vender o que não está feito.
+| 10 | **o par (modalidade, professor) por faixa no «Associar»** | **FEITO** — `provar-o-ciclo-das-faixas.js`, **33 asserções** |
+
+**O passo 10 fechou o par por faixa, e com ele um defeito que o passo 9 tinha deixado.** Uma sala com
+balé às 9h e jazz às 10h ficava com o **mesmo docente** nas duas, porque o par era um só por sala. O
+«Associar» continua a perguntar o par da faixa 1 no bloco de cima — é o que quase todas as salas têm —
+e ganhou o bloco «Quem dá as outras faixas desta sala», com uma linha por faixa. `parDaFaixa` lê o par
+da **faixa escolhida** (a raiz como reserva), e a Turma deriva de lá o professor e a modalidade: sem
+isso a Turma das 10h nascia com o docente da das 9h. A rota confere o par de cada faixa pela mesma
+função e **recusa a gravação inteira** se uma falhar, dizendo qual.
+
+**E o «não persistiu», que era outra coisa.** O «Derivar» repunha o ritmo só na faixa 1: a reposição
+era a de antes das faixas, e escrevia os dias e as horas da sala em **todos** os blocos. A segunda
+faixa não chegava ao formulário, e ao gravar desaparecia sem erro nenhum. `pintarFaixasNaSala` repõe
+cada bloco com o seu ritmo.
+
+**A costura que faltava medir.** `provar-as-faixas-na-tela` mede o DOM e `provar-mudanca-de-sala` mede
+a rota com um corpo escrito à mão; **nenhuma media o que o formulário envia depois de abrir uma sala
+existente**, e foi por aí que o defeito passou. `provar-o-ciclo-das-faixas.js` faz o caminho inteiro —
+abre, repõe, clica no «+», lê o corpo, entrega-o à rota — e é vermelha sem a mudança.

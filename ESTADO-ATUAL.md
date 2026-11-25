@@ -4,7 +4,10 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **as faixas horárias chegaram à tela.** A aba Salas ganhou o «+»
+> **Última fotografia:** 25/11/2026 — **as faixas horárias chegaram à tela, e o par passou a ser por
+> faixa.** Cada faixa de uma sala pode ter o seu docente e a sua modalidade — ou o mesmo nas duas, que
+> é o caso comum. E o «não persistiu» que ela relatou era um defeito meu: o «Derivar» repunha o ritmo
+> só na primeira faixa, e as outras desapareciam ao gravar sem erro nenhum. A aba Salas ganhou o «+»
 > que acrescenta faixas, e a Turma passou a escolher qual ocupa — a funcionalidade existia no servidor
 > e não existia para quem usa. Antes disso, no mesmo dia: **a sala ganhou faixas** — N aulas por dia,
 > N modalidades, N professores. A regra da ocupação está nas duas rotas, e a Sala passou a poder declarar **mais do
@@ -4463,9 +4466,23 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      horas e o par. **A leitura passou a ser POR BLOCO**: `marcados("dia")` e `horariosDoDia()` varrem
      o documento inteiro e, com duas faixas, davam os dias de todas à faixa 1 — o mesmo erro de âmbito
      que a `sincronizarHoras` tinha de evitar. **APLICADO**, com `provar-as-faixas-na-tela.js` (**51**,
-     vermelha sem a mudança). **PENDENTE:** o par (modalidade, professor) continua a ser **um por
-     sala**, escolhido no «Associar», e cada faixa herda-o — o modelo guarda-o por faixa e a regra
-     lê-o por faixa, mas a tela ainda não o pergunta por faixa.
+     vermelha sem a mudança). O par por faixa é a decisão 191.
+
+191. **O PAR (MODALIDADE, PROFESSOR) PASSOU A SER POR FAIXA — e o «não persistiu» era outro
+     defeito.** Ela decidiu: *«faz o «Associar» perguntar o par por faixa pois precisa de docentes
+     diferentes por faixa podendo até ser o mesmo».* **APLICADO**: o «Associar» continua a perguntar o
+     par da faixa 1 no bloco de cima e ganhou «Quem dá as outras faixas desta sala», uma linha por
+     faixa; `parDaFaixa` lê o par da **faixa escolhida** (a raiz como reserva) e a Turma deriva de lá
+     o professor e a modalidade — sem isso a Turma das 10h nascia com o docente da das 9h. A rota
+     `turma-professor` confere o par de cada faixa pela mesma função e **recusa a gravação inteira** se
+     uma falhar, dizendo qual. **E o defeito que ela relatou** — «cliquei em derivar, acrescentei a
+     faixa e não persistiu» — era meu: o «Derivar» repunha o ritmo **só na faixa 1**, com a reposição
+     de antes das faixas, que escrevia os dias e as horas da sala em **todos** os blocos. A segunda
+     faixa não chegava ao formulário nem ao corpo, e desaparecia ao gravar sem erro nenhum.
+     `pintarFaixasNaSala` repõe cada bloco com o seu ritmo. Dois defeitos meus na mesma sessão, os
+     dois da mesma família: **um campo novo que não chega a quem o lê**. A costura que faltava medir —
+     o formulário a enviar para a rota verdadeira — está em `provar-o-ciclo-das-faixas.js` (**33**,
+     vermelha sem a mudança).
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a

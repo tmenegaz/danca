@@ -10094,6 +10094,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<p class="sub" id="vinc-regua">—</p>' +
     '<p class="nota" id="vinc-estado"></p>' +
     '</fieldset>' +
+    /* QUEM DÁ AS OUTRAS FAIXAS (25/11/2026) — «docentes diferentes por faixa, podendo até ser o
+     * mesmo».
+     *
+     * O bloco acima é o par da faixa 1, e continua a ser: é o que a esmagadora maioria das salas
+     * tem, e mudá-lo partiria tudo o que já lê este passo. O que se acrescenta é o par das
+     * restantes — uma linha por faixa, cada uma com a sua modalidade e o seu professor, repintada
+     * quando a sala em foco muda (`pintarParesDasFaixas`).
+     *
+     * Nasce VAZIO e escondido: com uma faixa só não há segunda linha a perguntar, e um bloco que
+     * se mostra para não oferecer nada ensina a ignorar blocos. */
+    '<fieldset class="bloco-assoc" id="vinc-outras-faixas" hidden>' +
+    '<legend>Quem dá as outras faixas desta sala</legend>' +
+    '<p class="sub" id="vinc-outras-nota">—</p>' +
+    '<div id="vinc-outras-lista"></div>' +
+    '</fieldset>' +
     /* O RECADO DESTE PASSO TEM DE ESTAR À VISTA (19/11/2026) — e a falta dele custou três relatos.
      *
      * «Não gravou a associação da sala com o professor.» O pedido saía, o servidor recusava com uma
@@ -14821,10 +14836,41 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    if (tirar) tirar.hidden = blocos.length < 2;' +
     '  });' +
     '}' +
-    'function maisFaixa(){' +
+    /* O BLOCO VAZIO SAIU DE DENTRO DO «+» (25/11/2026), porque passou a haver DOIS sítios que o
+     * precisam: o «+» e a reposição do formulário ao abrir uma sala que já tem faixas. Duas cópias
+     * deste clone divergiriam no dia em que uma delas esquecesse de limpar um campo — e a que
+     * esquecesse gravaria o valor da faixa anterior em silêncio. */
+    /* O PAR DE CADA FAIXA, POSTO NO CORPO (25/11/2026). Fica em função própria porque tem de poder
+     * ser exercitada sem passar pelo `fetch`: uma composição que só corre dentro do «Gravar sala» é
+     * uma composição que nenhuma prova alcança, e é exactamente onde um erro passa despercebido.
+     *
+     * A FAIXA 1 LEVA O PAR DO BLOCO DE CIMA — é ele que o servidor espelha na raiz. As outras levam
+     * o da sua linha. Uma faixa cuja linha não tem par escolhido vai SEM par, e o servidor herda o
+     * da raiz: o mesmo critério do `normalizarFaixas`, e o que faz uma sala de uma faixa só
+     * continuar a gravar como sempre gravou.
+     */
+    'function faixasComOPar(faixas, modalidade, professor){' +
+    '  if (!Array.isArray(faixas) || !faixas.length) return faixas;' +
+    '  return faixas.map(function(f, i){' +
+    '    var par = {modalidade: "", professor: ""};' +
+    '    if (i === 0) {' +
+    '      par = {modalidade: modalidade || "", professor: professor || ""};' +
+    '    } else {' +
+    '      var id = String(f.id || "");' +
+    '      var sm = document.querySelector("[data-faixa-modalidade=\u0027" + id + "\u0027]");' +
+    '      var sp = document.querySelector("[data-faixa-professor=\u0027" + id + "\u0027]");' +
+    '      par = {modalidade: sm ? sm.value : "", professor: sp ? sp.value : ""};' +
+    '    }' +
+    '    return Object.assign({}, f, {' +
+    '      modalidade: par.modalidade || f.modalidade || "",' +
+    '      professor: par.professor || f.professor || ""' +
+    '    });' +
+    '  });' +
+    '}' +
+    'function clonarFaixaVazia(){' +
     '  var modelo = document.getElementById("t-faixa-1");' +
     '  var caixa = document.getElementById("tfaixas");' +
-    '  if (!modelo || !caixa) return;' +
+    '  if (!modelo || !caixa) return null;' +
     '  var novo = modelo.cloneNode(true);' +
     '  Array.prototype.slice.call(novo.querySelectorAll("[id]")).forEach(function(x){' +
     '    x.removeAttribute("id");' +
@@ -14835,10 +14881,72 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  });' +
     '  var leg = novo.querySelector("legend");' +
     '  if (leg) leg.removeAttribute("id");' +
-    '  FAIXA_SEQ += 1;' +
-    '  novo.setAttribute("data-faixa", "f" + FAIXA_SEQ);' +
     '  caixa.appendChild(novo);' +
     '  sincronizarHoras(novo);' +
+    '  return novo;' +
+    '}' +
+    /* A NUMERAÇÃO DOS IDS NUNCA REPETE UM QUE JÁ EXISTA (25/11/2026). O contador nascia em 1 e só
+     * crescia com o «+» — mas uma sala gravada pode trazer `f2` e `f3`, e o primeiro «+» daria `f2`
+     * outra vez. Duas faixas com o mesmo id é a Turma de uma delas a apontar para a outra. */
+    'function garantirSeq(id){' +
+    // `[0-9]` E NÃO `\d`: isto é uma string JS, e `\d` dentro de aspas simples reduz-se a `d` —
+    // a expressão na página ficava `/^f(d+)$/`, que nunca casa com `f2`. A armadilha é a mesma do
+    // `\u0027` que se escreve `\\u0027`; evitá-la é mais seguro do que lembrar-se dela.
+    '  var m = /^f([0-9]+)$/.exec(String(id || ""));' +
+    '  if (m) FAIXA_SEQ = Math.max(FAIXA_SEQ, Number(m[1]));' +
+    '}' +
+    'function maisFaixa(){' +
+    '  var novo = clonarFaixaVazia();' +
+    '  if (!novo) return;' +
+    '  FAIXA_SEQ += 1;' +
+    '  novo.setAttribute("data-faixa", "f" + FAIXA_SEQ);' +
+    '  renumerarFaixas();' +
+    '}' +
+    /* AS FAIXAS DA SALA VOLTAM AO FORMULÁRIO QUANDO ELA SE ABRE (25/11/2026).
+     *
+     * O DEFEITO, relatado por ela e reproduzido na bancada: «cliquei em derivar e acrescentei mais
+     * uma carga horária, cliquei no sinal de mais e não deu certo, não persistiu». O «Derivar»
+     * repunha o RITMO na faixa 1 e deixava os outros blocos como estavam — nenhum. A segunda faixa
+     * da sala não chegava ao formulário, e por isso não chegava ao corpo: gravar escrevia uma sala
+     * com as faixas que a TELA tinha, e a que faltava desaparecia sem erro nenhum.
+     *
+     * As horas são escritas DEPOIS do `sincronizarHoras`, e não antes: ele limpa a hora dos dias não
+     * marcados, e escrevê-las primeiro apagava-as logo a seguir. */
+    'function pintarFaixasNaSala(t){' +
+    '  var caixa = document.getElementById("tfaixas");' +
+    '  if (!caixa) return;' +
+    '  var lista = faixasDaSalaNoCliente(t);' +
+    '  var blocos = Array.prototype.slice.call(caixa.querySelectorAll(".bloco-faixa"));' +
+    '  while (blocos.length < lista.length) {' +
+    '    var novo = clonarFaixaVazia();' +
+    '    if (!novo) break;' +
+    '    blocos.push(novo);' +
+    '  }' +
+    '  while (blocos.length > lista.length && blocos.length > 1) {' +
+    '    caixa.removeChild(blocos.pop());' +
+    '  }' +
+    '  for (var i = 0; i < blocos.length; i++) {' +
+    '    var b = blocos[i];' +
+    '    var f = lista[i] || {};' +
+    '    var id = String(f.id || ("f" + (i + 1)));' +
+    '    b.setAttribute("data-faixa", id);' +
+    '    garantirSeq(id);' +
+    '    var dias = Array.isArray(f.dias) ? f.dias : [];' +
+    '    Array.prototype.slice.call(b.querySelectorAll(\'input[name="dia"]\')).forEach(function(p){' +
+    '      p.checked = dias.indexOf(p.value) !== -1;' +
+    '    });' +
+    '    sincronizarHoras(b);' +
+    '    Array.prototype.slice.call(b.querySelectorAll(".hora-do-dia")).forEach(function(x){' +
+    '      var d = x.getAttribute("data-dia");' +
+    '      if (!x.disabled && f.horarios && f.horarios[d]) x.value = f.horarios[d];' +
+    '    });' +
+    '    var dur = b.querySelector(".faixa-duracao");' +
+    '    if (dur) dur.value = (f.duracaoMin == null ? "" : f.duracaoMin);' +
+    '    var ini = b.querySelector(".faixa-inicio");' +
+    '    if (ini) ini.value = f.periodoInicio || "";' +
+    '    var fim = b.querySelector(".faixa-fim");' +
+    '    if (fim) fim.value = f.periodoFim || "";' +
+    '  }' +
     '  renumerarFaixas();' +
     '}' +
     'function tirarFaixa(botao){' +
@@ -15443,6 +15551,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '  var professor = document.getElementById("vinc-professor").value;' +
     '  var modalidade = document.getElementById("vinc-modalidade").value;' +
+    /* O PAR DE CADA FAIXA NO CORPO (25/11/2026) — «docentes diferentes por faixa, podendo até ser o
+     * mesmo». A faixa 1 leva o par do bloco de cima (é ele que o servidor espelha na raiz); as
+     * outras levam o das suas linhas. Uma faixa sem par escolhido vai sem ele, e o servidor herda o
+     * da raiz — o mesmo critério do `normalizarFaixas`. */
+    '  campos.faixas = faixasComOPar(campos.faixas, modalidade, professor);' +
     /* UM PEDIDO, E UMA ESCRITA (19/11/2026) — «não persistiu os dados que eu gravei na associação no
      * step dois associar».
      *
@@ -16019,22 +16132,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // OS NÍVEIS SAÍRAM DAQUI (03/11/2026): não se ajustam no cadastro da turma — o nível é da
     // curadoria. O que a turma antiga guarda fica no registo dela, e não é este formulário que
     // o reescreve.
-    '  Array.prototype.slice.call(document.querySelectorAll("input[name=\\"dia\\"]")).forEach(function(p){ p.checked = false; });' +
-    '  (t.dias || []).forEach(function(d){' +
-    '    var p = document.querySelector("input[name=\\"dia\\"][value=\\"" + d + "\\"]");' +
-    '    if (p) p.checked = true;' +
-    '  });' +
-    '  Array.prototype.slice.call(document.querySelectorAll(".hora-do-dia")).forEach(function(x){' +
-    '    var d = x.getAttribute("data-dia");' +
-    '    x.value = (t.horarios && t.horarios[d]) ? t.horarios[d] : "";' +
-    '  });' +
-    // As horas seguem os dias: as de um dia não escolhido não se habilitam, e as escolhidas
-    // ficam com o valor da turma (o `sincronizarHoras` limpa as outras).
-    '  sincronizarHoras();' +
-    '  Array.prototype.slice.call(document.querySelectorAll(".hora-do-dia")).forEach(function(x){' +
-    '    var d = x.getAttribute("data-dia");' +
-    '    if (!x.disabled && t.horarios && t.horarios[d]) x.value = t.horarios[d];' +
-    '  });' +
+    /* AS FAIXAS TODAS, E NÃO SÓ A PRIMEIRA (25/11/2026).
+     *
+     * Aqui estava uma reposição do RITMO, escrita quando a sala tinha um só: desmarcava as pílulas
+     * do documento inteiro, marcava as de `t.dias` — que o `querySelector` só encontrava na faixa 1
+     * — e escrevia `t.horarios` em todos os `.hora-do-dia` da página. Com duas faixas, o resultado
+     * era a faixa 1 certa e as outras a repetir os dias e as horas dela; e ao gravar, a faixa que
+     * faltava desaparecia sem erro nenhum. `pintarFaixasNaSala` repõe cada bloco com o seu ritmo. */
+    '  pintarFaixasNaSala(t);' +
     /* «EDITAR» ABRE O PASSO 2 COM O PROFESSOR DESTA SALA (19/11/2026).
      *
      * Era aqui que a régua da turma entrava no formulário — `#rubr-id`, `#rubr-nome`, os níveis, o
@@ -17021,6 +17126,92 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    }' +
     '  });' +
     '}' +
+    /* QUEM DÁ CADA FAIXA (25/11/2026) — as linhas que o «Associar» passa a perguntar.
+     *
+     * O bloco de cima continua a ser o par da faixa 1: é o que quase todas as salas têm, e trocá-lo
+     * partiria tudo o que lê aquele passo. Estas linhas são as OUTRAS faixas — a partir da segunda.
+     *
+     * SELEÇÃO POR ATRIBUTO, E NÃO POR `id`: o id de uma faixa vem do servidor e pode ter caracteres
+     * que um id de elemento não aceita. `data-faixa-modalidade`/`data-faixa-professor` dizem o mesmo
+     * e não têm essa restrição.
+     *
+     * A LISTA DE PROFESSORES É RECORTADA PELA MODALIDADE DA LINHA, como no bloco de cima: um
+     * professor de clássico e jazz tem habilitações diferentes em cada um, e a pergunta aqui é «nesta
+     * faixa». A leitura é assíncrona e a resposta de uma modalidade que já não está escolhida não se
+     * aplica — a mesma protecção do bloco de cima. */
+    'function pintarParesDasFaixas(){' +
+    '  var bloco = document.getElementById("vinc-outras-faixas");' +
+    '  var lista = document.getElementById("vinc-outras-lista");' +
+    '  if (!bloco || !lista) return;' +
+    '  var t = salaEmFocoNoRegisto();' +
+    '  var faixas = t ? faixasDaSalaNoCliente(t).slice(1) : [];' +
+    '  if (!faixas.length) { bloco.hidden = true; lista.innerHTML = ""; return; }' +
+    '  var partes = [];' +
+    '  for (var i = 0; i < faixas.length; i++) {' +
+    '    var f = faixas[i];' +
+    '    var id = String(f.id || "");' +
+    '    var mods = ["<option value=\u0027\u0027>— escolher —</option>"];' +
+    '    for (var m = 0; m < CATALOGO_DE_MODALIDADES.length; m++) {' +
+    '      var mod = CATALOGO_DE_MODALIDADES[m];' +
+    '      mods.push("<option value=\u0027" + mod.nome + "\u0027" + (mod.nome === String(f.modalidade || "") ? " selected" : "") + ">" + mod.nome + "</option>");' +
+    '    }' +
+    '    partes.push("<div class=\u0027par-associar\u0027 data-faixa-par=\u0027" + id + "\u0027>"' +
+    '      + "<label class=\u0027campo-rotulo\u0027>Faixa " + (i + 2) + " — " + rotuloDeFaixa(f) + "</label>"' +
+    '      + "<select data-faixa-modalidade=\u0027" + id + "\u0027>" + mods.join("") + "</select>"' +
+    '      + "<select data-faixa-professor=\u0027" + id + "\u0027><option value=\u0027\u0027>— escolha a modalidade primeiro —</option></select>"' +
+    '      + "</div>");' +
+    '  }' +
+    '  lista.innerHTML = partes.join("");' +
+    '  bloco.hidden = false;' +
+    '  var nota = document.getElementById("vinc-outras-nota");' +
+    '  if (nota) nota.textContent = "Esta sala tem " + (faixas.length + 1) + " faixas horárias. " +' +
+    '    "Diga quem dá as que não são a primeira — pode ser o mesmo professor.";' +
+    '  for (var j = 0; j < faixas.length; j++) {' +
+    '    repintarProfessoresDaFaixa(String(faixas[j].id || ""), String(faixas[j].professor || ""));' +
+    '  }' +
+    '}' +
+    'function repintarProfessoresDaFaixa(id, escolhido){' +
+    '  var selM = document.querySelector("[data-faixa-modalidade=\u0027" + id + "\u0027]");' +
+    '  var selP = document.querySelector("[data-faixa-professor=\u0027" + id + "\u0027]");' +
+    '  if (!selM || !selP) return;' +
+    '  var mod = String(selM.value || "");' +
+    '  if (!mod) {' +
+    '    selP.innerHTML = "<option value=\u0027\u0027>— escolha a modalidade primeiro —</option>";' +
+    '    selP.disabled = true;' +
+    '    return;' +
+    '  }' +
+    '  professoresDaModalidade(mod).then(function(lista){' +
+    '    var aindaVale = String((document.querySelector("[data-faixa-modalidade=\u0027" + id + "\u0027]") || {}).value || "");' +
+    '    if (aindaVale !== mod) return;' +
+    '    var partes = ["<option value=\u0027\u0027>— escolher —</option>"];' +
+    '    for (var k = 0; k < lista.length; k++) {' +
+    '      partes.push("<option value=\u0027" + lista[k].slug + "\u0027" + (lista[k].slug === escolhido ? " selected" : "") + ">" + lista[k].rotulo + "</option>");' +
+    '    }' +
+    '    var alvo = document.querySelector("[data-faixa-professor=\u0027" + id + "\u0027]");' +
+    '    if (!alvo) return;' +
+    '    alvo.innerHTML = partes.join("");' +
+    '    alvo.disabled = false;' +
+    '    if (escolhido) alvo.value = escolhido;' +
+    '  });' +
+    '}' +
+    /* A SALA EM FOCO, NO REGISTO — não o id em sessão: o registo tem as faixas, e é delas que se
+     * precisa. Sem sala em foco (cadastro de uma sala nova) não há outras faixas a perguntar. */
+    'function salaEmFocoNoRegisto(){' +
+    '  var id = "";' +
+    '  try { id = String(sessionStorage.getItem("producao:vinc-turma") || ""); } catch (e) { id = ""; }' +
+    '  if (!id) return null;' +
+    '  for (var i = 0; i < TURMAS.length; i++) {' +
+    '    if (TURMAS[i] && String(TURMAS[i].id) === id) return TURMAS[i];' +
+    '  }' +
+    '  return null;' +
+    '}' +
+    'document.addEventListener("change", function(e){' +
+    '  var alvo = e.target;' +
+    '  if (!alvo || !alvo.getAttribute) return;' +
+    '  var id = alvo.getAttribute("data-faixa-modalidade");' +
+    '  if (id === null) return;' +
+    '  repintarProfessoresDaFaixa(id, "");' +
+    '});' +
     'var selTurmaCu = document.getElementById("cuturma");' +
     'if (selTurmaCu) selTurmaCu.addEventListener("change", pintarDaSala);' +
     'pintarDaSala();' +
@@ -17433,6 +17624,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    el.hidden = !nome;' +
     '    el.textContent = nome ? alvos[i][1] + nome : "";' +
     '  }' +
+    /* AS LINHAS DAS OUTRAS FAIXAS SÃO REPINTADAS AQUI (25/11/2026), e é o sítio certo: esta função
+     * é o funil por onde passam a abertura da edição, o «Cancelar» e a troca de passo — os três
+     * momentos em que «que sala está em foco» muda de resposta. Pendurar o repinte em cada clique
+     * é o que faz a quarta porta esquecer uma das duas coisas. */
+    '  if (typeof pintarParesDasFaixas === "function") pintarParesDasFaixas();' +
     '}' +
     // CANCELAR A EDIÇÃO é o mesmo ato nos três passos: apaga a memória do preenchimento e do
     // modo, e recarrega no passo 1 com os formulários vazios (é o servidor que os serve
@@ -25889,6 +26085,28 @@ function parDaSalaNoCorpo(corpo, registo) {
   };
 }
 
+/**
+ * O PAR (modalidade, professor) DE UMA FAIXA — e o da Sala quando a faixa não o declara.
+ *
+ * A decisão dela a 25/11/2026: «faz o «Associar» perguntar o par por faixa pois precisa de docentes
+ * diferentes por faixa podendo até ser o mesmo». Uma sala com balé às 9h e jazz às 10h tem dois
+ * docentes; uma sala com balé às 9h e balé às 10h pode ter o mesmo nas duas.
+ *
+ * `id` vazio devolve a faixa única — é o caso de todas as salas de hoje, e o que faz o par da raiz
+ * continuar a valer sem que nada mude para elas.
+ */
+function parDaFaixa(sala, id) {
+  const s = sala || {};
+  const escolha = ocupacao.faixaEscolhida(ocupacao.faixasDaSala(s), id);
+  const f = escolha.faixa || {};
+  return {
+    modalidade: String(f.modalidade || s.modalidade || '').trim(),
+    professor: String(f.professor || s.professor || '').trim(),
+    faixa: escolha.faixa ? escolha.faixa.id : null,
+    motivo: escolha.motivo,
+  };
+}
+
 /* POST /api/bastidores/rubrica-do-professor — A RÉGUA É DELE (19/11/2026).
    *
    * «Lá em professor vai ter então a régua, que é dele […] apenas vai aparecer o nome do professor,
@@ -26039,7 +26257,40 @@ function parDaSalaNoCorpo(corpo, registo) {
     /* O PAR, CONFERIDO PELA FUNÇÃO QUE AS TRÊS ROTAS PARTILHAM (19/11/2026) — ver
      * `conferirOParDaSala`. A modalidade que o pedido não traz cai na que a sala já guarda: um
      * cliente de ontem, que ainda a manda no cadastro, continua a valer. */
-    const par = parDaSalaNoCorpo(corpo, sala);
+    /* O PAR DE CADA FAIXA, CONFERIDO UM A UM (25/11/2026) — «docentes diferentes por faixa, podendo
+     * até ser o mesmo». O par da raiz continua a ser o da faixa 1: é ele que a curadoria lê quando a
+     * sala tem uma faixa só, e é ele que a listagem mostra. As outras faixas trazem o seu.
+     *
+     * A CONFERÊNCIA É A MESMA PARA TODAS — a mesma função, a mesma ordem de diagnóstico (modalidade,
+     * professor da casa, habilitação, régua). Uma faixa que não passa recusa a gravação inteira:
+     * gravar metade deixaria uma sala em que a faixa 2 aponta um professor que a escola não tem, e o
+     * erro só apareceria no dia em que alguém abrisse essa faixa. */
+    const faixasDoCorpo = Array.isArray(corpo.faixas) ? corpo.faixas : null;
+    const paresPorFaixa = [];
+    if (faixasDoCorpo && faixasDoCorpo.length) {
+      for (let i = 0; i < faixasDoCorpo.length; i += 1) {
+        const f = faixasDoCorpo[i] || {};
+        const pedido = {
+          modalidade: String(f.modalidade || corpo.modalidade || '').trim(),
+          professor: String(f.professor || corpo.professor || '').trim(),
+        };
+        const conferido = await conferirOParDaSala({
+          env, kv, escola, modalidade: pedido.modalidade, professor: pedido.professor,
+        });
+        if (!conferido.ok) {
+          const corpoDaRecusa = Object.assign({}, conferido.corpo);
+          if (faixasDoCorpo.length > 1) {
+            corpoDaRecusa.faixa = String(f.id || '');
+            corpoDaRecusa.erro = 'Na faixa ' + (i + 1) + ': ' + String(corpoDaRecusa.erro || '');
+          }
+          return json(conferido.status, corpoDaRecusa);
+        }
+        paresPorFaixa.push({ id: String(f.id || ''), modalidade: conferido.modalidade, professor: conferido.professor });
+      }
+    }
+    const par = faixasDoCorpo && paresPorFaixa.length
+      ? { modalidade: paresPorFaixa[0].modalidade, professor: paresPorFaixa[0].professor }
+      : parDaSalaNoCorpo(corpo, sala);
     const conferido = await conferirOParDaSala({
       env, kv, escola, modalidade: par.modalidade, professor: par.professor,
     });
@@ -26072,6 +26323,23 @@ function parDaSalaNoCorpo(corpo, registo) {
 
     sala.professor = professor;
     sala.modalidade = modalidade;
+    /* E O PAR DE CADA FAIXA, NA MESMA ESCRITA (25/11/2026). A faixa 1 leva o par da raiz por
+     * construção — é o espelho —, e as outras levam o seu. Uma faixa que o corpo não nomeou fica
+     * com o par que já tinha: `corpo.faixas` pode vir mais curto do que a sala, e apagar-lhe o par
+     * por omissão seria trocar uma declaração por um silêncio. */
+    if (paresPorFaixa.length) {
+      const atuais = Array.isArray(sala.faixas) ? sala.faixas : [];
+      /* O PAR ENCONTRA A FAIXA PELO ID, e só na falta dele pela posição — a mesma precedência de
+       * todo o resto do projecto. Um id é o que sobrevive a uma reordenação; a posição não. */
+      const porId = new Map(paresPorFaixa.filter((p) => p.id).map((p) => [p.id, p]));
+      sala.faixas = atuais.map((f, i) => {
+        const achado = porId.get(String(f.id)) || paresPorFaixa[i];
+        if (!achado) return f;
+        return Object.assign({}, f, {
+          modalidade: achado.modalidade, professor: achado.professor,
+        });
+      });
+    }
     await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(lista));
 
     /* O GESTO DE SALAS PERCORRE A CADEIA (T2, 19/11/2026) — «se eu mudar um professor de sala,
@@ -28496,8 +28764,12 @@ function parDaSalaNoCorpo(corpo, registo) {
     const salaDoCorpo = nomeDaSalaPedida
       ? turmaVigentePorNome(await turmas(kv, escola), nomeDaSalaPedida)
       : null;
-    const professor = String(corpo.professor || (salaDoCorpo && salaDoCorpo.professor) || '').trim();
-    const modalidade = String(corpo.modalidade || (salaDoCorpo && salaDoCorpo.modalidade) || '').trim();
+    /* O PAR VEM DA FAIXA QUE A TURMA OCUPA, e só na falta da Sala (25/11/2026). Uma sala com balé
+     * às 9h e jazz às 10h tem dois docentes e duas modalidades: ler o par da raiz daria à Turma das
+     * 10h o professor da das 9h — e o plano de ensino sairia assinado por quem não dá aquela aula. */
+    const parDaFaixaEscolhida = parDaFaixa(salaDoCorpo, corpo.faixa);
+    const professor = String(corpo.professor || parDaFaixaEscolhida.professor || '').trim();
+    const modalidade = String(corpo.modalidade || parDaFaixaEscolhida.modalidade || '').trim();
     /* A TRADIÇÃO VEM DO PERFIL, e é a da MODALIDADE DA SALA: um professor de clássico e jazz tem
      * tradições diferentes em cada um. `null` (não conseguiu ler) e `[]` (declarou que não ensina)
      * NÃO são a mesma coisa, e a curadoria guarda os dois como vieram — sem chave, fica `''`, que

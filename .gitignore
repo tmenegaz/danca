@@ -1645,6 +1645,15 @@ experimentos/modelo-formulario/*
 # quando há mais de uma. 51 asserções.
 !experimentos/provar-as-faixas-na-tela.js
 
+# O CICLO INTEIRO DAS FAIXAS (25/11/2026). O DEFEITO QUE ELE NASCEU PARA MEDIR, relatado por ela:
+# «Eu cliquei em derivar e acrescentei mais uma carga horária aqui, cliquei no sinal de mais para
+# acrescentar a faixa horária e não deu certo, não persistiu.» As duas provas que já existiam mediam
+# metades — uma o DOM, a outra a rota com um corpo escrito à mão —, e nenhuma media o que o formulário
+# REALMENTE envia depois de abrir uma sala existente. Era essa costura que o defeito atravessava:
+# o «Derivar» repunha só a faixa 1, e a segunda desaparecia ao gravar, sem erro nenhum. Mede também o
+# par (modalidade, professor) por faixa — docentes diferentes, ou o mesmo nas duas. 33 asserções.
+!experimentos/provar-o-ciclo-das-faixas.js
+
 # O FINANCEIRO QUE FICA (23/11/2026, à tarde). A regra de 17/11 era o contrário — expurgar a escola
 # levava as mensalidades dela —, e ela corrigiu: «A parte financeira não pode expurgar, ela fica
 # para histórico. E aí a gente diz numa linha seguinte que essa escola foi expurgada.» O livro vive

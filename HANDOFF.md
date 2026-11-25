@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-24T21:26:00-0300`
-Commit atual: `90879840` — feat(estrutura): a sala ganha faixas — N aulas por dia, N modalidades, N professores
+Gerado em: `2026-11-24T21:54:24-0300`
+Commit atual: `620a43b5` — feat(estrutura): o «+» da faixa horária e o campo que a escolhe na Turma
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+620a43b5 feat(estrutura): o «+» da faixa horária e o campo que a escolhe na Turma
 90879840 feat(estrutura): a sala ganha faixas — N aulas por dia, N modalidades, N professores
 1c8bf816 feat(estrutura): a ocupação entra nas rotas — e o modelo que falta nela
 b9071ef4 feat(estrutura): a regra da ocupação — sala, professor e elenco — com as quatro decisões dela
@@ -101,7 +102,6 @@ ad7d1c8a docs(estrutura): escada 130/320/500 com dólar a R$ 6, e a margem não 
 7344f1aa feat(experimentos): provas seletivas no commit, e o primeiro portão de pull_request
 726a0653 feat(entrega): a minificação do que vai ao browser — 545 KB viram 200
 8c5645c3 chore(experimentos): vinte e nove provas apagadas — as que mediam o que já não existe
-4b08d9ff feat(estrutura): a página revalida depressa, o asset fica em cache
 ```
 
 ## Por professor
@@ -195,47 +195,50 @@ ad7d1c8a docs(estrutura): escada 130/320/500 com dólar a R$ 6, e a margem não 
 
 ## Última entrada do REGISTRO
 
-## 25/11/2026 — O «+» da faixa chega à tela: o modelo que existia no servidor passa a existir para quem usa
+## 25/11/2026 — As faixas não persistiam: o «Derivar» repunha só a primeira — e o par passa a ser por faixa
 
-**O que faltava não era a regra — era o caminho até ela.** As faixas horárias estavam feitas e
-provadas (`provar-a-ocupacao` 65, `provar-mudanca-de-sala` 58), e continuavam inalcançáveis: não havia
-botão que criasse a segunda faixa nem campo que a escolhesse. Uma funcionalidade que só existe na API
-não existe para a escola.
+**O relato dela:** «Eu cliquei em derivar e acrescentei mais uma carga horária aqui, cliquei no sinal
+de mais para acrescentar a faixa horária e não deu certo, não persistiu. E também não consegui vincular
+outra modalidade.»
 
-**Na aba Salas.** O «+ Acrescentar faixa horária» clona a faixa 1 e **limpa-lhe os `id`**: dois
-elementos com o mesmo nome no documento é o defeito que aparece longe da causa. O `data-faixa` novo é
-`f<n>` a partir de um contador que só cresce — reutilizar o número apontaria a Turma de uma faixa
-apagada para a que tomou o lugar dela. O «×» tira, renumera («Faixa 1, Faixa 3» não pode acontecer) e
-**não tira a última**: uma sala sem faixa não tem ritmo, e o ritmo é o que a Turma escolhe.
+**As duas causas, e são independentes.** A primeira é um **defeito meu**, e a bancada reproduziu-o à
+primeira: o «Derivar» repunha o ritmo na faixa 1 e deixava os outros blocos como estavam — nenhum. A
+reposição era a de antes das faixas: desmarcava as pílulas do documento inteiro, marcava as de
+`t.dias` (que o `querySelector` só encontrava na faixa 1) e escrevia `t.horarios` em **todos** os
+`.hora-do-dia` da página. Com duas faixas, o resultado era a faixa 1 certa e as outras a repetir os
+dias dela; e ao gravar, a faixa que faltava **desaparecia sem erro nenhum** — os dois sintomas com uma
+causa só. `pintarFaixasNaSala` repõe cada bloco com o seu ritmo, e as horas são escritas **depois** do
+`sincronizarHoras`, que limpa a hora dos dias não marcados.
 
-**A faixa 1 manteve os `id` de sempre** (`tdias`, `tduracao`, `tinicio`, `tfim`). Não é preguiça: há
-leitores na página que os procuram, e renomeá-los obrigaria a mudá-los todos de uma vez. O clone é
-lido pelas classes; o primeiro continua a ser lido pelo id.
+A segunda é o que ela pediu explicitamente: **o par (modalidade, professor) era um por sala**, e uma
+sala com balé às 9h e jazz às 10h ficava com o mesmo docente nas duas — e com uma modalidade só.
 
-**Na Turma.** O campo «Faixa horária desta Turma» só aparece quando a sala tem mais de uma. Com uma
-faixa não há pergunta a fazer, e um campo que se mostra para não oferecer escolha ensina a ignorar
-campos. O rótulo de cada opção diz os dias, as duas horas e o par — «seg · 09:00–10:00 · Balé
-clássico · pe-torto» —, porque a escolha entre «f1» e «f2» não diz nada.
+**O que ficou feito.** A aba Salas continua a perguntar o par da faixa 1 no bloco de cima (é o que
+quase todas as salas têm, e trocá-lo partiria tudo o que lê aquele passo) e ganhou o bloco «Quem dá as
+outras faixas desta sala» — uma linha por faixa, com modalidade e professor próprios, recortados um
+pelo outro como no bloco de cima. `parDaFaixa` lê o par da **faixa escolhida**, com a raiz como
+reserva, e a rota da Turma deriva de lá o professor e a modalidade: sem isso, a Turma das 10h nascia
+com o docente da das 9h, e o plano de ensino sairia assinado por quem não dá aquela aula. A rota
+`turma-professor` confere o par de **cada** faixa pela mesma função, e uma faixa que não passa recusa a
+gravação inteira — gravar metade deixaria uma sala com uma faixa a apontar um professor que a escola
+não tem, e o erro só apareceria no dia em que alguém a abrisse. A recusa diz **qual** faixa falhou.
 
-**O erro de âmbito, e foram dois.** `marcados("dia")` e `horariosDoDia()` varrem o documento inteiro:
-com duas faixas devolveriam os dias de todas, e a faixa 1 ficaria com os dias da 2. A leitura passou a
-ser **por bloco** (`faixasDoFormulario`), e a `sincronizarHoras` passou a receber o bloco — sem isso,
-um dia marcado na faixa 1 acendia a hora da faixa 2, onde ele não está. É o defeito que a regra de
-16/10 existe para impedir, a reaparecer por âmbito. A prova mede-o à letra.
+**Um segundo defeito meu, apanhado a escrever a prova:** `garantirSeq` usava `/^f(\d+)$/` dentro de uma
+string JS, e `\d` entre aspas simples reduz-se a `d` — a expressão na página ficava `/^f(d+)$/`, que
+nunca casa com `f2`, e o «+» voltava a dar `f2` a uma sala que já tinha `f2`. Duas faixas com o mesmo
+id é a Turma de uma a apontar para a outra. Passou a `[0-9]`, que não tem esse problema.
 
-**Um defeito meu, apanhado pela prova:** quando o «×» recusava tirar a última faixa, saía sem
-renumerar — e o botão ficava à vista numa sala de uma faixa só. Pôr o `renumerarFaixas()` no caminho da
-recusa fechou-o.
+**A costura que faltava medir, e é a lição.** As duas provas que já existiam mediam metades: uma o DOM
+(`provar-as-faixas-na-tela`), a outra a rota com um corpo **escrito à mão** (`provar-mudanca-de-sala`).
+Nenhuma media o que o formulário realmente envia depois de abrir uma sala existente — e foi por essa
+costura que o defeito passou. `provar-o-ciclo-das-faixas.js` (**33 asserções**) faz o caminho inteiro:
+abre a sala, confere que as faixas voltam, clica no «+», lê o corpo que a tela produz, e entrega-o à
+rota verdadeira para ver o que fica gravado. **Vermelha sem a mudança** (5 falhas).
 
-**O que NÃO está feito, e fica dito:** o par (modalidade, professor) continua a ser **um por sala**,
-escolhido no «Associar», e cada faixa herda-o. O modelo guarda-o por faixa e a regra lê-o por faixa,
-mas a tela ainda não o pergunta por faixa — uma sala com balé às 9h e jazz às 10h tem, por agora, o
-mesmo docente nas duas. É o passo 10 de `PLANO-DE-OCUPACAO.md` §9.5.
-
-**Onde entrou.** `motor/servidor/bastidores.js` (o bloco `.bloco-faixa` e o «+» na aba Salas;
-`faixasDoFormulario`, `maisFaixa`, `tirarFaixa`, `renumerarFaixas`; `sincronizarHoras` com âmbito;
-o bloco `#cu-faixa-bloco` e `pintarFaixasDaSala` na Turma; a `faixa` no corpo e na validação),
-`experimentos/provar-as-faixas-na-tela.js` (novo, **51**), `.gitignore`, `PLANO-DE-OCUPACAO.md` §9.5,
+**Onde entrou.** `motor/servidor/bastidores.js` (`pintarFaixasNaSala`, `clonarFaixaVazia`,
+`garantirSeq`, `faixasComOPar`, `pintarParesDasFaixas`, `repintarProfessoresDaFaixa`,
+`salaEmFocoNoRegisto`, `parDaFaixa`; o bloco `#vinc-outras-faixas` e a conferência do par por faixa em
+`turma-professor`; a reposição do formulário a chamar `pintarFaixasNaSala`), `experimentos/provar-o-ciclo-das-faixas.js` (novo, **33**), `.gitignore`, `PLANO-DE-OCUPACAO.md`,
 `ESTADO-ATUAL.md`, `HANDOFF.md`.
 
 ## O que está pendente
