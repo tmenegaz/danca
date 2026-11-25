@@ -2050,3 +2050,10 @@ experimentos/modelo-formulario/*
 # no §20, com a prova a dizer 3 e o documento a dizer 2 durante seis dias. Esta prova recalcula do
 # catálogo e do dado, e reprova quando os documentos se afastam.
 !experimentos/provar-o-custo-da-consultoria.js
+
+# A DEFINIÇÃO É DO EXERCÍCIO, O «LÊ-SE» É DA CÉLULA (25/11/2026). O desenho do bloco dependia de
+# quantas linhas o verbete por acaso tem — o Plié, com uma célula de `repeticoes: 2`, saía com a
+# definição do dicionário dentro da tabela, e os outros três com ela em cima. É a diferença entre um
+# documento e um gerador de aparência: esta prova mede o caso dela ao minuto e os dois controlos
+# negativos que impedem «subir sempre».
+!experimentos/provar-a-descricao-do-exercicio.js

@@ -62560,3 +62560,95 @@ franquia, §22.5 o treino, §22.6 o que fica por medir, §22.7 como se mediu),
 `experimentos/provar-o-custo-da-consultoria.js` (novo), `.gitignore` (a prova versionada),
 `experimentos/provas-vermelhas.json` (a entrada que já passava), `PLANO-DA-ESCOLA-EM-CONSULTORIA.md`
 (§17.3), `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+---
+
+## A definição é do exercício, o «Lê-se» é da célula *(25/11/2026)*
+
+> «Aqui que é o diferente, no plié: eu tenho a descrição que seria do lado de fora, dentro da tabela.
+> […] Flexão contínua e fluida dos joelhos. Isso aqui é a descrição do dicionário, do verbete. E
+> depois lá no final, ainda nessa mesma linha da coluna descrição da tabela, tem `Lê-se: perna,
+> varredura para fora, primeira posição`. Isso está errado. Tem que fazer igual o battement tendu.»
+
+Lido em `piano/aula-01`. O bloco do Plié saía assim:
+
+```
+### 7. Barra — Plié
+| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑ ED]` | Flexão contínua e fluida dos joelhos … adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe, varredura para fora. |
+```
+
+E o do Battement jeté, assim:
+
+```
+### 5. Barra — Battement jeté
+> **Descrição.** Lançamento rápido da perna estendida a uma altura baixa …
+| 1 | 1–2 | `[Peso: 5ª → - ● × 5ª]` | Lê-se: Peso, quinta posição, conduz a, ao lado, fecha, atrás, quinta posição. |
+```
+
+### A causa não era o dado
+
+A suspeita imediata — «o verbete do Plié não tem o `Lê-se` em linha própria» — **é falsa**, e foi
+medida antes de se mexer em nada: o `notacao.json` do catálogo tem
+`…adutores.\nLê-se: Perna, varredura para fora, …` como os outros, e o `partirDescricao` separa-o
+bem. A prova tem uma asserção que mede exactamente isso.
+
+**A causa era a condição de subida**, em `derivar-ciclo.js`:
+
+```js
+const subir = fixas.length === 1 && c.segmentos.length > 1;
+```
+
+O verbete do Plié cobre os 4 tempos com **uma** célula de `repeticoes: 2` e compõe **um** segmento;
+o jeté, o `tendu` e o Relevé compõem **dois**. O `> 1` foi posto pelo motivo certo — «se não se
+repete, não há repetição a tirar» — e produzia o resultado errado: **o desenho do bloco passava a
+depender de quantas linhas o verbete por acaso tem.**
+
+### A regra nova, e o que ela não faz
+
+```js
+const subir = fixas.length === 1 && partes.filter((x) => x.lida).length > 0;
+```
+
+Duas metades, e a segunda é a que impede o exagero:
+
+- **`fixas.length === 1`** — sobe quando há **uma** parte fixa. Com duas (o `Battement tendu` da
+  batata: «extensão à frente…» / «retorno à 1ª posição»), a descrição é de cada célula e fica onde
+  está. É a parte antiga, intacta.
+- **`leituras > 0`** — sobe só quando há leitura para mostrar em baixo. Sem ela, subir deixaria a
+  célula com um travessão e a única informação útil teria saído de lá. Esta é nova, e é o que
+  distingue «arrumar» de «esvaziar».
+
+A coluna chama-se **Descrição** e o que ela mostra é **o que se lê**. A definição é do exercício, e
+o sítio dela é acima da tabela — em todos os blocos, sem excepção que dependa do dado.
+
+### As provas
+
+`experimentos/provar-a-descricao-do-exercicio.js`, **25 asserções** em cinco blocos: o caso dela ao
+minuto; a consistência (1, 2 e 4 segmentos dão a **mesma** forma de bloco); o documento publicado
+(zero travessões, 16 blocos, todos com a definição em cima); e **dois controlos negativos** — sem
+eles a prova passava com a regra trocada para «subir sempre».
+
+Os controlos precisam de verbetes que o catálogo real não tem, e injetam-se no alfabeto em processo,
+com reposição no `finally`. **O `finally` tinha um defeito que a própria prova apanhou**: guardava as
+chaves como `D` e `E` e apagava `verbetes['D']` — deixava lixo no catálogo a dizer que o limpava. A
+asserção «o alfabeto ficou como estava» é o que o apanhou.
+
+**A/B contra o `HEAD` anterior num `git worktree`: 15/25**, com as dez asserções discriminantes a
+reprovar. Sem esse A/B a prova seria uma afirmação sobre o presente, e não uma prova de que o
+defeito existia.
+
+**O que ficou por fazer, e é declarado.** `experimentos/provar-notacao.js` **já falhava antes desta
+mudança** e continua a falhar: pede o alfabeto **Benesh**, que esta árvore já não tem (a notação
+migrou para «Código de dança» a 18/11/2026). Não está na linha de base, o que quer dizer que o
+`correr-provas` a contava como verde — **e ela não aparece quando se muda o `derivar-ciclo.js`**,
+porque o cita como `path.join(RAIZ, 'motor', 'nucleo', 'derivar-ciclo.js')` e o mapeador do corredor
+procura o caminho literal. Duas coisas a corrigir, nenhuma delas feita aqui.
+
+Bateria completa: **291 provas, 198 verdes, 93 conhecidas, 0 regressões**. `check-identidade`: 23
+checagens, todas ok. `check-pacote`: 0 erro(s). Âncora recalculada e conferida
+(`ba171852bd3c…`).
+
+**Onde entrou.** `motor/nucleo/derivar-ciclo.js` (a condição de subida),
+`experimentos/provar-a-descricao-do-exercicio.js` (novo), `.gitignore` (a prova versionada),
+`professores/demi-plie/ciclos/ciclo-01-breu-piano-notacao.md` e o pacote (`aula-01.html`,
+`notacao.html`) regerados, `ciclo-01-breu-piano.fipp`, `indices/**`, `ESTADO-ATUAL.md`, `HANDOFF.md`.

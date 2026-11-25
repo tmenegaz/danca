@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-25T15:28:58-0300`
-Commit atual: `78ada910` — docs(estrutura): o §22 mediu-se a si mesmo — documentar custa zero
+Gerado em: `2026-11-25T17:07:36-0300`
+Commit atual: `9eb12e05` — docs(estrutura): o custo da demonstracao medido na API — 16 min, e nao 22
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+9eb12e05 docs(estrutura): o custo da demonstracao medido na API — 16 min, e nao 22
 78ada910 docs(estrutura): o §22 mediu-se a si mesmo — documentar custa zero
 df41c5e6 docs(estrutura): o fluxo do consultor, e o custo da demonstracao medido
 5472e427 feat(estrutura): o plano consultoria, o mes que corre da entrega, e o congelamento calculado
@@ -101,7 +102,6 @@ f9e49440 feat(acervo): envelope/.indice.json
 923629a5 chore(estrutura): fechar os derivados — âncoras e índices
 65b1d4b9 chore(entrega): gerar o pacote de demi-plie/01/breu-piano
 45e0dff4 feat(ciclo): o «Guardar» do PO grava as fontes de breu-piano num commit só
-454ddbe3 feat(acervo): envelope/po-20261125-0627.json
 ```
 
 ## Por professor
@@ -128,7 +128,7 @@ f9e49440 feat(acervo): envelope/.indice.json
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `e81a3e1cf08c` | (vazio) | — |
-| breu-piano | ciclo-01-breu-piano.fipp | `32d5b1a858ef` | (vazio) | Input_PO_Validado |
+| breu-piano | ciclo-01-breu-piano.fipp | `ba171852bd3c` | (vazio) | Input_PO_Validado |
 
 ### fernando-franciose — 0 ciclo(s)
 
@@ -195,130 +195,95 @@ f9e49440 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## O fluxo do consultor e o custo da demonstração *(25/11/2026)*
+## A definição é do exercício, o «Lê-se» é da célula *(25/11/2026)*
 
-> «Você precisa me entregar um fluxo, a história que conta como é que funciona essa escola do
-> consultor. Tem que documentar isso também, porque eu vou precisar treinar o consultor para usar
-> isso. […] e também calcular o custo, porque isso vai ter custo, não vai sair de graça. […] Afinal de
-> contas, o risco do negócio é meu, não é nem do consultor, é só meu.»
+> «Aqui que é o diferente, no plié: eu tenho a descrição que seria do lado de fora, dentro da tabela.
+> […] Flexão contínua e fluida dos joelhos. Isso aqui é a descrição do dicionário, do verbete. E
+> depois lá no final, ainda nessa mesma linha da coluna descrição da tabela, tem `Lê-se: perna,
+> varredura para fora, primeira posição`. Isso está errado. Tem que fazer igual o battement tendu.»
 
-O plano consultoria estava implementado e **não era operável por outra pessoa**. Faltavam duas coisas,
-e nenhuma delas era código: o **guião de quem vai clicar** — porque quem monta o ambiente não é quem o
-desenhou — e a **conta de quanto custa antes de haver receita**, porque o intervalo entre «montar» e
-«contratar» é o único momento do produto em que se gasta sem se receber.
+Lido em `piano/aula-01`. O bloco do Plié saía assim:
 
-### O que ficou escrito
-
-**`FLUXO-DA-ESCOLA-EM-CONSULTORIA.md`** — o manual de operação e de treino. A história em nove passos
-(a conversa com a escola, a criação, a montagem, o plano, o PO, os ciclos, a apresentação, a entrega, os
-três desfechos), com o ecrã exacto de cada passo e a frase de cada momento. Traz três coisas que um
-manual de produto costuma não trazer e que aqui são a parte útil:
-
-- **as três frases de recusa**, uma para cada limite, e a estrutura que as faz funcionar — dizer o
-  limite, dizer o que já foi usado, oferecer a saída. «Deu erro» transforma uma demonstração boa em
-  produto pequeno;
-- **o que o consultor não pode fazer**, e a lista começa por cobrar. A fronteira é de risco, não de
-  hierarquia: ele monta e mostra; **quem entrega o mês, quem prorroga e quem habilita é ela**;
-- **o treino em quatro blocos de duas horas**, cada um com critério de saída observável (diz os sete
-  números de cor; monta sem lançar aula; responde a três perguntas sem prometer; mostra o só-leitura a
-  funcionar).
-
-**`CUSTO-DOS-FLUXOS.md` §22** — o custo, medido do catálogo para fora.
-
-### O número, medido na API do Actions
-
-A primeira versão deste capítulo orçamentava por leitura de `paths` e marcava três linhas como
-**inferidas**. Ela pediu para medir. As três desceram.
-
-| acto | execuções | min | o caso medido |
-|:--|:--|--:|:--|
-| criar a escola | `criar` + `derivados` | **2** | run `45156042117` (40 s) + `ddbee1d5` (25 s) |
-| gravar o plano de ensino | `derivados` | **1** | `229a322a`, `225c8e3b` — uma execução cada |
-| gravar o PO | `gerar` + `derivados` | **2** | `00df9fe4`, `45e0dff4`, `0ea82c68` |
-| gerar 1 ciclo | `gerar` | **1** | `6177f30d` — 50 s, nenhuma outra |
-| **1 aula lançada** | 2 `derivados` + 1 `gerar` | **3** | §20.4 |
-| entregar · prorrogar · habilitar | — | **0** | KV |
-
-| cenário | min | R$ |
-|:--|--:|--:|
-| **canónico** — 1 turma, 2 ciclos, 3 aulas | **16** | **R$ 0,58** |
-| **pior caso dentro do limitador** — 3 turmas, 2 ciclos cada | **26** | **R$ 0,94** |
-| **sem o limitador** — as 48 aulas dos 2 ciclos | **151** | **R$ 5,44** |
-
-O contrafactual é o argumento dela: **9,4 vezes** o caso canónico e **5,8 vezes** o pior caso que
-ainda cabe nas paredes. Cabem **92 demonstrações por mês** na franquia (2 000 − 522 de engenharia), ou
-**56** no pior caso. O treino de um consultor são **32 min e R$ 1,15**.
-
-**As três correcções, e porque é que cada uma era um erro de leitura:**
-
-1. **Criar a escola custa 2, não 3.** A criação só acorda `publicar` se criar um
-   `wrangler.<escola>.jsonc`, e hoje **não há wranglers por escola** — o repositório tem dois (`danca`
-   e `lastro-teste`), e a escola nova entra no *shard*.
-2. **Gravar o plano de ensino custa 1, não 2.** É o **único** acto da Produção que não pede a geração:
-   a cadeia deriva o elo e a fonte e devolve.
-3. **Gerar um ciclo custa 1, não 3.** Quem commita com o `GITHUB_TOKEN` **não redispara workflows** —
-   está escrito nos três ficheiros —, e o commit da geração não acorda os observadores.
-
-**E uma quarta, que produziu o número:** o `gerar` corre **uma vez por alvo**, e o alvo é a **turma**.
-Uma demonstração canónica leva uma turma até ao fim; o pior caso leva as três. É por isso que há dois
-números e não um, e é o guião que diz qual é o caso comum.
-
-### Como se mediu, e as quatro armadilhas
-
-```bash
-GET /repos/tmenegaz/danca/actions/runs?head_sha=<sha completo>
-GET /repos/tmenegaz/danca/actions/runs/<run_id>/jobs
+```
+### 7. Barra — Plié
+| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑ ED]` | Flexão contínua e fluida dos joelhos … adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe, varredura para fora. |
 ```
 
-- **o `head_sha` abreviado devolve zero** — e zero lê-se como «não acordou nada». Três commits
-  `feat(plano)` respondiam «nenhuma execução» até se passar o SHA inteiro. É a mesma família do `if`
-  que filtrava o título vazio no `check-pacote.js`: «não há?» e «perguntei bem?» não são a mesma
-  pergunta.
-- **o intervalo `created=…` não filtra** — devolve zero silenciosamente. A janela tem de ser feita
-  sobre a lista paginada.
-- **`git log --date` está em hora local (UTC−3) e a API em UTC.** A gravação das 06:27 e a execução
-  das 09:27 são o mesmo instante; procurar às 06:27 em UTC dá «nada aconteceu».
-- **medir uma janela não é medir um acto.** Entre 09:20 e 09:45 de 25/11 há 12 execuções e 11 minutos
-  — mas de cinco commits diferentes, quatro cancelados em cadeia pelo grupo de concorrência do
-  `derivados`. O que se soma é o que **um** acto acorda.
+E o do Battement jeté, assim:
 
-### Uma correcção de leitura
+```
+### 5. Barra — Battement jeté
+> **Descrição.** Lançamento rápido da perna estendida a uma altura baixa …
+| 1 | 1–2 | `[Peso: 5ª → - ● × 5ª]` | Lê-se: Peso, quinta posição, conduz a, ao lado, fecha, atrás, quinta posição. |
+```
 
-O §22.2 afirma que um ciclo tem **24 aulas**. Esse número andava no plano como facto e nunca tinha sido
-lido do dado: está no `ciclos.json` do breu, 24 entradas em `aulas[]`, **todas com `lancada: false`** —
-o que confirma, de passagem, a leitura **B** da Q9 (a aula só conta quando é lançada).
+### A causa não era o dado
+
+A suspeita imediata — «o verbete do Plié não tem o `Lê-se` em linha própria» — **é falsa**, e foi
+medida antes de se mexer em nada: o `notacao.json` do catálogo tem
+`…adutores.\nLê-se: Perna, varredura para fora, …` como os outros, e o `partirDescricao` separa-o
+bem. A prova tem uma asserção que mede exactamente isso.
+
+**A causa era a condição de subida**, em `derivar-ciclo.js`:
+
+```js
+const subir = fixas.length === 1 && c.segmentos.length > 1;
+```
+
+O verbete do Plié cobre os 4 tempos com **uma** célula de `repeticoes: 2` e compõe **um** segmento;
+o jeté, o `tendu` e o Relevé compõem **dois**. O `> 1` foi posto pelo motivo certo — «se não se
+repete, não há repetição a tirar» — e produzia o resultado errado: **o desenho do bloco passava a
+depender de quantas linhas o verbete por acaso tem.**
+
+### A regra nova, e o que ela não faz
+
+```js
+const subir = fixas.length === 1 && partes.filter((x) => x.lida).length > 0;
+```
+
+Duas metades, e a segunda é a que impede o exagero:
+
+- **`fixas.length === 1`** — sobe quando há **uma** parte fixa. Com duas (o `Battement tendu` da
+  batata: «extensão à frente…» / «retorno à 1ª posição»), a descrição é de cada célula e fica onde
+  está. É a parte antiga, intacta.
+- **`leituras > 0`** — sobe só quando há leitura para mostrar em baixo. Sem ela, subir deixaria a
+  célula com um travessão e a única informação útil teria saído de lá. Esta é nova, e é o que
+  distingue «arrumar» de «esvaziar».
+
+A coluna chama-se **Descrição** e o que ela mostra é **o que se lê**. A definição é do exercício, e
+o sítio dela é acima da tabela — em todos os blocos, sem excepção que dependa do dado.
 
 ### As provas
 
-`experimentos/provar-o-custo-da-consultoria.js`, **53 asserções**. Ela não confia nos documentos: lê os
-limites do `planos.json` e as 24 aulas do `ciclos.json`, recalcula o tecto, e **compara o resultado com
-o texto dos dois ficheiros**. É o que impede os dois de apodrecerem juntos — a família de erro do §20,
-onde uma prova dizia 3 e o documento dizia 2 durante seis dias.
+`experimentos/provar-a-descricao-do-exercicio.js`, **25 asserções** em cinco blocos: o caso dela ao
+minuto; a consistência (1, 2 e 4 segmentos dão a **mesma** forma de bloco); o documento publicado
+(zero travessões, 16 blocos, todos com a definição em cima); e **dois controlos negativos** — sem
+eles a prova passava com a regra trocada para «subir sempre».
 
-**O A/B, feito e não afirmado:** falseados os números nos documentos, a prova cai a **48/53**, com as
-cinco asserções discriminantes a reprovar. Com o catálogo alterado (3 aulas → 6), cai a **35/53** e o
-tecto canónico passa a 25 min. E o número de turmas também discrimina (1 → 16, 2 → 21, 3 → 26), que é
-o que impede a prova de passar com os actos por turma somados uma vez só. Bateria completa: **290 provas, 197 verdes, 93 conhecidas, 0
-regressões**. `check-identidade`: 23 checagens, todas ok. Removida a entrada `provar-estante-do-po` da
-linha de base, que já passava e era um aviso em cada corrida.
+Os controlos precisam de verbetes que o catálogo real não tem, e injetam-se no alfabeto em processo,
+com reposição no `finally`. **O `finally` tinha um defeito que a própria prova apanhou**: guardava as
+chaves como `D` e `E` e apagava `verbetes['D']` — deixava lixo no catálogo a dizer que o limpava. A
+asserção «o alfabeto ficou como estava» é o que o apanhou.
 
-### O que não se fez
+**A/B contra o `HEAD` anterior num `git worktree`: 15/25**, com as dez asserções discriminantes a
+reprovar. Sem esse A/B a prova seria uma afirmação sobre o presente, e não uma prova de que o
+defeito existia.
 
-- **A faixa na página da Produção** e **a página congelada com o caminho para contratar** — continuam
-  declaradas em aberto, agora também no §5 do guião.
-- **O texto da oferta** — a redacção depende da Q2, e o guião já diz o que ele tem de dizer: «2 ciclos
-  planeados e **3 aulas processadas**».
-- **O cadastro do consultor** (quem é consultor de qual escola) — frente nova, e não é pré-requisito
-  para treinar uma pessoa.
-- **A demonstração com 2 ou 3 turmas como caso comum** — hoje o guião diz uma, e é ela que dá os 16
-  min. Se a prática mostrar outra coisa, o número de orçamento passa a ser o do pior caso.
+**O que ficou por fazer, e é declarado.** `experimentos/provar-notacao.js` **já falhava antes desta
+mudança** e continua a falhar: pede o alfabeto **Benesh**, que esta árvore já não tem (a notação
+migrou para «Código de dança» a 18/11/2026). Não está na linha de base, o que quer dizer que o
+`correr-provas` a contava como verde — **e ela não aparece quando se muda o `derivar-ciclo.js`**,
+porque o cita como `path.join(RAIZ, 'motor', 'nucleo', 'derivar-ciclo.js')` e o mapeador do corredor
+procura o caminho literal. Duas coisas a corrigir, nenhuma delas feita aqui.
 
-**Onde entrou.** `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` (novo), `CUSTO-DOS-FLUXOS.md` (§22, reescrito
-depois da medição — §22.1 a tabela medida, §22.2 os dois tectos, §22.3 o contrafactual, §22.4 a
-franquia, §22.5 o treino, §22.6 o que fica por medir, §22.7 como se mediu),
-`experimentos/provar-o-custo-da-consultoria.js` (novo), `.gitignore` (a prova versionada),
-`experimentos/provas-vermelhas.json` (a entrada que já passava), `PLANO-DA-ESCOLA-EM-CONSULTORIA.md`
-(§17.3), `ESTADO-ATUAL.md`, `HANDOFF.md`.
+Bateria completa: **291 provas, 198 verdes, 93 conhecidas, 0 regressões**. `check-identidade`: 23
+checagens, todas ok. `check-pacote`: 0 erro(s). Âncora recalculada e conferida
+(`ba171852bd3c…`).
+
+**Onde entrou.** `motor/nucleo/derivar-ciclo.js` (a condição de subida),
+`experimentos/provar-a-descricao-do-exercicio.js` (novo), `.gitignore` (a prova versionada),
+`professores/demi-plie/ciclos/ciclo-01-breu-piano-notacao.md` e o pacote (`aula-01.html`,
+`notacao.html`) regerados, `ciclo-01-breu-piano.fipp`, `indices/**`, `ESTADO-ATUAL.md`, `HANDOFF.md`.
 
 ## O que está pendente
 

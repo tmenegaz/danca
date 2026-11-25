@@ -68,9 +68,11 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 *4 tempos, 2/4 · objetivo 1 — transferir o peso entre os pés sem perder o alinhamento*
 
+> **Descrição.** Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores.
+
 | Compasso | Contagem | Notação | Descrição |
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
-| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑ ED]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe, varredura para fora. |
+| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑ ED]` | Lê-se: Perna, varredura para fora, primeira posição, cede, sobe, varredura para fora. |
 
 ### 4. Solo — Relevé {#solo-releve-ob1}
 
@@ -109,9 +111,11 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 *4 tempos, 2/4 · objetivo 1 — transferir o peso entre os pés sem perder o alinhamento*
 
+> **Descrição.** Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores.
+
 | Compasso | Contagem | Notação | Descrição |
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
-| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑ ED]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe, varredura para fora. |
+| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑ ED]` | Lê-se: Perna, varredura para fora, primeira posição, cede, sobe, varredura para fora. |
 
 ### 8. Barra — Relevé {#barra-releve-ob1}
 
@@ -150,9 +154,11 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 *4 tempos, 2/4 · objetivo 1 — transferir o peso entre os pés sem perder o alinhamento*
 
+> **Descrição.** Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores.
+
 | Compasso | Contagem | Notação | Descrição |
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
-| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑ ED]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe, varredura para fora. |
+| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑ ED]` | Lê-se: Perna, varredura para fora, primeira posição, cede, sobe, varredura para fora. |
 
 ### 12. Centro — Relevé {#centro-releve-ob1}
 
@@ -191,9 +197,11 @@ inteiro lê-se da esquerda para a direita, no tempo da música.
 
 *4 tempos, 2/4 · objetivo 1 — transferir o peso entre os pés sem perder o alinhamento*
 
+> **Descrição.** Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores.
+
 | Compasso | Contagem | Notação | Descrição |
 |:----------:|:----------:|:----------------------|:---------------------------------------------------|
-| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑ ED]` | Flexão contínua e fluida dos joelhos mantendo o en dehors absoluto. Base fundamental de amortecimento e impulso de toda a dança clássica. Detalhe técnico: subtipos, demi-plié,grand plié musculos chave, quadríceps, glúteo médio e adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe, varredura para fora. |
+| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑ ED]` | Lê-se: Perna, varredura para fora, primeira posição, cede, sobe, varredura para fora. |
 
 ### 16. Expressão — Relevé {#expressao-releve-ob1}
 

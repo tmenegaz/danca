@@ -2347,9 +2347,28 @@ function derivarNotacao({ plano, contexto }) {
        * A LINHA ENTRA ANTES DO CABEÇALHO DA TABELA: uma linha entre o cabeçalho e o separador
        * parte a tabela em duas (é o mesmo modo de falha que a célula com quebra de linha tinha,
        * um nível acima). */
+      /* E A CONDIÇÃO ERA «mais de uma célula», QUE É OUTRA COISA (25/11/2026).
+       *
+       * A pesquisadora abriu o `piano/aula-01` e leu, no bloco do Plié, a definição do dicionário
+       * dentro da célula — colada ao «Lê-se», com um travessão no meio —, enquanto o Battement
+       * jeté, o `tendu` e o Relevé tinham a definição em cima, num bloco próprio, e a célula só
+       * com o «Lê-se». Medido: o verbete do Plié cobre os 4 tempos com **uma** célula de
+       * `repeticoes: 2`, e ele compõe **um** segmento; os outros três compõem **dois**.
+       *
+       * A condição antiga (`segmentos.length > 1`) existia pelo motivo certo — «se não se repete,
+       * não há repetição a tirar» — e produzia o resultado errado: o desenho do bloco passava a
+       * depender de quantas linhas o verbete por acaso tem. A descrição é do EXERCÍCIO em todos
+       * os casos; a coluna chama-se «Descrição» e o que ela mostra é o que se lê. Por isso a
+       * subida passou a depender de haver **uma** parte fixa e **alguma** leitura — e não do
+       * número de células.
+       *
+       * O `leituras > 0` é a guarda que impede o contrário: um exercício cuja descrição não tem
+       * `Lê-se` nenhum NÃO sobe, porque a célula ficaria com um travessão e a única informação
+       * útil teria saído de lá. Subir serve para mostrar a leitura; sem leitura, não há o que
+       * mostrar em baixo. */
       const partes = c.estado === 'lacuna' ? [] : c.segmentos.map((sg) => partirDescricao(sg.descricao));
       const fixas = [...new Set(partes.map((x) => x.fixa))].filter(Boolean);
-      const subir = fixas.length === 1 && c.segmentos.length > 1;
+      const subir = fixas.length === 1 && partes.filter((x) => x.lida).length > 0;
       if (subir) {
         saida.push('> **Descrição.** ' + fixas[0]);
         saida.push('');

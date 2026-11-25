@@ -4,7 +4,16 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **o fluxo do consultor está escrito, e o custo da
+> **Última fotografia:** 25/11/2026 — **a descrição do exercício voltou para fora da tabela.** O
+> desenho do bloco de exercício dependia de quantas linhas o verbete por acaso tem: o Plié — uma
+> célula com `repeticoes: 2` — saía com a definição do dicionário **dentro** da coluna «Descrição»,
+> colada ao «Lê-se» por um travessão, enquanto o Battement jeté, o `tendu` e o Relevé — duas células
+> — a tinham em cima, num bloco próprio. A condição de subida era `segmentos.length > 1`, posta pelo
+> motivo certo («se não se repete, não há repetição a tirar») a produzir o resultado errado. Passou a
+> depender de haver **uma** parte fixa e **alguma** leitura — e a coluna mostra o que se lê, que é o
+> nome dela. A guarda `leituras > 0` impede o contrário: um exercício sem «Lê-se» não sobe, porque a
+> célula ficaria com um travessão e a única informação útil teria saído de lá. Antes disso, no mesmo
+> dia: **o fluxo do consultor está escrito, e o custo da
 > demonstração está medido.** Ela pediu duas coisas que faltavam para o plano consultoria poder ser
 > operado por outra pessoa: «a história que conta como é que funciona essa escola» e «isso vai ter
 > custo, não vai sair de graça». O **[FLUXO-DA-ESCOLA-EM-CONSULTORIA.md](FLUXO-DA-ESCOLA-EM-CONSULTORIA.md)**
@@ -7554,6 +7563,20 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **25/11/2026** — **A definição é do exercício, o «Lê-se» é da célula.** Lido por ela em
+  `piano/aula-01`: no bloco do Plié a definição do dicionário estava **dentro** da coluna
+  «Descrição», colada ao «Lê-se» por um travessão; no jeté, no `tendu` e no Relevé estava em cima,
+  num bloco próprio. **A causa não era o dado nem o `partirDescricao`** — o verbete do Plié tem o
+  `\nLê-se:` como os outros. Era a condição de subida, `c.segmentos.length > 1`: o verbete do Plié
+  cobre os 4 tempos com **uma** célula de `repeticoes: 2` e compõe **um** segmento, os outros compõem
+  dois. O desenho do bloco passava a depender de quantas linhas o verbete por acaso tem. A regra
+  passou a ser «há **uma** parte fixa e **alguma** leitura», com a guarda `leituras > 0` contra o
+  contrário (sem «Lê-se» a célula ficaria com um travessão e a única informação útil sairia de lá).
+  `provar-a-descricao-do-exercicio` **25** asserções, com dois controlos negativos — sem eles a prova
+  passava com a regra trocada para «subir sempre». A/B contra o `HEAD` anterior num `git worktree`:
+  **15/25**, com as dez asserções discriminantes a reprovar. O pacote foi regerado, a âncora
+  recalculada (`ba171852…`) e os índices também.
 
 - **25/11/2026** — **O fluxo do consultor, e o custo da demonstração.** O plano consultoria estava
   implementado e não era **operável por outra pessoa** — o que faltava não era código: era o guião de
