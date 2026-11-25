@@ -19,6 +19,8 @@
  *   · aceita `--mudou` — os caminhos que mudaram, um por linha ou por argumento — e corre só as
  *     provas que os referenciam. É o que torna o `pre-commit` possível: 299 provas custam minutos,
  *     e um commit que toca um ficheiro não deve pagar por todas;
+ *   · aceita `--listar`, que imprime esse recorte e não corre nada: é o que torna o mapa
+ *      verificável por uma prova (`provar-o-mapa-das-provas`), em vez de por confiança;
  *   · **não** julga se uma prova é boa. Ele diz quantas passam; quem lê decide o que fazer com as
  *     que não passam.
  *
@@ -48,6 +50,10 @@ function opcao(nome, omissao) {
 }
 
 const VERBOSO = process.argv.indexOf('--verboso') !== -1;
+/* `--listar` DIZ O RECORTE E NÃO CORRE NADA (25/11/2026). Existe para o recorte poder ser medido —
+ * por uma prova, e por quem estiver a depurar um `--mudou` que trouxe provas a mais ou a menos.
+ * Sem ele, a única forma de saber o que foi seleccionado é correr tudo e ler a lista. */
+const LISTAR = process.argv.indexOf('--listar') !== -1;
 
 /**
  * A LINHA DE BASE — `experimentos/provas-vermelhas.json` (24/11/2026).
@@ -106,12 +112,15 @@ function provasVersionadas() {
 
 /** Os caminhos que mudaram: `--mudou a b c`, ou `--mudou` a ler o stdin (o `pre-commit` usa-o). */
 function caminhosQueMudaram() {
+  /* TODOS OS `--mudou=` CONTAM, E NÃO SÓ O PRIMEIRO (25/11/2026). Era `find`, que devolve o
+   * primeiro — e o segundo era descartado em silêncio. Medido por `provar-o-mapa-das-provas`:
+   * `--mudou=a --mudou=b` dava treze provas e `--mudou=b --mudou=a` dava dezanove, para o mesmo
+   * par de caminhos. Um recorte que depende da ORDEM dos argumentos é a mesma família de erro das
+   * datas em calendários diferentes: não falha, responde outra coisa. */
+  const comIgual = process.argv.filter((a) => a.startsWith('--mudou=')).map((a) => a.slice(8));
+  if (comIgual.length) return comIgual.join(',').split(/[\s,]+/).filter(Boolean);
   const i = process.argv.indexOf('--mudou');
-  if (i === -1) {
-    const comIgual = process.argv.find((a) => a.startsWith('--mudou='));
-    if (!comIgual) return null;
-    return comIgual.slice(8).split(/[\s,]+/).filter(Boolean);
-  }
+  if (i === -1) return null;
   const resto = process.argv.slice(i + 1).filter((a) => !a.startsWith('--'));
   if (resto.length) return resto;
   try { return fs.readFileSync(0, 'utf8').split('\n').filter(Boolean); } catch (erro) { return []; }
@@ -124,17 +133,35 @@ function caminhosQueMudaram() {
  * página de `porta/`. Compara-se o **fim** do caminho mudado com o texto — e a comparação é pelo
  * nome do ficheiro, e não pelo caminho inteiro, para o `../../motor/x.js` da prova casar com
  * `motor/x.js` do git.
+ *
+ * E O CAMINHO TAMBÉM PODE ESTAR EM PEDAÇOS (25/11/2026). Muitas provas escrevem
+ * `require(path.join(RAIZ, 'motor', 'nucleo', 'derivar-ciclo.js'))`, e nesse texto a cadeia
+ * `motor/nucleo/derivar-ciclo.js` **não existe** — existe `motor', 'nucleo', 'derivar-ciclo.js'`.
+ * A comparação literal não a via, e a prova ficava invisível exactamente para o módulo que ela
+ * mede: `provar-notacao` não era corrida quando se mexia no `derivar-ciclo.js`, que é o ficheiro
+ * que ela existe para vigiar.
+ *
+ * A correcção é NORMALIZAR o texto da prova antes de comparar — as aspas e as vírgulas de um
+ * `path.join` passam a barra —, e não enumerar as formas de escrever um caminho. Uma lista de
+ * formas apodreceria no dia em que alguém usasse `join(RAIZ, 'a' + path.sep + 'b')`; a
+ * normalização vale para a forma que existir.
  */
 function referencia(prova, mudados) {
   let texto;
   try { texto = fs.readFileSync(prova, 'utf8'); } catch (erro) { return false; }
+  /* `'motor', 'nucleo', 'x.js'` → `motor/nucleo/x.js`. A expressão apanha as aspas e a vírgula
+   * que o `path.join` põe entre os segmentos, e é indiferente ao espaço. Uma barra invertida de
+   * Windows, se alguma vez aparecer, também passa a barra. */
+  const normalizado = texto.replace(/['"]\s*,\s*['"]/g, '/').replace(/\\\\/g, '/');
   for (const c of mudados) {
     const rel = String(c).trim();
     if (!rel) continue;
     if (texto.indexOf(rel) !== -1) return true;
+    if (normalizado !== texto && normalizado.indexOf(rel) !== -1) return true;
     // `motor/servidor/raiz.js` na prova aparece como `../motor/servidor/raiz.js` ou só `raiz.js`.
     const partes = rel.split('/');
     if (partes.length > 1 && texto.indexOf(partes.slice(1).join('/')) !== -1) return true;
+    if (partes.length > 1 && normalizado.indexOf(partes.slice(1).join('/')) !== -1) return true;
   }
   return false;
 }
@@ -188,6 +215,15 @@ function causa(prova, saida) {
   console.log('correr-provas: ' + alvo.length + ' de ' + todas.length + ' prova(s)'
     + (mudados ? ' (filtradas por ' + mudados.length + ' caminho(s))' : '')
     + ', ' + PARALELO + ' em paralelo, tecto ' + TECTO + 's');
+
+  if (LISTAR) {
+    for (const p of alvo.slice().sort((x, y) => x.localeCompare(y))) {
+      console.log(path.relative(RAIZ, p));
+    }
+    console.log('correr-provas: ' + alvo.length + ' de ' + todas.length + ' prova(s)'
+      + (mudados ? ' (filtradas por ' + mudados.length + ' caminho(s))' : '') + ' — só a lista.');
+    process.exit(0);
+  }
 
   const inicio = Date.now();
   const resultados = [];

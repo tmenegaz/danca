@@ -4,7 +4,22 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **a descrição do exercício voltou para fora da tabela.** O
+> **Última fotografia:** 25/11/2026 — **o mapa das provas passou a ver o que já devia ver, e a
+> prova da notação voltou a correr.** Duas provas não estavam a proteger nada: o `correr-provas`
+> comparava a referência **literal**, e uma prova que escreve
+> `require(path.join(RAIZ, 'motor', 'nucleo', 'derivar-ciclo.js'))` não era seleccionada quando
+> esse módulo mudava — o texto dela tem `motor', 'nucleo', 'derivar-ciclo.js'`, e não o caminho. A
+> normalização passou a transformar as vírgulas e aspas do `path.join` em barras. E o
+> `provar-notacao` não estava **versionado**: ficou a dizer «Benesh» depois de a árvore migrar para
+> «Código de dança» (18/11/2026) e passou nove dias vermelho em silêncio — porque o `correr-provas`
+> só corre o que o `git ls-files` vê. A prova foi reescrita para ler a notação da árvore
+> (`NOTACAO_DO_CICLO`) e para escolher os exercícios **por propriedade** no alfabeto, em vez de
+> nomeá-los à mão: **92 asserções**, contra 62 antes — e as que medem o que o dado de hoje já não
+> tem (duas pistas, lados, linha parcial) fazem-no numa cópia declarada de uma entrada real. O
+> mapa ganhou `--listar` e uma prova própria, `provar-o-mapa-das-provas` (**14 asserções**), com os
+> dois controlos negativos. E o parser dos `--mudou=` passou a somar todos em vez de usar só o
+> primeiro: `--mudou=a --mudou=b` dava 13 provas e `--mudou=b --mudou=a` dava 19. Antes disso, no
+> mesmo dia: **a descrição do exercício voltou para fora da tabela.** O
 > desenho do bloco de exercício dependia de quantas linhas o verbete por acaso tem: o Plié — uma
 > célula com `repeticoes: 2` — saía com a definição do dicionário **dentro** da coluna «Descrição»,
 > colada ao «Lê-se» por um travessão, enquanto o Battement jeté, o `tendu` e o Relevé — duas células
@@ -7563,6 +7578,30 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **25/11/2026** — **O mapa das provas, e a prova que não corria.** Três defeitos, e dois deles
+  do mesmo tipo: um verificador que não verifica. **(1)** O `correr-provas` decidia o recorte por
+  comparação literal, e `require(path.join(RAIZ, 'motor', 'nucleo', 'derivar-ciclo.js'))` não
+  contém `motor/nucleo/derivar-ciclo.js` — contém `motor', 'nucleo', 'derivar-ciclo.js'`. A prova
+  que cita nessa forma ficava **invisível exactamente para o ficheiro que mede**. A correcção
+  normaliza o texto (aspas e vírgula do `path.join` passam a barra) em vez de enumerar formas de
+  escrever um caminho. **(2)** O `provar-notacao` **não estava versionado** — o `correr-provas`
+  corre o `git ls-files`, e uma prova no disco mas fora do índice não é de ninguém. Ficou a dizer
+  «Benesh» depois da migração de 18/11/2026 e passou nove dias vermelho em silêncio. **(3)** O
+  parser dos `--mudou=` usava `find` e descartava o segundo em silêncio: `--mudou=a --mudou=b` dava
+  13 provas e `--mudou=b --mudou=a` dava 19 — o recorte dependia da **ordem dos argumentos**. O
+  mapa ganhou `--listar` (imprime o recorte e não corre nada) e a prova
+  `provar-o-mapa-das-provas` (**14** asserções, com os dois controlos negativos: um caminho que
+  ninguém cita não selecciona ninguém, e um módulo citado por uma prova não selecciona as 293). O
+  `provar-notacao` foi reescrito — **62 → 92 asserções**: lê a notação de `NOTACAO_DO_CICLO` (a
+  constante que a derivação usa) e escolhe os exercícios **por propriedade** no alfabeto, e onde o
+  dado de hoje não tem a forma (duas pistas, lados, linha parcial) mede-a numa **cópia declarada**
+  de uma entrada real, com reposição no `finally` — e a reposição é ela própria uma asserção. Uma
+  quarta correcção veio do que a medição mostrou: `provar-ciclo-herdado-do-plano` falhava **uma
+  vez em quatro** corridas completas e nunca sozinho — reproduzido a 1 em 6 em paralelo.
+  `ReferenceError: iniciar is not defined`: uma espera fixa de 350 ms a apostar contra o
+  carregamento dos scripts. Passou a esperar pela **condição** que usa. A/B: 8 de 8 sob carga,
+  contra 5 de 6 antes.
 
 - **25/11/2026** — **A definição é do exercício, o «Lê-se» é da célula.** Lido por ela em
   `piano/aula-01`: no bloco do Plié a definição do dicionário estava **dentro** da coluna

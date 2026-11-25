@@ -172,6 +172,32 @@ const servidor = http.createServer((req, res) => {
 
 const espera = (win, ms = 150) => new Promise((r) => win.setTimeout(r, ms));
 
+/**
+ * ESPERAR POR UMA CONDIÇÃO, E NÃO POR UM TEMPO (25/11/2026).
+ *
+ * O QUE ACONTECEU. Aqui estava `await espera(win, 350)` antes de `win.eval('iniciar()…')`, e a
+ * linha seguinte rebentava com `ReferenceError: iniciar is not defined` — **uma vez em quatro**
+ * corridas da bateria inteira, e nunca quando a prova corria sozinha. Reproduzido: seis cópias em
+ * paralelo dão uma falha em seis. O jsdom carrega `nav.js` e o script da página de forma
+ * assíncrona (`resources: 'usable'`), e 350 ms chegam com a máquina livre e não chegam com seis
+ * node a competir.
+ *
+ * O defeito não era a espera ser curta — era ser uma ESPERA. Uma prova que mede a tela não pode
+ * depender de a tela ter tido tempo: espera-se pela CONDIÇÃO que se vai usar, com um tecto, e é o
+ * tecto que falha quando algo está mesmo partido. É a mesma correcção que o
+ * `provar-o-parametro-do-plano` já tinha recebido.
+ */
+async function esperarPor(win, condicao, capMs = 15000, passo = 25) {
+  const inicio = Date.now();
+  for (;;) {
+    let ok = false;
+    try { ok = await condicao(); } catch (erro) { ok = false; }
+    if (ok) return true;
+    if (Date.now() - inicio >= capMs) return false;
+    await espera(win, passo);
+  }
+}
+
 async function abrir() {
   const problemas = [];
   const vc = new VirtualConsole();
@@ -188,7 +214,13 @@ async function abrir() {
     },
   });
   const win = dom.window;
-  await espera(win, 350);
+  /* A CONDIÇÃO É A QUE A LINHA SEGUINTE USA — `iniciar` existir. Enquanto o script da página não
+   * tiver corrido, a função não existe, e um `eval` que a chame rebenta com `ReferenceError`. */
+  const chegou = await esperarPor(win, () => typeof win.iniciar === 'function');
+  if (!chegou) {
+    throw new Error('a página não arrancou em 15 s: `iniciar` não existe na janela '
+      + '(o script de `porta/index.html` não chegou a correr)');
+  }
   /* O ARRANQUE É ESPERADO, E NÃO CORRIDO ATRÁS. O jsdom aborta o primeiro `iniciar()` a meio
    * («Not implemented: navigation to another Document»), e o que fica de fora é justamente o fim
    * da função — onde os ouvintes de `#pergunta` são presos. Sem esta linha a bancada dispara um

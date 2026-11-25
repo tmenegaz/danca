@@ -2057,3 +2057,17 @@ experimentos/modelo-formulario/*
 # documento e um gerador de aparência: esta prova mede o caso dela ao minuto e os dois controlos
 # negativos que impedem «subir sempre».
 !experimentos/provar-a-descricao-do-exercicio.js
+
+# A PROVA DA NOTAÇÃO VOLTA AO REPOSITÓRIO (25/11/2026). Ela existia no disco e NÃO estava
+# versionada — e uma prova que o `git ls-files` não vê não é corrida por ninguém: ficou a dizer
+# «Benesh» depois de a árvore migrar para «Código de dança» (18/11/2026) e passou nove dias em
+# silêncio. É a mesma família do `provar-ambiente` que imprimia «TUDO CERTO — 0 escola(s)»: um
+# verificador que não verifica parece, e é pior do que não existir.
+!experimentos/provar-notacao.js
+
+# O MAPA DAS PROVAS (25/11/2026). O `correr-provas` decide o que corre a partir de uma comparação
+# de texto: uma prova que cita o módulo em `path.join` não era vista, e a vigia de um ficheiro
+# ficou vazia sem ninguém notar. Um mapa que não se mede é uma afirmação sobre si mesmo — esta
+# prova mede-o com o `--listar` do próprio corredor, e tem os dois controlos negativos que
+# distinguem «vê o que deve» de «vê tudo».
+!experimentos/provar-o-mapa-das-provas.js

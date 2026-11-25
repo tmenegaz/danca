@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-25T17:07:36-0300`
-Commit atual: `9eb12e05` — docs(estrutura): o custo da demonstracao medido na API — 16 min, e nao 22
+Gerado em: `2026-11-25T17:34:16-0300`
+Commit atual: `a4638edf` — fix(estrutura): a descricao do exercicio volta para fora da tabela
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+a4638edf fix(estrutura): a descricao do exercicio volta para fora da tabela
 9eb12e05 docs(estrutura): o custo da demonstracao medido na API — 16 min, e nao 22
 78ada910 docs(estrutura): o §22 mediu-se a si mesmo — documentar custa zero
 df41c5e6 docs(estrutura): o fluxo do consultor, e o custo da demonstracao medido
@@ -101,7 +102,6 @@ cfe41518 chore(entrega): gerar o pacote de demi-plie/01/breu-piano
 f9e49440 feat(acervo): envelope/.indice.json
 923629a5 chore(estrutura): fechar os derivados — âncoras e índices
 65b1d4b9 chore(entrega): gerar o pacote de demi-plie/01/breu-piano
-45e0dff4 feat(ciclo): o «Guardar» do PO grava as fontes de breu-piano num commit só
 ```
 
 ## Por professor
@@ -195,95 +195,122 @@ f9e49440 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## A definição é do exercício, o «Lê-se» é da célula *(25/11/2026)*
+## O mapa das provas, e a prova que não corria *(25/11/2026)*
 
-> «Aqui que é o diferente, no plié: eu tenho a descrição que seria do lado de fora, dentro da tabela.
-> […] Flexão contínua e fluida dos joelhos. Isso aqui é a descrição do dicionário, do verbete. E
-> depois lá no final, ainda nessa mesma linha da coluna descrição da tabela, tem `Lê-se: perna,
-> varredura para fora, primeira posição`. Isso está errado. Tem que fazer igual o battement tendu.»
+> «pode corrigir os defeitos que vc falou»
 
-Lido em `piano/aula-01`. O bloco do Plié saía assim:
+Três defeitos, e dois da mesma família: **um verificador que não verifica**. É a mesma família do
+`provar-ambiente` que imprimia «TUDO CERTO — 0 escola(s)» depois de uma migração — e é a razão pela
+qual este registo lhes dá um capítulo inteiro em vez de três linhas.
 
-```
-### 7. Barra — Plié
-| 1 | 1–2 | `[Perna: ED 1ª ↓ ↑ ED]` | Flexão contínua e fluida dos joelhos … adutores. — Lê-se: Perna, varredura para fora, primeira posição, cede, sobe, varredura para fora. |
-```
+### 1. O mapa não via o `path.join`
 
-E o do Battement jeté, assim:
-
-```
-### 5. Barra — Battement jeté
-> **Descrição.** Lançamento rápido da perna estendida a uma altura baixa …
-| 1 | 1–2 | `[Peso: 5ª → - ● × 5ª]` | Lê-se: Peso, quinta posição, conduz a, ao lado, fecha, atrás, quinta posição. |
-```
-
-### A causa não era o dado
-
-A suspeita imediata — «o verbete do Plié não tem o `Lê-se` em linha própria» — **é falsa**, e foi
-medida antes de se mexer em nada: o `notacao.json` do catálogo tem
-`…adutores.\nLê-se: Perna, varredura para fora, …` como os outros, e o `partirDescricao` separa-o
-bem. A prova tem uma asserção que mede exactamente isso.
-
-**A causa era a condição de subida**, em `derivar-ciclo.js`:
+O `correr-provas` decide o recorte comparando o caminho mudado com o **texto** da prova. Muitas
+provas escrevem o `require` assim:
 
 ```js
-const subir = fixas.length === 1 && c.segmentos.length > 1;
+require(path.join(RAIZ, 'motor', 'nucleo', 'derivar-ciclo.js'))
 ```
 
-O verbete do Plié cobre os 4 tempos com **uma** célula de `repeticoes: 2` e compõe **um** segmento;
-o jeté, o `tendu` e o Relevé compõem **dois**. O `> 1` foi posto pelo motivo certo — «se não se
-repete, não há repetição a tirar» — e produzia o resultado errado: **o desenho do bloco passava a
-depender de quantas linhas o verbete por acaso tem.**
+E nesse texto não existe `motor/nucleo/derivar-ciclo.js` — existe `motor', 'nucleo',
+'derivar-ciclo.js'`. A prova ficava **invisível exactamente para o ficheiro que mede**.
 
-### A regra nova, e o que ela não faz
+A correcção **normaliza** o texto antes de comparar (as aspas e a vírgula de um `path.join` passam a
+barra), em vez de enumerar as formas de escrever um caminho: uma lista de formas apodreceria no dia
+em que alguém usasse `'a' + path.sep + 'b'`.
 
-```js
-const subir = fixas.length === 1 && partes.filter((x) => x.lida).length > 0;
+### 2. A prova da notação não estava versionada
+
+O `correr-provas` corre **o que está no `git ls-files`** — e isso é uma decisão certa: «uma prova
+que não está no repositório não é uma prova de ninguém, é rascunho de quem a escreveu».
+
+`experimentos/provar-notacao.js` existia no disco e **não estava no índice**. Ficou a dizer
+`paraNotacao('Benesh')` depois de a árvore migrar para «Código de dança» (18/11/2026) e passou
+**nove dias vermelho em silêncio** — invisível para a bateria, para o `pre-commit` e para o CI.
+
+### 3. `--mudou=a --mudou=b` descartava o segundo
+
+O parser usava `find`, que devolve o primeiro. Medido: `--mudou=notacao --mudou=derivador` dava
+**13** provas e `--mudou=derivador --mudou=notacao` dava **19** — para o mesmo par de caminhos. Um
+recorte que depende da **ordem dos argumentos** não falha: responde outra coisa.
+
+### A reescrita da prova da notação: 62 → 92 asserções
+
+Não bastava trocar o nome. A prova estava presa ao dado de 20/10 a 02/11 — `Plié` em `8|4/4`, `Port
+de bras` em `16|3/4`, «os quatro do ciclo» —, e um fixture com a forma errada não mede o motor: mede
+o fixture. Foi a lição do `devant`, escrita neste mesmo ficheiro.
+
+O que passou a valer:
+
+| antes | depois |
+|:--|:--|
+| `paraNotacao('Benesh')` | `notacao.NOTACAO_DO_CICLO` — a constante que a derivação usa |
+| `compor(linha('Plié','8','4/4'))` | `entradaReal(predicado)` — o exercício escolhido **por propriedade** |
+| «os quatro do ciclo» era uma lista escrita à mão | «cada verbete declarado compõe na música que declara, para a escola a que pertence» |
+| «16 tempos em 3/4» vinha do `Port de bras` | a linha parcial mede-se numa **cópia declarada** de uma entrada real |
+| duas pistas / lados vinham do `Plié` de Outubro | medem-se numa cópia, com a forma acrescentada e dito |
+| a degradação media um plano a declarar «Laban» | mede o contrário, e é mais forte: **quatro respostas diferentes no envelope produzem o MESMO documento, byte a byte** |
+
+O `entradaReal` compõe cada entrada **com a escola a que ela pertence** — as entradas com sufixo
+`@breu` só compõem para o breu, e uma prova que compusesse sem escola declará-las-ia em lacuna por um
+motivo que não é do motor.
+
+**O que se acrescenta numa cópia não é conteúdo editorial.** Os sinais, as descrições e a música são
+os dela; o que se acrescenta é a FORMA cujo comportamento se quer medir (uma segunda categoria, um
+`lado`, uma célula a menos). Plantar um verbete para uma asserção voltar a verde é o que este
+ficheiro já recusou uma vez, e continua a recusar — e a reposição no `finally` é ela própria uma
+asserção («o alfabeto ficou como estava»).
+
+### 4. O que a medição mostrou a mais: uma prova instável
+
+Ao correr a bateria para validar isto, `provar-ciclo-herdado-do-plano` apareceu como **regressão**
+numa corrida e passou em três outras. Sozinha, passa sempre. Reproduzido com seis cópias em
+paralelo: **1 falha em 6**.
+
+```
+ReferenceError: iniciar is not defined
 ```
 
-Duas metades, e a segunda é a que impede o exagero:
-
-- **`fixas.length === 1`** — sobe quando há **uma** parte fixa. Com duas (o `Battement tendu` da
-  batata: «extensão à frente…» / «retorno à 1ª posição»), a descrição é de cada célula e fica onde
-  está. É a parte antiga, intacta.
-- **`leituras > 0`** — sobe só quando há leitura para mostrar em baixo. Sem ela, subir deixaria a
-  célula com um travessão e a única informação útil teria saído de lá. Esta é nova, e é o que
-  distingue «arrumar» de «esvaziar».
-
-A coluna chama-se **Descrição** e o que ela mostra é **o que se lê**. A definição é do exercício, e
-o sítio dela é acima da tabela — em todos os blocos, sem excepção que dependa do dado.
+Uma espera fixa de 350 ms a apostar contra o carregamento assíncrono dos scripts do jsdom
+(`resources: 'usable'`). Com a máquina livre chega; com seis node a competir, não. **O defeito não
+era a espera ser curta — era ser uma espera.** Passou a esperar pela **condição que a linha seguinte
+usa** (`typeof win.iniciar === 'function'`), com tecto de 15 s, e é o tecto que falha quando algo
+está mesmo partido. **A/B: 8 de 8 sob carga, contra 5 de 6.**
 
 ### As provas
 
-`experimentos/provar-a-descricao-do-exercicio.js`, **25 asserções** em cinco blocos: o caso dela ao
-minuto; a consistência (1, 2 e 4 segmentos dão a **mesma** forma de bloco); o documento publicado
-(zero travessões, 16 blocos, todos com a definição em cima); e **dois controlos negativos** — sem
-eles a prova passava com a regra trocada para «subir sempre».
+| prova | asserções | o que mede |
+|:--|--:|:--|
+| `provar-notacao` (versionada, reescrita) | **92** | o alfabeto, a composição, a recusa, o par com o glossário, a migração da notação |
+| `provar-o-mapa-das-provas` (nova) | **14** | o recorte do `correr-provas`, pelo `--listar` dele próprio |
 
-Os controlos precisam de verbetes que o catálogo real não tem, e injetam-se no alfabeto em processo,
-com reposição no `finally`. **O `finally` tinha um defeito que a própria prova apanhou**: guardava as
-chaves como `D` e `E` e apagava `verbetes['D']` — deixava lixo no catálogo a dizer que o limpava. A
-asserção «o alfabeto ficou como estava» é o que o apanhou.
+`provar-o-mapa-das-provas` mede pelo **`--listar` do próprio corredor**, e não por uma
+reimplementação: uma prova que reimplementasse o mapa mediria a reimplementação. E tem os dois
+controlos negativos que distinguem «vê o que deve» de «vê tudo» — um caminho que ninguém cita não
+selecciona prova nenhuma, e um módulo citado por uma prova não selecciona as 293.
 
-**A/B contra o `HEAD` anterior num `git worktree`: 15/25**, com as dez asserções discriminantes a
-reprovar. Sem esse A/B a prova seria uma afirmação sobre o presente, e não uma prova de que o
-defeito existia.
+**Um dos controlos apanhou-se a si mesmo.** O caminho inexistente estava escrito como literal neste
+ficheiro, logo a prova passou a citá-lo e a seleccionar-se a si própria: o controlo negativo media o
+contrário do que dizia. O nome passou a ser composto em tempo de execução.
 
-**O que ficou por fazer, e é declarado.** `experimentos/provar-notacao.js` **já falhava antes desta
-mudança** e continua a falhar: pede o alfabeto **Benesh**, que esta árvore já não tem (a notação
-migrou para «Código de dança» a 18/11/2026). Não está na linha de base, o que quer dizer que o
-`correr-provas` a contava como verde — **e ela não aparece quando se muda o `derivar-ciclo.js`**,
-porque o cita como `path.join(RAIZ, 'motor', 'nucleo', 'derivar-ciclo.js')` e o mapeador do corredor
-procura o caminho literal. Duas coisas a corrigir, nenhuma delas feita aqui.
+**A/B do mapeador, com o `HEAD` anterior num `git worktree`:** o corredor antigo, com o `--verboso`,
+não lista `provar-notacao` para `--mudou=motor/nucleo/derivar-ciclo.js` — **zero** ocorrências. Com o
+mapeador corrigido, **uma**.
 
-Bateria completa: **291 provas, 198 verdes, 93 conhecidas, 0 regressões**. `check-identidade`: 23
-checagens, todas ok. `check-pacote`: 0 erro(s). Âncora recalculada e conferida
-(`ba171852bd3c…`).
+Bateria completa: **293 provas, 200 verdes, 93 conhecidas, 0 regressões**. `check-identidade`: 23
+checagens, todas ok.
 
-**Onde entrou.** `motor/nucleo/derivar-ciclo.js` (a condição de subida),
-`experimentos/provar-a-descricao-do-exercicio.js` (novo), `.gitignore` (a prova versionada),
-`professores/demi-plie/ciclos/ciclo-01-breu-piano-notacao.md` e o pacote (`aula-01.html`,
-`notacao.html`) regerados, `ciclo-01-breu-piano.fipp`, `indices/**`, `ESTADO-ATUAL.md`, `HANDOFF.md`.
+**O que fica por fazer, e é declarado.** O recorte corrigido traz **12 provas a mais** para o
+`pre-commit` em caminhos habituais (`provar-verbete`, `provar-produtos`, `provar-schemas`,
+`provar-musica-do-verbete` entre elas). Quatro dessas já falhavam e **estão na linha de base**, por
+isso não recusam um commit; mas passam a ser corridas — e um dia hão-de ser corrigidas, não
+silenciadas.
+
+**Onde entrou.** `tools/correr-provas.js` (a normalização da referência, o `--mudar=` acumulado e o
+`--listar`), `experimentos/provar-notacao.js` (reescrita e versionada),
+`experimentos/provar-o-mapa-das-provas.js` (nova),
+`experimentos/provar-ciclo-herdado-do-plano.js` (a espera por condição), `.gitignore`,
+`ESTADO-ATUAL.md`, `HANDOFF.md`.
 
 ## O que está pendente
 
