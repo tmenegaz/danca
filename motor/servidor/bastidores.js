@@ -26351,6 +26351,24 @@ function parDaFaixa(sala, id) {
     const modalidadeAntes = String(sala.modalidade || '').trim();
     const trocouOProfessor = professorAntes !== professor;
     const trocouAModalidade = modalidadeAntes !== modalidade;
+    /* O PAR DE UMA FAIXA TAMBÉM É UM GESTO (25/11/2026) — e é o gesto DELA: «coloquei que o
+     * professor também ensina dança contemporânea e vinculei ao segundo horário».
+     *
+     * A CONDIÇÃO ANTERIOR OLHAVA SÓ A RAIZ, e a raiz é o espelho da faixa 1. Mudar o par da faixa 2
+     * respondia `200` e dizia «o par da sala não mudou — não há nada a percorrer»: a Turma daquela
+     * faixa continuava com o plano do professor antigo, sem que ninguém fosse avisado. Medido com a
+     * rota verdadeira antes de mudar. */
+    const paresAntesPorFaixa = new Map(
+      (Array.isArray(sala.faixas) ? sala.faixas : []).map((f) => [String(f.id || ''), {
+        modalidade: String(f.modalidade || '').trim(),
+        professor: String(f.professor || '').trim(),
+      }]));
+    const faixasComParNovo = paresPorFaixa.filter((p) => {
+      const antes = paresAntesPorFaixa.get(p.id);
+      if (!antes) return false;                     // uma faixa nova ainda não tem Turma
+      return antes.professor !== p.professor || antes.modalidade !== p.modalidade;
+    });
+    const trocouOParDeFaixa = faixasComParNovo.length > 0;
 
     sala.professor = professor;
     sala.modalidade = modalidade;
@@ -26395,7 +26413,7 @@ function parDaFaixa(sala, id) {
      * reavaliar — a mesma regra do `turma-derivar`, e pela mesma razão: uma travessia sem alvo
      * escreve um erro no log a cada ajuste. */
     let cadeiaDoPar = { executada: false, motivo: 'o par da sala não mudou — não há nada a percorrer' };
-    if (trocouOProfessor || trocouAModalidade) {
+    if (trocouOProfessor || trocouAModalidade || trocouOParDeFaixa) {
       const turmasDaSala = (await curadorias(kv, escola))
         .filter((c) => c && !c.substituidaPor && turmasDaCuradoria(c).indexOf(sala.nome) !== -1);
       cadeiaDoPar = turmasDaSala.length
@@ -26404,8 +26422,12 @@ function parDaFaixa(sala, id) {
           turmas: [sala.nome],
           motivo: 'o par (modalidade, professor) da sala «' + sala.nome + '» mudou: '
             + (trocouOProfessor ? 'quem a dá passou de «' + (professorAntes || 'ninguém') + '» para «'
-              + professor + '»' : 'a modalidade passou de «' + (modalidadeAntes || 'nenhuma') + '» para «'
-              + modalidade + '»'),
+              + professor + '»'
+              : trocouAModalidade ? 'a modalidade passou de «' + (modalidadeAntes || 'nenhuma') + '» para «'
+                + modalidade + '»'
+                : 'a faixa ' + faixasComParNovo[0].id + ' passou a «'
+                  + (faixasComParNovo[0].modalidade || 'nenhuma modalidade') + ' · '
+                  + (faixasComParNovo[0].professor || 'ninguém') + '»'),
         })
         : { executada: false, motivo: 'nenhuma Turma ocupa esta sala — não há plano nem PO a reavaliar' };
     }

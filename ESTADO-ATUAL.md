@@ -4,8 +4,14 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **as faixas horárias chegaram à tela, e o par passou a ser por
-> faixa.** Cada faixa de uma sala pode ter o seu docente e a sua modalidade — ou o mesmo nas duas, que
+> **Última fotografia:** 25/11/2026 — **a cadeia passou a decidir sobre o docente da faixa, e o par de
+> uma faixa passou a ser um gesto.** Duas correcções minhas, as duas achadas ao percorrer o cenário
+> dela na Sala do Piano — o mesmo professor, Balé na faixa 1 e Contemporâneo na faixa 2. A guarda da
+> autoria lia o docente da **raiz** (espelho da faixa 1) e bloqueava o plano a dizer que o professor
+> «já não a dirige»: falso, ele dirige a faixa 2. E mudar o par de **uma** faixa respondia `200` com
+> «o par da sala não mudou», sem disparar a cadeia. Ambas com controlo negativo. **O que continua
+> medido e por decidir:** as duas Turmas são criadas e os ficheiros do ciclo **colidem** — a variante
+> é `<escola>-<sala>`. Cada faixa de uma sala pode ter o seu docente e a sua modalidade — ou o mesmo nas duas, que
 > é o caso comum. E o «não persistiu» que ela relatou era um defeito meu: o «Derivar» repunha o ritmo
 > só na primeira faixa, e as outras desapareciam ao gravar sem erro nenhum. A aba Salas ganhou o «+»
 > que acrescenta faixas, e a Turma passou a escolher qual ocupa — a funcionalidade existia no servidor
@@ -4467,6 +4473,29 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      professor. Fechar isso exige que a variante carregue a modalidade (ou a faixa), e só toca em
      salas com mais de uma faixa, que são todas de hoje: **o custo de compatibilidade é nulo.**
      **PENDENTE por decisão dela.**
+
+195. **A CADEIA PASSOU A DECIDIR SOBRE O DOCENTE DA FAIXA — e a frase que ela bloqueava era falsa.**
+     `salaDaTurma` devolve a Sala inteira, e a raiz é o espelho da faixa 1. O ritmo já lia a faixa
+     (194/192); a guarda da **autoria** não: comparava o plano com o docente da faixa 1 e, com a Sala
+     dela (Balé na f1, Contemporâneo na f2), bloqueava a etapa a dizer que o professor «já não a
+     dirige» — **falso**, ele dirige a faixa 2. **APLICADO** em `porTurma`, com `salaEfetiva` — a
+     mesma projecção, não uma segunda leitura; uma Sala de uma faixa devolve-se a si própria.
+     **CONFIRMADO** por `provar-o-plano-da-faixa.js` §F (21 asserções), com controlo negativo a
+     correr: revertida a projecção, a frase falsa volta.
+
+196. **MUDAR O PAR DE UMA FAIXA É UM GESTO — e não disparava nada.** A rota comparava a **raiz**;
+     mudar só a faixa 2 devolvia `200` com «o par da sala não mudou — não há nada a percorrer», e a
+     Turma daquela faixa ficava com o plano do professor antigo em silêncio. **APLICADO**: a rota
+     guarda os pares de todas as faixas antes de escrever, compara um a um, e o motivo nomeia a
+     faixa. **MEDIDO** pela rota verdadeira, antes e depois.
+
+197. **MEDIDO COM A SALA DELA, E É MEIO CERTO: as duas Turmas são criadas, os ficheiros colidem.**
+     `demi-plie-bale-classico-piano` (f1) e `demi-plie-danca-contemporanea-piano` (f2), ambas `201`,
+     ids distintos — a regra 194 funciona. E as duas escrevem
+     `professores/demi-plie/ciclos/ciclo-01-breu-piano-plano.md` (`COLIDEM no ficheiro? true`). O
+     pacote gerado (`71eed979`) reflecte só o ritmo da faixa 1. **PENDENTE por decisão dela**: pôr a
+     modalidade (ou a faixa) na variante quando a Sala tem mais de uma faixa; custo de
+     compatibilidade nulo, mas renomeia `.conf`, plano, PO, pasta do pacote e âncora `.fipp`.
 
 188. **A SALA NOVA NÃO PODE CRIAR COLISÃO EM SILÊNCIO — e as mensagens não sugerem resolução.** A
      edição da Sala já corria a cadeia, mas a cadeia relê o ritmo e deriva o plano; **não conferia a

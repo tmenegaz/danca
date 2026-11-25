@@ -40,6 +40,7 @@ const volume = require('../nucleo/volume.js');
 const objetivosDoRepertorio = require('../nucleo/objetivos-do-repertorio.js');
 // O RITMO que a Sala declara, na forma das respostas do plano (09/11/2026).
 const { respostasDoRitmo, acharTurma } = require('./compor-conf.js');
+const ocupacao = require('../nucleo/ocupacao.js');
 /* A pergunta «isto é orçamento?» tem dono — o módulo que conta os subpedidos. Há duas frases
  * para o mesmo facto (a nossa e a do Cloudflare), e aqui elas são FUNDIDAS numa só. */
 const { ehOrcamento } = require('./subpedidos.js');
@@ -880,7 +881,18 @@ function criarCadeia({
   async function porTurma({ turma, curadoria, elenco, quando, motivo, ajusteDeVolume, declaracoes, forcar }) {
     /* A SALA DE HOJE VAI COM O ESTADO (19/11/2026) — é dela que sai a DIREÇÃO, e não da cópia que
      * a curadoria guarda. Uma leitura por alvo, e a mesma que a derivação já fazia para o ritmo. */
-    const sala = await salaDaTurma(turma);
+    /* A SALA PROJECTADA NA FAIXA DESTA TURMA (25/11/2026).
+     *
+     * `salaDaTurma` devolve o registo INTEIRO da sala, e a raiz dele é o espelho da faixa 1. Uma
+     * Turma que ocupa a faixa 2 tem outros dias, outra hora, outra duração — e, quando as faixas
+     * têm pares diferentes, **outro professor e outra modalidade**. Ler a raiz dava à Turma da
+     * faixa 2 o professor da faixa 1: a guarda da autoria (`autoriaIntacta`) recusava a derivação
+     * por «o documento é de outra pessoa», e o plano ficava parado a dizer o nome de quem não dá
+     * aquela aula. É o mesmo defeito do `.conf` e do ritmo, no terceiro leitor.
+     *
+     * A projecção é a mesma função (`salaEfetiva`), e não uma segunda forma de ler: uma sala de uma
+     * faixa devolve-se a si própria, e é isso que deixa tudo o que existe hoje igual. */
+    const sala = ocupacao.salaEfetiva(await salaDaTurma(turma), curadoria && curadoria.faixa);
     const achado = await planoDaTurmaOuDaOrigem(turma, curadoria, sala);
     const plano = achado.plano;
     const po = plano ? await poVigenteDaCadeia(plano.id) : null;

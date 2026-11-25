@@ -23,7 +23,8 @@
  *   B. o ritmo que a cadeia compara — tem de mudar entre faixas, senão a guarda cala-se;
  *   C. o total de aulas do período, que sai do mesmo ritmo;
  *   D. a equivalência: uma Sala de UMA faixa dá exactamente o mesmo que dava antes;
- *   E. os controlos negativos.
+ *   E. os controlos negativos;
+ *   F. a CADEIA — a guarda da autoria também tem de ler a faixa, e não a raiz da Sala.
  */
 
 const path = require('path');
@@ -161,9 +162,160 @@ console.log('\nE. OS CONTROLOS NEGATIVOS');
     O.salaEfetiva(vazia, 'f1') === vazia);
 }
 
-console.log('\n' + (falhas === 0
-  ? 'TUDO CERTO — ' + provas + ' asserções: o plano de ensino lê a duração, os dias e o total de aulas '
-    + 'da FAIXA que a Turma ocupa, o ritmo que a cadeia compara muda com ela, e uma Sala de uma faixa '
-    + 'dá exactamente o que dava antes.'
-  : 'FALHARAM ' + falhas + ' de ' + provas + ' asserções.'));
-process.exit(falhas === 0 ? 0 : 1);
+/* ------------------------------------------------------------------------------------------ */
+
+/* F. A CADEIA TAMBÉM TEM DE LER A FAIXA — e é aqui que ela decidia sobre o professor ERRADO.
+ *
+ * `salaDaTurma` devolve o registo inteiro da Sala, e a raiz desse registo é o espelho da faixa 1.
+ * Os leitores do ritmo já tinham sido corrigidos (§A–§D). A guarda da autoria não: `autoriaIntacta`
+ * compara o professor do plano com `professorEfetivo(curadoria, sala)`, que lia `sala.professor` —
+ * a raiz. Numa Sala cuja faixa 2 tem outro docente, a Turma da faixa 2 era comparada com o docente
+ * da faixa 1, a autoria parecia quebrada, e a derivação parava a dizer «sem turma» sobre um plano
+ * que era, afinal, de quem dá aquela aula.
+ *
+ * O caso é o que a pesquisadora montou a 25/11/2026 na Sala do Piano: o mesmo professor em duas
+ * faixas, com modalidades diferentes. Aqui usa-se um segundo professor de propósito — é a versão
+ * mais dura do mesmo erro. */
+
+function montarCadeiaDaFaixa({ sala, curadorias, plano }) {
+  const fs = require('fs');
+  const path2 = require('path');
+  const porta = require(path2.join(RAIZ, 'motor/nucleo/porta.js'));
+  const { criarMemoria } = require(path2.join(RAIZ, 'motor/nucleo/armazenamento.js'));
+  const { criarCadeia } = require(path2.join(RAIZ, 'motor/servidor/cadeia.js'));
+  const bastidores = require(path2.join(RAIZ, 'motor/servidor/bastidores.js'));
+  const lerF = (p) => JSON.parse(fs.readFileSync(path2.join(RAIZ, 'porta', p), 'utf8'));
+
+  const dados = new Map([['bastidores/prova/curadorias', JSON.stringify(curadorias)]]);
+  const kv = {
+    async get(k) { return dados.has(k) ? dados.get(k) : null; },
+    async put(k, v) { dados.set(k, v); return { ok: true }; },
+    async delete(k) { dados.delete(k); },
+    async list() { return { keys: [...dados.keys()].map((name) => ({ name })), list_complete: true }; },
+  };
+  const arm = criarMemoria();
+  const visto = { planos: [], pos: [] };
+  const cadeia = criarCadeia({
+    armazenamento: arm, porta,
+    conteudo: lerF('conteudo/anamnese.json'),
+    conteudoPlano: lerF('plano/conteudo/plano.json'),
+    conteudoPO: lerF('po/conteudo/po.json'),
+    esquema: lerF('envelope/elicitacao-schema.json'),
+    carimbar: () => '2026-11-25T22:00',
+    escreverPlano: async (e) => { visto.planos.push(e); return { ok: true }; },
+    escreverPO: async (e) => { visto.pos.push(e); return { ok: true }; },
+    escreverCiclo: async () => ({ ok: true, documentos: [{}] }),
+    disparar: async () => ({ ok: true }),
+    geracao: null,
+    concluirPO: async () => ({ fonte: { ok: true }, ciclo: { ok: true }, disparo: { ok: true } }),
+    lerCuradorias: async () => JSON.parse(dados.get('bastidores/prova/curadorias')),
+    lerTurmas: async () => [sala],
+    lerLinhasDeBase: async () => [elencoF],
+    linhaDeBaseDaTurma: async () => elencoF,
+    lerProfessores: async () => [{ nome: 'Novo Professor', slug: 'novo-prof' },
+      { nome: 'Antigo Professor', slug: 'antigo-prof' }],
+    kv, escola: 'prova',
+    urlDaPorta: bastidores.urlDaPorta,
+  });
+  return { cadeia, arm, visto, porta };
+}
+
+const rF = (valor) => ({ valor, origem: 'perguntado', respondente: 'professor', nota: null });
+const elencoF = {
+  id: 'elenco-f', nome: 'Elenco F', professor: 'antigo-prof',
+  alunas: ['Aluna A', 'Aluna B'], campos: [{ id: 'x', nome: 'X' }],
+  carimbo: '20261125-2200', atualizada_em: '2026-11-25T22:00:00.000Z',
+};
+
+function planoDaFaixa2() {
+  const respostas = {
+    'objetivo-geral': rF('sustentar a queda e o contrapeso'),
+    'contexto-professor': rF('antigo-prof'),
+    'contexto-turma': rF('Piano'),
+    'contexto-duracao': rF([{ numero: 70, unidade: 'minuto' }]),
+    'marcos-por-aula': rF(['reconhecer o apoio', 'transferir o peso']),
+    'estrutura-de-cada-aula': rF([{ marco: 1, marcados: ['Barra', 'Centro'] }]),
+    'aula-1-parametro': rF([{ marco: 1, marcados: ['Battement tendu'] }]),
+    'distribuicao-de-volume': rF({ unidade: 'percentual', linhas: [
+      { Bloco: 'Barra', 'Proporção alvo': '40%', Justificativa: 'Apoio.' },
+      { Bloco: 'Centro', 'Proporção alvo': '30%', Justificativa: 'Deslocamento.' },
+      { Bloco: 'Musicalidade', 'Proporção alvo': '10%', Justificativa: 'Pulso.' },
+      { Bloco: 'Expressão', 'Proporção alvo': '20%', Justificativa: 'Braços.' },
+    ] }),
+    'aula-1-sequencia': rF([{ Bloco: 'Barra', 'Objetivo específico': '1 — reconhecer o apoio',
+      'Conteúdo do nível': 'Battement tendu', Tempos: '8', Compasso: '4/4' }]),
+    'condicoes-preliminares': rF('Sala com barra.'),
+    'criterio-de-extensao': rF('Estender em duas aulas.'),
+    referencias: rF('RAD (2015).'),
+    'musicas-videos': rF('Faixa em 4/4.'),
+  };
+  return {
+    id: 'plano-20261124-2300',
+    contexto: { escola: 'prova', professor: 'antigo-prof', ciclo: '01', turma: 'Piano' },
+    respostas, gerado_em: '2026-11-24T23:00',
+  };
+}
+
+const relatorioF = (id) => ({
+  id, estado: 'Input_anamnese_construida',
+  contagem: { respondidos: 0, obrigatorios: 0 }, elos: [], paradas: [], idsDesconhecidos: [],
+  validacao: { resultado: 'aceite', contrato: 'prova' }, errosDoDocumento: [], linhas: [],
+});
+
+/* A SALA COM DUAS FAIXAS E DOIS DOCENTES. A raiz espelha a faixa 1 (docente novo). */
+const SALA_DA_PROVA = {
+  nome: 'Piano', modalidade: 'Balé clássico', professor: 'novo-prof',
+  dias: ['seg', 'qua'], duracaoMin: 55, inicio: '16:00', periodoInicio: '2026-11-03',
+  periodoFim: '2026-12-19',
+  faixas: [
+    { id: 'f1', dias: ['seg', 'qua'], modalidade: 'Balé clássico', professor: 'novo-prof',
+      duracaoMin: 55, inicio: '16:00', periodoInicio: '2026-11-03', periodoFim: '2026-12-19' },
+    { id: 'f2', dias: ['seg', 'qua'], modalidade: 'Dança contemporânea', professor: 'antigo-prof',
+      duracaoMin: 70, inicio: '17:00', periodoInicio: '2026-11-03', periodoFim: '2026-12-19' },
+  ],
+};
+
+function curadoriaDaFaixa2() {
+  return {
+    id: 'antigo-prof-danca-contemporanea-piano', professor: 'antigo-prof',
+    modalidade: 'Dança contemporânea', tradicao: 'Contemporâneo', grau: '', nivel: '2',
+    nivelReferencia: 'Intermediário', turmas: ['Piano'], faixa: 'f2',
+    linhaDeBase: 'elenco-f', linhaDeBaseNome: 'Elenco F',
+    repertorio: [], alunas: ['Aluna A', 'Aluna B'], vigenteDe: '2026-11-24',
+  };
+}
+
+(async () => {
+  console.log('\nF. A CADEIA DECIDE SOBRE O DOCENTE DA FAIXA, NÃO SOBRE O DA FAIXA 1');
+
+  {
+    const { cadeia, arm, porta } = montarCadeiaDaFaixa({
+      sala: SALA_DA_PROVA, curadorias: [curadoriaDaFaixa2()],
+    });
+    await porta.gravarEnvelope(arm, planoDaFaixa2(), relatorioF('plano-20261124-2300'));
+    const r = await cadeia.executar({
+      gatilho: 'troca-de-direcao', turmas: ['Piano'], quando: '2026-11-25',
+    });
+    const alvo = (r.alvos || [])[0] || {};
+    const etapa = (alvo.etapas || []).find((e) => e.chave === 'plano-de-ensino') || {};
+    const falta = String(etapa.falta || '');
+
+    provar('a etapa do plano NÃO acusa autoria quebrada',
+      !/sem turma/.test(falta), { estado: etapa.estado, falta });
+    provar('…nem diz que o plano é de outra pessoa',
+      !/novo-prof/.test(falta), falta);
+    provar('CONTROLO — sem `faixa`, a MESMA Sala dava o docente da faixa 1 e bloqueava',
+      (() => {
+        const semFaixa = Object.assign({}, curadoriaDaFaixa2());
+        delete semFaixa.faixa;
+        return O.salaEfetiva(SALA_DA_PROVA, undefined).professor === 'novo-prof'
+          && semFaixa.faixa === undefined;
+      })());
+  }
+  console.log('\n' + (falhas === 0
+    ? 'TUDO CERTO — ' + provas + ' asserções: o plano de ensino lê a duração, os dias e o total de '
+      + 'aulas da FAIXA que a Turma ocupa, o ritmo que a cadeia compara muda com ela, a guarda da '
+      + 'autoria decide sobre o docente da faixa, e uma Sala de uma faixa dá exactamente o que dava antes.'
+    : 'FALHARAM ' + falhas + ' de ' + provas + ' asserções.'));
+  process.exit(falhas === 0 ? 0 : 1);
+})();

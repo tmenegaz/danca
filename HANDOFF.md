@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-24T23:03:11-0300`
-Commit atual: `90ef34ad` — fix(estrutura): o plano de ensino lia a raiz da sala e não a faixa que a turma ocupa
+Gerado em: `2026-11-24T23:16:47-0300`
+Commit atual: `71eed979` — chore(entrega): gerar o pacote de demi-plie/01/breu-piano
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,9 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+71eed979 chore(entrega): gerar o pacote de demi-plie/01/breu-piano
+371adb16 feat(estrutura): habilitar demi-plie em bale-classico, contemporaneo
+9dd0f44c feat(estrutura): o par não se repete na mesma sala — ou o professor ou a modalidade
 90ef34ad fix(estrutura): o plano de ensino lia a raiz da sala e não a faixa que a turma ocupa
 8b8a1745 chore(entrega): gerar o pacote de demi-plie/01/breu-piano
 8d703b00 fix(estrutura): a guarda da derivação da Turma não recebia a faixa escolhida
@@ -99,9 +102,6 @@ dfbaf973 docs(estrutura): o custo por aula é 3 minutos medidos, o contador cust
 7f834e90 feat(estrutura): os schemas do ciclo passam de cinco commits a um, e a analítica do Cloudflare já está habilitada
 c179465f fix(estrutura): a implementação do lote, que o commit anterior não levou
 1251dd90 feat(estrutura): o ato passa a custar um commit, e não quatro
-e803f8a0 fix(estrutura): o monitoramento deixou de reler o mês a cada abertura
-0692e5a0 feat(estrutura): o §7.1 não existe (e aqui não ajudaria), e o aviso do ponto de migração
-c1199018 feat(estrutura): a escada aplicada, o simulado das extensões e a política de mora
 ```
 
 ## Por professor
@@ -243,6 +243,56 @@ modalidade difere**», que é a letra da regra nova.
 **Onde entrou.** `motor/nucleo/ocupacao.js` (`parRepetidoNaSala`), `motor/servidor/bastidores.js` (a
 conferência no ciclo dos pares, em `turma-professor`), `experimentos/provar-a-ocupacao.js` (H2),
 `experimentos/provar-o-ciclo-das-faixas.js` (H), `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+### 25/11/2026 — a cadeia decide sobre o docente da faixa, e o par de UMA faixa passa a ser um gesto
+
+**Duas correcções, as duas encontradas ao percorrer o cenário real dela na Sala do Piano** — o mesmo
+professor, duas faixas, «Balé clássico» na primeira e «Dança contemporânea» na segunda, criado hoje.
+
+**A primeira: a guarda da autoria lia o docente da faixa 1.** `salaDaTurma` devolve o registo
+inteiro da Sala, e a raiz desse registo é o **espelho da faixa 1**. Os leitores do **ritmo** já
+tinham sido corrigidos com `salaEfetiva` (capítulo anterior); a guarda da autoria não. Resultado,
+medido: com a Sala acima e uma Turma na faixa 2, a cadeia comparava o plano — que é de
+`antigo-prof`, o docente da faixa 2 — com o docente da **faixa 1**, concluía que a autoria estava
+quebrada, e bloqueava a etapa com esta frase:
+
+> O plano de ensino desta Turma é de «antigo-prof», que já não a dirige. A autoria não se reescreve:
+> o documento continua a ser dele, e passa a «sem turma».
+
+**A frase é falsa**: ele dirige a faixa 2. E é a pior espécie de falso — uma recusa que parece
+fundamentada, sobre um plano que estava certo.
+
+**A correcção é a mesma projecção, no terceiro leitor.** `porTurma` passa a fazer
+`salaEfetiva(await salaDaTurma(turma), curadoria.faixa)`. Não é uma segunda forma de ler: é a mesma
+função, e uma Sala de uma faixa devolve-se a si própria (identidade preservada, nada migra).
+
+**A segunda: mudar o par de UMA faixa não disparava a cadeia.** A rota `turma-professor` comparava
+`sala.professor` e `sala.modalidade` — a **raiz**, que espelha a faixa 1. O gesto dela — «coloquei
+que o professor também ensina dança contemporânea e vinculei ao segundo horário» — devolvia `200` e
+a resposta dizia, textualmente:
+
+> `{"executada": false, "motivo": "o par da sala não mudou — não há nada a percorrer"}`
+
+A Turma daquela faixa continuava com o plano do professor antigo, sem aviso nenhum. Agora a rota
+guarda os pares de **todas** as faixas antes de escrever e compara um a um; se alguma mudou, a cadeia
+corre, e o motivo nomeia a faixa.
+
+**A prova.** `provar-o-plano-da-faixa.js` ganhou a secção **F** — a versão dura do caso dela, com
+**dois docentes diferentes** nas duas faixas (**21** asserções no total). O controlo negativo foi
+feito a correr: revertendo a projecção, a asserção «a etapa do plano NÃO acusa autoria quebrada»
+reprova com exactamente a frase acima. A detecção do par foi medida pela rota verdadeira antes e
+depois: `200` + «o par da sala não mudou» → `200` + cadeia disparada.
+
+**Onde entrou.** `motor/servidor/cadeia.js` (`porTurma` projecta a faixa), `motor/servidor/bastidores.js`
+(`paresAntesPorFaixa`, `faixasComParNovo`, `trocouOParDeFaixa` e o motivo), `experimentos/provar-o-plano-da-faixa.js` (F),
+`ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+**O que continua por decidir, e é o mesmo de antes:** os **ficheiros** do ciclo continuam a colidir
+quando o professor é o mesmo. Medido hoje com a Sala dela: as duas Turmas são criadas (`201`, ids
+distintos) e ambas escrevem
+`professores/demi-plie/ciclos/ciclo-01-breu-piano-plano.md`. Fechar isso exige pôr a modalidade (ou a
+faixa) na **variante**, quando a Sala tem mais de uma faixa; o custo de compatibilidade é nulo, mas
+renomeia `.conf`, plano, PO, pasta do pacote e âncora `.fipp` — **decisão dela, e não minha.**
 
 ## O que está pendente
 
