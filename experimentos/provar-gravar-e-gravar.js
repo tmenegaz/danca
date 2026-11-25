@@ -111,9 +111,17 @@ async function principal() {
   /* A CONTA É DA MARCAÇÃO, E NÃO DA PÁGINA INTEIRA (20/11/2026). O painel serve um script que
    * CONSTRÓI marcação — o modal da duração nasce dele, e o botão dele também diz «Gravar». Contar a
    * página inteira passaria a dar nove por uma razão correcta, e a asserção acusaria o contrário do
-   * que quer dizer. Duas contas, cada uma no seu sítio: oito na marcação, e a do modal no script. */
+   * que quer dizer. Duas contas, cada uma no seu sítio: oito na marcação, e a do modal no script.
+   *
+   * OS BLOCOS SÃO REMOVIDOS UM A UM, E NÃO POR CONCATENAÇÃO (25/11/2026). Aqui fazia-se
+   * `html.split(oScript(html)).join('')`, e isso só vale enquanto a página tiver UM bloco de
+   * script: com dois, o que `oScript` devolve é a junção deles, essa string não existe no HTML, o
+   * `split` não acha nada e a «marcação» passa a ser a página inteira. Foi o que aconteceu — a
+   * conta subiu de 8 para 10 no dia em que a página ganhou um segundo `<script>`. Remover cada
+   * bloco pelos seus delimitadores mede o que a asserção diz medir, e não depende de quantos
+   * blocos a página tenha. */
   const scriptDaPagina = oScript(html);
-  const marcacao = html.split(scriptDaPagina).join('');
+  const marcacao = html.replace(/<script(?![^>]*\bsrc=)[^>]*>[\s\S]*?<\/script>/g, '');
   const ocorrencias = (marcacao.match(/>Gravar</g) || []).length;
   provar('o rótulo aparece exactamente oito vezes na marcação', ocorrencias === 8, ocorrencias);
   const noScript = (scriptDaPagina.match(/>Gravar</g) || []).length;

@@ -1692,6 +1692,15 @@ experimentos/modelo-formulario/*
 # aceita http(s). 79 asserções, com cinco controlos negativos a correr.
 !experimentos/provar-a-cobranca-pix.js
 
+# O BOTÃO «COPIAR», NUM SÍTIO SÓ (25/11/2026). A rotina do `[data-copiar]` vivia dentro do script da
+# Produção e só dele: as páginas do mês a mês e do financeiro emitiam o botão e não tinham quem o
+# escutasse — «clico no botão copiar e ele não copia nada». Passou a `motor/nucleo/copiar.js`, e é
+# essa a única implementação. A prova conta os blocos por página (dois registos do mesmo ouvinte
+# fazem o botão piscar), copia de facto em jsdom nas três, e mede a reserva sem `navigator.clipboard`
+# e o rótulo que volta a «Copiar» — o bug antigo lia o `textContent` a cada clique e, a dois cliques
+# rápidos, deixava o botão a dizer «Copiado» para sempre.
+!experimentos/provar-o-copiar.js
+
 # O FINANCEIRO QUE FICA (23/11/2026, à tarde). A regra de 17/11 era o contrário — expurgar a escola
 # levava as mensalidades dela —, e ela corrigiu: «A parte financeira não pode expurgar, ela fica
 # para histórico. E aí a gente diz numa linha seguinte que essa escola foi expurgada.» O livro vive

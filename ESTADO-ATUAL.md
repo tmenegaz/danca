@@ -4,10 +4,14 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **a cobrança pode ser um link, e o cliente carrega nele para
+> **Última fotografia:** 25/11/2026 — **o «Copiar» é uma rotina só, e agora copia nas três páginas em
+> que o botão existe.** Ele era a peça que faltava: a rotina vivia no script da Produção e as páginas
+> do mês a mês e do financeiro emitiam o botão sem ninguém para o escutar — o clique não tinha
+> destino. Passou a `motor/nucleo/copiar.js`, servida às três, com o rótulo de origem guardado uma
+> vez e a reserva por selecção quando não há `navigator.clipboard`. E o «Pagar no banco» saiu da
+> coluna da cobrança do financeiro, por decisão dela — fica onde a escola paga. Antes disso, no mesmo dia: **a cobrança pode ser um link, e o cliente carrega nele para
 > pagar.** O banco gera um endereço além do documento copia-e-cola, e o botão «Pagar no banco»
-> aparece nos três sítios onde a cobrança vive: o financeiro (vivo, enquanto ela cola), o «Pagar» da
-> escola e o «mês a mês». O padrão é um só — emitido no script do cliente a partir do módulo —, a
+> aparece onde a escola paga: o «Pagar» e o «mês a mês». O padrão é um só — emitido no script do cliente a partir do módulo —, a
 > validação é o `URL` (o mesmo parser nos dois lados) e só `http`/`https` passam. Antes disso, no
 > mesmo dia: **a cobrança Pix passou a ter uma coluna onde ela cola o documento do banco, e o
 > documento reaparece onde a escola paga.** `financeiro/cobrancas` é uma
@@ -4578,6 +4582,22 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      o endereço de administração viajar para fora. **PROVADO** pela secção G de
      `provar-a-cobranca-pix.js` (**79** no total), com jsdom a medir os quatro estados do link e cinco
      controlos negativos.
+
+202. **O «COPIAR» ERA UM SÓ, E O LINK SAIU DO FINANCEIRO.** Ela descreveu uma assimetria exacta: «o
+     botão de copiar que copia a chave pix funciona […]. Agora o que está aqui em ver mês a mês não
+     funciona». **A causa não era a cópia, era o OUVINTE:** a rotina do `[data-copiar]` vivia dentro
+     do script da Produção e só dele — as páginas do mês a mês e do financeiro emitiam o botão e
+     **não tinham quem escutasse o clique** (medido: zero registos nas duas). **APLICADO:** a rotina
+     passou a `motor/nucleo/copiar.js`, servida às **três** páginas — incluindo a Produção, cuja
+     cópia inline saiu. Três ganhos medidos: o **rótulo de origem** é guardado uma vez (a versão
+     antiga lia o `textContent` a cada clique e, a dois cliques rápidos, deixava o botão preso em
+     «Copiado»); `setSelectionRange` (Safari de telemóvel copiava meia cobrança — **declarado: esta
+     não a consegui medir**, o jsdom não a distingue, e a asserção é estrutural); e a guarda contra
+     dois registos do mesmo ouvinte. **O LINK SAIU DO FINANCEIRO**, decisão dela: «não precisa disso»
+     — a coluna é onde ela cola e guarda, o acto de pagar é da escola. **Consequência declarada:** o
+     link deixou de ser «vivo enquanto se cola» (era o único sítio), e aparece depois de gravar, no
+     «Pagar» e no mês a mês. **PROVADO** por `provar-o-copiar.js` (**31**, novo) com quatro controlos
+     negativos a correr.
 
 188. **A SALA NOVA NÃO PODE CRIAR COLISÃO EM SILÊNCIO — e as mensagens não sugerem resolução.** A
      edição da Sala já corria a cadeia, mas a cadeia relê o ritmo e deriva o plano; **não conferia a

@@ -458,6 +458,8 @@ const comercialDoNucleo = require('../nucleo/comercial.js');
  * painel da proprietária: a dívida de uma escola é uma conta só, e duas contas dariam duas. */
 const mensalidadesDoNucleo = require('../nucleo/mensalidades.js');
 const cobrancasDoNucleo = require('../nucleo/cobrancas.js');
+/* O BOTÃO «COPIAR», NÚMERO UM (25/11/2026) — ver `motor/nucleo/copiar.js`. */
+const { SCRIPT_DO_COPIAR } = require('../nucleo/copiar.js');
 const fusoDoNucleo = require('../nucleo/fuso.js');
 
 /** Um sal aleatório (16 bytes) em hex — para nunca guardar a senha em claro. */
@@ -6199,6 +6201,10 @@ function paginaFinanceiro(escola, contexto, aparencia, dados) {
     '</div></div>' +
     '<script>' + SCRIPT_DAS_FUNCOES_DO_MENU + SCRIPT_DO_GESTO_DO_MENU + '</script>' +
     '<script>' + paginacao.script + '</script>' +
+    /* O «COPIAR» DESTA PÁGINA (25/11/2026). Ele emitia o botão e não tinha quem o escutasse — «o
+     * botão copiar não funciona, precisa consertar isso». A rotina é a do módulo, a mesma das
+     * outras duas páginas: aqui não se escreve uma segunda. */
+    '<script>' + SCRIPT_DO_COPIAR + '</script>' +
     fimDaVista();
 }
 
@@ -21911,38 +21917,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '});' +
     'document.addEventListener("keydown", function(e){ if (e.key === "Escape") fecharPaineis(null); });' +
-    /* OS DOIS GESTOS DA ESCOLA (17/11/2026). Ficam aqui, ao lado do ouvinte que abre as caixas,
-     * porque é do mesmo assunto: o que uma caixa faz quando é pedida.
+    /* ABRIR A CAIXA INDICADA (17/11/2026) — o «Pagar» do painel da Situação não é uma quarta caixa
+     * da fila: é um botão que pede à caixa «Pagar» que se abra. Um `.trio-item` dentro de um painel
+     * abriria um painel a partir de outro, e a fila passaria a dizer que há quatro.
      *
-     * 1. COPIAR A CHAVE PIX — «coloca ali um botãozinho desse de copiar, igual a gente tem quando
-     *    vai gerar a chave do GitHub». O `navigator.clipboard` é o caminho; quando ele não existe
-     *    ou é negado (contexto inseguro, permissão), o campo é seleccionado e o
-     *    `execCommand("copy")` faz o mesmo. O botão diz «Copiado» por 1,6s — sem resposta, a
-     *    pessoa carrega outra vez a pensar que não funcionou.
-     *
-     * 2. ABRIR A CAIXA INDICADA — o «Pagar» do painel da Situação não é uma quarta caixa da fila:
-     *    é um botão que pede à caixa «Pagar» que se abra. Um `.trio-item` dentro de um painel
-     *    abriria um painel a partir de outro, e a fila passaria a dizer que há quatro. */
+     * O «COPIAR» SAIU DAQUI A 25/11/2026, e a razão é o defeito que esta semana se pagou: ele vivia
+     * neste script e só neste. As outras duas páginas emitiam o `[data-copiar]` sem ouvinte — o
+     * botão do mês a mês e o do financeiro não copiavam nada. A rotina passou a
+     * `motor/nucleo/copiar.js`, servida às três páginas: uma implementação, e não uma por sítio. */
     'document.addEventListener("click", function(e){' +
-    '  var copiar = e.target.closest ? e.target.closest("[data-copiar]") : null;' +
-    '  if (copiar) {' +
-    '    var campo = document.getElementById(copiar.getAttribute("data-copiar"));' +
-    '    if (!campo) return;' +
-    '    var marcar = function(){' +
-    '      var antes = copiar.textContent;' +
-    '      copiar.textContent = "Copiado";' +
-    '      setTimeout(function(){ copiar.textContent = antes; }, 1600);' +
-    '    };' +
-    '    var escolher = function(){' +
-    '      campo.focus(); campo.select();' +
-    '      try { document.execCommand("copy"); } catch (err) { /* o campo fica seleccionado */ }' +
-    '      marcar();' +
-    '    };' +
-    '    if (navigator.clipboard && navigator.clipboard.writeText) {' +
-    '      navigator.clipboard.writeText(campo.value).then(marcar, escolher);' +
-    '    } else { escolher(); }' +
-    '    return;' +
-    '  }' +
     '  var pedido = e.target.closest ? e.target.closest("[data-abre]") : null;' +
     '  if (!pedido || pedido.tagName === "A") return;' +
     '  var cartao = pedido.closest("li");' +
@@ -23727,6 +23710,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * que a pintura pode ser a verdadeira. */
     'if (typeof pintarExcluires === "function") pintarExcluires();' +
     '</script>' +
+    /* O «COPIAR» — A ROTINA ÚNICA (25/11/2026). Ela já viveu dentro do script acima, e só ali: as
+     * duas outras páginas emitiam o botão e não tinham quem o escutasse. Passa a ser um `<script>`
+     * próprio, servido daqui e das outras duas, para não haver duas cópias a divergir. */
+    '<script>' + SCRIPT_DO_COPIAR + '</script>' +
     // O PREENCHEDOR NÃO ENTRA MAIS AQUI (19/11/2026) — ver a nota no alto de `paginaProducao`.
     // Ele continua a ser servido em `/scripts/teste-preenchimento.js` e injetado nas páginas da
     // porta; o que deixou de existir é a versão que preenchia os formulários da Produção.

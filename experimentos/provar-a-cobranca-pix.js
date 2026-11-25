@@ -28,8 +28,11 @@
  *   D. a PÁGINA DA ESCOLA — o conteúdo por baixo da chave, e nada quando não há nada;
  *   E. o MÊS A MÊS — a coluna «Pagar» passou a ser a do Pix;
  *   F. os controlos negativos;
- *   G. o LINK DO BANCO — reconhecido, mostrado nos três sítios, e escondido quando o que está
- *      guardado é um documento copia-e-cola.
+ *   G. o LINK DO BANCO — reconhecido, mostrado no «Pagar» da escola e no mês a mês, e escondido
+ *      quando o que está guardado é um documento copia-e-cola. No FINANCEIRO não há link, por
+ *      decisão dela;
+ *   (O botão «Copiar» tem prova própria: `provar-o-copiar.js`. Ele é um assunto — a rotina é uma
+ *   só e serve três páginas —, e um defeito dele não deve aparecer como um defeito da cobrança.)
  *
  *   node experimentos/provar-a-cobranca-pix.js
  */
@@ -397,41 +400,23 @@ function situacaoComMesAberto(extra) {
       })],
       catalogo: comercial.catalogoDaPagina(),
     });
-    provar('o script do cliente recebe o PADRÃO do servidor, e não uma segunda regex',
-      htmlDoFinanceiro.indexOf('new RegExp(' + JSON.stringify(cobrancas.PADRAO_DA_URL)) !== -1,
-      (htmlDoFinanceiro.match(/new RegExp\([^)]*\)/) || [''])[0]);
-    provar('…e o cliente valida com o mesmo `URL` do servidor, aceitando só http(s)',
-      /new URL\(/.test(htmlDoFinanceiro) && /protocol==="https:"/.test(htmlDoFinanceiro));
-  }
-
-  {
-    /* O FINANCEIRO — «vai aparecer lá no meu financeiro como link também quando eu colar». */
-    const comLink = painel.paginaFinanceira({
-      pix: {}, descontos: [], escolas: [],
-      extrato: [Object.assign({}, situacaoComMesAberto(), {
-        escola: 'breu', nome: 'Breu', frase: 'x',
-        cobrancas: { [MES]: { texto: URL_DO_BANCO } },
-      })],
-      catalogo: comercial.catalogoDaPagina(),
-    });
-    const etiqueta = (comLink.match(/<a[^>]*data-cobranca-link="breu-2026-11"[^>]*>/) || [''])[0];
-    provar('o financeiro mostra o link do banco quando o que está guardado é um link',
-      /href="https:\/\/nubank\.com\.br\/cobrar\//.test(etiqueta), etiqueta);
-    provar('…abre numa janela nova', /target="_blank"/.test(etiqueta), etiqueta);
-    provar('…e não entrega o endereço desta página ao banco (`noopener noreferrer`)',
-      /rel="noopener noreferrer"/.test(etiqueta), etiqueta);
-
-    const semLink = painel.paginaFinanceira({
-      pix: {}, descontos: [], escolas: [],
-      extrato: [Object.assign({}, situacaoComMesAberto(), {
-        escola: 'breu', nome: 'Breu', frase: 'x',
-        cobrancas: { [MES]: { texto: PAYLOAD } },
-      })],
-      catalogo: comercial.catalogoDaPagina(),
-    });
-    const etiquetaMuda = (semLink.match(/<a[^>]*data-cobranca-link="breu-2026-11"[^>]*>/) || [''])[0];
-    provar('com um documento copia-e-cola, o link fica ESCONDIDO — e não a apontar para nada',
-      /\shidden/.test(etiquetaMuda) && !/href/.test(etiquetaMuda), etiquetaMuda);
+    /* O FINANCEIRO JÁ NÃO TEM O LINK, E É DECISÃO DELA (25/11/2026)
+     *
+     * «Não precisa do botão pagar no banco na tabela que você mostra no danca.padd.com.br financeiro
+     * na coluna cobrança. Não precisa disso.»
+     *
+     * Estas três asserções mediam o contrário até hoje — que o link aparecia aqui, que abria numa
+     * janela nova e que levava `noopener noreferrer`. Foram REESCRITAS, e não apagadas: o que se
+     * passa a afirmar é a ausência, e ela precisa de guarda porque o link continua a existir nas
+     * outras duas páginas e é fácil voltar a pô-lo aqui por simetria. */
+    provar('o financeiro NÃO mostra o botão «Pagar no banco» na coluna da cobrança',
+      htmlDoFinanceiro.indexOf('data-cobranca-link') === -1
+      && htmlDoFinanceiro.indexOf('Pagar no banco') === -1);
+    provar('…e o script do cliente deixou de trazer o reconhecedor do link, que ali não serve',
+      htmlDoFinanceiro.indexOf('padraoDaUrl') === -1
+      && htmlDoFinanceiro.indexOf('new RegExp(' + JSON.stringify(cobrancas.PADRAO_DA_URL)) === -1);
+    provar('…mas o campo da cobrança e o botão de copiar continuam lá',
+      /id="cob-breu-2026-11"/.test(htmlDoFinanceiro));
   }
 
   {
@@ -481,51 +466,11 @@ function situacaoComMesAberto(extra) {
       !/Pagar no banco/.test(semLink) && /mes-pix-2026-11/.test(semLink));
   }
 
-  {
-    /* O LINK É VIVO — «como link também QUANDO EU COLAR». A página não recarrega ao gravar, e por
-     * isso o link tem de nascer da própria tecla: é o que este bloco mede, em jsdom. */
-    let jsdom = null;
-    try { jsdom = require('jsdom'); } catch (e) { jsdom = null; }
-    if (!jsdom) {
-      console.log('  NÃO FEITO — sem jsdom nesta máquina; o link vivo não corre.');
-    } else {
-      const html = painel.paginaFinanceira({
-        pix: {}, descontos: [], escolas: [],
-        extrato: [Object.assign({}, situacaoComMesAberto(), {
-          escola: 'breu', nome: 'Breu', frase: 'x', cobrancas: {},
-        })],
-        catalogo: comercial.catalogoDaPagina(),
-      });
-      const dom = new jsdom.JSDOM(html, {
-        runScripts: 'dangerously', url: 'https://danca.padd.com.br/financeiro',
-      });
-      const d = dom.window.document;
-      const campo = d.getElementById('cob-breu-2026-11');
-      const link = d.querySelector('[data-cobranca-link="breu-2026-11"]');
-      const escrever = (v) => {
-        campo.value = v;
-        campo.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
-      };
-      provar('ao abrir, o campo está vazio e o link escondido', !!campo && !!link && link.hidden === true,
-        link && link.hidden);
-      escrever(PAYLOAD);
-      provar('colar um documento copia-e-cola deixa o link escondido', link.hidden === true, link.hidden);
-      escrever(URL_DO_BANCO);
-      provar('colar o link do banco MOSTRA o botão, com o endereço certo',
-        link.hidden === false && link.getAttribute('href') === URL_DO_BANCO,
-        { oculto: link.hidden, href: link.getAttribute('href') });
-      escrever('');
-      provar('apagar o campo volta a escondê-lo', link.hidden === true
-        && !link.hasAttribute('href'), link.hidden);
-      dom.window.close();
-    }
-  }
-
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + provas + ' asserções: ela cola o Pix do banco na coluna do mês, a cobrança '
       + 'reaparece por baixo da chave no «Pagar» da escola e na coluna do mês a mês, com as quebras '
       + 'de linha intactas — e um mês sem cobrança continua a ter o caminho para a chave. O LINK do '
-      + 'banco é reconhecido e mostrado nos três sítios, e um Pix copia-e-cola não vira botão.'
+      + 'banco é reconhecido e mostrado onde a escola paga, e um Pix copia-e-cola não vira botão.'
     : 'FALHARAM ' + falhas + ' de ' + provas + ' asserções.'));
   process.exit(falhas === 0 ? 0 : 1);
 })();

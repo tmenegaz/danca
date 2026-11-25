@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-25T07:35:46-0300`
-Commit atual: `34bf75f4` — feat(estrutura): a cobranca Pix ganha uma coluna, e o documento reaparece onde a escola paga
+Gerado em: `2026-11-25T07:54:58-0300`
+Commit atual: `d6d0533a` — feat(estrutura): a cobranca pode ser um link, e o cliente carrega nele para pagar
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+d6d0533a feat(estrutura): a cobranca pode ser um link, e o cliente carrega nele para pagar
 34bf75f4 feat(estrutura): a cobranca Pix ganha uma coluna, e o documento reaparece onde a escola paga
 bc7d6e5e feat(estrutura): o contrato do financeiro diz a franquia, tem memoria e uma data
 cfe41518 chore(entrega): gerar o pacote de demi-plie/01/breu-piano
@@ -101,7 +102,6 @@ b6e85dd7 fix(estrutura): a cadeia decide sobre o docente da faixa, e o par de um
 71eed979 chore(entrega): gerar o pacote de demi-plie/01/breu-piano
 371adb16 feat(estrutura): habilitar demi-plie em bale-classico, contemporaneo
 9dd0f44c feat(estrutura): o par não se repete na mesma sala — ou o professor ou a modalidade
-90ef34ad fix(estrutura): o plano de ensino lia a raiz da sala e não a faixa que a turma ocupa
 ```
 
 ## Por professor
@@ -580,6 +580,58 @@ cobrança, que aparece primeiro no `for=` do rótulo — passou a comparar com a
 **Onde entrou.** `motor/nucleo/cobrancas.js` (`PADRAO_DA_URL`, `urlDaCobranca`, e o `url` derivado em
 `cobrancaDe`/`emAberto`), `motor/servidor/painel-html.js` (a célula do financeiro, o link e o cliente),
 `motor/servidor/bastidores.js` (`painelDoPixDaEscola` e a coluna do mês a mês),
+`experimentos/provar-a-cobranca-pix.js`, `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+### 25/11/2026 — o «Copiar» era um só, e o link sai do financeiro
+
+**O que ela descreveu, e é um diagnóstico exacto:** «Quando eu clico no botão copiar, que ele é copiar
+o pix desse mês, ele não copia nada, não funciona. Se eu selecionar o texto todo e aí clicar em copiar
+também não funciona. […] O botão de copiar que copia a chave pix funciona e inclusive ele tem uma
+mensagem depois que clica em copiar que é copiado e isso é bom.»
+
+**A causa não era a cópia — era o OUVINTE, e a assimetria que ela viu era o sintoma.** A rotina do
+`[data-copiar]` vivia **dentro do script da Produção**, e só dele. As páginas do mês a mês e do
+financeiro emitiam o botão — a marcação estava lá, o campo estava lá — e **nenhuma delas tinha quem
+escutasse o clique**. Seleccionar o texto e carregar em «Copiar» também não fazia nada, porque o
+clique continuava a não ter destino. Medido: zero registos de `[data-copiar]` nas duas páginas.
+
+**A correcção é a da casa: uma implementação, num sítio.** `motor/nucleo/copiar.js` emite o script, e
+as três páginas servem-no — incluindo a Produção, cuja cópia inline **saiu**. Duas implementações
+divergem na primeira correcção, e a que sobrar é sempre a que ninguém leu.
+
+**Três coisas que a rotina ganhou ao ser escrita de novo, e cada uma por um defeito medido:**
+
+1. **o rótulo de origem é guardado UMA vez** (`data-rotulo`). A versão antiga lia o `textContent` a
+   cada clique: dois cliques rápidos e o «antes» passava a ser «Copiado» — o botão ficava a dizer isso
+   para sempre. É o controlo que prova a correcção, e ele morde;
+2. **`setSelectionRange`** depois do `select()`. Num `<textarea>` de telemóvel o Safari selecciona a
+   primeira linha e copia metade da cobrança. **Declaro que esta não a consegui medir**: no jsdom o
+   `select()` já põe a selecção inteira, e o controlo negativo provou-o — a asserção é estrutural, e
+   o motivo fica dito;
+3. **a guarda contra dois registos** (`window.__copiarLigado`). Duas cópias do ouvinte na mesma
+   página dizem «Copiado» e voltam atrás duas vezes.
+
+**O LINK SAIU DO FINANCEIRO, por decisão dela:** «Não precisa do botão pagar no banco na tabela que
+você mostra no danca.padd.com.br financeiro na coluna cobrança. Não precisa disso.» A razão é de
+quem usa o ecrã: a coluna do financeiro é onde **ela cola** o documento e o guarda; o acto de pagar é
+da escola. O link continua onde ela o aprovou — o «Pagar» da escola e o mês a mês. **Consequência
+declarada:** o link deixa de ser «vivo enquanto se cola» (era o único sítio onde isso acontecia), e
+passa a aparecer depois de gravar. O reconhecedor do lado do cliente saiu do financeiro com ele.
+
+**As provas.** `provar-o-copiar.js`, **novo, 31 asserções**: o módulo (texto válido e as três
+guardas), as três páginas servindo a rotina **uma vez** e sendo a do módulo, a cópia de facto em
+jsdom nas três (com as quebras de linha), o «Copiado» que volta ao rótulo, a reserva sem
+`navigator.clipboard`, e os controlos negativos. **Quatro controlos negativos a correr**: financeiro
+sem a rotina (o defeito original), sem a guarda do rótulo, sem o `setSelectionRange`, e a Produção a
+manter a cópia antiga.
+
+`provar-a-cobranca-pix.js` ficou com **72** (era 87 com a secção H, que passou a prova própria — o
+botão é um assunto, e um defeito dele não deve aparecer como um defeito da cobrança). Três asserções
+suas sobre o link no financeiro foram **reescritas, não apagadas**: passam a afirmar a ausência.
+
+**Onde entrou.** `motor/nucleo/copiar.js` (novo), `motor/servidor/painel-html.js` (a rotina, e o link
+fora da coluna), `motor/servidor/bastidores.js` (a rotina nas duas páginas, e a cópia inline da
+Produção removida), `experimentos/provar-o-copiar.js` (novo),
 `experimentos/provar-a-cobranca-pix.js`, `ESTADO-ATUAL.md`, `HANDOFF.md`.
 
 ## O que está pendente
