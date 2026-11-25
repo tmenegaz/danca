@@ -61995,3 +61995,76 @@ suas sobre o link no financeiro foram **reescritas, não apagadas**: passam a af
 fora da coluna), `motor/servidor/bastidores.js` (a rotina nas duas páginas, e a cópia inline da
 Produção removida), `experimentos/provar-o-copiar.js` (novo),
 `experimentos/provar-a-cobranca-pix.js`, `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+### 25/11/2026 — a conciliação volta, e a cobrança que cobra menos deixa de se oferecer
+
+**O que ela viu.** «Só que apagou o botão que confirma se a escola pagou ou não a mensalidade, que é o
+resultado da conciliação. Precisa voltar com esse botão.» E o desenho que pediu: «acrescenta uma
+coluna que é da situação, do status do pagamento da escola, que tem esse botão».
+
+**O botão não tinha desaparecido do código — e é isso que torna o diagnóstico útil.** Ele estava numa
+coluna própria, «Pago / ação», à direita de «Situação». A coluna da cobrança, criada no mesmo dia, é
+larga (um `<textarea>` com o documento do banco), e a tabela passou a rolar na horizontal: a ação saiu
+do campo de visão. Uma coluna que só se vê rolando de lado não existe para quem olha. As duas diziam
+a mesma coisa — «como está este mês» — e passaram a ser **uma**: o selo, a data quando há, a mora
+quando há, e o botão quando não há. **Seis colunas em vez de sete**, e a ação onde o olho já está.
+
+**O mês vencido passou a dizer «atrasado».** «Aquele que estiver inadimplente, que ainda não pagou e já
+venceu […] ele vai indicar que está atrasado.» «Em aberto» diz que falta pagar e não diz que o prazo
+passou — e num extrato de dinheiro essa é a informação que se procura. **A página da ESCOLA mantém
+«em aberto» de propósito**: lá quem lê é quem deve, e a palavra de cobrança é do painel.
+
+**O mês pago não se reescreve**, e é uma regra do motor e não da tela: a cobrança fica à vista em
+leitura (é o registo do que foi entregue), sem «Gravar» nem «Copiar» no financeiro, sem «Pagar no
+banco» nem «Copiar» no mês a mês — e a rota recusa uma cobrança nova sobre um mês pago com **409**. Um
+segundo clique em «Marcar pago» **não move a data do pagamento** (`manterSeJaPago` → `jaPago: true`,
+sem escrita): a data é o que se confere contra o extrato do banco, e um duplo clique não pode
+reescrevê-la.
+
+**A pergunta que ela deixou aberta — «impedir que a pessoa pague o valor menor» — ficou em duas
+provas.** O documento Pix é EMV: pares `ID + comprimento + valor`, e o campo **54** é o valor. Quando
+ele existe, o valor é fixo e quem paga não o muda no aplicativo; quando não existe, o código é de
+valor aberto. `cobrancas.valorDaCobranca` lê-o, e `cobrancas.situacaoDaCobranca` decide com **duas
+provas, porque uma só não chega**:
+
+1. **o valor legível** — se a cobrança pede a mensalidade ou menos, num mês vencido, é a antiga, e a
+   mora não está lá. Esta prova vence a outra: uma cobrança colada depois do vencimento mas com o
+   valor cheio é um engano, e não uma correção;
+2. **a data da emissão** — emitida depois de o mês vencer, a cobrança nasceu com o atraso à frente. É
+   esta que salva o caso de todo o código sem valor legível (um link, ou um documento sem o campo 54),
+   que de outro modo ficaria bloqueado **sem saída** — não haveria como gerar um que fosse legível.
+
+A comparação é com a **mensalidade**, e não com o devido de hoje: os juros são pro rata die, e uma
+cobrança emitida hoje com a mora de hoje fica «um dia curta» amanhã. Comparada com a base, continua a
+servir; o que falta vai dito, e acerta-se na conciliação.
+
+**A mesma regra vale nas três páginas**, e essa é a parte que evita o caminho mais fácil: o mês a mês e
+o financeiro mostram o motivo e o valor a gerar, e **a caixa «Pagar» da escola deixa de mostrar a
+cobrança antiga** — bastaria abrir o sítio da escola, onde ela aparece por baixo da chave, para pagar
+menos. No financeiro, o aviso aparece **onde ela cola**: «o código colado pede R$ A; o devido hoje é
+R$ B».
+
+**O que isto NÃO resolve, e fica declarado.** Um código que já saiu do sistema continua a ser pagável
+no aplicativo do banco. Isso é uma propriedade do Pix, não do software, e nenhuma página o muda. O que
+o sistema garante é **não o oferecer**. Para garantir o valor — e não só não o oferecer — o caminho é
+outro, e está proposto, não feito: uma **cobrança com vencimento pela API Pix do banco**, em que o
+banco calcula multa e juros e o QR nasce único por `txid`, com prazo. Exige certificado mTLS e
+credenciais, e é uma dependência externa nova.
+
+**As provas.** `provar-a-cobranca-pix.js` **79 → 99** (secção H, nova: o leitor do valor, os seis
+estados, as três páginas, e um controlo negativo por regra — incluindo o campo 54 truncado, que tem de
+devolver «não sei» e não um palpite). `provar-conciliacao-do-painel.js` **35 → 47** (secções 6 e 7: a
+coluna única com o botão dentro, e o mês pago a não se pagar outra vez — nem por clique, nem por
+`POST` à mão). Duas fixtures destas provas passaram a levar o `em` da cobrança, que é um facto que
+`gravarNoMapa` sempre gravou e que agora **decide** se a cobrança serve. Em `provar-financeiro-da-
+escola`, duas asserções foram **reescritas, não apagadas**: a do selo («em aberto» → «atrasado») e a do
+rótulo do botão, que passou a tolerar o `title` novo. **A contagem de falhas dessa prova continua 7**,
+as mesmas da linha de base — comparado com a árvore em `git worktree` no `HEAD`.
+
+**Onde entrou.** `motor/nucleo/cobrancas.js` (`valorDaCobranca`, `situacaoDaCobranca`, e `emAberto` a
+usar a mesma regra), `motor/nucleo/mensalidades.js` (`manterSeJaPago`), `motor/servidor/painel-html.js`
+(a coluna única e a célula em leitura), `motor/servidor/bastidores.js` (o mês a mês e a caixa da
+escola), `motor/servidor/raiz.js` (os dois guardas: 409 na cobrança de um mês pago, e `jaPago`),
+`experimentos/provar-a-cobranca-pix.js`, `experimentos/provar-conciliacao-do-painel.js`,
+`experimentos/provar-o-copiar.js`, `experimentos/provar-financeiro-da-escola.js`, `ESTADO-ATUAL.md`,
+`HANDOFF.md`.

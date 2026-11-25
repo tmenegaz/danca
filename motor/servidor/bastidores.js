@@ -5967,9 +5967,14 @@ function paginaFinanceiro(escola, contexto, aparencia, dados) {
   const linha = (m) => {
     const pago = m.status === 'pago';
     const vencido = !pago && m.venceu;
+    /* «ATRASADO», E NÃO «EM ABERTO» (25/11/2026). «Aquele que estiver inadimplente, que ainda não
+     * pagou e já venceu […] ele vai indicar que está atrasado.» «Em aberto» diz que falta pagar e
+     * não diz que o prazo passou — e num extrato de dinheiro essa é a informação que se procura.
+     * A etiqueta da PÁGINA DA ESCOLA continua «em aberto»: lá quem lê é quem deve, e o painel é
+     * onde a palavra de cobrança tem lugar. */
     const selo = pago
       ? '<span class="selo ok">pago</span>'
-      : (vencido ? '<span class="selo falha">em aberto</span>'
+      : (vencido ? '<span class="selo falha">atrasado</span>'
         : '<span class="selo discreto">a vencer</span>');
     const valor = 'R$ ' + emReaisDoCartao(pago ? m.valorPagoCentavos : m.valorCentavos);
     /* O «PAGAR» DE CADA LINHA (17/11/2026). «Para aqueles meses que já estão pagos, o botão de
@@ -6013,21 +6018,59 @@ function paginaFinanceiro(escola, contexto, aparencia, dados) {
      * banco de mexer nesta, e `noreferrer` não deixa o endereço desta página viajar para fora. */
     const urlDaCobranca = cobranca && cobranca.texto
       ? cobrancasDoNucleo.urlDaCobranca(cobranca.texto) : null;
+    /* A COBRANÇA SERVE, OU NÃO? (25/11/2026). A regra é do NÚCLEO
+     * (`cobrancas.situacaoDaCobranca`), e não desta página: o financeiro faz a mesma pergunta e
+     * tem de receber a mesma resposta.
+     *
+     *   · mês PAGO → o documento fica à vista, em leitura, e não há o que carregar nem copiar;
+     *   · mês ATRASADO com a cobrança ANTIGA (sem a mora) → também não se oferece: oferecê-la
+     *     seria oferecer o valor menor, que é exactamente o que ela pediu para evitar;
+     *   · mês atrasado com a cobrança NOVA (com a mora) → serve, e diz o que ainda falta, se falta.
+     *
+     * O que a célula mostra quando não serve é o MOTIVO, escrito pelo núcleo. Um botão apagado sem
+     * explicação manda adivinhar, e num ecrã de dinheiro adivinhar custa caro. */
+    const estadoDaCobranca = cobrancasDoNucleo.situacaoDaCobranca({
+      texto: cobranca && cobranca.texto,
+      valorBaseCentavos: pago ? m.valorPagoCentavos : m.valorCentavos,
+      devidoCentavos: (!pago && m.encargos) ? m.encargos.totalCentavos : null,
+      pago,
+      venceu: vencido,
+      salvoEm: cobranca && cobranca.em,
+      vencimento: m.vencimento,
+    });
     let acao;
     if (cobranca && cobranca.texto) {
-      acao = (urlDaCobranca
-        ? '<p><a class="acao pequena" href="' + esc(urlDaCobranca) + '" target="_blank"'
-          + ' rel="noopener noreferrer"'
-          + ' title="abrir a cobrança no banco, numa janela nova">Pagar no banco</a></p>'
-        : '')
-        + '<p class="par-associar">'
+      const documento = '<p class="par-associar">'
         + '<textarea id="' + idCobranca + '" rows="3" readonly aria-label="Pix da mensalidade de '
         + esc(m.nome) + '">' + esc(cobranca.texto) + '</textarea>'
-        + '<button type="button" class="acao secundario pequena" data-copiar="' + idCobranca + '"'
-        + ' title="copiar o Pix deste mês">Copiar</button></p>';
+        + (estadoDaCobranca.serve
+          ? '<button type="button" class="acao secundario pequena" data-copiar="' + idCobranca + '"'
+            + ' title="copiar o Pix deste mês">Copiar</button>'
+          : '')
+        + '</p>';
+      if (!estadoDaCobranca.serve) {
+        acao = documento + '<p class="sub">' + esc(estadoDaCobranca.motivo) + '</p>';
+      } else {
+        acao = (urlDaCobranca
+          ? '<p><a class="acao pequena" href="' + esc(urlDaCobranca) + '" target="_blank"'
+            + ' rel="noopener noreferrer"'
+            + ' title="abrir a cobrança no banco, numa janela nova">Pagar no banco</a></p>'
+          : '')
+          + documento
+          + (estadoDaCobranca.faltaCentavos > 0
+            ? '<p class="sub">A cobrança é de R$ '
+              + esc(cobrancasDoNucleo.reaisDe(estadoDaCobranca.valorCentavos))
+              + ' e o devido hoje é R$ '
+              + esc(cobrancasDoNucleo.reaisDe(estadoDaCobranca.devidoCentavos))
+              + ' — a diferença acerta-se na conciliação.</p>'
+            : '');
+      }
     } else if (pago) {
       acao = '<span class="sub">—</span>';
     } else {
+      /* SEM COBRANÇA NUM MÊS ATRASADO, O CAMINHO É O DA CHAVE — e é o que a escola vê. A cobrança
+       * com a mora do mês ainda não existe: ela nasce no financeiro, quando a proprietária a gera
+       * no banco e a cola. */
       acao = '<a class="acao pequena" href="/bastidores/estudio?abrir=pagar#a-escola"'
         + ' title="abrir a chave Pix para pagar este mês">Pagar</a>';
     }

@@ -215,8 +215,11 @@ function kvCom(dados) {
       /data-conta="teste"/.test(html) && /novembro de 2026/.test(html) && /outubro de 2026/.test(html), null);
     conferir('…o mês pago mostra a data em que foi pago',
       /19\/10\/2026 às 07:00/.test(html), null);
+    /* O BOTÃO PASSOU A TER UM `title` (25/11/2026) — «confirmar que o pagamento deste mês entrou» —,
+     * e a asserção exigia os dois atributos colados ao `>`. O que se afirma é o que interessa: o
+     * botão do mês, na linha certa, com o rótulo do gesto. Os atributos entre eles são marcação. */
     conferir('…e o mês em aberto tem o botão «Marcar pago»',
-      /data-pagar="teste" data-mes="2026-11">Marcar pago/.test(html), null);
+      /data-pagar="teste"[^>]*data-mes="2026-11"[^>]*>Marcar pago</.test(html), null);
     conferir('…e o mês pago NÃO tem botão nenhum — «não pago» não existe',
       !/data-pagar="teste" data-mes="2026-10"/.test(html), null);
     conferir('a página diz que a escola está em aberto', /Em aberto/.test(html), null);
@@ -715,7 +718,11 @@ function kvCom(dados) {
      * desaparecesse linha a linha ler-se-ia como avaria. */
     const pagarDe = (tr) => tr.children[4].querySelector('button, a');
     const pagas = linhas.filter((tr) => /pago/.test(tr.children[3].textContent.trim()));
-    const abertas = linhas.filter((tr) => /em aberto/.test(tr.children[3].textContent.trim()));
+    /* O SELO DE UM MÊS VENCIDO PASSOU A DIZER «ATRASADO» (25/11/2026) — «aquele que estiver
+     * inadimplente […] vai indicar que está atrasado». Era «em aberto», que diz que falta pagar e
+     * não diz que o prazo passou; num extrato de dinheiro essa é a informação que se procura. A
+     * asserção mudou de palavra, não de sujeito: continua a ser a linha do mês vencido. */
+    const atrasadas = linhas.filter((tr) => /atrasado/.test(tr.children[3].textContent.trim()));
     /* O MÊS PAGO NÃO TEM BOTÃO NENHUM (25/11/2026), e a regra de 17/11 que aqui estava deixou de
      * valer: «o botão de pagar fica visível, mas desabilitado» era a letra ANTES de a coluna passar
      * a ser a do Pix. Agora a célula de um mês pago mostra o documento com que ele foi pago, e não
@@ -726,12 +733,12 @@ function kvCom(dados) {
         const b = pagarDe(tr);
         return !b && /—/.test(tr.children[4].textContent);
       }), { pagas: pagas.length });
-    conferir('…e o do mês em aberto está HABILITADO, e leva à caixa do Pix da listagem da escola',
-      abertas.length > 0 && abertas.every((tr) => {
+    conferir('…e o do mês ATRASADO está HABILITADO, e leva à caixa do Pix da listagem da escola',
+      atrasadas.length > 0 && atrasadas.every((tr) => {
         const b = pagarDe(tr);
         return b && b.tagName === 'A' && /^pagar$/i.test(b.textContent.trim())
           && /\/bastidores\/producao\?abrir=pagar#a-escola$/.test(b.getAttribute('href'));
-      }), { abertas: abertas.length });
+      }), { atrasadas: atrasadas.length });
 
     conferir('…e há um caminho de volta para a escola',
       /href="\/bastidores\/producao#a-escola"/.test(paginaDoMes), null);

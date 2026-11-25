@@ -44,7 +44,12 @@ const paginacao = require('../nucleo/paginacao.js');
  *
  * O RECONHECEDOR DO LINK já não é necessário nesta página (25/11/2026): ela deixou de mostrar o
  * «Pagar no banco» na coluna da cobrança — «não precisa disso». O link vive onde a escola paga
- * (o «Pagar» e o mês a mês), e essas duas páginas leem-no pelo módulo `cobrancas.js`. */
+ * (o «Pagar» e o mês a mês), e essas duas páginas leem-no pelo módulo `cobrancas.js`.
+ *
+ * O `cobrancas.js` VOLTA AQUI A 25/11/2026, e por outro motivo: esta página passou a LER O VALOR do
+ * código colado (`valorDaCobranca`) para dizer se ele cobre a mora do mês. É a mesma função que o
+ * mês a mês usa para decidir se a cobrança serve — uma regra, um sítio, como a do link. */
+const cobrancasDoNucleo = require('../nucleo/cobrancas.js');
 const { SCRIPT_DO_COPIAR } = require('../nucleo/copiar.js');
 
 /**
@@ -1824,11 +1829,23 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
      * que se perde quando o painel é dobrado e redesenhado.
      *
      * A ESCOLA EXPURGADA NÃO TEM COLUNA: o registo comercial dela já não existe, e a rota recusa
-     * gravar sobre uma escola desconhecida. Mostrar o campo seria oferecer um gesto que falha. */
+     * gravar sobre uma escola desconhecida. Mostrar o campo seria oferecer um gesto que falha.
+     *
+     * O MÊS PAGO NÃO SE REESCREVE (25/11/2026). «Quando eu clicar em pagar, está pago […] a coluna
+     * da cobrança pix […] fica desabilitado.» O documento fica À VISTA — é o registo do que foi
+     * entregue, e o passado não se apaga —, mas o campo não aceita edição e o botão de gravar
+     * desaparece: uma cobrança nova sobre um mês pago seria uma segunda cobrança do mesmo mês, e o
+     * ecrã estaria a convidar a ela. O `readonly` deixa copiar; o `disabled` no botão tira o gesto.
+     *
+     * O MÊS ATRASADO DIZ QUANTO É PRECISO COLAR (25/11/2026) — é o aviso no sítio onde ela cola, e
+     * é a resposta prática ao «impedir que a pessoa pague o valor menor». O valor que o código
+     * colado pede é LIDO do próprio documento (`cobrancas.valorDaCobranca`), e a linha diz se ele
+     * cobre o devido hoje. Quem cola vê o erro antes de o enviar. */
     const celulaDaCobranca = (m) => {
       if (expurgada) return '<td><span class="sub">—</span></td>';
       const guardada = (c.cobrancas && c.cobrancas[m.mes]) ? String(c.cobrancas[m.mes].texto || '') : '';
       const id = 'cob-' + esc(c.escola) + '-' + esc(m.mes);
+      const pago = m.status === 'pago';
       /* SEM O BOTÃO «PAGAR NO BANCO» AQUI (25/11/2026) — é decisão dela, e é a desta coluna.
        *
        * «Não precisa do botão pagar no banco na tabela que você mostra no danca.padd.com.br
@@ -1840,22 +1857,93 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
        *
        * O QUE FICA: o campo com o documento e o botão que o copia. Um botão a mais nesta célula
        * era um caminho a abrir a cobrança para fora de um ecrã de administração. */
+      const conferencia = guardada
+        ? cobrancasDoNucleo.situacaoDaCobranca({
+          texto: guardada,
+          valorBaseCentavos: m.valorPagoCentavos != null ? m.valorPagoCentavos : m.valorCentavos,
+          devidoCentavos: (!pago && m.encargos) ? m.encargos.totalCentavos : null,
+          pago,
+          venceu: !pago && Boolean(m.venceu),
+          salvoEm: c.cobrancas && c.cobrancas[m.mes] ? c.cobrancas[m.mes].em : null,
+          vencimento: m.vencimento,
+        })
+        : null;
+      /* A FRASE DO VALOR, só quando há o que dizer: no mês a vencer não se acrescenta ruído; no mês
+       * atrasado, o número que o código pede e o que é devido hoje; e um código sem valor fixo é
+       * dito — «é um link» ou «não traz o valor» — porque é isso que explica não haver como
+       * conferir. */
+      let notaDoValor = '';
+      if (conferencia && conferencia.valorCentavos != null && m.venceu && !pago) {
+        notaDoValor = '<p class="sub">O código colado pede R$ '
+          + esc(cobrancasDoNucleo.reaisDe(conferencia.valorCentavos)) + '; o devido hoje é R$ '
+          + esc(cobrancasDoNucleo.reaisDe(conferencia.devidoCentavos)) + '.</p>';
+      } else if (conferencia && conferencia.valorCentavos == null && m.venceu && !pago
+        && conferencia.estado === 'sem-valor') {
+        notaDoValor = '<p class="sub">Este código não tem valor fixo legível — não há como conferir '
+          + 'se cobre a mora (R$ ' + esc(cobrancasDoNucleo.reaisDe(conferencia.devidoCentavos))
+          + ' hoje).</p>';
+      }
       return '<td>' +
         '<textarea id="' + id + '" rows="2"'
+        + (pago ? ' readonly aria-readonly="true"' : '')
         + ' placeholder="cole aqui o Pix que o banco gerou para este mês">'
         + esc(guardada) + '</textarea>' +
-        '<p class="par-associar">' +
-        '<button class="acao pequena secundario" type="button" disabled'
-        + ' data-cobranca-gravar="' + esc(c.escola) + '" data-mes="' + esc(m.mes) + '"'
-        + ' data-cobranca-assinatura="' + esc(guardada) + '"'
-        + ' title="gravar a cobrança deste mês">Gravar</button>' +
-        (guardada
-          ? '<button class="acao pequena secundario" type="button"'
-            + ' data-copiar="' + id + '" title="copiar o Pix deste mês">Copiar</button>'
-          : '') +
-        '</p>' +
+        (pago
+          ? '<p class="sub">Mês pago — a cobrança fica como registo.</p>'
+          : '<p class="par-associar">' +
+            '<button class="acao pequena secundario" type="button" disabled'
+            + ' data-cobranca-gravar="' + esc(c.escola) + '" data-mes="' + esc(m.mes) + '"'
+            + ' data-cobranca-assinatura="' + esc(guardada) + '"'
+            + ' title="gravar a cobrança deste mês">Gravar</button>' +
+            (guardada
+              ? '<button class="acao pequena secundario" type="button"'
+                + ' data-copiar="' + id + '" title="copiar o Pix deste mês">Copiar</button>'
+              : '') +
+            '</p>') +
+        notaDoValor +
         '<p class="aviso" data-cobranca-recado="' + esc(c.escola) + '-' + esc(m.mes) + '" hidden></p>' +
         '</td>';
+    };
+
+    /* A CÉLULA «SITUAÇÃO» — O ESTADO E O GESTO NO MESMO SÍTIO (25/11/2026).
+     *
+     * «Apagou o botão que confirma se a escola pagou ou não a mensalidade, que é o resultado da
+     * conciliação. Precisa voltar com esse botão. […] acrescenta uma coluna que é da situação, do
+     * status do pagamento da escola, que tem esse botão.»
+     *
+     * O BOTÃO NÃO TINHA DESAPARECIDO DO CÓDIGO — e é isso que torna o diagnóstico interessante: ele
+     * estava numa coluna própria, «Pago / ação», à direita de «Situação», e a coluna da cobrança
+     * (larga, com `<textarea>`) empurrou a tabela para lá do ecrã. Uma coluna que só se vê rolando
+     * de lado é uma coluna que não existe para quem olha. As duas diziam a mesma coisa — «como está
+     * este mês» — e passam a ser UMA: o selo, a data quando há, e o botão quando não há.
+     *
+     * É TAMBÉM UMA COLUNA A MENOS: sete colunas numa tabela que rola é o que faz a ação sair do
+     * campo de visão. */
+    const celulaDaSituacao = (m) => {
+      if (m.status === 'pago') {
+        return '<td><span class="selo ok">pago</span>'
+          + (m.emTexto ? ' <span class="dono">' + esc(m.emTexto) + '</span>' : '')
+          + (m.planoNome ? '<br><span class="sub">' + esc(m.planoNome) + '</span>' : '')
+          + '</td>';
+      }
+      const selo = m.venceu
+        ? '<span class="selo falha">atrasado</span>'
+        : '<span class="selo discreto">a vencer</span>';
+      /* OS ENCARGOS AO LADO DO ESTADO, e não numa coluna nova: uma coluna a mais numa tabela que já
+       * rola é o que faz o valor que interessa sair do ecrã. O mês em atraso diz quanto a mais, e
+       * diz a NORMA — a escola que pergunta «de onde vem isto?» tem a resposta na mesma célula. */
+      const mora = (m.encargos && m.encargos.encargosCentavos > 0)
+        ? '<br><span class="sub">+' + reaisDeCentavos(m.encargos.encargosCentavos)
+          + ' de mora (' + m.encargos.diasDeAtraso + ' dia(s): multa '
+          + reaisDeCentavos(m.encargos.multaCentavos) + ' + juros '
+          + reaisDeCentavos(m.encargos.jurosCentavos) + ')</span>'
+        : '';
+      const botao = expurgada
+        ? ''
+        : '<br><button class="acao pequena" type="button" data-pagar="' + esc(c.escola) + '"'
+          + ' data-mes="' + esc(m.mes) + '"'
+          + ' title="confirmar que o pagamento deste mês entrou">Marcar pago</button>';
+      return '<td>' + selo + mora + botao + '</td>';
     };
 
     const linhas = meses.map((m) => '<tr data-mes="' + esc(m.mes) + '">' +
@@ -1865,36 +1953,16 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
       '<td>' + (m.valorPagoCentavos != null
         ? 'R$ ' + emReais(m.valorPagoCentavos)
         : (m.valorCentavos ? 'R$ ' + emReais(m.valorCentavos) : '—')) + '</td>' +
-      '<td>' + (m.status === 'pago'
-        ? '<span class="selo ok">pago</span> <span class="dono">' + esc(m.emTexto || '') + '</span>'
-        : (m.venceu
-          ? '<span class="selo falha">em aberto</span>'
-            /* OS ENCARGOS AO LADO DO ESTADO, e não numa coluna nova (25/11/2026): uma oitava coluna
-             * numa tabela que já rola é o que faz o valor que interessa sair do ecrã. O mês em
-             * atraso diz quanto a mais, e diz a NORMA — a escola que pergunta «de onde vem isto?»
-             * tem a resposta na mesma célula. */
-            + (m.encargos && m.encargos.encargosCentavos > 0
-              ? '<br><span class="sub">+' + reaisDeCentavos(m.encargos.encargosCentavos)
-                + ' de mora (' + m.encargos.diasDeAtraso + ' dia(s): multa '
-                + reaisDeCentavos(m.encargos.multaCentavos) + ' + juros '
-                + reaisDeCentavos(m.encargos.jurosCentavos) + ')</span>'
-              : '')
-          : '<span class="selo discreto">a vencer</span>')) + '</td>' +
-      '<td>' + (m.status === 'pago'
-        ? (m.planoNome ? esc(m.planoNome) : '—')
-        : (expurgada
-          ? '<span class="sub">—</span>'
-          : '<button class="acao pequena" type="button" data-pagar="' + esc(c.escola) + '"'
-            + ' data-mes="' + esc(m.mes) + '">Marcar pago</button>')) + '</td>' +
+      celulaDaSituacao(m) +
       celulaDaCobranca(m) +
       '</tr>').join('');
 
     const corpoDaTabela = linhas
       ? '<div class="rolagem-caixa"><table><thead><tr><th>Mês</th><th>Escola</th>' +
-        '<th>Vencimento</th><th>Valor</th><th>Situação</th><th>Pago / ação</th>' +
-        /* A COLUNA NOVA FICA NO FIM, e não ao lado do «Marcar pago»: as duas são gestos dela, mas o
-         * «pago» é a conciliação (o dinheiro entrou) e a cobrança é a entrega do documento (o
-         * dinheiro ainda não entrou). Encostá-las faria confundir uma com a outra. */
+        '<th>Vencimento</th><th>Valor</th><th>Situação</th>' +
+        /* A COLUNA DA COBRANÇA FICA NO FIM, e continua a ser outro assunto: o «pago» é a
+         * conciliação (o dinheiro entrou) e a cobrança é a entrega do documento (o dinheiro ainda
+         * não entrou). Encostá-las faria confundir uma com a outra. */
         (expurgada ? '' : '<th>Cobrança (Pix)</th>') +
         '</tr></thead><tbody>' + linhas + '</tbody></table></div>'
       : (expurgada

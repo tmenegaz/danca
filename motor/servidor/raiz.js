@@ -4843,10 +4843,16 @@ async function fetch(request, env) {
       plano: contrato && contrato.plano,
       planoNome: contrato && contrato.planoNome,
       por: 'proprietario',
+      /* UM SEGUNDO CLIQUE NÃO REWRITE A DATA (25/11/2026). «Impedir que pague de novo» é o pedido,
+       * e a parte que o servidor garante é esta: o mês já está pago, o registo fica como está, e a
+       * resposta diz `jaPago`. A data do pagamento é o que se confere contra o extrato do banco — um
+       * duplo clique não pode movê-la. */
+      manterSeJaPago: true,
     });
     if (!feito.ok) return responderJson({ ok: false, erro: feito.erro }, 400);
     return responderJson({
       ok: true,
+      jaPago: Boolean(feito.jaPago),
       pagamento: Object.assign({}, feito.pagamento, {
         emTexto: fuso.quandoLocal(feito.pagamento.em),
       }),
@@ -4969,6 +4975,31 @@ async function fetch(request, env) {
     try { contrato = await lerComercial(kv, slug); } catch (erro) { contrato = null; }
     if (!contrato || !contrato.plano) {
       return responderJson({ ok: false, erro: 'escola desconhecida: «' + slug + '» não tem contrato' }, 400);
+    }
+    /* UM MÊS PAGO NÃO RECEBE COBRANÇA NOVA (25/11/2026). «Quando eu clicar em pagar, está pago […]
+     * a coluna da cobrança pix […] fica desabilitado.» A página já desenha o campo em leitura; esta
+     * guarda é o que torna a regra do MOTOR, e não da tela — um `POST` escrito à mão não a contorna.
+     *
+     * É a mesma disciplina do `ehEscrita` da escola suspensa: a interface evita, o servidor garante.
+     * Sem ela, uma cobrança nova sobre um mês pago seria uma segunda cobrança do mesmo mês, e a
+     * escola poderia pagar duas vezes o mesmo período. */
+    const competenciaPedida = cobrancasDoNucleo.competenciaDe(corpo.mes);
+    if (!competenciaPedida) {
+      return responderJson({
+        ok: false,
+        erro: 'o mês da cobrança tem de vir no formato AAAA-MM (ex.: 2026-11)',
+      }, 400);
+    }
+    const livro = await mensalidades.lerLivro(kv).catch(() => []);
+    const jaPago = (Array.isArray(livro) ? livro : [])
+      .some((l) => l && l.escola === slug && l.mes === competenciaPedida);
+    if (jaPago) {
+      return responderJson({
+        ok: false,
+        erro: 'o mês ' + competenciaPedida + ' já está pago — a cobrança dele fica como registo e '
+          + 'não se reescreve. Um mês pago não se cobra outra vez.',
+        jaPago: true,
+      }, 409);
     }
     const mapa = await lerCobrancas(kv);
     const mudanca = cobrancasDoNucleo.gravarNoMapa(mapa, {

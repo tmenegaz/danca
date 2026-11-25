@@ -83,6 +83,160 @@ function normalizarTexto(texto) {
 }
 
 /**
+ * QUANTO É QUE ESTE CÓDIGO PEDE — o valor que está DENTRO do documento Pix (25/11/2026).
+ *
+ * A PERGUNTA QUE ISTO RESPONDE, e é a dela: «eu ainda não sei uma solução para isso, para impedir
+ * que a pessoa pague o valor menor. Ela vai ter que pagar o valor maior.»
+ *
+ * O Pix copia-e-cola é um texto EMV®QRCPS-MPM: pares `ID (2 dígitos) + comprimento (2 dígitos) +
+ * valor`. O campo **54** é o valor da transação, em reais com ponto decimal. Quando ele existe, o
+ * valor é FIXO — quem paga não o muda no aplicativo do banco. Quando não existe, o código é de
+ * valor ABERTO, e quem paga escolhe quanto transfere.
+ *
+ * É ESSA A DIFERENÇA QUE O ECRÃ PRECISA DE SABER, e é por isso que este leitor existe:
+ *
+ *   · valor conhecido e abaixo do devido → a cobrança é a ANTIGA (sem a mora), e ela não serve;
+ *   · valor conhecido e igual ou acima do devido → é a cobrança nova, e serve;
+ *   · valor desconhecido → um código sem valor fixo não garante nada, e o ecrã diz isso em vez de
+ *     fingir que garante.
+ *
+ * O QUE ELE NÃO FAZ: não impede ninguém de pagar um código que já recebeu. Isso não é uma
+ * propriedade do sistema — é uma propriedade do Pix, e está dito em `motivo` quando o código não
+ * serve. O que o sistema pode fazer é não OFERECER o código que cobra menos.
+ *
+ * Devolve **cêntimos**, como todo o dinheiro deste repositório, ou `null` quando o texto não é um
+ * documento legível ou não traz valor.
+ */
+function valorDaCobranca(texto) {
+  /* O documento do banco vem com quebras de linha quando se copia da tela dele, e essas quebras
+   * fazem parte do texto guardado (é o que se cola no aplicativo). Aqui elas não contam: o
+   * percurso dos campos é sobre a sequência, e um `\n` no meio de um campo não é um carácter do
+   * EMV. Removem-se todos os espaços, que é o que um «copiar» de telemóvel acrescenta. */
+  const bruto = String(texto == null ? '' : texto).replace(/\s+/g, '');
+  if (!bruto) return null;
+  let i = 0;
+  while (i + 4 <= bruto.length) {
+    const id = bruto.slice(i, i + 2);
+    const comprimento = bruto.slice(i + 2, i + 4);
+    if (!/^[0-9]{2}$/.test(id) || !/^[0-9]{2}$/.test(comprimento)) return null;
+    const fim = i + 4 + Number(comprimento);
+    /* Um comprimento que passa do fim é um documento TRUNCADO — e um documento truncado não se
+     * cola no banco. Devolver `null` é a resposta certa: «não sei o valor», e não um palpite. */
+    if (fim > bruto.length) return null;
+    if (id === '54') {
+      const numero = Number(bruto.slice(i + 4, fim));
+      if (!Number.isFinite(numero) || numero <= 0) return null;
+      return Math.round(numero * 100);
+    }
+    i = fim;
+  }
+  return null;
+}
+
+/**
+ * A COBRANÇA DE UM MÊS SERVE, OU NÃO — e porquê (25/11/2026).
+ *
+ * É a regra que decide se a página mostra o botão que leva ao banco, o «Copiar», e o texto — ou se
+ * o mostra em leitura, com a razão escrita. UM SÍTIO, porque as duas páginas que desenham cobrança
+ * (o mês a mês e o financeiro) têm de dar a mesma resposta à mesma pergunta: duas respostas
+ * divergiriam no dia em que uma fosse corrigida.
+ *
+ * O QUE ESTÁ EM JOGO, e é a pergunta dela: «para impedir que a pessoa pague o valor menor. Ela vai
+ * ter que pagar o valor maior.» Um mês que venceu continua a aceitar o código antigo em qualquer
+ * aplicativo de banco — isso é do Pix, e não há software que o mude. O que se pode fazer, e é o que
+ * esta função faz, é NÃO OFERECER o código que cobra menos: a página desabilita-o e diz o valor
+ * certo a gerar.
+ *
+ * AS DUAS PROVAS, e é preciso as duas. Uma cobrança salva ANTES de o mês vencer é, por construção, a
+ * do valor cheio — quem a gerou não tinha mora para incluir. E um código cujo valor é legível diz
+ * por si: se pede mais do que a mensalidade, leva a mora; se pede a mensalidade ou menos, é o
+ * antigo. Uma prova só não chega:
+ *
+ *   · só pela DATA, uma cobrança regerada depois do vencimento passaria mesmo que ela tivesse colado
+ *     a antiga outra vez;
+ *   · só pelo VALOR, todo o código sem valor fixo (um link, ou um documento sem o campo) ficaria
+ *     bloqueado para sempre — e bloqueado sem saída, porque não há como gerar um que seja legível.
+ *
+ * OS SEIS ESTADOS:
+ *
+ *   · `sem-cobranca` — não há nada colado. Não serve, mas também não há o que dizer.
+ *   · `pago`         — o mês está pago. O documento fica à vista como registo, e não há o que pagar.
+ *   · `a-vencer`     — mês em aberto e ainda no prazo. Serve: é a cobrança que se entrega.
+ *   · `com-mora`     — mês vencido, e a cobrança foi emitida já com o atraso (ou pede mais do que a
+ *                      mensalidade). Serve; se ficou aquém do devido de hoje, a diferença vai dita.
+ *   · `sem-mora`     — mês vencido e o código pede a mensalidade ou menos: é o ANTIGO. Não serve.
+ *   · `sem-valor`    — mês vencido, sem valor legível, e emitida antes do vencimento. Não se pode
+ *                      provar que leva a mora. Não serve — e o ecrã diz o valor a gerar.
+ *
+ * `valorBaseCentavos` é a mensalidade do mês; `devidoCentavos` é o que se cobra hoje com a mora
+ * (`m.encargos.totalCentavos`). A comparação com a BASE — e não com o devido — é a decisão que evita
+ * um ecrã a piscar: os juros são pro rata die, e uma cobrança emitida hoje com a mora de hoje fica
+ * «um dia curta» amanhã. Comparada com a base, ela continua a servir; o que falta acerta-se na
+ * conciliação, e o número do que falta vai dito.
+ */
+function situacaoDaCobranca({ texto, valorBaseCentavos, devidoCentavos, pago, venceu,
+  salvoEm, vencimento } = {}) {
+  const valorNoCodigo = valorDaCobranca(texto);
+  const base = Math.max(0, Math.round(Number(valorBaseCentavos) || 0));
+  const devido = Math.max(0, Math.round(Number(devidoCentavos) || 0)) || base;
+  /* `faltaCentavos` NÃO entra aqui: ele é a diferença que só existe no estado `com-mora`, e um
+   * `Object.assign` com ele em `comum` apagava-o — foi assim que a primeira versão dizia «falta
+   * R$ 0,00» sobre uma cobrança de R$ 72,00 num mês que devia R$ 72,70. */
+  const comum = {
+    valorCentavos: valorNoCodigo, baseCentavos: base, devidoCentavos: devido,
+  };
+  if (!String(texto == null ? '' : texto).trim()) {
+    return Object.assign({ estado: 'sem-cobranca', serve: false, motivo: null }, comum);
+  }
+  if (pago) {
+    return Object.assign({
+      estado: 'pago', serve: false,
+      motivo: 'Mês pago — a cobrança fica à vista como registo do que foi entregue.',
+    }, comum);
+  }
+  if (!venceu) {
+    return Object.assign({ estado: 'a-vencer', serve: true, motivo: null }, comum);
+  }
+  /* 1. O VALOR QUE PROVA QUE FALTA A MORA. Comparado com a BASE, e não com o devido: um código de
+   *    exactamente a mensalidade, num mês vencido, é o antigo. Esta prova vence as outras — uma
+   *    cobrança colada depois do vencimento mas com o valor cheio é um engano, e não uma correcção. */
+  if (valorNoCodigo !== null && valorNoCodigo <= base) {
+    return Object.assign({
+      estado: 'sem-mora', serve: false,
+      motivo: 'Mês vencido e esta cobrança é de R$ ' + reaisDe(valorNoCodigo) + ', sem a mora. '
+        + 'Ela cobra menos do que o devido hoje (R$ ' + reaisDe(devido) + '): gere uma nova com '
+        + 'a multa e os juros.',
+    }, comum);
+  }
+  /* 2. A DATA DA EMISSÃO. Emitida depois de o mês vencer, a cobrança nasceu com o atraso à frente —
+   *    é a nova, e é a que se oferece. O dia do vencimento conta como «antes»: quem gera no próprio
+   *    dia ainda está no prazo (`vencimento` é `AAAA-MM-DD`, e compara-se o dia). */
+  const diaDaEmissao = String(salvoEm || '').slice(0, 10);
+  const diaDoVencimento = String(vencimento || '').slice(0, 10);
+  const emitidaNoAtraso = Boolean(diaDaEmissao && diaDoVencimento && diaDaEmissao > diaDoVencimento);
+  /* 3. O VALOR QUE PROVA QUE LEVA A MORA (mais do que a mensalidade). */
+  const valorComMora = valorNoCodigo !== null && valorNoCodigo > base;
+  if (emitidaNoAtraso || valorComMora) {
+    const falta = valorNoCodigo === null ? 0 : Math.max(0, devido - valorNoCodigo);
+    return Object.assign({}, comum, {
+      estado: 'com-mora', serve: true, faltaCentavos: falta, motivo: null,
+    });
+  }
+  return Object.assign({
+    estado: 'sem-valor', serve: false,
+    motivo: 'Mês vencido e a cobrança foi emitida antes do vencimento, sem valor fixo legível (é '
+      + 'um link, ou um código sem o campo do valor). Não dá para garantir que leva a mora: gere '
+      + 'uma nova, de R$ ' + reaisDe(devido) + '.',
+  }, comum);
+}
+
+/** `6990` → `69,90`. A formatação é a do painel (`emReais`), e há uma só para não haver duas. */
+function reaisDe(emCentavos) {
+  const c = Math.max(0, Math.round(Number(emCentavos) || 0));
+  return (c / 100).toFixed(2).replace('.', ',');
+}
+
+/**
  * O MAPA VAZIO. Uma leitura de um KV que nunca teve cobranças devolve isto, e é o que a página
  * recebe: `{}`. Não se inventa uma estrutura por escola — uma escola sem cobrança não tem entrada,
  * e a ausência é a resposta certa («nunca se colou nada»).
@@ -219,6 +373,24 @@ function emAberto(daEscola, meses) {
     if (!m || m.status === 'pago' || !m.venceu) continue;
     const c = cobrancaDe({ escola: 'x', x: mapa }, 'x', m.mes);
     if (!c) continue;
+    /* A MESMA REGRA DAS OUTRAS DUAS PÁGINAS (25/11/2026). Se a cobrança de um mês vencido é a ANTIGA
+     * — a que não leva a mora —, a caixa «Pagar» da escola NÃO a mostra. Deixá-la aqui seria a
+     * forma mais fácil de a escola pagar o valor menor: bastava abrir o sítio dela, onde a cobrança
+     * aparece por baixo da chave. Uma regra, três páginas; é o que impede a excepção de virar
+     * caminho.
+     *
+     * A caixa continua a abrir — com a CHAVE Pix —, e o mês em atraso continua a ser nomeado em
+     * «Em aberto». O que ela deixa de ter é o documento que cobra menos. */
+    const estado = situacaoDaCobranca({
+      texto: c.texto,
+      valorBaseCentavos: m.valorPagoCentavos != null ? m.valorPagoCentavos : m.valorCentavos,
+      devidoCentavos: m.encargos ? m.encargos.totalCentavos : null,
+      pago: false,
+      venceu: true,
+      salvoEm: c.em,
+      vencimento: m.vencimento,
+    });
+    if (!estado.serve) continue;
     saida.push({ mes: String(m.mes), nome: m.nome || String(m.mes), texto: c.texto, em: c.em,
       url: c.url });
   }
@@ -229,6 +401,9 @@ module.exports = {
   LIMITE_DO_TEXTO,
   PADRAO_DA_URL,
   urlDaCobranca,
+  valorDaCobranca,
+  situacaoDaCobranca,
+  reaisDe,
   competenciaDe,
   normalizarTexto,
   mapaVazio,

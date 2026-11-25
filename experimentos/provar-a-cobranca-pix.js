@@ -78,6 +78,20 @@ const PAYLOAD = '00020126580014BR.GOV.BCB.PIX0136chave-do-nubank\n'
   + '5204000053039865802BR5920SISTEMA LASTRO6009PASSO FUNDO\n'
   + '62070503***6304ABCD';
 const MES = '2026-11';
+/* A DATA EM QUE A COBRANÇA FOI COLADA. `gravarNoMapa` grava-a sempre, e ela é o que separa a
+ * cobrança emitida NO PRAZO da emitida JÁ NO ATRASO — ver `situacaoDaCobranca`. Nos casos destas
+ * páginas o mês já venceu (a adesão é a 1.º), e o que serve é a que foi emitida depois. */
+const EMITIDA_NO_ATRASO = '2026-11-20T12:00:00.000Z';
+/* UM DOCUMENTO EMV VÁLIDO, COM O VALOR DENTRO — é assim que o banco entrega uma cobrança de valor
+ * fixo (campo 54). O `PAYLOAD` acima é o documento que ela colou, com os comprimentos escritos à
+ * mão; este é construído a sério, para poder medir o leitor do valor. */
+const tlv = (id, valor) => id + String(String(valor).length).padStart(2, '0') + valor;
+const pixComValor = (reais) => '000201'
+  + tlv('26', tlv('00', 'BR.GOV.BCB.PIX') + tlv('01', 'chave-do-nubank'))
+  + tlv('52', '0000') + tlv('53', '986')
+  + (reais ? tlv('54', Number(reais).toFixed(2)) : '')
+  + tlv('58', 'BR') + tlv('59', 'SISTEMA LASTRO') + tlv('60', 'PASSO FUNDO')
+  + tlv('62', tlv('05', '***')) + '6304ABCD';
 
 /** O extrato de uma escola com um mês em aberto. */
 function situacaoComMesAberto(extra) {
@@ -275,7 +289,7 @@ function situacaoComMesAberto(extra) {
     const comCobranca = bastidores.cartaoDaEscola({
       escola: 'breu', cadastro: { escolaNome: 'Breu' }, situacao: s,
       pix: { chave: '02150062917', titular: 'Tiago' },
-      cobrancas: cobrancas.cobrancasDaEscola({ breu: { [MES]: { texto: PAYLOAD } } }, 'breu'),
+      cobrancas: cobrancas.cobrancasDaEscola({ breu: { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } } }, 'breu'),
     });
     provar('o nicho «Pagar» mostra a chave Pix', /escola-pix-chave/.test(comCobranca));
     provar('…e, ABAIXO, o conteúdo que ela colou',
@@ -302,7 +316,7 @@ function situacaoComMesAberto(extra) {
       escola: 'breu', cadastro: { escolaNome: 'Breu' },
       situacao: { situacao: 'em-dia', meses: [{ mes: MES, nome: 'novembro de 2026', status: 'pago', venceu: false }] },
       pix: { chave: '0215' },
-      cobrancas: cobrancas.cobrancasDaEscola({ breu: { [MES]: { texto: PAYLOAD } } }, 'breu'),
+      cobrancas: cobrancas.cobrancasDaEscola({ breu: { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } } }, 'breu'),
     });
     provar('a cobrança de um mês PAGO não aparece na caixa de pagar', !/escola-cobranca/.test(soPago));
 
@@ -311,7 +325,7 @@ function situacaoComMesAberto(extra) {
      * esconder o pagamento que ela acabou de entregar. */
     const semChave = bastidores.cartaoDaEscola({
       escola: 'breu', cadastro: { escolaNome: 'Breu' }, situacao: s, pix: null,
-      cobrancas: cobrancas.cobrancasDaEscola({ breu: { [MES]: { texto: PAYLOAD } } }, 'breu'),
+      cobrancas: cobrancas.cobrancasDaEscola({ breu: { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } } }, 'breu'),
     });
     provar('sem chave configurada, o documento colado aparece na mesma',
       /escola-cobranca-1/.test(semChave) && /00020126580014BR/.test(semChave));
@@ -324,7 +338,7 @@ function situacaoComMesAberto(extra) {
     const s = situacaoComMesAberto();
     const html = bastidores.paginaFinanceiro('breu', {}, {}, {
       situacao: s, cadastro: { escolaNome: 'Breu' }, pix: { chave: '0215' },
-      cobrancas: { [MES]: { texto: PAYLOAD } },
+      cobrancas: { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } },
     });
     provar('o cabeçalho diz «Cobrança (Pix)»', /Cobrança \(Pix\)/.test(html));
     provar('…e já não há uma coluna chamada «Pagar»',
@@ -424,7 +438,7 @@ function situacaoComMesAberto(extra) {
     const s = situacaoComMesAberto();
     const comLink = bastidores.cartaoDaEscola({
       escola: 'breu', cadastro: { escolaNome: 'Breu' }, situacao: s, pix: { chave: '0215' },
-      cobrancas: { [MES]: { texto: MENSAGEM } },
+      cobrancas: { [MES]: { texto: MENSAGEM, em: EMITIDA_NO_ATRASO } },
     });
     provar('o «Pagar» da escola mostra o link do banco',
       /<a[^>]*href="https:\/\/nubank\.com\.br\/cobrar\/[^"]*"[^>]*>Pagar no banco<\/a>/.test(comLink));
@@ -438,7 +452,7 @@ function situacaoComMesAberto(extra) {
 
     const semLink = bastidores.cartaoDaEscola({
       escola: 'breu', cadastro: { escolaNome: 'Breu' }, situacao: s, pix: { chave: '0215' },
-      cobrancas: { [MES]: { texto: PAYLOAD } },
+      cobrancas: { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } },
     });
     provar('com um documento copia-e-cola, a escola NÃO vê botão nenhum — vê a caixa e o Copiar',
       !/Pagar no banco/.test(semLink) && /escola-cobranca-1/.test(semLink));
@@ -450,7 +464,7 @@ function situacaoComMesAberto(extra) {
     const s = situacaoComMesAberto();
     const comLink = bastidores.paginaFinanceiro('breu', {}, {}, {
       situacao: s, cadastro: { escolaNome: 'Breu' }, pix: { chave: '0215' },
-      cobrancas: { [MES]: { texto: URL_DO_BANCO } },
+      cobrancas: { [MES]: { texto: URL_DO_BANCO, em: EMITIDA_NO_ATRASO } },
     });
     provar('o mês a mês mostra o link do banco',
       /<a[^>]*href="https:\/\/nubank\.com\.br\/cobrar\/[^"]*"[^>]*>Pagar no banco<\/a>/.test(comLink));
@@ -460,10 +474,138 @@ function situacaoComMesAberto(extra) {
 
     const semLink = bastidores.paginaFinanceiro('breu', {}, {}, {
       situacao: s, cadastro: { escolaNome: 'Breu' }, pix: { chave: '0215' },
-      cobrancas: { [MES]: { texto: PAYLOAD } },
+      cobrancas: { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } },
     });
     provar('com um documento copia-e-cola, o mês a mês não inventa um botão',
       !/Pagar no banco/.test(semLink) && /mes-pix-2026-11/.test(semLink));
+  }
+
+  console.log('\nH. O MÊS PAGO E O ATRASADO — a cobrança que não serve não se oferece');
+
+  {
+    /* O QUE ELA PEDIU: «quando eu clicar em pagar, está pago […] a coluna da cobrança pix […] fica
+     * desabilitado»; e, para o mês vencido, «vai indicar que está atrasado […] eu vou ter que passar
+     * o valor novo com multa e juros». E a pergunta que ela deixou aberta: «impedir que a pessoa
+     * pague o valor menor». */
+
+    /* A. O LEITOR DO VALOR — o campo 54 do documento Pix. */
+    provar('o valor é lido do documento (campo 54), em cêntimos',
+      cobrancas.valorDaCobranca(pixComValor(69.9)) === 6990,
+      cobrancas.valorDaCobranca(pixComValor(69.9)));
+    provar('…e sobrevive às quebras de linha de um «copiar» do telemóvel',
+      cobrancas.valorDaCobranca(pixComValor(69.9).slice(0, 50) + '\n' + pixComValor(69.9).slice(50)) === 6990);
+    provar('um código SEM valor devolve `null` — é de valor aberto', cobrancas.valorDaCobranca(pixComValor(null)) === null);
+    provar('…e um link do banco também', cobrancas.valorDaCobranca(URL_DO_BANCO) === null);
+    /* O TRUNCAMENTO QUE INTERESSA é o do CAMPO, e não o do fim do documento: cortar o `6304…` (o
+     * CRC) não afecta um valor que já foi lido antes dele. Aqui o campo 54 declara 6 caracteres e
+     * traz 4 — o comprimento passa do fim, e a resposta tem de ser «não sei», não um palpite. */
+    provar('CONTROLO: um campo 54 truncado não dá um valor por engano',
+      cobrancas.valorDaCobranca('000201' + tlv('52', '0000') + '5406' + '69.9') === null,
+      cobrancas.valorDaCobranca('000201' + tlv('52', '0000') + '5406' + '69.9'));
+
+    /* B. OS ESTADOS. */
+    const estado = (o) => cobrancas.situacaoDaCobranca(o);
+    provar('mês PAGO: não serve, e diz porquê',
+      (() => { const e = estado({ texto: pixComValor(69.9), valorBaseCentavos: 6990, pago: true });
+        return e.estado === 'pago' && e.serve === false && /pago/i.test(e.motivo); })());
+    provar('mês A VENCER: serve',
+      (() => { const e = estado({ texto: pixComValor(69.9), valorBaseCentavos: 6990, venceu: false });
+        return e.estado === 'a-vencer' && e.serve === true; })());
+    provar('mês VENCIDO com a cobrança antiga (sem a mora): NÃO serve, e diz o valor a gerar',
+      (() => { const e = estado({ texto: pixComValor(69.9), valorBaseCentavos: 6990, venceu: true, devidoCentavos: 7270 });
+        return e.estado === 'sem-mora' && e.serve === false && /72,70/.test(e.motivo); })());
+    provar('mês VENCIDO com a cobrança NOVA (com a mora): serve',
+      (() => { const e = estado({ texto: pixComValor(72.7), valorBaseCentavos: 6990, venceu: true, devidoCentavos: 7270 });
+        return e.estado === 'com-mora' && e.serve === true && e.faltaCentavos === 0; })());
+    /* A COBRANÇA EMITIDA JÁ NO ATRASO serve MESMO SEM VALOR LEGÍVEL — e é esta a válvula que impede
+     * um mês atrasado de ficar sem saída para quem cola um link (ou um código sem o campo 54). */
+    provar('mês VENCIDO com a cobrança emitida JÁ NO ATRASO: serve, mesmo sem valor legível',
+      (() => { const e = estado({ texto: URL_DO_BANCO, valorBaseCentavos: 6990, venceu: true,
+        devidoCentavos: 7270, salvoEm: EMITIDA_NO_ATRASO, vencimento: '2026-11-01' });
+        return e.estado === 'com-mora' && e.serve === true; })());
+    provar('…e uma cobrança emitida ANTES do vencimento, sem valor, NÃO serve',
+      (() => { const e = estado({ texto: URL_DO_BANCO, valorBaseCentavos: 6990, venceu: true,
+        devidoCentavos: 7270, salvoEm: '2026-10-25T12:00:00Z', vencimento: '2026-11-01' });
+        return e.estado === 'sem-valor' && e.serve === false; })());
+    provar('…e o valor que PROVA a falta da mora vence a data (colou a antiga depois do vencimento)',
+      (() => { const e = estado({ texto: pixComValor(69.9), valorBaseCentavos: 6990, venceu: true,
+        devidoCentavos: 7270, salvoEm: EMITIDA_NO_ATRASO, vencimento: '2026-11-01' });
+        return e.estado === 'sem-mora' && e.serve === false; })());
+    provar('a cobrança que fica aquém do devido diz quanto falta',
+      (() => { const e = estado({ texto: pixComValor(72), valorBaseCentavos: 6990, venceu: true, devidoCentavos: 7270 });
+        return e.serve === true && e.faltaCentavos === 70; })());
+
+    /* C. AS TRÊS PÁGINAS USAM A MESMA REGRA. */
+    const s = situacaoComMesAberto();
+    const pago = Object.assign({}, s, { meses: s.meses.map((m) => Object.assign({}, m, {
+      status: 'pago', venceu: false, valorPagoCentavos: m.valorCentavos, emTexto: '20/11/2026 às 10:00',
+    })) });
+    const mesAMesPago = bastidores.paginaFinanceiro('breu', {}, {}, {
+      situacao: pago, cadastro: { escolaNome: 'Breu' }, pix: { chave: '0215' },
+      cobrancas: { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } },
+    });
+    provar('no mês a mês, o mês PAGO não tem «Pagar no banco»', !/Pagar no banco/.test(mesAMesPago));
+    provar('…nem «Copiar» — a cobrança fica em leitura', !/data-copiar=/.test(mesAMesPago));
+    provar('…e o documento continua à vista, como registo', /mes-pix-2026-11/.test(mesAMesPago));
+    provar('…e o selo diz «pago»', /selo ok[^>]*>pago/.test(mesAMesPago));
+
+    /* A COBRANÇA ANTIGA COM VALOR LEGÍVEL — o caso que se pode PROVAR que falta a mora. É este o
+     * que tem de dizer o valor a gerar; o sem valor legível diz a mesma coisa por outra frase (ver
+     * o estado `sem-valor`). */
+    const atrasadoSemMora = bastidores.paginaFinanceiro('breu', {}, {}, {
+      situacao: s, cadastro: { escolaNome: 'Breu' }, pix: { chave: '0215' },
+      cobrancas: { [MES]: { texto: pixComValor(139.9), em: '2026-10-25T12:00:00Z' } },
+    });
+    provar('no mês a mês, o ATRASADO com a cobrança antiga não tem «Copiar»',
+      !/data-copiar=/.test(atrasadoSemMora));
+    provar('…e diz o valor que a cobrança nova tem de pedir',
+      /uma nova com a multa e os juros/i.test(atrasadoSemMora),
+      (atrasadoSemMora.match(/Mês vencido[^<]*/) || [])[0]);
+
+    /* A CAIXA «PAGAR» DA ESCOLA — o caminho mais fácil para pagar o valor menor. */
+    const caixaDaEscola = (livro, texto, em, venceu) => {
+      const situacao = situacaoComMesAberto();
+      const situacaoAtrasada = Object.assign({}, situacao, {
+        meses: situacao.meses.map((m) => Object.assign({}, m, { venceu: Boolean(venceu) })),
+      });
+      return bastidores.paginaProducao('breu', { professor: 'demi-plie', ciclo: '01', query: '' },
+        [{ nome: 'Demi' }], [], 'Demi Plié', 'demi-plie', [], [], [], [], [], [],
+        { professores: new Set(), turmas: new Set(), termos: new Set(), planos: 0 },
+        { modo: 'clara', paleta: 'bordo' }, '', [], new Set(),
+        { cadastro: { escolaNome: 'Breu' }, situacao: situacaoAtrasada, pix: { chave: '0215' },
+          cobrancas: { [MES]: { texto, em } } },
+        [], null, [], undefined, null);
+    };
+    const antiga = caixaDaEscola([], PAYLOAD, '2026-10-25T12:00:00Z', true);
+    provar('a caixa «Pagar» da escola NÃO oferece a cobrança antiga de um mês atrasado',
+      !/escola-cobranca-1/.test(antiga));
+    provar('…e continua a dar a chave Pix, que é o que sobra para pagar', /escola-pix-chave/.test(antiga));
+    const nova = caixaDaEscola([], PAYLOAD, EMITIDA_NO_ATRASO, true);
+    provar('…e oferece a cobrança emitida já com a mora', /escola-cobranca-1/.test(nova));
+
+    /* D. O FINANCEIRO — o mês pago em leitura, e o valor conferido onde ela cola. */
+    const financeiroPago = painel.paginaFinanceira({
+      pix: {}, descontos: [], escolas: [],
+      extrato: [Object.assign({}, pago, { escola: 'breu', nome: 'Breu', frase: 'x',
+        cobrancas: { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } } })],
+      catalogo: comercial.catalogoDaPagina(),
+    });
+    provar('no financeiro, o mês pago não tem botão «Gravar» da cobrança',
+      !/data-cobranca-gravar="breu"/.test(financeiroPago));
+    provar('…nem «Copiar»', !/data-copiar=/.test(financeiroPago));
+    provar('…e o campo está em leitura, com o documento à vista',
+      /id="cob-breu-2026-11"[^>]*readonly/.test(financeiroPago));
+    provar('…e diz que é registo', /Mês pago — a cobrança fica como registo/.test(financeiroPago));
+
+    const financeiroAtrasado = painel.paginaFinanceira({
+      pix: {}, descontos: [], escolas: [],
+      extrato: [Object.assign({}, s, { escola: 'breu', nome: 'Breu', frase: 'x',
+        cobrancas: { [MES]: { texto: pixComValor(69.9), em: '2026-11-02T12:00:00Z' } } })],
+      catalogo: comercial.catalogoDaPagina(),
+    });
+    provar('no financeiro, o mês atrasado diz o que o código pede e o que é devido',
+      /O código colado pede R\$ 69,90; o devido hoje é R\$/.test(financeiroAtrasado),
+      (financeiroAtrasado.match(/O código colado[^<]*/) || [])[0]);
   }
 
   console.log('\n' + (falhas === 0

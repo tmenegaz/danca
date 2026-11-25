@@ -53,6 +53,11 @@ const PAYLOAD = '00020126580014BR.GOV.BCB.PIX0136chave-do-nubank\n'
   + '5204000053039865802BR5920SISTEMA LASTRO6009PASSO FUNDO\n'
   + '62070503***6304ABCD';
 const MES = '2026-11';
+/* A DATA EM QUE ELA COLOU A COBRANÇA — e ela é parte do facto, não um detalhe do teste: `gravarNoMapa`
+ * grava sempre o `em`, e é ele que distingue a cobrança emitida NO PRAZO da emitida JÁ NO ATRASO
+ * (com a mora). Aqui o mês já venceu (a adesão é a 1.º), portanto a cobrança que serve é a que foi
+ * emitida depois disso — é o caso de um mês atrasado cuja cobrança foi refeita com multa e juros. */
+const EMITIDA_NO_ATRASO = '2026-11-20T12:00:00.000Z';
 
 function situacaoComMesAberto() {
   return mensalidades.situacaoDaEscola({
@@ -73,7 +78,7 @@ function asTresPaginas() {
       html: painel.paginaFinanceira({
         pix: {}, descontos: [], escolas: [],
         extrato: [Object.assign({}, s, {
-          escola: 'breu', nome: 'Breu', frase: 'x', cobrancas: { [MES]: { texto: PAYLOAD } },
+          escola: 'breu', nome: 'Breu', frase: 'x', cobrancas: { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } },
         })],
         catalogo: comercial.catalogoDaPagina(),
       }),
@@ -83,7 +88,7 @@ function asTresPaginas() {
     'mês a mês': {
       html: bastidores.paginaFinanceiro('breu', {}, {}, {
         situacao: s, cadastro: { escolaNome: 'Breu' }, pix: { chave: '0215' },
-        cobrancas: { [MES]: { texto: PAYLOAD } },
+        cobrancas: { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } },
       }),
       alvo: 'mes-pix-2026-11',
       url: 'https://danca.padd.com.br/bastidores/estudio/financeiro',
@@ -95,7 +100,7 @@ function asTresPaginas() {
         { professores: new Set(), turmas: new Set(), termos: new Set(), planos: 0 },
         { modo: 'clara', paleta: 'bordo' }, '', [], new Set(),
         { cadastro: { escolaNome: 'Breu' }, situacao: s, pix: { chave: '0215' },
-          cobrancas: { [MES]: { texto: PAYLOAD } } },
+          cobrancas: { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } } },
         [], null, [], undefined, null),
       alvo: 'escola-cobranca-1',
       url: 'https://danca.padd.com.br/bastidores/estudio',

@@ -391,6 +391,99 @@ const ESCOLAS = [{ slug: 'breu', nome: 'Breu' }];
         && !/Desligar o modo de ensaio/.test(paginaDaEscola), null);
   }
 
+  /* ── 6. A COLUNA DA SITUAÇÃO, E O BOTÃO DA CONCILIAÇÃO DE VOLTA ─────────────────────────
+   *
+   * «Apagou o botão que confirma se a escola pagou ou não a mensalidade, que é o resultado da
+   * conciliação. Precisa voltar com esse botão. […] acrescenta uma coluna que é da situação, do
+   * status do pagamento da escola, que tem esse botão.»
+   *
+   * O BOTÃO NUNCA SAIU DO CÓDIGO — estava numa coluna própria, à direita de «Situação», e a coluna
+   * da cobrança (larga, com `<textarea>`) empurrou-o para lá do ecrã. Uma coluna que só se vê
+   * rolando de lado não existe para quem olha. As duas passam a ser UMA.
+   */
+  console.log('\n6. A situação e o botão da conciliação na MESMA coluna — e a tabela mais estreita');
+  {
+    const html = painel.paginaFinanceira({
+      pix: { chave: 'k', titular: 'T' }, descontos: [], escolas: ESCOLAS,
+      extrato: [{
+        escola: 'breu', nome: 'Breu', planoNome: 'Básico', valorCentavos: 16990,
+        situacao: 'em-aberto', mesDeHoje: '2026-12', emAberto: ['2026-12'], vencidos: ['2026-12'],
+        meses: [
+          { mes: '2026-12', nome: 'dezembro de 2026', vencimento: '2026-12-16', status: 'aberto',
+            venceu: true, valorCentavos: 16990,
+            encargos: { diasDeAtraso: 9, multaCentavos: 340, jurosCentavos: 51, encargosCentavos: 391,
+              totalCentavos: 17381 } },
+          { mes: '2026-11', nome: 'novembro de 2026', vencimento: '2026-11-16', status: 'pago',
+            valorCentavos: 23990, valorPagoCentavos: 23990, planoNome: 'Avançado',
+            emTexto: '16/11/2026 às 21:48' },
+        ],
+        estadoComercial: 'ativa', frase: 'Em aberto.', capacidade: { professores: 4, alunos: 40 },
+        piso: { professores: 4, alunos: 40 }, teto: { professores: 5, alunos: 89 },
+        proximoVencimento: '2026-12-16', diasParaVencer: -9,
+        lotesProfessores: [3], lotesAlunos: [30], cobrancas: {},
+      }],
+      catalogo: null,
+    });
+    const d = new JSDOM(html).window.document;
+    const colunas = [...d.querySelectorAll('table thead th')].map((th) => th.textContent.trim());
+    conferir('a tabela tem SEIS colunas, e não sete — a ação não sai do ecrã',
+      colunas.length === 6, colunas);
+    conferir('…e não há uma coluna «Pago / ação» separada da situação',
+      !colunas.some((c) => /pago \/ ação/i.test(c)), colunas);
+    conferir('…porque a coluna da situação passou a ter o botão',
+      colunas.includes('Situação')
+      && Boolean(d.querySelector('tr[data-mes="2026-12"] td:nth-child(5) [data-pagar="breu"]')), colunas);
+    conferir('…e ela diz o estado por extenso: «atrasado», com a mora ao lado',
+      /atrasado/.test((d.querySelector('tr[data-mes="2026-12"] td:nth-child(5)') || {}).textContent || '')
+      && /de mora/.test((d.querySelector('tr[data-mes="2026-12"] td:nth-child(5)') || {}).textContent || ''),
+      (d.querySelector('tr[data-mes="2026-12"] td:nth-child(5)') || {}).textContent);
+    /* O MÊS PAGO NÃO TEM BOTÃO — quem já pagou não vê um botão para pagar. */
+    conferir('…e o mês pago não tem botão nenhum',
+      !d.querySelector('tr[data-mes="2026-11"] [data-pagar]'), null);
+    conferir('…e diz quando foi pago, no mesmo sítio',
+      /16\/11\/2026/.test((d.querySelector('tr[data-mes="2026-11"] td:nth-child(5)') || {}).textContent || ''),
+      (d.querySelector('tr[data-mes="2026-11"] td:nth-child(5)') || {}).textContent);
+  }
+
+  /* ── 7. UM MÊS PAGO NÃO SE PAGA OUTRA VEZ ─────────────────────────────────────────────── */
+  console.log('\n7. Um mês pago não se paga outra vez — nem por um segundo clique, nem por um POST à mão');
+  {
+    const env = envCom(null);
+    const pedir = async (corpo) => {
+      const r = await raiz.fetch(new Request('https://danca.padd.com.br/api/financeiro/mensalidade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: AUTORIZACAO },
+        body: JSON.stringify(corpo),
+      }), env);
+      return { status: r.status, corpo: await r.json() };
+    };
+    /* NOVEMBRO JÁ ESTÁ PAGO NO LIVRO, às 00:48 de 17/11. Um clique hoje não pode mover essa data. */
+    const primeira = await pedir({ escola: 'breu', mes: '2026-11' });
+    conferir('marcar pago um mês já pago responde `ok` e diz que já estava',
+      primeira.corpo.ok === true && primeira.corpo.jaPago === true, primeira.corpo);
+    const livro = JSON.parse(await env.PADD_KV.get('financeiro/mensalidades'));
+    const linha = (livro.lista || []).find((l) => l.escola === 'breu' && l.mes === '2026-11');
+    conferir('…e a data do pagamento NÃO se move — é ela que se confere no extrato do banco',
+      linha && linha.em === '2026-11-17T00:48:32Z', linha && linha.em);
+    conferir('…e o valor pago também não',
+      linha && linha.valorCentavos === 23990, linha && linha.valorCentavos);
+
+    /* E A COBRANÇA DE UM MÊS PAGO NÃO SE REESCREVE. A tela já desenha o campo em leitura; isto é o
+     * MOTOR a recusar, para um POST escrito à mão não contornar a regra. */
+    const cobranca = await raiz.fetch(new Request('https://danca.padd.com.br/api/financeiro/cobranca', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: AUTORIZACAO },
+      body: JSON.stringify({ escola: 'breu', mes: '2026-11', texto: 'x' }),
+    }), env);
+    const corpoCobranca = await cobranca.json();
+    conferir('uma cobrança nova sobre um mês pago é RECUSADA pelo motor',
+      cobranca.status === 409 && corpoCobranca.ok === false, { status: cobranca.status, corpo: corpoCobranca });
+    conferir('…e a recusa diz que o mês está pago, em vez de um código',
+      /já está pago/i.test(String(corpoCobranca.erro || '')), corpoCobranca.erro);
+    conferir('…e nada foi escrito no KV',
+      !(await env.PADD_KV.get('financeiro/cobrancas')), null);
+  }
+
   console.log('');
   if (falhas) { console.log('FALHOU — ' + (n - falhas) + '/' + n); process.exit(1); }
   console.log('TUDO CERTO — ' + n + ' asserção(ões).');

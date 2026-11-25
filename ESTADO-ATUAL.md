@@ -4,7 +4,14 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **o «Copiar» é uma rotina só, e agora copia nas três páginas em
+> **Última fotografia:** 25/11/2026 — **a conciliação voltou, com a situação e o botão na mesma coluna,
+> e a cobrança de um mês pago não se oferece.** O botão «Marcar pago» nunca tinha saído do código:
+> vivia numa coluna própria («Pago / ação») que a coluna larga da cobrança empurrou para fora do ecrã.
+> As duas passaram a ser uma — **seis colunas em vez de sete** —, o selo de um mês vencido diz
+> **«atrasado»**, e o mês pago fica em leitura, sem «Gravar» nem «Copiar». Um mês atrasado **não
+> oferece a cobrança antiga**: a regra é do núcleo (`cobrancas.situacaoDaCobranca`) e vale nas **três**
+> páginas, incluindo a caixa «Pagar» da escola. Um duplo clique não move a data do pagamento.
+> Antes disso, no mesmo dia: **o «Copiar» é uma rotina só, e agora copia nas três páginas em
 > que o botão existe.** Ele era a peça que faltava: a rotina vivia no script da Produção e as páginas
 > do mês a mês e do financeiro emitiam o botão sem ninguém para o escutar — o clique não tinha
 > destino. Passou a `motor/nucleo/copiar.js`, servida às três, com o rótulo de origem guardado uma
@@ -4599,6 +4606,33 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      «Pagar» e no mês a mês. **PROVADO** por `provar-o-copiar.js` (**31**, novo) com quatro controlos
      negativos a correr.
 
+203. **A CONCILIAÇÃO VOLTOU — e a cobrança que cobra menos deixa de ser oferecida.** Ela viu o botão
+     desaparecer: «apagou o botão que confirma se a escola pagou ou não a mensalidade, que é o
+     resultado da conciliação». **O botão não tinha saído do código** — estava numa coluna própria,
+     «Pago / ação», à direita de «Situação», e a coluna da cobrança (larga, com `<textarea>`)
+     empurrou-o para lá do ecrã; uma coluna que só se vê rolando de lado não existe para quem olha.
+     **APLICADO:** uma coluna «Situação» com o selo, a data quando há, a mora quando há, e o
+     **«Marcar pago»** quando não há — **seis colunas** em vez de sete. O mês vencido passou a dizer
+     **«atrasado»** (era «em aberto»); a página da escola mantém «em aberto», porque lá quem lê é
+     quem deve. **O MÊS PAGO NÃO SE REESCREVE** (CONFIRMADO no código e na prova): a cobrança fica à
+     vista em leitura, sem «Gravar» nem «Copiar» (financeiro) e sem «Pagar no banco» nem «Copiar»
+     (mês a mês); e a rota recusa uma cobrança nova sobre um mês pago com **409**. **UM DUPLO CLIQUE
+     NÃO MOVE A DATA:** `registarPagamento` com `manterSeJaPago` devolve o registo existente com
+     `jaPago: true` e não escreve. **A COBRANÇA QUE COBRA MENOS NÃO SE OFERECE** — a resposta ao
+     «impedir que a pessoa pague o valor menor» que ela pediu. `cobrancas.valorDaCobranca` lê o
+     **campo 54** do documento Pix (o valor, em cêntimos); `situacaoDaCobranca` decide com **duas
+     provas**: o valor legível (se pede a mensalidade ou menos, é a antiga) e a **data da emissão**
+     (emitida depois do vencimento, nasceu com o atraso à frente). Um mês atrasado com a cobrança
+     antiga fica sem «Copiar», diz o valor a gerar, e **a caixa «Pagar» da escola deixa de a
+     mostrar** — era o caminho mais fácil para pagar menos. No financeiro, o aviso aparece onde ela
+     cola: «o código colado pede R$ A; o devido hoje é R$ B». **O QUE ISSO NÃO RESOLVE, e está
+     dito:** um código que já saiu do sistema continua a ser pagável no aplicativo do banco — é uma
+     propriedade do Pix, e não do software; o que o sistema garante é **não o oferecer**. **PROVADO**
+     por `provar-a-cobranca-pix.js` (**99**, era 79 — a secção H é nova, com um controlo negativo por
+     regra) e por `provar-conciliacao-do-painel.js` (**47**, era 35 — as secções 6 e 7 são novas);
+     `provar-o-copiar` (31) e `provar-o-financeiro-que-fica` (30) continuam verdes;
+     `check-identidade` **0 problemas**; `correr-provas` **0 regressões** sobre a base.
+
 188. **A SALA NOVA NÃO PODE CRIAR COLISÃO EM SILÊNCIO — e as mensagens não sugerem resolução.** A
      edição da Sala já corria a cadeia, mas a cadeia relê o ritmo e deriva o plano; **não conferia a
      ocupação**. Medido: mudar a hora de uma sala com duas turmas podia criar a colisão **em silêncio**,
@@ -7462,6 +7496,19 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **25/11/2026** — **A conciliação voltou, e a cobrança de um mês atrasado que cobra menos deixou de
+  ser oferecida.** O «Marcar pago» não tinha desaparecido: estava numa coluna que a cobrança
+  empurrou para fora do ecrã, e passou a viver **dentro** da coluna «Situação» (seis colunas em vez
+  de sete). O mês pago fica em leitura — sem gravar, sem copiar, sem link — e a rota recusa uma
+  cobrança nova sobre ele (409). Um segundo clique não move a data do pagamento (`jaPago`). E a
+  resposta à pergunta dela — «impedir que a pessoa pague o valor menor» — ficou em duas provas:
+  `valorDaCobranca` lê o campo 54 do documento e `situacaoDaCobranca` decide pela **prova do valor**
+  (pede a mensalidade ou menos ⇒ é a antiga) e pela **data da emissão** (depois do vencimento ⇒
+  nasceu com a mora). A mesma regra nas três páginas, incluindo a caixa «Pagar» da escola.
+  `provar-a-cobranca-pix` 79 → **99**, `provar-conciliacao-do-painel` 35 → **47**.
+  **O que não se resolve:** um código que já saiu continua pagável no banco — o sistema garante não
+  o oferecer, não impede o pagamento.
 
 - **20/11/2026** — **A Sala derivou e os planos não, e a culpa era da data.** Derivação da Sala
   `Rosa` com ritmo novo (45 → 60 min, fim 05/02 → 08/01): a Sala persistiu, o plano e o PO ficaram

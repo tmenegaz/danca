@@ -148,7 +148,21 @@ async function lerLivro(kv) {
  * dizer não pago, isso não existe». Desfazer um pagamento registado é uma correção de contabilidade
  * manual, e não um botão ao lado do botão que paga.
  */
-async function registarPagamento(kv, { escola, mes, valorCentavos, plano, planoNome, quando, por } = {}) {
+/**
+ * REGISTAR O PAGAMENTO DE UM MÊS — o acto da conciliação.
+ *
+ * `manterSeJaPago` (25/11/2026) é o que impede um segundo clique de REESCREVER A DATA. O botão da
+ * linha diz «Marcar pago» e a página recarrega depois; um duplo clique, ou um clique numa aba que
+ * ficou aberta da véspera, movia o `em` para «agora» — e a data do pagamento é o que se confere
+ * contra o extrato do banco. Com a opção, um mês já pago devolve o registo que existe, com
+ * `jaPago: true`, e NÃO escreve no KV.
+ *
+ * A opção é do CHAMADOR, e não o comportamento por omissão: a função continua a ser a primitiva que
+ * grava o que lhe pedem, e é a rota do botão que diz «este gesto não reescreve o passado». Uma
+ * primitiva que se recusasse a gravar por conta própria esconderia a regra de quem a lê.
+ */
+async function registarPagamento(kv, { escola, mes, valorCentavos, plano, planoNome, quando, por,
+  manterSeJaPago } = {}) {
   if (!kv || typeof kv.put !== 'function') return { ok: false, erro: 'sem KV nesta ligação' };
   const slug = String(escola || '').trim();
   if (!slug) return { ok: false, erro: 'informe a escola' };
@@ -165,6 +179,10 @@ async function registarPagamento(kv, { escola, mes, valorCentavos, plano, planoN
     por: por || null,
   };
   const lista = await lerLivro(kv);
+  if (manterSeJaPago) {
+    const jaPago = lista.find((l) => l && l.escola === slug && l.mes === registo.mes);
+    if (jaPago) return { ok: true, jaPago: true, pagamento: jaPago };
+  }
   const semEste = lista.filter((l) => !(l.escola === slug && l.mes === registo.mes));
   semEste.push(registo);
   semEste.sort((a, b) => (a.escola === b.escola
