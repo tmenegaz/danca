@@ -16,7 +16,7 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 | Item | Valor |
 |:------------------------|:--------------------------------------------------------|
 | **Frequência semanal** | 3x semanal — seg e qua e sex |
-| **Duração por aula** | 55 minutos |
+| **Duração por aula** | 1 hora |
 | **Calendário** | 2027-01-04 → 2027-02-26 |
 | **Número total de aulas** | 24 |
 
@@ -143,7 +143,7 @@ Plano derivado da metodologia RAD, adaptado ao âmbito da turma; Plano derivado 
 </div>
 </div>
 </div>
-<script type="application/json" id="dados-criar-aula">{"id":"plano-20261124-0811","ciclo":"01","professor":"demi-plie","escola":"breu","turma":"Piano","marcos":["transferir o peso entre os pés sem perder o alinhamento"],"repertorio":["Battement jeté","Battement tendu","Plié","Relevé"],"blocos":["Solo","Barra","Centro","Musicalidade","Expressão"],"temRepertorio":true,"musicas":{"Battement jeté":["8|2/4"],"Battement tendu":["8|2/4"],"Plié":["4|2/4"],"Relevé":["8|2/4"]}}</script>
+<script type="application/json" id="dados-criar-aula">{"id":"plano-20261125-0627","ciclo":"01","professor":"demi-plie","escola":"breu","turma":"Piano","marcos":["transferir o peso entre os pés sem perder o alinhamento"],"repertorio":["Battement jeté","Battement tendu","Plié","Relevé"],"blocos":["Solo","Barra","Centro","Musicalidade","Expressão"],"temRepertorio":true,"musicas":{"Battement jeté":["8|2/4"],"Battement tendu":["8|2/4"],"Plié":["4|2/4"],"Relevé":["8|2/4"]}}</script>
 <script>
   var PORTA = "/plano-ensino/";
   function pedir(caminho, init) {
