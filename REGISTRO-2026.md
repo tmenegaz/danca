@@ -62433,3 +62433,94 @@ entrega e a lista das vivas), `motor/servidor/painel-html.js` (o estado efectivo
 `biblioteca/comercial/planos.json` (a entrada `consultoria`),
 `experimentos/provar-a-escola-em-consultoria.js` (novo), `PLANO-DA-ESCOLA-EM-CONSULTORIA.md` (§17),
 `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+---
+
+## O fluxo do consultor e o custo da demonstração *(25/11/2026)*
+
+> «Você precisa me entregar um fluxo, a história que conta como é que funciona essa escola do
+> consultor. Tem que documentar isso também, porque eu vou precisar treinar o consultor para usar
+> isso. […] e também calcular o custo, porque isso vai ter custo, não vai sair de graça. […] Afinal de
+> contas, o risco do negócio é meu, não é nem do consultor, é só meu.»
+
+O plano consultoria estava implementado e **não era operável por outra pessoa**. Faltavam duas coisas,
+e nenhuma delas era código: o **guião de quem vai clicar** — porque quem monta o ambiente não é quem o
+desenhou — e a **conta de quanto custa antes de haver receita**, porque o intervalo entre «montar» e
+«contratar» é o único momento do produto em que se gasta sem se receber.
+
+### O que ficou escrito
+
+**`FLUXO-DA-ESCOLA-EM-CONSULTORIA.md`** — o manual de operação e de treino. A história em nove passos
+(a conversa com a escola, a criação, a montagem, o plano, o PO, os ciclos, a apresentação, a entrega, os
+três desfechos), com o ecrã exacto de cada passo e a frase de cada momento. Traz três coisas que um
+manual de produto costuma não trazer e que aqui são a parte útil:
+
+- **as três frases de recusa**, uma para cada limite, e a estrutura que as faz funcionar — dizer o
+  limite, dizer o que já foi usado, oferecer a saída. «Deu erro» transforma uma demonstração boa em
+  produto pequeno;
+- **o que o consultor não pode fazer**, e a lista começa por cobrar. A fronteira é de risco, não de
+  hierarquia: ele monta e mostra; **quem entrega o mês, quem prorroga e quem habilita é ela**;
+- **o treino em quatro blocos de duas horas**, cada um com critério de saída observável (diz os sete
+  números de cor; monta sem lançar aula; responde a três perguntas sem prometer; mostra o só-leitura a
+  funcionar).
+
+**`CUSTO-DOS-FLUXOS.md` §22** — o custo, medido do catálogo para fora.
+
+### O número
+
+| acto | min |
+|:--|--:|
+| criar a escola | 3 |
+| gravar o plano de ensino | 2 |
+| gravar o PO | 2 |
+| gerar 2 ciclos | 6 |
+| **3 aulas lançadas** | **9** |
+| entregar, prorrogar, habilitar | 0 |
+| **tecto de uma demonstração** | **22 min = R$ 0,79** |
+
+E o contrafactual, que é o argumento dela: os **mesmos dois ciclos sem o limitador** dão as 48 aulas
+que eles contêm, ou **157 min e R$ 5,65** — **7,1 vezes mais**, e sem tecto mensurável a partir da
+terceira linha. É por isso que o limitador **é** o orçamento: o pior caso de uma demonstração é
+conhecido antes de ela começar.
+
+A franquia de 2 000 min absorve **67 demonstrações por mês** (descontados os 522 min de engenharia), o
+que torna o custo em dinheiro **zero até lá** e a **cota** o recurso escasso. O treino de um consultor
+são **44 min e R$ 1,58** — duas demonstrações inteiras, uma para ver e uma para fazer.
+
+**Três linhas do §22.1 são inferidas** (a criação da escola e as duas gravações de factura: o job está
+medido, os dois observadores vêm dos `paths`), e o §22 diz que o erro delas é **para baixo** e que se
+orçamenta pelo número de cima. As duas alavancas que o §20 deixou declaradas continuam por puxar, e
+ficaram escritas no §22.5.
+
+### Uma correcção de leitura
+
+O §22.2 afirma que um ciclo tem **24 aulas**. Esse número andava no plano como facto e nunca tinha sido
+lido do dado: está no `ciclos.json` do breu, 24 entradas em `aulas[]`, **todas com `lancada: false`** —
+o que confirma, de passagem, a leitura **B** da Q9 (a aula só conta quando é lançada).
+
+### As provas
+
+`experimentos/provar-o-custo-da-consultoria.js`, **41 asserções**. Ela não confia nos documentos: lê os
+limites do `planos.json` e as 24 aulas do `ciclos.json`, recalcula o tecto, e **compara o resultado com
+o texto dos dois ficheiros**. É o que impede os dois de apodrecerem juntos — a família de erro do §20,
+onde uma prova dizia 3 e o documento dizia 2 durante seis dias.
+
+**O A/B, feito e não afirmado:** falseados os cinco números nos documentos, a prova cai a **36/41**,
+com as cinco asserções discriminantes a reprovar. Com o catálogo alterado (3 aulas → 6), cai a
+**29/41** e o tecto passa a 31 min. Bateria completa: **289 provas, 196 verdes, 93 conhecidas, 0
+regressões**. `check-identidade`: 23 checagens, todas ok. Removida a entrada `provar-estante-do-po` da
+linha de base, que já passava e era um aviso em cada corrida.
+
+### O que não se fez
+
+- **A faixa na página da Produção** e **a página congelada com o caminho para contratar** — continuam
+  declaradas em aberto, agora também no §5 do guião.
+- **O texto da oferta** — a redacção depende da Q2, e o guião já diz o que ele tem de dizer: «2 ciclos
+  planeados e **3 aulas processadas**».
+- **O cadastro do consultor** (quem é consultor de qual escola) — frente nova, e não é pré-requisito
+  para treinar uma pessoa.
+- **A medição das três linhas inferidas** — é trabalho de histórico do Actions, não de código.
+
+**Onde entrou.** `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` (novo), `CUSTO-DOS-FLUXOS.md` (§22),
+`experimentos/provar-o-custo-da-consultoria.js` (novo), `.gitignore` (a prova versionada),
+`experimentos/provas-vermelhas.json` (a entrada que já passava), `ESTADO-ATUAL.md`, `HANDOFF.md`.

@@ -2805,3 +2805,104 @@ não pode acontecer é subir sem que ninguém saiba porquê. A salvaguarda é a 
 `/monitoramento` mostra as execuções do mês, e o ponto de migração avisa antes. O que esta data
 acrescenta é a garantia de que **uma faixa que não mudou não gera** — que é o que separa «a escola
 cresceu» de «o sistema trabalha sem necessidade».
+
+---
+
+## 22. O custo de uma escola em consultoria — o limitador como orçamento *(25/11/2026)*
+
+> «Isso vai ter custo, não vai sair de graça. […] No final, se a escola não contratar, esse limitador é
+> o que garante que o custo seja mínimo. Afinal de contas, o risco do negócio é meu, não é nem do
+> consultor, é só meu.»
+
+**É a pergunta certa, e ela tem uma resposta numérica.** O plano consultoria é o único produto que se
+entrega **antes** de haver receita: o ambiente é montado para uma escola que ainda não paga nada. Se
+ela contratar, o custo entra no custo de aquisição do cliente; se não contratar, o custo é prejuízo,
+inteiro, de quem assinou a factura. Por isso ele tem de ser **um número conhecido**, e não uma
+sensação.
+
+O guião de operação e de treino do consultor está em
+[FLUXO-DA-ESCOLA-EM-CONSULTORIA.md](FLUXO-DA-ESCOLA-EM-CONSULTORIA.md). Este capítulo mede a conta que
+o guião usa.
+
+### 22.1 O que uma demonstração consome, acto a acto
+
+Os sete limites estão no catálogo (`biblioteca/comercial/planos.json` → `consultoria.limites`) e
+traduzem-se numa sequência de actos. Cada linha traz a sua base — e as que dizem **inferido** não foram
+medidas:
+
+| acto | execuções que acorda | min | base |
+|:--|:--|--:|:--|
+| criar a escola | `criar-escola` + `derivados` + `publicar` | **3** | o job está medido (§2); os dois observadores vêm dos `paths` — **inferido** |
+| gravar o plano de ensino | o job + `derivados` | **2** | o §5 declara 1; o §20.3 mediu a gravação irmã em 4 — **inferido** |
+| gravar o PO | o job + `derivados` | **2** | idem |
+| gerar o 1.º ciclo | `gerar` + `derivados` + `publicar` | **3** | os três medidos, 1 min cada (§20.2) |
+| gerar o 2.º ciclo | idem | **3** | idem |
+| **3 aulas lançadas** | 2 `derivados` + 1 `gerar`, cada | **9** | **medido** (§20.4) |
+| entregar, prorrogar, habilitar | nenhuma — é KV | **0** | `POST /api/escola/consultoria` |
+| | | **22** | |
+
+**22 minutos por demonstração**, a **R$ 0,036/min** — a taxa do §20 (`$0,006 × R$ 6`) —, dá
+**R$ 0,79**.
+
+**As três linhas inferidas são a parte que pode estar errada, e o erro é para baixo.** Se a criação da
+escola e as duas gravações de factura custarem um minuto em vez de três e dois, o total cai a 18 e o
+valor a R$ 0,65. Orçamenta-se pelo número de cima: **22 min, R$ 0,79**.
+
+### 22.2 Porque é que o limitador é o orçamento, e não uma restrição comercial
+
+A conta acima **não depende de bom comportamento nenhum**: ela é o **tecto**, porque os sete limites
+são paredes e não recomendações. É isso que o limitador compra.
+
+Sem ele, a mesma demonstração não é uma demonstração — é um mês de operação:
+
+| | aulas que pode lançar | minutos | a R$ 6 |
+|:--|--:|--:|--:|
+| **com o limitador** | **3** | **22** | **R$ 0,79** |
+| sem o limitador, com os mesmos 2 ciclos | **48** (24 × 2) | **157** | **R$ 5,65** |
+| sem o limitador e sem teto de ciclos | semanas de aulas | — | — |
+
+**A diferença é de 7,1 vezes** para um mês, e ela deixa de ser mensurável a partir da terceira linha.
+Vale a pena dizer o que isto significa em língua de risco: **o pior caso de uma demonstração é
+R$ 0,79, e ele é conhecido antes de a demonstração começar.** É essa a frase que o limitador permite
+escrever, e é a única coisa que ele garante.
+
+*(O teto de 24 aulas por ciclo não é suposto: está medido no `ciclos.json` do breu — 24 entradas em
+`aulas[]`, todas com `lancada: false`. A prova `experimentos/provar-o-custo-da-consultoria.js` lê-o de
+lá, para o número não envelhecer sozinho.)*
+
+### 22.3 Quantas demonstrações cabem na franquia
+
+A franquia são **2 000 min/mês** (§2), e a engenharia consome **522 min** (§L9f). Sobram 1 478.
+
+`1 478 ÷ 22` = **67 demonstrações por mês dentro da franquia, a custo zero em dinheiro.**
+
+**É a resposta honesta a «isso vai ter custo?»: em dinheiro, só depois da sexagésima sétima. Em cota,
+desde a primeira** — cada demonstração gasta 22 dos 2 000 minutos que também pagam o
+desenvolvimento. A cota é o recurso escasso, e é ela que limita o número de demonstrações, não o
+orçamento.
+
+### 22.4 O custo do treino, que é o outro lado
+
+O consultor não se treina a ler: treina-se a montar. Cada treino é **uma demonstração inteira**, numa
+escola de treino com dado inventado (nunca na escola do cliente).
+
+| o que | min |
+|:--|--:|
+| uma demonstração montada do zero | **22** |
+| uma repetição completa | **22** |
+| **por consultor, com uma repetição** | **44** |
+
+**R$ 1,58 por consultor treinado**, e **duas horas de treino assistido** mais **três horas de
+preparação por escola** do lado dele — horas que este documento não precifica porque não são minhas
+para fixar. O que ele fixa é a parte técnica: **44 minutos de cota e R$ 1,58**, por consultor.
+
+### 22.5 O que fica por medir, e é o próximo número honesto
+
+1. **A criação da escola e as duas gravações de factura** — as três linhas inferidas do §22.1. Medem-se
+   no histórico do Actions como se mediu a aula, e o total de 22 passa a 18 ou a 22 conforme o
+   resultado.
+2. **O `derivados.yml` a observar o pacote gerado** — o §20 já declarou esta alavanca e não a puxou:
+   cada geração de ciclo acorda um `derivados` que não tem nada para fazer. Cortá-la vale 1 min por
+   ciclo, ou seja **2 dos 22 minutos** de cada demonstração.
+3. **Quantas demonstrações simultâneas** (Q7 do plano, em aberto) — não muda o custo unitário, muda a
+   cota comprometida num mês.

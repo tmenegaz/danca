@@ -4,7 +4,26 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **o plano consultoria existe, e o mês corre da entrega.** A
+> **Última fotografia:** 25/11/2026 — **o fluxo do consultor está escrito, e o custo da
+> demonstração está medido.** Ela pediu duas coisas que faltavam para o plano consultoria poder ser
+> operado por outra pessoa: «a história que conta como é que funciona essa escola» e «isso vai ter
+> custo, não vai sair de graça». O **[FLUXO-DA-ESCOLA-EM-CONSULTORIA.md](FLUXO-DA-ESCOLA-EM-CONSULTORIA.md)**
+> é o manual de operação e de treino — a história em nove passos, os ecrãs por onde se passa, as
+> três frases de recusa quando a escola bate no limite, o que o consultor **não** pode fazer (cobrar,
+> prometer, apagar), e um treino de duas horas em quatro blocos com critério de saída em cada um. O
+> **[CUSTO-DOS-FLUXOS.md](CUSTO-DOS-FLUXOS.md) §22** mede o que cada demonstração consome, acto a
+> acto, e diz o número que faltava: **22 minutos e R$ 0,79** — e o mesmo produto **sem** o limitador
+> custaria **157 minutos e R$ 5,65**, 7,1 vezes mais. É essa a frase que o limitador permite escrever
+> e é a resposta à pergunta dela: o pior caso de uma demonstração é conhecido **antes** de ela
+> começar. Cabem **67 demonstrações por mês** dentro da franquia de 2 000 min (descontada a
+> engenharia), o que faz do custo em dinheiro zero até lá e da **cota** o recurso escasso. O treino
+> de um consultor custa **44 minutos e R$ 1,58** (duas demonstrações inteiras). As linhas de custo
+> que não foram medidas estão marcadas como **inferidas** no §22.1, e o número orçamentado é o de
+> cima. O que guarda os dois documentos de mentirem juntos é
+> `experimentos/provar-o-custo-da-consultoria.js` (41 asserções): recalcula do catálogo e do
+> `ciclos.json` real, e reprova quando o texto se afasta — com o controlo negativo a mostrar que a
+> aritmética lê mesmo o catálogo (com 6 aulas em vez de 3, doze asserções caem). Antes disso, no
+> mesmo dia: **o plano consultoria existe, e o mês corre da entrega.** A
 > escola que está em consultoria ganhou o nome que ela decidiu — **plano consultoria** — e os sete
 > limites duros: 2 professores (o titular e mais um), 5 alunas, 2 ciclos, 2 modalidades, 3 aulas, 2
 > salas, 3 turmas. O mês começa no botão **«Entregar à escola»** e fecha no último instante do dia
@@ -7530,6 +7549,24 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **25/11/2026** — **O fluxo do consultor, e o custo da demonstração.** O plano consultoria estava
+  implementado e não era **operável por outra pessoa** — o que faltava não era código: era o guião de
+  quem vai clicar e a conta de quanto custa antes de haver receita. O
+  `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` é o manual de treino: nove passos, os ecrãs exactos, as três
+  frases de recusa, o que o consultor **não** pode fazer (cobrar, prometer, apagar, pôr dado em claro)
+  e um treino de duas horas com critério de saída por bloco. A fronteira de risco está escrita como
+  ela a pôs: **o consultor monta e mostra; quem cobra e quem entrega o mês é ela.** O
+  `CUSTO-DOS-FLUXOS.md` **§22** calcula o tecto de uma demonstração — **22 min, R$ 0,79** — a partir
+  dos sete limites do catálogo, com cada linha a declarar a base e as não medidas marcadas como
+  **inferidas** (o erro delas é para baixo). O contrafactual é o argumento que ela pediu: os mesmos
+  dois ciclos **sem** o limitador dão 48 aulas, **157 min, R$ 5,65**, 7,1× mais. Cabem **67
+  demonstrações por mês** na franquia (2 000 − 522 de engenharia), e o treino de um consultor são
+  **44 min, R$ 1,58**. O `§22.2` acerta ainda o número do teto de aulas por ciclo, que estava
+  afirmado e não medido: **24**, lido do `ciclos.json` real. **A prova é a peça que impede os dois
+  documentos de mentirem juntos** — `provar-o-custo-da-consultoria` (41 asserções) recalcula do
+  catálogo, compara com o texto dos dois ficheiros, e o controlo negativo (6 aulas em vez de 3) faz
+  cair doze asserções.
 
 - **25/11/2026** — **O plano consultoria e o mês de demonstração.** O limitador da escola em
   consultoria, com o nome que ela decidiu. Os sete limites vivem no catálogo

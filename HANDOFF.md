@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-25T13:03:55-0300`
-Commit atual: `1eae186d` — feat(estrutura): o contador de aulas, e o excedente como uma linha discriminada
+Gerado em: `2026-11-25T14:22:50-0300`
+Commit atual: `5472e427` — feat(estrutura): o plano consultoria, o mes que corre da entrega, e o congelamento calculado
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+5472e427 feat(estrutura): o plano consultoria, o mes que corre da entrega, e o congelamento calculado
 1eae186d feat(estrutura): o contador de aulas, e o excedente como uma linha discriminada
 02ee797d fix(estrutura): a cobranca Pix le-se no mesmo calendario do vencimento
 fd4a0e16 feat(estrutura): o mes pago a menos nao fecha, e a clausula esta escrita onde ela paga
@@ -101,7 +102,6 @@ f9e49440 feat(acervo): envelope/.indice.json
 454ddbe3 feat(acervo): envelope/po-20261125-0627.json
 6d0bb06a feat(acervo): envelope/.indice.json
 c1f38332 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
-36db52f9 feat(plano): o elo da cadeia automática
 ```
 
 ## Por professor
@@ -195,139 +195,94 @@ c1f38332 feat(ciclo): o manifesto da variante passa a derivar do cadastro da tur
 
 ## Última entrada do REGISTRO
 
-## 25/11/2026 — O plano consultoria: os sete limites, o mês que corre da entrega, e o congelamento calculado
+## O fluxo do consultor e o custo da demonstração *(25/11/2026)*
 
-**O pedido, e é o limitador inteiro:** «enquanto eu estou fazendo a consultoria […] depois que eu
-terminar o processo […] eu vou deixar para a escola esse ambiente configurado com o nome dela,
-disponível para ela usar por um mês. Só que vai ter um limite. […] esse limite não se renova, tá? […]
-depois ele fica completamente congelado […] Ela só pode ler as coisas. […] Aí se a escola pagar, ela
-contratar, aí eu clico em habilitar e a escola fica livre dentro daquele plano.»
+> «Você precisa me entregar um fluxo, a história que conta como é que funciona essa escola do
+> consultor. Tem que documentar isso também, porque eu vou precisar treinar o consultor para usar
+> isso. […] e também calcular o custo, porque isso vai ter custo, não vai sair de graça. […] Afinal de
+> contas, o risco do negócio é meu, não é nem do consultor, é só meu.»
 
-**O nome é dela, decidido hoje:** «a gente pode chamar de plano consultoria, alguma coisa assim,
-porque aí fica claro para mim que se trata daquele consultor». E, no mesmo diálogo, a distinção que
-faltava: **onerar ≠ interromper**. Na consultoria o teto **interrompe** o uso (só lê, como uma escola
-desabilitada); no plano pago a franquia **onera** — o excedente de R$ 8,00 por aula que o commit
-anterior passou a cobrar.
+O plano consultoria estava implementado e **não era operável por outra pessoa**. Faltavam duas coisas,
+e nenhuma delas era código: o **guião de quem vai clicar** — porque quem monta o ambiente não é quem o
+desenhou — e a **conta de quanto custa antes de haver receita**, porque o intervalo entre «montar» e
+«contratar» é o único momento do produto em que se gasta sem se receber.
 
-### Os sete, e a regra que os faz caber numa função
+### O que ficou escrito
 
-`motor/nucleo/cotas.js` é **puro**: recebe o contrato e as contagens, devolve «cabe» ou a frase. Não
-lê KV, não conta pessoas, não sabe o que é um ecrã — e é por isso que a regra se mede sem bancada. Os
-números vivem no catálogo (`planos.json → consultoria.limites`), com `publico: false`: a entrada
-existe para o motor, não para a oferta.
+**`FLUXO-DA-ESCOLA-EM-CONSULTORIA.md`** — o manual de operação e de treino. A história em nove passos
+(a conversa com a escola, a criação, a montagem, o plano, o PO, os ciclos, a apresentação, a entrega, os
+três desfechos), com o ecrã exacto de cada passo e a frase de cada momento. Traz três coisas que um
+manual de produto costuma não trazer e que aqui são a parte útil:
 
-**O REGIME MANDA, e é o §ADITIVO §2.** Numa assinatura paga, professores e alunas são referência
-interna e **não bloqueiam**; na consultoria os sete são paredes. Uma `travaDaCota` que aplicasse a
-mesma regra aos dois teria transformado os planos pagos no que o aditivo proíbe.
+- **as três frases de recusa**, uma para cada limite, e a estrutura que as faz funcionar — dizer o
+  limite, dizer o que já foi usado, oferecer a saída. «Deu erro» transforma uma demonstração boa em
+  produto pequeno;
+- **o que o consultor não pode fazer**, e a lista começa por cobrar. A fronteira é de risco, não de
+  hierarquia: ele monta e mostra; **quem entrega o mês, quem prorroga e quem habilita é ela**;
+- **o treino em quatro blocos de duas horas**, cada um com critério de saída observável (diz os sete
+  números de cor; monta sem lançar aula; responde a três perguntas sem prometer; mostra o só-leitura a
+  funcionar).
 
-**Duas espécies de teto, e a diferença é o que faz «não se renova» ser verdade.** Gente, salas,
-turmas e modalidades são **concorrentes**: quem sai liberta o lugar, e apagar um professor para criar
-outro é permitido. As **aulas são de vida**: um livro de identidades
-(`professor/variante/numero`) no registo comercial, que só cresce — apagar um ciclo apagaria o dado
-no disco, e a vaga voltaria por uma porta lateral. O livro não é um contador: é uma lista que se pode
-conferir, e a mesma aula registada duas vezes continua a ser uma.
+**`CUSTO-DOS-FLUXOS.md` §22** — o custo, medido do catálogo para fora.
 
-### O relógio: um mês é do calendário, não 30 dias
+### O número
 
-`fuso.fimDeUmMes` soma um mês à **data local** e fecha no último instante do dia local, guardado em
-UTC. Entregue a 25/11 às 17:00 locais, o mês termina a **25/12 às 23:59:59** — 26/12 às 02:59:59 UTC,
-que é o exemplo do próprio plano. 31/01 + um mês dá **28/02**, e não 02/03. Cortar os dígitos do ISO —
-o defeito que o `fuso.js` já pagou uma vez — daria um vencimento às 21:00 do dia anterior, e a escola
-perderia um dia inteiro sem ninguém entender porquê.
+| acto | min |
+|:--|--:|
+| criar a escola | 3 |
+| gravar o plano de ensino | 2 |
+| gravar o PO | 2 |
+| gerar 2 ciclos | 6 |
+| **3 aulas lançadas** | **9** |
+| entregar, prorrogar, habilitar | 0 |
+| **tecto de uma demonstração** | **22 min = R$ 0,79** |
 
-**`entregueEm` é um facto único**: não se recalcula, não se reinicia ao «Habilitar», e uma segunda
-entrega responde **409** com a razão. `terminaEm` é gravado **uma vez** — um valor derivado de
-«agora» mudaria com o relógio e faria a data mentir. E **a prorrogação existe** («se a escola disser
-me dá mais um mês, eu dou»), mas não é um botão de renovação: conta **do fim que já estava marcado**,
-leva motivo, e fica no histórico como elo com autor.
+E o contrafactual, que é o argumento dela: os **mesmos dois ciclos sem o limitador** dão as 48 aulas
+que eles contêm, ou **157 min e R$ 5,65** — **7,1 vezes mais**, e sem tecto mensurável a partir da
+terceira linha. É por isso que o limitador **é** o orçamento: o pior caso de uma demonstração é
+conhecido antes de ela começar.
 
-### O congelamento é calculado — e é isso que o separa da inadimplência
+A franquia de 2 000 min absorve **67 demonstrações por mês** (descontados os 522 min de engenharia), o
+que torna o custo em dinheiro **zero até lá** e a **cota** o recurso escasso. O treino de um consultor
+são **44 min e R$ 1,58** — duas demonstrações inteiras, uma para ver e uma para fazer.
 
-`comercial.estadoEfetivo` devolve `expirada` quando o prazo passou e o plano não é pago. **Não há
-cron**, e a razão é a do `estadoDaAula`: um agendador dependeria de um relógio que o produto não tem,
-correria no fuso errado, e escreveria o estado **antes** de alguém o ler — tornando o congelamento um
-facto consumado em vez de uma leitura.
+**Três linhas do §22.1 são inferidas** (a criação da escola e as duas gravações de factura: o job está
+medido, os dois observadores vêm dos `paths`), e o §22 diz que o erro delas é **para baixo** e que se
+orçamenta pelo número de cima. As duas alavancas que o §20 deixou declaradas continuam por puxar, e
+ficaram escritas no §22.5.
 
-**O estado GRAVADO continua `ativa`, e isso não é descuido: é o D3.** `estadoDoExpurgo` só aceita
-apagar uma `suspensa` com `desabilitadaEm` e carência vencida. Uma `expirada` guardada como `ativa`
-**não é apagável automaticamente** — o fim de uma demonstração não é dívida (L12), e tratá-lo pela
-régua da inadimplência bloquearia quem nunca deveu nada. A prova mede as duas coisas: o veredicto do
-expurgo (`pode: false`) e a carência a correr **depois** de ela clicar «Desabilitar».
+### Uma correcção de leitura
 
-**Duas frases, porque são dois factos.** A do `suspensa` manda «regularizar» e fala de pagamento em
-atraso; a da `expirada` diz o que aconteceu — a demonstração terminou — e qual é a saída.
+O §22.2 afirma que um ciclo tem **24 aulas**. Esse número andava no plano como facto e nunca tinha sido
+lido do dado: está no `ciclos.json` do breu, 24 entradas em `aulas[]`, **todas com `lancada: false`** —
+o que confirma, de passagem, a leitura **B** da Q9 (a aula só conta quando é lançada).
 
-**E «Habilitar» sozinho não é uma porta de fuga:** o estado guardado muda para `ativa` (é o que o
-botão faz), mas sem plano pago o efectivo continua `expirada` e a escola abre em só-leitura. A única
-porta é o contrato.
+### As provas
 
-### As sete travas, e a armadilha que o plano nomeou
+`experimentos/provar-o-custo-da-consultoria.js`, **41 asserções**. Ela não confia nos documentos: lê os
+limites do `planos.json` e as 24 aulas do `ciclos.json`, recalcula o tecto, e **compara o resultado com
+o texto dos dois ficheiros**. É o que impede os dois de apodrecerem juntos — a família de erro do §20,
+onde uma prova dizia 3 e o documento dizia 2 durante seis dias.
 
-| dimensão | onde recusa | o que conta |
-|:--|:--|:--|
-| professores | `POST /api/bastidores/professor` | activos, e o **titular conta** |
-| alunas | `POST /api/bastidores/aluna` | activas, no **cadastro** (não no elenco) |
-| salas | `POST /api/bastidores/turma` | `ativo !== false` — «Salas» é `turmas` no KV |
-| modalidades | a mesma rota | **só se a modalidade for nova** |
-| turmas | `POST /api/bastidores/curadoria` | vigentes — «Turmas» é `curadorias` no KV |
-| ciclos | **no `criarDisparador`** | ciclos **publicados**; regerar não consome |
-| aulas | **no lançamento** | o livro de vida |
-
-**A modalidade só ocupa lugar se for nova** — uma segunda sala de balé numa escola que só tem balé não
-gasta a segunda vaga. A primeira versão da trava fazia a pergunta errada («quantas salas há?») e
-recusaria a terceira sala de balé de uma escola de balé.
-
-**O ciclo nasce por três pontes**, e a trava vive onde as três passam. Se ficasse numa rota só, o
-teto funcionaria no botão A e não no B — o pior sintoma possível. A ponte de Node declara-se **muda**
-(`ok: true, motivo: 'ponte de desenvolvimento'`): ela não tem KV nem ASSETS, e a declaração está no
-código em vez de num silêncio. A prova lê os três ficheiros e exige a opção em cada um.
-
-**A leitura é estrita.** Uma escola sem alunas e uma leitura falhada não podem dar a mesma resposta:
-`lerLista(..., estrito)` lança, e o `null` que sai daí **recusa** na trava em vez de deixar passar um
-limite que não se mediu.
-
-### A Q9, resolvida pela medição — e contra o D5
-
-O plano deixou aberta a pergunta que decide a aritmética: a aula 01 conta ao gerar o ciclo (D5) ou só
-quando é lançada? **O dado medido diz o contrário do D5** — o `ciclo-01-breu-piano-dados.json` tem
-`lancamentos: 0` e as 24 aulas com `lancada: false`, incluindo a 01.
-
-Ficou a **leitura B**: a aula 01 conta **quando é lançada**. A razão é a disciplina da casa — *decidir
-não é tornar verdadeiro*. A alternativa (A) exigiria que o gerador escrevesse o registo da aula 01 no
-acto de gerar, o que não se fez: seria uma segunda escrita no `-dados.json` pelo `gerar-ciclo.sh`, com
-o risco de o registo e o formulário discordarem.
-
-**A consequência, dita sem rodeios:** dois ciclos gastam **0** das 3 aulas, e o teto é o das **três
-primeiras aulas lançadas**, independentemente de quantos ciclos existam. O §10.1 do plano («2 ciclos
-gastam 2 das 3») **não vale**, e o texto da oferta tem de dizer a regra certa. Se ela preferir A, é
-uma linha no gerador — e fica declarado para não se descobrir por acidente.
+**O A/B, feito e não afirmado:** falseados os cinco números nos documentos, a prova cai a **36/41**,
+com as cinco asserções discriminantes a reprovar. Com o catálogo alterado (3 aulas → 6), cai a
+**29/41** e o tecto passa a 31 min. Bateria completa: **289 provas, 196 verdes, 93 conhecidas, 0
+regressões**. `check-identidade`: 23 checagens, todas ok. Removida a entrada `provar-estante-do-po` da
+linha de base, que já passava e era um aviso em cada corrida.
 
 ### O que não se fez
 
-- **A faixa na página da Produção** — ela está no mês a mês, que é onde o extrato vive.
-- **A página congelada com o caminho para contratar** — o `402` já recusa e já diz a frase; falta a
-  navegação com o link comercial.
-- **O texto da oferta** (F7) — depende do que se quer vender (Q2).
-- **O cadastro do consultor** — «isso a gente vai precisar mais para frente», e é uma frente nova.
-- **O `consultoria` no `<select>` do contrato** — hoje entra pela criação.
+- **A faixa na página da Produção** e **a página congelada com o caminho para contratar** — continuam
+  declaradas em aberto, agora também no §5 do guião.
+- **O texto da oferta** — a redacção depende da Q2, e o guião já diz o que ele tem de dizer: «2 ciclos
+  planeados e **3 aulas processadas**».
+- **O cadastro do consultor** (quem é consultor de qual escola) — frente nova, e não é pré-requisito
+  para treinar uma pessoa.
+- **A medição das três linhas inferidas** — é trabalho de histórico do Actions, não de código.
 
-**As provas.** `experimentos/provar-a-escola-em-consultoria.js`, **70 asserções** em doze blocos — o
-catálogo, a criação, as sete travas N/N+1, a trava ligada a um KV a sério, o relógio (com o caso dela
-ao minuto), a faixa, o congelamento, a não-renovação, o expurgo, o pagamento, as três pontes, e a
-distinção onerar × interromper. Bateria completa: **288 provas, 195 verdes, 93 conhecidas, 0
-regressões**. `check-identidade`: 23 checagens, todas ok.
-
-**Onde entrou.** `motor/nucleo/cotas.js` (novo), `motor/nucleo/comercial.js` (`estadoEfetivo`,
-`periodoDaConsultoria`, `planoPago`, `MENSAGEM_DA_EXPIRADA`, e o `consultoria` em `validarEscolha`),
-`motor/nucleo/fuso.js` (`fimDeUmMes`), `motor/nucleo/lancamento.js` (`cota` e `registar`),
-`motor/servidor/disparar.js` (a cota antes do disparo), `motor/servidor/bastidores.js` (as quatro
-travas de rota, as contagens, a faixa e o botão do painel), `motor/servidor/contador-da-escola.js`
-(`cotaDeCiclos`), `motor/servidor/cloudflare.js` (a cota e o livro no lançamento),
-`motor/servidor/producao.js` (o `expirada` no `ehEscrita`), `motor/servidor/raiz.js` (a rota da
-entrega e a lista das vivas), `motor/servidor/painel-html.js` (o estado efectivo e os botões),
-`biblioteca/comercial/planos.json` (a entrada `consultoria`),
-`experimentos/provar-a-escola-em-consultoria.js` (novo), `PLANO-DA-ESCOLA-EM-CONSULTORIA.md` (§17),
-`ESTADO-ATUAL.md`, `HANDOFF.md`.
+**Onde entrou.** `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` (novo), `CUSTO-DOS-FLUXOS.md` (§22),
+`experimentos/provar-o-custo-da-consultoria.js` (novo), `.gitignore` (a prova versionada),
+`experimentos/provas-vermelhas.json` (a entrada que já passava), `ESTADO-ATUAL.md`, `HANDOFF.md`.
 
 ## O que está pendente
 

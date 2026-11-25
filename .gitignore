@@ -2043,3 +2043,10 @@ experimentos/modelo-formulario/*
 # quem a escreveu não protege ninguém. Mede o mês no calendário local, o só-leitura, a não-renovação
 # das aulas, e que as três pontes do ciclo passam a cota.
 !experimentos/provar-a-escola-em-consultoria.js
+
+# O CUSTO DA DEMONSTRAÇÃO (25/11/2026). «Isso vai ter custo, não vai sair de graça», e o risco é dela.
+# O número está em dois documentos — o CUSTO-DOS-FLUXOS §22 e o guião do consultor —, e dois
+# documentos a afirmar o mesmo número é a receita para os dois mentirem juntos: foi o que aconteceu
+# no §20, com a prova a dizer 3 e o documento a dizer 2 durante seis dias. Esta prova recalcula do
+# catálogo e do dado, e reprova quando os documentos se afastam.
+!experimentos/provar-o-custo-da-consultoria.js
