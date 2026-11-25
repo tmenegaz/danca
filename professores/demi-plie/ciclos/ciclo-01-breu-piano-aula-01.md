@@ -6,8 +6,8 @@ aula: "01"
 title: "Plano para a Aula 01 — transferir o peso entre os pés sem perder o alinhamento"
 subtitle: "Turma: Piano"
 objetivo-especifico: "transferir o peso entre os pés sem perder o alinhamento"
-duracao: "55 minutos"
-volume-total: "83 tempos"
+duracao: "60 minutos"
+volume-total: "90 tempos"
 referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 ---
 
@@ -21,8 +21,8 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 | **Sala** | Piano |
 | **Data e dia** | segunda-feira, 04/01/2027 |
 | **Parâmetro de medição** | **1** transferir o peso entre os pés sem perder o alinhamento — observa: Battement jeté · Battement tendu · Plié · Relevé |
-| **Duração** | 55 minutos (Pré-requisito 4) |
-| **Volume ativo** | 83 tempos (faixa 74–91 da duração de 55 min — Regra 9, etapa 1) |
+| **Duração** | 60 minutos (Pré-requisito 4) |
+| **Volume ativo** | 90 tempos (faixa 80–100 da duração de 60 min — Regra 9, etapa 1) |
 
 ## 2. Condições preliminares de preparação (o espaço e o material)
 
@@ -32,12 +32,12 @@ referencias: "RAD (2015) e material de teste do Projeto Ciclo."
 
 | Bloco | Tempos | Fatia |
 |:--|--:|--:|
-| Solo | 16,6 | 20% |
-| Barra | 24,9 | 30% |
-| Centro | 24,9 | 30% |
-| Musicalidade | 8,3 | 10% |
-| Expressão | 8,3 | 10% |
-| **Total** | **83** | **100%** |
+| Solo | 18 | 20% |
+| Barra | 27 | 30% |
+| Centro | 27 | 30% |
+| Musicalidade | 9 | 10% |
+| Expressão | 9 | 10% |
+| **Total** | **90** | **100%** |
 
 ## 4. Bloco de musicalidade
 
@@ -125,8 +125,8 @@ o guia diz o que observar, e este diz o que aconteceu ao plano.</p>
 
 ## 6. Proveniência consolidada
 
-- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261124-0815?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
-- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261124-0811?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.
+- **[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261125-0627?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?
+- **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261125-0627?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.
 
 **Anamnese de cada aluna**
 
@@ -151,8 +151,8 @@ s.addEventListener("change",pintar);pintar();})();</script>
 | Verificação | Resultado |
 |:--|:--|
 | Objetivo específico declarado | ok |
-| Duração declarada (Pré-requisito 4) | ok — 55 minutos |
-| Volume dentro da faixa (Regra 9) | ok — 83 tempos em 74–91 |
+| Duração declarada (Pré-requisito 4) | ok — 60 minutos |
+| Volume dentro da faixa (Regra 9) | ok — 90 tempos em 80–100 |
 
 ## 8. Próximo passo
 
