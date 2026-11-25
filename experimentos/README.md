@@ -273,7 +273,9 @@ srv.listen(0, '127.0.0.1', async () => {
 });
 ```
 
-- **Ao ar, uma carga por escola, no fim** — a conferência final. Duas escolas, duas cargas.
+- **Ao ar, uma carga por escola, no fim** — a conferência final. A lista das escolas é a das que
+  têm pacote-zero (`provar-ambiente.js` deriva-a; hoje é uma, e uma carga). Um `--escola` que não
+  seja uma escola viva **falha** — não responde «0 escola(s), tudo certo».
 - **Um 500 diagnostica-se pelo endpoint**, não recarregando a página:
   `curl -s -o /dev/null -w '%{http_code}\n' https://<escola>…/api/anamnese-estados`, e o motivo
   real em `npx wrangler tail --config wrangler.<escola>.jsonc`.
