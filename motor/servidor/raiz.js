@@ -29,6 +29,11 @@ const correio = require('./correio.js');
  * (`biblioteca/comercial/planos.json`). Nenhum preço se escreve em código. */
 const comercial = require('../nucleo/comercial.js');
 const cobrancasDoNucleo = require('../nucleo/cobrancas.js');
+/* O CONTADOR DE AULAS (25/11/2026). Dois módulos porque são duas responsabilidades: o NÚCLEO soma e
+ * decide (puro), e o da escola sabe onde a cópia mora. Aqui só se lê a cópia — a raiz não reconcilia,
+ * porque não vê o ASSETS de escola nenhuma. */
+const contadorDeAulas = require('../nucleo/contador-de-aulas.js');
+const { chaveDaContagem } = require('./contador-da-escola.js');
 /* O MONITOR (17/11/2026) — as cotas dos três fornecedores, a receita e o impacto da migração.
  * Vive no núcleo porque é conta pura: a rota lê os dados (GitHub, KV, livro) e ele responde. */
 const monitoramento = require('../nucleo/monitoramento.js');
@@ -1836,6 +1841,31 @@ async function lerCobrancas(kv) {
     return cobrancasDoNucleo.mapaEstruturado(JSON.parse(texto));
   } catch (erro) {
     return {};
+  }
+}
+
+/**
+ * A CONTAGEM DE AULAS DE UMA ESCOLA, lida do KV (25/11/2026).
+ *
+ * `null` cobre os três casos que a página trata da mesma maneira — sem KV, sem a chave, e a chave
+ * ilegível —, porque os três querem dizer a mesma coisa para quem olha: **não se contou**. O
+ * `contadorDeAulas.lerContagem` já trata o lixo devolvendo a contagem vazia, e uma contagem vazia
+ * (sem nenhum mês) também se lê como «não contado» — nunca como «zero aulas».
+ *
+ * Uma leitura por escola, e não uma por mês: o registo traz o histórico todo, e o extrato de doze
+ * meses sai de uma ida ao KV.
+ */
+async function lerContagemDeAulas(kv, escola) {
+  if (!kv || typeof kv.get !== 'function') return null;
+  const chave = chaveDaContagem(escola);
+  if (!chave) return null;
+  try {
+    const texto = await kv.get(chave);
+    if (!texto) return null;
+    const lida = contadorDeAulas.lerContagem(texto);
+    return Object.keys(lida.meses || {}).length ? lida : null;
+  } catch (erro) {
+    return null;
   }
 }
 
@@ -3764,6 +3794,13 @@ async function extratoDasEscolas({ env, escolas, agora }) {
      * A pergunta «que meses há?» tem de ter UMA resposta. A função que a responde é a mesma
      * (`situacaoDaEscola`); o que faltava era dar-lhe a mesma entrada. */
     const ensaio = await lerEnsaio(kv, slug);
+    /* A CONTAGEM DE AULAS DESTA ESCOLA (25/11/2026) — uma leitura, e ela é a ponte que faltava.
+     *
+     * O `ciclos.json` de cada turma vive no ASSETS do Worker da ESCOLA; esta raiz serve `raiz/` e não
+     * o vê. O que se lê aqui é a cópia de FACTOS que a escola grava quando reconcilia
+     * (`contador-da-escola.js`): quais aulas foram processadas e em que dia — nunca um total.
+     * Ausente, a contagem é `null` e o cartão cala o consumo; **não se inventa um zero**. */
+    const contagem = await lerContagemDeAulas(kv, slug);
     /* AS COBRANÇAS ENTRAM NA CONTA DO EXTRATO (25/11/2026). A linha de cada mês passa a trazer o
      * estado da cobrança Pix (`cobranca`, com `serve` e o motivo), decidido UMA vez por quem tem o
      * relógio. Antes, cada página juntava as primitivas à mão — e foi assim que o ensaio entrou num
@@ -3771,7 +3808,7 @@ async function extratoDasEscolas({ env, escolas, agora }) {
      * outro (real), e uma cobrança colada agora acusada de ser anterior ao vencimento. */
     const daEscola = cobrancasDoNucleo.cobrancasDaEscola(cobrancas, slug);
     const situacao = mensalidades.situacaoDaEscola({
-      escola: slug, contrato, livro, agora, ensaio, cobrancas: daEscola,
+      escola: slug, contrato, livro, agora, ensaio, cobrancas: daEscola, contagem,
     });
     lista.push(Object.assign({}, situacao, {
       nome: (e && e.nome) || slug,

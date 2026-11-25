@@ -1966,7 +1966,11 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
        * o campo numérico do browser recusa a vírgula em parte dos teclados e transforma um valor
        * válido num valor vazio em silêncio. */
       const idDoCampo = 'pagar-valor-' + esc(c.escola) + '-' + esc(m.mes);
-      const devido = (m.encargos && m.encargos.totalCentavos)
+      /* O VALOR QUE O BOTÃO PROPÕE É O `aPagar` DA LINHA (25/11/2026) — saldo + mora + o excedente
+       * de aulas do mês anterior. Ele deixou de ser recalculado aqui: uma segunda soma do mesmo
+       * valor divergiria da linha no dia em que uma das duas ganhasse um termo, e essa linha é
+       * exactamente a que a pessoa está a ler ao lado do botão. */
+      const devido = Number(m.aPagarCentavos) || (m.encargos && m.encargos.totalCentavos)
         || m.faltaCentavos || m.valorCentavos || 0;
       const campo = expurgada
         ? ''
@@ -1974,12 +1978,23 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
           + ' data-pagar-valor="' + esc(c.escola) + '" data-mes="' + esc(m.mes) + '"'
           + ' aria-label="valor recebido neste mês, em reais"'
           + ' value="' + esc(emReais(devido)) + '">';
+      /* O EXCEDENTE DE AULAS DO MÊS ANTERIOR, NA LINHA DO MÊS EM QUE É COBRADO (25/11/2026).
+       *
+       * Ele entra na conta (`m.aPagarCentavos`), e por isso tem de estar À VISTA na linha em que
+       * entra — senão a linha diz um total que não fecha com os números que mostra ao lado. É a
+       * mesma razão de a mora estar aqui e não numa coluna própria. */
+      const doExcedente = (m.excedente && m.excedente.aulas > 0)
+        ? '<br><span class="sub">+' + esc(String(m.excedente.aulas)) + ' aula(s) excedente(s) de '
+          + esc(String(m.excedente.competencia)) + ' a R$ '
+          + esc((m.excedente.precoDaAulaCentavos / 100).toFixed(2).replace('.', ','))
+          + ' = R$ ' + esc((m.excedente.centavos / 100).toFixed(2).replace('.', ',')) + '</span>'
+        : '';
       const botao = expurgada
         ? ''
         : '<button class="acao pequena" type="button" data-pagar="' + esc(c.escola) + '"'
           + ' data-mes="' + esc(m.mes) + '"'
           + ' title="confirmar que o valor do campo entrou neste mês">Marcar pago</button>';
-      return '<td>' + selo + entrou + mora + campo + botao + '</td>';
+      return '<td>' + selo + entrou + mora + doExcedente + campo + botao + '</td>';
     };
 
     const linhas = meses.map((m) => '<tr data-mes="' + esc(m.mes) + '">' +
@@ -2070,6 +2085,17 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
             ? ' <span class="selo falha">' + esc(String(c.franquia.excedente)) + ' excedente(s)</span>'
             : (c.franquia.estado === 'perto' ? ' <span class="selo discreto">a chegar ao fim</span>' : ''))
           + '</span>'
+        : '') +
+      /* O EXCEDENTE EM REAIS, DISCRIMINADO (25/11/2026) — é a linha que ela pediu para poder
+       * discriminar ao cliente: quantas aulas, por quanto, e quanto dá. E diz onde é cobrado, porque
+       * o número sozinho não diz quando. O contador (`c.contadorDoMes`) é quem o calcula; aqui só se
+       * mostra. Sem contagem não há linha — a mesma disciplina de sempre. */
+      (c.contadorDoMes && c.contadorDoMes.excedenteAulas > 0
+        ? '<span>Excedente de aulas: <strong>'
+          + esc(c.contadorDoMes.excedenteAulas + ' × R$ '
+            + (c.contadorDoMes.precoDaAulaCentavos / 100).toFixed(2).replace('.', ',')) + ' = R$ '
+          + esc((c.contadorDoMes.excedenteCentavos / 100).toFixed(2).replace('.', ','))
+          + '</strong> <span class="sub">(cobrado no mês seguinte, além da mensalidade)</span></span>'
         : '') +
       /* AS REFERÊNCIAS DE GENTE SAÍRAM (17/11/2026) — «Isso não existe mais, esse tipo de
        * referência não existe mais.» O cartão dizia «Referência de tamanho» e «Além da

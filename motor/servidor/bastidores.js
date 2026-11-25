@@ -460,6 +460,9 @@ const mensalidadesDoNucleo = require('../nucleo/mensalidades.js');
 const cobrancasDoNucleo = require('../nucleo/cobrancas.js');
 /* O BOTÃO «COPIAR», NÚMERO UM (25/11/2026) — ver `motor/nucleo/copiar.js`. */
 const { SCRIPT_DO_COPIAR } = require('../nucleo/copiar.js');
+/* O CONTADOR DE AULAS (25/11/2026) — ver `contador-da-escola.js`. Ele lê os `ciclos.json` do
+ * ASSETS (que aqui existe) e mantém a cópia de factos que a raiz lê. */
+const { criarContadorDaEscola } = require('./contador-da-escola.js');
 const fusoDoNucleo = require('../nucleo/fuso.js');
 
 /** Um sal aleatório (16 bytes) em hex — para nunca guardar a senha em claro. */
@@ -5617,8 +5620,26 @@ async function dadosDaEscolaParaAProducao(env, kv, escola) {
    * de colar dizia «emitida antes do vencimento», porque as duas datas eram de calendários
    * diferentes. Ver `mensalidades.situacaoDaEscola`. */
   const daEscola = cobrancasDoNucleo.cobrancasDaEscola(cobrancas, escola);
+  /* O CONTADOR DE AULAS (25/11/2026). A reconciliação acontece AQUI porque é aqui que o ASSETS da
+   * escola está à mão — é esta função que serve o cartão e o mês a mês, e é ela que sabe as turmas.
+   * Ela grava a cópia de factos no KV **só quando o conjunto mudou** (a assinatura é comparada
+   * antes), e é essa cópia que o financeiro da raiz lê: um número, uma chave, uma leitura.
+   *
+   * O custo são leituras do ASSETS — uma por turma, as mesmas que o painel do estúdio já faz — e
+   * ZERO escritas quando ninguém lançou nada. */
+  const contadorDaEscola = criarContadorDaEscola({ env, kv, escola });
+  let contagem = null;
+  let ciclosDaEscola = null;
+  try {
+    const feito = await contadorDaEscola.reconciliar({ curadorias: await curadorias(kv, escola) });
+    contagem = feito.contagem;
+    ciclosDaEscola = feito.ciclos;
+  } catch (erro) {
+    contagem = null;
+    ciclosDaEscola = null;
+  }
   const situacao = mensalidadesDoNucleo.situacaoDaEscola({
-    escola, contrato, livro, ensaio, cobrancas: daEscola,
+    escola, contrato, livro, ensaio, cobrancas: daEscola, contagem, ciclos: ciclosDaEscola,
   });
   return {
     ok: true,
@@ -5741,9 +5762,30 @@ function painelDoContratoDaEscola(s) {
   const aulas = franquia
     ? (franquia.franquia != null ? franquia.franquia + ' aulas por mês' : null)
     : null;
-  const consumo = franquia && franquia.usadas != null && franquia.franquia
-    ? franquia.usadas + ' de ' + franquia.franquia + ' em ' + (franquia.mes || 'este mês')
-      + (franquia.excedente > 0 ? ' — ' + franquia.excedente + ' excedente(s)' : '')
+  /* O CONSUMO PASSOU A VIR DO CONTADOR (25/11/2026), e não de um `franquia.mes` que nunca existiu.
+   *
+   * «A escola precisa ter noção disso» — que há um contador de aulas a correr. A frase do contador
+   * diz as três coisas de que ela precisa numa linha: quantas aulas foram processadas, de quantas, e
+   * quanto custa a que passar. Quando não há contagem, a frase di-la («ainda não é contado») em vez
+   * de mostrar um zero que não se mediu. */
+  const contador = s.contadorDoMes && typeof s.contadorDoMes === 'object' ? s.contadorDoMes : null;
+  /* CONTADO, e não apenas presente: o `contadorDoMes` existe sempre (é um resumo com a franquia
+   * dentro), mas `estado: null` quer dizer que a contagem não se fez. Nesse caso a frase certa é a
+   * que a franquia sabe dizer — «40 de 130», quando o número veio por outra porta —, e NÃO a do
+   * contador, que diria «ainda não é contado» sobre um número que está ali ao lado. */
+  const contado = Boolean(contador && contador.estado !== null);
+  const consumo = contado ? contador.frase
+    : (franquia && franquia.usadas != null && franquia.franquia
+      ? franquia.usadas + ' de ' + franquia.franquia + ' neste mês'
+        + (franquia.excedente > 0 ? ' — ' + franquia.excedente + ' excedente(s)' : '')
+      : null);
+  /* O EXCEDENTE, DISCRIMINADO — aulas × preço. É a linha que ela quer poder mostrar ao cliente, e a
+   * escola tem de a ver para saber que o contador está a correr. */
+  const excedente = contado && contador.excedenteAulas > 0
+    ? contador.excedenteAulas + ' aula(s) × R$ '
+      + (contador.precoDaAulaCentavos / 100).toFixed(2).replace('.', ',') + ' = R$ '
+      + (contador.excedenteCentavos / 100).toFixed(2).replace('.', ',')
+      + ' — cobrado no mês seguinte'
     : null;
   const pacotes = Array.isArray(s.pacotes) && s.pacotes.length
     ? s.pacotes.map((p) => '+' + p.aulas + ' aulas').join(' e ')
@@ -5758,6 +5800,7 @@ function painelDoContratoDaEscola(s) {
     par('Franquia de aulas', aulas),
     par('Aulas extras', pacotes),
     par('Consumo do mês', consumo),
+    par('Excedente de aulas', excedente),
     par('Próximo vencimento', s.proximoVencimento
       ? s.proximoVencimento + (s.diasParaVencer != null
         ? (s.diasParaVencer >= 0
@@ -6084,9 +6127,18 @@ function paginaFinanceiro(escola, contexto, aparencia, dados) {
       acao = '<a class="acao pequena" href="/bastidores/estudio?abrir=pagar#a-escola"'
         + ' title="abrir a chave Pix para pagar este mês">Pagar</a>';
     }
+    /* O EXCEDENTE DE AULAS DO MÊS ANTERIOR, DITO NA LINHA EM QUE ENTRA (25/11/2026) — aqui também,
+     * e não só no financeiro de quem cobra. «A escola precisa ter noção disso»: se o valor do mês
+     * inclui duas aulas excedentes, a linha que mostra o valor tem de dizer de onde ele vem — senão
+     * a escola compara a mensalidade do contrato com um total maior e não encontra a diferença. */
+    const doExcedente = (m.excedente && m.excedente.aulas > 0)
+      ? '<br><span class="sub">+ ' + esc(String(m.excedente.aulas)) + ' aula(s) excedente(s) de '
+        + esc(String(m.excedente.competencia)) + ' = R$ '
+        + esc(cobrancasDoNucleo.reaisDe(m.excedente.centavos)) + '</span>'
+      : '';
     return '<tr><td>' + esc(m.nome) + '</td>'
       + '<td>' + esc(dia(m.vencimento)) + '</td>'
-      + '<td>' + esc(valor) + '</td>'
+      + '<td>' + esc(valor) + doExcedente + '</td>'
       + '<td>' + selo
       + (pago && m.emTexto ? ' <span class="dono">' + esc(String(m.emTexto).split(' ')[0])
         + '</span>' : '') + '</td>'

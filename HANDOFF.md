@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-25T11:34:57-0300`
-Commit atual: `fd4a0e16` — feat(estrutura): o mes pago a menos nao fecha, e a clausula esta escrita onde ela paga
+Gerado em: `2026-11-25T12:35:23-0300`
+Commit atual: `02ee797d` — fix(estrutura): a cobranca Pix le-se no mesmo calendario do vencimento
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+02ee797d fix(estrutura): a cobranca Pix le-se no mesmo calendario do vencimento
 fd4a0e16 feat(estrutura): o mes pago a menos nao fecha, e a clausula esta escrita onde ela paga
 9db153f9 feat(estrutura): a conciliacao volta, e o mes pago nao se cobra outra vez
 2c83fd88 fix(experimentos): a prova do ar deixa de passar sem medir nada
@@ -101,7 +102,6 @@ f9e49440 feat(acervo): envelope/.indice.json
 c1f38332 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
 36db52f9 feat(plano): o elo da cadeia automática
 35e60582 feat(acervo): envelope/plano-20261125-0627.json
-7bbc570d feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -195,76 +195,86 @@ c1f38332 feat(ciclo): o manifesto da variante passa a derivar do cadastro da tur
 
 ## Última entrada do REGISTRO
 
-## 25/11/2026 — A cobrança Pix e o vencimento no mesmo calendário: o ensaio estava a ser lido por dois relógios
+## 25/11/2026 — O contador de aulas: a franquia deixa de ser um número no ecrã
 
-**O que ela viu, e é o relatório inteiro:** colou uma cobrança Pix de R$ 96,86 — o valor da situação,
-«atrasado» — no financeiro. A coluna aceitou-a, e por baixo apareceu:
+**O pedido:** «Vamos agora implementar o contador de aula.» E a razão de ele existir está escrita no
+`PLANO-CONTADOR-DE-AULAS.md` desde 17/11: a franquia é de **aulas**, a renovação é mensal e não
+cumulativa, e o que passar da franquia paga-se. Sem o número, a franquia é um número no ecrã.
 
-> «Mês vencido e a cobrança foi emitida antes do vencimento, sem valor fixo legível. É um link ou um
-> código sem o campo do valor. Não dá para garantir que leva a mora. Gere uma nova de R$ 96,86.»
+**A regra, e ela é uma só:** *uma aula conta quando está no `aulas` do `-dados.json`, uma vez por
+número de aula.* O que isso resolve, caso a caso: regravar a mesma aula não soma (`fundirAulas`
+funde por número); regerar o pacote não soma (a geração preserva `aulas`); a aula não dada não soma
+(não há registo); e **a competência é a da DATA da aula** — uma aula de 30/11 lançada a 02/12 é de
+novembro, a mesma regra do livro das mensalidades.
 
-E o ensaio marcava o vencimento da escola em **23/06/2027** — com hoje a 25/11/2026. Ou seja: o
-sistema pedia-lhe uma cobrança nova **do mesmo valor** de uma cobrança que estava certa.
+**A ponte que o plano não previa, e a decisão que ela tomou.** O §9.1 supunha que o contador leria o
+ASSETS em qualquer sítio. Não é verdade para a raiz: o Worker do `danca.padd.com.br` serve `raiz/` e
+**não vê** `publicacao/`; e o `indices/escolas/<slug>.json` tem o `numero` e a âncora e **não tem a
+`data`**. As três opções foram-lhe apresentadas com o custo de cada uma, e a escolha foi a **B**: a
+escola grava no KV uma cópia, e a raiz lê-a.
 
-**O diagnóstico, e as duas frases são verdadeiras ao mesmo tempo.** A emissão (`em`, gravado no
-clique) é um instante **real**: 25/11/2026. O vencimento é um dia do calendário **efectivo**, que o
-ensaio adianta: 23/06/2027. `situacaoDaCobranca` comparava um com o outro e concluía «emitida
-antes do vencimento» — porque, no calendário real, 2027 ainda não chegou. Duas datas verdadeiras em
-calendários diferentes não medem nada.
+**A cópia é um CONJUNTO, e a diferença não é de nome.** `bastidores/<escola>/aulas-processadas` =
+`{ '2026-11': { 'piano/01': '2026-11-04', … } }` — **quais** aulas e **em que dia**. O número é
+`Object.keys(...).length`, derivado. Um total guardado pode divergir da fonte que o justifica e
+ninguém sabe qual vale; um conjunto é idempotente — a mesma aula registada duas vezes continua a ser
+uma. E é isto que a prova mede com a asserção que discrimina: **a mesma aula registada duas vezes
+continua a contar 1**; uma implementação que somasse um contador a cada lançamento diria 2.
 
-**E a regra estava montada à mão em TRÊS sítios** — o painel, o mês a mês e o `emAberto` da caixa
-«Pagar» —, cada um juntando as suas primitivas. Foi essa dispersão que permitiu que o ensaio
-entrasse num sítio e não no outro: o `situacaoDaEscola` já recebia o ensaio, e a cobrança não.
+**A reconciliação é monótona, e não gasta cota à toa.** Ela funde o que os ciclos publicados dizem, e
+o que já está no KV **nunca sai** — uma turma substituída, ou um pacote ainda por gerar, não apaga a
+aula que já foi lançada; apagá-la seria dizer que ela não aconteceu. E ela **compara a assinatura do
+conteúdo antes de escrever**: uma página vista cinquenta vezes num dia sem lançamentos custa
+cinquenta leituras e **zero escritas**. Sem facto nenhum não se escreve chave nenhuma — a primeira
+visita a cada uma das quatro escolas escribía quatro chaves para dizer «nenhuma aula», e foi uma
+prova (`provar-relogio-do-ensaio`) que o apanhou.
 
-**A correcção, e ela vai numa direcção só.** O estado da cobrança passou a ser decidido **uma vez**,
-dentro de `mensalidades.situacaoDaEscola` — o mesmo sítio que diz «atrasado» e calcula a mora, e
-portanto o único que tem o relógio:
+**O excedente — R$ 8,00 por aula, e a razão do número.** «Vamos cobrar melhor, vamos cobrar R$ 8 por
+aula a mais, que daí ela percebe que qualquer um dos três pacotes, se ela tivesse contratado eles, ela
+teria um custo por aula menor.» A conta que justifica o número é do catálogo, e a prova mede-a: o
+pacote mais caro por aula é R$ 0,50, dezasseis vezes abaixo. A R$ 5,00 (a primeira ideia dela) o
+salto era pequeno de mais para ser um comando. O número vive em
+`contadorDeAulas.PRECO_DA_AULA_EXCEDENTE_CENTAVOS`, é **dado declarado**, e a prova reprova no dia em
+que o preço do pacote subir acima dele.
 
-1. a **emissão é traduzida** pelo mesmo `instanteDoEnsaio` que adianta o «hoje». Uma cobrança colada
-   agora, com o ensaio em 2027-06, é uma cobrança de 2027-06 — e as duas datas passam a falar do
-   mesmo calendário;
-2. o **primeiro dia de atraso** (`atrasoEm`) passou a ser um só, derivado da mesma regra do selo: o
-   dia **seguinte** ao vencimento fora do ensaio (quem paga no dia, paga a tempo), o **próprio dia**
-   dentro dele (é a regra do relógio comprimido — «passado o tempo, já tem que pagar de novo»). É
-   este o número que a prova da data compara, e é por isso que ela deixou de ter duas versões;
-3. a linha do mês passou a trazer `cobranca` — `serve`, `estado`, `motivo`, o texto e a `url` —, e
-   `cobrancas.emAberto` e as **três páginas** deixaram de decidir: **lêem**.
+**Onde ele entra, e onde não entra.** O excedente é do mês **fechado** e cobra-se no mês **aberto** —
+as aulas de novembro só se sabem em dezembro —, e entra no `aPagarCentavos` da linha, com as aulas, o
+preço e o mês de origem. **A fatura não muda:** `valorCentavos` continua a ser o que foi cobrado, e é
+ele que a mudança de plano compara; misturar o excedente na fatura faria um mês com muitas aulas
+parecer um plano novo. Ele aparece **discriminado** nos três sítios onde tem de aparecer: no cartão
+do financeiro, na linha do mês do financeiro, e no mês a mês da escola — «a escola precisa ter noção
+disso».
 
-**Um segundo relógio, encontrado no caminho.** A rota que grava o pagamento (`/api/financeiro/
-mensalidade`) calculava o devido com `devidoDoMes` **sem** o ensaio. Com o relógio comprimido ligado,
-o mês que a página mostrava em aberto não existia no calendário real: a rota caía na reserva da
-fatura do contrato, e um mês que a página dizia faltar mora era gravado como quitado. O «quanto se
-deve» é uma pergunta e passou a ter um relógio.
+**Um segundo defeito, do mesmo dia, encontrado na ligação:** o botão «Marcar pago» propunha o valor
+calculado a partir de `encargos`, e não do `aPagarCentavos` da linha. Com o excedente dentro da
+conta, propunha R$ 71,51 onde a linha dizia R$ 87,51 — a pessoa via dois números no mesmo sítio. A
+conta passou a ser lida da linha, uma vez.
 
-**A prova, e o A/B.** `provar-relogio-do-ensaio.js` ganhou a secção **5** (35 → **41** asserções): a
-cobrança colada agora serve, o estado é `com-mora`, não sobra motivo nenhum, e dois controlos
-negativos — a cobrança emitida **dois períodos antes** continua a não servir (senão «serve sempre»
-passaria a asserção de cima) e, **sem** ensaio, a mesma regra de sempre continua a valer (senão a
-correcção era uma excepção). Medido contra o `HEAD` anterior num `git worktree`: **36/41, com as
-três asserções que discriminam a falhar**. As fixtures de `provar-a-cobranca-pix` (102) e de
-`provar-o-copiar` (31) passaram a produzir a linha do mês **pelo núcleo** — um `Object.assign` a
-carimbar `status: 'pago'` deixaria a cobrança com o estado de um mês em atraso, e a prova estaria a
-medir uma página que o motor nunca produz.
+**As provas.** `experimentos/provar-o-contador.js`, **46 asserções**: os seis pontos do §8 do plano
+(um lançamento conta 1 e regravar continua a contar 1; regerar não conta; a competência é a da data;
+a aula não dada não conta; `null` ≠ `0`; a soma é inteira ou não é), mais o excedente, a escrita
+condicional e a leitura pela raiz. **A/B** contra o `HEAD` anterior num `git worktree`: **35/46**.
+Duas provas existentes tiveram de ser **corrigidas, e não apagadas**: `provar-relogio-do-ensaio`
+dizia «ler o extrato não escreve nada», e isso deixou de ser verdade — o que se escreve é a contagem,
+nunca o livro (a asserção passou a ser precisa sobre a chave); e `provar-a-franquia-de-aulas` media a
+frase do consumo, que passou a vir do contador quando há contagem. Bateria completa: **287 provas,
+194 verdes, 93 falhas conhecidas, 0 regressões**.
 
-**O que não se resolve, e fica declarado.** Um link do banco não traz o campo 54 do Pix: não há valor
-legível, e a única prova disponível é a data. O sistema continua a não conseguir conferir o valor de
-um link — só a data em que ele foi gerado. E um código que já saiu continua pagável no banco.
+**O nome do outro plano, decidido no mesmo diálogo:** «plano consultoria» — o da escola que ainda está
+em consultoria, com a duração de um mês e os limites do `PLANO-DA-ESCOLA-EM-CONSULTORIA.md`. **Quando
+o limite é atingido, o uso é INTERROMPIDO** (só lê, como uma escola desabilitada), e **não** onerado
+pelo excedente — são dois desfechos diferentes para o mesmo número.
 
-**Um terceiro defeito, de bancada e não de produto.** `provar-o-parametro-do-plano` acusava
-«REGRESSÃO» sob carga: esperava 600 ms fixos para os assets, e com seis provas em paralelo o
-`style.css` e o `nav.js` não chegavam a tempo, o que virava «a página tem um erro de script». Medido
-no `HEAD`, sem estas mudanças: **1 de 7 asserções falhava em seis cópias simultâneas** e passava em
-três seguidas sozinha. Passou a esperar o `load` (com tecto de 15 s). Uma prova que acusa o produto
-quando é a bancada que não deu conta manda procurar um defeito onde ele não está.
+**O que continua a ser obra, e não pergunta:** o botão «criar a aula N» (custa 3 min de Actions por
+aula); a escolha do plano consultoria no financeiro, com a **prorrogação** de mais um mês a pedido da
+escola; o **cadastro do consultor** (qual escola está em consultoria, quem a atende); e a trava que
+lê o contador para interromper o uso. O limite já tem contador; falta quem o leia.
 
-**Onde entrou.** `motor/nucleo/mensalidades.js` (`atrasoEm`, a mora calculada uma vez, `cobranca` na
-linha do mês, `devidoDoMes` com ensaio), `motor/nucleo/cobrancas.js` (`emissaoDia`/`atrasoEm` em
-`situacaoDaCobranca`, `emAberto` a ler a linha), `motor/nucleo/fuso.js` (`diaSeguinte`),
-`motor/servidor/painel-html.js`, `motor/servidor/bastidores.js`, `motor/servidor/raiz.js` (as três
-páginas e as duas rotas a passar as cobranças e o ensaio),
-`experimentos/provar-relogio-do-ensaio.js`, `experimentos/provar-a-cobranca-pix.js`,
-`experimentos/provar-o-copiar.js`, `experimentos/provar-o-parametro-do-plano.js`, `ESTADO-ATUAL.md`,
-`HANDOFF.md`.
+**Onde entrou.** `motor/nucleo/contador-de-aulas.js` (novo), `motor/servidor/contador-da-escola.js`
+(novo), `motor/nucleo/mensalidades.js` (`contagem`, `excedente`, `aPagarCentavos`, `contadorDoMes`),
+`motor/servidor/bastidores.js` (a reconciliação e o cartão), `motor/servidor/raiz.js` (a leitura e o
+leitor), `motor/servidor/painel-html.js` (o excedente discriminado e o valor do botão),
+`experimentos/provar-o-contador.js` (novo), `PLANO-CONTADOR-DE-AULAS.md` (§10),
+`ESTADO-ATUAL.md`, `HANDOFF.md`.
 
 ## O que está pendente
 

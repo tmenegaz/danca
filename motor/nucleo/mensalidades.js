@@ -35,6 +35,10 @@ const comercial = require('./comercial.js');
  * ensaios nem de calendários — sabe ler um documento Pix. Quem tem o relógio é este módulo, e por
  * isso é ele que pergunta. */
 const cobrancasDoNucleo = require('./cobrancas.js');
+/* O CONTADOR DE AULAS (25/11/2026). Entra aqui pela mesma razão que as cobranças: é esta função que
+ * tem o contrato (e portanto a franquia), e é ela que produz a linha do mês. O excedente de um mês
+ * tem de aparecer na conta do mês seguinte, discriminado — e essa linha é desta função. */
+const contadorDeAulas = require('./contador-de-aulas.js');
 
 /** UMA chave com a lista dentro — a mesma forma dos descontos, e pelo mesmo motivo: o KV não se
  *  enumera, e uma chave por mês obrigaria a listar para desenhar o extrato. */
@@ -391,7 +395,7 @@ function instanteDoEnsaio({ contrato, ensaio, agora } = {}) {
  *     `valorCentavos` e o `em` do pagamento quando há.
  */
 function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas,
-  cobrancas } = {}) {
+  cobrancas, contagem, ciclos } = {}) {
   /* `aulasUsadas` chega de FORA, e é opcional de propósito: quem conta as aulas tem o plano
    * próprio (PLANO-CONTADOR-DE-AULAS.md) e ainda não existe. Sem ele, a franquia é mostrada e
    * o consumo é omitido — ver o comentário no `franquia` do objecto devolvido. */
@@ -408,6 +412,19 @@ function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas,
   const hojeIso = hoje.toISOString();
   const mesDeHoje = competencia(hojeIso);
   const hojeDia = diaDoInstante(hojeIso);
+
+  /* A COMPETÊNCIA DA CONTAGEM É A DO MÊS CIVIL REAL, e não a do ensaio (25/11/2026).
+   *
+   * O relógio comprimido move os meses das MENSALIDADES — é o que ele existe para testar. A franquia
+   * é do mês civil, e uma franquia que muda de tamanho enquanto se testa não se pode comparar com
+   * nada: as aulas acontecem em dias reais, e é o mês real que as agrupa. A regra está declarada no
+   * PLANO-CONTADOR-DE-AULAS §7.4, e é aqui que ela se cumpre. */
+  const competenciaReal = competencia((agora ? new Date(agora) : new Date()).toISOString());
+  /* O NÚMERO DE AULAS DO MÊS, de uma vez: da contagem quando ela existe, e do argumento antigo
+   * (`aulasUsadas`) quando é ele que vem — as provas e o código anterior a hoje usam essa porta. */
+  const usadasNoMes = (contagem !== undefined && contagem !== null)
+    ? contadorDeAulas.contarAulasDoMes({ contagem, competencia: competenciaReal })
+    : (aulasUsadas == null ? null : aulasUsadas);
 
   const limites = comercial.limitesDoContrato(c);
 
@@ -498,6 +515,30 @@ function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas,
     const mora = quitado ? null : encargos({
       valorCentavos: saldo, vencimento, hoje: hojeIso,
     });
+    /* O EXCEDENTE DO MÊS ANTERIOR ENTRA NESTA CONTA (25/11/2026).
+     *
+     * «Isso a gente tem que calcular para fazer a cobrança no próximo mês […] e incluir no cálculo
+     * do valor do próximo mês automaticamente, mas isso precisa estar discriminado.»
+     *
+     * O excedente é do mês FECHADO e cobra-se no mês ABERTO — é o único arranjo em que a conta é
+     * verificável: as aulas de novembro só se sabem em dezembro. Fica na linha como um número
+     * próprio (`excedente`), com as aulas e o preço, e não diluído no total: ela tem de o poder
+     * discriminar ao cliente, e a escola tem de o poder ler.
+     *
+     * SEM CONTAGEM NÃO HÁ LINHA. `contagem` ausente devolve `null`, e o mês fica com a conta de
+     * sempre — não se inventa um excedente de R$ 0,00, que é uma afirmação sobre uma contagem que
+     * não se fez.
+     *
+     * E SÓ NUMA CONTA EM ABERTO: um mês já quitado não ganha um excedente novo por cima, senão o
+     * valor pago deixava de fechar a conta que ele fechou. */
+    const excedente = (contagem && !quitado)
+      ? contadorDeAulas.excedenteDoMes({
+        contagem,
+        competencia: somarMeses(mes, -1),
+        franquia: comercial.franquiaDoContrato(c)
+          ? comercial.franquiaDoContrato(c).franquia : 0,
+      })
+      : null;
     /* A COBRANÇA PIX DO MÊS, decidida aqui (25/11/2026) — ver `cobrancas.situacaoDaCobranca`.
      *
      * A EMISSÃO É TRADUZIDA PARA O CALENDÁRIO DO VENCIMENTO, e é esta a linha que faltava: `em` é
@@ -554,6 +595,13 @@ function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas,
        * que pergunta «quanto devo?» pergunta por um mês, e a resposta que serve é a daquele mês.
        * A conta é a de `mora`, feita acima — uma só. */
       encargos: mora,
+      /* O EXCEDENTE DE AULAS DO MÊS ANTERIOR, discriminado — ver acima. */
+      excedente,
+      /* O QUE SE PAGA POR ESTE MÊS, hoje: o saldo da fatura, mais a mora, mais o excedente do mês
+       * anterior. É ESTE o número que o botão do painel propõe e que a conciliação compara — e é
+       * por isso que ele é um campo da linha, e não uma soma feita em cada página. */
+      aPagarCentavos: quitado ? 0
+        : ((mora && mora.totalCentavos) || saldo) + ((excedente && excedente.centavos) || 0),
       /* A COBRANÇA PIX DO MÊS, com o estado já decidido (`serve`, `estado`, `motivo`, e o valor que
        * o documento pede quando ele o diz). `null` quando nunca se colou nada. As três páginas
        * mostram isto e não voltam a decidir — ver `cobrancas.situacaoDaCobranca`. */
@@ -668,7 +716,19 @@ function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas,
      * mês civil. Misturar os dois daria uma franquia que muda de tamanho enquanto se testa. */
     franquia: comercial.situacaoDaFranquia({
       contrato: c,
-      aulasUsadas: aulasUsadas == null ? null : aulasUsadas,
+      aulasUsadas: usadasNoMes,
+    }),
+    /* O CONTADOR DE AULAS DO MÊS, com o excedente em reais (25/11/2026).
+     *
+     * O `franquia` acima é a MESMA comparação — os dois leem a mesma franquia e o mesmo número — e
+     * este traz o que faltava: as previstas (o alerta ANTES de passar) e o excedente já com o preço
+     * da aula. A duplicação é de leitura, não de conta: `situacaoDaFranquia` é a regra comercial dos
+     * quatro estados, e este é o do contador; se um dia divergirem, a prova do contador reprova. */
+    contadorDoMes: contadorDeAulas.resumo({
+      contagem,
+      ciclos,
+      competencia: competenciaReal,
+      franquia: comercial.franquiaDoContrato(c) ? comercial.franquiaDoContrato(c).franquia : 0,
     }),
     pacotes: (comercial.franquiaDoContrato(c) || { pacotes: [] }).pacotes || [],
   };
@@ -705,9 +765,13 @@ function devidoDoMes({ escola, contrato, livro, mes, agora, ensaio } = {}) {
     /* O QUE JÁ ENTROU, e o que ainda falta da fatura. */
     recebidoCentavos: linha.recebidoCentavos || 0,
     faltaCentavos: linha.faltaCentavos || 0,
-    /* O QUE SE COBRA HOJE, com multa e juros sobre o saldo. É este o valor que o botão propõe. */
-    devidoCentavos: (linha.encargos && linha.encargos.totalCentavos) || linha.faltaCentavos || 0,
+    /* O QUE SE COBRA HOJE — uma só resposta, e ela vem da linha: o saldo da fatura, a mora e o
+     * excedente de aulas do mês anterior. Antes esta conta era refeita aqui a partir de `encargos`,
+     * e uma segunda conta do mesmo valor divergiria no dia em que uma das duas ganhasse um termo. */
+    devidoCentavos: Number(linha.aPagarCentavos) || 0,
     encargosCentavos: (linha.encargos && linha.encargos.encargosCentavos) || 0,
+    excedenteCentavos: (linha.excedente && linha.excedente.centavos) || 0,
+    excedenteAulas: (linha.excedente && linha.excedente.aulas) || 0,
     status: linha.status,
     quitado: linha.status === 'pago',
     venceu: Boolean(linha.venceu),

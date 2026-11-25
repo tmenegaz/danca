@@ -62214,3 +62214,86 @@ páginas e as duas rotas a passar as cobranças e o ensaio),
 `experimentos/provar-relogio-do-ensaio.js`, `experimentos/provar-a-cobranca-pix.js`,
 `experimentos/provar-o-copiar.js`, `experimentos/provar-o-parametro-do-plano.js`, `ESTADO-ATUAL.md`,
 `HANDOFF.md`.
+
+---
+
+## 25/11/2026 — O contador de aulas: a franquia deixa de ser um número no ecrã
+
+**O pedido:** «Vamos agora implementar o contador de aula.» E a razão de ele existir está escrita no
+`PLANO-CONTADOR-DE-AULAS.md` desde 17/11: a franquia é de **aulas**, a renovação é mensal e não
+cumulativa, e o que passar da franquia paga-se. Sem o número, a franquia é um número no ecrã.
+
+**A regra, e ela é uma só:** *uma aula conta quando está no `aulas` do `-dados.json`, uma vez por
+número de aula.* O que isso resolve, caso a caso: regravar a mesma aula não soma (`fundirAulas`
+funde por número); regerar o pacote não soma (a geração preserva `aulas`); a aula não dada não soma
+(não há registo); e **a competência é a da DATA da aula** — uma aula de 30/11 lançada a 02/12 é de
+novembro, a mesma regra do livro das mensalidades.
+
+**A ponte que o plano não previa, e a decisão que ela tomou.** O §9.1 supunha que o contador leria o
+ASSETS em qualquer sítio. Não é verdade para a raiz: o Worker do `danca.padd.com.br` serve `raiz/` e
+**não vê** `publicacao/`; e o `indices/escolas/<slug>.json` tem o `numero` e a âncora e **não tem a
+`data`**. As três opções foram-lhe apresentadas com o custo de cada uma, e a escolha foi a **B**: a
+escola grava no KV uma cópia, e a raiz lê-a.
+
+**A cópia é um CONJUNTO, e a diferença não é de nome.** `bastidores/<escola>/aulas-processadas` =
+`{ '2026-11': { 'piano/01': '2026-11-04', … } }` — **quais** aulas e **em que dia**. O número é
+`Object.keys(...).length`, derivado. Um total guardado pode divergir da fonte que o justifica e
+ninguém sabe qual vale; um conjunto é idempotente — a mesma aula registada duas vezes continua a ser
+uma. E é isto que a prova mede com a asserção que discrimina: **a mesma aula registada duas vezes
+continua a contar 1**; uma implementação que somasse um contador a cada lançamento diria 2.
+
+**A reconciliação é monótona, e não gasta cota à toa.** Ela funde o que os ciclos publicados dizem, e
+o que já está no KV **nunca sai** — uma turma substituída, ou um pacote ainda por gerar, não apaga a
+aula que já foi lançada; apagá-la seria dizer que ela não aconteceu. E ela **compara a assinatura do
+conteúdo antes de escrever**: uma página vista cinquenta vezes num dia sem lançamentos custa
+cinquenta leituras e **zero escritas**. Sem facto nenhum não se escreve chave nenhuma — a primeira
+visita a cada uma das quatro escolas escribía quatro chaves para dizer «nenhuma aula», e foi uma
+prova (`provar-relogio-do-ensaio`) que o apanhou.
+
+**O excedente — R$ 8,00 por aula, e a razão do número.** «Vamos cobrar melhor, vamos cobrar R$ 8 por
+aula a mais, que daí ela percebe que qualquer um dos três pacotes, se ela tivesse contratado eles, ela
+teria um custo por aula menor.» A conta que justifica o número é do catálogo, e a prova mede-a: o
+pacote mais caro por aula é R$ 0,50, dezasseis vezes abaixo. A R$ 5,00 (a primeira ideia dela) o
+salto era pequeno de mais para ser um comando. O número vive em
+`contadorDeAulas.PRECO_DA_AULA_EXCEDENTE_CENTAVOS`, é **dado declarado**, e a prova reprova no dia em
+que o preço do pacote subir acima dele.
+
+**Onde ele entra, e onde não entra.** O excedente é do mês **fechado** e cobra-se no mês **aberto** —
+as aulas de novembro só se sabem em dezembro —, e entra no `aPagarCentavos` da linha, com as aulas, o
+preço e o mês de origem. **A fatura não muda:** `valorCentavos` continua a ser o que foi cobrado, e é
+ele que a mudança de plano compara; misturar o excedente na fatura faria um mês com muitas aulas
+parecer um plano novo. Ele aparece **discriminado** nos três sítios onde tem de aparecer: no cartão
+do financeiro, na linha do mês do financeiro, e no mês a mês da escola — «a escola precisa ter noção
+disso».
+
+**Um segundo defeito, do mesmo dia, encontrado na ligação:** o botão «Marcar pago» propunha o valor
+calculado a partir de `encargos`, e não do `aPagarCentavos` da linha. Com o excedente dentro da
+conta, propunha R$ 71,51 onde a linha dizia R$ 87,51 — a pessoa via dois números no mesmo sítio. A
+conta passou a ser lida da linha, uma vez.
+
+**As provas.** `experimentos/provar-o-contador.js`, **46 asserções**: os seis pontos do §8 do plano
+(um lançamento conta 1 e regravar continua a contar 1; regerar não conta; a competência é a da data;
+a aula não dada não conta; `null` ≠ `0`; a soma é inteira ou não é), mais o excedente, a escrita
+condicional e a leitura pela raiz. **A/B** contra o `HEAD` anterior num `git worktree`: **35/46**.
+Duas provas existentes tiveram de ser **corrigidas, e não apagadas**: `provar-relogio-do-ensaio`
+dizia «ler o extrato não escreve nada», e isso deixou de ser verdade — o que se escreve é a contagem,
+nunca o livro (a asserção passou a ser precisa sobre a chave); e `provar-a-franquia-de-aulas` media a
+frase do consumo, que passou a vir do contador quando há contagem. Bateria completa: **287 provas,
+194 verdes, 93 falhas conhecidas, 0 regressões**.
+
+**O nome do outro plano, decidido no mesmo diálogo:** «plano consultoria» — o da escola que ainda está
+em consultoria, com a duração de um mês e os limites do `PLANO-DA-ESCOLA-EM-CONSULTORIA.md`. **Quando
+o limite é atingido, o uso é INTERROMPIDO** (só lê, como uma escola desabilitada), e **não** onerado
+pelo excedente — são dois desfechos diferentes para o mesmo número.
+
+**O que continua a ser obra, e não pergunta:** o botão «criar a aula N» (custa 3 min de Actions por
+aula); a escolha do plano consultoria no financeiro, com a **prorrogação** de mais um mês a pedido da
+escola; o **cadastro do consultor** (qual escola está em consultoria, quem a atende); e a trava que
+lê o contador para interromper o uso. O limite já tem contador; falta quem o leia.
+
+**Onde entrou.** `motor/nucleo/contador-de-aulas.js` (novo), `motor/servidor/contador-da-escola.js`
+(novo), `motor/nucleo/mensalidades.js` (`contagem`, `excedente`, `aPagarCentavos`, `contadorDoMes`),
+`motor/servidor/bastidores.js` (a reconciliação e o cartão), `motor/servidor/raiz.js` (a leitura e o
+leitor), `motor/servidor/painel-html.js` (o excedente discriminado e o valor do botão),
+`experimentos/provar-o-contador.js` (novo), `PLANO-CONTADOR-DE-AULAS.md` (§10),
+`ESTADO-ATUAL.md`, `HANDOFF.md`.

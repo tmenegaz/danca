@@ -4,7 +4,16 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **a cobrança Pix lê-se no mesmo calendário do vencimento.** Com
+> **Última fotografia:** 25/11/2026 — **o contador de aulas existe, e o excedente é uma linha.** A
+> franquia deixou de ser um número no ecrã: uma aula conta quando está no `aulas` do `-dados.json`
+> (na prática `lancada === true`), uma vez por número, no mês da **data da aula** — e o total é
+> derivado, nunca guardado. A contagem guarda-se como **conjunto de factos** (`piano/01 →
+> 2026-11-04`) em `bastidores/<escola>/aulas-processadas`, escrita pelo Worker da escola (que vê o
+> ASSETS) e lida pela raiz (que não vê) — a ponte que faltava. A reconciliação é monótona e **só
+> grava quando o conjunto muda**. O excedente passou a ser cobrado a **R$ 8,00 por aula** e entra na
+> conta do mês seguinte **discriminado** (`2 aula(s) × R$ 8,00 = R$ 16,00`), no financeiro e no mês
+> a mês da escola; a fatura não muda. Antes disso, no mesmo dia: **a cobrança Pix lê-se no mesmo
+> calendário do vencimento.** Com
 > o relógio de ensaio ligado, o vencimento aparecia em 23/06/2027 e a cobrança que ela acabara de
 > colar dizia «emitida antes do vencimento» — as duas datas verdadeiras, em calendários diferentes:
 > a emissão é um instante **real** e o vencimento é um dia do calendário **comprimido**. O estado da
@@ -7510,7 +7519,24 @@ Não se muda sem ela decidir.
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
-- **25/11/2026** — **A cobrança Pix e o vencimento passaram a falar do mesmo calendário.** O ensaio
+- **25/11/2026** — **O contador de aulas: a franquia deixa de ser um número no ecrã.** A regra é a do
+  `PLANO-CONTADOR-DE-AULAS.md` §2 — uma aula conta quando está no `aulas` do `-dados.json`, uma vez
+  por número, na competência da **data da aula** — e está em `motor/nucleo/contador-de-aulas.js`,
+  que é **puro**: recebe os ciclos e o mês, devolve o número. A ponte que o plano não previa: o
+  Worker da raiz serve `raiz/` e **não vê** `publicacao/`, e o `indices/escolas` não tem a `data`.
+  A cópia é um **conjunto de factos** no KV (`bastidores/<escola>/aulas-processadas`), escrita pelo
+  Worker da escola na reconciliação e lida pela raiz — **nunca um total guardado**: a mesma aula
+  registada duas vezes continua a ser uma. A reconciliação é **monótona** (o que foi lançado não
+  sai, mesmo que a turma desapareça do pacote) e **não gasta uma escrita quando nada mudou** (a
+  assinatura do conteúdo é comparada antes). **O excedente é cobrado a R$ 8,00 por aula** — decisão
+  dela, e a conta que a justifica é do catálogo: o pacote mais caro por aula é R$ 0,50, e é por isso
+  que qualquer um dos três pacotes sai mais barato do que continuar no excedente. Ele entra na conta
+  do **mês seguinte**, discriminado (`2 aula(s) × R$ 8,00 = R$ 16,00`), e **não** na fatura — a
+  fatura é o que foi cobrado, e é ela que a mudança de plano compara. `provar-o-contador` **46**
+  asserções (A/B: 35 sem as mudanças). Fica por fazer, e é obra: o botão «criar a aula N» e o
+  **plano consultoria** (o limitador que interrompe o uso em vez de cobrar), com o cadastro do
+  consultor. Antes disso, no mesmo dia: **a cobrança Pix e o vencimento passaram a falar do mesmo
+  calendário.** O ensaio
   adianta o «hoje», e o vencimento de cada mês vinha adiantado com ele; a data da emissão da
   cobrança (`em`, gravado no clique) não — ficava no calendário real. Resultado medido: com o
   ensaio em 2027-06, o mês da vez estava «atrasado», o vencimento dizia `2027-06-23`, e uma

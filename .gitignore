@@ -2030,3 +2030,10 @@ experimentos/modelo-formulario/*
 # mesmo prefixo, mesmo endereço), e o fixture de teste vem do NOME — um «Breu Dois» também o carrega.
 # Com controle negativo, onde a função e a aba não existem.
 !experimentos/provar-os-dados-da-escola.js
+
+# O CONTADOR DE AULAS (25/11/2026). Ele é o número que a franquia compara, e o excedente que dele
+# sai é dinheiro cobrado: uma regra de cobrança que só existe na máquina de quem a escreveu não
+# protege ninguém. Mede os seis pontos do §8 do PLANO-CONTADOR-DE-AULAS, o preço da aula excedente
+# contra o preço do pacote, e a cópia que a raiz lê — com o controlo negativo que discrimina (a mesma
+# aula registada duas vezes tem de continuar a contar uma).
+!experimentos/provar-o-contador.js

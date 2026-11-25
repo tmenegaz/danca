@@ -1,9 +1,10 @@
 # Plano — o contador de aulas
 
-> **O que este documento é.** O desenho do contador que a unidade comercial de 17/11/2026 exige. Ele
-> **não** está implementado: o que existe hoje está medido (§1), o que falta está desenhado (§3–§6)
-> e o que depende de uma decisão dela está declarado como tal (§7). Cada afirmação sobre o código
-> traz o caminho e a linha; nada foi preenchido por dedução.
+> **O que este documento é.** O desenho do contador que a unidade comercial de 17/11/2026 exige.
+> **O contador está implementado desde 25/11/2026** — ver §10, que diz o que ficou feito, com que
+> números, e o que continua a ser obra (o botão «criar a aula N» e o plano de consultoria). O que
+> existe hoje está medido (§1), o desenho está em §3–§6 e as decisões dela em §7. Cada afirmação
+> sobre o código traz o caminho e a linha; nada foi preenchido por dedução.
 >
 > **A pergunta que ele responde.** «Quantas aulas esta escola processou neste mês?» — porque a
 > franquia é de aulas (100 · 300 · 800), a renovação é mensal e não cumulativa, e o que passar da
@@ -430,3 +431,93 @@ minuto: o número continua certo, mas o **calendário** de onde ele sai deixa de
 
 E há um achado que impede começar sem decidir: **a regra de hoje recusa exactamente o cenário que ela
 descreveu.** Está em [`PLANO-DE-OCUPACAO.md`](PLANO-DE-OCUPACAO.md) §1.
+
+---
+
+## 10. O contador está implementado — 25/11/2026
+
+> «Vamos agora implementar o contador de aula.»
+
+### 10.1 O que ficou feito, e onde
+
+| peça | onde | o que faz |
+|:--|:--|:--|
+| `contarAulasDoMes`, `previstasDoMes`, `resumo`, `excedenteDoMes` | `motor/nucleo/contador-de-aulas.js` | **puro**. Recebe a contagem (ou os ciclos) e o mês, devolve o número |
+| a contagem como conjunto de factos | idem, `fundirNaContagem` | guarda **quais** aulas e **em que dia**, nunca um total |
+| a reconciliação e a cópia no KV | `motor/servidor/contador-da-escola.js` | lê os `ciclos.json` do ASSETS da escola, funde, grava **só quando muda** |
+| a escrita | `bastidores.js` → `dadosDaEscolaParaProducao` | é o sítio que tem o ASSETS **e** as turmas; serve o cartão e o mês a mês |
+| a leitura pela raiz | `raiz.js` → `lerContagemDeAulas` | **uma** chave por escola; é a ponte que faltava |
+| o excedente na conta do mês seguinte | `mensalidades.situacaoDaEscola`, campo `excedente` | entra no `aPagarCentavos`, com as aulas, o preço e o mês de origem |
+| o ecrã | `painel-html.js` (financeiro) e `bastidores.js` (cartão e mês a mês) | o excedente **discriminado**: `2 aula(s) × R$ 8,00 = R$ 16,00` |
+
+**A prova:** `experimentos/provar-o-contador.js` — **46 asserções**, os seis pontos do §8 mais o
+excedente, a escrita condicional e a leitura pela raiz. O A/B contra o `HEAD` anterior, num
+`git worktree`: **35/46**, com as oito asserções que medem o comportamento novo a falhar.
+
+### 10.2 A ponte que o plano não previa, e porque ela é um conjunto e não um contador
+
+O §9.1 supunha que o contador leria o ASSETS em qualquer sítio. **Não é verdade para a raiz**: o
+Worker do `danca.padd.com.br` serve `raiz/` como ASSETS e não vê `publicacao/`. E o `indices/
+escolas/<slug>.json` não serve — tem o `numero` e a âncora, e **não tem a `data`**.
+
+A decisão dela foi a **B**: a escola grava no KV um **conjunto de factos** (`bastidores/<escola>/
+aulas-processadas`, `{ '2026-11': { 'piano/01': '2026-11-04', … } }`), e a raiz lê-o. **Não é um
+contador**, e a diferença não é de nome: um total guardado pode divergir da fonte e ninguém sabe
+qual vale; um conjunto é idempotente — a mesma aula registada duas vezes continua a ser uma, e o
+número é derivado (`Object.keys(...).length`). A reconciliação é **monótona** (o que já foi lançado
+não sai) e **grava só quando o conjunto mudou**, comparando a assinatura do conteúdo: uma página
+vista cinquenta vezes num dia sem lançamentos custa cinquenta leituras e **zero escritas**.
+
+### 10.3 A decisão do excedente — R$ 8,00, e a razão
+
+> «No caso da escola que está habilitada, que está pagando, essa escola quando ela excede a
+> franquia e não contratou nenhum pacote adicional de aulas, ela vai ter que ser onerada por isso […]
+> então a gente vai cobrar por aula a mais. Aliás, vamos cobrar melhor, vamos cobrar R$ 8 por aula
+> a mais, que daí ela percebe que qualquer um dos três pacotes, se ela tivesse contratado eles, ela
+> teria um custo por aula menor do que pagar R$ 8 por aula a mais.»
+
+**A conta que justifica o número é do catálogo**, e a prova mede-a: o pacote mais caro por aula
+(R$ 0,50) tem de continuar abaixo dos R$ 8,00 — senão o excedente deixaria de ser um comando que
+empurra a escola para o pacote e passaria a ser uma multa. O número vive em
+`contadorDeAulas.PRECO_DA_AULA_EXCEDENTE_CENTAVOS`, é **dado declarado** e não uma conta: no dia em
+que o preço do pacote mudar, ele muda com ele, e a prova reprova enquanto os dois não estiverem
+coerentes.
+
+**O excedente é do mês FECHADO e cobra-se no mês ABERTO** — é o único arranjo em que a conta é
+verificável: as aulas de novembro só se sabem em dezembro. Fica na linha do extrato como número
+próprio (`excedente`), com as aulas, o preço e o mês de origem, e entra no `aPagarCentavos`. **A
+fatura não muda**: `valorCentavos` continua a ser o que foi cobrado, e é ele que a mudança de plano
+compara — misturar o excedente na fatura faria um mês com muitas aulas parecer um plano novo.
+
+**O que fica declarado:** a mora incide sobre o saldo da fatura e **não** sobre o excedente; e o
+excedente do mês corrente só é conhecido quando o mês fecha.
+
+### 10.4 O que continua a ser obra
+
+| # | passo | estado |
+|:--|:--|:--|
+| 1 | `contarAulasDoMes` | **feito** |
+| 2 | ligado à franquia na escola e no painel | **feito** |
+| 3 | a conferência índice × `ciclos.json` × `-dados.json` | **parcial** — a prova mede as duas primeiras; a terceira é do §8 |
+| 4 | o alerta das previstas | **feito** no núcleo (`previstasDoMes`); a tela ainda só mostra o consumo |
+| 5 | o excedente no Financeiro | **feito** |
+| 6 | o botão «criar a aula N» | **não** — custa 3 min de Actions por aula |
+| 7 | a telemetria separada de cadastro | **não** |
+
+### 10.5 O plano de consultoria — nome e regra, decididos a 25/11/2026
+
+> «Eu acho que a gente pode chamar de plano consultoria, alguma coisa assim, porque aí fica claro
+> para mim que se trata daquele consultor, de um consultor que está usando o plano […] ele é o plano
+> consultoria com o consultor fulano da escola X. Isso a gente tem que saber.»
+
+**O NOME É «PLANO CONSULTORIA».** E o que ele é: o plano da escola que ainda está em consultoria,
+que ainda não foi habilitada e não pagou — com a duração de um mês e os limites do
+[`PLANO-DA-ESCOLA-EM-CONSULTORIA.md`](PLANO-DA-ESCOLA-EM-CONSULTORIA.md). **Quando o limite é
+atingido, o uso é INTERROMPIDO**: a escola passa a funcionar como desabilitada — só lê —, e não
+como a escola que paga, que é onerada pelo excedente. São dois desfechos diferentes para o mesmo
+número, e é essa a distinção que o §10.3 não pode confundir.
+
+**O que falta, e está declarado como obra e não como pergunta:** escolher o plano consultoria no
+financeiro (ao lado dos três planos), prorrogá-lo por mais um mês a pedido da escola, e o
+**cadastro do consultor** — qual escola está em consultoria e quem é o consultor que a atende. O
+limite de aulas já tem contador; o que falta é a trava que o lê.
