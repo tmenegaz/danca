@@ -495,6 +495,42 @@ function motivoDoConflito(conflito, { rotulo } = {}) {
 }
 
 /**
+ * O PAR REPETIDO NA MESMA SALA — «ou o professor ou a modalidade, diferentes do que já existe».
+ *
+ * A DECISÃO DELA, a 25/11/2026, por palavras: «o ajuste para isso deve ser com ou exclusivo: ou
+ * professor ou modalidade, diferentes do que já existe.»
+ *
+ * PORQUE É QUE ISTO É NECESSÁRIO. Uma Turma identifica-se por (professor, modalidade, sala) — é o
+ * id dela. Duas faixas da MESMA sala com o MESMO par dão o MESMO id, e a segunda **substitui** a
+ * primeira no cadastro, em silêncio: não chega a haver segunda. Basta que um dos dois difira para
+ * os ids serem distintos.
+ *
+ * E acrescenta uma segunda coisa, que a medição mostrou: com o professor igual e a modalidade
+ * diferente, os ids ficam distintos mas os **ficheiros** do ciclo teriam o mesmo nome — ver
+ * `varianteDoContexto`. Ora, se o professor for diferente, as pastas diferem e o problema não
+ * existe; o que sobra é o caso «mesmo professor, modalidades diferentes», e é esse que a variante
+ * tem de resolver.
+ *
+ * Ler em sentido INCLUSIVO — «pelo menos um difere» —, e não em sentido estrito: uma faixa que
+ * difere nos dois (outro professor E outra modalidade) é legítima e não pode ser recusada por
+ * «diferir demasiado». O que a regra proíbe é o caso em que NADA difere.
+ *
+ * Devolve a faixa que colide (para a mensagem a nomear), ou `null`.
+ */
+function parRepetidoNaSala({ faixas, faixaId, modalidade, professor } = {}) {
+  const lista = Array.isArray(faixas) ? faixas : [];
+  const alvo = String(faixaId == null ? '' : faixaId).trim();
+  const mod = String(modalidade || '').trim();
+  const prof = String(professor || '').trim();
+  if (!mod && !prof) return null;            // nada declarado: não há o que comparar
+  for (const f of lista) {
+    if (!f || String(f.id || '').trim() === alvo) continue;
+    if (String(f.modalidade || '').trim() === mod && String(f.professor || '').trim() === prof) return f;
+  }
+  return null;
+}
+
+/**
  * A FRASE DA FAIXA EM FALTA — a segunda recusa que a faixa introduz.
  *
  * Uma Sala com mais de uma faixa e uma Turma que não diz qual delas ocupa são um dado incompleto, e
@@ -527,6 +563,7 @@ module.exports = {
   faixaEscolhida,
   intervalosDaFaixa,
   rotuloDaFaixa,
+  parRepetidoNaSala,
   salaEfetiva,
   intervalosDaSala,
   periodosTocamSe,

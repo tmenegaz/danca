@@ -26285,6 +26285,26 @@ function parDaFaixa(sala, id) {
           modalidade: String(f.modalidade || corpo.modalidade || '').trim(),
           professor: String(f.professor || corpo.professor || '').trim(),
         };
+        /* O PAR NÃO SE REPETE NA MESMA SALA (25/11/2026) — a regra dela, por palavras: «o ajuste
+         * para isso deve ser com ou exclusivo: ou professor ou modalidade, diferentes do que já
+         * existe». Duas faixas com o mesmo par dão o mesmo id de Turma, e a segunda substituiria a
+         * primeira em silêncio. Pelo menos um dos dois tem de diferir. */
+        const repetido = ocupacao.parRepetidoNaSala({
+          faixas: faixasDoCorpo, faixaId: f.id,
+          modalidade: pedido.modalidade, professor: pedido.professor,
+        });
+        if (repetido) {
+          return json(409, {
+            ok: false,
+            erro: 'A faixa ' + (i + 1) + ' tem o mesmo par (modalidade e professor) da faixa '
+              + '«' + ocupacao.rotuloDaFaixa(repetido) + '»: «' + pedido.modalidade + ' · '
+              + pedido.professor + '». Duas aulas da mesma sala com o mesmo par não se distinguem — '
+              + 'mude o professor ou a modalidade numa delas.',
+            faixa: String(f.id || ''),
+            repetidoEm: String(repetido.id || ''),
+            falta: ['professor-ou-modalidade'],
+          });
+        }
         const conferido = await conferirOParDaSala({
           env, kv, escola, modalidade: pedido.modalidade, professor: pedido.professor,
         });

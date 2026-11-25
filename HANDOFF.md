@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-24T22:41:15-0300`
-Commit atual: `8d703b00` — fix(estrutura): a guarda da derivação da Turma não recebia a faixa escolhida
+Gerado em: `2026-11-24T23:03:11-0300`
+Commit atual: `90ef34ad` — fix(estrutura): o plano de ensino lia a raiz da sala e não a faixa que a turma ocupa
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,8 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+90ef34ad fix(estrutura): o plano de ensino lia a raiz da sala e não a faixa que a turma ocupa
+8b8a1745 chore(entrega): gerar o pacote de demi-plie/01/breu-piano
 8d703b00 fix(estrutura): a guarda da derivação da Turma não recebia a faixa escolhida
 0b8fe308 chore(entrega): gerar o pacote de demi-plie/01/breu-piano
 ed0b341b fix(estrutura): as faixas não persistiam, e o par passa a ser por faixa
@@ -100,8 +102,6 @@ c179465f fix(estrutura): a implementação do lote, que o commit anterior não l
 e803f8a0 fix(estrutura): o monitoramento deixou de reler o mês a cada abertura
 0692e5a0 feat(estrutura): o §7.1 não existe (e aqui não ajudaria), e o aviso do ponto de migração
 c1199018 feat(estrutura): a escada aplicada, o simulado das extensões e a política de mora
-ad7d1c8a docs(estrutura): escada 130/320/500 com dólar a R$ 6, e a margem não depende do nº de escolas
-87fdbdc0 docs(estrutura): o tecto dos 100% é do dono da conta, e a escada pede 139/320/500
 ```
 
 ## Por professor
@@ -195,77 +195,54 @@ ad7d1c8a docs(estrutura): escada 130/320/500 com dólar a R$ 6, e a margem não 
 
 ## Última entrada do REGISTRO
 
-## 25/11/2026 — O plano lia a raiz e não a faixa: a duração errada, e o PO atrás dela
+## 25/11/2026 — O par não se repete na mesma sala: a regra dela, e o limite que ela não fecha
 
-**A pergunta dela:** «já escolhi o horário, derivei a turma e mandei gravar. Isso vai gerar
-correctamente o plano de ensino? Agora que tenho uma turma, isso também está correcto lá no plano de
-observação?»
+**A decisão dela:** «o ajuste para isso deve ser com ou exclusivo: ou professor ou modalidade,
+diferentes do que já existe. Essa validação deve ficar no passo associar, no formulário da Sala.»
 
-**A resposta medida, antes de qualquer correcção, foi NÃO — e a causa é o modelo que acabámos de
-construir.** A raiz de uma Sala é o **espelho da faixa 1**: foi assim que todas as salas de uma faixa
-continuaram a funcionar sem migração. Mas três leitores liam essa raiz e mais nada:
+**Implementada como regra pura e na rota.** `parRepetidoNaSala` (em `motor/nucleo/ocupacao.js`)
+devolve a faixa que ocupa o mesmo par, e a rota `turma-professor` recusa com `409` dizendo **qual**
+faixa e **qual** par. Lida em sentido **inclusivo** — «pelo menos um difere» —, e não em sentido
+estrito: uma faixa com os dois diferentes é legítima e não pode ser recusada por «diferir demasiado»;
+o que a regra proíbe é o caso em que **nada** difere.
 
-- o `.conf` do ciclo — `DURACOES`, `FREQUENCIA`, a faixa de volume da Regra 9 e o total de aulas;
-- o ritmo que a cadeia compara (`respostasDoRitmo`), que é a guarda do plano velho;
-- o total de aulas do período.
+**Porque é que a regra é necessária, medido.** O id da Turma é `professor + modalidade + sala`. Duas
+faixas da mesma sala com o mesmo par dão o **mesmo id**, e a segunda **substitui** a primeira no
+cadastro em silêncio: não chega a haver segunda. É o mesmo defeito de 16/10 — quando o id não levava a
+sala —, com a quarta dimensão a faltar.
 
-Com a sala «Piano» (faixa 1 = seg/qua/sex 16:00, 55 min; faixa 2 = seg/qua 17:00, 70 min) e a Turma
-na **faixa 2**, o plano saía com **55 minutos em três dias por semana** — dois erros no mesmo
-documento impresso, e nenhum aviso. E pior: como a raiz **não muda** quando a faixa muda, a guarda
-`ritmoMudou` nunca disparava, e um plano já gerado ficava velho em silêncio.
+**O que já funcionava, e não precisou de nada.** Duas Turmas com pares diferentes na mesma sala: a
+rota aceita as duas (`201`), e os ids são distintos (`pe-torto-bale-classico-piano` e
+`pe-torto-jazz-piano`). Medido com a rota verdadeira.
 
-**A correcção é uma projecção, não uma segunda leitura.** `salaEfetiva(sala, faixa)` devolve um
-objecto com a **mesma forma da Sala**, com os campos da faixa escolhida no lugar dos da raiz. Tudo o
-que já lia `turma.duracaoMin` continua a ler — só que passa a ler o certo. Uma segunda forma de ler o
-ritmo divergiria da primeira, e a divergência apareceria como um documento gerado com o valor errado —
-foi exactamente o que o §20 já tinha escrito sobre a cadeia. Uma Sala de **uma** faixa devolve a
-própria Sala: a equivalência com o que existia é exacta, e é isso que dispensa migração.
+### O limite que a regra NÃO fecha, e é o que fica por decidir
 
-O `.conf` lê a faixa da **curadoria** — que é quem a declara —, e a curadoria chega ao escritor do
-plano por `lerCuradorias`, sem se tocar no envelope. **Uma alternativa foi recusada de propósito:**
-pôr `faixa` no `contexto` do envelope mudaria `CAMPOS_DE_CONTEXTO` e, com ele, o digest da âncora
-`.fipp` — pagar uma alteração de proveniência para resolver um problema de leitura não é bom negócio.
-
-**O plano de observação segue o plano, e foi medido:** `derivar-po.js:531` compõe a frequência e a
-duração **do plano referenciado** (`comporLinhasDePlano(plano, [...])`, não das suas próprias
-respostas). Com o plano certo, o PO imprime o certo — a correcção propaga-se sem segunda emenda.
-
-**Medido:** faixa 1 → `DURACOES="55"`, `FREQUENCIA="3x/semana"`; faixa 2 → **`"70"`, `"2x/semana"`**;
-os dois ritmos que a cadeia compara são **diferentes**, e é isso que faz a guarda disparar.
-`provar-o-plano-da-faixa.js`, **18 asserções**, **8 vermelhas** sem a projecção.
-
-### O limite que a medição encontrou, e que é uma decisão dela
-
-**Duas Turmas do mesmo professor na mesma sala colidem no mesmo ficheiro.** Medido:
+**Os ficheiros do ciclo continuam a colidir quando o professor é o mesmo.** Medido:
 
 ```
-variante da Turma A (faixa 1) -> escola-piano
-variante da Turma B (faixa 2) -> escola-piano      colidem: true
+Turma A (faixa f1, Balé clássico) -> professores/pe-torto/ciclos/ciclo-01-calango-piano-po.md
+Turma B (faixa f2, Jazz)          -> professores/pe-torto/ciclos/ciclo-01-calango-piano-po.md
 ```
 
-A variante é `<escola>-<slug da sala>` e o caminho é `professores/<professor>/ciclos/ciclo-NN-
-<variante>-plano.md`. Duas Turmas do **mesmo** professor na **mesma** sala escrevem o mesmo plano e o
-mesmo PO — a segunda deriva sobre a primeira, e a primeira desaparece. Não corrigi: incluir a faixa na
-variante **renomeia ficheiros**, e com eles a pasta do pacote e a âncora `.fipp` — uma alteração de
-proveniência que é decisão dela, e não minha.
+A variante é `<escola>-<sala>`, e a pasta é do professor. Com **professores diferentes** as pastas
+diferem e o problema não existe; com o **mesmo professor e modalidades diferentes** — que a regra
+dela permite — os dois ciclos escrevem o mesmo plano, o mesmo PO, o mesmo `.conf` e a mesma pasta de
+pacote, e o mesmo `ciclo-01-…-<variante>.fipp`.
 
-### O custo, que ela pediu para verificar — está em `CUSTO-DOS-FLUXOS.md` §21
+**A regra dela resolve a identidade da Turma; não resolve o nome dos ficheiros.** Fechar isso exige
+que a variante carregue a modalidade (ou a faixa) — e isso só toca em salas com mais de uma faixa, que
+são todas de hoje: o custo de compatibilidade é nulo. **Fica PENDENTE por decisão dela**, e não por
+esquecimento.
 
-**Subiu, e é o modelo a reflectir a realidade, não uma regressão.** Medido: uma alteração de Sala
-percorre **N alvos** para N Turmas (medido 1→1, 2→2, 3→3), e um alvo é um plano + um PO + um pacote.
-Antes das faixas uma sala só podia ter uma Turma; agora tem as que a escola realmente dá naquele
-espaço. **O custo por aula não mudou.** E o que impede a factura de disparar sem ninguém ver é a
-guarda do ritmo — que é precisamente o que esta correcção consertou: sem ela a guarda lia a raiz,
-nunca via a mudança de faixa, e o alvo não ficava nem `feita` nem `pendente`. No browser, os pedidos
-de perfil são absorvidos pela cache: **5** para 3 faixas × 3 professores, contra 9 sem ela.
+**A prova.** `provar-a-ocupacao.js` ganhou a secção **H2** (72 asserções no total, 6 novas para a
+regra) e `provar-o-ciclo-das-faixas.js` a secção **H** (**47**, com a recusa na rota). Uma asserção
+antiga teve de ser **reescrita**, e não apagada: «o mesmo professor nas duas faixas também é aceite»
+era verdade sob a decisão da manhã e deixou de ser sob a da tarde — passa a «é aceite **quando a
+modalidade difere**», que é a letra da regra nova.
 
-**Onde entrou.** `motor/nucleo/ocupacao.js` (`salaEfetiva`), `motor/servidor/compor-conf.js`
-(`respostasDoRitmo` e `comporConf` com `faixa`), `motor/servidor/cadeia.js` (`ritmoDaSala` com faixa,
-`derivarPlano` e o estado a passarem a faixa da curadoria), `motor/servidor/escrever-plano.js`
-(`comporManifestoDaTurma` resolve a faixa pela curadoria; `lerCuradorias` propagado),
-`motor/servidor/cloudflare.js` (a leitura das curadorias para o escritor do plano),
-`experimentos/provar-o-plano-da-faixa.js` (novo, **18**), `CUSTO-DOS-FLUXOS.md` §21, `.gitignore`,
-`ESTADO-ATUAL.md`, `HANDOFF.md`.
+**Onde entrou.** `motor/nucleo/ocupacao.js` (`parRepetidoNaSala`), `motor/servidor/bastidores.js` (a
+conferência no ciclo dos pares, em `turma-professor`), `experimentos/provar-a-ocupacao.js` (H2),
+`experimentos/provar-o-ciclo-das-faixas.js` (H), `ESTADO-ATUAL.md`, `HANDOFF.md`.
 
 ## O que está pendente
 

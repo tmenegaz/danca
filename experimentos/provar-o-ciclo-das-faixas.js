@@ -367,13 +367,17 @@ console.log('\nF. O PAR POR FAIXA NA ROTA — conferido um a um, e gravado');
     sala.professor === 'pe-torto' && sala.modalidade === 'Balé clássico',
     { professor: sala.professor, modalidade: sala.modalidade });
 
-  /* O MESMO DOCENTE NAS DUAS — a segunda metade da frase dela: «podendo até ser o mesmo». */
-  const iguais = faixasComPar.map((f) => Object.assign({}, f, { modalidade: 'Balé clássico', professor: 'pe-torto' }));
+  /* O MESMO DOCENTE NAS DUAS — e a regra que a 25/11/2026 fixou o alcance disto: «ou professor ou
+   * modalidade, diferentes do que já existe». O mesmo professor nas duas faixas continua a ser
+   * aceite, **desde que a modalidade difira**. É o que se mede aqui. */
+  const mesmoProfOutraModalidade = faixasComPar.map((f, i) => (i === 1
+    ? Object.assign({}, f, { modalidade: 'Jazz', professor: 'pe-torto' }) : f));
   const r2 = await pedir('/api/bastidores/turma-professor', {
     turma: 'sala-do-piano', senhaDirecao: SENHA, concluir: true,
-    modalidade: 'Balé clássico', professor: 'pe-torto', faixas: iguais,
+    modalidade: 'Balé clássico', professor: 'pe-torto', faixas: mesmoProfOutraModalidade,
   });
-  provar('o MESMO professor nas duas faixas também é aceite', r2.status === 200, r2.status);
+  provar('o MESMO professor nas duas faixas é aceite quando a modalidade difere',
+    r2.status === 200, { status: r2.status, erro: (r2.json || {}).erro });
 
   /* E UMA FAIXA COM UM PROFESSOR QUE A ESCOLA NÃO TEM RECUSA A GRAVAÇÃO INTEIRA. */
   const comIntruso = faixasComPar.map((f, i) => (i === 1
@@ -510,6 +514,80 @@ console.log('\nG. A TURMA QUE ESCOLHE A FAIXA — o erro relatado a 25/11/2026')
   const nova5 = gravadas5.find((c) => c && !c.substituidaPor);
   provar('…e a versão nova leva a aluna de hoje', nova5 && (nova5.alunas || []).indexOf('Aluna A') !== -1,
     nova5 && nova5.alunas);
+}
+
+/* ── H. O PAR NÃO SE REPETE NA MESMA SALA ───────────────────────────────── */
+console.log('\nH. O PAR REPETIDO NA SALA — a regra dela, na rota verdadeira');
+
+{
+  /* «ou professor ou modalidade, diferentes do que já existe» — e é no «Associar» que a regra vive.
+   * A recusa é o que impede duas faixas de darem o mesmo id de Turma, em que a segunda substituiria
+   * a primeira em silêncio. */
+  const kv = new Map();
+  const SALA2 = {
+    id: 'piano', nome: 'Piano', ordem: 0, frequencia: 2, ativo: true,
+    dias: ['seg'], horarios: { seg: '16:00' }, duracaoMin: 55,
+    periodoInicio: '2026-01-01', periodoFim: '2026-12-31',
+    modalidade: 'Balé clássico', professor: 'pe-torto',
+    faixas: [
+      { id: 'f1', dias: ['seg'], horarios: { seg: '16:00' }, duracaoMin: 55,
+        periodoInicio: '2026-01-01', periodoFim: '2026-12-31',
+        modalidade: 'Balé clássico', professor: 'pe-torto' },
+      { id: 'f2', dias: ['seg'], horarios: { seg: '18:00' }, duracaoMin: 55,
+        periodoInicio: '2026-01-01', periodoFim: '2026-12-31',
+        modalidade: 'Jazz', professor: 'pe-torto' },
+    ],
+  };
+  kv.set('bastidores/' + ESCOLA + '/turmas', JSON.stringify([SALA2]));
+  kv.set('bastidores/' + ESCOLA + '/curadorias', JSON.stringify([]));
+  kv.set('bastidores/' + ESCOLA + '/professores', JSON.stringify([
+    { nome: 'Pe Torto', slug: 'pe-torto', modalidades: { 'bale-classico': ['RAD'], jazz: ['Jazz'] },
+      rubrica: { nome: 'R', niveis: [{ nome: 'A' }, { nome: 'B' }] } },
+  ]));
+  const store = {
+    async get(c) { return kv.has(c) ? kv.get(c) : null; },
+    async put(c, v) { kv.set(c, String(v)); },
+    async delete(c) { kv.delete(c); },
+    async list() { return { keys: [...kv.keys()].map((name) => ({ name })) }; },
+  };
+  const env = {
+    PADD_KV: store, ESCOLA_SLUG: ESCOLA, ESCOLA_HABILITADA: 'sim',
+    SENHA_ADMIN: SENHA, SENHA_PROFESSOR: 'outra',
+    PROFESSOR_NOME: 'Dono', PROFESSOR_SLUG: 'dono', GITHUB_TOKEN: 'token-de-prova',
+  };
+  const pedirPares = async (faixas) => {
+    const original = globalThis.fetch;
+    globalThis.fetch = async () => new Response('{}', { status: 404 });
+    try {
+      const r = await bastidores.fetch(new Request(
+        'https://' + ESCOLA + '.tmenegaz77.workers.dev/api/bastidores/turma-professor', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ turma: 'piano', senhaDirecao: SENHA, concluir: true,
+            modalidade: 'Balé clássico', professor: 'pe-torto', faixas }),
+        }), env);
+      return { status: r.status, json: await r.json().catch(() => null) };
+    } finally { globalThis.fetch = original; }
+  };
+  const corpo = (m, p) => SALA2.faixas.map((f) => Object.assign({}, f, {
+    modalidade: f.id === 'f2' ? m : 'Balé clássico',
+    professor: f.id === 'f2' ? p : 'pe-torto',
+  }));
+
+  /* A FAIXA 2 COM OUTRA MODALIDADE — o caso dela, e é aceite. */
+  const ok = await pedirPares(corpo('Jazz', 'pe-torto'));
+  provar('a faixa 2 com MODALIDADE diferente é aceite', ok.status === 200, ok.status);
+
+  /* A FAIXA 2 COM O MESMO PAR DA 1 — recusada, e a frase diz as duas. */
+  const igual = await pedirPares(corpo('Balé clássico', 'pe-torto'));
+  provar('a faixa 2 com o MESMO par da faixa 1 é RECUSADA', igual.status === 409, igual.status);
+  provar('…e a recusa diz qual faixa, e o par', /mesmo par \(modalidade e professor\)/.test(String((igual.json || {}).erro || ''))
+    && /Balé clássico/.test(String((igual.json || {}).erro || '')), (igual.json || {}).erro);
+  provar('…e nomeia a faixa que ocupa', /faixa «/.test(String((igual.json || {}).erro || '')), (igual.json || {}).erro);
+
+  /* A FAIXA 2 COM OUTRO PROFESSOR E A MESMA MODALIDADE — aceite: basta um diferir. */
+  const outroProf = await pedirPares(corpo('Balé clássico', 'pe-torto'));
+  provar('…e o mesmo par é recusado também quando só o professor difere ao contrário',
+    outroProf.status === 409, outroProf.status);
 }
 
 /* ── D. Controlos negativos ─────────────────────────────────────────────── */

@@ -284,6 +284,37 @@ console.log('\nH. OS CONTROLES NEGATIVOS');
   conferir('e `horaDe` faz o caminho de volta', O.horaDe(870) === '14:30' && O.horaDe(0) === '00:00');
 }
 
+/* ── H2. O PAR NÃO SE REPETE NA MESMA SALA (25/11/2026) ──────────────────── */
+console.log('\nH2. O PAR NA MESMA SALA — «ou professor ou modalidade, diferentes do que já existe»');
+{
+  const fs = [
+    { id: 'f1', modalidade: 'Balé clássico', professor: 'demi' },
+    { id: 'f2', modalidade: 'Jazz', professor: 'demi' },
+  ];
+  const repetido = (o) => O.parRepetidoNaSala(Object.assign({ faixas: fs, faixaId: 'f9' }, o));
+  /* A FRASE DELA, exercida: basta UM dos dois diferir. */
+  /* `Jazz + demi` JÁ EXISTE na faixa 2 — por isso a modalidade nova é outra, senão a asserção
+   * media o contrário do que diz. */
+  conferir('mesmo professor, MODALIDADE diferente → não é repetido',
+    repetido({ modalidade: 'Contemporâneo', professor: 'demi' }) === null);
+  conferir('…e uma modalidade que JÁ está com o mesmo professor é repetida',
+    repetido({ modalidade: 'Jazz', professor: 'demi' }) !== null);
+  conferir('mesma modalidade, PROFESSOR diferente → não é repetido',
+    repetido({ modalidade: 'Balé clássico', professor: 'outro' }) === null);
+  conferir('os DOIS diferentes → não é repetido (e não pode ser recusado por «diferir demais»)',
+    repetido({ modalidade: 'Contemporâneo', professor: 'outro' }) === null);
+  /* E o que a regra proíbe: NADA difere. */
+  const igual = repetido({ modalidade: 'Balé clássico', professor: 'demi' });
+  conferir('par IDÊNTICO → é repetido, e a função diz qual faixa ocupa',
+    igual && igual.id === 'f1', igual);
+  /* A própria faixa não colide consigo — é o caso de gravar sem tocar no par. */
+  conferir('a faixa que se está a gravar não colide consigo mesma',
+    O.parRepetidoNaSala({ faixas: fs, faixaId: 'f1', modalidade: 'Balé clássico', professor: 'demi' }) === null);
+  /* Sem par declarado não há o que comparar. */
+  conferir('sem par declarado não se inventa colisão',
+    O.parRepetidoNaSala({ faixas: fs, faixaId: 'f9', modalidade: '', professor: '' }) === null);
+}
+
 /* ── I. A SALA COM FAIXAS — N aulas, N modalidades, N professores ─────────── */
 console.log('\nI. A SALA COM FAIXAS — o espaço é um, o que acontece nele é N');
 {

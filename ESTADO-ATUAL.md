@@ -4455,6 +4455,19 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      deriva sobre a primeira. **PENDENTE**, e é decisão dela: incluir a faixa na variante
      **renomeia ficheiros**, e com eles a pasta do pacote e a âncora `.fipp`. Não se faz sem ela.
 
+194. **O PAR NÃO SE REPETE NA MESMA SALA — a regra dela, e o limite que ela não fecha.** Decisão:
+     «ou professor ou modalidade, diferentes do que já existe», validada no passo «Associar».
+     **APLICADO** por `parRepetidoNaSala` e pela recusa `409` em `turma-professor`, que diz **qual**
+     faixa e **qual** par. Lida em sentido **inclusivo** («pelo menos um difere»): uma faixa com os
+     dois diferentes é legítima. **Porque é necessária, medido:** o id da Turma é `professor +
+     modalidade + sala`; duas faixas com o mesmo par dão o **mesmo id** e a segunda **substitui** a
+     primeira em silêncio. **O que já funcionava sem nada:** pares diferentes na mesma sala são
+     aceites e os ids são distintos. **O LIMITE QUE FICA:** os **ficheiros** do ciclo continuam a
+     colidir quando o **professor** é o mesmo — a variante é `<escola>-<sala>` e a pasta é do
+     professor. Fechar isso exige que a variante carregue a modalidade (ou a faixa), e só toca em
+     salas com mais de uma faixa, que são todas de hoje: **o custo de compatibilidade é nulo.**
+     **PENDENTE por decisão dela.**
+
 188. **A SALA NOVA NÃO PODE CRIAR COLISÃO EM SILÊNCIO — e as mensagens não sugerem resolução.** A
      edição da Sala já corria a cadeia, mas a cadeia relê o ritmo e deriva o plano; **não conferia a
      ocupação**. Medido: mudar a hora de uma sala com duas turmas podia criar a colisão **em silêncio**,

@@ -61556,3 +61556,52 @@ de perfil são absorvidos pela cache: **5** para 3 faixas × 3 professores, cont
 `motor/servidor/cloudflare.js` (a leitura das curadorias para o escritor do plano),
 `experimentos/provar-o-plano-da-faixa.js` (novo, **18**), `CUSTO-DOS-FLUXOS.md` §21, `.gitignore`,
 `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+## 25/11/2026 — O par não se repete na mesma sala: a regra dela, e o limite que ela não fecha
+
+**A decisão dela:** «o ajuste para isso deve ser com ou exclusivo: ou professor ou modalidade,
+diferentes do que já existe. Essa validação deve ficar no passo associar, no formulário da Sala.»
+
+**Implementada como regra pura e na rota.** `parRepetidoNaSala` (em `motor/nucleo/ocupacao.js`)
+devolve a faixa que ocupa o mesmo par, e a rota `turma-professor` recusa com `409` dizendo **qual**
+faixa e **qual** par. Lida em sentido **inclusivo** — «pelo menos um difere» —, e não em sentido
+estrito: uma faixa com os dois diferentes é legítima e não pode ser recusada por «diferir demasiado»;
+o que a regra proíbe é o caso em que **nada** difere.
+
+**Porque é que a regra é necessária, medido.** O id da Turma é `professor + modalidade + sala`. Duas
+faixas da mesma sala com o mesmo par dão o **mesmo id**, e a segunda **substitui** a primeira no
+cadastro em silêncio: não chega a haver segunda. É o mesmo defeito de 16/10 — quando o id não levava a
+sala —, com a quarta dimensão a faltar.
+
+**O que já funcionava, e não precisou de nada.** Duas Turmas com pares diferentes na mesma sala: a
+rota aceita as duas (`201`), e os ids são distintos (`pe-torto-bale-classico-piano` e
+`pe-torto-jazz-piano`). Medido com a rota verdadeira.
+
+### O limite que a regra NÃO fecha, e é o que fica por decidir
+
+**Os ficheiros do ciclo continuam a colidir quando o professor é o mesmo.** Medido:
+
+```
+Turma A (faixa f1, Balé clássico) -> professores/pe-torto/ciclos/ciclo-01-calango-piano-po.md
+Turma B (faixa f2, Jazz)          -> professores/pe-torto/ciclos/ciclo-01-calango-piano-po.md
+```
+
+A variante é `<escola>-<sala>`, e a pasta é do professor. Com **professores diferentes** as pastas
+diferem e o problema não existe; com o **mesmo professor e modalidades diferentes** — que a regra
+dela permite — os dois ciclos escrevem o mesmo plano, o mesmo PO, o mesmo `.conf` e a mesma pasta de
+pacote, e o mesmo `ciclo-01-…-<variante>.fipp`.
+
+**A regra dela resolve a identidade da Turma; não resolve o nome dos ficheiros.** Fechar isso exige
+que a variante carregue a modalidade (ou a faixa) — e isso só toca em salas com mais de uma faixa, que
+são todas de hoje: o custo de compatibilidade é nulo. **Fica PENDENTE por decisão dela**, e não por
+esquecimento.
+
+**A prova.** `provar-a-ocupacao.js` ganhou a secção **H2** (72 asserções no total, 6 novas para a
+regra) e `provar-o-ciclo-das-faixas.js` a secção **H** (**47**, com a recusa na rota). Uma asserção
+antiga teve de ser **reescrita**, e não apagada: «o mesmo professor nas duas faixas também é aceite»
+era verdade sob a decisão da manhã e deixou de ser sob a da tarde — passa a «é aceite **quando a
+modalidade difere**», que é a letra da regra nova.
+
+**Onde entrou.** `motor/nucleo/ocupacao.js` (`parRepetidoNaSala`), `motor/servidor/bastidores.js` (a
+conferência no ciclo dos pares, em `turma-professor`), `experimentos/provar-a-ocupacao.js` (H2),
+`experimentos/provar-o-ciclo-das-faixas.js` (H), `ESTADO-ATUAL.md`, `HANDOFF.md`.
