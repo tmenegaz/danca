@@ -484,6 +484,202 @@ const ESCOLAS = [{ slug: 'breu', nome: 'Breu' }];
       !(await env.PADD_KV.get('financeiro/cobrancas')), null);
   }
 
+  /* ── 8. CONCILIAR POR VALOR ────────────────────────────────────────────────────────────── */
+  /*
+   * «Eu ainda não sei uma solução para isso, para impedir que a pessoa pague o valor menor. Ela vai
+   * ter que pagar o valor maior.» A solução tem três partes, e esta secção mede as três:
+   *
+   *   (a) o campo vem PREENCHIDO com o que se deve hoje — não é a escola que escolhe o número;
+   *   (b) o que a página manda é o que o campo diz, e a comparação é do SERVIDOR: abaixo do devido,
+   *       o mês fica `parcial` e continua em aberto, com o que falta escrito;
+   *   (c) o valor recebido NÃO reescreve a fatura — `valorCentavos` continua a ser o que foi cobrado,
+   *       que é o número que a mudança de plano compara.
+   *
+   * A ASSERÇÃO QUE DISCRIMINA é a (c). Uma implementação que gravasse o recebido por cima da fatura
+   * passaria nas duas primeiras e falharia nesta — e o defeito só apareceria meses depois, quando a
+   * escola mudasse de plano e a conta a comparasse com o valor errado.
+   */
+  console.log('\n8. Conciliar POR VALOR — o que entrou decide se o mês fecha');
+  {
+    const extrato = [{
+      escola: 'breu', nome: 'Breu', planoNome: 'Básico', valorCentavos: 16990,
+      situacao: 'em-aberto', mesDeHoje: '2026-12', emAberto: ['2026-12'], vencidos: ['2026-12'],
+      meses: [
+        { mes: '2026-12', nome: 'dezembro de 2026', vencimento: '2026-12-16', status: 'aberto',
+          venceu: true, valorCentavos: 16990, recebidoCentavos: 0, faltaCentavos: 16990,
+          encargos: { diasDeAtraso: 9, multaCentavos: 340, jurosCentavos: 51, encargosCentavos: 391,
+            totalCentavos: 17381 } },
+      ],
+      estadoComercial: 'ativa', frase: 'Em aberto.', capacidade: { professores: 4, alunos: 40 },
+      piso: { professores: 4, alunos: 40 }, teto: { professores: 5, alunos: 89 },
+      proximoVencimento: '2026-12-16', diasParaVencer: -9,
+      lotesProfessores: [3], lotesAlunos: [30], cobrancas: {},
+    }];
+    const html = painel.paginaFinanceira({
+      pix: { chave: 'k', titular: 'T' }, descontos: [], escolas: ESCOLAS,
+      extrato, catalogo: null,
+    });
+
+    /* (a) O CAMPO EXISTE E JÁ VEM PREENCHIDO COM O DEVIDO, mora incluída. */
+    const d = new JSDOM(html).window.document;
+    const campo = d.querySelector('tr[data-mes="2026-12"] [data-pagar-valor]');
+    conferir('o mês em aberto tem um campo com o valor recebido, e não só um botão',
+      Boolean(campo), null);
+    conferir('…e ele já vem preenchido com o que se deve HOJE — mensalidade mais mora (173,81)',
+      campo && /^\s*173,81\s*$/.test(campo.value), campo && campo.value);
+
+    /* (b) O CLIQUE MANDA O QUE O CAMPO DIZ — e o número atravessa o parser sem se perder. O `fetch` é
+     * stubado porque o que se mede aqui é o CORPO do pedido: se ele levasse o devido em vez do
+     * recebido, o pagamento a menos era impossível de registar e a correcção não existia. */
+    const VirtualConsole = require('jsdom').VirtualConsole;
+    const vc = new VirtualConsole();
+    const disparates = [];
+    vc.on('jsdomError', (e) => disparates.push(String(e && e.message)));
+    const dom = new JSDOM(html, {
+      runScripts: 'dangerously', url: 'https://danca.padd.com.br/financeiro', virtualConsole: vc,
+    });
+    const avisos = [];
+    let corpoEnviado = null;
+    let resposta = { ok: true, parcial: true, faltaCentavos: 12381 };
+    dom.window.alert = (t) => { avisos.push(String(t)); };
+    dom.window.fetch = async (url, opcoes) => {
+      corpoEnviado = JSON.parse((opcoes && opcoes.body) || '{}');
+      return { json: async () => resposta, status: 200 };
+    };
+    const campoDom = dom.window.document.querySelector('tr[data-mes="2026-12"] [data-pagar-valor]');
+    const botaoDom = dom.window.document.querySelector('tr[data-mes="2026-12"] [data-pagar]');
+    /* O BOTÃO DESLIGA-SE NO CLIQUE E NÃO VOLTA — o caminho normal é a página recarregar. Nesta
+     * prova não há página seguinte, por isso o botão é rearmado entre tentativas: é o único jeito
+     * de exercitar o mesmo gesto sete vezes seguidas. */
+    const clica = async (texto) => {
+      corpoEnviado = null;
+      avisos.length = 0;
+      botaoDom.disabled = false;
+      campoDom.value = texto;
+      botaoDom.click();
+      await new Promise((r) => setTimeout(r, 40));
+      return corpoEnviado;
+    };
+    const enviado50 = await clica('50,00');
+    const avisos50 = avisos.slice();
+    corpoEnviado = enviado50;
+    conferir('o clique manda o valor do campo, em cêntimos, e não o devido',
+      corpoEnviado && corpoEnviado.recebidoCentavos === 5000,
+      corpoEnviado);
+    conferir('…e manda o mês e a escola junto — é uma linha, não um formulário',
+      corpoEnviado && corpoEnviado.escola === 'breu' && corpoEnviado.mes === '2026-12',
+      corpoEnviado);
+    conferir('…e a resposta parcial é DITA antes de recarregar, com o que falta',
+      avisos50.some((a) => /faltam R\$ 123,81/i.test(a)), avisos50);
+    /* O PARSER: os formatos que uma pessoa escreve e os que ela não escreve. Este é o teste do
+     * `centavosDe` da página, exercitado pelo caminho real — o campo e o clique. */
+    const tentaCom = clica;
+    const formatos = [
+      ['173,81', 17381], ['173.81', 17381], ['R$ 173,81', 17381], ['1.734,81', 173481],
+      ['173', 17300], ['0,5', 50], ['173,8', 17380],
+    ];
+    const errados = [];
+    for (const [texto, esperado] of formatos) {
+      const enviado = await tentaCom(texto);
+      if (!enviado || enviado.recebidoCentavos !== esperado) {
+        errados.push({ texto, esperado, veio: enviado && enviado.recebidoCentavos });
+      }
+    }
+    conferir('os sete formatos que se escrevem viram os cêntimos certos', errados.length === 0, errados);
+    /* E O CONTRÁRIO: um campo que não se entende NÃO se manda às cegas. Sem esta guarda, um texto
+     * qualquer viraria o número do costume e o mês fechava com um valor que ninguém escreveu. */
+    const vazio = await tentaCom('');
+    conferir('um campo vazio não manda pedido nenhum — e diz porquê',
+      vazio === null && avisos.some((a) => /não se entende/i.test(a)), { vazio, avisos });
+    const zero = await tentaCom('0,00');
+    conferir('e um pagamento de zero é recusado na página, antes de chegar ao motor',
+      zero === null && avisos.some((a) => /R\$ 0,00/i.test(a)), { zero, avisos });
+    dom.window.close();
+
+    /* (c) O SERVIDOR, com o livro a sério: parcial, depois quitado, e a FATURA intacta. */
+    const env = envCom(null);
+    const pedir = async (corpo) => {
+      const r = await raiz.fetch(new Request('https://danca.padd.com.br/api/financeiro/mensalidade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: AUTORIZACAO },
+        body: JSON.stringify(corpo),
+      }), env);
+      return { status: r.status, corpo: await r.json() };
+    };
+    const linhaDe = async (mes) => {
+      const livro = JSON.parse(await env.PADD_KV.get('financeiro/mensalidades'));
+      return (livro.lista || []).find((l) => l.escola === 'breu' && l.mes === mes) || null;
+    };
+
+    /* O MÊS EM ABERTO AQUI É O SEGUINTE AO PAGO, e o valor devido é o que o extrato calcular — não
+     * um número escrito à mão nesta prova: se a prova fixasse o valor, ela concordaria com uma
+     * fórmula errada. Deixa-se o servidor dizer quanto é, e paga-se uma parte dele. */
+    const preco = mensalidades.devidoDoMes({
+      escola: 'breu', contrato: CONTRATO, livro: mensalidadesDoLivro(),
+      mes: '2026-12', agora: '2026-12-20T12:00:00Z',
+    });
+    conferir('o mês em aberto em dezembro devia R$ 169,90 mais a mora', preco
+      && preco.faturaCentavos === 16990 && preco.devidoCentavos > 16990, preco);
+
+    const parte = 5000;
+    const p1 = await pedir({ escola: 'breu', mes: '2026-12', recebidoCentavos: parte });
+    conferir('pagar a menos NÃO fecha o mês: a resposta diz que ficou parcial',
+      p1.corpo.ok === true && p1.corpo.parcial === true, p1.corpo);
+    const l1 = await linhaDe('2026-12');
+    conferir('…e o livro guarda o status «parcial», com o que entrou e o que falta',
+      l1 && l1.status === 'parcial' && l1.recebidoCentavos === parte && l1.faltaCentavos > 0, l1);
+    conferir('…e a FATURA não é reescrita pelo recebido — é ela que a mudança de plano compara',
+      l1 && l1.valorCentavos === 16990, l1 && l1.valorCentavos);
+
+    /* O EXTRATO, que é o que a escola e o painel mostram: o mês está em ABERTO (não pago), com o
+     * recebido e o saldo, e a mora passou a ser calculada sobre o SALDO — não sobre a fatura
+     * inteira, senão a escola pagava juros sobre o que já tinha pago. */
+    const s1 = mensalidades.situacaoDaEscola({
+      escola: 'breu', contrato: CONTRATO, livro: await mensalidades.lerLivro(env.PADD_KV),
+      agora: '2026-12-20T12:00:00Z',
+    });
+    const m1 = s1.meses.find((m) => m.mes === '2026-12');
+    conferir('…e o extrato mostra o mês como parcial, e não como pago',
+      m1 && m1.status === 'parcial', m1 && m1.status);
+    conferir('…com o que entrou e o que falta, para a linha não parecer de um mês intocado',
+      m1 && m1.recebidoCentavos === parte && m1.faltaCentavos === 16990 - parte, m1);
+    conferir('…e a mora incide sobre o SALDO, não sobre a fatura já paga em parte',
+      m1 && m1.encargos.multaCentavos === Math.round((16990 - parte) * 0.02), m1 && m1.encargos);
+    conferir('…e a situação da escola continua em aberto até o mês fechar',
+      s1.situacao === 'em-aberto' && s1.emAberto.includes('2026-12'), s1.situacao);
+
+    /* O RESTO. Um mês parcial NÃO é um mês pago: o botão continua lá, e o acumulado fecha. */
+    const falta = m1.faltaCentavos + m1.encargos.encargosCentavos;
+    const p2 = await pedir({ escola: 'breu', mes: '2026-12', recebidoCentavos: falta });
+    conferir('pagar o resto fecha o mês', p2.corpo.ok === true && !p2.corpo.parcial, p2.corpo);
+    const l2 = await linhaDe('2026-12');
+    conferir('…e o status passa a «pago», com o acumulado dos dois pagamentos',
+      l2 && l2.status === 'pago' && l2.recebidoCentavos === parte + falta && l2.faltaCentavos === 0, l2);
+    conferir('…e o histórico guarda que houve DOIS pagamentos — um por linha do extrato bancário',
+      l2 && Array.isArray(l2.pagamentos) && l2.pagamentos.length === 2, l2 && l2.pagamentos);
+    conferir('…e a fatura continua a de sempre', l2 && l2.valorCentavos === 16990, l2 && l2.valorCentavos);
+
+    /* A GUARDA DO ERRO DE DIGITAÇÃO. Um `69,90` que vira `6990,00` não é um acerto: é um zero a
+     * mais. Gravá-lo poria R$ 6.990,00 no livro, e a conciliação seguinte encontraria um mês pago
+     * por sete vezes o devido — sem saber que foi engano. */
+    const antes = await env.PADD_KV.get('financeiro/mensalidades');
+    const exagero = await pedir({ escola: 'breu', mes: '2026-12', recebidoCentavos: 699000 });
+    conferir('um valor mais do que o dobro do devido é RECUSADO',
+      exagero.status === 400 && exagero.corpo.ok === false, exagero);
+    conferir('…e a recusa mostra os dois números, para o engano ser visível',
+      /6990,00/.test(String(exagero.corpo.erro || ''))
+      && /69,90/.test(String(exagero.corpo.erro || '')), exagero.corpo.erro);
+    conferir('…e o livro não foi tocado', (await env.PADD_KV.get('financeiro/mensalidades')) === antes, null);
+    /* E UM PAGAMENTO DE ZERO NÃO É UM PAGAMENTO — nem pela rota, para um POST à mão não escrever uma
+     * linha que diz «entrou nada». O mês usado é um que ainda não tem linha: no mês já quitado, zero
+     * é o segundo clique de quem concilia, e aí a resposta certa é «já estava pago» — que é o que a
+     * asserção do fim da secção 7 mede. */
+    const zeroRota = await pedir({ escola: 'breu', mes: '2027-03', recebidoCentavos: 0 });
+    conferir('pagar zero pela rota é recusado, e o livro não ganha uma linha',
+      zeroRota.status === 400
+      && (await env.PADD_KV.get('financeiro/mensalidades')) === antes, zeroRota);
+  }
+
   console.log('');
   if (falhas) { console.log('FALHOU — ' + (n - falhas) + '/' + n); process.exit(1); }
   console.log('TUDO CERTO — ' + n + ' asserção(ões).');

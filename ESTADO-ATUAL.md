@@ -4,7 +4,12 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **a conciliação voltou, com a situação e o botão na mesma coluna,
+> **Última fotografia:** 25/11/2026 — **um mês pago a menos não fecha.** O «Marcar pago» leva um campo
+> com o valor recebido, preenchido com o devido (mensalidade mais mora), e o servidor compara: abaixo
+> disso o mês fica **parcial** — em aberto, com o que falta escrito na linha e o botão ainda
+> disponível —, a fatura não é reescrita e a mora passa a incidir só sobre o saldo. A regra está
+> escrita para a escola ler (`CLAUSULA_DE_QUITACAO`, a mesma frase no «Pagar» dela e no financeiro).
+> Antes disso, no mesmo dia: **a conciliação voltou, com a situação e o botão na mesma coluna,
 > e a cobrança de um mês pago não se oferece.** O botão «Marcar pago» nunca tinha saído do código:
 > vivia numa coluna própria («Pago / ação») que a coluna larga da cobrança empurrou para fora do ecrã.
 > As duas passaram a ser uma — **seis colunas em vez de sete** —, o selo de um mês vencido diz
@@ -7496,6 +7501,24 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **25/11/2026** — **Conciliar por valor: o mês que se paga a menos não fecha, e a cláusula está
+  escrita onde ela paga.** O «Marcar pago» passou a levar um **campo com o valor recebido**,
+  preenchido com o que se deve hoje — mensalidade mais mora —, e é o número do campo que viaja
+  (o parser da página aceita `173,81`, `173.81`, `R$ 173,81`, `1.734,81`, `173`). Quem compara é o
+  servidor: `mensalidades.devidoDoMes` lê a linha do extrato (uma conta da mora, não duas) e
+  `registarPagamento` grava `status: 'parcial'` com `recebidoCentavos`, `devidoCentavos` e
+  `faltaCentavos` enquanto o acumulado não cobrir o devido; o mês continua em aberto, com o
+  histórico de cada pagamento. **A fatura não é reescrita** — `valorCentavos` continua a ser o que
+  foi cobrado, que é o número que a mudança de plano compara — e a **mora incide sobre o saldo**, e
+  não sobre o que já foi pago. Duas guardas declaradas: um valor acima do **dobro** do devido é
+  recusado (é o `69,90` que vira `6990`), e um pagamento de **zero** não escreve linha nenhuma —
+  sem deixar de responder `jaPago` ao segundo clique de um mês quitado. A frase que diz a regra
+  (`mensalidades.CLAUSULA_DE_QUITACAO`) é **uma só** e está nos dois lados: na caixa «Pagar» da
+  escola e no financeiro de quem concilia. `provar-conciliacao-do-painel` 47 → **71**,
+  `provar-a-cobranca-pix` 99 → **102**. **O que não se resolve:** a página não decide nada — quem
+  quiser registar um valor diferente do devido tem de o escrever no campo, e um valor *acima* do
+  dobro é trabalho de correcção manual no livro.
 
 - **25/11/2026** — **A conciliação voltou, e a cobrança de um mês atrasado que cobra menos deixou de
   ser oferecida.** O «Marcar pago» não tinha desaparecido: estava numa coluna que a cobrança

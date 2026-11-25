@@ -62068,3 +62068,76 @@ escola), `motor/servidor/raiz.js` (os dois guardas: 409 na cobrança de um mês 
 `experimentos/provar-a-cobranca-pix.js`, `experimentos/provar-conciliacao-do-painel.js`,
 `experimentos/provar-o-copiar.js`, `experimentos/provar-financeiro-da-escola.js`, `ESTADO-ATUAL.md`,
 `HANDOFF.md`.
+
+---
+
+## 25/11/2026 — O mês pago a menos não fecha: conciliar por valor, e a cláusula escrita onde ela paga
+
+**O pedido, e ele era uma pergunta sem resposta:** «Eu ainda não sei uma solução para isso, para
+impedir que a pessoa pague o valor menor. Ela vai ter que pagar o valor maior. Você tem alguma
+sugestão para me dar?» A decisão foi ficar com a **B** e a **D** das quatro propostas: conciliar pelo
+valor recebido, e escrever a cláusula que diz quando um mês deixa de estar em aberto.
+
+**A solução tem três partes, e nenhuma delas é da página.**
+
+1. **O campo vem preenchido com o devido** — mensalidade mais mora —, e é o **valor do campo** que
+   viaja. Quem quiser pagar a menos escreve-o; o gesto normal é não lhe tocar.
+2. **Quem compara é o servidor.** `mensalidades.devidoDoMes` lê a linha do extrato — a mesma que a
+   escola vê, com a mesma mora — e `registarPagamento` grava `status: 'parcial'` enquanto o
+   acumulado não cobrir o devido. A conta da mora continua a ser **uma**: se a rota a recalculasse,
+   as duas divergiam no primeiro dia em que alguém tocasse numa taxa.
+3. **A regra está escrita para a escola ler.** `mensalidades.CLAUSULA_DE_QUITACAO` é **uma frase,
+   um sítio**, e aparece na caixa «Pagar» da escola e no financeiro de quem concilia. Duas redacções
+   da mesma cláusula divergiriam exactamente no mês em atraso, que é quando ela é lida.
+
+**O que o registo guarda, e é a parte que evita o defeito caro.** A **fatura não é reescrita** pelo
+recebido: `valorCentavos` continua a ser o que foi cobrado, porque é esse o número que a mudança de
+plano compara — gravar o recebido por cima dela daria um «upgrade» calculado sobre um valor que
+nunca foi preço. Ao lado, `recebidoCentavos` (acumulado), `devidoCentavos` e `faltaCentavos`, e o
+histórico dos pagamentos, porque uma escola pode pagar em duas vezes e o extrato bancário tem duas
+linhas. **E a mora incide sobre o saldo**, não sobre a fatura: cobrar juros sobre o que a escola já
+pagou seria cobrar duas vezes.
+
+**Duas guardas declaradas, e as duas foram provadas com o que devem recusar.** Um valor acima do
+**dobro** do devido é recusado com os dois números na frase (é o `69,90` que vira `6990,00` — um zero
+a mais, não um acerto). E um pagamento de **zero** não escreve linha nenhuma: uma linha a dizer
+«entrou nada» não se distingue, depois, de um mês que ninguém tocou.
+
+**A ordem das guardas foi uma correcção a meio.** Num mês já quitado o devido é zero, e o segundo
+clique de quem concilia traz esse zero: recusá-lo respondia «um pagamento de R$ 0,00 não regista
+nada» a quem só carregou duas vezes no mesmo botão. A guarda do `jaPago` passou para **antes** da do
+zero, e o que ele ouve é «já estava pago».
+
+**Uma regressão apanhada por uma prova, e é a razão de ela existir.** O primeiro desenho recusava
+qualquer mês que não estivesse na linha do tempo — e o «Informar um pagamento» do painel existe
+exactamente para o mês que ainda não está no extrato (um pagamento adiantado, ou um mês que o relógio
+de ensaio abriu). `provar-conciliacao-do-painel` secção 4 ficou vermelha e o caminho voltou, com a
+fatura do contrato em vigor e sem mora: não há vencimento a comparar com hoje, e inventar um seria
+cobrar juros de uma dívida que ainda não venceu.
+
+**Um defeito de escape que nenhum teste de topo veria.** O parser do dinheiro da página viaja como
+**texto dentro de uma string de JavaScript**: a primeira versão escrevia `/\d/` e chegava ao browser
+como `/[^d.,]/g`, que apaga tudo o que não seja a letra `d`, a vírgula ou o ponto, e transformava
+`173,81` em `,81`. O campo parecia certo, o botão não fazia nada, e o texto emitido é JavaScript
+válido. A prova passou a exercitar **sete formatos** pelo caminho real (o campo e o clique):
+`173,81`, `173.81`, `R$ 173,81`, `1.734,81`, `173`, `0,5`, `173,8`.
+
+**As provas.** `provar-conciliacao-do-painel.js` **47 → 71** (secção 8, nova: o campo preenchido, o
+corpo do `POST`, os sete formatos, o parcial no livro e no extrato, o resto que quita, o exagero
+recusado, o zero recusado — e a asserção que discrimina, «a fatura não é reescrita pelo recebido»,
+que uma implementação que gravasse o recebido por cima passaria nas outras duas e falharia nesta).
+`provar-a-cobranca-pix.js` **99 → 102** (secção E, nova: a cláusula nos dois lados, e a mesma frase).
+Bateria completa: **287 provas, 194 verdes, 93 falhas conhecidas, 0 regressões**.
+
+**O que isto NÃO resolve, e fica declarado.** Um valor *acima* do dobro do devido é correcção manual
+no livro — a guarda prefere recusar a gravar um número que ninguém sabe explicar. E o pagamento a
+menos continua a ser **possível** no banco: o sistema garante que ele não fecha o mês, não que ele não
+aconteça. Fechar isso de vez é a cobrança com vencimento pela API Pix, já proposta e não feita.
+
+**Onde entrou.** `motor/nucleo/mensalidades.js` (`devidoDoMes`, `registarPagamento` com o acumulado e
+as duas guardas, `situacaoDaEscola` com o estado parcial e a mora sobre o saldo, `reaisDe`,
+`CLAUSULA_DE_QUITACAO`), `motor/servidor/raiz.js` (o devido calculado do outro lado, e a reserva do
+mês fora da linha do tempo), `motor/servidor/painel-html.js` (o campo do valor, o selo «parcial», o
+parser e o aviso antes de recarregar), `motor/servidor/bastidores.js` (a cláusula no «Pagar» da
+escola), `experimentos/provar-conciliacao-do-painel.js`, `experimentos/provar-a-cobranca-pix.js`,
+`ESTADO-ATUAL.md`, `HANDOFF.md`.

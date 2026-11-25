@@ -5916,8 +5916,13 @@ function painelDoPixDaEscola(pix, s, nomeDaEscola, cobrancas) {
     + '<button type="button" class="acao secundario pequena" data-copiar="escola-pix-chave"'
     + ' title="copiar a chave para a área de transferência">Copiar</button>'
     + '</p>'
-    + '<p class="trio-nota">Confirmado o pagamento, o mês passa a «pago». A conciliação é feita '
-    + 'em até 24 horas.</p>'
+    /* A FRASE DO «PAGO» PASSOU A DIZER A CONDIÇÃO (25/11/2026). Ela dizia «confirmado o pagamento, o
+     * mês passa a pago» — e isso deixou de ser verdade no momento em que um mês pode ficar PARCIAL:
+     * confirmar um valor abaixo do devido não fecha nada. A cláusula vem do núcleo, que é quem
+     * decide o que é um mês quitado; aqui só se diz também o prazo da conciliação, que é operação
+     * desta página e não regra de dinheiro. */
+    + '<p class="trio-nota">A conciliação é feita em até 24 horas. '
+    + esc(mensalidadesDoNucleo.CLAUSULA_DE_QUITACAO) + '</p>'
     + blocosDasCobrancas;
 }
 

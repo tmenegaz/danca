@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-25T09:09:54-0300`
-Commit atual: `2c83fd88` — fix(experimentos): a prova do ar deixa de passar sem medir nada
+Gerado em: `2026-11-25T09:38:24-0300`
+Commit atual: `9db153f9` — feat(estrutura): a conciliacao volta, e o mes pago nao se cobra outra vez
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+9db153f9 feat(estrutura): a conciliacao volta, e o mes pago nao se cobra outra vez
 2c83fd88 fix(experimentos): a prova do ar deixa de passar sem medir nada
 2928fcfc docs(estrutura): o plano da escola em consultoria e do mes de demonstracao
 3379cfae fix(estrutura): o Copiar e uma rotina so, e copia nas tres paginas
@@ -101,7 +102,6 @@ c1f38332 feat(ciclo): o manifesto da variante passa a derivar do cadastro da tur
 35e60582 feat(acervo): envelope/plano-20261125-0627.json
 7bbc570d feat(acervo): envelope/.indice.json
 1bb4360b feat(estrutura): a variante ganha a modalidade quando a sala tem mais de uma faixa
-b6e85dd7 fix(estrutura): a cadeia decide sobre o docente da faixa, e o par de uma faixa e um gesto
 ```
 
 ## Por professor
@@ -195,517 +195,76 @@ b6e85dd7 fix(estrutura): a cadeia decide sobre o docente da faixa, e o par de um
 
 ## Última entrada do REGISTRO
 
-## 25/11/2026 — O par não se repete na mesma sala: a regra dela, e o limite que ela não fecha
+## 25/11/2026 — O mês pago a menos não fecha: conciliar por valor, e a cláusula escrita onde ela paga
 
-**A decisão dela:** «o ajuste para isso deve ser com ou exclusivo: ou professor ou modalidade,
-diferentes do que já existe. Essa validação deve ficar no passo associar, no formulário da Sala.»
+**O pedido, e ele era uma pergunta sem resposta:** «Eu ainda não sei uma solução para isso, para
+impedir que a pessoa pague o valor menor. Ela vai ter que pagar o valor maior. Você tem alguma
+sugestão para me dar?» A decisão foi ficar com a **B** e a **D** das quatro propostas: conciliar pelo
+valor recebido, e escrever a cláusula que diz quando um mês deixa de estar em aberto.
 
-**Implementada como regra pura e na rota.** `parRepetidoNaSala` (em `motor/nucleo/ocupacao.js`)
-devolve a faixa que ocupa o mesmo par, e a rota `turma-professor` recusa com `409` dizendo **qual**
-faixa e **qual** par. Lida em sentido **inclusivo** — «pelo menos um difere» —, e não em sentido
-estrito: uma faixa com os dois diferentes é legítima e não pode ser recusada por «diferir demasiado»;
-o que a regra proíbe é o caso em que **nada** difere.
+**A solução tem três partes, e nenhuma delas é da página.**
 
-**Porque é que a regra é necessária, medido.** O id da Turma é `professor + modalidade + sala`. Duas
-faixas da mesma sala com o mesmo par dão o **mesmo id**, e a segunda **substitui** a primeira no
-cadastro em silêncio: não chega a haver segunda. É o mesmo defeito de 16/10 — quando o id não levava a
-sala —, com a quarta dimensão a faltar.
+1. **O campo vem preenchido com o devido** — mensalidade mais mora —, e é o **valor do campo** que
+   viaja. Quem quiser pagar a menos escreve-o; o gesto normal é não lhe tocar.
+2. **Quem compara é o servidor.** `mensalidades.devidoDoMes` lê a linha do extrato — a mesma que a
+   escola vê, com a mesma mora — e `registarPagamento` grava `status: 'parcial'` enquanto o
+   acumulado não cobrir o devido. A conta da mora continua a ser **uma**: se a rota a recalculasse,
+   as duas divergiam no primeiro dia em que alguém tocasse numa taxa.
+3. **A regra está escrita para a escola ler.** `mensalidades.CLAUSULA_DE_QUITACAO` é **uma frase,
+   um sítio**, e aparece na caixa «Pagar» da escola e no financeiro de quem concilia. Duas redacções
+   da mesma cláusula divergiriam exactamente no mês em atraso, que é quando ela é lida.
 
-**O que já funcionava, e não precisou de nada.** Duas Turmas com pares diferentes na mesma sala: a
-rota aceita as duas (`201`), e os ids são distintos (`pe-torto-bale-classico-piano` e
-`pe-torto-jazz-piano`). Medido com a rota verdadeira.
+**O que o registo guarda, e é a parte que evita o defeito caro.** A **fatura não é reescrita** pelo
+recebido: `valorCentavos` continua a ser o que foi cobrado, porque é esse o número que a mudança de
+plano compara — gravar o recebido por cima dela daria um «upgrade» calculado sobre um valor que
+nunca foi preço. Ao lado, `recebidoCentavos` (acumulado), `devidoCentavos` e `faltaCentavos`, e o
+histórico dos pagamentos, porque uma escola pode pagar em duas vezes e o extrato bancário tem duas
+linhas. **E a mora incide sobre o saldo**, não sobre a fatura: cobrar juros sobre o que a escola já
+pagou seria cobrar duas vezes.
 
-### O limite que a regra NÃO fecha, e é o que fica por decidir
+**Duas guardas declaradas, e as duas foram provadas com o que devem recusar.** Um valor acima do
+**dobro** do devido é recusado com os dois números na frase (é o `69,90` que vira `6990,00` — um zero
+a mais, não um acerto). E um pagamento de **zero** não escreve linha nenhuma: uma linha a dizer
+«entrou nada» não se distingue, depois, de um mês que ninguém tocou.
 
-**Os ficheiros do ciclo continuam a colidir quando o professor é o mesmo.** Medido:
+**A ordem das guardas foi uma correcção a meio.** Num mês já quitado o devido é zero, e o segundo
+clique de quem concilia traz esse zero: recusá-lo respondia «um pagamento de R$ 0,00 não regista
+nada» a quem só carregou duas vezes no mesmo botão. A guarda do `jaPago` passou para **antes** da do
+zero, e o que ele ouve é «já estava pago».
 
-```
-Turma A (faixa f1, Balé clássico) -> professores/pe-torto/ciclos/ciclo-01-calango-piano-po.md
-Turma B (faixa f2, Jazz)          -> professores/pe-torto/ciclos/ciclo-01-calango-piano-po.md
-```
+**Uma regressão apanhada por uma prova, e é a razão de ela existir.** O primeiro desenho recusava
+qualquer mês que não estivesse na linha do tempo — e o «Informar um pagamento» do painel existe
+exactamente para o mês que ainda não está no extrato (um pagamento adiantado, ou um mês que o relógio
+de ensaio abriu). `provar-conciliacao-do-painel` secção 4 ficou vermelha e o caminho voltou, com a
+fatura do contrato em vigor e sem mora: não há vencimento a comparar com hoje, e inventar um seria
+cobrar juros de uma dívida que ainda não venceu.
 
-A variante é `<escola>-<sala>`, e a pasta é do professor. Com **professores diferentes** as pastas
-diferem e o problema não existe; com o **mesmo professor e modalidades diferentes** — que a regra
-dela permite — os dois ciclos escrevem o mesmo plano, o mesmo PO, o mesmo `.conf` e a mesma pasta de
-pacote, e o mesmo `ciclo-01-…-<variante>.fipp`.
+**Um defeito de escape que nenhum teste de topo veria.** O parser do dinheiro da página viaja como
+**texto dentro de uma string de JavaScript**: a primeira versão escrevia `/\d/` e chegava ao browser
+como `/[^d.,]/g`, que apaga tudo o que não seja a letra `d`, a vírgula ou o ponto, e transformava
+`173,81` em `,81`. O campo parecia certo, o botão não fazia nada, e o texto emitido é JavaScript
+válido. A prova passou a exercitar **sete formatos** pelo caminho real (o campo e o clique):
+`173,81`, `173.81`, `R$ 173,81`, `1.734,81`, `173`, `0,5`, `173,8`.
 
-**A regra dela resolve a identidade da Turma; não resolve o nome dos ficheiros.** Fechar isso exige
-que a variante carregue a modalidade (ou a faixa) — e isso só toca em salas com mais de uma faixa, que
-são todas de hoje: o custo de compatibilidade é nulo. **Fica PENDENTE por decisão dela**, e não por
-esquecimento.
+**As provas.** `provar-conciliacao-do-painel.js` **47 → 71** (secção 8, nova: o campo preenchido, o
+corpo do `POST`, os sete formatos, o parcial no livro e no extrato, o resto que quita, o exagero
+recusado, o zero recusado — e a asserção que discrimina, «a fatura não é reescrita pelo recebido»,
+que uma implementação que gravasse o recebido por cima passaria nas outras duas e falharia nesta).
+`provar-a-cobranca-pix.js` **99 → 102** (secção E, nova: a cláusula nos dois lados, e a mesma frase).
+Bateria completa: **287 provas, 194 verdes, 93 falhas conhecidas, 0 regressões**.
 
-**A prova.** `provar-a-ocupacao.js` ganhou a secção **H2** (72 asserções no total, 6 novas para a
-regra) e `provar-o-ciclo-das-faixas.js` a secção **H** (**47**, com a recusa na rota). Uma asserção
-antiga teve de ser **reescrita**, e não apagada: «o mesmo professor nas duas faixas também é aceite»
-era verdade sob a decisão da manhã e deixou de ser sob a da tarde — passa a «é aceite **quando a
-modalidade difere**», que é a letra da regra nova.
+**O que isto NÃO resolve, e fica declarado.** Um valor *acima* do dobro do devido é correcção manual
+no livro — a guarda prefere recusar a gravar um número que ninguém sabe explicar. E o pagamento a
+menos continua a ser **possível** no banco: o sistema garante que ele não fecha o mês, não que ele não
+aconteça. Fechar isso de vez é a cobrança com vencimento pela API Pix, já proposta e não feita.
 
-**Onde entrou.** `motor/nucleo/ocupacao.js` (`parRepetidoNaSala`), `motor/servidor/bastidores.js` (a
-conferência no ciclo dos pares, em `turma-professor`), `experimentos/provar-a-ocupacao.js` (H2),
-`experimentos/provar-o-ciclo-das-faixas.js` (H), `ESTADO-ATUAL.md`, `HANDOFF.md`.
-
-### 25/11/2026 — a cadeia decide sobre o docente da faixa, e o par de UMA faixa passa a ser um gesto
-
-**Duas correcções, as duas encontradas ao percorrer o cenário real dela na Sala do Piano** — o mesmo
-professor, duas faixas, «Balé clássico» na primeira e «Dança contemporânea» na segunda, criado hoje.
-
-**A primeira: a guarda da autoria lia o docente da faixa 1.** `salaDaTurma` devolve o registo
-inteiro da Sala, e a raiz desse registo é o **espelho da faixa 1**. Os leitores do **ritmo** já
-tinham sido corrigidos com `salaEfetiva` (capítulo anterior); a guarda da autoria não. Resultado,
-medido: com a Sala acima e uma Turma na faixa 2, a cadeia comparava o plano — que é de
-`antigo-prof`, o docente da faixa 2 — com o docente da **faixa 1**, concluía que a autoria estava
-quebrada, e bloqueava a etapa com esta frase:
-
-> O plano de ensino desta Turma é de «antigo-prof», que já não a dirige. A autoria não se reescreve:
-> o documento continua a ser dele, e passa a «sem turma».
-
-**A frase é falsa**: ele dirige a faixa 2. E é a pior espécie de falso — uma recusa que parece
-fundamentada, sobre um plano que estava certo.
-
-**A correcção é a mesma projecção, no terceiro leitor.** `porTurma` passa a fazer
-`salaEfetiva(await salaDaTurma(turma), curadoria.faixa)`. Não é uma segunda forma de ler: é a mesma
-função, e uma Sala de uma faixa devolve-se a si própria (identidade preservada, nada migra).
-
-**A segunda: mudar o par de UMA faixa não disparava a cadeia.** A rota `turma-professor` comparava
-`sala.professor` e `sala.modalidade` — a **raiz**, que espelha a faixa 1. O gesto dela — «coloquei
-que o professor também ensina dança contemporânea e vinculei ao segundo horário» — devolvia `200` e
-a resposta dizia, textualmente:
-
-> `{"executada": false, "motivo": "o par da sala não mudou — não há nada a percorrer"}`
-
-A Turma daquela faixa continuava com o plano do professor antigo, sem aviso nenhum. Agora a rota
-guarda os pares de **todas** as faixas antes de escrever e compara um a um; se alguma mudou, a cadeia
-corre, e o motivo nomeia a faixa.
-
-**A prova.** `provar-o-plano-da-faixa.js` ganhou a secção **F** — a versão dura do caso dela, com
-**dois docentes diferentes** nas duas faixas (**21** asserções no total). O controlo negativo foi
-feito a correr: revertendo a projecção, a asserção «a etapa do plano NÃO acusa autoria quebrada»
-reprova com exactamente a frase acima. A detecção do par foi medida pela rota verdadeira antes e
-depois: `200` + «o par da sala não mudou» → `200` + cadeia disparada.
-
-**Onde entrou.** `motor/servidor/cadeia.js` (`porTurma` projecta a faixa), `motor/servidor/bastidores.js`
-(`paresAntesPorFaixa`, `faixasComParNovo`, `trocouOParDeFaixa` e o motivo), `experimentos/provar-o-plano-da-faixa.js` (F),
+**Onde entrou.** `motor/nucleo/mensalidades.js` (`devidoDoMes`, `registarPagamento` com o acumulado e
+as duas guardas, `situacaoDaEscola` com o estado parcial e a mora sobre o saldo, `reaisDe`,
+`CLAUSULA_DE_QUITACAO`), `motor/servidor/raiz.js` (o devido calculado do outro lado, e a reserva do
+mês fora da linha do tempo), `motor/servidor/painel-html.js` (o campo do valor, o selo «parcial», o
+parser e o aviso antes de recarregar), `motor/servidor/bastidores.js` (a cláusula no «Pagar» da
+escola), `experimentos/provar-conciliacao-do-painel.js`, `experimentos/provar-a-cobranca-pix.js`,
 `ESTADO-ATUAL.md`, `HANDOFF.md`.
-
-**O que continua por decidir, e é o mesmo de antes:** os **ficheiros** do ciclo continuam a colidir
-quando o professor é o mesmo. Medido hoje com a Sala dela: as duas Turmas são criadas (`201`, ids
-distintos) e ambas escrevem
-`professores/demi-plie/ciclos/ciclo-01-breu-piano-plano.md`. Fechar isso exige pôr a modalidade (ou a
-faixa) na **variante**, quando a Sala tem mais de uma faixa; o custo de compatibilidade é nulo, mas
-renomeia `.conf`, plano, PO, pasta do pacote e âncora `.fipp` — **decisão dela, e não minha.**
-
-### 25/11/2026 — a variante ganha a modalidade, e as duas Turmas da mesma sala deixam de colidir
-
-**A autorização, e a condição.** «Estamos testando e ajustando e a única escola viva é a Breu.
-Portanto pode mudar sem medo da proveniência. Mas quando eu expurgar e criar a nova escola quero que
-funcione dentro da regra da proveniência.»
-
-**O defeito, medido com a Sala dela.** As duas Turmas nasciam certas — `demi-plie-bale-classico-piano`
-e `demi-plie-danca-contemporanea-piano`, ambas `201`, ids distintos — e escreviam o MESMO ficheiro,
-porque a variante era `<escola>-<sala>` e a pasta é do professor:
-
-```
-f1 Balé clássico      -> professores/demi-plie/ciclos/ciclo-01-breu-piano-plano.md
-f2 Dança contemporânea -> professores/demi-plie/ciclos/ciclo-01-breu-piano-plano.md
-COLIDEM no ficheiro? true
-```
-
-A segunda deriva por cima da primeira, e a primeira desaparece. O pacote que estava no remoto
-(`71eed979`) reflectia só o ritmo da faixa 1.
-
-**A regra.** A variante passa a `<escola>-<sala>-<modalidade>` **quando a sala declara mais de uma
-faixa**. Três decisões dentro desta:
-
-1. **O critério é a SALA**, e não a existência de colisão. Uma variante que mudasse no dia em que uma
-   segunda Turma aparecesse renomearia o ficheiro de uma Turma que já tinha documentos.
-2. **É a modalidade, não a faixa.** `f1`/`f2` são posicionais: renumerar as faixas renomearia os
-   ficheiros de quem não mexeu em nada. A modalidade é um facto pedagógico, estável.
-3. **Nada do que existe é renomeado.** Uma sala de uma faixa não entra na condição; uma sala antiga,
-   sem o campo `faixas`, também não. A retrocompatibilidade é a **ausência** do campo.
-
-**Onde a decisão vive, e porquê.** No `comAModalidadeDaSala` da porta — que já lê a Sala, as
-curadorias e a modalidade desde 19/11/2026: **nenhuma leitura nova ao KV**. A variante entra no
-contexto do envelope, e dali para a frente todos os caminhos a herdam.
-
-**O que a mudança obrigou a tocar, e cada um por um motivo medido:**
-
-- `motor/nucleo/elicitar.js` — `variante` entra em `CAMPOS_DE_CONTEXTO`, e o contrato do envelope sobe
-  de **1.3.0 para 1.4.0** (aditivo, pelo mesmo motivo que 1.3.0 teve quando o `contexto` ganhou
-  `turma`: dois documentos a escrever no mesmo arquivo). Sem isto o `porta.elicitar` devolvia
-  `gravado: false` **em silêncio**, e a derivação parava com `escritos: 0` — foi o que aconteceu à
-  primeira tentativa, e a prova `provar-direcao-do-documento` apanhou-o.
-- `porta/envelope/elicitacao-schema.json` — `variante` no `contexto` (o `additionalProperties: false`
-  recusava o campo). Diff de 5 linhas, e a cópia do pacote estampada à mão nos dois pacotes vivos,
-  porque o `check-identidade` compara-a byte a byte com a fonte.
-- `motor/servidor/cadeia.js` — `contextoDoElo` **recalcula** a variante em vez de a herdar: ela
-  depende do cadastro, e herdá-la deixaria o documento novo com o nome velho. É a mesma doutrina do
-  ritmo e do professor.
-- `motor/servidor/escrever-plano.js` — o `.conf` **base da escola** passou a pedir `variante: ''`
-  explícita: com a variante declarada a vencer em `varianteDoContexto`, `turma: ''` já não bastava.
-- `motor/servidor/bastidores.js` — o disparo da geração compunha `{escola, turma}` e passaria a pedir
-  `breu-piano` a um `.conf` chamado `breu-piano-bale-classico.conf`; a geração não acharia o manifesto.
-  Agora lê as salas e as curadorias **uma vez por gesto** (e não por alvo) e compõe a variante da
-  Turma.
-- `motor/nucleo/porta.js` — o resumo do índice sobe a **7** e leva a variante. Sem ela, a lista dos POs
-  reconstruía a chave do registo de geração com menos do que a gravou, e «o que este PO já gerou»
-  desaparecia da tela. Uma asserção de `provar-listas-do-acervo` foi **actualizada** (a versão), e não
-  apagada — é o mecanismo que obriga quem sobe a versão a vir dizer porquê.
-
-**A prova.** `provar-a-variante-da-faixa.js`, **36 asserções**: a regra nas quatro combinações, os três
-caminhos distintos (`.conf`, `-plano.md`, `-po.md` e a âncora), o envelope, a chave do registo, o
-expurgo, e o **escritor de verdade** — com o `fetch` trocado por um que regista os caminhos `PUT`: os
-dois `-plano.md` que saem para o repositório são diferentes. Controlo negativo a correr: revertida a
-regra, **3 asserções** reprovam; sem a variante no contexto, os dois escritores gravam no mesmo sítio.
-
-**A regra da proveniência, medida e não prometida.** §E da prova: o expurgo reconhece
-`ciclo-01-breu-piano-bale-classico.{conf,plano.md,po.md,fipp,dados.json}` e a pasta do pacote pelo
-prefixo da escola e pela fronteira, e **não** reconhece o de outra escola. É a condição que ela pôs
-para a escola nova.
-
-**Três provas reprovaram o primeiro commit, e as três eram dívida que este trabalho revelou:**
-
-- `provar-aluna-nova-no-elenco` media uma **janela fixa de 3000 caracteres** de
-  `gerarOsCiclosDoElenco`. O bloco novo em `bastidores.js` empurrou o `criarDisparador` para os 3995,
-  fora da janela, e a asserção reprovou sobre um acerto. A janela passa a ir até ao fim de
-  `gerarOsCiclosDasTurmas` — uma prova que mede um número de caracteres mede o tamanho do comentário
-  ao lado, e não o código.
-- `provar-o-estilo-regera` apanhou um defeito **meu**, e não da prova: `turmas` é o nome do
-  PARÂMETRO de `gerarOsCiclosDasTurmas`, e eu chamei a função homónima lá dentro —
-  `TypeError: turmas is not a function`, e a travessia morria antes de disparar. O leitor ganhou o
-  alias `lerSalas`, declarado ao lado da definição, com o motivo escrito.
-- `provar-remocao-do-elenco` batia no tecto de 20 s do `pre-commit` (19,4 s), e a linha de base
-  tinha-a por verde porque foi medida com `--tecto=60`. **A causa foi medida, não adivinhada:** o
-  `waitForSelector('.presenca-lista')` corria em todas as aberturas, com 15 s de tecto e um
-  `.catch()` que engolia o tempo esgotado — e na aula **já lançada** a página abre em LEITURA e não
-  tem lista de presença. Eram 15 s à espera de um elemento que aquela abertura nunca ia ter. Cada
-  abertura passou a esperar só o que vai medir, e o navegador passou a ser um para as três: **19,4 s
-  → 3,7 s**, com as mesmas 26 asserções.
-
-**Onde entrou.** `motor/servidor/escrever-po.js` (`varianteDaTurma`), `motor/servidor/rotas.js`,
-`motor/servidor/cadeia.js`, `motor/servidor/bastidores.js`, `motor/servidor/escrever-plano.js`,
-`motor/nucleo/elicitar.js`, `motor/nucleo/porta.js`, `porta/envelope/elicitacao-schema.json`,
-`motor/servidor/listas-do-acervo.js`, `experimentos/provar-a-variante-da-faixa.js` (novo),
-`experimentos/provar-listas-do-acervo.js`, `experimentos/provar-aluna-nova-no-elenco.js`,
-`experimentos/provar-remocao-do-elenco.js`, `PLANO-DE-OCUPACAO.md` (§9.6), `ESTADO-ATUAL.md`, `HANDOFF.md`.
-
-### 25/11/2026 — o contrato do financeiro: a franquia no plano, a memória, a data e o botão
-
-**O pedido, na letra dela, e são quatro coisas numa frase.** «Quando eu faço a escolha do plano, tem
-um select aqui que coloca a opção básico, intermediário e avançado. Junto com o texto da listagem, eu
-tenho o preço […] **Coloca junto também a franquia de cada um deles** […] Pode colocar um traço e a
-franquia para cada um. E o **botão gravar o contrato, deixa ele habilitado apenas se o plano vigente
-for editado**. […] Ela não tem nesse momento a indicação no espaço de pacote de aula na mensalidade,
-ela não tem a indicação de qual pacote ela contratou. […] **Então deixa uma memória aqui.** […] e
-**coloca aqui também uma auditoria, uma linha acima do botão gravar o contrato que indica a data em
-que foi feita a contratação** do contrato.»
-
-**1. A franquia no `select`.** `Básico — R$ 69,90 — 130 aulas/mês`. O número vem do catálogo
-(`catalogoDaPagina` já trazia `aulas` por assinatura) e não de um valor escrito na página: um valor
-copiado para o ecrã diverge do que o servidor cobra no dia em que a tabela mudar — é a mesma razão
-pela qual o preço também não se escreve.
-
-**2. A memória, e a diferença entre ela e um campo pré-preenchido.** O `select` já abria no plano em
-vigor e as caixas já abriam marcadas. O que faltava era a **frase**: uma caixa desmarcada pode ser
-«não contratou» ou «o registo perdeu-se», e é essa ambiguidade que faz alguém regravar um contrato
-para ter a certeza. A linha acima do botão diz o que está em vigor por extenso — `Avançado (500
-aulas/mês), sem pacote de aulas extra` — e com um pacote comprado nomeia-o e soma a franquia
-(`550 aulas/mês, com Pacote médio (+50 aulas)`).
-
-**3. O botão só acende com mudança.** Nasce `disabled`, com a **assinatura do estado inicial**
-(`plano|ids ordenados`) escrita no próprio botão. O cliente compara no `change` e acende; se a pessoa
-voltar ao que estava, apaga. Um `disabled` sem essa memória desligava o botão para sempre, e o gesto
-de «voltar atrás» deixava-o ligado — gravava-se um contrato igual ao anterior e a data da auditoria
-andava sem que nada tivesse mudado.
-
-**4. A data — e o campo que ela obrigou a criar.** `contratadoEm`, distinto do `atualizadoEm` por um
-motivo que se mediu: o `atualizadoEm` anda a **cada** escrita do registo — habilitar a escola,
-suspender, informar um pagamento —, e nenhuma dessas coisas é contratar. A pergunta «desde quando
-esta escola paga isto?» não tinha resposta directa. Nos registos anteriores a hoje o campo não
-existe, e a reserva é o `criadoEm` (o instante em que a escola nasceu já com este plano, que é a
-mesma data dita pela fonte que a tem); sem nenhuma das duas, a linha diz que não há data em vez de
-inventar uma. O carimbo usa o **mesmo** `agora` do `atualizadoEm` e do elo do histórico — duas
-chamadas a `new Date()` no mesmo gesto dariam duas datas para o mesmo facto.
-
-**A TELA EVITA E O SERVIDOR GARANTE.** É a doutrina da casa, e aqui era necessária: um `POST` escrito
-à mão, sem mudança nenhuma, movia a auditoria — e a auditoria vale exactamente porque ninguém a
-move. A rota compara a assinatura antes de carimbar e devolve `mudou` na resposta. A ordem dos
-pacotes não conta: mandar a mesma lista por outra ordem não é uma mudança, e é o defeito clássico de
-uma comparação de listas.
-
-**O DEFEITO AO LADO, encontrado ao escrever a prova.** A criação da escola validava os pacotes
-(`validarEscolha(corpo)`) e **não os gravava** no registo comercial — a escola nascia com um pacote e
-acordava sem ele, e o extrato mostrava a franquia do plano como se nenhum extra tivesse sido
-comprado. É o mesmo defeito que a rota do contrato já tinha pago a 17/11/2026, uma linha ao lado.
-Corrigido com `pacotes: escolha.pacotes`.
-
-**A prova.** `provar-o-contrato-em-vigor.js`, **37 asserções**, em sete secções: o `select` (com o
-controlo de que o preço não aparece sozinho), a linha da memória (com e sem pacote, e sem data), o
-botão e a assinatura, o cliente em jsdom (acende, apaga, volta), o carimbo no `gravarComercial`
-(inclusive que **habilitar a escola não move a data**), a rota (sem mudança, com mudança, e a mesma
-lista por outra ordem) e o registo da criação. **Quatro controlos negativos a correr** — sem o
-carimbo condicional, sem a comparação na rota, sem o `disabled` e sem a franquia no `select`, a
-prova reprova com as asserções certas.
-
-`provar-financeiro-da-escola` foi **actualizada e não apagada**: ela atribuía `.value` e `.checked`
-por código e clicava no botão, o que passava porque o jsdom dispara o `click` de um botão desligado.
-No navegador esse gesto não existe. Passou a disparar o `change` e a afirmar que o botão nasce
-desligado e acende — o caminho que uma pessoa faz.
-
-**Onde entrou.** `motor/servidor/painel-html.js` (`opcoesDoPlano`, `linhaDoContratoEmVigor`,
-`assinaturaDoContrato`, o markup e o cliente), `motor/servidor/raiz.js` (`gravarComercial` com
-`opcoes.contratoNovo`, a rota `/api/financeiro/contrato`, e `pacotes` na criação),
-`motor/nucleo/mensalidades.js` (`contratadoEm` no extrato), `experimentos/provar-o-contrato-em-vigor.js`
-(novo), `experimentos/provar-financeiro-da-escola.js`, `ESTADO-ATUAL.md`, `HANDOFF.md`.
-
-### 25/11/2026 — a cobrança Pix: a coluna onde ela cola, e o documento que reaparece de três lados
-
-**O pedido, na letra dela:** «Eu preciso de uma outra coluna, que é onde eu vou colar o QR code ou a
-chave Pix. […] Eu uso o Nubank e na área Pix do Nubank tem uma função que se chama receber. E ali eu
-digo o valor que eu vou receber e posso escrever […] o nome da escola e o que é que ela está
-pagando. […] então é basicamente um campo texto. […] quando eu colo no chat do WhatsApp, ele preserva
-a estrutura toda que essa ferramenta me entrega. Então eu quero algo assim.»
-
-E a condição de sucesso, que é a parte difícil: **o documento tem de reaparecer noutros dois sítios.**
-No nicho «Pagar» de `bastidores/estudio` — «tem que aparecer também abaixo esse conteúdo que eu
-colei. Se não tiver nada colado lá no financeiro, aparece somente a chave Pix mesmo» — e no «mês a
-mês», onde **a coluna «Pagar» sai e entra esta**.
-
-**Porque por mês, e não por escola.** A ferramenta do banco gera uma cobrança para **um valor** — o
-daquele mês, com a multa e os juros do dia quando os há («se eu tiver que cobrar multa e juros, eu
-também já faço esse controle e entrego o valor completo»). Uma cobrança por escola obrigaria a
-refazê-la a cada mês e a apagar a anterior, e o que se quer é o contrário: o registo mensal do que
-foi entregue para pagar.
-
-**Uma chave global, e não uma por escola.** `financeiro/cobrancas` →
-`{ escola: { 'AAAA-MM': { texto, em, por } } }`, ao lado de `financeiro/pix` e `financeiro/descontos`.
-As duas páginas que mostram cobranças leem-na **uma vez** — +1 leitura por página, e não +1 por
-escola. Uma chave por escola custaria uma leitura por escola no financeiro e outra na página da
-escola, que é a que a pessoa abre com pressa para pagar.
-
-**O que NÃO se normaliza, e é o ponto.** O Pix copia-e-cola é um documento: as quebras de linha e os
-agrupamentos fazem parte dele, e reformatá-lo estraga exactamente o que se vai colar na aplicação do
-banco. Só se troca o `\r\n` do Windows por `\n` — a página desenha em `<textarea>`, que conta uma
-linha por `\n` — e se apara o que vem antes e depois. A prova mede-o à letra, e o controlo negativo
-está feito: trocar essa linha por um `\s+` (o reflexo de quem «limpa espaços») reprova **quatro**
-asserções, e o documento passa a ter tudo numa linha.
-
-**As decisões que a página teve de tomar, e cada uma custa uma pessoa a pagar duas vezes:**
-
-- **na caixa «Pagar» da escola só entram as cobranças dos meses EM ABERTO.** Uma cobrança de um mês
-  já pago ao lado da que está a valer faria pagar duas vezes. A página do mês a mês mostra **todas**,
-  porque ali o assunto é o extrato: o documento de um mês pago é o registo de como ele foi pago.
-- **o documento não depende da chave da plataforma estar configurada.** O Pix do banco traz a chave
-  dentro dele. Esconder o documento porque `financeiro/pix` está em branco seria esconder o pagamento
-  que ela acabou de entregar — e é um caso real, porque a chave configura-se noutro ecrã.
-- **o mês em aberto que ainda não tem cobrança continua a ter o caminho para a caixa da chave.** O
-  «Pagar» não desapareceu do sistema; deixou de ser uma **coluna** e passou a ser a resposta de quem
-  ainda não tem documento. Sem isto, um mês em atraso ficava sem nada onde carregar.
-- **o mês pago não tem botão nenhum.** A regra de 17/11 («o botão de pagar fica visível, mas
-  desabilitado») deixou de valer com esta mudança: um botão inerte ao lado de um documento lê-se como
-  «há mais alguma coisa a fazer aqui», e é falso.
-
-**A gravação não gasta escrita sem mudança.** O botão nasce desligado e leva a assinatura do texto que
-a linha abriu; gravar o mesmo texto responde `mudou: false` e **não escreve no KV** — a rota compara
-antes, e a prova conta as escritas. E **não recarrega a página**: as outras acções do painel recarregam
-porque mudam o extrato; esta muda uma célula, e um recarregamento por mês colado perderia o que estava
-escrito nos outros meses.
-
-**A prova.** `provar-a-cobranca-pix.js`, **54 asserções**, em seis secções: o núcleo (forma,
-normalização, o que é recusado, o que é apagado), a rota (gravar, ler de volta, apagar, e as três
-recusas — escola sem contrato, mês mal formado, pedido sem a senha da direção), o financeiro, a página
-da escola, o mês a mês, e os controlos negativos. **Quatro controlos negativos a correr**: sem a
-coluna no extrato (6 reprovações), sem o conteúdo no nicho «Pagar» (3), sem a coluna do mês a mês (2)
-e com o texto normalizado a mais (4).
-
-**Duas asserções de `provar-financeiro-da-escola` foram reescritas, e não apagadas** — são as duas que
-mediam o que ela mandou mudar: «as cinco colunas do extrato» passou a exigir «Cobrança (Pix)» na
-última, e «cada linha tem um Pagar» passou a exigir que o mês pago **não** tenha botão. Deixá-las a
-medir o nome antigo reprovaria sobre um acerto, que é o defeito que esta casa já pagou noutras provas.
-
-**Onde entrou.** `motor/nucleo/cobrancas.js` (novo), `motor/servidor/raiz.js` (`chaveDasCobrancas`,
-`lerCobrancas`, `gravarCobrancas`, a rota `POST /api/financeiro/cobranca`, e as cobranças no
-`extratoDasEscolas`), `motor/servidor/painel-html.js` (a coluna «Cobrança (Pix)», a célula e o
-cliente), `motor/servidor/bastidores.js` (`dadosDaEscolaParaAProducao`, `painelDoPixDaEscola`, a
-coluna do mês a mês), `experimentos/provar-a-cobranca-pix.js` (novo),
-`experimentos/provar-financeiro-da-escola.js`, `ESTADO-ATUAL.md`, `HANDOFF.md`.
-
-### 25/11/2026 — a cobrança pode ser um LINK, e o cliente carrega nele para pagar
-
-**O que ela mandou, e é o formato real do banco:** «Para me transferir R$ 0,01 pela conta do Nubank ou
-de outros bancos pelo Pix, entre em https://nubank.com.br/cobrar/sjlvj/6b06b7b4-… O banco gera desse
-jeito, percebe que tem um link, então eu preciso que esse link fique habilitado, porque daí o usuário,
-o cliente, ele vai clicar no link e vai fazer o pagamento, quer seja pelo aplicativo que ele usa no
-celular […] ou quer seja pelo site do banco que ele usa também para fazer o pagamento.»
-
-**São DOIS formatos, e a diferença é de quem faz o trabalho.** O **documento** copia-e-cola é para o
-cliente colar no aplicativo do banco dele; o **link** já resolve o pagamento — carrega e o banco abre
-com os dados preenchidos. O sistema não escolhe: guarda o que ela colou e, se o que ela colou tiver um
-link, mostra-o clicável. As duas coisas convivem na mesma célula, com o botão por cima (resolve num
-toque) e a caixa do texto por baixo (para quem prefere colar).
-
-**Os três sítios, e são os que ela nomeou:** o financeiro («vai aparecer lá no meu financeiro como
-link também **quando eu colar**»), o nicho «Pagar» da escola («lá no financeiro da escola é que vai
-aparecer como link») e o «mês a mês» («é só quando eu entro mesmo no ver o mês a mês que precisa de
-ajuste para ser como link»). No mês a mês e no «Pagar» o botão fica **acima** do documento.
-
-**O PADRÃO É UM SÓ, e é a parte que se podia perder.** O reconhecedor vive em `cobrancas.js`
-(`PADRAO_DA_URL` + `urlDaCobranca`), e o `painel-html.js` **emite-o para o cliente** no próprio script
-(`new RegExp(<o padrão do módulo>)`) — não escreve uma segunda regex. Duas seriam duas respostas a
-«isto é um link?», e a que sobrasse seria a que ninguém leu. A prova mede-o: o HTML emitido tem de
-conter exactamente `new RegExp(JSON.stringify(PADRAO_DA_URL))`.
-
-**A VALIDAÇÃO NÃO É A REGEX, É O `URL`** — o mesmo parser no Node e no navegador. A regex só recorta o
-candidato dentro do texto (a mensagem do banco tem o endereço no meio de uma frase); quem diz «isto é
-um endereço válido» é o `URL`, e **só `http`/`https` passam**. Controlo negativo a correr: tirando as
-duas guardas, `javascript:alert(1)` e `data:text/html,…` passam a ser «links» e a prova reprova.
-
-**O LINK É VIVO — «como link também QUANDO EU COLAR».** A página do financeiro não recarrega ao gravar
-(é a decisão do commit anterior, para não perder o que estava escrito nos outros meses), e por isso o
-link não pode nascer do servidor sozinho: o cliente recalcula-o a cada `input`, com o mesmo padrão e o
-mesmo `URL`. A prova corre a página em jsdom e mede os quatro estados: vazio → escondido; documento
-copia-e-cola → escondido; link → visível com o `href` certo; apagar → escondido outra vez. Sem script,
-o `hidden` do servidor é a reserva: aparece quando há link guardado, e não aparece quando não há.
-
-**`rel="noopener noreferrer"`, e as duas partes têm motivo.** `noopener` impede a página do banco de
-mexer nesta por `window.opener`; `noreferrer` evita mandar-lhe o endereço desta página — que é de
-administração da plataforma e não tem nada que viajar para fora.
-
-**A prova.** `provar-a-cobranca-pix.js` ganhou a secção **G**, e passou de 54 para **79 asserções**:
-o reconhecedor (dentro da mensagem, sozinho, e as quatro recusas — Pix copia-e-cola, `javascript:`,
-`data:`, esquema sem endereço), a emissão do padrão para o cliente, os três sítios, e o link vivo em
-jsdom. **Cinco controlos negativos a correr** (os quatro da secção anterior mais as duas guardas do
-esquema). Uma asserção minha estava errada e foi corrigida: comparava o link com o `id` solto da
-cobrança, que aparece primeiro no `for=` do rótulo — passou a comparar com a `<textarea>`.
-
-**Onde entrou.** `motor/nucleo/cobrancas.js` (`PADRAO_DA_URL`, `urlDaCobranca`, e o `url` derivado em
-`cobrancaDe`/`emAberto`), `motor/servidor/painel-html.js` (a célula do financeiro, o link e o cliente),
-`motor/servidor/bastidores.js` (`painelDoPixDaEscola` e a coluna do mês a mês),
-`experimentos/provar-a-cobranca-pix.js`, `ESTADO-ATUAL.md`, `HANDOFF.md`.
-
-### 25/11/2026 — o «Copiar» era um só, e o link sai do financeiro
-
-**O que ela descreveu, e é um diagnóstico exacto:** «Quando eu clico no botão copiar, que ele é copiar
-o pix desse mês, ele não copia nada, não funciona. Se eu selecionar o texto todo e aí clicar em copiar
-também não funciona. […] O botão de copiar que copia a chave pix funciona e inclusive ele tem uma
-mensagem depois que clica em copiar que é copiado e isso é bom.»
-
-**A causa não era a cópia — era o OUVINTE, e a assimetria que ela viu era o sintoma.** A rotina do
-`[data-copiar]` vivia **dentro do script da Produção**, e só dele. As páginas do mês a mês e do
-financeiro emitiam o botão — a marcação estava lá, o campo estava lá — e **nenhuma delas tinha quem
-escutasse o clique**. Seleccionar o texto e carregar em «Copiar» também não fazia nada, porque o
-clique continuava a não ter destino. Medido: zero registos de `[data-copiar]` nas duas páginas.
-
-**A correcção é a da casa: uma implementação, num sítio.** `motor/nucleo/copiar.js` emite o script, e
-as três páginas servem-no — incluindo a Produção, cuja cópia inline **saiu**. Duas implementações
-divergem na primeira correcção, e a que sobrar é sempre a que ninguém leu.
-
-**Três coisas que a rotina ganhou ao ser escrita de novo, e cada uma por um defeito medido:**
-
-1. **o rótulo de origem é guardado UMA vez** (`data-rotulo`). A versão antiga lia o `textContent` a
-   cada clique: dois cliques rápidos e o «antes» passava a ser «Copiado» — o botão ficava a dizer isso
-   para sempre. É o controlo que prova a correcção, e ele morde;
-2. **`setSelectionRange`** depois do `select()`. Num `<textarea>` de telemóvel o Safari selecciona a
-   primeira linha e copia metade da cobrança. **Declaro que esta não a consegui medir**: no jsdom o
-   `select()` já põe a selecção inteira, e o controlo negativo provou-o — a asserção é estrutural, e
-   o motivo fica dito;
-3. **a guarda contra dois registos** (`window.__copiarLigado`). Duas cópias do ouvinte na mesma
-   página dizem «Copiado» e voltam atrás duas vezes.
-
-**O LINK SAIU DO FINANCEIRO, por decisão dela:** «Não precisa do botão pagar no banco na tabela que
-você mostra no danca.padd.com.br financeiro na coluna cobrança. Não precisa disso.» A razão é de
-quem usa o ecrã: a coluna do financeiro é onde **ela cola** o documento e o guarda; o acto de pagar é
-da escola. O link continua onde ela o aprovou — o «Pagar» da escola e o mês a mês. **Consequência
-declarada:** o link deixa de ser «vivo enquanto se cola» (era o único sítio onde isso acontecia), e
-passa a aparecer depois de gravar. O reconhecedor do lado do cliente saiu do financeiro com ele.
-
-**As provas.** `provar-o-copiar.js`, **novo, 31 asserções**: o módulo (texto válido e as três
-guardas), as três páginas servindo a rotina **uma vez** e sendo a do módulo, a cópia de facto em
-jsdom nas três (com as quebras de linha), o «Copiado» que volta ao rótulo, a reserva sem
-`navigator.clipboard`, e os controlos negativos. **Quatro controlos negativos a correr**: financeiro
-sem a rotina (o defeito original), sem a guarda do rótulo, sem o `setSelectionRange`, e a Produção a
-manter a cópia antiga.
-
-`provar-a-cobranca-pix.js` ficou com **72** (era 87 com a secção H, que passou a prova própria — o
-botão é um assunto, e um defeito dele não deve aparecer como um defeito da cobrança). Três asserções
-suas sobre o link no financeiro foram **reescritas, não apagadas**: passam a afirmar a ausência.
-
-**Onde entrou.** `motor/nucleo/copiar.js` (novo), `motor/servidor/painel-html.js` (a rotina, e o link
-fora da coluna), `motor/servidor/bastidores.js` (a rotina nas duas páginas, e a cópia inline da
-Produção removida), `experimentos/provar-o-copiar.js` (novo),
-`experimentos/provar-a-cobranca-pix.js`, `ESTADO-ATUAL.md`, `HANDOFF.md`.
-
-### 25/11/2026 — a conciliação volta, e a cobrança que cobra menos deixa de se oferecer
-
-**O que ela viu.** «Só que apagou o botão que confirma se a escola pagou ou não a mensalidade, que é o
-resultado da conciliação. Precisa voltar com esse botão.» E o desenho que pediu: «acrescenta uma
-coluna que é da situação, do status do pagamento da escola, que tem esse botão».
-
-**O botão não tinha desaparecido do código — e é isso que torna o diagnóstico útil.** Ele estava numa
-coluna própria, «Pago / ação», à direita de «Situação». A coluna da cobrança, criada no mesmo dia, é
-larga (um `<textarea>` com o documento do banco), e a tabela passou a rolar na horizontal: a ação saiu
-do campo de visão. Uma coluna que só se vê rolando de lado não existe para quem olha. As duas diziam
-a mesma coisa — «como está este mês» — e passaram a ser **uma**: o selo, a data quando há, a mora
-quando há, e o botão quando não há. **Seis colunas em vez de sete**, e a ação onde o olho já está.
-
-**O mês vencido passou a dizer «atrasado».** «Aquele que estiver inadimplente, que ainda não pagou e já
-venceu […] ele vai indicar que está atrasado.» «Em aberto» diz que falta pagar e não diz que o prazo
-passou — e num extrato de dinheiro essa é a informação que se procura. **A página da ESCOLA mantém
-«em aberto» de propósito**: lá quem lê é quem deve, e a palavra de cobrança é do painel.
-
-**O mês pago não se reescreve**, e é uma regra do motor e não da tela: a cobrança fica à vista em
-leitura (é o registo do que foi entregue), sem «Gravar» nem «Copiar» no financeiro, sem «Pagar no
-banco» nem «Copiar» no mês a mês — e a rota recusa uma cobrança nova sobre um mês pago com **409**. Um
-segundo clique em «Marcar pago» **não move a data do pagamento** (`manterSeJaPago` → `jaPago: true`,
-sem escrita): a data é o que se confere contra o extrato do banco, e um duplo clique não pode
-reescrevê-la.
-
-**A pergunta que ela deixou aberta — «impedir que a pessoa pague o valor menor» — ficou em duas
-provas.** O documento Pix é EMV: pares `ID + comprimento + valor`, e o campo **54** é o valor. Quando
-ele existe, o valor é fixo e quem paga não o muda no aplicativo; quando não existe, o código é de
-valor aberto. `cobrancas.valorDaCobranca` lê-o, e `cobrancas.situacaoDaCobranca` decide com **duas
-provas, porque uma só não chega**:
-
-1. **o valor legível** — se a cobrança pede a mensalidade ou menos, num mês vencido, é a antiga, e a
-   mora não está lá. Esta prova vence a outra: uma cobrança colada depois do vencimento mas com o
-   valor cheio é um engano, e não uma correção;
-2. **a data da emissão** — emitida depois de o mês vencer, a cobrança nasceu com o atraso à frente. É
-   esta que salva o caso de todo o código sem valor legível (um link, ou um documento sem o campo 54),
-   que de outro modo ficaria bloqueado **sem saída** — não haveria como gerar um que fosse legível.
-
-A comparação é com a **mensalidade**, e não com o devido de hoje: os juros são pro rata die, e uma
-cobrança emitida hoje com a mora de hoje fica «um dia curta» amanhã. Comparada com a base, continua a
-servir; o que falta vai dito, e acerta-se na conciliação.
-
-**A mesma regra vale nas três páginas**, e essa é a parte que evita o caminho mais fácil: o mês a mês e
-o financeiro mostram o motivo e o valor a gerar, e **a caixa «Pagar» da escola deixa de mostrar a
-cobrança antiga** — bastaria abrir o sítio da escola, onde ela aparece por baixo da chave, para pagar
-menos. No financeiro, o aviso aparece **onde ela cola**: «o código colado pede R$ A; o devido hoje é
-R$ B».
-
-**O que isto NÃO resolve, e fica declarado.** Um código que já saiu do sistema continua a ser pagável
-no aplicativo do banco. Isso é uma propriedade do Pix, não do software, e nenhuma página o muda. O que
-o sistema garante é **não o oferecer**. Para garantir o valor — e não só não o oferecer — o caminho é
-outro, e está proposto, não feito: uma **cobrança com vencimento pela API Pix do banco**, em que o
-banco calcula multa e juros e o QR nasce único por `txid`, com prazo. Exige certificado mTLS e
-credenciais, e é uma dependência externa nova.
-
-**As provas.** `provar-a-cobranca-pix.js` **79 → 99** (secção H, nova: o leitor do valor, os seis
-estados, as três páginas, e um controlo negativo por regra — incluindo o campo 54 truncado, que tem de
-devolver «não sei» e não um palpite). `provar-conciliacao-do-painel.js` **35 → 47** (secções 6 e 7: a
-coluna única com o botão dentro, e o mês pago a não se pagar outra vez — nem por clique, nem por
-`POST` à mão). Duas fixtures destas provas passaram a levar o `em` da cobrança, que é um facto que
-`gravarNoMapa` sempre gravou e que agora **decide** se a cobrança serve. Em `provar-financeiro-da-
-escola`, duas asserções foram **reescritas, não apagadas**: a do selo («em aberto» → «atrasado») e a do
-rótulo do botão, que passou a tolerar o `title` novo. **A contagem de falhas dessa prova continua 7**,
-as mesmas da linha de base — comparado com a árvore em `git worktree` no `HEAD`.
-
-**Onde entrou.** `motor/nucleo/cobrancas.js` (`valorDaCobranca`, `situacaoDaCobranca`, e `emAberto` a
-usar a mesma regra), `motor/nucleo/mensalidades.js` (`manterSeJaPago`), `motor/servidor/painel-html.js`
-(a coluna única e a célula em leitura), `motor/servidor/bastidores.js` (o mês a mês e a caixa da
-escola), `motor/servidor/raiz.js` (os dois guardas: 409 na cobrança de um mês pago, e `jaPago`),
-`experimentos/provar-a-cobranca-pix.js`, `experimentos/provar-conciliacao-do-painel.js`,
-`experimentos/provar-o-copiar.js`, `experimentos/provar-financeiro-da-escola.js`, `ESTADO-ATUAL.md`,
-`HANDOFF.md`.
 
 ## O que está pendente
 

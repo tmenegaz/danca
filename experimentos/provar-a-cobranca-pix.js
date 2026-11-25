@@ -608,6 +608,39 @@ function situacaoComMesAberto(extra) {
       (financeiroAtrasado.match(/O código colado[^<]*/) || [])[0]);
   }
 
+  /* ── E. A CLÁUSULA DE QUITAÇÃO (25/11/2026) ───────────────────────────────────────────────
+   *
+   * A regra do valor é inútil se a escola só a descobrir quando o mês não fecha. «Ela vai ter que
+   * pagar o valor maior» é uma frase que tem de estar escrita onde ela paga — e a MESMA na outra
+   * ponta, onde se concilia, senão os dois lados discutem números diferentes.
+   *
+   * A prova mede as três coisas que a frase tem de dizer para servir: que o mês só fecha com a
+   * mensalidade E a mora; que abaixo disso fica em aberto; e que o que falta continua a ser
+   * cobrado. E mede que ela VEM DO NÚCLEO — duas redacções divergiriam no primeiro dia de atraso,
+   * que é exactamente quando a frase é lida.
+   */
+  {
+    const s = situacaoComMesAberto();
+    const daEscola = bastidores.cartaoDaEscola({
+      escola: 'breu', cadastro: { escolaNome: 'Breu' }, situacao: s, pix: { chave: '0215' },
+      cobrancas: {},
+    });
+    const clausula = require(path.join(RAIZ, 'motor/nucleo/mensalidades.js')).CLAUSULA_DE_QUITACAO;
+    provar('o «Pagar» da escola diz quando o mês deixa de estar em aberto',
+      daEscola.includes(clausula.replace(/&/g, '&amp;')), clausula);
+    provar('…e a frase é a MESMA do painel — vem do núcleo, e não de duas redacções',
+      /cobre a\s+mensalidade e a mora/.test(clausula)
+      && /deixa o mês em aberto/.test(clausula)
+      && /continua a\s+ser cobrado/.test(clausula), clausula);
+    const doPainel = painel.paginaFinanceira({
+      pix: {}, descontos: [], escolas: [],
+      extrato: [Object.assign({}, s, { escola: 'breu', nome: 'Breu', frase: 'x', cobrancas: {} })],
+      catalogo: comercial.catalogoDaPagina(),
+    });
+    provar('…e o financeiro de quem concilia diz a mesma',
+      doPainel.includes(clausula.replace(/&/g, '&amp;')), null);
+  }
+
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + provas + ' asserções: ela cola o Pix do banco na coluna do mês, a cobrança '
       + 'reaparece por baixo da chave no «Pagar» da escola e na coluna do mês a mês, com as quebras '

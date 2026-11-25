@@ -121,6 +121,14 @@ function nomeDoMes(mes) {
   return NOMES_DOS_MESES[p.mes - 1] + ' de ' + p.ano;
 }
 
+/** `6990` → `69,90`. Uma formatação de dinheiro por módulo — a do painel é para o HTML, esta é
+ *  para as FRASES que o núcleo escreve (a recusa do valor recebido). Duas cópias de `toFixed(2)`
+ *  não divergem em número, mas divergem em arredondamento no dia em que uma for tocada. */
+function reaisDe(emCentavos) {
+  const c = Math.max(0, Math.round(Number(emCentavos) || 0));
+  return (c / 100).toFixed(2).replace('.', ',');
+}
+
 /** O livro inteiro, como lista. Ausente ou ilegível → lista vazia («ainda não há pagamentos»). */
 async function lerLivro(kv) {
   if (!kv || typeof kv.get !== 'function') return [];
@@ -161,36 +169,93 @@ async function lerLivro(kv) {
  * grava o que lhe pedem, e é a rota do botão que diz «este gesto não reescreve o passado». Uma
  * primitiva que se recusasse a gravar por conta própria esconderia a regra de quem a lê.
  */
-async function registarPagamento(kv, { escola, mes, valorCentavos, plano, planoNome, quando, por,
-  manterSeJaPago } = {}) {
+async function registarPagamento(kv, { escola, mes, valorCentavos, recebidoCentavos,
+  devidoCentavos, plano, planoNome, quando, por, manterSeJaPago } = {}) {
   if (!kv || typeof kv.put !== 'function') return { ok: false, erro: 'sem KV nesta ligação' };
   const slug = String(escola || '').trim();
   if (!slug) return { ok: false, erro: 'informe a escola' };
   if (!partesDaCompetencia(mes)) return { ok: false, erro: 'informe o mês, no formato AAAA-MM' };
   const em = String(quando || new Date().toISOString());
+  /* OS TRÊS NÚMEROS DA LINHA, e cada um responde a uma pergunta diferente (25/11/2026):
+   *
+   *   · `valorCentavos` é a FATURA do mês — o que foi cobrado. É o que a mudança de plano compara,
+   *     e é por isso que ele não leva a mora: uma conta paga com atraso não é um plano novo;
+   *   · `recebidoCentavos` é o ACUMULADO que entrou naquele mês. Somam-se os pagamentos, porque
+   *     uma escola pode pagar em duas vezes;
+   *   · `devidoCentavos` é o que se cobrava no momento do clique, já com a mora — é ele que decide
+   *     se o mês ficou QUITADO ou só PARCIAL.
+   *
+   * A FATURA CONTINUA A NÃO SE RECALCULAR: o valor é gravado no clique e não se reescreve depois.
+   */
+  const fatura = Math.max(0, Math.round(Number(valorCentavos) || 0));
+  const devido = Math.max(0, Math.round(Number(devidoCentavos) || 0)) || fatura;
+  /* O QUE ENTROU NESTE GESTO. Ausente, é o pagamento inteiro — o comportamento de sempre, e o que
+   * o botão do painel fazia antes de existir um campo de valor. */
+  const entrou = recebidoCentavos === undefined || recebidoCentavos === null
+    ? devido
+    : Math.round(Number(recebidoCentavos) || 0);
+  if (!Number.isFinite(entrou) || entrou < 0) {
+    return { ok: false, erro: 'o valor recebido tem de ser um número de cêntimos, e não negativo' };
+  }
+  /* O TETO ANTI-ERRO-DE-DIGITAÇÃO. Um valor mais do que o DOBRO do devido não é um acerto: é um
+   * `69,90` que virou `6990`. Recusar é mais barato do que gravar R$ 6.990,00 no livro e descobrir
+   * na conciliação seguinte. É uma guarda DECLARADA, e não uma regra de negócio — quem precisar de
+   * registar um valor maior corrige-o à mão no livro. */
+  if (devido > 0 && entrou > devido * 2) {
+    return {
+      ok: false,
+      erro: 'o valor recebido (' + reaisDe(entrou) + ') é mais do que o dobro do devido ('
+        + reaisDe(devido) + ') — confira; nada foi gravado',
+    };
+  }
+  const lista = await lerLivro(kv);
+  const anterior = lista.find((l) => l && l.escola === slug && l.mes === String(mes)) || null;
+  if (manterSeJaPago && anterior && (anterior.status || 'pago') === 'pago') {
+    return { ok: true, jaPago: true, pagamento: anterior };
+  }
+  /* ZERO NÃO É UM PAGAMENTO. Gravar `recebidoCentavos: 0` num mês escreveria no livro uma linha que
+   * diz «entrou nada» — e a linha seguinte, ao ler o acumulado, não a distinguiria de um mês que
+   * ninguém tocou. Um mês sem pagamento fica sem linha: é assim que o extrato o mostra.
+   *
+   * A GUARDA VEM DEPOIS DA DE CIMA, e a ordem é o que a torna inofensiva para o mês já pago. Um mês
+   * quitado tem `devidoCentavos: 0`, e o segundo clique de quem concilia traz esse zero: recusá-lo
+   * aqui responderia «um pagamento de R$ 0,00 não regista nada» a quem só carregou duas vezes no
+   * mesmo botão. O que ele precisa de ouvir é «já estava pago», e é o que a guarda anterior diz. */
+  if (entrou === 0) {
+    return { ok: false, erro: 'um pagamento de R$ 0,00 não regista nada — o mês fica em aberto' };
+  }
+  /* O ACUMULADO. Um registo anterior sem `recebidoCentavos` é um pagamento inteiro do tempo em que
+   * só havia um — o `valorCentavos` dele é o que entrou. */
+  const jaEntrou = anterior
+    ? Math.max(0, Number(anterior.recebidoCentavos != null
+      ? anterior.recebidoCentavos : anterior.valorCentavos) || 0)
+    : 0;
+  const total = jaEntrou + entrou;
+  const quitado = total >= devido;
+  const historico = Array.isArray(anterior && anterior.pagamentos) ? anterior.pagamentos.slice() : [];
+  historico.push({ em, valorCentavos: entrou, por: por || null });
   const registo = {
     escola: slug,
     mes: String(mes),
-    status: 'pago',
-    valorCentavos: Math.max(0, Math.round(Number(valorCentavos) || 0)),
+    status: quitado ? 'pago' : 'parcial',
+    valorCentavos: fatura || (anterior && Number(anterior.valorCentavos)) || 0,
+    recebidoCentavos: total,
+    devidoCentavos: devido,
+    faltaCentavos: Math.max(0, devido - total),
     plano: plano || null,
     planoNome: planoNome || null,
     em,
     por: por || null,
+    pagamentos: historico,
   };
-  const lista = await lerLivro(kv);
-  if (manterSeJaPago) {
-    const jaPago = lista.find((l) => l && l.escola === slug && l.mes === registo.mes);
-    if (jaPago) return { ok: true, jaPago: true, pagamento: jaPago };
-  }
-  const semEste = lista.filter((l) => !(l.escola === slug && l.mes === registo.mes));
+  const semEste = lista.filter((l) => !(l && l.escola === slug && l.mes === registo.mes));
   semEste.push(registo);
   semEste.sort((a, b) => (a.escola === b.escola
     ? String(a.mes).localeCompare(String(b.mes))
     : String(a.escola).localeCompare(String(b.escola))));
   try {
     await kv.put(CHAVE, JSON.stringify({ lista: semEste, atualizadoEm: em }));
-    return { ok: true, pagamento: registo };
+    return { ok: true, pagamento: registo, parcial: !quitado, faltaCentavos: registo.faltaCentavos };
   } catch (erro) {
     return { ok: false, erro: (erro && erro.message) || String(erro) };
   }
@@ -380,7 +445,25 @@ function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas 
   const meses = daAdesao.concat(doLivro.filter((m) => daAdesao.indexOf(m) === -1)).sort();
 
   const linhas = meses.map((mes) => {
-    const pago = pagamentos[mes] || null;
+    /* O REGISTO DO MÊS, e ele pode estar em dois estados (25/11/2026): `pago` (quitado) ou
+     * `parcial` (entrou parte, e ainda falta). Um registo antigo não tem `status` — é um pagamento
+     * inteiro do tempo em que só havia um, e lê-se como `pago`. */
+    const registo = pagamentos[mes] || null;
+    const statusDoRegisto = registo ? String(registo.status || 'pago') : null;
+    const quitado = statusDoRegisto === 'pago';
+    /* O QUE ENTROU. `recebidoCentavos` é o acumulado; um registo antigo só tem `valorCentavos`, e
+     * nesse caso ele É o que entrou. */
+    const recebido = registo
+      ? Math.max(0, Number(registo.recebidoCentavos != null
+        ? registo.recebidoCentavos : registo.valorCentavos) || 0)
+      : 0;
+    /* A FATURA DO MÊS — o que foi cobrado, sem a mora. É este número que a mudança de plano compara,
+     * e é por isso que ele não inclui encargos: uma conta paga com atraso não é um plano novo. */
+    const fatura = registo && Number(registo.valorCentavos) > 0
+      ? Number(registo.valorCentavos) : (Number(c.valorCentavos) || 0);
+    /* O SALDO — o que ainda se deve da fatura. Num mês quitado é zero; num parcial é o que sobrou
+     * depois do que já entrou. */
+    const saldo = quitado ? 0 : Math.max(0, fatura - recebido);
     const vencimento = vencimentoDe(mes, dia);
     const venceu = vencimento
       ? (ensaioValido ? vencimento <= hojeDia : (vencimento + 'T23:59:59') < hojeIso)
@@ -389,25 +472,37 @@ function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas 
       mes,
       nome: nomeDoMes(mes),
       vencimento,
-      venceu: Boolean(venceu) && !pago,
-      status: pago ? 'pago' : 'aberto',
-      valorCentavos: pago ? pago.valorCentavos : (Number(c.valorCentavos) || 0),
-      valorPagoCentavos: pago ? pago.valorCentavos : null,
-      planoNome: pago ? (pago.planoNome || null) : (c.planoNome || null),
-      em: pago ? pago.em : null,
-      emTexto: pago ? fuso.quandoLocal(pago.em) : null,
-      por: pago ? pago.por : null,
+      venceu: Boolean(venceu) && !quitado,
+      status: quitado ? 'pago' : (registo ? 'parcial' : 'aberto'),
+      valorCentavos: fatura,
+      /* `valorPagoCentavos` é o que ENTROU — no mês quitado é a fatura (mais a mora, quando a
+       * houve), no parcial é a parte. `valorCentavos` continua a ser a fatura, para as contas que
+       * comparam planos. */
+      valorPagoCentavos: registo ? recebido : null,
+      recebidoCentavos: registo ? recebido : 0,
+      faltaCentavos: saldo,
+      planoNome: registo ? (registo.planoNome || null) : (c.planoNome || null),
+      em: registo ? registo.em : null,
+      emTexto: registo ? fuso.quandoLocal(registo.em) : null,
+      por: registo ? registo.por : null,
       /* OS ENCARGOS DE MORA, por mês (25/11/2026). Ficam NA LINHA e não numa soma à parte: a escola
        * que pergunta «quanto devo?» pergunta por um mês, e a resposta que serve é a daquele mês. Um
-       * mês pago não tem encargos — o atraso já foi resolvido, e cobrá-lo outra vez seria cobrar
-       * duas vezes a mesma mora. */
-      encargos: pago ? null : encargos({
-        valorCentavos: (Number(c.valorCentavos) || 0), vencimento, hoje: hojeIso,
+       * mês quitado não tem encargos — o atraso já foi resolvido, e cobrá-lo outra vez seria cobrar
+       * duas vezes a mesma mora.
+       *
+       * A BASE DA MORA É O SALDO, e não a fatura (25/11/2026). Num mês PARCIAL, a dívida já não é a
+       * fatura inteira; cobrar multa e juros sobre o que a escola já pagou seria cobrar duas vezes.
+       * Num mês sem pagamento o saldo é a fatura, e o número é o de sempre. */
+      encargos: quitado ? null : encargos({
+        valorCentavos: saldo, vencimento, hoje: hojeIso,
       }),
     };
   });
 
-  const emAberto = linhas.filter((l) => l.status === 'aberto');
+  /* UM MÊS PARCIAL ESTÁ EM ABERTO (25/11/2026) — entrou parte e falta o resto, e o extrato, o
+   * alarme e a dívida têm de o contar. Tratá-lo como quitado esconderia dinheiro em falta; tratá-lo
+   * como inexistente faria a lista dizer que o mês nunca foi tocado. */
+  const emAberto = linhas.filter((l) => l.status !== 'pago');
   const vencidos = emAberto.filter((l) => l.venceu);
   /* O «PRÓXIMO VENCIMENTO» É O MAIS ANTIGO EM ABERTO, e não o mais recente.
    *
@@ -514,6 +609,42 @@ function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas 
       aulasUsadas: aulasUsadas == null ? null : aulasUsadas,
     }),
     pacotes: (comercial.franquiaDoContrato(c) || { pacotes: [] }).pacotes || [],
+  };
+}
+
+/**
+ * QUANTO SE DEVE POR UM MÊS, HOJE (25/11/2026) — a única resposta a essa pergunta.
+ *
+ * A rota que grava o pagamento precisa deste número ANTES de gravar, porque é ele que decide se o
+ * mês ficou quitado ou apenas parcial. E ele não pode ser calculado outra vez na rota: uma segunda
+ * conta da mora é uma segunda mora, e as duas divergem no primeiro dia que alguém tocar numa das
+ * taxas.
+ *
+ * Por isso esta função não faz contas próprias — chama `situacaoDaEscola` e LÊ a linha do mês, que
+ * é exactamente o número que a página mostra. Se o extrato diz R$ 92,42, é 92,42 que a rota espera.
+ *
+ * Devolve `null` quando o mês não está na linha do tempo da escola: aí não há nada a cobrar, e quem
+ * chamou tem de decidir o que dizer — não se inventa um valor.
+ */
+function devidoDoMes({ escola, contrato, livro, mes, agora } = {}) {
+  const competenciaPedida = String(mes || '').trim();
+  if (!partesDaCompetencia(competenciaPedida)) return null;
+  const situacao = situacaoDaEscola({ escola, contrato, livro, agora });
+  const linha = (situacao.meses || []).find((l) => l.mes === competenciaPedida);
+  if (!linha) return null;
+  return {
+    mes: competenciaPedida,
+    /* A FATURA — o que foi cobrado, sem mora. É o que a mudança de plano compara. */
+    faturaCentavos: linha.valorCentavos,
+    /* O QUE JÁ ENTROU, e o que ainda falta da fatura. */
+    recebidoCentavos: linha.recebidoCentavos || 0,
+    faltaCentavos: linha.faltaCentavos || 0,
+    /* O QUE SE COBRA HOJE, com multa e juros sobre o saldo. É este o valor que o botão propõe. */
+    devidoCentavos: (linha.encargos && linha.encargos.totalCentavos) || linha.faltaCentavos || 0,
+    encargosCentavos: (linha.encargos && linha.encargos.encargosCentavos) || 0,
+    status: linha.status,
+    quitado: linha.status === 'pago',
+    venceu: Boolean(linha.venceu),
   };
 }
 
@@ -693,6 +824,26 @@ function fraseDaSituacao(situacao) {
  * outra (desabilitar aos 1 mês, expurgar aos 3) e vive na §7.3 do PLANO-CONTADOR-DE-AULAS. Multa e
  * juros são o PREÇO do atraso, e não a consequência dele.
  */
+/**
+ * A CLÁUSULA DE QUITAÇÃO (25/11/2026) — a frase que diz QUANDO um mês deixa de estar em aberto.
+ *
+ * «Eu ainda não sei uma solução para isso, para impedir que a pessoa pague o valor menor. Ela vai
+ * ter que pagar o valor maior.» A regra no código (o valor recebido compara-se com o devido) só
+ * resolve metade do problema: a outra metade é a escola SABER a regra antes de pagar. Uma regra
+ * que só existe no servidor é uma regra que se descobre quando o mês não fecha.
+ *
+ * Ela mora AQUI, e não em cada página, por duas razões: é o núcleo que decide o que é um mês
+ * quitado (ver `registarPagamento` e `situacaoDaEscola`), e duas redacções da mesma cláusula
+ * divergem — a da escola diria «mensalidade», a do painel diria «mensalidade + encargos», e a
+ * diferença apareceria exactamente no mês em atraso, que é quando ela é lida.
+ *
+ * O QUE ELA NÃO DIZ: multa, juros, percentagens. Esses números mudam por decisão comercial e são
+ * mostrados ao lado do valor que os aplica; a cláusula é a REGRA, e a regra não tem taxa.
+ */
+const CLAUSULA_DE_QUITACAO = 'O mês só se considera quitado quando o valor conciliado cobre a '
+  + 'mensalidade e a mora. Um valor abaixo disso deixa o mês em aberto, e o que falta continua a '
+  + 'ser cobrado.';
+
 const MULTA_DE_MORA = 0.02;
 const JUROS_AO_MES = 0.01;
 const DIAS_NO_MES_COMERCIAL = 30;
@@ -759,6 +910,7 @@ function encargos({ valorCentavos, vencimento, hoje, multa, jurosAoMes } = {}) {
 
 module.exports = {
   CHAVE,
+  CLAUSULA_DE_QUITACAO,
   MULTA_DE_MORA,
   JUROS_AO_MES,
   encargos,
@@ -773,7 +925,9 @@ module.exports = {
   diaDaAdesao,
   lerLivro,
   registarPagamento,
+  reaisDe,
   situacaoDaEscola,
+  devidoDoMes,
   instanteDoEnsaio,
   mesInicialDoEnsaio,
   mudancaDePlano,

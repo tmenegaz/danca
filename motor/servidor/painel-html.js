@@ -36,6 +36,9 @@ const { navDoPainel } = require('../../tools/templates/nav-html.js');
 const dominio = require('./dominio-da-escola.js');
 /* O RELÓGIO DA CASA (16/11/2026) — uma linha, e todas as datas desta página passam por ela. */
 const fuso = require('../nucleo/fuso.js');
+/* A CLÁUSULA DE QUITAÇÃO vem do núcleo, e não se escreve outra vez nesta página: é o núcleo que
+ * decide o que é um mês quitado, e a frase que o explica é dele. */
+const mensalidades = require('../nucleo/mensalidades.js');
 /* A PAGINAÇÃO É A PEÇA DA CASA (23/10/2026) — a mesma das listas da Produção e das páginas de
  * lista. Não se escreve uma segunda: o rodapé, o `hidden` e o `data-por-pagina` são o acordo, e um
  * segundo acordo é uma segunda coisa para corrigir. */
@@ -1926,9 +1929,20 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
           + (m.planoNome ? '<br><span class="sub">' + esc(m.planoNome) + '</span>' : '')
           + '</td>';
       }
-      const selo = m.venceu
-        ? '<span class="selo falha">atrasado</span>'
-        : '<span class="selo discreto">a vencer</span>';
+      /* O SELO NÃO É O MESMO NOS DOIS CASOS DE ABERTO (25/11/2026). Um mês que nunca foi tocado
+       * está «atrasado» ou «a vencer»; um mês em que entrou PARTE do valor está «parcial», e o selo
+       * diz quanto falta — senão a linha pareceria igual à de um mês sem pagamento nenhum, e a
+       * pessoa repetiria o pagamento inteiro. */
+      const ehParcial = m.status === 'parcial';
+      const selo = ehParcial
+        ? '<span class="selo alerta">parcial</span>'
+        : (m.venceu
+          ? '<span class="selo falha">atrasado</span>'
+          : '<span class="selo discreto">a vencer</span>');
+      const entrou = ehParcial
+        ? '<br><span class="sub">entrou ' + reaisDeCentavos(m.recebidoCentavos || 0)
+          + ' · faltam ' + reaisDeCentavos(m.faltaCentavos || 0) + '</span>'
+        : '';
       /* OS ENCARGOS AO LADO DO ESTADO, e não numa coluna nova: uma coluna a mais numa tabela que já
        * rola é o que faz o valor que interessa sair do ecrã. O mês em atraso diz quanto a mais, e
        * diz a NORMA — a escola que pergunta «de onde vem isto?» tem a resposta na mesma célula. */
@@ -1938,12 +1952,35 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
           + reaisDeCentavos(m.encargos.multaCentavos) + ' + juros '
           + reaisDeCentavos(m.encargos.jurosCentavos) + ')</span>'
         : '';
+      /* O CAMPO DO VALOR RECEBIDO, e é ele que impede o pagamento a menos (25/11/2026).
+       *
+       * «É a pessoa que vai pagar o valor menor. Ela vai ter que pagar o valor maior. […] eu ainda
+       * não sei uma solução para isso.» A solução é o número não ser escolha de quem paga: o campo
+       * vem PREENCHIDO com o que se deve hoje — mensalidade mais mora — e o gesto normal é não lhe
+       * tocar. Quem toca está a dizer quanto entrou de facto, e o servidor compara (a comparação é
+       * dele, nunca desta página): abaixo do devido, o mês fica `parcial` e continua em aberto.
+       *
+       * ELE NÃO É UM `prompt()`: a janelinha do navegador foi substituída por campos de verdade em
+       * 22/10/2026, e um campo dentro da linha é o mesmo ato sem sair da tabela.
+       *
+       * `inputmode="decimal"` porque o número tem vírgula; o `type` é `text` e não `number` porque
+       * o campo numérico do browser recusa a vírgula em parte dos teclados e transforma um valor
+       * válido num valor vazio em silêncio. */
+      const idDoCampo = 'pagar-valor-' + esc(c.escola) + '-' + esc(m.mes);
+      const devido = (m.encargos && m.encargos.totalCentavos)
+        || m.faltaCentavos || m.valorCentavos || 0;
+      const campo = expurgada
+        ? ''
+        : '<br><input id="' + idDoCampo + '" type="text" inputmode="decimal"'
+          + ' data-pagar-valor="' + esc(c.escola) + '" data-mes="' + esc(m.mes) + '"'
+          + ' aria-label="valor recebido neste mês, em reais"'
+          + ' value="' + esc(emReais(devido)) + '">';
       const botao = expurgada
         ? ''
-        : '<br><button class="acao pequena" type="button" data-pagar="' + esc(c.escola) + '"'
+        : '<button class="acao pequena" type="button" data-pagar="' + esc(c.escola) + '"'
           + ' data-mes="' + esc(m.mes) + '"'
-          + ' title="confirmar que o pagamento deste mês entrou">Marcar pago</button>';
-      return '<td>' + selo + mora + botao + '</td>';
+          + ' title="confirmar que o valor do campo entrou neste mês">Marcar pago</button>';
+      return '<td>' + selo + entrou + mora + campo + botao + '</td>';
     };
 
     const linhas = meses.map((m) => '<tr data-mes="' + esc(m.mes) + '">' +
@@ -2058,6 +2095,12 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
         : '') +
       '</div>' +
       corpoDaTabela +
+      /* A CLÁUSULA DE QUITAÇÃO TAMBÉM AQUI (25/11/2026). Ela está na página da escola, que é quem
+       * paga; e está também neste ecrã porque quem concilia é quem decide o que fazer com um valor
+       * abaixo do devido. Uma regra que só um dos dois lados conhece produz a conversa em que
+       * ninguém está a falar do mesmo número. A frase é a MESMA — vem do núcleo, e não se reescreve
+       * aqui. Numa escola expurgada ela sai, como todo o resto que fala de dinheiro a receber. */
+      (expurgada ? '' : '<p class="aviso">' + esc(mensalidades.CLAUSULA_DE_QUITACAO) + '</p>') +
       /* AS ACÇÕES DE COBRANÇA NÃO EXISTEM NUMA ESCOLA EXPURGADA (23/11/2026, à tarde):
        * informar pagamento, ligar o ensaio e mudar o contrato gravam sobre o registo
        * comercial, e uma escola expurgada perdeu-o no expurgo. O botão gravaria um contrato
@@ -2464,16 +2507,59 @@ const SCRIPT_DO_FINANCEIRO = '<script>(function(){' +
    * «NÃO PAGO» NÃO EXISTE, e ela foi directa: «não tem como eu clicar e dizer não pago, isso não
    * existe». Desfazer um pagamento é correcção de contabilidade, e não um botão ao lado do que
    * paga — um par de botões iguais em que um mente é pior do que um caminho só. */
+  /* O CAMPO DO VALOR É LIDO AQUI, E SÓ AQUI (25/11/2026). A linha tem um campo com o que se deve
+   * hoje, e é o que ele diz que viaja — não o devido, que é conta do servidor. O que a página faz
+   * com o número é TRANSMITI-LO: quem compara é a rota, com o devido calculado do outro lado. Uma
+   * comparação aqui seria uma segunda regra, e a que ficava a valer era a que ninguém confere. */
+  /* ── O PARSER DO DINHEIRO, e ele tem uma armadilha que custou uma prova vermelha ────────
+   *
+   * Esta função viaja como TEXTO dentro de uma string de JavaScript, e por isso uma barra
+   * invertida aqui não é o que parece: `'\d'` numa string de aspas simples é `d`, não o dígito.
+   * A primeira versão escrevia `/\d/` e chegava ao browser como `/[^d.,]/g` — que apaga tudo o que
+   * não seja a letra `d`, a vírgula ou o ponto, e transforma «173,81» em «,81». O campo parecia
+   * certo, o botão não fazia nada, e nenhum teste de topo o via porque o texto emitido é válido.
+   * Daí `\\d` no fonte: são as duas barras que o browser precisa de receber.
+   *
+   * A REGRA, e são só três casos: o ÚLTIMO separador é o decimal quando tem uma ou duas casas
+   * depois dele («173,8», «1.734,81»); com três casas é separador de milhares («1.734»); e um
+   * campo que fica vazio de dígitos devolve `null` — «não se entende», que é uma resposta melhor
+   * do que um zero inventado. */
+  'function centavosDe(txt){' +
+  '  var t=String(txt==null?"":txt).replace(/[^\\d.,]/g,"");' +
+  '  if(!/\\d/.test(t))return null;' +
+  '  var corte=Math.max(t.lastIndexOf(","),t.lastIndexOf("."));' +
+  '  if(corte>=0&&t.slice(corte+1).replace(/[.,]/g,"").length>2){corte=-1;}' +
+  '  var inteiro=(corte>=0?t.slice(0,corte):t).replace(/[.,]/g,"");' +
+  '  var fracao=corte>=0?t.slice(corte+1).replace(/[.,]/g,""):"";' +
+  '  while(fracao.length<2){fracao+="0";}' +
+  '  return parseInt(inteiro||"0",10)*100+parseInt(fracao.slice(0,2)||"0",10);' +
+  '}' +
   'var pagar=document.querySelectorAll("[data-pagar]");' +
   'for(var j=0;j<pagar.length;j++)(function(b){' +
   '  b.addEventListener("click",function(){' +
   '    var escola=b.getAttribute("data-pagar"),mes=b.getAttribute("data-mes");' +
   '    if(!escola||!mes)return;' +
+  '    var linha=b.parentNode;' +
+  '    var campo=linha?linha.querySelector("[data-pagar-valor]"):null;' +
+  '    var corpo={escola:escola,mes:mes};' +
+  '    if(campo){' +
+  '      var centavos=centavosDe(campo.value);' +
+  '      if(centavos===null){alert("o valor recebido não se entende — escreva, por exemplo, 69,90");return;}' +
+  '      if(centavos<=0){alert("um pagamento de R$ 0,00 não fecha um mês — deixe o mês em aberto");return;}' +
+  '      corpo.recebidoCentavos=centavos;' +
+  '    }' +
   '    b.disabled=true;b.textContent="a registar…";' +
   '    fetch("/api/financeiro/mensalidade",{method:"POST",headers:{"Content-Type":"application/json"},' +
-  '      body:JSON.stringify({escola:escola,mes:mes}),cache:"no-store"})' +
+  '      body:JSON.stringify(corpo),cache:"no-store"})' +
   '    .then(function(r){return r.json().catch(function(){return {};});})' +
-  '    .then(function(d){if(d&&d.ok){location.reload();return;}' +
+  '    .then(function(d){' +
+  '      if(d&&d.ok){' +
+  /* O MÊS QUE FICOU A MEIO DIZ-SE ANTES DE RECARREGAR. Recarregar em silêncio deixaria a linha com
+   * outro selo e a pessoa a perguntar-se se o clique pegou; e um valor abaixo do devido é
+   * exactamente o caso em que ela precisa de saber que ainda falta. */
+  '        if(d.parcial){alert("Registado. Faltam R$ "+((d.faltaCentavos||0)/100).toFixed(2).replace(".",",")' +
+  '          +" — o mês continua em aberto.");}' +
+  '        location.reload();return;}' +
   '      b.disabled=false;b.textContent="Marcar pago";' +
   '      alert((d&&d.erro)||"não foi possível registar o pagamento");})' +
   '    .catch(function(){b.disabled=false;b.textContent="Marcar pago";' +

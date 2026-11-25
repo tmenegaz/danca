@@ -4836,23 +4836,88 @@ async function fetch(request, env) {
     if (!contrato || !contrato.plano) {
       return responderJson({ ok: false, erro: 'escola desconhecida: «' + slug + '» não tem contrato' }, 400);
     }
+    /* QUANTO SE DEVE POR ESTE MÊS, HOJE — e a conta é a do extrato (25/11/2026).
+     *
+     * «Eu ainda não sei uma solução para isso, para impedir que a pessoa pague o valor menor. Ela vai
+     * ter que pagar o valor maior.» A solução é esta: o valor devido é CALCULADO no servidor, e não
+     * vem do formulário. O que vem do formulário é quanto a escola PAGOU — e o que o servidor faz com
+     * ele é comparar. Um mês pago a menos não fecha: fica `parcial`, com o que falta escrito na
+     * linha, e o botão continua disponível para o resto.
+     *
+     * A mora entra aqui porque `devidoDoMes` lê a linha do extrato, e a linha do extrato já a tem.
+     * Não há uma segunda fórmula da mora nesta rota, e é isso que impede que o número que a escola
+     * vê e o número que o servidor cobra se afastem no primeiro dia de atraso. */
+    let livro = [];
+    try { livro = await mensalidades.lerLivro(env && env.PADD_KV); } catch (erro) { livro = []; }
+    let devido = mensalidades.devidoDoMes({
+      escola: slug, contrato, livro, mes: corpo.mes,
+    });
+    /* O MÊS QUE AINDA NÃO NASCEU TEM CAMINHO, E É O DE ANTES (25/11/2026).
+     *
+     * O «Informar um pagamento» do painel existe exactamente para o mês que ainda não está no
+     * extrato — um pagamento adiantado, ou um mês que o relógio de ensaio abriu. Se a linha do
+     * tempo não o tem, a fatura é a do contrato em vigor e não há mora a somar: não há vencimento
+     * a comparar com hoje, e inventar um seria cobrar juros de uma dívida que ainda não venceu.
+     *
+     * O QUE NÃO SE FAZ É GRAVAR ZERO. Um contrato sem valor não é um mês grátis: é um contrato
+     * incompleto, e a resposta diz isso em vez de escrever no livro uma linha de R$ 0,00 — o mesmo
+     * defeito que a guarda da escola desconhecida fechou a 17/11/2026. */
+    if (!devido) {
+      const daFatura = Math.max(0, Number(contrato && contrato.valorCentavos) || 0);
+      if (!daFatura) {
+        return responderJson({
+          ok: false,
+          erro: 'o contrato de «' + slug + '» não tem valor de mensalidade — nada foi gravado',
+        }, 400);
+      }
+      devido = {
+        mes: String(corpo.mes || ''),
+        faturaCentavos: daFatura,
+        recebidoCentavos: 0,
+        faltaCentavos: daFatura,
+        devidoCentavos: daFatura,
+        encargosCentavos: 0,
+        status: 'aberto',
+        quitado: false,
+        venceu: false,
+        foraDaLinhaDoTempo: true,
+      };
+    }
+    /* O QUE A ESCOLA PAGOU. Ausente, é o pagamento inteiro: é o que o botão fazia antes de existir um
+     * campo de valor, e continua a ser o gesto normal do painel. Presente, é um número de cêntimos
+     * que se compara com o devido — e a comparação é do núcleo, não desta rota. */
+    const recebido = corpo.recebidoCentavos === undefined || corpo.recebidoCentavos === null
+      ? devido.devidoCentavos
+      : corpo.recebidoCentavos;
     const feito = await mensalidades.registarPagamento(env && env.PADD_KV, {
       escola: slug,
       mes: corpo.mes,
-      valorCentavos: contrato && contrato.valorCentavos,
+      /* A FATURA é a do mês, e não o plano em vigor: um upgrade feito ontem não reescreve o que foi
+       * cobrado no mês passado. `devidoDoMes` já devolveu a fatura daquele mês. */
+      valorCentavos: devido.faturaCentavos,
+      recebidoCentavos: recebido,
+      devidoCentavos: devido.devidoCentavos,
       plano: contrato && contrato.plano,
       planoNome: contrato && contrato.planoNome,
       por: 'proprietario',
       /* UM SEGUNDO CLIQUE NÃO REWRITE A DATA (25/11/2026). «Impedir que pague de novo» é o pedido,
-       * e a parte que o servidor garante é esta: o mês já está pago, o registo fica como está, e a
-       * resposta diz `jaPago`. A data do pagamento é o que se confere contra o extrato do banco — um
-       * duplo clique não pode movê-la. */
+       * e a parte que o servidor garante é esta: o mês já está QUITADO, o registo fica como está, e
+       * a resposta diz `jaPago`. A data do pagamento é o que se confere contra o extrato do banco —
+       * um duplo clique não pode movê-la.
+       *
+       * UM MÊS PARCIAL NÃO É UM MÊS PAGO: ele aceita o resto. A guarda é a mesma de antes e continua
+       * a valer, porque ela pergunta pelo `status`, e o parcial não é `pago`. */
       manterSeJaPago: true,
     });
     if (!feito.ok) return responderJson({ ok: false, erro: feito.erro }, 400);
     return responderJson({
       ok: true,
       jaPago: Boolean(feito.jaPago),
+      /* O mês que ficou a meio: a página precisa dos três números para dizer «faltam R$ X» sem os
+       * recalcular, e `faltaCentavos` é o do núcleo. */
+      parcial: Boolean(feito.parcial),
+      faltaCentavos: Number(feito.faltaCentavos) || 0,
+      devidoCentavos: devido.devidoCentavos,
       pagamento: Object.assign({}, feito.pagamento, {
         emTexto: fuso.quandoLocal(feito.pagamento.em),
       }),
