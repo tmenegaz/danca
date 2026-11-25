@@ -2824,90 +2824,134 @@ O guião de operação e de treino do consultor está em
 [FLUXO-DA-ESCOLA-EM-CONSULTORIA.md](FLUXO-DA-ESCOLA-EM-CONSULTORIA.md). Este capítulo mede a conta que
 o guião usa.
 
-### 22.1 O que uma demonstração consome, acto a acto
+### 22.1 O que uma demonstração consome, medido no Actions
 
 Os sete limites estão no catálogo (`biblioteca/comercial/planos.json` → `consultoria.limites`) e
-traduzem-se numa sequência de actos. Cada linha traz a sua base — e as que dizem **inferido** não foram
-medidas:
+traduzem-se numa sequência de actos. A tabela abaixo **não é estimada**: cada linha é um acto real,
+com o commit e as execuções que ele acordou.
 
-| acto | execuções que acorda | min | base |
+| acto | execuções que acorda | min | o caso medido |
 |:--|:--|--:|:--|
-| criar a escola | `criar-escola` + `derivados` + `publicar` | **3** | o job está medido (§2); os dois observadores vêm dos `paths` — **inferido** |
-| gravar o plano de ensino | o job + `derivados` | **2** | o §5 declara 1; o §20.3 mediu a gravação irmã em 4 — **inferido** |
-| gravar o PO | o job + `derivados` | **2** | idem |
-| gerar o 1.º ciclo | `gerar` + `derivados` + `publicar` | **3** | os três medidos, 1 min cada (§20.2) |
-| gerar o 2.º ciclo | idem | **3** | idem |
-| **3 aulas lançadas** | 2 `derivados` + 1 `gerar`, cada | **9** | **medido** (§20.4) |
-| entregar, prorrogar, habilitar | nenhuma — é KV | **0** | `POST /api/escola/consultoria` |
-| | | **22** | |
+| **criar a escola** | `criar` + `derivados` | **2** | run `45156042117` — `criar` 40 s; o commit que ele produz (`ddbee1d5`) acorda `derivados` 25 s |
+| **gravar o plano de ensino** | `derivados` | **1** | `229a322a` e `225c8e3b` — **uma** execução cada |
+| **gravar o PO** | `gerar` + `derivados` | **2** | `00df9fe4` (34 s + 12 s), `45e0dff4` (29 s + 27 s), `0ea82c68` (14 s + 13 s) |
+| **gerar 1 ciclo** | `gerar` | **1** | `6177f30d` — 50 s, **nenhuma** outra |
+| **1 aula lançada** | 2 `derivados` + 1 `gerar` | **3** | §20.4, e `experimentos/provar-o-custo-da-aula.js` |
+| entregar · prorrogar · habilitar | nenhuma — é KV | **0** | `POST /api/escola/consultoria` |
 
-**22 minutos por demonstração**, a **R$ 0,036/min** — a taxa do §20 (`$0,006 × R$ 6`) —, dá
-**R$ 0,79**.
+**Três destas linhas corrigem o que este capítulo tinha por estimativa, e todas para baixo.**
 
-**As três linhas inferidas são a parte que pode estar errada, e o erro é para baixo.** Se a criação da
-escola e as duas gravações de factura custarem um minuto em vez de três e dois, o total cai a 18 e o
-valor a R$ 0,65. Orçamenta-se pelo número de cima: **22 min, R$ 0,79**.
+1. **Criar a escola custa 2 e não 3.** A criação só acorda `publicar` se criar um
+   `wrangler.<escola>.jsonc` — e hoje **não existem wranglers por escola**: o repositório tem dois
+   (`danca` e `lastro-teste`), e uma escola nova entra no *shard*. Logo o `publicar` não corre.
+2. **Gravar o plano de ensino custa 1 e não 2.** É o único acto da Produção que **não** pede a
+   geração: a cadeia deriva o elo e a fonte e devolve. Medido em dois commits distintos, uma execução
+   cada.
+3. **Gerar um ciclo custa 1 e não 3.** Quem commita com o `GITHUB_TOKEN` **não redispara workflows**
+   — está escrito nos três ficheiros —, e por isso o commit da geração não acorda nem o `derivados`
+   nem o `publicar`. Os «3 min» que o §22.1 tinha vinham de somar observadores que **não** são
+   acordados.
 
-**E este capítulo mediu-se a si mesmo.** O commit que o escreveu (`df41c5e6`) **não acordou
-workflow nenhum** — as últimas execuções do Actions param no commit anterior —, o que confirma a
-terceira coluna da tabela por fora: **documentar custa 0 min**. Os 22 minutos são todos de actos que
-geram ou lançam, e nenhum deles é de leitura.
+E há uma quarta, que é a que dá o número: **cada demonstração monta UMA turma**, e o ciclo é dela. O
+`gerar` corre **uma vez por alvo**, e o alvo é a turma.
 
-### 22.2 Porque é que o limitador é o orçamento, e não uma restrição comercial
+### 22.2 O número
+
+| cenário | actos | min | a R$ 0,036/min |
+|:--|:--|--:|--:|
+| **demonstração canónica** — 1 turma, 2 ciclos, 3 aulas | 2 + 1 + 2 + (2×1) + (3×3) | **16** | **R$ 0,58** |
+| **pior caso dentro do limitador** — as 3 turmas, 2 ciclos cada | 2 + (3×1) + (3×2) + (6×1) + (3×3) | **26** | **R$ 0,94** |
+| **sem o limitador** — os mesmos 2 ciclos, as 48 aulas que eles contêm | 2 + 1 + 2 + (2×1) + (48×3) | **151** | **R$ 5,44** |
+
+**Orçamenta-se por 26, e o número do dia a dia é 16.** A diferença entre os dois não é folga: é a
+diferença entre o consultor montar a turma que vai mostrar e ele montar as três que o limite permite.
+Um guião que não diz qual é o caso comum deixa a conta a depender do humor de quem clica.
+
+### 22.3 Porque é que o limitador é o orçamento, e não uma restrição comercial
 
 A conta acima **não depende de bom comportamento nenhum**: ela é o **tecto**, porque os sete limites
 são paredes e não recomendações. É isso que o limitador compra.
 
-Sem ele, a mesma demonstração não é uma demonstração — é um mês de operação:
+**Sem o limitador, a mesma demonstração não é uma demonstração — é um mês de operação:** 48 aulas,
+151 minutos, R$ 5,44. **9,4 vezes** o caso canónico, e **5,8 vezes** o pior caso que ainda cabe nas
+paredes. E a partir daí deixa de ser mensurável: sem tecto de ciclos, são semanas de aulas.
 
-| | aulas que pode lançar | minutos | a R$ 6 |
-|:--|--:|--:|--:|
-| **com o limitador** | **3** | **22** | **R$ 0,79** |
-| sem o limitador, com os mesmos 2 ciclos | **48** (24 × 2) | **157** | **R$ 5,65** |
-| sem o limitador e sem teto de ciclos | semanas de aulas | — | — |
-
-**A diferença é de 7,1 vezes** para um mês, e ela deixa de ser mensurável a partir da terceira linha.
 Vale a pena dizer o que isto significa em língua de risco: **o pior caso de uma demonstração é
-R$ 0,79, e ele é conhecido antes de a demonstração começar.** É essa a frase que o limitador permite
+R$ 0,94, e ele é conhecido antes de a demonstração começar.** É essa a frase que o limitador permite
 escrever, e é a única coisa que ele garante.
 
-*(O teto de 24 aulas por ciclo não é suposto: está medido no `ciclos.json` do breu — 24 entradas em
+*(O tecto de 24 aulas por ciclo não é suposto: está medido no `ciclos.json` do breu — 24 entradas em
 `aulas[]`, todas com `lancada: false`. A prova `experimentos/provar-o-custo-da-consultoria.js` lê-o de
 lá, para o número não envelhecer sozinho.)*
 
-### 22.3 Quantas demonstrações cabem na franquia
+### 22.4 Quantas demonstrações cabem na franquia
 
 A franquia são **2 000 min/mês** (§2), e a engenharia consome **522 min** (§L9f). Sobram 1 478.
 
-`1 478 ÷ 22` = **67 demonstrações por mês dentro da franquia, a custo zero em dinheiro.**
+| | por demonstração | cabem na franquia |
+|:--|--:|--:|
+| demonstração canónica | 16 min | **92** |
+| pior caso dentro do limitador | 26 min | **56** |
 
-**É a resposta honesta a «isso vai ter custo?»: em dinheiro, só depois da sexagésima sétima. Em cota,
-desde a primeira** — cada demonstração gasta 22 dos 2 000 minutos que também pagam o
+**É a resposta honesta a «isso vai ter custo?»: em dinheiro, só depois da nonagésima segunda. Em cota,
+desde a primeira** — cada demonstração gasta 16 a 26 dos 2 000 minutos que também pagam o
 desenvolvimento. A cota é o recurso escasso, e é ela que limita o número de demonstrações, não o
 orçamento.
 
-### 22.4 O custo do treino, que é o outro lado
+### 22.5 O custo do treino, que é o outro lado
 
 O consultor não se treina a ler: treina-se a montar. Cada treino é **uma demonstração inteira**, numa
 escola de treino com dado inventado (nunca na escola do cliente).
 
-| o que | min |
-|:--|--:|
-| uma demonstração montada do zero | **22** |
-| uma repetição completa | **22** |
-| **por consultor, com uma repetição** | **44** |
+| o que | min | R$ |
+|:--|--:|--:|
+| uma demonstração canónica | **16** | R$ 0,58 |
+| uma repetição completa | **16** | R$ 0,58 |
+| **por consultor, com uma repetição** | **32** | **R$ 1,15** |
 
-**R$ 1,58 por consultor treinado**, e **duas horas de treino assistido** mais **três horas de
-preparação por escola** do lado dele — horas que este documento não precifica porque não são minhas
-para fixar. O que ele fixa é a parte técnica: **44 minutos de cota e R$ 1,58**, por consultor.
+**Duas horas de treino assistido** mais **três horas de preparação por escola** do lado dele — horas
+que este documento não precifica porque não são minhas para fixar. O que ele fixa é a parte técnica:
+**32 minutos de cota e R$ 1,15**, por consultor.
 
-### 22.5 O que fica por medir, e é o próximo número honesto
+### 22.6 O que fica por medir, e é o próximo número honesto
 
-1. **A criação da escola e as duas gravações de factura** — as três linhas inferidas do §22.1. Medem-se
-   no histórico do Actions como se mediu a aula, e o total de 22 passa a 18 ou a 22 conforme o
-   resultado.
-2. **O `derivados.yml` a observar o pacote gerado** — o §20 já declarou esta alavanca e não a puxou:
+1. **O `derivados.yml` a observar o pacote gerado** — o §20 já declarou esta alavanca e não a puxou:
    cada geração de ciclo acorda um `derivados` que não tem nada para fazer. Cortá-la vale 1 min por
-   ciclo, ou seja **2 dos 22 minutos** de cada demonstração.
-3. **Quantas demonstrações simultâneas** (Q7 do plano, em aberto) — não muda o custo unitário, muda a
+   ciclo, ou seja **2 dos 16 minutos** de uma demonstração canónica.
+2. **Quantas demonstrações simultâneas** (Q7 do plano, em aberto) — não muda o custo unitário, muda a
    cota comprometida num mês.
+3. **A demonstração com 2 ou 3 turmas como caso comum** — hoje o guião diz **uma**, e é ela que dá os
+   16. Se a prática mostrar que o consultor monta sempre as três, o número de orçamento passa a ser o
+   do pior caso (26), e esta linha desaparece.
+
+### 22.7 Como isto foi medido, para poder ser repetido
+
+A API do Actions devolve, por execução, `started_at` e `completed_at` de cada job; o GitHub factura
+**cada job arredondado ao minuto**, com o mínimo de 1. O que se mediu foi:
+
+```bash
+# todas as execuções de um commit, com a duração de cada job
+GET /repos/tmenegaz/danca/actions/runs?head_sha=<sha completo>
+GET /repos/tmenegaz/danca/actions/runs/<run_id>/jobs
+```
+
+Três armadilhas, todas encontradas a medir:
+
+- **o `head_sha` abreviado devolve zero** — a API compara o SHA inteiro, e um `head_sha=229a322a`
+  responde «nenhuma execução», que se lê como «não acordou nada». **É o mesmo erro do `if` que
+  filtrava o título vazio no `check-pacote.js`**: a pergunta «não há?» e a pergunta «perguntei bem?»
+  não são a mesma pergunta.
+- **o `created` como intervalo não filtra** — devolve zero. A janela tem de ser feita sobre a lista
+  paginada.
+- **`git log --date` está em hora local (UTC−3) e a API em UTC.** A gravação das 06:27 e a execução das
+  09:27 são o mesmo instante; procurar às 06:27 em UTC dá «nada aconteceu».
+
+**E uma quarta, que é a que estragou a primeira tentativa:** medir uma **janela** não é medir um
+**acto**. Entre 09:20 e 09:45 de 25/11 há 12 execuções e 11 minutos — mas são de cinco commits
+diferentes, quatro deles cancelados em cadeia pelo grupo de concorrência do `derivados`. O que se soma
+é o que **um** acto acorda, não o que uma hora de trabalho acordou.
+
+**E este capítulo mediu-se a si mesmo.** O commit que o escreveu (`df41c5e6`) **não acordou workflow
+nenhum** — as últimas execuções do Actions param no commit anterior —, o que confirma a terceira
+coluna da tabela por fora: **documentar custa 0 min**. Os 16 minutos são todos de actos que geram ou
+lançam, e nenhum deles é de leitura.

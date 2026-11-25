@@ -74,6 +74,9 @@ O consultor recebe o endereço e as senhas (**na mão, nunca por e-mail em claro
 Neste instante **ainda não há prazo a correr**: o mês começa na entrega (passo 8), e é isso que impede
 o tempo da consultoria de comer o prazo da escola.
 
+Custo: **2 minutos** — o job `criar` e o `derivados` que o commit dele acorda. Não acorda `publicar`:
+uma escola nova entra no *shard*, e não ganha `wrangler` próprio.
+
 ### Passo 3 — O consultor monta quem trabalha
 
 Na Produção, em `bastidores/estudio`:
@@ -93,6 +96,10 @@ aba **«Turmas»** é o grupo formado. São duas coisas diferentes, e o limite c
 **O que ele não deve tentar:** criar a terceira sala «para ver o que acontece». O motor recusa, e a
 recusa é correcta. Antes de bater, ele decide com a escola **quais são as duas salas que importam**.
 
+**As três turmas não são três demonstrações.** Esta é a decisão que faz a conta fechar: ele monta as
+três (o limite permite), mas **leva só uma até ao fim** — plano, PO e ciclos. É essa a turma que se
+apresenta, e é a diferença entre uma demonstração de **16 minutos** e uma de **26** (§7-bis).
+
 ### Passo 4 — O consultor faz o plano de ensino
 
 Na Produção, na Turma: o plano de ensino da turma, com os objectivos, o repertório e a régua. É aqui
@@ -105,14 +112,17 @@ Custo: **1 minuto** (uma gravação, um commit, um `derivados`).
 O Protocolo de Observação da turma — os marcos, os termos, o que se observa na aula. É a peça que
 transforma «planejar» em «registrar o que aconteceu».
 
-Custo: **1 minuto**.
+Custo: **2 minutos** — o PO é o único acto da Produção que **também pede a geração**: grava o elo, a
+fonte, e acorda o `gerar` além do `derivados`. Medido em três gravações.
 
 ### Passo 6 — O consultor gera os ciclos
 
 O botão que gera o pacote do ciclo: o plano do ciclo, o PO do ciclo, o calendário das aulas, o
 pacote publicado.
 
-Custo: **3 minutos** por ciclo. Com **2** ciclos, **6 minutos**.
+Custo: **1 minuto** por ciclo **por turma**. Com **2** ciclos numa turma, **2 minutos**. Se ele gerar
+os dois ciclos das **três** turmas, são 6 minutos — e é por isso que o guião diz, no passo 3, que a
+demonstração monta **uma** turma que se mostra e as outras duas que o limite permite.
 
 **A conta que ele tem de saber de cor, e que ela decidiu:** o teto é de **3 aulas**, e uma aula conta
 **quando é lançada** — não quando o ciclo é gerado. Portanto:
@@ -260,13 +270,18 @@ na mesma frase.
 
 | o que | em minutos de cota |
 |:--|--:|
-| uma demonstração montada do zero ([CUSTO-DOS-FLUXOS.md](CUSTO-DOS-FLUXOS.md) §22) | **22** |
-| uma repetição completa — inclui o desfecho e a página em só-leitura | **22** |
-| **por consultor, com uma repetição** | **44** |
+| uma demonstração canónica, uma turma ([CUSTO-DOS-FLUXOS.md](CUSTO-DOS-FLUXOS.md) §22.2) | **16** |
+| uma repetição completa — inclui o desfecho e a página em só-leitura | **16** |
+| **por consultor, com uma repetição** | **32** |
 
-A **R$ 0,036/min**, são **R$ 1,58 por consultor treinado**. O tempo das pessoas é o custo que aqui
+A **R$ 0,036/min**, são **R$ 1,15 por consultor treinado**. O tempo das pessoas é o custo que aqui
 não se pode escrever, porque ele não é meu para fixar: são **duas horas de treino** e **três horas de
 preparação** por escola do lado do consultor, e é ela quem lhes dá preço.
+
+**O número a orçamentar é 26, e não 16.** Uma demonstração canónica — a turma que vai ser mostrada —
+gasta 16 minutos; o pior caso que ainda cabe dentro das sete paredes (as três turmas montadas, com dois
+ciclos cada) gasta 26. É esse o valor de que se fala com ela, porque é o único que não depende de o
+consultor ter montado uma turma ou três.
 
 **E o treino não se faz na escola do cliente.** Faz-se numa escola de treino, com dado inventado, que
 se apaga depois — uma escola de treino não tem o risco de expor dado de aluna.
@@ -290,6 +305,40 @@ E, no fim da conversa, a frase que fecha:
 > «O ambiente é seu até <data>. Até lá, você pode criar dentro destes limites. Depois, ele continua
 > legível e deixa de aceitar coisa nova. Se quiser seguir, a administração fala com você sobre o
 > plano.»
+
+---
+
+## 7-bis. Quanto custa isto — a resposta a «não vai sair de graça»
+
+A demonstração gasta **minutos de cota do GitHub Actions**, e cada execução é facturada ao minuto.
+Medido no Actions (a conta e os casos estão em [CUSTO-DOS-FLUXOS.md](CUSTO-DOS-FLUXOS.md) §22):
+
+| acto | min |
+|:--|--:|
+| criar a escola | 2 |
+| gravar o plano de ensino | 1 |
+| gravar o PO | 2 |
+| gerar 1 ciclo (por turma) | 1 |
+| **1 aula lançada** | **3** |
+| entregar · prorrogar · habilitar | 0 |
+
+| cenário | min | R$ |
+|:--|--:|--:|
+| **canónico** — 1 turma, 2 ciclos, 3 aulas | **16** | **R$ 0,58** |
+| **pior caso dentro do limitador** — 3 turmas, 2 ciclos cada, 3 aulas | **26** | **R$ 0,94** |
+| **sem o limitador** — as 48 aulas dos 2 ciclos | **151** | **R$ 5,44** |
+
+**A frase que o consultor pode dizer, e é verdadeira:** «o pior caso desta demonstração é menos de um
+real». É essa a garantia que o limitador compra — não um desconto, mas um **tecto conhecido antes de
+começar**. Sem ele, a mesma demonstração custaria 9,4 vezes mais.
+
+**E a frase que ele NÃO diz:** quanto é que a demonstração custou. O custo é da administração, e
+transformá-lo em assunto de conversa convida a negociá-lo.
+
+**Porque é que ele monta uma turma e não três.** A demonstração mostra **uma** turma em profundidade —
+é a que se apresenta. As outras duas existem porque o limite as permite, e ficam montadas sem ciclo
+gerado. Gerar os ciclos das três é o que leva o custo de 16 a 26 minutos, e não é preciso para
+mostrar nada.
 
 ---
 

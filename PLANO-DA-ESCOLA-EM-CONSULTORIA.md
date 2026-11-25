@@ -696,8 +696,9 @@ declarado aqui para não se descobrir por acidente.
 **E o que já não falta: o guião e a conta.** O **F7** («o texto do mês e dos limites») tinha duas
 metades, e uma delas ficou escrita a 25/11/2026 em documento próprio, porque o destinatário não é o
 cliente — é o consultor: **[FLUXO-DA-ESCOLA-EM-CONSULTORIA.md](FLUXO-DA-ESCOLA-EM-CONSULTORIA.md)**.
-O [CUSTO-DOS-FLUXOS.md](CUSTO-DOS-FLUXOS.md) **§22** mede o que cada demonstração consome — **22 min,
-R$ 0,79**, contra **157 min e R$ 5,65** sem o limitador —, e `experimentos/provar-o-custo-da-consultoria.js`
+O [CUSTO-DOS-FLUXOS.md](CUSTO-DOS-FLUXOS.md) **§22** mede o que cada demonstração consome — **16 min,
+R$ 0,58** a canónica (uma turma) e **26 min, R$ 0,94** o pior caso, contra **151 min e R$ 5,44** sem o
+limitador —, e `experimentos/provar-o-custo-da-consultoria.js`
 guarda os dois números contra o catálogo. A **F6** e o **cadastro do consultor** continuam em aberto.
 
 ### 17.4 O que o §10.2 dizia, e ficou medido no código

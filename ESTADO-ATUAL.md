@@ -12,14 +12,19 @@
 > três frases de recusa quando a escola bate no limite, o que o consultor **não** pode fazer (cobrar,
 > prometer, apagar), e um treino de duas horas em quatro blocos com critério de saída em cada um. O
 > **[CUSTO-DOS-FLUXOS.md](CUSTO-DOS-FLUXOS.md) §22** mede o que cada demonstração consome, acto a
-> acto, e diz o número que faltava: **22 minutos e R$ 0,79** — e o mesmo produto **sem** o limitador
-> custaria **157 minutos e R$ 5,65**, 7,1 vezes mais. É essa a frase que o limitador permite escrever
+> acto, com o commit e as execuções de cada um — e diz o número que faltava: **16 minutos e R$ 0,58**
+> para a demonstração canónica (uma turma, dois ciclos, três aulas), **26 e R$ 0,94** para o pior caso
+> que ainda cabe nas sete paredes. O mesmo produto **sem** o limitador custaria **151 minutos e
+> R$ 5,44**, 9,4 vezes mais. É essa a frase que o limitador permite escrever
 > e é a resposta à pergunta dela: o pior caso de uma demonstração é conhecido **antes** de ela
-> começar. Cabem **67 demonstrações por mês** dentro da franquia de 2 000 min (descontada a
+> começar. Cabem **92 demonstrações por mês** dentro da franquia de 2 000 min (descontada a
 > engenharia), o que faz do custo em dinheiro zero até lá e da **cota** o recurso escasso. O treino
-> de um consultor custa **44 minutos e R$ 1,58** (duas demonstrações inteiras). As linhas de custo
-> que não foram medidas estão marcadas como **inferidas** no §22.1, e o número orçamentado é o de
-> cima. O que guarda os dois documentos de mentirem juntos é
+> de um consultor custa **32 minutos e R$ 1,15** (duas demonstrações inteiras). **As linhas de custo
+> deixaram de ser inferidas:** as três que o §22.1 orçamentava por leitura de `paths` foram medidas na
+> API do Actions, e as três desceram — a criação de escola acorda 2 e não 3 (não há `wrangler` por
+> escola, a escola nova entra no *shard*), gravar o plano de ensino acorda 1 e não 2 (é o único acto
+> da Produção que não pede a geração), e gerar um ciclo acorda 1 e não 3 (quem commita com o
+> `GITHUB_TOKEN` não redispara workflows). O que guarda os dois documentos de mentirem juntos é
 > `experimentos/provar-o-custo-da-consultoria.js` (41 asserções): recalcula do catálogo e do
 > `ciclos.json` real, e reprova quando o texto se afasta — com o controlo negativo a mostrar que a
 > aritmética lê mesmo o catálogo (com 6 aulas em vez de 3, doze asserções caem). Antes disso, no
@@ -7557,16 +7562,23 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   frases de recusa, o que o consultor **não** pode fazer (cobrar, prometer, apagar, pôr dado em claro)
   e um treino de duas horas com critério de saída por bloco. A fronteira de risco está escrita como
   ela a pôs: **o consultor monta e mostra; quem cobra e quem entrega o mês é ela.** O
-  `CUSTO-DOS-FLUXOS.md` **§22** calcula o tecto de uma demonstração — **22 min, R$ 0,79** — a partir
-  dos sete limites do catálogo, com cada linha a declarar a base e as não medidas marcadas como
-  **inferidas** (o erro delas é para baixo). O contrafactual é o argumento que ela pediu: os mesmos
-  dois ciclos **sem** o limitador dão 48 aulas, **157 min, R$ 5,65**, 7,1× mais. Cabem **67
-  demonstrações por mês** na franquia (2 000 − 522 de engenharia), e o treino de um consultor são
-  **44 min, R$ 1,58**. O `§22.2` acerta ainda o número do teto de aulas por ciclo, que estava
-  afirmado e não medido: **24**, lido do `ciclos.json` real. **A prova é a peça que impede os dois
-  documentos de mentirem juntos** — `provar-o-custo-da-consultoria` (41 asserções) recalcula do
-  catálogo, compara com o texto dos dois ficheiros, e o controlo negativo (6 aulas em vez de 3) faz
-  cair doze asserções.
+  `CUSTO-DOS-FLUXOS.md` **§22** mede o tecto de uma demonstração **acto a acto, na API do Actions** —
+  **16 min, R$ 0,58** a canónica (uma turma, dois ciclos, três aulas) e **26 min, R$ 0,94** o pior
+  caso que ainda cabe nas sete paredes (as três turmas). **As três linhas que estavam inferidas foram
+  medidas e as três desceram:** criar a escola acorda 2 e não 3 (não há `wrangler` por escola — a
+  escola nova entra no *shard*, e o `publicar` não corre); gravar o plano de ensino acorda 1 e não 2
+  (é o único acto da Produção que não pede a geração); gerar um ciclo acorda 1 e não 3 (quem commita
+  com o `GITHUB_TOKEN` não redispara workflows, e o commit da geração não acorda os observadores). O
+  contrafactual é o argumento que ela pediu: os mesmos dois ciclos **sem** o limitador dão as 48
+  aulas que eles contêm — **151 min, R$ 5,44**, 9,4× o canónico e 5,8× o pior caso. Cabem **92
+  demonstrações por mês** na franquia (2 000 − 522 de engenharia) ou **56** no pior caso, e o treino
+  de um consultor são **32 min, R$ 1,15**. O `§22.3` acerta ainda o número do teto de aulas por ciclo,
+  que estava afirmado e não medido: **24**, lido do `ciclos.json` real. **A prova é a peça que impede
+  os dois documentos de mentirem juntos** — `provar-o-custo-da-consultoria` (**53 asserções**)
+  recalcula do catálogo, compara com o texto dos dois ficheiros, e o controlo negativo (6 aulas em vez
+  de 3) faz cair dezoito asserções. O §22.7 escreve **como** se mediu e as quatro armadilhas que
+  custaram a primeira tentativa — incluindo o `head_sha` abreviado, que devolve zero e se lê como «não
+  acordou nada», e a hora local do `git log` contra o UTC da API.
 
 - **25/11/2026** — **O plano consultoria e o mês de demonstração.** O limitador da escola em
   consultoria, com o nome que ela decidiu. Os sete limites vivem no catálogo

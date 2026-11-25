@@ -62466,31 +62466,62 @@ manual de produto costuma não trazer e que aqui são a parte útil:
 
 **`CUSTO-DOS-FLUXOS.md` §22** — o custo, medido do catálogo para fora.
 
-### O número
+### O número, medido na API do Actions
 
-| acto | min |
-|:--|--:|
-| criar a escola | 3 |
-| gravar o plano de ensino | 2 |
-| gravar o PO | 2 |
-| gerar 2 ciclos | 6 |
-| **3 aulas lançadas** | **9** |
-| entregar, prorrogar, habilitar | 0 |
-| **tecto de uma demonstração** | **22 min = R$ 0,79** |
+A primeira versão deste capítulo orçamentava por leitura de `paths` e marcava três linhas como
+**inferidas**. Ela pediu para medir. As três desceram.
 
-E o contrafactual, que é o argumento dela: os **mesmos dois ciclos sem o limitador** dão as 48 aulas
-que eles contêm, ou **157 min e R$ 5,65** — **7,1 vezes mais**, e sem tecto mensurável a partir da
-terceira linha. É por isso que o limitador **é** o orçamento: o pior caso de uma demonstração é
-conhecido antes de ela começar.
+| acto | execuções | min | o caso medido |
+|:--|:--|--:|:--|
+| criar a escola | `criar` + `derivados` | **2** | run `45156042117` (40 s) + `ddbee1d5` (25 s) |
+| gravar o plano de ensino | `derivados` | **1** | `229a322a`, `225c8e3b` — uma execução cada |
+| gravar o PO | `gerar` + `derivados` | **2** | `00df9fe4`, `45e0dff4`, `0ea82c68` |
+| gerar 1 ciclo | `gerar` | **1** | `6177f30d` — 50 s, nenhuma outra |
+| **1 aula lançada** | 2 `derivados` + 1 `gerar` | **3** | §20.4 |
+| entregar · prorrogar · habilitar | — | **0** | KV |
 
-A franquia de 2 000 min absorve **67 demonstrações por mês** (descontados os 522 min de engenharia), o
-que torna o custo em dinheiro **zero até lá** e a **cota** o recurso escasso. O treino de um consultor
-são **44 min e R$ 1,58** — duas demonstrações inteiras, uma para ver e uma para fazer.
+| cenário | min | R$ |
+|:--|--:|--:|
+| **canónico** — 1 turma, 2 ciclos, 3 aulas | **16** | **R$ 0,58** |
+| **pior caso dentro do limitador** — 3 turmas, 2 ciclos cada | **26** | **R$ 0,94** |
+| **sem o limitador** — as 48 aulas dos 2 ciclos | **151** | **R$ 5,44** |
 
-**Três linhas do §22.1 são inferidas** (a criação da escola e as duas gravações de factura: o job está
-medido, os dois observadores vêm dos `paths`), e o §22 diz que o erro delas é **para baixo** e que se
-orçamenta pelo número de cima. As duas alavancas que o §20 deixou declaradas continuam por puxar, e
-ficaram escritas no §22.5.
+O contrafactual é o argumento dela: **9,4 vezes** o caso canónico e **5,8 vezes** o pior caso que
+ainda cabe nas paredes. Cabem **92 demonstrações por mês** na franquia (2 000 − 522 de engenharia), ou
+**56** no pior caso. O treino de um consultor são **32 min e R$ 1,15**.
+
+**As três correcções, e porque é que cada uma era um erro de leitura:**
+
+1. **Criar a escola custa 2, não 3.** A criação só acorda `publicar` se criar um
+   `wrangler.<escola>.jsonc`, e hoje **não há wranglers por escola** — o repositório tem dois (`danca`
+   e `lastro-teste`), e a escola nova entra no *shard*.
+2. **Gravar o plano de ensino custa 1, não 2.** É o **único** acto da Produção que não pede a geração:
+   a cadeia deriva o elo e a fonte e devolve.
+3. **Gerar um ciclo custa 1, não 3.** Quem commita com o `GITHUB_TOKEN` **não redispara workflows** —
+   está escrito nos três ficheiros —, e o commit da geração não acorda os observadores.
+
+**E uma quarta, que produziu o número:** o `gerar` corre **uma vez por alvo**, e o alvo é a **turma**.
+Uma demonstração canónica leva uma turma até ao fim; o pior caso leva as três. É por isso que há dois
+números e não um, e é o guião que diz qual é o caso comum.
+
+### Como se mediu, e as quatro armadilhas
+
+```bash
+GET /repos/tmenegaz/danca/actions/runs?head_sha=<sha completo>
+GET /repos/tmenegaz/danca/actions/runs/<run_id>/jobs
+```
+
+- **o `head_sha` abreviado devolve zero** — e zero lê-se como «não acordou nada». Três commits
+  `feat(plano)` respondiam «nenhuma execução» até se passar o SHA inteiro. É a mesma família do `if`
+  que filtrava o título vazio no `check-pacote.js`: «não há?» e «perguntei bem?» não são a mesma
+  pergunta.
+- **o intervalo `created=…` não filtra** — devolve zero silenciosamente. A janela tem de ser feita
+  sobre a lista paginada.
+- **`git log --date` está em hora local (UTC−3) e a API em UTC.** A gravação das 06:27 e a execução
+  das 09:27 são o mesmo instante; procurar às 06:27 em UTC dá «nada aconteceu».
+- **medir uma janela não é medir um acto.** Entre 09:20 e 09:45 de 25/11 há 12 execuções e 11 minutos
+  — mas de cinco commits diferentes, quatro cancelados em cadeia pelo grupo de concorrência do
+  `derivados`. O que se soma é o que **um** acto acorda.
 
 ### Uma correcção de leitura
 
@@ -62500,14 +62531,15 @@ o que confirma, de passagem, a leitura **B** da Q9 (a aula só conta quando é l
 
 ### As provas
 
-`experimentos/provar-o-custo-da-consultoria.js`, **41 asserções**. Ela não confia nos documentos: lê os
+`experimentos/provar-o-custo-da-consultoria.js`, **53 asserções**. Ela não confia nos documentos: lê os
 limites do `planos.json` e as 24 aulas do `ciclos.json`, recalcula o tecto, e **compara o resultado com
 o texto dos dois ficheiros**. É o que impede os dois de apodrecerem juntos — a família de erro do §20,
 onde uma prova dizia 3 e o documento dizia 2 durante seis dias.
 
-**O A/B, feito e não afirmado:** falseados os cinco números nos documentos, a prova cai a **36/41**,
-com as cinco asserções discriminantes a reprovar. Com o catálogo alterado (3 aulas → 6), cai a
-**29/41** e o tecto passa a 31 min. Bateria completa: **289 provas, 196 verdes, 93 conhecidas, 0
+**O A/B, feito e não afirmado:** falseados os números nos documentos, a prova cai a **48/53**, com as
+cinco asserções discriminantes a reprovar. Com o catálogo alterado (3 aulas → 6), cai a **35/53** e o
+tecto canónico passa a 25 min. E o número de turmas também discrimina (1 → 16, 2 → 21, 3 → 26), que é
+o que impede a prova de passar com os actos por turma somados uma vez só. Bateria completa: **290 provas, 197 verdes, 93 conhecidas, 0
 regressões**. `check-identidade`: 23 checagens, todas ok. Removida a entrada `provar-estante-do-po` da
 linha de base, que já passava e era um aviso em cada corrida.
 
@@ -62519,8 +62551,12 @@ linha de base, que já passava e era um aviso em cada corrida.
   planeados e **3 aulas processadas**».
 - **O cadastro do consultor** (quem é consultor de qual escola) — frente nova, e não é pré-requisito
   para treinar uma pessoa.
-- **A medição das três linhas inferidas** — é trabalho de histórico do Actions, não de código.
+- **A demonstração com 2 ou 3 turmas como caso comum** — hoje o guião diz uma, e é ela que dá os 16
+  min. Se a prática mostrar outra coisa, o número de orçamento passa a ser o do pior caso.
 
-**Onde entrou.** `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` (novo), `CUSTO-DOS-FLUXOS.md` (§22),
+**Onde entrou.** `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` (novo), `CUSTO-DOS-FLUXOS.md` (§22, reescrito
+depois da medição — §22.1 a tabela medida, §22.2 os dois tectos, §22.3 o contrafactual, §22.4 a
+franquia, §22.5 o treino, §22.6 o que fica por medir, §22.7 como se mediu),
 `experimentos/provar-o-custo-da-consultoria.js` (novo), `.gitignore` (a prova versionada),
-`experimentos/provas-vermelhas.json` (a entrada que já passava), `ESTADO-ATUAL.md`, `HANDOFF.md`.
+`experimentos/provas-vermelhas.json` (a entrada que já passava), `PLANO-DA-ESCOLA-EM-CONSULTORIA.md`
+(§17.3), `ESTADO-ATUAL.md`, `HANDOFF.md`.
