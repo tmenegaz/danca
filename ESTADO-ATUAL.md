@@ -4,8 +4,10 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **a sala ganhou faixas horárias: N aulas por dia, N modalidades,
-> N professores.** A regra da ocupação está nas duas rotas, e a Sala passou a poder declarar **mais do
+> **Última fotografia:** 25/11/2026 — **as faixas horárias chegaram à tela.** A aba Salas ganhou o «+»
+> que acrescenta faixas, e a Turma passou a escolher qual ocupa — a funcionalidade existia no servidor
+> e não existia para quem usa. Antes disso, no mesmo dia: **a sala ganhou faixas** — N aulas por dia,
+> N modalidades, N professores. A regra da ocupação está nas duas rotas, e a Sala passou a poder declarar **mais do
 > que uma aula por dia** — cada faixa com dias, hora, duração, **período, modalidade e professor**, que
 > desceram para a faixa por decisão dela. A Turma diz qual faixa ocupa, e uma sala com várias **recusa**
 > a Turma que não diz qual. Uma sala antiga, com o ritmo na raiz, vale como uma faixa só: **nenhum
@@ -4426,8 +4428,8 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      com eles na Sala, a sala do piano só poderia ter uma modalidade o dia inteiro). A Turma escolhe a
      faixa (`faixa`), e uma sala com várias **recusa** a Turma que não diz qual: escolher a primeira
      poria a Turma a ocupar o horário errado em silêncio. **DECIDIDO** e **APLICADO**; falta a **tela**
-     (o «+» na Sala e o campo na Turma), sem a qual não é alcançável por quem usa. `provar-a-ocupacao`
-     **65**, `provar-mudanca-de-sala` **58**, suite **185/280 com 0 regressões**.
+     (o «+» na Sala e o campo na Turma) — **e ela está FEITA desde a tarde de 25/11** (decisão 190).
+     `provar-a-ocupacao` **65**, `provar-mudanca-de-sala` **58**.
 
 188. **A SALA NOVA NÃO PODE CRIAR COLISÃO EM SILÊNCIO — e as mensagens não sugerem resolução.** A
      edição da Sala já corria a cadeia, mas a cadeia relê o ritmo e deriva o plano; **não conferia a
@@ -4450,6 +4452,20 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      regra nova **endurece** (vê professor e elenco, que a antiga não via). **RESOLVIDO** pela decisão
      187: a Sala guarda faixas horárias, o ritmo **não** passa para a curadoria (a curadoria é a Turma,
      e o vínculo é dela), e a Turma diz qual faixa ocupa. A saída 2 foi **descartada por ela**.
+
+190. **O «+» DA FAIXA E O CAMPO NA TURMA — o modelo passou a ter caminho até ele.** A aba Salas ganhou
+     o «+ Acrescentar faixa horária»; cada bloco leva dias com hora, duração e período. O «+» **clona a
+     faixa 1 e limpa os `id` do clone** (dois elementos com o mesmo nome no documento é o defeito que
+     aparece longe da causa) e dá-lhe um `data-faixa` **novo**, `f<n>` de um contador que só cresce —
+     reutilizar o número apontaria a Turma de uma faixa apagada para a que tomou o lugar dela. O «×»
+     tira, renumera e **não tira a última** (uma sala sem faixa não tem ritmo). Na Turma, o campo
+     **só aparece quando a sala tem mais de uma faixa**, e o rótulo de cada opção diz os dias, as duas
+     horas e o par. **A leitura passou a ser POR BLOCO**: `marcados("dia")` e `horariosDoDia()` varrem
+     o documento inteiro e, com duas faixas, davam os dias de todas à faixa 1 — o mesmo erro de âmbito
+     que a `sincronizarHoras` tinha de evitar. **APLICADO**, com `provar-as-faixas-na-tela.js` (**51**,
+     vermelha sem a mudança). **PENDENTE:** o par (modalidade, professor) continua a ser **um por
+     sala**, escolhido no «Associar», e cada faixa herda-o — o modelo guarda-o por faixa e a regra
+     lê-o por faixa, mas a tela ainda não o pergunta por faixa.
 
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a

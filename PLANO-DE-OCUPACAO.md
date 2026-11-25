@@ -355,10 +355,27 @@ controlo negativo dá **3 falhas** sem a linha.
 | 6 | **as faixas no núcleo e nas rotas** | **FEITO** — `faixasDaSala`, `faixaEscolhida`, `normalizarFaixas`, `espelharFaixa1NaRaiz` |
 | 7 | **a colisão criada pela Sala recusa no gesto** | **FEITO** — `conflitosQueASalaCriaria`, nas duas rotas |
 | 8 | **sem sugestão de resolução nas mensagens** | **FEITO** |
-| 9 | **a tela: o «+» na Sala e a escolha da faixa na Turma** | **POR FAZER** |
+| 9 | **a tela: o «+» na Sala e a escolha da faixa na Turma** | **FEITO** — `provar-as-faixas-na-tela.js`, **51 asserções** |
+| 10 | o par (modalidade, professor) por faixa no passo «Associar» | **por fazer** |
 
-**O passo 9 é o que falta, e é o único.** O modelo, as rotas e as provas estão fechados: uma sala com
-três faixas e três turmas, uma em cada, é aceite pela rota verdadeira; a mesma faixa com duas turmas é
-recusada; e alargar uma faixa até engolir a seguinte é recusado no gesto, com as duas turmas nomeadas.
-O que não existe ainda é **o botão** que cria a segunda faixa e **o campo** que a escolhe — e sem os
-dois a funcionalidade não é alcançável por quem usa.
+**O passo 9 fechou o caminho até o modelo.** A aba Salas ganhou o «+ Acrescentar faixa horária» — e
+cada bloco leva os dias com a hora de cada um, a duração (que dá a hora final) e o período. O «+»
+clona a faixa 1 e **limpa os `id` do clone**: dois elementos com o mesmo nome no documento é o defeito
+que aparece longe da causa. O `data-faixa` novo é `f<n>` a partir de um contador que só cresce — um id
+reutilizado apontaria a Turma de uma faixa apagada para a que tomou o lugar dela. O «×» tira e
+renumera, e **não tira a última**: uma sala sem faixa não tem ritmo.
+
+Na Turma, o campo «Faixa horária desta Turma» **só aparece quando a sala tem mais de uma** — com uma
+faixa não há pergunta a fazer, e um campo que se mostra para não oferecer escolha ensina a ignorar
+campos. O rótulo de cada opção diz os dias, as duas horas e o par, que é o que distingue «balé às 9h»
+de «jazz às 10h» na mesma sala.
+
+**A leitura é POR BLOCO.** `marcados("dia")` e `horariosDoDia()` varrem o documento inteiro, e com
+duas faixas devolveriam os dias de todas — a faixa 1 ficaria com os dias da 2. A prova mede-o à letra:
+a faixa 2 fica só com o dia dela. E o mesmo erro de âmbito estava na `sincronizarHoras`, que passou a
+receber o bloco.
+
+**O passo 10 é o que falta, e é o único.** O par (modalidade, professor) continua a ser **um por
+sala**, escolhido no «Associar», e cada faixa herda-o. O modelo já o guarda por faixa e a regra já o
+lê por faixa, mas a tela ainda não o pergunta por faixa: uma sala com balé às 9h e jazz às 10h tem,
+por agora, o mesmo docente nas duas. Dizê-lo ao contrário seria vender o que não está feito.

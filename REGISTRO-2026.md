@@ -61354,3 +61354,46 @@ funcionalidade não é alcançável por quem usa, e dizê-lo ao contrário seria
 **Onde entrou.** `motor/nucleo/ocupacao.js` (`faixasDaSala`, `faixaEscolhida`, `intervalosDaFaixa`,
 `rotuloDaFaixa`, `motivoDaFaixaEmFalta`, e as três mensagens sem sugestão), `motor/servidor/bastidores.js` (`normalizarFaixas`, `espelharFaixa1NaRaiz`, `conflitosQueASalaCriaria`, `faixa` na
 curadoria e nas duas rotas da sala, `faixas` em `CAMPOS_DO_FORMULARIO`), `experimentos/provar-a-ocupacao.js` (secção I e as duas da mensagem), `experimentos/provar-mudanca-de-sala.js` (secções G e H), `PLANO-DE-OCUPACAO.md` (§9), `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+## 25/11/2026 — O «+» da faixa chega à tela: o modelo que existia no servidor passa a existir para quem usa
+
+**O que faltava não era a regra — era o caminho até ela.** As faixas horárias estavam feitas e
+provadas (`provar-a-ocupacao` 65, `provar-mudanca-de-sala` 58), e continuavam inalcançáveis: não havia
+botão que criasse a segunda faixa nem campo que a escolhesse. Uma funcionalidade que só existe na API
+não existe para a escola.
+
+**Na aba Salas.** O «+ Acrescentar faixa horária» clona a faixa 1 e **limpa-lhe os `id`**: dois
+elementos com o mesmo nome no documento é o defeito que aparece longe da causa. O `data-faixa` novo é
+`f<n>` a partir de um contador que só cresce — reutilizar o número apontaria a Turma de uma faixa
+apagada para a que tomou o lugar dela. O «×» tira, renumera («Faixa 1, Faixa 3» não pode acontecer) e
+**não tira a última**: uma sala sem faixa não tem ritmo, e o ritmo é o que a Turma escolhe.
+
+**A faixa 1 manteve os `id` de sempre** (`tdias`, `tduracao`, `tinicio`, `tfim`). Não é preguiça: há
+leitores na página que os procuram, e renomeá-los obrigaria a mudá-los todos de uma vez. O clone é
+lido pelas classes; o primeiro continua a ser lido pelo id.
+
+**Na Turma.** O campo «Faixa horária desta Turma» só aparece quando a sala tem mais de uma. Com uma
+faixa não há pergunta a fazer, e um campo que se mostra para não oferecer escolha ensina a ignorar
+campos. O rótulo de cada opção diz os dias, as duas horas e o par — «seg · 09:00–10:00 · Balé
+clássico · pe-torto» —, porque a escolha entre «f1» e «f2» não diz nada.
+
+**O erro de âmbito, e foram dois.** `marcados("dia")` e `horariosDoDia()` varrem o documento inteiro:
+com duas faixas devolveriam os dias de todas, e a faixa 1 ficaria com os dias da 2. A leitura passou a
+ser **por bloco** (`faixasDoFormulario`), e a `sincronizarHoras` passou a receber o bloco — sem isso,
+um dia marcado na faixa 1 acendia a hora da faixa 2, onde ele não está. É o defeito que a regra de
+16/10 existe para impedir, a reaparecer por âmbito. A prova mede-o à letra.
+
+**Um defeito meu, apanhado pela prova:** quando o «×» recusava tirar a última faixa, saía sem
+renumerar — e o botão ficava à vista numa sala de uma faixa só. Pôr o `renumerarFaixas()` no caminho da
+recusa fechou-o.
+
+**O que NÃO está feito, e fica dito:** o par (modalidade, professor) continua a ser **um por sala**,
+escolhido no «Associar», e cada faixa herda-o. O modelo guarda-o por faixa e a regra lê-o por faixa,
+mas a tela ainda não o pergunta por faixa — uma sala com balé às 9h e jazz às 10h tem, por agora, o
+mesmo docente nas duas. É o passo 10 de `PLANO-DE-OCUPACAO.md` §9.5.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (o bloco `.bloco-faixa` e o «+» na aba Salas;
+`faixasDoFormulario`, `maisFaixa`, `tirarFaixa`, `renumerarFaixas`; `sincronizarHoras` com âmbito;
+o bloco `#cu-faixa-bloco` e `pintarFaixasDaSala` na Turma; a `faixa` no corpo e na validação),
+`experimentos/provar-as-faixas-na-tela.js` (novo, **51**), `.gitignore`, `PLANO-DE-OCUPACAO.md` §9.5,
+`ESTADO-ATUAL.md`, `HANDOFF.md`.

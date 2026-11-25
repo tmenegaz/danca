@@ -1633,8 +1633,17 @@ experimentos/modelo-formulario/*
 # 16h recebiam 409 com a frase «duas aulas no mesmo horário». A prova mede a sobreposição meio-aberta
 # (encadeadas não colidem), o período como quarta dimensão, os três recursos (sala, professor, elenco),
 # a decisão dela sobre a aluna na mesma modalidade, a turma sem hora RECUSADA, o que não está em vigor
-# a não ocupar, a mensagem com o dia e as duas horas, e os controlos negativos. 46 asserções.
+# a não ocupar, a mensagem com o dia e as duas horas, e os controlos negativos. 65 asserções.
 !experimentos/provar-a-ocupacao.js
+
+# AS FAIXAS NA TELA (25/11/2026). O modelo da faixa horária já estava feito e provado; faltava o
+# CAMINHO até ele. «Eu pego um botão de mais, botão de mais. Aí eu tenho ali segunda, quarta e sexta
+# das 10 às 11, é outra atividade. […] Depois eu preciso poder listar isso lá em turma, quando eu
+# monto a turma, para saber em qual espaço vai ser ocupado de faixa horária.» A prova mede o «+» a
+# clonar sem arrastar os ids da primeira faixa, o «×» a tirar e a renumerar sem tirar a última, a
+# leitura POR BLOCO (os dias de uma faixa não entram na outra), e a Turma a só perguntar a faixa
+# quando há mais de uma. 51 asserções.
+!experimentos/provar-as-faixas-na-tela.js
 
 # O FINANCEIRO QUE FICA (23/11/2026, à tarde). A regra de 17/11 era o contrário — expurgar a escola
 # levava as mensalidades dela —, e ela corrigiu: «A parte financeira não pode expurgar, ela fica

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-24T21:06:21-0300`
-Commit atual: `1c8bf816` — feat(estrutura): a ocupação entra nas rotas — e o modelo que falta nela
+Gerado em: `2026-11-24T21:26:00-0300`
+Commit atual: `90879840` — feat(estrutura): a sala ganha faixas — N aulas por dia, N modalidades, N professores
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+90879840 feat(estrutura): a sala ganha faixas — N aulas por dia, N modalidades, N professores
 1c8bf816 feat(estrutura): a ocupação entra nas rotas — e o modelo que falta nela
 b9071ef4 feat(estrutura): a regra da ocupação — sala, professor e elenco — com as quatro decisões dela
 dfbaf973 docs(estrutura): o custo por aula é 3 minutos medidos, o contador custa zero, e a regra da sala recusa o que ela pediu
@@ -101,7 +102,6 @@ ad7d1c8a docs(estrutura): escada 130/320/500 com dólar a R$ 6, e a margem não 
 726a0653 feat(entrega): a minificação do que vai ao browser — 545 KB viram 200
 8c5645c3 chore(experimentos): vinte e nove provas apagadas — as que mediam o que já não existe
 4b08d9ff feat(estrutura): a página revalida depressa, o asset fica em cache
-10f5c242 feat(estrutura): a árvore do repositório pede-se uma vez por commit
 ```
 
 ## Por professor
@@ -195,60 +195,48 @@ ad7d1c8a docs(estrutura): escada 130/320/500 com dólar a R$ 6, e a margem não 
 
 ## Última entrada do REGISTRO
 
-## 25/11/2026 — A sala ganha faixas horárias: N aulas por dia, N modalidades, N professores
+## 25/11/2026 — O «+» da faixa chega à tela: o modelo que existia no servidor passa a existir para quem usa
 
-**A correcção dela veio antes do código, e a linha errada era a minha.** A tabela dos cenários que
-apresentei dizia «mesma sala, mesmo dia, horas que não se tocam → **recusa**». **A regra sempre
-permitiu** — o caso está em `provar-a-ocupacao.js` desde o primeiro dia: «O CASO DELA: 14h e 16h na
-mesma sala, no mesmo dia → NÃO colidem». O que eu descrevi como recusa era o **modelo**: a Sala
-declarava uma hora por dia, e duas turmas no mesmo registo ficavam com a mesma hora. Confundir a regra
-com o modelo na mesma linha de tabela custou uma ronda inteira.
+**O que faltava não era a regra — era o caminho até ela.** As faixas horárias estavam feitas e
+provadas (`provar-a-ocupacao` 65, `provar-mudanca-de-sala` 58), e continuavam inalcançáveis: não havia
+botão que criasse a segunda faixa nem campo que a escolhesse. Uma funcionalidade que só existe na API
+não existe para a escola.
 
-**A outra linha, a 10, era a chave do resto.** Eu escrevi «o professor é declarado na curadoria *ou*
-na sala, os dois contam». Medido: desde 18/11/2026 a Turma **deriva** o professor e a modalidade **da
-Sala** (`bastidores.js:28165`, `faltaNaSalaParaATurma`). Não são duas fontes: é uma, com uma cópia
-antiga que pode ter derivado.
+**Na aba Salas.** O «+ Acrescentar faixa horária» clona a faixa 1 e **limpa-lhe os `id`**: dois
+elementos com o mesmo nome no documento é o defeito que aparece longe da causa. O `data-faixa` novo é
+`f<n>` a partir de um contador que só cresce — reutilizar o número apontaria a Turma de uma faixa
+apagada para a que tomou o lugar dela. O «×» tira, renumera («Faixa 1, Faixa 3» não pode acontecer) e
+**não tira a última**: uma sala sem faixa não tem ritmo, e o ritmo é o que a Turma escolhe.
 
-**O que a frase dela obrigou, e é mais do que eu tinha proposto.** «A sala do piano […] ali pode
-acontecer N aulas durante o dia e de N modalidades, de N professores, com N elencos.» Com o par
-(professor, modalidade) na **Sala**, a sala do piano só podia ter **uma** modalidade o dia inteiro.
-Logo o par desce para a **faixa** — e o período com ele, senão o termo seguinte na mesma sala obrigava
-a duplicar a sala, que é o problema de agora uma dimensão ao lado. Ela confirmou os dois.
+**A faixa 1 manteve os `id` de sempre** (`tdias`, `tduracao`, `tinicio`, `tfim`). Não é preguiça: há
+leitores na página que os procuram, e renomeá-los obrigaria a mudá-los todos de uma vez. O clone é
+lido pelas classes; o primeiro continua a ser lido pelo id.
 
-**O que ficou feito.** `faixasDaSala` lê a Sala como uma lista de faixas, e uma Sala que ainda declara
-o ritmo na raiz — **todas as que existem** — vale como uma faixa só: nenhum registo se toca.
-`normalizarFaixas` grava as faixas e `espelharFaixa1NaRaiz` põe a faixa 1 na raiz, para o calendário,
-o plano e as provas continuarem a ler o ritmo sem saber que as faixas existem. `faixaEscolhida` diz
-qual a Turma ocupa, e recusa-se a adivinhar quando a sala tem mais de uma: escolher a primeira poria a
-Turma a ocupar o horário errado em silêncio.
+**Na Turma.** O campo «Faixa horária desta Turma» só aparece quando a sala tem mais de uma. Com uma
+faixa não há pergunta a fazer, e um campo que se mostra para não oferecer escolha ensina a ignorar
+campos. O rótulo de cada opção diz os dias, as duas horas e o par — «seg · 09:00–10:00 · Balé
+clássico · pe-torto» —, porque a escolha entre «f1» e «f2» não diz nada.
 
-**O buraco do fluxo, medido.** A edição da Sala já corria a cadeia, mas a cadeia relê o ritmo e deriva
-o plano — **não conferia a ocupação**. Mudar a hora de uma sala com duas turmas podia criar uma
-colisão **em silêncio**, e o conflito só apareceria quando alguém voltasse a mexer numa delas.
-`conflitosQueASalaCriaria` compara as turmas entre si com a sala nova, e as duas rotas da sala
-recusam com 409 **no gesto**, no ecrã onde ele aconteceu — que é o que ela pediu.
+**O erro de âmbito, e foram dois.** `marcados("dia")` e `horariosDoDia()` varrem o documento inteiro:
+com duas faixas devolveriam os dias de todas, e a faixa 1 ficaria com os dias da 2. A leitura passou a
+ser **por bloco** (`faixasDoFormulario`), e a `sincronizarHoras` passou a receber o bloco — sem isso,
+um dia marcado na faixa 1 acendia a hora da faixa 2, onde ele não está. É o defeito que a regra de
+16/10 existe para impedir, a reaparecer por âmbito. A prova mede-o à letra.
 
-**E as mensagens deixaram de sugerir.** «Mude a hora ou o dia de uma delas» saiu das três frases:
-«a gente não vai dar sugestão de como resolver nada. Resolver esses conflitos é papel do usuário e não
-nosso.» O facto fica; o caminho é de quem usa. Quatro asserções mediam a sugestão e passaram a medir a
-**ausência** dela — inverteram de sentido, e é isso que as torna úteis.
+**Um defeito meu, apanhado pela prova:** quando o «×» recusava tirar a última faixa, saía sem
+renumerar — e o botão ficava à vista numa sala de uma faixa só. Pôr o `renumerarFaixas()` no caminho da
+recusa fechou-o.
 
-**Três defeitos meus, apanhados pelas provas, e os três da mesma família** — o campo novo que não
-chega a quem o lê: (1) a guarda da Turma era chamada com um objecto construído à mão que não levava
-`faixa`, e a sala com duas respondia «é preciso dizer qual» a um pedido que já a tinha dito; (2)
-`faixas` ficou fora de `CAMPOS_DO_FORMULARIO`, e a **derivação da sala descartava** as faixas que o
-formulário mandava — o elo novo nascia com o ritmo velho, sem erro nenhum; (3) o período da faixa
-vazia **apagava** o período da raiz no espelho. Nenhum destes aparecia a ler o código: os três
-apareceram a correr a rota verdadeira.
+**O que NÃO está feito, e fica dito:** o par (modalidade, professor) continua a ser **um por sala**,
+escolhido no «Associar», e cada faixa herda-o. O modelo guarda-o por faixa e a regra lê-o por faixa,
+mas a tela ainda não o pergunta por faixa — uma sala com balé às 9h e jazz às 10h tem, por agora, o
+mesmo docente nas duas. É o passo 10 de `PLANO-DE-OCUPACAO.md` §9.5.
 
-**O que falta, e é só um passo.** A **tela**: o botão «+» que cria a segunda faixa na Sala, e o campo
-que a escolhe na Turma. O modelo, as rotas e as provas estão fechados — `provar-a-ocupacao` **65**,
-`provar-mudanca-de-sala` **58**, suite **185/280 com 0 regressões** —, mas sem os dois botões a
-funcionalidade não é alcançável por quem usa, e dizê-lo ao contrário seria vender o que não está feito.
-
-**Onde entrou.** `motor/nucleo/ocupacao.js` (`faixasDaSala`, `faixaEscolhida`, `intervalosDaFaixa`,
-`rotuloDaFaixa`, `motivoDaFaixaEmFalta`, e as três mensagens sem sugestão), `motor/servidor/bastidores.js` (`normalizarFaixas`, `espelharFaixa1NaRaiz`, `conflitosQueASalaCriaria`, `faixa` na
-curadoria e nas duas rotas da sala, `faixas` em `CAMPOS_DO_FORMULARIO`), `experimentos/provar-a-ocupacao.js` (secção I e as duas da mensagem), `experimentos/provar-mudanca-de-sala.js` (secções G e H), `PLANO-DE-OCUPACAO.md` (§9), `ESTADO-ATUAL.md`, `HANDOFF.md`.
+**Onde entrou.** `motor/servidor/bastidores.js` (o bloco `.bloco-faixa` e o «+» na aba Salas;
+`faixasDoFormulario`, `maisFaixa`, `tirarFaixa`, `renumerarFaixas`; `sincronizarHoras` com âmbito;
+o bloco `#cu-faixa-bloco` e `pintarFaixasDaSala` na Turma; a `faixa` no corpo e na validação),
+`experimentos/provar-as-faixas-na-tela.js` (novo, **51**), `.gitignore`, `PLANO-DE-OCUPACAO.md` §9.5,
+`ESTADO-ATUAL.md`, `HANDOFF.md`.
 
 ## O que está pendente
 

@@ -8880,6 +8880,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.bloco-assoc{border:1px solid var(--borda-campo);border-radius:var(--raio-2);' +
     'padding:.7rem .8rem .8rem;margin:0 0 1rem;min-width:0;}' +
     '.bloco-assoc>legend{padding:0 .4rem;font:700 .82rem/1.3 var(--ui);color:var(--marca-texto);}' +
+    /* A FAIXA HORÁRIA DE UMA SALA (25/11/2026) — a MESMA PEÇA do bloco de associação, e é de
+     * propósito: as duas são um grupo de controles com título, e o desenho já estava decidido.
+     * Nenhuma classe nova de forma: `.bloco-faixa` é gancho de JavaScript — é por ele que o «+»
+     * encontra o bloco a clonar e o «×» encontra o bloco a tirar. O que se acrescenta é só a
+     * linha do título com o botão de tirar ao lado, e o par de datas que passa a dividir a linha. */
+    '.bloco-faixa{border:1px solid var(--borda-campo);border-radius:var(--raio-2);' +
+    'padding:.7rem .8rem .8rem;margin:0 0 .8rem;min-width:0;}' +
+    '.bloco-faixa>legend{padding:0 .4rem;font:700 .82rem/1.3 var(--ui);color:var(--marca-texto);}' +
+    '.bloco-faixa .par-datas{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;}' +
+    '.bloco-faixa .par-datas>div{min-width:0;}' +
+    '.faixas-mais{margin:0 0 1rem;}' +
+    '.bloco-faixa .faixa-duracao{max-width:12rem;}' +
+    '.bloco-faixa .faixa-inicio,.bloco-faixa .faixa-fim{width:100%;}' +
     // O CHIP DO FORMULÁRIO. Ele é desta camada porque só aqui existe: os chips do painel do
     // cartão passaram a `.trio-chips span` (na folha), e uma regra só para cada contexto é
     // melhor do que duas a competir pelo mesmo `<span>`.
@@ -9934,6 +9947,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // Agora a frequência não se digita: ela é a CONTAGEM dos dias marcados, mostrada aqui
     // como leitura. O campo continua no JSON (`frequencia`), porque o plano e a listagem o
     // leem — o que saiu foi a pergunta, não o dado.
+    /* A SALA PODE TER MAIS DO QUE UMA AULA POR DIA (25/11/2026) — e é aqui que ela as declara.
+     *
+     * «A sala do piano […] ali pode acontecer N aulas durante o dia e de N modalidades, de N
+     * professores, com N elencos.» Cada bloco desta lista é uma FAIXA: os dias com a hora de cada
+     * um, a duração (que dá a hora final), e o período. A Turma escolhe uma, e é a escolha dela que
+     * a ocupação confere — sem isso, a Turma das 9h seria tida por ocupante também às 11h.
+     *
+     * A FAIXA 1 MANTÉM OS `id` DE SEMPRE (`tdias`, `tduracao`, `tinicio`, `tfim`). Não é preguiça:
+     * há leitores na página que procuram esses ids, e uma renomeação obrigaria a mudá-los todos de
+     * uma vez. O «+» clona este bloco e LIMPA os ids do clone, para não haver dois elementos com o
+     * mesmo nome no documento — o clone é lido pelas classes, e o primeiro continua a ser lido pelo
+     * id. */
+    '<div id="tfaixas">' +
+    '<fieldset class="bloco-faixa" id="t-faixa-1" data-faixa="f1">' +
+    '<legend>Faixa horária 1</legend>' +
     '<label class="campo-rotulo">Dias da semana e a hora de início de cada um</label>' +
     '<div class="escolhas" id="tdias">' + DIAS_DA_SEMANA.map((d) =>
       '<span class="dia-hora">' + pilula('dia', d, esc(d)) +
@@ -9944,16 +9972,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A frequência continua a existir no JSON e a aparecer na listagem e no plano; o que saiu
     // foi a pergunta. Quem quiser saber o valor lê no cartão da turma.
     '<label class="campo-rotulo" for="tduracao">Duração de cada aula (minutos)</label>' +
-    '<input id="tduracao" name="duracaoMin" type="number" min="5" step="5" autocomplete="off" placeholder="ex.: 60">' +
+    '<input id="tduracao" class="faixa-duracao" name="duracaoMin" type="number" min="5" step="5" autocomplete="off" placeholder="ex.: 60">' +
     // OS CONTEÚDOS SAÍRAM DAQUI (18/10/2026). Estavam neste formulário, abaixo da duração, e
     // o lugar estava errado por uma razão de facto: só se associa conteúdo a uma turma que
     // JÁ EXISTE. Aqui a turma ainda está a nascer — em «cadastrar» não há id, e em «derivar»
     // o id à mão é o da turma antiga. Foram para o passo 3, «Associar», que é o passo em que
     // a turma já existe e recebe a régua e os conteúdos.
-    '<label class="campo-rotulo" for="tinicio">Início do período (termo)</label>' +
-    '<input id="tinicio" name="periodoInicio" type="date" autocomplete="off">' +
-    '<label class="campo-rotulo" for="tfim">Fim do período (termo)</label>' +
-    '<input id="tfim" name="periodoFim" type="date" autocomplete="off">' +
+    '<div class="par-datas">' +
+    '<div><label class="campo-rotulo" for="tinicio">Início do período (termo)</label>' +
+    '<input id="tinicio" class="faixa-inicio" name="periodoInicio" type="date" autocomplete="off"></div>' +
+    '<div><label class="campo-rotulo" for="tfim">Fim do período (termo)</label>' +
+    '<input id="tfim" class="faixa-fim" name="periodoFim" type="date" autocomplete="off"></div>' +
+    '</div>' +
+    /* `data-tirar-faixa` E NÃO UMA CLASSE. A checagem 8 mede classes emitidas em marcação, e uma
+     * classe nova exigiria uma regra na folha ou um gancho declarado — em `tools/`, que é congelado.
+     * O atributo diz o mesmo ao script e não pede desenho nenhum: quem pinta o botão é `.acao`. */
+    '<button type="button" class="acao secundario" data-tirar-faixa hidden>× Tirar esta faixa</button>' +
+    '</fieldset>' +
+    '</div>' +
+    '<p class="faixas-mais"><button type="button" class="acao secundario" id="t-mais-faixa">' +
+    '+ Acrescentar faixa horária</button></p>' +
     // «AVANÇAR», E NÃO «CADASTRAR TURMA» (18/10/2026). A turma é o primeiro de três passos, e
     // o botão diz o que vai acontecer: o registo é gravado E passa-se ao passo seguinte. O
     // «cadastrar» descrevia o ato isolado — e era o que fazia esta secção parecer três coisas
@@ -10815,6 +10853,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * Sem eles, a sala seria uma escolha às cegas: a lista mostra o nome, e o nome de uma sala
      * não diz a modalidade nem o professor. */
     '<p class="sub" id="cu-da-sala">—</p>' +
+    /* A FAIXA HORÁRIA DESTA TURMA (25/11/2026) — a segunda metade do «+» da aba Salas.
+     *
+     * «Eu preciso poder listar isso lá em turma, quando eu monto a turma, para saber em qual espaço
+     * vai ser ocupado de faixa horária.» Uma sala pode ter N aulas por dia; a Turma diz qual delas
+     * ocupa, e é essa que a ocupação confere.
+     *
+     * O BLOCO NASCE ESCONDIDO, e só aparece quando a sala escolhida tem mais de uma faixa. Com uma
+     * faixa só não há pergunta a fazer — e um campo que se mostra para não oferecer escolha é ruído
+     * que ensina a ignorar campos. */
+    '<div id="cu-faixa-bloco" hidden>' +
+    '<label class="campo-rotulo" for="cufaixa">Faixa horária desta Turma</label>' +
+    '<select id="cufaixa"></select>' +
+    '<p class="sub" id="cu-faixa-nota"></p>' +
+    '</div>' +
     /* O NÍVEL É AQUI, E NÃO NA TURMA (03/11/2026).
      *
      * A eleição dela: «a curadoria passa a ser o núcleo inteligente de gestão pedagógica da
@@ -14711,18 +14763,118 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  });' +
     '  return o;' +
     '}' +
+    /* AS FAIXAS DO FORMULÁRIO (25/11/2026) — uma sala, N aulas por dia.
+     *
+     * A leitura é POR BLOCO, e não pela página: `marcados("dia")` e `horariosDoDia()` varrem o
+     * documento inteiro, e com mais de uma faixa passariam a devolver os dias de todas — a faixa 1
+     * ficaria com os dias da 2. É o mesmo erro de âmbito que a `sincronizarHoras` tinha de evitar.
+     *
+     * Cada bloco devolve o que o servidor grava numa faixa: os dias, a hora de cada um, a duração e
+     * o período. `id` é o do bloco — preservado ao clonar —, e é o que a Turma vai guardar em
+     * `faixa`. Uma faixa sem id (um clone que perdeu o `data-faixa`) não é gravada: inventar-lhe um
+     * daria à Turma uma referência que ninguém escolheu. */
+    'function faixasDoFormulario(){' +
+    '  var blocos = Array.prototype.slice.call(document.querySelectorAll("#tfaixas .bloco-faixa"));' +
+    '  return blocos.map(function(b){' +
+    '    var dias = Array.prototype.slice.call(b.querySelectorAll(\'input[name="dia"]\'))' +
+    '      .filter(function(x){ return x.checked; })' +
+    '      .map(function(x){ return x.value; });' +
+    '    var horarios = {};' +
+    '    Array.prototype.slice.call(b.querySelectorAll(".hora-do-dia")).forEach(function(x){' +
+    '      var d = x.getAttribute("data-dia");' +
+    '      if (d && x.value && !x.disabled && dias.indexOf(d) !== -1) horarios[d] = x.value;' +
+    '    });' +
+    '    var dur = b.querySelector(".faixa-duracao");' +
+    '    var ini = b.querySelector(".faixa-inicio");' +
+    '    var fim = b.querySelector(".faixa-fim");' +
+    '    return {' +
+    '      id: b.getAttribute("data-faixa") || "",' +
+    '      dias: dias,' +
+    '      horarios: horarios,' +
+    '      duracaoMin: dur ? dur.value : "",' +
+    '      periodoInicio: ini ? ini.value : "",' +
+    '      periodoFim: fim ? fim.value : ""' +
+    '    };' +
+    '  });' +
+    '}' +
+    /* O «+» E O «×» DAS FAIXAS (25/11/2026) — o botão que ela descreveu, ao pé do que já existe.
+     *
+     * «Eu pego um botão de mais, botão de mais. Aí eu tenho ali segunda, quarta e sexta das 10 às 11,
+     * é outra atividade.»
+     *
+     * O «+» CLONA a faixa 1 e limpa o clone: os `id` saem todos (dois elementos com o mesmo nome no
+     * documento é o defeito que aparece longe da causa), os valores esvaziam, as pílulas
+     * desmarcam, e o bloco ganha um `data-faixa` novo. As classes ficam — é por elas que a leitura
+     * encontra os campos, e por isso o clone serve sem nenhum HTML novo aqui.
+     *
+     * O NÚMERO É O DA POSIÇÃO, e é recalculado a cada gesto: tirar a faixa do meio não pode deixar
+     * «Faixa 1, Faixa 3». O `id` NÃO é a posição — é `f<n>` a partir de um contador que só cresce —,
+     * porque um id reutilizado apontaria a Turma de uma faixa apagada para a que tomou o lugar dela.
+     */
+    'var FAIXA_SEQ = 1;' +
+    'function renumerarFaixas(){' +
+    '  var blocos = Array.prototype.slice.call(document.querySelectorAll("#tfaixas .bloco-faixa"));' +
+    '  blocos.forEach(function(b, i){' +
+    '    var leg = b.querySelector("legend");' +
+    '    if (leg) leg.textContent = "Faixa horária " + (i + 1);' +
+    '    var tirar = b.querySelector("[data-tirar-faixa]");' +
+    '    if (tirar) tirar.hidden = blocos.length < 2;' +
+    '  });' +
+    '}' +
+    'function maisFaixa(){' +
+    '  var modelo = document.getElementById("t-faixa-1");' +
+    '  var caixa = document.getElementById("tfaixas");' +
+    '  if (!modelo || !caixa) return;' +
+    '  var novo = modelo.cloneNode(true);' +
+    '  Array.prototype.slice.call(novo.querySelectorAll("[id]")).forEach(function(x){' +
+    '    x.removeAttribute("id");' +
+    '  });' +
+    '  Array.prototype.slice.call(novo.querySelectorAll("input")).forEach(function(x){' +
+    '    if (x.type === "checkbox" || x.type === "radio") { x.checked = false; return; }' +
+    '    x.value = "";' +
+    '  });' +
+    '  var leg = novo.querySelector("legend");' +
+    '  if (leg) leg.removeAttribute("id");' +
+    '  FAIXA_SEQ += 1;' +
+    '  novo.setAttribute("data-faixa", "f" + FAIXA_SEQ);' +
+    '  caixa.appendChild(novo);' +
+    '  sincronizarHoras(novo);' +
+    '  renumerarFaixas();' +
+    '}' +
+    'function tirarFaixa(botao){' +
+    '  var bloco = botao && botao.closest ? botao.closest(".bloco-faixa") : null;' +
+    '  if (!bloco) return;' +
+    '  var todos = document.querySelectorAll("#tfaixas .bloco-faixa");' +
+    '  if (todos.length < 2) { renumerarFaixas(); return; }' +
+    '  bloco.parentNode.removeChild(bloco);' +
+    '  renumerarFaixas();' +
+    '}' +
+    'document.addEventListener("click", function(e){' +
+    '  var alvo = e.target;' +
+    '  if (!alvo || !alvo.closest) return;' +
+    '  if (alvo.closest("#t-mais-faixa")) { e.preventDefault(); maisFaixa(); return; }' +
+    '  var tirar = alvo.closest("[data-tirar-faixa]");' +
+    '  if (tirar) { e.preventDefault(); tirarFaixa(tirar); }' +
+    '});' +
+    'renumerarFaixas();' +
     // A HORA SÓ SE HABILITA PARA O DIA ESCOLHIDO (16/10/2026), e desescolher LIMPA o campo.
     // Sem isto, o horário de um dia fica escrito ao lado de uma pílula apagada — poluído, e
     // a sugerir uma aula que não existe.
-    'function diaEstaMarcado(d) {' +
+    /* O ÂMBITO É A FAIXA, E NÃO O DOCUMENTO (25/11/2026). Com uma faixa só davam o mesmo; com duas,
+     * a pergunta «o dia «ter» está marcado?» respondia pelo documento inteiro — e um dia marcado na
+     * faixa 1 habilitava a hora da faixa 2, onde ele não está. É o defeito que a regra de 16/10
+     * existe para impedir, a reaparecer por âmbito. */
+    'function diaEstaMarcado(d, escopo) {' +
     '  if (!document.querySelector) return true;' +
-    '  var p = document.querySelector("input[name=\\"dia\\"][value=\\"" + d + "\\"]");' +
+    '  var raiz = escopo || document;' +
+    '  var p = raiz.querySelector("input[name=\\"dia\\"][value=\\"" + d + "\\"]");' +
     '  return !!(p && p.checked);' +
     '}' +
-    'function sincronizarHoras() {' +
-    '  Array.prototype.slice.call(document.querySelectorAll(".hora-do-dia")).forEach(function(x){' +
+    'function sincronizarHoras(escopo) {' +
+    '  var raiz = escopo || document;' +
+    '  Array.prototype.slice.call(raiz.querySelectorAll(".hora-do-dia")).forEach(function(x){' +
     '    var d = x.getAttribute("data-dia");' +
-    '    var marcado = diaEstaMarcado(d);' +
+    '    var marcado = diaEstaMarcado(d, raiz);' +
     '    x.disabled = !marcado;' +
     '    if (!marcado) x.value = "";' +
     '  });' +
@@ -14737,7 +14889,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // mesma limpeza que o `<select>` da posição sofreu a 02/11.
     'document.addEventListener("change", function(e){' +
     '  var alvo = e.target;' +
-    '  if (alvo && alvo.name === "dia") sincronizarHoras();' +
+    '  if (!alvo || alvo.name !== "dia") return;' +
+    '  var bloco = alvo.closest ? alvo.closest(".bloco-faixa") : null;' +
+    '  sincronizarHoras(bloco);' +
     '});' +
     // No arranque, o formulário nasce com as sete horas desabilitadas — nenhum dia escolhido.
     'sincronizarHoras();' +
@@ -15254,12 +15408,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // passo que pertence — vai no corpo do «Gravar sala», ao lado do professor.
     //
     // A frequência NÃO se envia: o servidor a calcula a partir dos dias.
-    '      dias: marcados("dia"),' +
-    '      horarios: horariosDoDia(),' +
-    '      duracaoMin: document.getElementById("tduracao").value,' +
-    '      periodoInicio: document.getElementById("tinicio").value,' +
-    '      periodoFim: document.getElementById("tfim").value' +
-    '    }' +
+    '      faixas: faixasDoFormulario(),' +
+    '      dias: (faixasDoFormulario()[0] || {}).dias || [],' +
+    '      horarios: (faixasDoFormulario()[0] || {}).horarios || {},' +
+    '      duracaoMin: (faixasDoFormulario()[0] || {}).duracaoMin || "",' +
+    '      periodoInicio: (faixasDoFormulario()[0] || {}).periodoInicio || "",' +
+    '      periodoFim: (faixasDoFormulario()[0] || {}).periodoFim || ""' +
+                    '    }' +
     '  };' +
     '}' +
     /* «GRAVAR SALA» GRAVA A SALA INTEIRA (19/11/2026) — e é o ÚNICO gesto que a grava.
@@ -16742,16 +16897,91 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      *
      * O GRAU É REpINTADO DEPOIS, e não antes: `pintarGraus` lê `TRADICAO_DA_SALA`, e pintá-lo com
      * o valor de ontem daria a lista do professor anterior. */
+    /* AS FAIXAS DA SALA ESCOLHIDA (25/11/2026) — a lista que a Turma escolhe.
+     *
+     * A SALA ANTIGA VALE COMO UMA FAIXA, e a regra é a mesma do servidor (`faixasDaSala`): quando
+     * `faixas` não existe ou está vazia, o ritmo da raiz é a faixa única. Repetir a regra aqui é
+     * deliberado — a tela pede o que o servidor vai conferir, e as duas têm de concordar sobre
+     * quantas faixas há, senão o formulário pede uma escolha que a rotina não conhece.
+     *
+     * O RÓTULO DIZ O QUE DECIDE: os dias, a hora de entrada e a de saída (que sai da duração), e o
+     * par quando a faixa o declara. Sem isso a escolha é entre «f1» e «f2», que não diz nada. */
+    'function faixasDaSalaNoCliente(t){' +
+    '  if (!t) return [];' +
+    '  var cruas = Array.isArray(t.faixas) ? t.faixas.filter(function(f){ return f && typeof f === "object"; }) : [];' +
+    '  if (cruas.length) return cruas;' +
+    '  return [{id: "", dias: Array.isArray(t.dias) ? t.dias : [], horarios: t.horarios || {},' +
+    '    duracaoMin: t.duracaoMin, periodoInicio: t.periodoInicio, periodoFim: t.periodoFim,' +
+    '    modalidade: t.modalidade, professor: t.professor}];' +
+    '}' +
+    'function minutosDaHora(h){' +
+    '  var m = /^([01][0-9]|2[0-3]):([0-5][0-9])$/.exec(String(h == null ? "" : h).trim());' +
+    '  if (!m) return null;' +
+    '  return Number(m[1]) * 60 + Number(m[2]);' +
+    '}' +
+    'function horaDeMinutos(n){' +
+    '  var x = Math.max(0, Math.round(Number(n) || 0));' +
+    '  return ("0" + (Math.floor(x / 60) % 24)).slice(-2) + ":" + ("0" + (x % 60)).slice(-2);' +
+    '}' +
+    'function rotuloDeFaixa(f){' +
+    '  var dias = Array.isArray(f.dias) ? f.dias : [];' +
+    '  var dur = Number(f.duracaoMin);' +
+    '  var horas = [];' +
+    '  for (var i = 0; i < dias.length; i++) {' +
+    '    var h = (f.horarios || {})[dias[i]];' +
+    '    if (h) horas.push(h);' +
+    '  }' +
+    '  horas.sort();' +
+    '  var partes = [];' +
+    '  if (dias.length) partes.push(dias.join(", "));' +
+    '  if (horas.length && dur > 0) {' +
+    '    var ini = minutosDaHora(horas[0]);' +
+    '    partes.push(horaDeMinutos(ini) + "–" + horaDeMinutos(ini + dur));' +
+    '  } else if (horas.length) {' +
+    '    partes.push(horas[0]);' +
+    '  }' +
+    '  if (f.modalidade) partes.push(String(f.modalidade));' +
+    '  if (f.professor) partes.push(String(f.professor));' +
+    '  return partes.join(" · ") || "faixa sem ritmo";' +
+    '}' +
+    'function pintarFaixasDaSala(t){' +
+    '  var bloco = document.getElementById("cu-faixa-bloco");' +
+    '  var sel = document.getElementById("cufaixa");' +
+    '  var nota = document.getElementById("cu-faixa-nota");' +
+    '  if (!bloco || !sel) return;' +
+    '  var faixas = faixasDaSalaNoCliente(t);' +
+    '  var antes = String(sel.value || "");' +
+    '  if (faixas.length < 2) {' +
+    '    bloco.hidden = true;' +
+    '    sel.innerHTML = "";' +
+    '    if (nota) nota.textContent = "";' +
+    '    return;' +
+    '  }' +
+    '  var partes = ["<option value=\u0027\u0027>— escolher a faixa —</option>"];' +
+    '  for (var i = 0; i < faixas.length; i++) {' +
+    '    var f = faixas[i];' +
+    '    partes.push("<option value=\u0027" + String(f.id || "") + "\u0027>" + rotuloDeFaixa(f) + "</option>");' +
+    '  }' +
+    '  sel.innerHTML = partes.join("");' +
+    '  var aindaVale = false;' +
+    '  for (var j = 0; j < faixas.length; j++) { if (String(faixas[j].id || "") === antes) aindaVale = true; }' +
+    '  sel.value = aindaVale ? antes : "";' +
+    '  bloco.hidden = false;' +
+    '  if (nota) nota.textContent = "Esta sala tem " + faixas.length + " faixas horárias. A Turma ocupa uma.";' +
+    '}' +
     'function pintarDaSala(){' +
     '  if (!temTela()) return;' +
     '  var alvo = document.getElementById("cu-da-sala");' +
     '  var sel = document.getElementById("cuturma");' +
     '  if (!alvo || !sel) return;' +
     '  var nome = String(sel.value || "");' +
-    '  if (!nome) { alvo.textContent = "— escolha a sala para ver quem a dá e em que tradição."; TRADICAO_DA_SALA = ""; pintarGraus(""); return; }' +
+    '  if (!nome) { alvo.textContent = "— escolha a sala para ver quem a dá e em que tradição."; TRADICAO_DA_SALA = ""; pintarGraus(""); pintarFaixasDaSala(null); return; }' +
     '  var t = null;' +
     '  for (var i = 0; i < TURMAS.length; i++) { if (TURMAS[i] && TURMAS[i].nome === nome) t = TURMAS[i]; }' +
-    '  if (!t) { alvo.textContent = "sala não encontrada nesta escola"; TRADICAO_DA_SALA = ""; pintarGraus(""); return; }' +
+    '  if (!t) { alvo.textContent = "sala não encontrada nesta escola"; TRADICAO_DA_SALA = ""; pintarGraus(""); pintarFaixasDaSala(null); return; }' +
+    /* AS FAIXAS SÃO PINTADAS ANTES DO RESTO, e não no fim: a nota da faixa é parte da escolha da
+     * sala, e quem abre uma sala de três faixas tem de a ver já, não depois de o perfil chegar. */
+    '  pintarFaixasDaSala(t);' +
     '  var mod = String(t.modalidade || "");' +
     '  var prof = String(t.professor || "");' +
     '  if (!prof && !mod) {' +
@@ -21184,6 +21414,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
      * não tem onde dar, a receita para um formulário que nunca envia. */
     '  var faltando = [];' +
     '  if (!umaTurma) faltando.push("a sala");' +
+    '  var blocoFaixa = document.getElementById("cu-faixa-bloco");' +
+    '  var selFaixa = document.getElementById("cufaixa");' +
+    '  if (blocoFaixa && !blocoFaixa.hidden && selFaixa && !String(selFaixa.value || "").trim()) {' +
+    '    faltando.push("a faixa horária");' +
+    '  }' +
     '  if (!umElenco && ELENCOS.length) faltando.push("o elenco");' +
     '  if (faltando.length) {' +
     '    alert("A turma não se atribui incompleta — falta " + faltando.join(", ") + ". " +' +
@@ -21203,6 +21438,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    grau: document.getElementById("cugrau").value,' +
     '    nivel: document.getElementById("cunivel").value,' +
     '    turmas: umaTurma ? [umaTurma] : [],' +
+    // A FAIXA DA SALA QUE ESTA TURMA OCUPA (25/11/2026). Vai sempre, mesmo vazia: o servidor
+    // distingue «não escolhi» de «a sala não tem faixas», e a recusa por falta dela é dele.
+    '    faixa: (document.getElementById("cufaixa") || {}).value || "",' +
     // O ELENCO VAI NO CORPO (07/11/2026). É a associação que a Turma declara: a sala recebe
     // este corpo. Vai sempre, mesmo vazio — o servidor distingue «não trouxe» de «retirou».
     '    linhaDeBase: umElenco,' +
