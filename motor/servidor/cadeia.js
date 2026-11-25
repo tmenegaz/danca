@@ -425,14 +425,23 @@ function criarCadeia({
     return String((sala && sala.professor) || (curadoria && curadoria.professor) || '').trim();
   }
 
-  async function ritmoDaSala(turma) {
+  /**
+   * O RITMO DE HOJE, DA FAIXA QUE A TURMA OCUPA (25/11/2026) — e não da raiz da Sala.
+   *
+   * A raiz é o espelho da faixa 1. Uma Turma que ocupa a faixa 2 tem outros dias, outra hora e
+   * outra duração, e ler a raiz dizia que o ritmo não mudou quando mudou — e descrevia no plano um
+   * ritmo que aquela Turma não tem. A projecção é a mesma do `.conf` (`salaEfetiva`), e é de
+   * propósito: uma segunda forma de ler o ritmo divergiria da primeira, e a divergência apareceria
+   * como um documento gerado com o valor errado.
+   */
+  async function ritmoDaSala(turma, faixa) {
     const nome = String(turma || '').trim();
     if (!nome || typeof lerTurmas !== 'function') return null;
     try {
       const lista = await lerTurmas(escola);
       const sala = acharTurma(lista, nome);
       if (!sala) return null;
-      const respostas = respostasDoRitmo(sala);
+      const respostas = respostasDoRitmo(sala, faixa);
       return Object.keys(respostas).length ? respostas : null;
     } catch (erro) {
       return null;
@@ -455,7 +464,8 @@ function criarCadeia({
       return { ok: false, autoria: true, erro: fraseDaAutoria(anterior, curadoria, sala) };
     }
     const respostas = JSON.parse(JSON.stringify((anterior && anterior.respostas) || {}));
-    const ritmo = await ritmoDaSala(turma);
+    /* A FAIXA VEM DA CURADORIA (25/11/2026): é ela que diz qual das aulas daquela sala é esta. */
+    const ritmo = await ritmoDaSala(turma, curadoria && curadoria.faixa);
     if (ritmo) Object.assign(respostas, ritmo);
     /* A DISTRIBUIÇÃO POR BLOCO, REESCALONADA PELA DECISÃO DO PROFESSOR (20/11/2026).
      *
@@ -898,7 +908,9 @@ function criarCadeia({
        * `respostasDoRitmo` é a MESMA função que a derivação usa para reler o cadastro
        * (`derivarPlano` → `ritmoDaSala`). Uma segunda forma de ler o ritmo divergiria da
        * primeira, e a divergência apareceria como um elo derivado com o valor errado. */
-      ritmo: respostasDoRitmo(sala),
+      /* A FAIXA DA CURADORIA, PARA O RITMO SER O DESTA TURMA (25/11/2026) — e a projecção é feita
+       * dentro de `respostasDoRitmo`, para a leitura ser uma só em toda a cadeia. */
+      ritmo: respostasDoRitmo(sala, curadoria && curadoria.faixa),
       /* O CONTEÚDO DA TURMA VAI COM O ESTADO (20/11/2026) — e é o que faz a DECLARAÇÃO do objetivo
        * chegar ao papel.
        *

@@ -2751,3 +2751,57 @@ custo   = (c·a − 2 000) × 0,006 × 6              acima disso
 margem às nove escolas cheias é **74,6 %**, e sobe a **85,7 %** quando o `derivados.yml` deixar de
 observar o pacote. **Não há prejuízo em nenhum cenário plausível** — o zero continua a exigir um
 parque muito acima do que a operação real produz, e a factura de Novembro fechou em **$0,00**.
+
+---
+
+## 21. O custo da sala com faixas horárias — medido a 25/11/2026
+
+**A pergunta dela:** «Essa solução que nós fizemos agora com a sala de aula, que tem horário, que a
+gente ajustou, que ficou orgânica, agora ficou de fato como é no mundo real. Aumentou os nossos
+custos. Precisa verificar isso também.»
+
+**A resposta curta: aumentou, e não é uma regressão — é o modelo a passar a reflectir a realidade.**
+Antes, uma sala só podia hospedar **uma** Turma; agora hospeda N. E o custo é exactamente o das N.
+
+### 21.1 O que foi medido
+
+| medida | antes das faixas | com as faixas | como se mediu |
+|:--|--:|--:|:--|
+| **alvos** da cadeia por alteração de Sala | 1 | **N** (N = Turmas na sala) | `criarCadeia` com uma sala de 1, 2 e 3 Turmas → **1, 2, 3 alvos** |
+| pedidos de `/api/bastidores/perfil` ao abrir a Turma | 3 | **5** (com 3 faixas e 3 professores) | jsdom, contando `fetch`; sem a cache de `PERFIS` seriam **9** |
+| duração e dias no `.conf` do ciclo | raiz (faixa 1) | **a faixa escolhida** | `provar-o-plano-da-faixa` |
+
+**Um alvo = um plano + um PO + um pacote.** É a unidade de custo da cadeia, e ela é a mesma de
+sempre: o que mudou é que uma sala com três aulas por dia tem **três** alvos, e não um.
+
+### 21.2 Porque é que isto não é a conta a crescer sozinha
+
+**O custo por aula não mudou.** A margem de 74,6 % (§20) é por ciclo gerado, e um ciclo continua a
+custar o mesmo. O que mudou é o **número de ciclos que uma sala pode ter** — e esse número é a
+estrutura real da escola, não uma escolha do código. Uma sala com três aulas por dia sempre foi três
+aulas; antes o sistema obrigava a mentir (três salas com nomes diferentes para o mesmo espaço), e
+agora não.
+
+**O que impede a factura de disparar sem ninguém ver** é a guarda do ritmo: um alvo cuja faixa não
+mudou fica em `feita` e **não gera** — só é conferido. Medido no código (`cadeia.js`: `ritmoMudou`
+compara as respostas de hoje com as do documento), e é por isso que a correcção desta data importa
+duas vezes: sem ela a guarda lia a raiz, **nunca** via a mudança de faixa, e um plano velho ficava
+velho em silêncio, sem nem gerar nem avisar.
+
+### 21.3 Onde o custo aparece de facto
+
+1. **N alterações de Sala.** Mudar a hora de uma sala com três Turmas percorre **três** alvos. Se a
+   mudança for só numa faixa, os outros dois são conferidos e dados por `feita` — custam a leitura,
+   não a geração.
+2. **N pacotes.** Cada Turma tem o seu ciclo, e cada ciclo o seu pacote. Três aulas por dia na mesma
+   sala são três pacotes, e é o produto a funcionar como deve.
+3. **Um pedido por faixa no browser, e só o primeiro paga.** A cache de `PERFIS` absorve os
+   restantes: medido, 5 pedidos para 3 faixas × 3 professores, contra 9 sem cache.
+
+### 21.4 A conclusão, dita sem enfeite
+
+**A factura sobe na proporção das aulas que a escola realmente dá — e é essa a medida certa.** O que
+não pode acontecer é subir sem que ninguém saiba porquê. A salvaguarda é a que já existe: o
+`/monitoramento` mostra as execuções do mês, e o ponto de migração avisa antes. O que esta data
+acrescenta é a garantia de que **uma faixa que não mudou não gera** — que é o que separa «a escola
+cresceu» de «o sistema trabalha sem necessidade».

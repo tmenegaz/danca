@@ -39,6 +39,7 @@ const { varianteDoContexto } = require('./escrever-po.js');
  * único sítio que a resolve. Antes dela havia cinco cópias da mesma escada `<=60 />60`, e
  * as cinco ficaram para trás à primeira duração nova. */
 const volume = require('../nucleo/volume.js');
+const ocupacao = require('../nucleo/ocupacao.js');
 
 /** Uma hora `HH:MM` válida? A hora é obrigatória: sem ela o prazo não tem de onde contar. */
 function horaValida(h) {
@@ -141,21 +142,26 @@ function linha(chave, valor) {
  * @returns {{texto: string, derivados: object, conflitos: string[], pendencias: string[]}}
  * @throws {Error} quando a turma não tem o que a geração exige (a mensagem nomeia o que falta)
  */
-function comporConf({ turma, plano, identidade, escola, ciclo: numeroDoCiclo, docs }) {
-  const falta = faltasDaTurma(turma);
+function comporConf({ turma, faixa, plano, identidade, escola, ciclo: numeroDoCiclo, docs }) {
+  /* A FAIXA DA TURMA, PROJECTADA NA RAIZ (25/11/2026). O `.conf` é o que o gerador lê — `DURACOES`,
+   * `FREQUENCIA`, a faixa de volume da Regra 9 e o número total de aulas saem todos daqui. Ler a
+   * raiz de uma Sala com duas faixas daria um plano com a duração e os dias da OUTRA faixa, e o
+   * documento sairia medido contra um ritmo que aquela Turma não tem. */
+  const salaDaVez = ocupacao.salaEfetiva(turma, faixa);
+  const falta = faltasDaTurma(salaDaVez);
   if (falta.length) {
     const erro = new Error('a turma não tem o que a geração exige: ' + falta.join('; '));
     erro.falta = falta;
     throw erro;
   }
-  const id = String(turma.id || '').trim();
+  const id = String(salaDaVez.id || '').trim();
   if (!id) throw new Error('a turma não tem id — sem id não há variante');
 
   const ident = identidade || {};
-  const nd = Number(turma.duracaoMin);
-  const total = aulasNoPeriodo(turma);
-  const inicio = ciclo().dataBrasil(turma.periodoInicio);
-  const frequencia = diasConhecidos(turma).length + 'x/semana';
+  const nd = Number(salaDaVez.duracaoMin);
+  const total = aulasNoPeriodo(salaDaVez);
+  const inicio = ciclo().dataBrasil(salaDaVez.periodoInicio);
+  const frequencia = diasConhecidos(salaDaVez).length + 'x/semana';
   /* A VARIANTE É A DO NOME, E NÃO A DO ID (10/11/2026).
    *
    * O DEFEITO QUE ISTO FECHA, e ele estava armado. A variante é a identidade da fonte, e é ela
@@ -188,8 +194,8 @@ function comporConf({ turma, plano, identidade, escola, ciclo: numeroDoCiclo, do
   if (declarado !== null && declarado !== undefined && String(declarado).trim() !== '') {
     if (Number(declarado) !== total) {
       conflitos.push('o plano declara ' + String(declarado).trim() + ' aulas e a turma produz ' +
-        total + ' no período ' + ciclo().dataBrasil(turma.periodoInicio) + ' → ' +
-        ciclo().dataBrasil(turma.periodoFim));
+        total + ' no período ' + ciclo().dataBrasil(salaDaVez.periodoInicio) + ' → ' +
+        ciclo().dataBrasil(salaDaVez.periodoFim));
     }
   }
   /* A DURAÇÃO DO PLANO É COMPOSTA, E JÁ SE COMPARA COMO TAL (20/11/2026).
@@ -383,8 +389,14 @@ function acharTurma(lista, referencia) {
  * não nasce, e a fotografia anterior fica como está — o silêncio não apaga o que o professor já
  * tinha. `totalAulas` é CALCULADO do período × dias, como no `.conf` e no formulário.
  */
-function respostasDoRitmo(turma) {
-  const t = turma || {};
+function respostasDoRitmo(turma, faixaId) {
+  /* A FAIXA QUE A TURMA OCUPA MANDA NO RITMO (25/11/2026) — ver `salaEfetiva`.
+   *
+   * A raiz de uma Sala é o espelho da faixa 1. Uma Turma das 17:00 às 18:10, com 70 minutos em dois
+   * dias, declarava no plano 55 minutos em três — porque este leitor olhava para a raiz. A
+   * projecção da faixa na raiz é o que faz tudo o que já lia `turma.duracaoMin` ler o certo, sem
+   * que nenhum desses leitores saiba que as faixas existem. */
+  const t = ocupacao.salaEfetiva(turma, faixaId);
   const saida = {};
 
   const dias = Array.isArray(t.dias) ? t.dias.filter(Boolean) : [];

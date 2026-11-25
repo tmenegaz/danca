@@ -176,13 +176,35 @@ function docsDoConf(texto) {
  * manifesto da VARIANTE, quando ele já existe — re-eliciar o plano depois de o ciclo ter aulas
  * não pode apagar as fontes que o gerador já escreveu.
  */
-async function comporManifestoDaTurma({ f, cabecalhos, url, caminho, contexto, plano, lerTurmas, ref }) {
+async function comporManifestoDaTurma({ f, cabecalhos, url, caminho, contexto, plano, lerTurmas, lerCuradorias, ref }) {
   const escola = String(contexto.escola || '').trim();
   const referencia = String(contexto.turma || '').trim();
   if (!referencia || typeof lerTurmas !== 'function') return null;
 
   const lista = await lerTurmas(escola);
   const turma = acharTurma(lista, referencia);
+  /* A FAIXA DESTA TURMA (25/11/2026) — resolvida pela CURADORIA, que é quem a declara.
+   *
+   * O `.conf` é o que o gerador lê: `DURACOES`, `FREQUENCIA`, a faixa de volume e o total de
+   * aulas. A raiz da Sala é o espelho da faixa 1, e uma Turma que ocupa a faixa 2 gerava um plano
+   * com a duração e os dias da OUTRA aula daquela sala. Aqui procura-se a curadoria viva do mesmo
+   * professor naquela sala e lê-se a faixa dela. Sem `lerCuradorias` — uma bancada, um adaptador
+   * antigo — fica o comportamento de sempre (a raiz), e é isso que mantém todas as salas de uma
+   * faixa a funcionar sem saber que as faixas existem. */
+  let faixaDaTurma = null;
+  if (turma && typeof lerCuradorias === 'function') {
+    try {
+      const curadorias = await lerCuradorias(escola);
+      const professor = String(contexto.professor || '').trim();
+      const minha = (Array.isArray(curadorias) ? curadorias : []).find((c) => c
+        && !c.substituidaPor && !c.encerrada_em
+        && String((c.turmas || [])[0] || c.turma || '').trim() === referencia
+        && (!professor || String(c.professor || '').trim() === professor));
+      if (minha && minha.faixa) faixaDaTurma = String(minha.faixa);
+    } catch (erro) {
+      faixaDaTurma = null;
+    }
+  }
   if (!turma) {
     return {
       ok: false,
@@ -213,6 +235,7 @@ async function comporManifestoDaTurma({ f, cabecalhos, url, caminho, contexto, p
 
   const atual = await lerDoRepo({ f, url, cabecalhos });  const composto = comporConf({
     turma,
+    faixa: faixaDaTurma,
     plano,
     identidade,
     escola,
@@ -268,7 +291,7 @@ async function comporManifestoDaTurma({ f, cabecalhos, url, caminho, contexto, p
  * elicitada, e `linhasDeContexto` a preserva do próprio manifesto. O `DOCS` só é ligado quando
  * está vazio.
  */
-async function atualizarManifesto({ token, dono, repo, ref, contexto, plano, fetchImpl, lerTurmas }) {
+async function atualizarManifesto({ token, dono, repo, ref, contexto, plano, fetchImpl, lerTurmas, lerCuradorias }) {
   if (!token) return { ok: false, erro: 'sem token' };
   const f = fetchImpl || fetch;
   const caminho = caminhoDoConf(contexto);
@@ -286,7 +309,7 @@ async function atualizarManifesto({ token, dono, repo, ref, contexto, plano, fet
   const ctx = contexto || {};
   if (String(ctx.turma || '').trim() && typeof lerTurmas === 'function') {
     try {
-      return await comporManifestoDaTurma({ f, cabecalhos, url, caminho, contexto: ctx, plano, lerTurmas, ref });
+      return await comporManifestoDaTurma({ f, cabecalhos, url, caminho, contexto: ctx, plano, lerTurmas, lerCuradorias, ref });
     } catch (erro) {
       // O cadastro ilegível ou o token recusado não podem ser engolidos: quem eliciou precisa de
       // saber que o manifesto NÃO foi escrito, e por quê. A fonte do plano já está no repositório.
@@ -362,7 +385,7 @@ async function atualizarManifesto({ token, dono, repo, ref, contexto, plano, fet
  * servidor local). Sem ela, o escritor continua a funcionar como antes, atualizando o manifesto
  * da variante que já existe.
  */
-function criarEscritorDePlano({ token, dono, repo, ref, lerTurmas, fetchImpl }) {
+function criarEscritorDePlano({ token, dono, repo, ref, lerTurmas, lerCuradorias, fetchImpl }) {
   if (!token) return null;
   return async (envelope, mensagem, opcoes) => {
     const contexto = (envelope && envelope.contexto) || {};
@@ -386,7 +409,7 @@ function criarEscritorDePlano({ token, dono, repo, ref, lerTurmas, fetchImpl }) 
      * mesma, com a lacuna declarada. */
     const { markdown } = derivarPlano(envelope, { linhaDeBase: opcoes && opcoes.linhaDeBase });
     const escrita = await escreverPO({ token, dono, repo, ref, caminho, conteudo: markdown, mensagem, fetchImpl });
-    const manifesto = await atualizarManifesto({ token, dono, repo, ref, contexto, plano: envelope, lerTurmas, fetchImpl });
+    const manifesto = await atualizarManifesto({ token, dono, repo, ref, contexto, plano: envelope, lerTurmas, lerCuradorias, fetchImpl });
     return Object.assign({}, escrita, { docs: manifesto, schemas });
   };
 }

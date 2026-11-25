@@ -4434,6 +4434,27 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      (o «+» na Sala e o campo na Turma) — **e ela está FEITA desde a tarde de 25/11** (decisão 190).
      `provar-a-ocupacao` **65**, `provar-mudanca-de-sala` **58**.
 
+192. **O PLANO LÊ A FAIXA, NÃO A RAIZ — e o plano de observação segue-o.** Ela perguntou se derivar
+     a Turma com a faixa escolhida gerava o plano correctamente. **A resposta medida foi NÃO**, e é
+     consequência do modelo desta data: a raiz da Sala é o espelho da faixa 1, e o `.conf` do ciclo
+     (`DURACOES`, `FREQUENCIA`, volume, total de aulas) e o ritmo que a cadeia compara liam a raiz.
+     Com a Turma na faixa 2 (70 min, seg/qua), o plano saía com **55 min em três dias** — e a guarda
+     `ritmoMudou` nunca disparava, porque a raiz não muda quando a faixa muda. **CORRIGIDO** por
+     `salaEfetiva(sala, faixa)` — uma **projecção** da faixa na raiz, e não uma segunda leitura do
+     ritmo, para não haver duas que divirjam. Uma sala de uma faixa devolve a própria Sala: a
+     equivalência é exacta e dispensa migração. O `.conf` lê a faixa da **curadoria**, que chega por
+     `lerCuradorias` — **recusado de propósito** pôr `faixa` no `contexto` do envelope, que mudaria
+     `CAMPOS_DE_CONTEXTO` e o digest da âncora `.fipp`. **O PO segue:** `derivar-po.js:531` compõe a
+     frequência e a duração **do plano referenciado**, e com o plano certo imprime o certo.
+     `provar-o-plano-da-faixa.js` (**18**, 8 vermelhas sem a mudança).
+
+193. **O LIMITE MEDIDO: duas Turmas do mesmo professor na mesma sala colidem no mesmo ficheiro.**
+     A variante é `<escola>-<slug da sala>`, e o caminho é `professores/<professor>/ciclos/
+     ciclo-NN-<variante>-plano.md`. Medido: a Turma na faixa 1 e a Turma na faixa 2 do **mesmo**
+     professor dão a **mesma** variante (`escola-piano`) e o mesmo `ciclo-01-…-po.md` — a segunda
+     deriva sobre a primeira. **PENDENTE**, e é decisão dela: incluir a faixa na variante
+     **renomeia ficheiros**, e com eles a pasta do pacote e a âncora `.fipp`. Não se faz sem ela.
+
 188. **A SALA NOVA NÃO PODE CRIAR COLISÃO EM SILÊNCIO — e as mensagens não sugerem resolução.** A
      edição da Sala já corria a cadeia, mas a cadeia relê o ritmo e deriva o plano; **não conferia a
      ocupação**. Medido: mudar a hora de uma sala com duas turmas podia criar a colisão **em silêncio**,

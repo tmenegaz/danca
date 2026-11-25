@@ -61484,3 +61484,75 @@ abrir a Turma), `experimentos/provar-o-ciclo-das-faixas.js` (secção G), `REGIS
 **A lição, escrita porque já custou quatro vezes nesta sessão:** um campo novo numa estrutura não chega a
 todas as construções à mão que a copiam. As construções à mão são o sítio onde o campo se perde em
 silêncio, e são exactamente as que nenhuma leitura de código denuncia.
+
+## 25/11/2026 — O plano lia a raiz e não a faixa: a duração errada, e o PO atrás dela
+
+**A pergunta dela:** «já escolhi o horário, derivei a turma e mandei gravar. Isso vai gerar
+correctamente o plano de ensino? Agora que tenho uma turma, isso também está correcto lá no plano de
+observação?»
+
+**A resposta medida, antes de qualquer correcção, foi NÃO — e a causa é o modelo que acabámos de
+construir.** A raiz de uma Sala é o **espelho da faixa 1**: foi assim que todas as salas de uma faixa
+continuaram a funcionar sem migração. Mas três leitores liam essa raiz e mais nada:
+
+- o `.conf` do ciclo — `DURACOES`, `FREQUENCIA`, a faixa de volume da Regra 9 e o total de aulas;
+- o ritmo que a cadeia compara (`respostasDoRitmo`), que é a guarda do plano velho;
+- o total de aulas do período.
+
+Com a sala «Piano» (faixa 1 = seg/qua/sex 16:00, 55 min; faixa 2 = seg/qua 17:00, 70 min) e a Turma
+na **faixa 2**, o plano saía com **55 minutos em três dias por semana** — dois erros no mesmo
+documento impresso, e nenhum aviso. E pior: como a raiz **não muda** quando a faixa muda, a guarda
+`ritmoMudou` nunca disparava, e um plano já gerado ficava velho em silêncio.
+
+**A correcção é uma projecção, não uma segunda leitura.** `salaEfetiva(sala, faixa)` devolve um
+objecto com a **mesma forma da Sala**, com os campos da faixa escolhida no lugar dos da raiz. Tudo o
+que já lia `turma.duracaoMin` continua a ler — só que passa a ler o certo. Uma segunda forma de ler o
+ritmo divergiria da primeira, e a divergência apareceria como um documento gerado com o valor errado —
+foi exactamente o que o §20 já tinha escrito sobre a cadeia. Uma Sala de **uma** faixa devolve a
+própria Sala: a equivalência com o que existia é exacta, e é isso que dispensa migração.
+
+O `.conf` lê a faixa da **curadoria** — que é quem a declara —, e a curadoria chega ao escritor do
+plano por `lerCuradorias`, sem se tocar no envelope. **Uma alternativa foi recusada de propósito:**
+pôr `faixa` no `contexto` do envelope mudaria `CAMPOS_DE_CONTEXTO` e, com ele, o digest da âncora
+`.fipp` — pagar uma alteração de proveniência para resolver um problema de leitura não é bom negócio.
+
+**O plano de observação segue o plano, e foi medido:** `derivar-po.js:531` compõe a frequência e a
+duração **do plano referenciado** (`comporLinhasDePlano(plano, [...])`, não das suas próprias
+respostas). Com o plano certo, o PO imprime o certo — a correcção propaga-se sem segunda emenda.
+
+**Medido:** faixa 1 → `DURACOES="55"`, `FREQUENCIA="3x/semana"`; faixa 2 → **`"70"`, `"2x/semana"`**;
+os dois ritmos que a cadeia compara são **diferentes**, e é isso que faz a guarda disparar.
+`provar-o-plano-da-faixa.js`, **18 asserções**, **8 vermelhas** sem a projecção.
+
+### O limite que a medição encontrou, e que é uma decisão dela
+
+**Duas Turmas do mesmo professor na mesma sala colidem no mesmo ficheiro.** Medido:
+
+```
+variante da Turma A (faixa 1) -> escola-piano
+variante da Turma B (faixa 2) -> escola-piano      colidem: true
+```
+
+A variante é `<escola>-<slug da sala>` e o caminho é `professores/<professor>/ciclos/ciclo-NN-
+<variante>-plano.md`. Duas Turmas do **mesmo** professor na **mesma** sala escrevem o mesmo plano e o
+mesmo PO — a segunda deriva sobre a primeira, e a primeira desaparece. Não corrigi: incluir a faixa na
+variante **renomeia ficheiros**, e com eles a pasta do pacote e a âncora `.fipp` — uma alteração de
+proveniência que é decisão dela, e não minha.
+
+### O custo, que ela pediu para verificar — está em `CUSTO-DOS-FLUXOS.md` §21
+
+**Subiu, e é o modelo a reflectir a realidade, não uma regressão.** Medido: uma alteração de Sala
+percorre **N alvos** para N Turmas (medido 1→1, 2→2, 3→3), e um alvo é um plano + um PO + um pacote.
+Antes das faixas uma sala só podia ter uma Turma; agora tem as que a escola realmente dá naquele
+espaço. **O custo por aula não mudou.** E o que impede a factura de disparar sem ninguém ver é a
+guarda do ritmo — que é precisamente o que esta correcção consertou: sem ela a guarda lia a raiz,
+nunca via a mudança de faixa, e o alvo não ficava nem `feita` nem `pendente`. No browser, os pedidos
+de perfil são absorvidos pela cache: **5** para 3 faixas × 3 professores, contra 9 sem ela.
+
+**Onde entrou.** `motor/nucleo/ocupacao.js` (`salaEfetiva`), `motor/servidor/compor-conf.js`
+(`respostasDoRitmo` e `comporConf` com `faixa`), `motor/servidor/cadeia.js` (`ritmoDaSala` com faixa,
+`derivarPlano` e o estado a passarem a faixa da curadoria), `motor/servidor/escrever-plano.js`
+(`comporManifestoDaTurma` resolve a faixa pela curadoria; `lerCuradorias` propagado),
+`motor/servidor/cloudflare.js` (a leitura das curadorias para o escritor do plano),
+`experimentos/provar-o-plano-da-faixa.js` (novo, **18**), `CUSTO-DOS-FLUXOS.md` §21, `.gitignore`,
+`ESTADO-ATUAL.md`, `HANDOFF.md`.

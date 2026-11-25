@@ -377,6 +377,18 @@ function passosDeGeracao(env, fetchImpl) {
     // uma turma que a Produção mostra e o documento não vê.
     lerTurmas: lerTurmasDoEnv(env),
     lerLinhasDeBase: lerLinhasDeBaseDoEnv(env),
+    /* A CURADORIA, PARA A FAIXA (25/11/2026) — é ela que declara qual das aulas da sala é esta, e
+     * sem ela o `.conf` leria o ritmo da faixa 1 para uma Turma que ocupa a faixa 2. */
+    lerCuradorias: async (escola) => {
+      const kv = env && env.PADD_KV;
+      const slug = String(escola || (env && env.ESCOLA_SLUG) || '').trim();
+      if (!kv || !slug) return [];
+      try {
+        const bruto = await kv.get('bastidores/' + slug + '/curadorias');
+        const lista = bruto ? JSON.parse(bruto) : [];
+        return Array.isArray(lista) ? lista : [];
+      } catch (erro) { return []; }
+    },
   });
   const escreverCiclo = criarEscritorDeCiclo({
     token,

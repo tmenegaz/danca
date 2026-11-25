@@ -1656,6 +1656,14 @@ experimentos/modelo-formulario/*
 # não chegava a ele. 42 asserções.
 !experimentos/provar-o-ciclo-das-faixas.js
 
+# O PLANO DE ENSINO DA FAIXA (25/11/2026). A raiz de uma Sala é o espelho da faixa 1 — foi assim que
+# todas as salas de uma faixa continuaram a funcionar sem migração. Mas o `.conf` do ciclo, o ritmo
+# que a cadeia compara e o total de aulas liam essa raiz, e uma Turma que ocupa a faixa 2 tem outros
+# dias, outra hora e outra duração: o plano saía com 55 minutos em três dias para uma aula de 70 em
+# dois. Pior, como a raiz não muda quando a faixa muda, a guarda `ritmoMudou` nunca disparava e o
+# plano velho ficava velho em silêncio. 18 asserções.
+!experimentos/provar-o-plano-da-faixa.js
+
 # O FINANCEIRO QUE FICA (23/11/2026, à tarde). A regra de 17/11 era o contrário — expurgar a escola
 # levava as mensalidades dela —, e ela corrigiu: «A parte financeira não pode expurgar, ela fica
 # para histórico. E aí a gente diz numa linha seguinte que essa escola foi expurgada.» O livro vive

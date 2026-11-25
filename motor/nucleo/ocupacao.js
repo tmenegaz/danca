@@ -355,6 +355,44 @@ function ocupacaoDaCuradoria(curadoria, { salasPorNome, rotulo } = {}) {
   };
 }
 
+/**
+ * A SALA COMO ELA É PARA ESTA TURMA — a faixa escolhida projectada na raiz.
+ *
+ * PORQUE EXISTE (25/11/2026). A raiz de uma Sala é o **espelho da faixa 1** — é ela que o
+ * calendário, o plano de ensino e o `.conf` leem, e foi isso que permitiu a todas as salas de uma
+ * faixa continuarem a funcionar sem migração. Mas uma Turma pode ocupar a faixa 2, com outra
+ * duração e outros dias, e quem lê a raiz passa a ler o ritmo ERRADO — a Turma das 17:00 às 18:10
+ * (70 min, seg e qua) gerava um plano de 55 minutos em três dias por semana.
+ *
+ * A CORRECÇÃO É UMA PROJECÇÃO, e não uma segunda forma de ler o ritmo: devolve um objecto com a
+ * MESMA forma da Sala, com os campos da faixa escolhida no lugar dos da raiz. Tudo o que já lê
+ * `sala.duracaoMin` continua a ler — só que passa a ler o certo. Uma segunda leitura do ritmo
+ * divergiria da primeira, e a divergência apareceria como um documento gerado com o valor errado.
+ *
+ * Sem faixa (sala de uma só, ou sala antiga) devolve a própria Sala: o comportamento de sempre.
+ */
+function salaEfetiva(sala, faixaId) {
+  const s = sala || {};
+  const faixas = faixasDaSala(s);
+  const escolha = faixaEscolhida(faixas, faixaId);
+  if (!escolha.faixa) return s;
+  const f = escolha.faixa;
+  /* UMA SALA DE UMA FAIXA NÃO PRECISA DA PROJECÇÃO — e não a ter é o que mantém a equivalência
+   * exacta com o que existia antes das faixas. */
+  if (faixas.length < 2) return s;
+  return Object.assign({}, s, {
+    dias: Array.isArray(f.dias) ? f.dias : [],
+    horarios: (f.horarios && typeof f.horarios === 'object') ? f.horarios : {},
+    duracaoMin: f.duracaoMin,
+    frequencia: Array.isArray(f.dias) ? f.dias.length : s.frequencia,
+    periodoInicio: f.periodoInicio || '',
+    periodoFim: f.periodoFim || '',
+    modalidade: f.modalidade || s.modalidade || '',
+    professor: f.professor || s.professor || '',
+    faixa: f.id || null,
+  });
+}
+
 /** O rótulo de uma faixa, para a tela e para a mensagem: «seg, qua · 09:00–10:00». */
 function rotuloDaFaixa(faixa) {
   const f = faixa || {};
@@ -489,6 +527,7 @@ module.exports = {
   faixaEscolhida,
   intervalosDaFaixa,
   rotuloDaFaixa,
+  salaEfetiva,
   intervalosDaSala,
   periodosTocamSe,
   sobrepoemNoDia,
