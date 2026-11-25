@@ -281,6 +281,74 @@ console.log('\n4. O ensaio é de UMA escola, e não toca no livro');
     conferir('…e a escola sem a chave não tem aviso nenhum',
       !/Modo de ensaio/.test(semAviso), null);
 
+    /* ── 5. A COBRANÇA PIX NO MESMO CALENDÁRIO ─────────────────────────────────────────── */
+    /*
+     * O QUE ELA VIU, e é o defeito que esta secção fecha: com o ensaio ligado, o cartão dizia que a
+     * escola tinha vencimento a 23/06/2027, e a cobrança que ela acabara de colar — de R$ 96,86,
+     * exactamente o devido — aparecia com esta frase:
+     *
+     *   «Mês vencido e a cobrança foi emitida antes do vencimento, sem valor fixo legível. É um link
+     *    ou um código sem o campo do valor. Não dá para garantir que leva a mora. Gere uma nova de
+     *    R$ 96,86.»
+     *
+     * As duas datas eram VERDADEIRAS, em calendários diferentes: a emissão é um instante real
+     * (25/11/2026, gravado no clique) e o vencimento é um dia do calendário comprimido (23/06/2027).
+     * Comparar uma com o outro não mede nada — e a conclusão que saía daí era o contrário da
+     * verdade: a cobrança era a NOVA, gerada para o valor devido.
+     *
+     * A asserção que discrimina é a primeira: a cobrança emitida agora, num mês que o ensaio diz
+     * estar vencido, SERVE. Sem a correcção ela saía `sem-valor` e a escola ficava sem caminho para
+     * pagar — o mesmo defeito, no ecrã de quem paga.
+     */
+    console.log('\n5. A cobrança Pix lê-se no calendário do ensaio, e não no relógio real');
+    {
+      const ensaio = { minutosPorPeriodo: 10, base: emMinutos(0), mesInicial: '2026-12' };
+      /* O TEXTO É O DELA, um LINK do banco: um link não traz o campo 54, e por isso não há valor
+       * legível de onde tirar prova nenhuma. A única prova disponível é a data da emissão — e é
+       * exactamente o caso em que o defeito aparecia. */
+      const link = 'Para me transferir R$ 96,86 pela conta do Nubank ou de outros bancos pelo Pix,'
+        + ' entre em https://nubank.com.br/cobrar/sjlvj/6b06b7b4-7f6d-4311-9141-efced0b17233';
+      const cobrancas = { '2026-12': { texto: link, em: emMinutos(0) } };
+
+      const comCobranca = mensalidades.situacaoDaEscola({
+        escola: 'breu', contrato: CONTRATO, livro: [], agora: emMinutos(0), ensaio, cobrancas,
+      });
+      const dezembro = comCobranca.meses.find((m) => m.mes === '2026-12');
+      conferir('o mês do ensaio está vencido, e o vencimento é do calendário comprimido',
+        dezembro.venceu === true && /^\d{4}-\d{2}-17$/.test(String(dezembro.vencimento)),
+        { venceu: dezembro.venceu, vencimento: dezembro.vencimento });
+      conferir('uma cobrança colada AGORA, num mês que o ensaio diz vencido, SERVE',
+        Boolean(dezembro.cobranca) && dezembro.cobranca.serve === true,
+        dezembro.cobranca && dezembro.cobranca.estado);
+      conferir('…e o estado é «com-mora» — a prova é a data, porque um link não traz valor',
+        dezembro.cobranca && dezembro.cobranca.estado === 'com-mora',
+        dezembro.cobranca && dezembro.cobranca);
+      conferir('…e não sobra motivo nenhum a acusar a cobrança de ser a antiga',
+        dezembro.cobranca && !dezembro.cobranca.motivo, dezembro.cobranca && dezembro.cobranca.motivo);
+
+      /* A PROVA É DE CALENDÁRIO, e não de permissividade: uma cobrança emitida ANTES de o mês
+       * existir — dois períodos antes, quando o ensaio ainda estava em outubro — continua a não
+       * servir. Sem este controlo, «serve sempre» passaria a asserção de cima. */
+      const deAntes = mensalidades.situacaoDaEscola({
+        escola: 'breu', contrato: CONTRATO, livro: [], agora: emMinutos(0), ensaio,
+        cobrancas: { '2026-12': { texto: link, em: emMinutos(-25) } },
+      });
+      const antiga = deAntes.meses.find((m) => m.mes === '2026-12');
+      conferir('CONTROLO: a cobrança emitida dois períodos antes NÃO serve', 
+        antiga.cobranca && antiga.cobranca.serve === false, antiga.cobranca && antiga.cobranca.estado);
+
+      /* E SEM ENSAIO nada disto muda: o mesmo link, emitido hoje num mês vencido a sério, serve
+       * pela mesma razão de sempre. É o controlo de que a correcção não abriu uma excepção. */
+      const semEnsaio = mensalidades.situacaoDaEscola({
+        escola: 'breu', contrato: CONTRATO, livro: [], agora: new Date('2026-12-20T12:00:00Z'),
+        cobrancas: { '2026-11': { texto: link, em: '2026-12-19T12:00:00Z' } },
+      });
+      const novembro = semEnsaio.meses.find((m) => m.mes === '2026-11');
+      conferir('…e sem ensaio a mesma regra vale: emitida depois do vencimento, serve',
+        novembro.cobranca && novembro.cobranca.serve === true,
+        novembro.cobranca && novembro.cobranca.estado);
+    }
+
     console.log('');
     if (falhas) { console.log('FALHOU — ' + (n - falhas) + '/' + n); process.exit(1); }
     console.log('TUDO CERTO — ' + n + ' asserção(ões).');

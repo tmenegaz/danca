@@ -196,6 +196,24 @@ async function abrir() {
       w.alert = () => {};
     },
   });
+  /* ESPERAR O `load`, E NÃO 600 ms (25/11/2026). A bancada serve a página e os assets do mesmo
+   * processo que corre o jsdom; com seis provas em paralelo, o `setTimeout` de 600 ms expirava antes
+   * de o `style.css` e o `nav.js` chegarem. O que a prova via era
+   *
+   *   «Could not load link: …/assets/style.css», «Could not load script: …/assets/nav.js»
+   *
+   * — um erro da BANCADA sob carga, lido como «a página tem um erro de script», que é a asserção
+   * seguinte. Medido: 1 de 7 asserções falhava em seis cópias simultâneas, e passava em três
+   * seguidas sozinha. Uma prova que acusa o produto quando é a bancada que não deu conta é pior do
+   * que não existir: manda procurar um defeito onde não está.
+   *
+   * O `load` é o sinal certo — com `resources: 'usable'`, o jsdom só o dispara depois de os
+   * subrecursos chegarem —, e o tecto de 15 s garante que a prova falha em vez de pendurar. */
+  await new Promise((resolve) => {
+    if (dom.window.document.readyState === 'complete') return resolve();
+    const tecto = setTimeout(resolve, 15000);
+    dom.window.addEventListener('load', () => { clearTimeout(tecto); resolve(); });
+  });
   await espera(dom.window, 600);
   return { dom, win: dom.window, doc: dom.window.document, problemas };
 }

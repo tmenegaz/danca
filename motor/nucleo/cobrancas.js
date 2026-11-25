@@ -22,6 +22,8 @@
  * apara-se o que vem antes e depois do documento.
  */
 
+const fuso = require('./fuso.js');
+
 /** O teto do que se guarda. Um Pix copia-e-cola tem algumas centenas de caracteres; 8 000 é folga
  *  para um bloco com os dados de conciliação escritos à mão, e é pequeno o bastante para o valor do
  *  KV continuar a ser um documento e não um arquivo. Acima disto a gravação é RECUSADA — cortar o
@@ -175,7 +177,7 @@ function valorDaCobranca(texto) {
  * conciliação, e o número do que falta vai dito.
  */
 function situacaoDaCobranca({ texto, valorBaseCentavos, devidoCentavos, pago, venceu,
-  salvoEm, vencimento } = {}) {
+  salvoEm, emissaoDia, vencimento, atrasoEm } = {}) {
   const valorNoCodigo = valorDaCobranca(texto);
   const base = Math.max(0, Math.round(Number(valorBaseCentavos) || 0));
   const devido = Math.max(0, Math.round(Number(devidoCentavos) || 0)) || base;
@@ -208,12 +210,34 @@ function situacaoDaCobranca({ texto, valorBaseCentavos, devidoCentavos, pago, ve
         + 'a multa e os juros.',
     }, comum);
   }
-  /* 2. A DATA DA EMISSÃO. Emitida depois de o mês vencer, a cobrança nasceu com o atraso à frente —
-   *    é a nova, e é a que se oferece. O dia do vencimento conta como «antes»: quem gera no próprio
-   *    dia ainda está no prazo (`vencimento` é `AAAA-MM-DD`, e compara-se o dia). */
-  const diaDaEmissao = String(salvoEm || '').slice(0, 10);
-  const diaDoVencimento = String(vencimento || '').slice(0, 10);
-  const emitidaNoAtraso = Boolean(diaDaEmissao && diaDoVencimento && diaDaEmissao > diaDoVencimento);
+  /* 2. A DATA DA EMISSÃO. Emitida depois de o mês passar a ser vencido, a cobrança nasceu com o
+   *    atraso à frente — é a nova, e é a que se oferece.
+   *
+   *    ── UM SÓ CALENDÁRIO (25/11/2026) ─────────────────────────────────────────────────────
+   *    O defeito que isto corrige, e ela viu-o: com o relógio de ensaio ligado, o vencimento da
+   *    escola aparecia em 23/06/2027 (o mês comprimido) e a cobrança que ela acabara de colar dizia
+   *    «emitida antes do vencimento». As duas datas eram verdadeiras — em CALENDÁRIOS diferentes.
+   *    A emissão é um instante REAL (`em`, gravado no clique) e o vencimento é um dia do calendário
+   *    EFETIVO, que o ensaio adianta. Comparar um com o outro não mede nada.
+   *
+   *    A CORRECÇÃO É A COMPARAÇÃO, e ela faz-se com dois dias do MESMO calendário:
+   *      · `emissaoDia` — o dia da emissão, já traduzido para o calendário em que o vencimento se
+   *        lê. Quem produz a linha do mês é que sabe traduzir (é lá que o ensaio vive), e por isso
+   *        ela chega pronta; sem ela, a reserva é `salvoEm`, que é o caso sem ensaio;
+   *      · `atrasoEm` — o PRIMEIRO dia em que o mês conta como vencido, que também é do produtor.
+   *        Esta é a parte subtil, e é a razão de ser um dia e não o vencimento: fora do ensaio o
+   *        próprio dia do vencimento ainda está no prazo (quem gera no dia, gera a tempo), e por
+   *        isso o atraso começa no dia SEGUINTE; no ensaio, o mês está vencido no próprio dia do
+   *        vencimento — é a regra do relógio comprimido, que faz «passado o tempo, já paga de
+   *        novo». A reserva, sem `atrasoEm`, é `vencimento + 1` — o caso sem ensaio.
+   *
+   *    E porque é um dia e não um instante: a hora não está em jogo em nenhum dos dois lados, e
+   *    comparar instantes obrigaria a decidir de que fuso é o «fim do dia» — que é exactamente a
+   *    pergunta que ninguém quer ter de responder num ecrã de dinheiro. */
+  const diaDaEmissao = String(emissaoDia || salvoEm || '').slice(0, 10);
+  const diaDoAtraso = String(atrasoEm
+    || fuso.diaSeguinte(String(vencimento || '').slice(0, 10)) || '').slice(0, 10);
+  const emitidaNoAtraso = Boolean(diaDaEmissao && diaDoAtraso && diaDaEmissao >= diaDoAtraso);
   /* 3. O VALOR QUE PROVA QUE LEVA A MORA (mais do que a mensalidade). */
   const valorComMora = valorNoCodigo !== null && valorNoCodigo > base;
   if (emitidaNoAtraso || valorComMora) {
@@ -367,32 +391,31 @@ function mapaEstruturado(mapa) {
  * de forma a ordenação silenciosa muda com ela.
  */
 function emAberto(daEscola, meses) {
+  /* A DECISÃO JÁ VEM TOMADA NA LINHA DO MÊS (25/11/2026). Aqui só se lê.
+   *
+  * Até hoje esta função chamava `situacaoDaCobranca` com as primitivas que tinha à mão — e essa
+  * era a terceira vez que a mesma regra era montada à mão, uma por página. Foi assim que o
+  * relógio de ensaio entrou num sítio e não no outro: o vencimento de um lado, a data real do
+  * outro. Agora a linha do mês traz `cobranca`, calculada UMA vez por quem tem o relógio
+  * (`mensalidades.situacaoDaEscola`), e as três páginas limitam-se a mostrar o que ela decidiu.
+  *
+  * A REGRA QUE FICA, e não muda: se a cobrança de um mês vencido é a ANTIGA — a que não leva a
+  * mora —, a caixa «Pagar» da escola NÃO a mostra. Deixá-la aqui seria a forma mais fácil de a
+  * escola pagar o valor menor: bastava abrir o sítio dela, onde a cobrança aparece por baixo da
+  * chave. A caixa continua a abrir com a CHAVE Pix, e o mês continua nomeado em «Em aberto»; o
+  * que ela deixa de ter é o documento que cobra menos.
+  *
+  * `daEscola` fica na assinatura porque é a forma como os chamadores sempre a chamaram, e
+  * porque uma lista de meses pode vir sem as cobranças (uma linha construída à mão, numa prova):
+  * nesse caso não há estado, e não se oferece nada — que é a resposta conservadora certa. */
   const saida = [];
-  const mapa = daEscola && typeof daEscola === 'object' ? daEscola : {};
+  const mapa = daEscola && typeof daEscola === 'object' ? daEscola : null;
   for (const m of Array.isArray(meses) ? meses : []) {
-    if (!m || m.status === 'pago' || !m.venceu) continue;
-    const c = cobrancaDe({ escola: 'x', x: mapa }, 'x', m.mes);
-    if (!c) continue;
-    /* A MESMA REGRA DAS OUTRAS DUAS PÁGINAS (25/11/2026). Se a cobrança de um mês vencido é a ANTIGA
-     * — a que não leva a mora —, a caixa «Pagar» da escola NÃO a mostra. Deixá-la aqui seria a
-     * forma mais fácil de a escola pagar o valor menor: bastava abrir o sítio dela, onde a cobrança
-     * aparece por baixo da chave. Uma regra, três páginas; é o que impede a excepção de virar
-     * caminho.
-     *
-     * A caixa continua a abrir — com a CHAVE Pix —, e o mês em atraso continua a ser nomeado em
-     * «Em aberto». O que ela deixa de ter é o documento que cobra menos. */
-    const estado = situacaoDaCobranca({
-      texto: c.texto,
-      valorBaseCentavos: m.valorPagoCentavos != null ? m.valorPagoCentavos : m.valorCentavos,
-      devidoCentavos: m.encargos ? m.encargos.totalCentavos : null,
-      pago: false,
-      venceu: true,
-      salvoEm: c.em,
-      vencimento: m.vencimento,
-    });
-    if (!estado.serve) continue;
+    if (!m || !m.cobranca || !m.cobranca.serve) continue;
+    const c = m.cobranca;
+    if (mapa && !cobrancaDe({ escola: 'x', x: mapa }, 'x', m.mes)) continue;
     saida.push({ mes: String(m.mes), nome: m.nome || String(m.mes), texto: c.texto, em: c.em,
-      url: c.url });
+      url: c.url || urlDaCobranca(c.texto) });
   }
   return saida;
 }

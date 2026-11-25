@@ -4,7 +4,15 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **um mês pago a menos não fecha.** O «Marcar pago» leva um campo
+> **Última fotografia:** 25/11/2026 — **a cobrança Pix lê-se no mesmo calendário do vencimento.** Com
+> o relógio de ensaio ligado, o vencimento aparecia em 23/06/2027 e a cobrança que ela acabara de
+> colar dizia «emitida antes do vencimento» — as duas datas verdadeiras, em calendários diferentes:
+> a emissão é um instante **real** e o vencimento é um dia do calendário **comprimido**. O estado da
+> cobrança passou a ser decidido **uma vez**, dentro de `mensalidades.situacaoDaEscola` (o mesmo
+> sítio que diz «atrasado» e calcula a mora), com a emissão traduzida pelo mesmo `instanteDoEnsaio`
+> que adianta o «hoje», e o primeiro dia de atraso (`atrasoEm`) derivado da mesma regra do selo. As
+> três páginas deixaram de montar a regra à mão: leem `m.cobranca` e mostram. Antes disso, no mesmo
+> dia: **um mês pago a menos não fecha.** O «Marcar pago» leva um campo
 > com o valor recebido, preenchido com o devido (mensalidade mais mora), e o servidor compara: abaixo
 > disso o mês fica **parcial** — em aberto, com o que falta escrito na linha e o botão ainda
 > disponível —, a fatura não é reescrita e a mora passa a incidir só sobre o saldo. A regra está
@@ -7501,6 +7509,24 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **25/11/2026** — **A cobrança Pix e o vencimento passaram a falar do mesmo calendário.** O ensaio
+  adianta o «hoje», e o vencimento de cada mês vinha adiantado com ele; a data da emissão da
+  cobrança (`em`, gravado no clique) não — ficava no calendário real. Resultado medido: com o
+  ensaio em 2027-06, o mês da vez estava «atrasado», o vencimento dizia `2027-06-23`, e uma
+  cobrança colada **agora** era acusada de ser anterior ao vencimento e recusada (`sem-valor`), com
+  um convite a gerar outra de exactamente o mesmo valor. A correcção tem três partes e uma só
+  direcção: (1) `mensalidades.situacaoDaEscola` recebe as cobranças e **decide** o estado de cada
+  mês — `serve`, `estado`, `motivo` — na linha (`m.cobranca`), traduzindo a emissão pelo mesmo
+  `instanteDoEnsaio` que adianta o «hoje»; (2) o **primeiro dia de atraso** (`atrasoEm`) passou a
+  ser um só, derivado da mesma regra do selo — o dia seguinte ao vencimento fora do ensaio, o
+  próprio dia dentro dele —, e é ele que a prova da data compara; (3) `cobrancas.emAberto` e as
+  **três páginas** deixaram de montar a regra à mão e passaram a ler a decisão (o painel, o mês a
+  mês e a caixa «Pagar» da escola). No caminho, a rota que grava o pagamento passou a receber o
+  ensaio: `devidoDoMes` calculava o devido num relógio e a página mostrava-o no outro.
+  `provar-relogio-do-ensaio` 35 → **41** (secção 5, nova, com o caso dela e dois controlos
+  negativos), `provar-a-cobranca-pix` mantém **102** (fixtures passaram a produzir a linha pelo
+  núcleo, e não à mão). Bateria: **287 provas, 194 verdes, 93 conhecidas, 0 regressões**.
 
 - **25/11/2026** — **Conciliar por valor: o mês que se paga a menos não fecha, e a cláusula está
   escrita onde ela paga.** O «Marcar pago» passou a levar um **campo com o valor recebido**,

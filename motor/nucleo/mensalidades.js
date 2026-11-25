@@ -30,6 +30,11 @@ const fuso = require('./fuso.js');
 /* O CATÁLOGO — para dizer o que o plano inclui, que é metade da conta da capacidade a mais. A outra
  * metade é o registo comercial, que chega por parâmetro. Duas fontes, nenhuma copiada para o ecrã. */
 const comercial = require('./comercial.js');
+/* O ESTADO DA COBRANÇA PIX DE CADA MÊS é decidido AQUI, e não em cada página (25/11/2026).
+ * A direcção da dependência é esta e não a inversa: `cobrancas.js` não sabe de contratos, de
+ * ensaios nem de calendários — sabe ler um documento Pix. Quem tem o relógio é este módulo, e por
+ * isso é ele que pergunta. */
+const cobrancasDoNucleo = require('./cobrancas.js');
 
 /** UMA chave com a lista dentro — a mesma forma dos descontos, e pelo mesmo motivo: o KV não se
  *  enumera, e uma chave por mês obrigaria a listar para desenhar o extrato. */
@@ -385,7 +390,8 @@ function instanteDoEnsaio({ contrato, ensaio, agora } = {}) {
  *   · `meses` — a lista do extrato, do mais recente para o mais antigo, com `status`, `vencimento`,
  *     `valorCentavos` e o `em` do pagamento quando há.
  */
-function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas } = {}) {
+function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas,
+  cobrancas } = {}) {
   /* `aulasUsadas` chega de FORA, e é opcional de propósito: quem conta as aulas tem o plano
    * próprio (PLANO-CONTADOR-DE-AULAS.md) e ainda não existe. Sem ele, a franquia é mostrada e
    * o consumo é omitido — ver o comentário no `franquia` do objecto devolvido. */
@@ -465,14 +471,73 @@ function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas 
      * depois do que já entrou. */
     const saldo = quitado ? 0 : Math.max(0, fatura - recebido);
     const vencimento = vencimentoDe(mes, dia);
-    const venceu = vencimento
-      ? (ensaioValido ? vencimento <= hojeDia : (vencimento + 'T23:59:59') < hojeIso)
-      : false;
+    /* O PRIMEIRO DIA EM QUE O MÊS CONTA COMO VENCIDO (25/11/2026) — e é um só, para as duas coisas
+     * que dele dependem: o selo «atrasado» desta linha e a prova da data da cobrança Pix.
+     *
+     * São dois calendários possíveis e uma regra em cada:
+     *   · SEM ensaio, o próprio dia do vencimento ainda está no prazo — quem paga no dia, paga a
+     *     tempo —, e o atraso começa no dia seguinte;
+     *   · COM ensaio, o mês está vencido no próprio dia do vencimento: é a regra do relógio
+     *     comprimido, que faz «passado o tempo, já tem que pagar de novo».
+     *
+     * Antes isto eram duas expressões separadas — uma para `venceu`, outra dentro da cobrança —, e
+     * foi exactamente por isso que o ensaio ficou coerente de um lado e incoerente do outro: a
+     * cobrança que ela acabara de colar dizia «emitida antes do vencimento» de um mês que a mesma
+     * página já mostrava como atrasado, com o vencimento em 23/06/2027 e a emissão em 25/11/2026.
+     * Duas datas verdadeiras em calendários diferentes não medem nada. */
+    const atrasoEm = vencimento
+      ? (ensaioValido ? vencimento : fuso.diaSeguinte(vencimento)) : null;
+    const venceu = Boolean(atrasoEm) && hojeDia >= atrasoEm;
+    /* A MORA DO MÊS, calculada UMA vez (25/11/2026). Ela é usada em três sítios — o número que a
+     * linha mostra, o total em mora da escola, e o valor que a cobrança Pix tem de cobrir —, e três
+     * chamadas a `encargos` com os mesmos argumentos é três oportunidades de uma delas ficar para
+     * trás. A base é o SALDO: num mês parcial, a dívida já não é a fatura inteira.
+     *
+     * Um mês quitado não tem encargos — o atraso já foi resolvido, e cobrá-lo outra vez seria cobrar
+     * duas vezes a mesma mora. */
+    const mora = quitado ? null : encargos({
+      valorCentavos: saldo, vencimento, hoje: hojeIso,
+    });
+    /* A COBRANÇA PIX DO MÊS, decidida aqui (25/11/2026) — ver `cobrancas.situacaoDaCobranca`.
+     *
+     * A EMISSÃO É TRADUZIDA PARA O CALENDÁRIO DO VENCIMENTO, e é esta a linha que faltava: `em` é
+     * um instante real, gravado no clique, e o vencimento é um dia do calendário efetivo. Com o
+     * ensaio ligado, o mesmo `instanteDoEnsaio` que adianta o «hoje» adianta também a emissão — e
+     * as duas datas passam a falar do mesmo calendário. Sem ensaio, a tradução é a identidade.
+     *
+     * Sem `em` (um registo que não o traga) a emissão fica DESCONHECIDA e não se inventa: a
+     * cobrança sem valor legível não serve, e a mensagem diz porquê. */
+    const guardada = (cobrancas && typeof cobrancas === 'object') ? cobrancas[mes] : null;
+    const textoDaCobranca = guardada && typeof guardada.texto === 'string'
+      ? guardada.texto.trim() : '';
+    let cobranca = null;
+    if (textoDaCobranca) {
+      const emissaoDia = guardada.em
+        ? (ensaioValido
+          ? diaDoInstante(instanteDoEnsaio({ contrato: c, ensaio, agora: guardada.em }).toISOString())
+          : String(guardada.em).slice(0, 10))
+        : null;
+      cobranca = Object.assign(cobrancasDoNucleo.situacaoDaCobranca({
+        texto: textoDaCobranca,
+        valorBaseCentavos: quitado ? recebido : fatura,
+        devidoCentavos: quitado ? null : ((mora && mora.totalCentavos) || fatura),
+        pago: quitado,
+        venceu: venceu && !quitado,
+        emissaoDia,
+        atrasoEm,
+      }), {
+        texto: textoDaCobranca,
+        em: guardada.em || null,
+        por: guardada.por || null,
+        url: cobrancasDoNucleo.urlDaCobranca(textoDaCobranca),
+      });
+    }
     return {
       mes,
       nome: nomeDoMes(mes),
       vencimento,
-      venceu: Boolean(venceu) && !quitado,
+      atrasoEm,
+      venceu: venceu && !quitado,
       status: quitado ? 'pago' : (registo ? 'parcial' : 'aberto'),
       valorCentavos: fatura,
       /* `valorPagoCentavos` é o que ENTROU — no mês quitado é a fatura (mais a mora, quando a
@@ -486,16 +551,13 @@ function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas 
       emTexto: registo ? fuso.quandoLocal(registo.em) : null,
       por: registo ? registo.por : null,
       /* OS ENCARGOS DE MORA, por mês (25/11/2026). Ficam NA LINHA e não numa soma à parte: a escola
-       * que pergunta «quanto devo?» pergunta por um mês, e a resposta que serve é a daquele mês. Um
-       * mês quitado não tem encargos — o atraso já foi resolvido, e cobrá-lo outra vez seria cobrar
-       * duas vezes a mesma mora.
-       *
-       * A BASE DA MORA É O SALDO, e não a fatura (25/11/2026). Num mês PARCIAL, a dívida já não é a
-       * fatura inteira; cobrar multa e juros sobre o que a escola já pagou seria cobrar duas vezes.
-       * Num mês sem pagamento o saldo é a fatura, e o número é o de sempre. */
-      encargos: quitado ? null : encargos({
-        valorCentavos: saldo, vencimento, hoje: hojeIso,
-      }),
+       * que pergunta «quanto devo?» pergunta por um mês, e a resposta que serve é a daquele mês.
+       * A conta é a de `mora`, feita acima — uma só. */
+      encargos: mora,
+      /* A COBRANÇA PIX DO MÊS, com o estado já decidido (`serve`, `estado`, `motivo`, e o valor que
+       * o documento pede quando ele o diz). `null` quando nunca se colou nada. As três páginas
+       * mostram isto e não voltam a decidir — ver `cobrancas.situacaoDaCobranca`. */
+      cobranca,
     };
   });
 
@@ -626,10 +688,14 @@ function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas 
  * Devolve `null` quando o mês não está na linha do tempo da escola: aí não há nada a cobrar, e quem
  * chamou tem de decidir o que dizer — não se inventa um valor.
  */
-function devidoDoMes({ escola, contrato, livro, mes, agora } = {}) {
+function devidoDoMes({ escola, contrato, livro, mes, agora, ensaio } = {}) {
   const competenciaPedida = String(mes || '').trim();
   if (!partesDaCompetencia(competenciaPedida)) return null;
-  const situacao = situacaoDaEscola({ escola, contrato, livro, agora });
+  /* O ENSAIO ENTRA AQUI (25/11/2026), e a sua ausência era um segundo relógio: a página mostrava o
+   * mês comprimido e a mora dele, e a rota que grava o pagamento calculava o devido no calendário
+   * real — onde esse mês ainda não existe. O resultado era gravar como quitado um mês que a página
+   * dizia faltar. O «quanto se deve» é UMA pergunta, e tem de ter um relógio só. */
+  const situacao = situacaoDaEscola({ escola, contrato, livro, agora, ensaio });
   const linha = (situacao.meses || []).find((l) => l.mes === competenciaPedida);
   if (!linha) return null;
   return {

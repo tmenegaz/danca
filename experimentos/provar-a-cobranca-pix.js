@@ -93,15 +93,24 @@ const pixComValor = (reais) => '000201'
   + tlv('58', 'BR') + tlv('59', 'SISTEMA LASTRO') + tlv('60', 'PASSO FUNDO')
   + tlv('62', tlv('05', '***')) + '6304ABCD';
 
-/** O extrato de uma escola com um mês em aberto. */
-function situacaoComMesAberto(extra) {
+/**
+ * O extrato de uma escola com um mês em aberto — e, quando se lhe dá o mapa, com o ESTADO DA
+ * COBRANÇA já decidido em cada linha (`m.cobranca`).
+ *
+ * A ASSINATURA MUDOU A 25/11/2026, e a mudança é a correcção: quem decide o estado da cobrança
+ * passou a ser `mensalidades.situacaoDaEscola` — o mesmo sítio que diz «atrasado» e calcula a mora
+ * —, e não cada página a juntar primitivas. Um fixture que montasse a situação sem o mapa estaria
+ * a medir uma página com uma linha que o motor nunca produz.
+ */
+function situacaoComMesAberto(extra, mapa, livro) {
   return mensalidades.situacaoDaEscola({
     escola: 'breu',
     contrato: Object.assign({
       plano: 'avancado', planoNome: 'Avançado', valorCentavos: 13990,
       criadoEm: '2026-11-01T12:00:00.000Z', estado: 'ativa',
     }, extra || {}),
-    livro: [], agora: new Date('2026-11-25T12:00:00.000Z'),
+    livro: livro || [], agora: new Date('2026-11-25T12:00:00.000Z'),
+    cobrancas: mapa,
   });
 }
 
@@ -234,10 +243,11 @@ function situacaoComMesAberto(extra) {
   console.log('\nC. O FINANCEIRO — a coluna onde ela cola');
 
   {
-    const s = situacaoComMesAberto();
+    const mapa = { [MES]: { texto: PAYLOAD, em: '2026-11-25T10:00:00.000Z' } };
+    const s = situacaoComMesAberto(null, mapa);
     const conta = Object.assign({}, s, {
       escola: 'breu', nome: 'Breu', frase: 'x',
-      cobrancas: { [MES]: { texto: PAYLOAD, em: '2026-11-25T10:00:00.000Z' } },
+      cobrancas: mapa,
     });
     const html = painel.paginaFinanceira({
       pix: {}, descontos: [], escolas: [], extrato: [conta], catalogo: comercial.catalogoDaPagina(),
@@ -263,7 +273,8 @@ function situacaoComMesAberto(extra) {
      * é pior do que nenhum. */
     const vazia = painel.paginaFinanceira({
       pix: {}, descontos: [], escolas: [],
-      extrato: [Object.assign({}, s, { escola: 'breu', nome: 'Breu', frase: 'x', cobrancas: {} })],
+      extrato: [Object.assign({}, situacaoComMesAberto(), {
+        escola: 'breu', nome: 'Breu', frase: 'x', cobrancas: {} })],
       catalogo: comercial.catalogoDaPagina(),
     });
     provar('sem cobrança, o campo existe mas está vazio',
@@ -275,7 +286,8 @@ function situacaoComMesAberto(extra) {
      * rota recusa gravar. Mostrar o campo seria oferecer um gesto que falha. */
     const expurgada = painel.paginaFinanceira({
       pix: {}, descontos: [], escolas: [],
-      extrato: [Object.assign({}, s, { escola: 'breu', nome: 'Breu', frase: 'x', expurgada: true, cobrancas: {} })],
+      extrato: [Object.assign({}, situacaoComMesAberto(), {
+        escola: 'breu', nome: 'Breu', frase: 'x', expurgada: true, cobrancas: {} })],
       catalogo: comercial.catalogoDaPagina(),
     });
     provar('a escola expurgada não tem a coluna da cobrança', !/Cobrança \(Pix\)/.test(expurgada));
@@ -285,11 +297,11 @@ function situacaoComMesAberto(extra) {
   console.log('\nD. A PÁGINA DA ESCOLA — o conteúdo por baixo da chave');
 
   {
-    const s = situacaoComMesAberto();
+    const mapa = { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } };
+    const s = situacaoComMesAberto(null, mapa);
     const comCobranca = bastidores.cartaoDaEscola({
       escola: 'breu', cadastro: { escolaNome: 'Breu' }, situacao: s,
-      pix: { chave: '02150062917', titular: 'Tiago' },
-      cobrancas: cobrancas.cobrancasDaEscola({ breu: { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } } }, 'breu'),
+      pix: { chave: '02150062917', titular: 'Tiago' }, cobrancas: mapa,
     });
     provar('o nicho «Pagar» mostra a chave Pix', /escola-pix-chave/.test(comCobranca));
     provar('…e, ABAIXO, o conteúdo que ela colou',
@@ -304,7 +316,7 @@ function situacaoComMesAberto(extra) {
     /* «SE NÃO TIVER NADA COLADO, APARECE SOMENTE A CHAVE PIX MESMO» — sem rótulo de cobrança
      * nenhum, e sem um campo vazio a pedir para ser preenchido por quem não o pode preencher. */
     const semCobranca = bastidores.cartaoDaEscola({
-      escola: 'breu', cadastro: { escolaNome: 'Breu' }, situacao: s,
+      escola: 'breu', cadastro: { escolaNome: 'Breu' }, situacao: situacaoComMesAberto(),
       pix: { chave: '02150062917', titular: 'Tiago' }, cobrancas: {},
     });
     provar('sem nada colado, aparece só a chave', /escola-pix-chave/.test(semCobranca)
@@ -316,7 +328,7 @@ function situacaoComMesAberto(extra) {
       escola: 'breu', cadastro: { escolaNome: 'Breu' },
       situacao: { situacao: 'em-dia', meses: [{ mes: MES, nome: 'novembro de 2026', status: 'pago', venceu: false }] },
       pix: { chave: '0215' },
-      cobrancas: cobrancas.cobrancasDaEscola({ breu: { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } } }, 'breu'),
+      cobrancas: mapa,
     });
     provar('a cobrança de um mês PAGO não aparece na caixa de pagar', !/escola-cobranca/.test(soPago));
 
@@ -325,7 +337,7 @@ function situacaoComMesAberto(extra) {
      * esconder o pagamento que ela acabou de entregar. */
     const semChave = bastidores.cartaoDaEscola({
       escola: 'breu', cadastro: { escolaNome: 'Breu' }, situacao: s, pix: null,
-      cobrancas: cobrancas.cobrancasDaEscola({ breu: { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } } }, 'breu'),
+      cobrancas: mapa,
     });
     provar('sem chave configurada, o documento colado aparece na mesma',
       /escola-cobranca-1/.test(semChave) && /00020126580014BR/.test(semChave));
@@ -335,10 +347,11 @@ function situacaoComMesAberto(extra) {
   console.log('\nE. O MÊS A MÊS — a coluna «Pagar» passou a ser a do Pix');
 
   {
-    const s = situacaoComMesAberto();
+    const mapa = { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } };
+    const s = situacaoComMesAberto(null, mapa);
     const html = bastidores.paginaFinanceiro('breu', {}, {}, {
       situacao: s, cadastro: { escolaNome: 'Breu' }, pix: { chave: '0215' },
-      cobrancas: { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } },
+      cobrancas: mapa,
     });
     provar('o cabeçalho diz «Cobrança (Pix)»', /Cobrança \(Pix\)/.test(html));
     provar('…e já não há uma coluna chamada «Pagar»',
@@ -351,7 +364,8 @@ function situacaoComMesAberto(extra) {
      * chave. O «Pagar» não desapareceu do sistema — deixou de ser uma coluna, e passou a ser a
      * resposta de quem ainda não tem documento. */
     const semCobranca = bastidores.paginaFinanceiro('breu', {}, {}, {
-      situacao: s, cadastro: { escolaNome: 'Breu' }, pix: { chave: '0215' }, cobrancas: {},
+      situacao: situacaoComMesAberto(), cadastro: { escolaNome: 'Breu' }, pix: { chave: '0215' },
+      cobrancas: {},
     });
     provar('sem cobrança, o mês em aberto tem o caminho para a caixa do Pix',
       /abrir=pagar/.test(semCobranca), null);
@@ -435,10 +449,11 @@ function situacaoComMesAberto(extra) {
 
   {
     /* O «PAGAR» DA ESCOLA — «lá no financeiro da escola é que vai aparecer como link». */
-    const s = situacaoComMesAberto();
+    const mapaLink = { [MES]: { texto: MENSAGEM, em: EMITIDA_NO_ATRASO } };
+    const s = situacaoComMesAberto(null, mapaLink);
     const comLink = bastidores.cartaoDaEscola({
       escola: 'breu', cadastro: { escolaNome: 'Breu' }, situacao: s, pix: { chave: '0215' },
-      cobrancas: { [MES]: { texto: MENSAGEM, em: EMITIDA_NO_ATRASO } },
+      cobrancas: mapaLink,
     });
     provar('o «Pagar» da escola mostra o link do banco',
       /<a[^>]*href="https:\/\/nubank\.com\.br\/cobrar\/[^"]*"[^>]*>Pagar no banco<\/a>/.test(comLink));
@@ -450,9 +465,11 @@ function situacaoComMesAberto(extra) {
     provar('…com o mesmo `noopener noreferrer`',
       /rel="noopener noreferrer"[^>]*>Pagar no banco</.test(comLink));
 
+    const mapaDoc = { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } };
     const semLink = bastidores.cartaoDaEscola({
-      escola: 'breu', cadastro: { escolaNome: 'Breu' }, situacao: s, pix: { chave: '0215' },
-      cobrancas: { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } },
+      escola: 'breu', cadastro: { escolaNome: 'Breu' },
+      situacao: situacaoComMesAberto(null, mapaDoc), pix: { chave: '0215' },
+      cobrancas: mapaDoc,
     });
     provar('com um documento copia-e-cola, a escola NÃO vê botão nenhum — vê a caixa e o Copiar',
       !/Pagar no banco/.test(semLink) && /escola-cobranca-1/.test(semLink));
@@ -461,10 +478,10 @@ function situacaoComMesAberto(extra) {
   {
     /* O MÊS A MÊS — «é só quando eu entro mesmo no ver o mês a mês que precisa de ajuste para ser
      * como link». */
-    const s = situacaoComMesAberto();
+    const mapaLink = { [MES]: { texto: URL_DO_BANCO, em: EMITIDA_NO_ATRASO } };
     const comLink = bastidores.paginaFinanceiro('breu', {}, {}, {
-      situacao: s, cadastro: { escolaNome: 'Breu' }, pix: { chave: '0215' },
-      cobrancas: { [MES]: { texto: URL_DO_BANCO, em: EMITIDA_NO_ATRASO } },
+      situacao: situacaoComMesAberto(null, mapaLink), cadastro: { escolaNome: 'Breu' },
+      pix: { chave: '0215' }, cobrancas: mapaLink,
     });
     provar('o mês a mês mostra o link do banco',
       /<a[^>]*href="https:\/\/nubank\.com\.br\/cobrar\/[^"]*"[^>]*>Pagar no banco<\/a>/.test(comLink));
@@ -472,9 +489,10 @@ function situacaoComMesAberto(extra) {
       /mes-pix-2026-11/.test(comLink));
     provar('…com o link ACIMA da caixa', comLink.indexOf('Pagar no banco') < comLink.indexOf('mes-pix-2026-11'));
 
+    const mapaDoc = { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } };
     const semLink = bastidores.paginaFinanceiro('breu', {}, {}, {
-      situacao: s, cadastro: { escolaNome: 'Breu' }, pix: { chave: '0215' },
-      cobrancas: { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } },
+      situacao: situacaoComMesAberto(null, mapaDoc), cadastro: { escolaNome: 'Breu' },
+      pix: { chave: '0215' }, cobrancas: mapaDoc,
     });
     provar('com um documento copia-e-cola, o mês a mês não inventa um botão',
       !/Pagar no banco/.test(semLink) && /mes-pix-2026-11/.test(semLink));
@@ -535,14 +553,21 @@ function situacaoComMesAberto(extra) {
       (() => { const e = estado({ texto: pixComValor(72), valorBaseCentavos: 6990, venceu: true, devidoCentavos: 7270 });
         return e.serve === true && e.faltaCentavos === 70; })());
 
-    /* C. AS TRÊS PÁGINAS USAM A MESMA REGRA. */
-    const s = situacaoComMesAberto();
-    const pago = Object.assign({}, s, { meses: s.meses.map((m) => Object.assign({}, m, {
-      status: 'pago', venceu: false, valorPagoCentavos: m.valorCentavos, emTexto: '20/11/2026 às 10:00',
-    })) });
+    /* C. AS TRÊS PÁGINAS USAM A MESMA REGRA.
+     *
+     * O MÊS PAGO NASCE DO LIVRO, e não de um `Object.assign` sobre a linha. A linha deixou de ser um
+     * punhado de campos independentes: ela traz o estado da cobrança já decidido, e quem o decide
+     * pergunta pelo `status` e pelo `vencimento`. Carimbar `status: 'pago'` à mão deixaria a
+     * cobrança com o estado de um mês em atraso — um fixture a medir uma página que o motor nunca
+     * produz. */
+    const mapa = { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } };
+    const s = situacaoComMesAberto(null, mapa);
+    const pago = situacaoComMesAberto(null, mapa, [{ escola: 'breu', mes: MES, status: 'pago',
+      valorCentavos: 13990, plano: 'avancado', planoNome: 'Avançado',
+      em: '2026-11-20T13:00:00.000Z', por: 'proprietario' }]);
     const mesAMesPago = bastidores.paginaFinanceiro('breu', {}, {}, {
       situacao: pago, cadastro: { escolaNome: 'Breu' }, pix: { chave: '0215' },
-      cobrancas: { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } },
+      cobrancas: mapa,
     });
     provar('no mês a mês, o mês PAGO não tem «Pagar no banco»', !/Pagar no banco/.test(mesAMesPago));
     provar('…nem «Copiar» — a cobrança fica em leitura', !/data-copiar=/.test(mesAMesPago));
@@ -552,9 +577,10 @@ function situacaoComMesAberto(extra) {
     /* A COBRANÇA ANTIGA COM VALOR LEGÍVEL — o caso que se pode PROVAR que falta a mora. É este o
      * que tem de dizer o valor a gerar; o sem valor legível diz a mesma coisa por outra frase (ver
      * o estado `sem-valor`). */
+    const mapaAntigo = { [MES]: { texto: pixComValor(139.9), em: '2026-10-25T12:00:00Z' } };
     const atrasadoSemMora = bastidores.paginaFinanceiro('breu', {}, {}, {
-      situacao: s, cadastro: { escolaNome: 'Breu' }, pix: { chave: '0215' },
-      cobrancas: { [MES]: { texto: pixComValor(139.9), em: '2026-10-25T12:00:00Z' } },
+      situacao: situacaoComMesAberto(null, mapaAntigo), cadastro: { escolaNome: 'Breu' },
+      pix: { chave: '0215' }, cobrancas: mapaAntigo,
     });
     provar('no mês a mês, o ATRASADO com a cobrança antiga não tem «Copiar»',
       !/data-copiar=/.test(atrasadoSemMora));
@@ -563,31 +589,29 @@ function situacaoComMesAberto(extra) {
       (atrasadoSemMora.match(/Mês vencido[^<]*/) || [])[0]);
 
     /* A CAIXA «PAGAR» DA ESCOLA — o caminho mais fácil para pagar o valor menor. */
-    const caixaDaEscola = (livro, texto, em, venceu) => {
-      const situacao = situacaoComMesAberto();
-      const situacaoAtrasada = Object.assign({}, situacao, {
-        meses: situacao.meses.map((m) => Object.assign({}, m, { venceu: Boolean(venceu) })),
-      });
+    const caixaDaEscola = (livro, texto, em) => {
+      const mapa = { [MES]: { texto, em } };
+      const situacao = situacaoComMesAberto(null, mapa, livro);
       return bastidores.paginaProducao('breu', { professor: 'demi-plie', ciclo: '01', query: '' },
         [{ nome: 'Demi' }], [], 'Demi Plié', 'demi-plie', [], [], [], [], [], [],
         { professores: new Set(), turmas: new Set(), termos: new Set(), planos: 0 },
         { modo: 'clara', paleta: 'bordo' }, '', [], new Set(),
-        { cadastro: { escolaNome: 'Breu' }, situacao: situacaoAtrasada, pix: { chave: '0215' },
-          cobrancas: { [MES]: { texto, em } } },
+        { cadastro: { escolaNome: 'Breu' }, situacao, pix: { chave: '0215' },
+          cobrancas: mapa },
         [], null, [], undefined, null);
     };
-    const antiga = caixaDaEscola([], PAYLOAD, '2026-10-25T12:00:00Z', true);
+    const antiga = caixaDaEscola([], PAYLOAD, '2026-10-25T12:00:00Z');
     provar('a caixa «Pagar» da escola NÃO oferece a cobrança antiga de um mês atrasado',
       !/escola-cobranca-1/.test(antiga));
     provar('…e continua a dar a chave Pix, que é o que sobra para pagar', /escola-pix-chave/.test(antiga));
-    const nova = caixaDaEscola([], PAYLOAD, EMITIDA_NO_ATRASO, true);
+    const nova = caixaDaEscola([], PAYLOAD, EMITIDA_NO_ATRASO);
     provar('…e oferece a cobrança emitida já com a mora', /escola-cobranca-1/.test(nova));
 
     /* D. O FINANCEIRO — o mês pago em leitura, e o valor conferido onde ela cola. */
     const financeiroPago = painel.paginaFinanceira({
       pix: {}, descontos: [], escolas: [],
       extrato: [Object.assign({}, pago, { escola: 'breu', nome: 'Breu', frase: 'x',
-        cobrancas: { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } } })],
+        cobrancas: mapa })],
       catalogo: comercial.catalogoDaPagina(),
     });
     provar('no financeiro, o mês pago não tem botão «Gravar» da cobrança',
@@ -597,10 +621,11 @@ function situacaoComMesAberto(extra) {
       /id="cob-breu-2026-11"[^>]*readonly/.test(financeiroPago));
     provar('…e diz que é registo', /Mês pago — a cobrança fica como registo/.test(financeiroPago));
 
+    const mapaCurto = { [MES]: { texto: pixComValor(69.9), em: '2026-11-02T12:00:00Z' } };
     const financeiroAtrasado = painel.paginaFinanceira({
       pix: {}, descontos: [], escolas: [],
-      extrato: [Object.assign({}, s, { escola: 'breu', nome: 'Breu', frase: 'x',
-        cobrancas: { [MES]: { texto: pixComValor(69.9), em: '2026-11-02T12:00:00Z' } } })],
+      extrato: [Object.assign({}, situacaoComMesAberto(null, mapaCurto), {
+        escola: 'breu', nome: 'Breu', frase: 'x', cobrancas: mapaCurto })],
       catalogo: comercial.catalogoDaPagina(),
     });
     provar('no financeiro, o mês atrasado diz o que o código pede e o que é devido',

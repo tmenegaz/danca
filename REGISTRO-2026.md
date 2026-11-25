@@ -62141,3 +62141,76 @@ mês fora da linha do tempo), `motor/servidor/painel-html.js` (o campo do valor,
 parser e o aviso antes de recarregar), `motor/servidor/bastidores.js` (a cláusula no «Pagar» da
 escola), `experimentos/provar-conciliacao-do-painel.js`, `experimentos/provar-a-cobranca-pix.js`,
 `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+---
+
+## 25/11/2026 — A cobrança Pix e o vencimento no mesmo calendário: o ensaio estava a ser lido por dois relógios
+
+**O que ela viu, e é o relatório inteiro:** colou uma cobrança Pix de R$ 96,86 — o valor da situação,
+«atrasado» — no financeiro. A coluna aceitou-a, e por baixo apareceu:
+
+> «Mês vencido e a cobrança foi emitida antes do vencimento, sem valor fixo legível. É um link ou um
+> código sem o campo do valor. Não dá para garantir que leva a mora. Gere uma nova de R$ 96,86.»
+
+E o ensaio marcava o vencimento da escola em **23/06/2027** — com hoje a 25/11/2026. Ou seja: o
+sistema pedia-lhe uma cobrança nova **do mesmo valor** de uma cobrança que estava certa.
+
+**O diagnóstico, e as duas frases são verdadeiras ao mesmo tempo.** A emissão (`em`, gravado no
+clique) é um instante **real**: 25/11/2026. O vencimento é um dia do calendário **efectivo**, que o
+ensaio adianta: 23/06/2027. `situacaoDaCobranca` comparava um com o outro e concluía «emitida
+antes do vencimento» — porque, no calendário real, 2027 ainda não chegou. Duas datas verdadeiras em
+calendários diferentes não medem nada.
+
+**E a regra estava montada à mão em TRÊS sítios** — o painel, o mês a mês e o `emAberto` da caixa
+«Pagar» —, cada um juntando as suas primitivas. Foi essa dispersão que permitiu que o ensaio
+entrasse num sítio e não no outro: o `situacaoDaEscola` já recebia o ensaio, e a cobrança não.
+
+**A correcção, e ela vai numa direcção só.** O estado da cobrança passou a ser decidido **uma vez**,
+dentro de `mensalidades.situacaoDaEscola` — o mesmo sítio que diz «atrasado» e calcula a mora, e
+portanto o único que tem o relógio:
+
+1. a **emissão é traduzida** pelo mesmo `instanteDoEnsaio` que adianta o «hoje». Uma cobrança colada
+   agora, com o ensaio em 2027-06, é uma cobrança de 2027-06 — e as duas datas passam a falar do
+   mesmo calendário;
+2. o **primeiro dia de atraso** (`atrasoEm`) passou a ser um só, derivado da mesma regra do selo: o
+   dia **seguinte** ao vencimento fora do ensaio (quem paga no dia, paga a tempo), o **próprio dia**
+   dentro dele (é a regra do relógio comprimido — «passado o tempo, já tem que pagar de novo»). É
+   este o número que a prova da data compara, e é por isso que ela deixou de ter duas versões;
+3. a linha do mês passou a trazer `cobranca` — `serve`, `estado`, `motivo`, o texto e a `url` —, e
+   `cobrancas.emAberto` e as **três páginas** deixaram de decidir: **lêem**.
+
+**Um segundo relógio, encontrado no caminho.** A rota que grava o pagamento (`/api/financeiro/
+mensalidade`) calculava o devido com `devidoDoMes` **sem** o ensaio. Com o relógio comprimido ligado,
+o mês que a página mostrava em aberto não existia no calendário real: a rota caía na reserva da
+fatura do contrato, e um mês que a página dizia faltar mora era gravado como quitado. O «quanto se
+deve» é uma pergunta e passou a ter um relógio.
+
+**A prova, e o A/B.** `provar-relogio-do-ensaio.js` ganhou a secção **5** (35 → **41** asserções): a
+cobrança colada agora serve, o estado é `com-mora`, não sobra motivo nenhum, e dois controlos
+negativos — a cobrança emitida **dois períodos antes** continua a não servir (senão «serve sempre»
+passaria a asserção de cima) e, **sem** ensaio, a mesma regra de sempre continua a valer (senão a
+correcção era uma excepção). Medido contra o `HEAD` anterior num `git worktree`: **36/41, com as
+três asserções que discriminam a falhar**. As fixtures de `provar-a-cobranca-pix` (102) e de
+`provar-o-copiar` (31) passaram a produzir a linha do mês **pelo núcleo** — um `Object.assign` a
+carimbar `status: 'pago'` deixaria a cobrança com o estado de um mês em atraso, e a prova estaria a
+medir uma página que o motor nunca produz.
+
+**O que não se resolve, e fica declarado.** Um link do banco não traz o campo 54 do Pix: não há valor
+legível, e a única prova disponível é a data. O sistema continua a não conseguir conferir o valor de
+um link — só a data em que ele foi gerado. E um código que já saiu continua pagável no banco.
+
+**Um terceiro defeito, de bancada e não de produto.** `provar-o-parametro-do-plano` acusava
+«REGRESSÃO» sob carga: esperava 600 ms fixos para os assets, e com seis provas em paralelo o
+`style.css` e o `nav.js` não chegavam a tempo, o que virava «a página tem um erro de script». Medido
+no `HEAD`, sem estas mudanças: **1 de 7 asserções falhava em seis cópias simultâneas** e passava em
+três seguidas sozinha. Passou a esperar o `load` (com tecto de 15 s). Uma prova que acusa o produto
+quando é a bancada que não deu conta manda procurar um defeito onde ele não está.
+
+**Onde entrou.** `motor/nucleo/mensalidades.js` (`atrasoEm`, a mora calculada uma vez, `cobranca` na
+linha do mês, `devidoDoMes` com ensaio), `motor/nucleo/cobrancas.js` (`emissaoDia`/`atrasoEm` em
+`situacaoDaCobranca`, `emAberto` a ler a linha), `motor/nucleo/fuso.js` (`diaSeguinte`),
+`motor/servidor/painel-html.js`, `motor/servidor/bastidores.js`, `motor/servidor/raiz.js` (as três
+páginas e as duas rotas a passar as cobranças e o ensaio),
+`experimentos/provar-relogio-do-ensaio.js`, `experimentos/provar-a-cobranca-pix.js`,
+`experimentos/provar-o-copiar.js`, `experimentos/provar-o-parametro-do-plano.js`, `ESTADO-ATUAL.md`,
+`HANDOFF.md`.

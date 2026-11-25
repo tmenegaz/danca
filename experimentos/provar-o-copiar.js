@@ -59,6 +59,13 @@ const MES = '2026-11';
  * emitida depois disso — é o caso de um mês atrasado cuja cobrança foi refeita com multa e juros. */
 const EMITIDA_NO_ATRASO = '2026-11-20T12:00:00.000Z';
 
+/* O MAPA DA COBRANÇA ENTRA NA CONTA DO EXTRATO (25/11/2026). O estado de cada cobrança passou a ser
+ * decidido por `mensalidades.situacaoDaEscola` — o mesmo sítio que diz «atrasado» e calcula a mora —,
+ * e a linha do mês traz `cobranca` com `serve` e o motivo. Um fixture que montasse a situação sem o
+ * mapa mediria uma página com uma linha que o motor nunca produz: sem `cobranca`, a célula não tem
+ * documento nenhum para copiar, e a prova passaria a medir o vazio. */
+const MAPA = { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } };
+
 function situacaoComMesAberto() {
   return mensalidades.situacaoDaEscola({
     escola: 'breu',
@@ -67,6 +74,7 @@ function situacaoComMesAberto() {
       criadoEm: '2026-11-01T12:00:00.000Z', estado: 'ativa',
     },
     livro: [], agora: new Date('2026-11-25T12:00:00.000Z'),
+    cobrancas: MAPA,
   });
 }
 
@@ -78,7 +86,7 @@ function asTresPaginas() {
       html: painel.paginaFinanceira({
         pix: {}, descontos: [], escolas: [],
         extrato: [Object.assign({}, s, {
-          escola: 'breu', nome: 'Breu', frase: 'x', cobrancas: { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } },
+          escola: 'breu', nome: 'Breu', frase: 'x', cobrancas: MAPA,
         })],
         catalogo: comercial.catalogoDaPagina(),
       }),
@@ -87,8 +95,7 @@ function asTresPaginas() {
     },
     'mês a mês': {
       html: bastidores.paginaFinanceiro('breu', {}, {}, {
-        situacao: s, cadastro: { escolaNome: 'Breu' }, pix: { chave: '0215' },
-        cobrancas: { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } },
+        situacao: s, cadastro: { escolaNome: 'Breu' }, pix: { chave: '0215' }, cobrancas: MAPA,
       }),
       alvo: 'mes-pix-2026-11',
       url: 'https://danca.padd.com.br/bastidores/estudio/financeiro',
@@ -99,8 +106,7 @@ function asTresPaginas() {
         'demi-plie', [], [], [], [], [], [],
         { professores: new Set(), turmas: new Set(), termos: new Set(), planos: 0 },
         { modo: 'clara', paleta: 'bordo' }, '', [], new Set(),
-        { cadastro: { escolaNome: 'Breu' }, situacao: s, pix: { chave: '0215' },
-          cobrancas: { [MES]: { texto: PAYLOAD, em: EMITIDA_NO_ATRASO } } },
+        { cadastro: { escolaNome: 'Breu' }, situacao: s, pix: { chave: '0215' }, cobrancas: MAPA },
         [], null, [], undefined, null),
       alvo: 'escola-cobranca-1',
       url: 'https://danca.padd.com.br/bastidores/estudio',

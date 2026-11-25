@@ -169,7 +169,29 @@ function etiquetaDoFuso(iso, fuso) {
   return 'UTC' + sinal + horas + (resto ? ':' + (resto < 10 ? '0' : '') + resto : '');
 }
 
+/**
+ * O DIA SEGUINTE de um dia `AAAA-MM-DD`. Devolve `''` quando o que recebe não é um dia — quem chama
+ * trata a ausência («não sei»), e não um dia inventado.
+ *
+ * Mora aqui, ao lado dos outros utilitários de data, porque DOIS módulos precisam dela e da mesma
+ * maneira: as mensalidades (o atraso de um mês começa no dia seguinte ao vencimento) e as cobranças
+ * (a reserva do `atrasoEm`, quando ele não vem dado). Duas cópias de `+ 1 dia` divergiriam no dia em
+ * que alguém tratasse do horário de verão numa delas.
+ *
+ * A aritmética é em UTC de propósito: `new Date('2026-11-25')` já é meia-noite UTC, e somar um dia
+ * em milissegundos não atravessa fuso nenhum. Com `setDate` sobre a hora local, o mesmo dia daria
+ * outro em dois terços do mundo.
+ */
+function diaSeguinte(dia) {
+  const texto = String(dia || '');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(texto)) return '';
+  const t = Date.parse(texto + 'T00:00:00Z');
+  if (Number.isNaN(t)) return '';
+  return new Date(t + 86400000).toISOString().slice(0, 10);
+}
+
 module.exports = {
+  diaSeguinte,
   FUSO_PADRAO,
   ROTULO_DO_FUSO,
   DESLOCAMENTO_DE_RESERVA_MINUTOS,

@@ -1860,17 +1860,16 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
        *
        * O QUE FICA: o campo com o documento e o botão que o copia. Um botão a mais nesta célula
        * era um caminho a abrir a cobrança para fora de um ecrã de administração. */
-      const conferencia = guardada
-        ? cobrancasDoNucleo.situacaoDaCobranca({
-          texto: guardada,
-          valorBaseCentavos: m.valorPagoCentavos != null ? m.valorPagoCentavos : m.valorCentavos,
-          devidoCentavos: (!pago && m.encargos) ? m.encargos.totalCentavos : null,
-          pago,
-          venceu: !pago && Boolean(m.venceu),
-          salvoEm: c.cobrancas && c.cobrancas[m.mes] ? c.cobrancas[m.mes].em : null,
-          vencimento: m.vencimento,
-        })
-        : null;
+      /* A DECISÃO VEM PRONTA DO NÚCLEO (25/11/2026). Ela era tomada aqui, juntando à mão o valor do
+       * mês, a data da emissão e o vencimento — e foi essa montagem manual que pôs o relógio REAL
+       * de um lado e o relógio do ENSAIO do outro. A cobrança que ela acabara de colar num mês de
+       * ensaio vencido era acusada de «emitida antes do vencimento», com o vencimento em 23/06/2027
+       * e a emissão em 25/11/2026: as duas datas verdadeiras, em calendários diferentes.
+       *
+       * Agora quem responde é `mensalidades.situacaoDaEscola` — o mesmo sítio que diz «atrasado» e
+       * calcula a mora —, e esta página só mostra o que ele decidiu. Uma regra num sítio, três
+       * páginas; era o que faltava para a regra não ter três versões. */
+      const conferencia = m.cobranca || null;
       /* A FRASE DO VALOR, só quando há o que dizer: no mês a vencer não se acrescenta ruído; no mês
        * atrasado, o número que o código pede e o que é devido hoje; e um código sem valor fixo é
        * dito — «é um link» ou «não traz o valor» — porque é isso que explica não haver como

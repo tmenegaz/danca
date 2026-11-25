@@ -3764,8 +3764,14 @@ async function extratoDasEscolas({ env, escolas, agora }) {
      * A pergunta «que meses há?» tem de ter UMA resposta. A função que a responde é a mesma
      * (`situacaoDaEscola`); o que faltava era dar-lhe a mesma entrada. */
     const ensaio = await lerEnsaio(kv, slug);
+    /* AS COBRANÇAS ENTRAM NA CONTA DO EXTRATO (25/11/2026). A linha de cada mês passa a trazer o
+     * estado da cobrança Pix (`cobranca`, com `serve` e o motivo), decidido UMA vez por quem tem o
+     * relógio. Antes, cada página juntava as primitivas à mão — e foi assim que o ensaio entrou num
+     * sítio e não no outro: o vencimento de um lado (adiantado pelo ensaio), a data da emissão do
+     * outro (real), e uma cobrança colada agora acusada de ser anterior ao vencimento. */
+    const daEscola = cobrancasDoNucleo.cobrancasDaEscola(cobrancas, slug);
     const situacao = mensalidades.situacaoDaEscola({
-      escola: slug, contrato, livro, agora, ensaio,
+      escola: slug, contrato, livro, agora, ensaio, cobrancas: daEscola,
     });
     lista.push(Object.assign({}, situacao, {
       nome: (e && e.nome) || slug,
@@ -3779,7 +3785,7 @@ async function extratoDasEscolas({ env, escolas, agora }) {
       /* AS COBRANÇAS DESTA ESCOLA, do mapa que já foi lido — `{ 'AAAA-MM': {texto, em} }`. Vão no
        * extrato para a coluna «Cobrança» abrir com o que está guardado: um campo vazio numa tabela
        * que tem uma cobrança guardada faria ela colar de novo o mesmo documento. */
-      cobrancas: cobrancasDoNucleo.cobrancasDaEscola(cobrancas, slug),
+      cobrancas: daEscola,
       /* O ENSAIO VAI PARA A PÁGINA, para ela poder dizer que os meses que mostra são de ensaio.
        * Sem isto, o painel passaria a ver «dezembro de 2026» em novembro de 2026 e não haveria nada
        * no ecrã a explicar de onde vem. */
@@ -4850,7 +4856,7 @@ async function fetch(request, env) {
     let livro = [];
     try { livro = await mensalidades.lerLivro(env && env.PADD_KV); } catch (erro) { livro = []; }
     let devido = mensalidades.devidoDoMes({
-      escola: slug, contrato, livro, mes: corpo.mes,
+      escola: slug, contrato, livro, mes: corpo.mes, ensaio: await lerEnsaio(env && env.PADD_KV, slug),
     });
     /* O MÊS QUE AINDA NÃO NASCEU TEM CAMINHO, E É O DE ANTES (25/11/2026).
      *

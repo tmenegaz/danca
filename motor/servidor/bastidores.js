@@ -5611,8 +5611,14 @@ async function dadosDaEscolaParaAProducao(env, kv, escola) {
    * financeiro, e a página da escola é aberta por quem tem pressa de pagar. */
   const cobrancas = await ler('financeiro/cobrancas');
   const livro = await mensalidadesDoNucleo.lerLivro(kv);
+  /* AS COBRANÇAS ENTRAM NA CONTA DO EXTRATO (25/11/2026) — a linha de cada mês traz o estado da
+   * cobrança decidido UMA vez, com o mesmo relógio que diz «atrasado». É a correcção do defeito que
+   * ela viu: com o ensaio ligado, o vencimento aparecia em 23/06/2027 e a cobrança que ela acabara
+   * de colar dizia «emitida antes do vencimento», porque as duas datas eram de calendários
+   * diferentes. Ver `mensalidades.situacaoDaEscola`. */
+  const daEscola = cobrancasDoNucleo.cobrancasDaEscola(cobrancas, escola);
   const situacao = mensalidadesDoNucleo.situacaoDaEscola({
-    escola, contrato, livro, ensaio,
+    escola, contrato, livro, ensaio, cobrancas: daEscola,
   });
   return {
     ok: true,
@@ -5624,7 +5630,7 @@ async function dadosDaEscolaParaAProducao(env, kv, escola) {
      * cobrança de um mês já pago ao lado da que vale faria pagar duas vezes), e a página do mês a
      * mês mostra todas, porque ali o assunto é o extrato e o documento de um mês pago é o registo
      * de como ele foi pago. Filtrar aqui obrigaria a página do extrato a pedir outra leitura. */
-    cobrancas: cobrancasDoNucleo.cobrancasDaEscola(cobrancas, escola),
+    cobrancas: daEscola,
     ensaio: ensaio && Number(ensaio.minutosPorPeriodo) > 0 ? ensaio : null,
     situacao: Object.assign({}, situacao, {
       frase: mensalidadesDoNucleo.fraseDaSituacao(situacao.situacao),
@@ -6034,15 +6040,14 @@ function paginaFinanceiro(escola, contexto, aparencia, dados) {
      *
      * O que a célula mostra quando não serve é o MOTIVO, escrito pelo núcleo. Um botão apagado sem
      * explicação manda adivinhar, e num ecrã de dinheiro adivinhar custa caro. */
-    const estadoDaCobranca = cobrancasDoNucleo.situacaoDaCobranca({
-      texto: cobranca && cobranca.texto,
-      valorBaseCentavos: pago ? m.valorPagoCentavos : m.valorCentavos,
-      devidoCentavos: (!pago && m.encargos) ? m.encargos.totalCentavos : null,
-      pago,
-      venceu: vencido,
-      salvoEm: cobranca && cobranca.em,
-      vencimento: m.vencimento,
-    });
+    /* A DECISÃO VEM PRONTA DO NÚCLEO (25/11/2026) — `m.cobranca`, com `serve`, `estado` e `motivo`.
+     *
+     * Aqui ela era tomada outra vez, juntando à mão o valor do mês, a data da emissão e o
+     * vencimento. Com o relógio de ensaio ligado, o vencimento vinha adiantado e a emissão vinha
+     * real, e a cobrança que ela acabara de colar aparecia acusada de ser anterior a um vencimento
+     * que ainda não existia no calendário dela. Duas datas de calendários diferentes não se
+     * comparam; a tradução passou a ser feita onde o ensaio vive. */
+    const estadoDaCobranca = m.cobranca || { serve: false, motivo: null, estado: 'sem-cobranca' };
     let acao;
     if (cobranca && cobranca.texto) {
       const documento = '<p class="par-associar">'

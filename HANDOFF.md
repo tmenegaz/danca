@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-25T09:38:24-0300`
-Commit atual: `9db153f9` — feat(estrutura): a conciliacao volta, e o mes pago nao se cobra outra vez
+Gerado em: `2026-11-25T11:34:57-0300`
+Commit atual: `fd4a0e16` — feat(estrutura): o mes pago a menos nao fecha, e a clausula esta escrita onde ela paga
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+fd4a0e16 feat(estrutura): o mes pago a menos nao fecha, e a clausula esta escrita onde ela paga
 9db153f9 feat(estrutura): a conciliacao volta, e o mes pago nao se cobra outra vez
 2c83fd88 fix(experimentos): a prova do ar deixa de passar sem medir nada
 2928fcfc docs(estrutura): o plano da escola em consultoria e do mes de demonstracao
@@ -101,7 +102,6 @@ c1f38332 feat(ciclo): o manifesto da variante passa a derivar do cadastro da tur
 36db52f9 feat(plano): o elo da cadeia automática
 35e60582 feat(acervo): envelope/plano-20261125-0627.json
 7bbc570d feat(acervo): envelope/.indice.json
-1bb4360b feat(estrutura): a variante ganha a modalidade quando a sala tem mais de uma faixa
 ```
 
 ## Por professor
@@ -195,76 +195,76 @@ c1f38332 feat(ciclo): o manifesto da variante passa a derivar do cadastro da tur
 
 ## Última entrada do REGISTRO
 
-## 25/11/2026 — O mês pago a menos não fecha: conciliar por valor, e a cláusula escrita onde ela paga
+## 25/11/2026 — A cobrança Pix e o vencimento no mesmo calendário: o ensaio estava a ser lido por dois relógios
 
-**O pedido, e ele era uma pergunta sem resposta:** «Eu ainda não sei uma solução para isso, para
-impedir que a pessoa pague o valor menor. Ela vai ter que pagar o valor maior. Você tem alguma
-sugestão para me dar?» A decisão foi ficar com a **B** e a **D** das quatro propostas: conciliar pelo
-valor recebido, e escrever a cláusula que diz quando um mês deixa de estar em aberto.
+**O que ela viu, e é o relatório inteiro:** colou uma cobrança Pix de R$ 96,86 — o valor da situação,
+«atrasado» — no financeiro. A coluna aceitou-a, e por baixo apareceu:
 
-**A solução tem três partes, e nenhuma delas é da página.**
+> «Mês vencido e a cobrança foi emitida antes do vencimento, sem valor fixo legível. É um link ou um
+> código sem o campo do valor. Não dá para garantir que leva a mora. Gere uma nova de R$ 96,86.»
 
-1. **O campo vem preenchido com o devido** — mensalidade mais mora —, e é o **valor do campo** que
-   viaja. Quem quiser pagar a menos escreve-o; o gesto normal é não lhe tocar.
-2. **Quem compara é o servidor.** `mensalidades.devidoDoMes` lê a linha do extrato — a mesma que a
-   escola vê, com a mesma mora — e `registarPagamento` grava `status: 'parcial'` enquanto o
-   acumulado não cobrir o devido. A conta da mora continua a ser **uma**: se a rota a recalculasse,
-   as duas divergiam no primeiro dia em que alguém tocasse numa taxa.
-3. **A regra está escrita para a escola ler.** `mensalidades.CLAUSULA_DE_QUITACAO` é **uma frase,
-   um sítio**, e aparece na caixa «Pagar» da escola e no financeiro de quem concilia. Duas redacções
-   da mesma cláusula divergiriam exactamente no mês em atraso, que é quando ela é lida.
+E o ensaio marcava o vencimento da escola em **23/06/2027** — com hoje a 25/11/2026. Ou seja: o
+sistema pedia-lhe uma cobrança nova **do mesmo valor** de uma cobrança que estava certa.
 
-**O que o registo guarda, e é a parte que evita o defeito caro.** A **fatura não é reescrita** pelo
-recebido: `valorCentavos` continua a ser o que foi cobrado, porque é esse o número que a mudança de
-plano compara — gravar o recebido por cima dela daria um «upgrade» calculado sobre um valor que
-nunca foi preço. Ao lado, `recebidoCentavos` (acumulado), `devidoCentavos` e `faltaCentavos`, e o
-histórico dos pagamentos, porque uma escola pode pagar em duas vezes e o extrato bancário tem duas
-linhas. **E a mora incide sobre o saldo**, não sobre a fatura: cobrar juros sobre o que a escola já
-pagou seria cobrar duas vezes.
+**O diagnóstico, e as duas frases são verdadeiras ao mesmo tempo.** A emissão (`em`, gravado no
+clique) é um instante **real**: 25/11/2026. O vencimento é um dia do calendário **efectivo**, que o
+ensaio adianta: 23/06/2027. `situacaoDaCobranca` comparava um com o outro e concluía «emitida
+antes do vencimento» — porque, no calendário real, 2027 ainda não chegou. Duas datas verdadeiras em
+calendários diferentes não medem nada.
 
-**Duas guardas declaradas, e as duas foram provadas com o que devem recusar.** Um valor acima do
-**dobro** do devido é recusado com os dois números na frase (é o `69,90` que vira `6990,00` — um zero
-a mais, não um acerto). E um pagamento de **zero** não escreve linha nenhuma: uma linha a dizer
-«entrou nada» não se distingue, depois, de um mês que ninguém tocou.
+**E a regra estava montada à mão em TRÊS sítios** — o painel, o mês a mês e o `emAberto` da caixa
+«Pagar» —, cada um juntando as suas primitivas. Foi essa dispersão que permitiu que o ensaio
+entrasse num sítio e não no outro: o `situacaoDaEscola` já recebia o ensaio, e a cobrança não.
 
-**A ordem das guardas foi uma correcção a meio.** Num mês já quitado o devido é zero, e o segundo
-clique de quem concilia traz esse zero: recusá-lo respondia «um pagamento de R$ 0,00 não regista
-nada» a quem só carregou duas vezes no mesmo botão. A guarda do `jaPago` passou para **antes** da do
-zero, e o que ele ouve é «já estava pago».
+**A correcção, e ela vai numa direcção só.** O estado da cobrança passou a ser decidido **uma vez**,
+dentro de `mensalidades.situacaoDaEscola` — o mesmo sítio que diz «atrasado» e calcula a mora, e
+portanto o único que tem o relógio:
 
-**Uma regressão apanhada por uma prova, e é a razão de ela existir.** O primeiro desenho recusava
-qualquer mês que não estivesse na linha do tempo — e o «Informar um pagamento» do painel existe
-exactamente para o mês que ainda não está no extrato (um pagamento adiantado, ou um mês que o relógio
-de ensaio abriu). `provar-conciliacao-do-painel` secção 4 ficou vermelha e o caminho voltou, com a
-fatura do contrato em vigor e sem mora: não há vencimento a comparar com hoje, e inventar um seria
-cobrar juros de uma dívida que ainda não venceu.
+1. a **emissão é traduzida** pelo mesmo `instanteDoEnsaio` que adianta o «hoje». Uma cobrança colada
+   agora, com o ensaio em 2027-06, é uma cobrança de 2027-06 — e as duas datas passam a falar do
+   mesmo calendário;
+2. o **primeiro dia de atraso** (`atrasoEm`) passou a ser um só, derivado da mesma regra do selo: o
+   dia **seguinte** ao vencimento fora do ensaio (quem paga no dia, paga a tempo), o **próprio dia**
+   dentro dele (é a regra do relógio comprimido — «passado o tempo, já tem que pagar de novo»). É
+   este o número que a prova da data compara, e é por isso que ela deixou de ter duas versões;
+3. a linha do mês passou a trazer `cobranca` — `serve`, `estado`, `motivo`, o texto e a `url` —, e
+   `cobrancas.emAberto` e as **três páginas** deixaram de decidir: **lêem**.
 
-**Um defeito de escape que nenhum teste de topo veria.** O parser do dinheiro da página viaja como
-**texto dentro de uma string de JavaScript**: a primeira versão escrevia `/\d/` e chegava ao browser
-como `/[^d.,]/g`, que apaga tudo o que não seja a letra `d`, a vírgula ou o ponto, e transformava
-`173,81` em `,81`. O campo parecia certo, o botão não fazia nada, e o texto emitido é JavaScript
-válido. A prova passou a exercitar **sete formatos** pelo caminho real (o campo e o clique):
-`173,81`, `173.81`, `R$ 173,81`, `1.734,81`, `173`, `0,5`, `173,8`.
+**Um segundo relógio, encontrado no caminho.** A rota que grava o pagamento (`/api/financeiro/
+mensalidade`) calculava o devido com `devidoDoMes` **sem** o ensaio. Com o relógio comprimido ligado,
+o mês que a página mostrava em aberto não existia no calendário real: a rota caía na reserva da
+fatura do contrato, e um mês que a página dizia faltar mora era gravado como quitado. O «quanto se
+deve» é uma pergunta e passou a ter um relógio.
 
-**As provas.** `provar-conciliacao-do-painel.js` **47 → 71** (secção 8, nova: o campo preenchido, o
-corpo do `POST`, os sete formatos, o parcial no livro e no extrato, o resto que quita, o exagero
-recusado, o zero recusado — e a asserção que discrimina, «a fatura não é reescrita pelo recebido»,
-que uma implementação que gravasse o recebido por cima passaria nas outras duas e falharia nesta).
-`provar-a-cobranca-pix.js` **99 → 102** (secção E, nova: a cláusula nos dois lados, e a mesma frase).
-Bateria completa: **287 provas, 194 verdes, 93 falhas conhecidas, 0 regressões**.
+**A prova, e o A/B.** `provar-relogio-do-ensaio.js` ganhou a secção **5** (35 → **41** asserções): a
+cobrança colada agora serve, o estado é `com-mora`, não sobra motivo nenhum, e dois controlos
+negativos — a cobrança emitida **dois períodos antes** continua a não servir (senão «serve sempre»
+passaria a asserção de cima) e, **sem** ensaio, a mesma regra de sempre continua a valer (senão a
+correcção era uma excepção). Medido contra o `HEAD` anterior num `git worktree`: **36/41, com as
+três asserções que discriminam a falhar**. As fixtures de `provar-a-cobranca-pix` (102) e de
+`provar-o-copiar` (31) passaram a produzir a linha do mês **pelo núcleo** — um `Object.assign` a
+carimbar `status: 'pago'` deixaria a cobrança com o estado de um mês em atraso, e a prova estaria a
+medir uma página que o motor nunca produz.
 
-**O que isto NÃO resolve, e fica declarado.** Um valor *acima* do dobro do devido é correcção manual
-no livro — a guarda prefere recusar a gravar um número que ninguém sabe explicar. E o pagamento a
-menos continua a ser **possível** no banco: o sistema garante que ele não fecha o mês, não que ele não
-aconteça. Fechar isso de vez é a cobrança com vencimento pela API Pix, já proposta e não feita.
+**O que não se resolve, e fica declarado.** Um link do banco não traz o campo 54 do Pix: não há valor
+legível, e a única prova disponível é a data. O sistema continua a não conseguir conferir o valor de
+um link — só a data em que ele foi gerado. E um código que já saiu continua pagável no banco.
 
-**Onde entrou.** `motor/nucleo/mensalidades.js` (`devidoDoMes`, `registarPagamento` com o acumulado e
-as duas guardas, `situacaoDaEscola` com o estado parcial e a mora sobre o saldo, `reaisDe`,
-`CLAUSULA_DE_QUITACAO`), `motor/servidor/raiz.js` (o devido calculado do outro lado, e a reserva do
-mês fora da linha do tempo), `motor/servidor/painel-html.js` (o campo do valor, o selo «parcial», o
-parser e o aviso antes de recarregar), `motor/servidor/bastidores.js` (a cláusula no «Pagar» da
-escola), `experimentos/provar-conciliacao-do-painel.js`, `experimentos/provar-a-cobranca-pix.js`,
-`ESTADO-ATUAL.md`, `HANDOFF.md`.
+**Um terceiro defeito, de bancada e não de produto.** `provar-o-parametro-do-plano` acusava
+«REGRESSÃO» sob carga: esperava 600 ms fixos para os assets, e com seis provas em paralelo o
+`style.css` e o `nav.js` não chegavam a tempo, o que virava «a página tem um erro de script». Medido
+no `HEAD`, sem estas mudanças: **1 de 7 asserções falhava em seis cópias simultâneas** e passava em
+três seguidas sozinha. Passou a esperar o `load` (com tecto de 15 s). Uma prova que acusa o produto
+quando é a bancada que não deu conta manda procurar um defeito onde ele não está.
+
+**Onde entrou.** `motor/nucleo/mensalidades.js` (`atrasoEm`, a mora calculada uma vez, `cobranca` na
+linha do mês, `devidoDoMes` com ensaio), `motor/nucleo/cobrancas.js` (`emissaoDia`/`atrasoEm` em
+`situacaoDaCobranca`, `emAberto` a ler a linha), `motor/nucleo/fuso.js` (`diaSeguinte`),
+`motor/servidor/painel-html.js`, `motor/servidor/bastidores.js`, `motor/servidor/raiz.js` (as três
+páginas e as duas rotas a passar as cobranças e o ensaio),
+`experimentos/provar-relogio-do-ensaio.js`, `experimentos/provar-a-cobranca-pix.js`,
+`experimentos/provar-o-copiar.js`, `experimentos/provar-o-parametro-do-plano.js`, `ESTADO-ATUAL.md`,
+`HANDOFF.md`.
 
 ## O que está pendente
 
