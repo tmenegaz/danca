@@ -16,8 +16,8 @@
       "professores/demi-plie/ciclos/ciclo-01-breu-piano.conf",
       "professores/demi-plie/ciclos/ciclo-01.conf"
     ],
-    "hash": "a18f3383c48e759e0491921bd0dc0f92587c32f1b759c5244a94e021e5385b64",
-    "hash_conteudo": "05958b0302804750f8ab1af066e6106761bf732f57956ea078a4b7bd32aee13e",
+    "hash": "32d5b1a858ef04d304915033176947da6b886bb940a2c7c6970d760b34d409f5",
+    "hash_conteudo": "651a67d8079ee77ca6676e270ba8c40dd2b7705b06ebe3c1d9d72653e1dbb0c0",
     "id": "ciclo-01-breu-piano",
     "lida": true,
     "parent_hash": ""
@@ -115,9 +115,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "371adb1"
+    "commit": "45e0dff"
   },
-  "gerado_em": "2026-11-25T02:12",
+  "gerado_em": "2026-11-25T09:28",
   "id": "ciclo:demi-plie/01/breu",
   "professor": "demi-plie",
   "versao": 7

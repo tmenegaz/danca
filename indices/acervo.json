@@ -2,7 +2,7 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "a18f3383c48e759e0491921bd0dc0f92587c32f1b759c5244a94e021e5385b64",
+        "hash": "32d5b1a858ef04d304915033176947da6b886bb940a2c7c6970d760b34d409f5",
         "id": "ciclo-01-breu-piano",
         "lida": true,
         "parent_hash": ""
@@ -68,10 +68,10 @@
         "aulas": 1,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
-        "planos": 1,
-        "pos": 1,
+        "planos": 2,
+        "pos": 2,
         "recortes": 1,
-        "registros": 3
+        "registros": 5
       },
       "criada_em": "2026-11-23T10:26:27.415407+00:00",
       "expurgada": false,
@@ -87,7 +87,9 @@
       "registros": [
         "anamnese:anamnese-20261123-1055",
         "plano:plano-20261124-0811",
-        "po:po-20261124-0815"
+        "plano:plano-20261125-0627",
+        "po:po-20261124-0815",
+        "po:po-20261125-0627"
       ],
       "slug": "breu"
     },
@@ -157,7 +159,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 3,
+        "contagem": 5,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -340,12 +342,12 @@
         "valor": "anamnese"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Plano de ensino",
         "valor": "plano"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Plano de observação",
         "valor": "po"
       }
@@ -353,9 +355,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "371adb1"
+    "commit": "45e0dff"
   },
-  "gerado_em": "2026-11-25T02:12",
+  "gerado_em": "2026-11-25T09:28",
   "nao_indexado": [
     {
       "familia": "conteudo",

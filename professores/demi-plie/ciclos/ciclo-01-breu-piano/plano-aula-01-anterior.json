@@ -1,0 +1,116 @@
+{
+  "identificacao": {
+    "professorResponsavel": "Demi Plié",
+    "sala": "Piano",
+    "dataEDia": "segunda-feira, 04/01/2027",
+    "parametroDeMedicao": "1 transferir o peso entre os pés sem perder o alinhamento — observa: Battement jeté · Battement tendu · Plié · Relevé",
+    "duracao": "55 minutos (Pré-requisito 4)",
+    "volumeAtivo": "83 tempos (faixa 74–91 da duração de 55 min — Regra 9, etapa 1)"
+  },
+  "condicoesPreliminares": "Sala com barra, espelho e aparelho de som; piso adequado.",
+  "sequenciaDaAula": "Bloco · Tempos · Fatia Solo · 16,6 · 20% Barra · 24,9 · 30% Centro · 24,9 · 30% Musicalidade · 8,3 · 10% Expressão · 8,3 · 10% **Total** · **83** · **100%**",
+  "blocoDeMusicalidade": [
+    "**Os compassos desta aula.** 2/4.",
+    {
+      "compasso": "2/4",
+      "exercicio": "Battement jeté",
+      "tempos": "8",
+      "contagem": "1–2"
+    },
+    {
+      "compasso": "2/4",
+      "exercicio": "Battement tendu",
+      "tempos": "8",
+      "contagem": "1–2"
+    },
+    {
+      "compasso": "2/4",
+      "exercicio": "Plié",
+      "tempos": "4",
+      "contagem": "1–2"
+    },
+    {
+      "compasso": "2/4",
+      "exercicio": "Relevé",
+      "tempos": "8",
+      "contagem": "1–2"
+    },
+    "Uma linha por exercício, e uma vez só: o mesmo exercício em Barra, Centro e Expressão tem a **mesma** música — ela é do exercício, não do bloco. Os tempos e o compasso vêm da sequência do plano e, quando ela não os declara, do verbete de cada exercício — que é onde a música se declara; a contagem, sempre do verbete."
+  ],
+  "guiaDeObservacao": {
+    "Corpo": [
+      {
+        "criterio": "o passé",
+        "oQueSeObserva": "1 de 1 em «precisa desenvolver» (por consciência própria) — ponto de atenção"
+      },
+      {
+        "criterio": "Formato anatômico dos joelhos",
+        "oQueSeObserva": "1 de 1 em «Varo (\"arqueado\")» — ponto de atenção"
+      },
+      {
+        "criterio": "2ª posição — pés",
+        "oQueSeObserva": "1 de 1 em «Bom» (por consciência própria)"
+      }
+    ],
+    "Técnica": [
+      {
+        "bloco": "Solo",
+        "oQueSeObserva": "transferir o peso entre os pés sem perder o alinhamento"
+      },
+      {
+        "bloco": "Barra",
+        "oQueSeObserva": "transferir o peso entre os pés sem perder o alinhamento"
+      },
+      {
+        "bloco": "Centro",
+        "oQueSeObserva": "transferir o peso entre os pés sem perder o alinhamento"
+      }
+    ],
+    "Poiesis": [
+      {
+        "criterio": "a musicalidade",
+        "oQueSeObserva": "1 de 1 em «Domínio parcial» — ponto de atenção"
+      },
+      {
+        "criterio": "Memória e retenção de sequências",
+        "oQueSeObserva": "1 de 1 em «Precisa de apoio visual prolongado» — ponto de atenção"
+      },
+      {
+        "criterio": "Discriminação de lateralidade",
+        "oQueSeObserva": "1 de 1 em «Confusão severa» — ponto de atenção"
+      },
+      {
+        "criterio": "Orientação espacial básica",
+        "oQueSeObserva": "1 de 1 em «Perde a referência ao mudar de direção» — ponto de atenção"
+      },
+      {
+        "criterio": "Espiral / rotação de tronco",
+        "oQueSeObserva": "1 de 1 em «Rigidez total» — ponto de atenção"
+      },
+      {
+        "criterio": "Musicalidade e pulsação rítmica",
+        "oQueSeObserva": "1 de 1 em «Domina»"
+      },
+      {
+        "criterio": "Coordenação motora e dissociação",
+        "oQueSeObserva": "1 de 1 em «Executa movimentos cruzados»"
+      }
+    ]
+  },
+  "proveniencia": "**[Plano de Observação](/plano-observacao/api/po-preenchido.po-20261124-0815?formato=html)** — O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho? **[Plano de ensino](/plano-ensino/api/plano-preenchido.plano-20261124-0811?formato=html)** — Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento. **Anamnese de cada aluna** A anamnese de cada aluna do elenco desta turma está na **Área do Professor** — **editar** abre o formulário (a senha é pedida lá, e é ela que autoriza a escrita) e **imprimir** abre a folha dela, para ler ou levar para a aula. Uma anamnese já vinculada a este ciclo diz **novo registo**: o retrato anterior fica como está, e o novo nasce com a data de hoje.",
+  "auditoria": [
+    {
+      "verificacao": "Objetivo específico declarado",
+      "resultado": "ok"
+    },
+    {
+      "verificacao": "Duração declarada (Pré-requisito 4)",
+      "resultado": "ok — 55 minutos"
+    },
+    {
+      "verificacao": "Volume dentro da faixa (Regra 9)",
+      "resultado": "ok — 83 tempos em 74–91"
+    }
+  ],
+  "proximoPasso": "Item · Proposta **Marco da Aula 02** · — o plano declarou apenas um marco; aguarda-se o desenvolvimento do próximo marco para a elaboração da Aula 02"
+}

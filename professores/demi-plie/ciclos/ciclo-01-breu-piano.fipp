@@ -10,9 +10,9 @@ type: Ciclo
 professor: demi-plie
 ciclo: 01
 variante: breu-piano
-hash_conteudo: 05958b0302804750f8ab1af066e6106761bf732f57956ea078a4b7bd32aee13e
+hash_conteudo: 651a67d8079ee77ca6676e270ba8c40dd2b7705b06ebe3c1d9d72653e1dbb0c0
 parentHash: 
-hash: a18f3383c48e759e0491921bd0dc0f92587c32f1b759c5244a94e021e5385b64
+hash: 32d5b1a858ef04d304915033176947da6b886bb940a2c7c6970d760b34d409f5
 algoritmo: SHA-256
 po: professores/demi-plie/ciclos/ciclo-01-breu-piano-po.md
 po_state: Input_PO_Validado
