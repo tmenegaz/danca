@@ -1329,6 +1329,12 @@ async function responderCriacao(request, env, opcoes) {
        * preenchido, senão ela reescreve o contrato sem saber o que estava em vigor. */
       lotesProfessores: escolha.lotesProfessores,
       lotesAlunos: escolha.lotesAlunos,
+      /* OS PACOTES CONTRATADOS NA CRIAÇÃO (25/11/2026). Eles eram validados (`validarEscolha`) e
+       * não chegavam ao registo: uma escola que nascesse com um pacote de aulas perdia-o no instante
+       * seguinte, e o extrato mostrava a franquia do plano como se nenhum extra tivesse sido
+       * comprado. É o mesmo defeito que a rota do contrato já tinha pago, uma linha ao lado — ver a
+       * nota em `/api/financeiro/contrato`. */
+      pacotes: escolha.pacotes,
       extensoes: escolha.extensoes,
       pagamento: escolha.pagamento,
       origem,
@@ -2091,6 +2097,24 @@ async function gravarComercial(kv, escola, mudanca, quem, opcoes) {
   });
   delete registo.motivo;
   delete registo.semRegisto;
+  /* A DATA DA CONTRATAÇÃO, COMO FACTO PRÓPRIO (25/11/2026).
+   *
+   * «Coloca aqui também uma auditoria, uma linha acima do botão gravar o contrato que indica a data
+   * em que foi feita a contratação do contrato para fazer melhor controle. […] E se for gravado o
+   * contrato, atualiza a auditoria, a data em que foi feita a contratação desse novo contrato.»
+   *
+   * É DIFERENTE DO `atualizadoEm`, e é essa diferença que a torna necessária: o `atualizadoEm` anda
+   * a cada escrita do registo — habilitar a escola, suspender, informar um pagamento —, e nenhuma
+   * dessas coisas é contratar. A pergunta «desde quando esta escola paga isto?» não tinha resposta
+   * directa.
+   *
+   * SÓ SE CARIMBA QUANDO ALGO MUDOU, e quem o decide é quem chama (`opcoes.contratoNovo`, calculado
+   * na rota pela comparação da assinatura do contrato). Carimbar sempre faria da data a do último
+   * clique em «Gravar», e a auditoria diria «contratado ontem» sobre um contrato de um ano.
+   *
+   * O RELÓGIO É UM SÓ: o carimbo é este `agora`, o mesmo que o `atualizadoEm` e o elo do histórico
+   * levam. Duas chamadas a `new Date()` no mesmo gesto dariam duas datas para o mesmo facto. */
+  if (opcoes && opcoes.contratoNovo) registo.contratadoEm = agora;
   /* A DATA DE CADA MUDANÇA DE ESTADO, guardada como facto próprio (25/11/2026).
    *
    * O histórico já tinha o «quando» de cada elo, mas ler a última transição de lá a cada linha de
@@ -4819,6 +4843,22 @@ async function fetch(request, env) {
       return responderJson({ ok: false, erro: escolhaComercial.erro }, 400);
     }
     const escolha = escolhaComercial.escolha;
+    /* MUDOU ALGUMA COISA? (25/11/2026). A comparação é feita AQUI, e não na tela, porque é o
+     * servidor que carimba a data da contratação — e um `POST` escrito à mão, sem mudança nenhuma,
+     * movia a auditoria. A assinatura é a mesma regra do desenho (`assinaturaDoContrato` em
+     * `painel-html.js`): `plano|ids ordenados`. A ordem não conta porque a ordem das caixas não é
+     * uma escolha da escola.
+     *
+     * A LEITURA É UMA SÓ, e é a que o `gravarComercial` faria de qualquer forma: ele lê o anterior
+     * para o `Object.assign`. Ler aqui de novo seria uma segunda leitura do mesmo registo no mesmo
+     * gesto — e uma janela em que o comparado e o gravado podiam divergir. */
+    const anterior = await lerComercial(env && env.PADD_KV, slug);
+    const assinatura = (plano, pacotes) => String(plano || '') + '|'
+      + (Array.isArray(pacotes) ? pacotes : [])
+        .map((p) => (p && typeof p === 'object' ? String(p.id || '') : String(p || '')))
+        .filter(Boolean).sort().join(',');
+    const mudou = assinatura(anterior.plano, anterior.pacotes)
+      !== assinatura(escolha.plano, escolha.pacotes);
     const gravado = await gravarComercial(env && env.PADD_KV, slug, {
       plano: escolha.plano,
       planoNome: escolha.planoNome,
@@ -4830,16 +4870,22 @@ async function fetch(request, env) {
       lotesAlunos: escolha.lotesAlunos,
       pacotes: escolha.pacotes,
       extensoes: escolha.extensoes,
-    }, 'proprietario');
+    }, 'proprietario', { contratoNovo: mudou });
     if (!gravado.ok) return responderJson({ ok: false, erro: gravado.erro }, 500);
     return responderJson({
       ok: true,
+      /* `mudou` VAI NA RESPOSTA, para a tela poder dizer a verdade quando o pedido não alterou
+       * nada — «o contrato é o mesmo, nada foi carimbado» — em vez de recarregar como se tivesse
+       * havido uma contratação. */
+      mudou,
       contrato: {
         plano: escolha.plano,
         planoNome: escolha.planoNome,
         valor: escolha.valor,
         valorCentavos: escolha.valorCentavos,
         capacidade: escolha.capacidade,
+        contratadoEm: gravado.comercial && gravado.comercial.contratadoEm
+          ? gravado.comercial.contratadoEm : null,
       },
     });
   }

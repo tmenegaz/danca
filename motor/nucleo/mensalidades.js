@@ -449,6 +449,13 @@ function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas 
     plano: c.plano || null,
     planoNome: c.planoNome || null,
     capacidade: c.capacidade || null,
+    /* A DATA DA CONTRATAÇÃO, e as duas reservas dela (25/11/2026). O `contratadoEm` é o campo
+     * próprio, carimbado quando um contrato NOVO é gravado. Nos registos anteriores a hoje ele não
+     * existe, e a reserva é o `criadoEm` — o instante em que a escola nasceu já com este plano, que
+     * é a mesma data dita pela fonte que a tem. `habilitadaEm` vem por último porque uma escola
+     * pode ter sido habilitada mais tarde do que contratada. Sem nenhuma das três, sai `null`: a
+     * página diz que não há data em vez de inventar uma. */
+    contratadoEm: c.contratadoEm || c.criadoEm || c.habilitadaEm || null,
     /* O PISO E O TETO DO CONTRATO (16/11/2026) — «a partir de» e «até». A `capacidade` acima é o
      * mesmo número que o piso, e continua a sair porque é o nome que o registo comercial usa; o que
      * a tela lê é este par, que é o que a escola entende: ela contratou a partir de 9 professores, e

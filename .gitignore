@@ -1673,6 +1673,14 @@ experimentos/modelo-formulario/*
 # de verdade, com o `fetch` trocado por um que regista os caminhos `PUT`. 36 asserções.
 !experimentos/provar-a-variante-da-faixa.js
 
+# O CONTRATO EM VIGOR, A FRANQUIA NO PLANO E O BOTÃO QUE SÓ ACENDE COM MUDANÇA (25/11/2026). O select
+# do plano passou a dizer a franquia de cada degrau (`Básico — R$ 69,90 — 130 aulas/mês`), a linha
+# acima do botão diz o que está em vigor e desde quando, e o botão nasce desligado — acende na
+# mudança e apaga-se quando se volta ao que estava. Mede também o servidor: a data da contratação
+# (`contratadoEm`) só é carimbada quando o contrato muda, e a mesma lista de pacotes por outra ordem
+# não é uma mudança. 37 asserções.
+!experimentos/provar-o-contrato-em-vigor.js
+
 # O FINANCEIRO QUE FICA (23/11/2026, à tarde). A regra de 17/11 era o contrário — expurgar a escola
 # levava as mensalidades dela —, e ela corrigiu: «A parte financeira não pode expurgar, ela fica
 # para histórico. E aí a gente diz numa linha seguinte que essa escola foi expurgada.» O livro vive

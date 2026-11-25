@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-24T23:41:12-0300`
-Commit atual: `b6e85dd7` — fix(estrutura): a cadeia decide sobre o docente da faixa, e o par de uma faixa e um gesto
+Gerado em: `2026-11-25T06:48:45-0300`
+Commit atual: `cfe41518` — chore(entrega): gerar o pacote de demi-plie/01/breu-piano
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,19 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+cfe41518 chore(entrega): gerar o pacote de demi-plie/01/breu-piano
+6177f30d chore(entrega): gerar o pacote de demi-plie/01/breu-piano
+f9e49440 feat(acervo): envelope/.indice.json
+923629a5 chore(estrutura): fechar os derivados — âncoras e índices
+65b1d4b9 chore(entrega): gerar o pacote de demi-plie/01/breu-piano
+45e0dff4 feat(ciclo): o «Guardar» do PO grava as fontes de breu-piano num commit só
+454ddbe3 feat(acervo): envelope/po-20261125-0627.json
+6d0bb06a feat(acervo): envelope/.indice.json
+c1f38332 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+36db52f9 feat(plano): o elo da cadeia automática
+35e60582 feat(acervo): envelope/plano-20261125-0627.json
+7bbc570d feat(acervo): envelope/.indice.json
+1bb4360b feat(estrutura): a variante ganha a modalidade quando a sala tem mais de uma faixa
 b6e85dd7 fix(estrutura): a cadeia decide sobre o docente da faixa, e o par de uma faixa e um gesto
 71eed979 chore(entrega): gerar o pacote de demi-plie/01/breu-piano
 371adb16 feat(estrutura): habilitar demi-plie em bale-classico, contemporaneo
@@ -89,19 +102,6 @@ b6e85dd7 fix(estrutura): a cadeia decide sobre o docente da faixa, e o par de um
 90ef34ad fix(estrutura): o plano de ensino lia a raiz da sala e não a faixa que a turma ocupa
 8b8a1745 chore(entrega): gerar o pacote de demi-plie/01/breu-piano
 8d703b00 fix(estrutura): a guarda da derivação da Turma não recebia a faixa escolhida
-0b8fe308 chore(entrega): gerar o pacote de demi-plie/01/breu-piano
-ed0b341b fix(estrutura): as faixas não persistiam, e o par passa a ser por faixa
-f666bbb2 chore(entrega): gerar o pacote de demi-plie/01/breu-piano
-e181db15 chore(estrutura): fechar os derivados — âncoras e índices
-00df9fe4 feat(ciclo): o «Guardar» do PO grava as fontes de breu-piano num commit só
-620a43b5 feat(estrutura): o «+» da faixa horária e o campo que a escolhe na Turma
-90879840 feat(estrutura): a sala ganha faixas — N aulas por dia, N modalidades, N professores
-1c8bf816 feat(estrutura): a ocupação entra nas rotas — e o modelo que falta nela
-b9071ef4 feat(estrutura): a regra da ocupação — sala, professor e elenco — com as quatro decisões dela
-dfbaf973 docs(estrutura): o custo por aula é 3 minutos medidos, o contador custa zero, e a regra da sala recusa o que ela pediu
-0e2340db feat(estrutura): a analítica do Cloudflare ligada ao painel — os pedidos e as operações de KV por dia
-7f834e90 feat(estrutura): os schemas do ciclo passam de cinco commits a um, e a analítica do Cloudflare já está habilitada
-c179465f fix(estrutura): a implementação do lote, que o commit anterior não levou
 ```
 
 ## Por professor
@@ -128,7 +128,7 @@ c179465f fix(estrutura): a implementação do lote, que o commit anterior não l
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `e81a3e1cf08c` | (vazio) | — |
-| breu-piano | ciclo-01-breu-piano.fipp | `a18f3383c48e` | (vazio) | Input_PO_Validado |
+| breu-piano | ciclo-01-breu-piano.fipp | `32d5b1a858ef` | (vazio) | Input_PO_Validado |
 
 ### fernando-franciose — 0 ciclo(s)
 
@@ -387,6 +387,75 @@ para a escola nova.
 `motor/servidor/listas-do-acervo.js`, `experimentos/provar-a-variante-da-faixa.js` (novo),
 `experimentos/provar-listas-do-acervo.js`, `experimentos/provar-aluna-nova-no-elenco.js`,
 `experimentos/provar-remocao-do-elenco.js`, `PLANO-DE-OCUPACAO.md` (§9.6), `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+### 25/11/2026 — o contrato do financeiro: a franquia no plano, a memória, a data e o botão
+
+**O pedido, na letra dela, e são quatro coisas numa frase.** «Quando eu faço a escolha do plano, tem
+um select aqui que coloca a opção básico, intermediário e avançado. Junto com o texto da listagem, eu
+tenho o preço […] **Coloca junto também a franquia de cada um deles** […] Pode colocar um traço e a
+franquia para cada um. E o **botão gravar o contrato, deixa ele habilitado apenas se o plano vigente
+for editado**. […] Ela não tem nesse momento a indicação no espaço de pacote de aula na mensalidade,
+ela não tem a indicação de qual pacote ela contratou. […] **Então deixa uma memória aqui.** […] e
+**coloca aqui também uma auditoria, uma linha acima do botão gravar o contrato que indica a data em
+que foi feita a contratação** do contrato.»
+
+**1. A franquia no `select`.** `Básico — R$ 69,90 — 130 aulas/mês`. O número vem do catálogo
+(`catalogoDaPagina` já trazia `aulas` por assinatura) e não de um valor escrito na página: um valor
+copiado para o ecrã diverge do que o servidor cobra no dia em que a tabela mudar — é a mesma razão
+pela qual o preço também não se escreve.
+
+**2. A memória, e a diferença entre ela e um campo pré-preenchido.** O `select` já abria no plano em
+vigor e as caixas já abriam marcadas. O que faltava era a **frase**: uma caixa desmarcada pode ser
+«não contratou» ou «o registo perdeu-se», e é essa ambiguidade que faz alguém regravar um contrato
+para ter a certeza. A linha acima do botão diz o que está em vigor por extenso — `Avançado (500
+aulas/mês), sem pacote de aulas extra` — e com um pacote comprado nomeia-o e soma a franquia
+(`550 aulas/mês, com Pacote médio (+50 aulas)`).
+
+**3. O botão só acende com mudança.** Nasce `disabled`, com a **assinatura do estado inicial**
+(`plano|ids ordenados`) escrita no próprio botão. O cliente compara no `change` e acende; se a pessoa
+voltar ao que estava, apaga. Um `disabled` sem essa memória desligava o botão para sempre, e o gesto
+de «voltar atrás» deixava-o ligado — gravava-se um contrato igual ao anterior e a data da auditoria
+andava sem que nada tivesse mudado.
+
+**4. A data — e o campo que ela obrigou a criar.** `contratadoEm`, distinto do `atualizadoEm` por um
+motivo que se mediu: o `atualizadoEm` anda a **cada** escrita do registo — habilitar a escola,
+suspender, informar um pagamento —, e nenhuma dessas coisas é contratar. A pergunta «desde quando
+esta escola paga isto?» não tinha resposta directa. Nos registos anteriores a hoje o campo não
+existe, e a reserva é o `criadoEm` (o instante em que a escola nasceu já com este plano, que é a
+mesma data dita pela fonte que a tem); sem nenhuma das duas, a linha diz que não há data em vez de
+inventar uma. O carimbo usa o **mesmo** `agora` do `atualizadoEm` e do elo do histórico — duas
+chamadas a `new Date()` no mesmo gesto dariam duas datas para o mesmo facto.
+
+**A TELA EVITA E O SERVIDOR GARANTE.** É a doutrina da casa, e aqui era necessária: um `POST` escrito
+à mão, sem mudança nenhuma, movia a auditoria — e a auditoria vale exactamente porque ninguém a
+move. A rota compara a assinatura antes de carimbar e devolve `mudou` na resposta. A ordem dos
+pacotes não conta: mandar a mesma lista por outra ordem não é uma mudança, e é o defeito clássico de
+uma comparação de listas.
+
+**O DEFEITO AO LADO, encontrado ao escrever a prova.** A criação da escola validava os pacotes
+(`validarEscolha(corpo)`) e **não os gravava** no registo comercial — a escola nascia com um pacote e
+acordava sem ele, e o extrato mostrava a franquia do plano como se nenhum extra tivesse sido
+comprado. É o mesmo defeito que a rota do contrato já tinha pago a 17/11/2026, uma linha ao lado.
+Corrigido com `pacotes: escolha.pacotes`.
+
+**A prova.** `provar-o-contrato-em-vigor.js`, **37 asserções**, em sete secções: o `select` (com o
+controlo de que o preço não aparece sozinho), a linha da memória (com e sem pacote, e sem data), o
+botão e a assinatura, o cliente em jsdom (acende, apaga, volta), o carimbo no `gravarComercial`
+(inclusive que **habilitar a escola não move a data**), a rota (sem mudança, com mudança, e a mesma
+lista por outra ordem) e o registo da criação. **Quatro controlos negativos a correr** — sem o
+carimbo condicional, sem a comparação na rota, sem o `disabled` e sem a franquia no `select`, a
+prova reprova com as asserções certas.
+
+`provar-financeiro-da-escola` foi **actualizada e não apagada**: ela atribuía `.value` e `.checked`
+por código e clicava no botão, o que passava porque o jsdom dispara o `click` de um botão desligado.
+No navegador esse gesto não existe. Passou a disparar o `change` e a afirmar que o botão nasce
+desligado e acende — o caminho que uma pessoa faz.
+
+**Onde entrou.** `motor/servidor/painel-html.js` (`opcoesDoPlano`, `linhaDoContratoEmVigor`,
+`assinaturaDoContrato`, o markup e o cliente), `motor/servidor/raiz.js` (`gravarComercial` com
+`opcoes.contratoNovo`, a rota `/api/financeiro/contrato`, e `pacotes` na criação),
+`motor/nucleo/mensalidades.js` (`contratadoEm` no extrato), `experimentos/provar-o-contrato-em-vigor.js`
+(novo), `experimentos/provar-financeiro-da-escola.js`, `ESTADO-ATUAL.md`, `HANDOFF.md`.
 
 ## O que está pendente
 

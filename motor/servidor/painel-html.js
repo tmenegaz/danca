@@ -1681,10 +1681,20 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
   /* O PLANO EM VIGOR VEM SELECCIONADO, e os lotes também — quando o registo os guardou. É a
    * diferença entre «mudar o contrato» e «escrever o contrato de novo sem saber o que lá está»:
    * um `select` que abre no primeiro plano faz dela a autora de um downgrade que não pediu. */
+  /* O PLANO, O PREÇO E A FRANQUIA NA MESMA LINHA (25/11/2026).
+   *
+   * «Quando eu faço a escolha do plano, tem um select aqui que coloca a opção básico, intermediário
+   * e avançado. Junto com o texto da listagem, eu tenho o preço […] Coloca junto também a franquia
+   * de cada um deles que está sendo contratada. Pode colocar um traço e a franquia para cada um.»
+   *
+   * A franquia vem do catálogo (`catalogoDaPagina` já traz `aulas` por assinatura), e não de um
+   * número escrito aqui: um valor copiado para o ecrã é um valor que diverge do que o servidor
+   * cobra no dia em que a tabela mudar. É a mesma razão pela qual o preço também não se escreve. */
   const opcoesDoPlano = (atual) => ((cat && cat.assinaturas) || []).map((p) =>
     '<option value="' + esc(p.id) + '" data-centavos="' + Math.round(Number(p.preco) * 100) + '"'
     + (p.id === atual ? ' selected' : '') + '>'
-    + esc(p.nome) + ' — ' + esc(p.precoTexto || '') + '</option>').join('');
+    + esc(p.nome) + ' — ' + esc(p.precoTexto || '')
+    + (Number(p.aulas) > 0 ? ' — ' + p.aulas + ' aulas/mês' : '') + '</option>').join('');
   /* AS CAIXAS DOS LOTES DE GENTE FORAM RETIRADAS A 17/11/2026 — e com elas a função que as
    * desenhava. Um gerador de marcação que já não tem chamador é código morto que parece vivo: o
    * próximo que ler o ficheiro acha que os lotes ainda se vendem. Os contratos antigos guardam os
@@ -1701,6 +1711,58 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
       + 'data-pacote="' + esc(pk.id) + '"' + (lista.indexOf(String(pk.id)) !== -1 ? ' checked' : '') + '>'
       + '<span>+' + pk.aulas + ' aulas — R$ ' + String(pk.preco).replace('.', ',') + '/mês</span></label>')
       .join('');
+  };
+
+  /* A MEMÓRIA DO CONTRATO, E A DATA EM QUE ELE FOI FEITO (25/11/2026).
+   *
+   * «Ela não tem nesse momento a indicação no espaço de pacote de aula na mensalidade, ela não tem a
+   * indicação de qual pacote ela contratou. E no plano avançado ainda está registrado aqui que foi
+   * esse que ela contratou. Então deixa uma memória aqui. […] E coloca aqui também uma auditoria,
+   * uma linha acima do botão gravar o contrato que indica a data em que foi feita a contratação do
+   * contrato.»
+   *
+   * A MEMÓRIA JÁ ESTAVA NOS CAMPOS — o `select` abre no plano em vigor e as caixas abrem marcadas
+   * com os pacotes comprados. O que faltava era a FRASE: campos pré-preenchidos não dizem se a
+   * escola contratou «nenhum extra» ou se o registo se perdeu, e a diferença é a que faz alguém
+   * regravar um contrato para ter a certeza. Esta linha diz o que está em vigor por extenso, e
+   * diz quando — que é a auditoria que ela pediu, na mesma linha em que se lê o quê.
+   *
+   * A DATA VEM DO REGISTO, e não do ecrã: `contratadoEm` é carimbada quando um contrato NOVO é
+   * gravado (`gravarComercial`, opção `contratoNovo`). Nos registos anteriores a hoje o campo não
+   * existe, e a reserva é o `criadoEm` — o instante em que a escola nasceu já com este plano, que
+   * é a mesma data, dita pela fonte que a tem. Sem nenhuma das duas, a frase diz que não há data em
+   * vez de inventar uma. */
+  const nomeDoPacote = (id) => {
+    const achado = ((cat && cat.pacotesDeAulas) || [])
+      .find((x) => String(x.id) === String(id));
+    return achado ? achado.nome + ' (+' + achado.aulas + ' aulas)' : String(id);
+  };
+  /* A ASSINATURA DE UM CONTRATO — `plano|ids ordenados`. É a comparação de «mudou alguma coisa?»,
+   * e tem de ser a MESMA do servidor e do cliente: duas regras dariam um botão que liga sobre uma
+   * mudança que o servidor não vê (ou o contrário), e nos dois casos o `contratadoEm` andava sem
+   * que nada tivesse mudado. A lista de pacotes é ordenada porque a ordem das caixas não é uma
+   * escolha da escola. Ver também `raiz.js`, `/api/financeiro/contrato`. */
+  const assinaturaDoContrato = (plano, pacotes) => {
+    const ids = (Array.isArray(pacotes) ? pacotes : [])
+      .map((p) => (p && typeof p === 'object' ? String(p.id || '') : String(p || '')))
+      .filter(Boolean).sort();
+    return String(plano || '') + '|' + ids.join(',');
+  };
+  const linhaDoContratoEmVigor = (c) => {
+    const desde = c.contratadoEm || c.criadoEm || c.habilitadaEm || null;
+    const aulas = c.franquia && Number(c.franquia.franquia) > 0
+      ? Number(c.franquia.franquia) : null;
+    const ids = (Array.isArray(c.pacotes) ? c.pacotes : [])
+      .map((p) => (p && typeof p === 'object' ? String(p.id || '') : String(p || '')))
+      .filter(Boolean);
+    const extra = ids.length
+      ? 'com ' + ids.map(nomeDoPacote).join(' e ')
+      : 'sem pacote de aulas extra';
+    return '<p class="sub" data-contrato-em-vigor>' +
+      '<strong>Contrato em vigor ' + (desde ? 'desde ' + esc(quando(desde)) : 'sem data registada')
+      + ':</strong> ' + esc(c.planoNome || '—')
+      + (aulas ? ' (' + aulas + ' aulas/mês)' : '') + ', ' + esc(extra) + '. ' +
+      'Gravar um contrato novo actualiza esta data.</p>';
   };
 
   const cartaoDaConta = (c) => {
@@ -1947,7 +2009,24 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
          * continuam no registo (a história não se apaga), e deixam de ser reenviados quando o
          * contrato é gravado — porque o formulário já não os tem. É a consequência declarada de os
          * retirar, e a única escola com eles é de teste. */
-        '<p><button class="acao" type="button" data-contrato-gravar="' + esc(c.escola) + '">' +
+        /* O QUE ESTÁ EM VIGOR, E DESDE QUANDO — imediatamente acima do botão, que é onde ela pediu
+         * («uma linha acima do botão gravar o contrato»). Ver `linhaDoContratoEmVigor`. */
+        linhaDoContratoEmVigor(c) +
+        /* O BOTÃO NASCE DESLIGADO (25/11/2026). «O botão gravar o contrato, deixa ele habilitado
+         * apenas se o plano vigente for editado. […] Aí quando mudar de plano ou mudar de pacote de
+         * aula, aí sim habilita o botão gravar o contrato.»
+         *
+         * A ASSINATURA DO ESTADO INICIAL VAI NO PRÓPRIO BOTÃO (`data-contrato-assinatura`), e é a
+         * única forma de a comparação ser entre o que a página abriu e o que a pessoa escolheu: um
+         * `disabled` sem a memória do que estava lá desligava o botão para sempre, e o gesto de
+         * «voltar ao que estava» deixava-o ligado — a pessoa gravava um contrato igual ao anterior
+         * e a data da auditoria andava sem que nada tivesse mudado.
+         *
+         * O SERVIDOR GARANTE O MESMO (ver a rota `/api/financeiro/contrato`): um pedido sem
+         * alteração não move o `contratadoEm`. A tela evita e o servidor garante — é a doutrina da
+         * casa, e é o que impede um `POST` escrito à mão de reescrever a data. */
+        '<p><button class="acao" type="button" data-contrato-gravar="' + esc(c.escola) + '"' +
+        ' data-contrato-assinatura="' + esc(assinaturaDoContrato(c.plano, c.pacotes)) + '" disabled>' +
         'Gravar o contrato</button></p>' +
         '<p class="aviso" data-contrato-recado hidden></p>' +
         '<p class="sub">O mês em curso não muda por isto: o extrato guarda o que foi cobrado em cada ' +
@@ -2336,6 +2415,33 @@ const SCRIPT_DO_FINANCEIRO = '<script>(function(){' +
    * A MESMA CONTA DO SERVIDOR, e não uma segunda: o plano vem do `select`, os lotes das caixas, e
    * é o `POST` que valida contra o catálogo. A página não calcula preço nenhum — o valor que
    * aparece no extrato é o que o servidor gravar. */
+  /* O BOTÃO SÓ ACENDE COM MUDANÇA (25/11/2026). «Deixa ele habilitado apenas se o plano vigente for
+   * editado […] Aí quando mudar de plano ou mudar de pacote de aula, aí sim habilita o botão.»
+   *
+   * A ASSINATURA É A MESMA REGRA DO SERVIDOR (`assinaturaDoContrato` em `painel-html.js` e a
+   * comparação em `/api/financeiro/contrato`): `plano|ids ordenados`. Compara-se o que está agora
+   * com o que a página ABRIU — e é por isso que a inicial vem escrita no botão. Um botão que ficasse
+   * ligado depois de a pessoa voltar atrás gravava um contrato igual ao anterior, e a data da
+   * auditoria andava sem que nada tivesse mudado.
+   *
+   * O `change` é ouvido na CAIXA (delegação), e não em cada campo: a caixa é uma por escola, e uma
+   * caixa que ganhe um campo novo amanhã não precisa de mais um `addEventListener`. */
+  'var assinarContrato=function(plano,pacotes){' +
+  '  var ids=[];for(var i=0;i<pacotes.length;i++){if(pacotes[i])ids.push(pacotes[i]);}' +
+  '  ids.sort();return String(plano||"")+"|"+ids.join(",");};' +
+  'var estadoDoContrato=function(caixa){' +
+  '  var s=caixa.querySelector("[data-contrato-plano]");' +
+  '  var cs=caixa.querySelectorAll("[data-contrato-pacote]"),ids=[];' +
+  '  for(var i=0;i<cs.length;i++){if(cs[i].checked)ids.push(cs[i].getAttribute("data-pacote"));}' +
+  '  return assinarContrato(s?s.value:"",ids);};' +
+  'var caixasDoContrato=document.querySelectorAll("[data-contrato]");' +
+  'for(var q=0;q<caixasDoContrato.length;q++)(function(caixa){' +
+  '  var botao=caixa.querySelector("[data-contrato-gravar]");if(!botao)return;' +
+  '  var inicial=botao.getAttribute("data-contrato-assinatura")||"";' +
+  '  var acertar=function(){botao.disabled=(estadoDoContrato(caixa)===inicial);};' +
+  '  caixa.addEventListener("change",acertar);' +
+  '  acertar();' +
+  '})(caixasDoContrato[q]);' +
   'var gravarContrato=document.querySelectorAll("[data-contrato-gravar]");' +
   'for(var k=0;k<gravarContrato.length;k++)(function(b){' +
   '  b.addEventListener("click",function(){' +

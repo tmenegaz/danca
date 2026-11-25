@@ -398,10 +398,22 @@ function kvCom(dados) {
     pedidos.length = 0;
     const caixa = d.querySelector('[data-contrato="teste"]');
     const select = caixa.querySelector('[data-contrato-plano]');
+    const botaoDoContrato = caixa.querySelector('[data-contrato-gravar]');
+    /* O BOTÃO SÓ ACENDE COM MUDANÇA (25/11/2026), e por isso o clique agora exige que a mudança
+     * seja FEITA como uma pessoa a faz — com o evento `change`. Atribuir `.value`/`.checked` por
+     * código não o dispara, e um clique num botão desligado não existe no navegador. Sem esta
+     * correcção a prova passaria por um caminho que só o jsdom tem: ela mediria o pedido de um
+     * gesto que a página não permitiria. */
+    conferir('o botão de gravar nasce DESLIGADO', botaoDoContrato.disabled === true,
+      botaoDoContrato.disabled);
     select.value = catalogo.assinaturas[catalogo.assinaturas.length - 1].id;
+    select.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
     const pacote = caixa.querySelector('[data-contrato-pacote]');
     pacote.checked = true;
-    caixa.querySelector('[data-contrato-gravar]').dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+    pacote.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    conferir('…e acende quando o plano e um pacote mudam', botaoDoContrato.disabled === false,
+      botaoDoContrato.disabled);
+    botaoDoContrato.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
     await new Promise((r) => setTimeout(r, 120));
     conferir('o «Gravar o contrato» vai a `/api/financeiro/contrato` com o plano e o pacote de aulas',
       pedidos.length === 1 && pedidos[0].url === '/api/financeiro/contrato'

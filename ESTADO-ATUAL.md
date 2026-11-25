@@ -4,8 +4,13 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **as duas Turmas da mesma sala deixaram de escrever o mesmo
-> ficheiro.** A variante passou a levar a modalidade quando a sala tem mais de uma faixa:
+> **Última fotografia:** 25/11/2026 — **o contrato do financeiro passou a dizer o que se contratou e
+> desde quando.** O `select` do plano mostra a franquia (`Básico — R$ 69,90 — 130 aulas/mês`), uma
+> linha acima do botão diz `Avançado (500 aulas/mês), sem pacote de aulas extra` com a data da
+> contratação, e o botão só acende quando o plano ou um pacote mudam — e volta a apagar-se se a
+> pessoa voltar ao que estava. A data (`contratadoEm`) é campo próprio e só é carimbada quando o
+> contrato muda, garantido no servidor e não só na tela. Antes disso, no mesmo dia: **as duas Turmas
+> da mesma sala deixaram de escrever o mesmo ficheiro.** A variante passou a levar a modalidade quando a sala tem mais de uma faixa:
 > `ciclo-01-breu-piano-bale-classico-plano.md` e `ciclo-01-breu-piano-danca-contemporanea-plano.md`.
 > Medido pela rota com a Sala dela — `COLIDEM no ficheiro? false` —, e nada do que existe é renomeado,
 > porque uma sala de uma faixa não entra na condição. Antes disso, no mesmo dia: a cadeia passou a
@@ -4514,6 +4519,20 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      `provar-a-variante-da-faixa.js` (36), incluindo o escritor de verdade, e o expurgo continua a
      reconhecer a escola pelo prefixo. **Nada é renomeado do que existe**: uma sala de uma faixa (ou
      sem o campo `faixas`) não entra na condição.
+
+199. **O CONTRATO DIZ A FRANQUIA, TEM MEMÓRIA E UMA DATA — e o botão só acende com mudança.**
+     Pedido dela no `/financeiro`, quatro coisas na mesma frase. **APLICADO:** o `select` do plano
+     passou a `Básico — R$ 69,90 — 130 aulas/mês` (a franquia vem do catálogo, como o preço); uma
+     linha **acima do botão** diz o que está em vigor e desde quando — `Avançado (500 aulas/mês),
+     sem pacote de aulas extra`; o botão nasce `disabled` e acende no `change`, apagando-se se a
+     pessoa voltar ao que estava; e o registo ganhou `contratadoEm`, carimbado **só** quando o
+     contrato muda. **PORQUE A DATA É UM CAMPO PRÓPRIO:** o `atualizadoEm` anda a cada escrita
+     (habilitar, suspender, informar pagamento) e nenhuma dessas é contratar. **O SERVIDOR GARANTE
+     O MESMO:** a rota compara a assinatura `plano|ids ordenados` antes de carimbar, e devolve
+     `mudou` — um `POST` sem alteração não move a auditoria, e a mesma lista por outra ordem não é
+     uma mudança. **O DEFEITO AO LADO, CORRIGIDO:** a criação da escola validava os pacotes e não os
+     gravava, e a escola nascia com um pacote e acordava sem ele. **PROVADO** por
+     `provar-o-contrato-em-vigor.js` (37), com quatro controlos negativos a correr.
 
 188. **A SALA NOVA NÃO PODE CRIAR COLISÃO EM SILÊNCIO — e as mensagens não sugerem resolução.** A
      edição da Sala já corria a cadeia, mas a cadeia relê o ritmo e deriva o plano; **não conferia a
