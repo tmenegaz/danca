@@ -4,7 +4,28 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **o consultor tem plano, e o plano tem número.** O
+> **Última fotografia:** 25/11/2026 — **o consultor passou a existir no sistema, e existir
+> ainda não abre porta nenhuma.** A fase F1 do [PLANO-DO-CONSULTOR.md](PLANO-DO-CONSULTOR.md) está
+> no ar: `danca.padd.com.br/consultores` cadastra (nome, **pelo menos um** de CPF/CNPJ, praça,
+> e-mail, telefone, e o equipamento declarado — carro, habilitação, notebook próprio), lista, e
+> **activa ou desactiva**. O registo vive no KV (`consultores/registos`, uma lista e não uma chave
+> por consultor, para não gastar enumeração), a regra vive num núcleo puro
+> (`motor/nucleo/consultores.js`), e **um consultor registado hoje não tem acesso a nada**: não gera
+> token, não abre link, não cria escola — isso é F2 e F3. **A fase não abre a terceira porta**, e é
+> de propósito: pôr no ar o que já tem prova, sem abrir a porta que ainda não tem. **Duas decisões
+> que o código toma e que se lêem na página:** o consultor **nasce inactivo** (activar é o gesto que
+> abre acesso, e um acesso não nasce aberto por omissão de um formulário — um consultor activo a
+> mais parece exactamente um consultor que trabalha); e **activar é um elo datado** num histórico
+> de onde ninguém apaga, com `mudou: false` em vez de erro quando o estado já é aquele. As três
+> rotas não estão em `publicoPermitido`, logo o endereço público responde **404** — e 404, não 401,
+> porque um 401 diria que ali há uma porta e qual é. **Uma leitura falhada não é uma lista vazia:**
+> o KV que não responde dá **503 com a frase a dizer que nada foi mostrado**, senão quem lesse
+> «Nenhum consultor cadastrado» cadastraria o primeiro outra vez. A prova
+> (`provar-o-cadastro-do-consultor`, **88 asserções**) tem os dois controlos negativos do `ativo` e
+> o caso do KV mudo, e o botão novo na barra fez **subir de oito para nove** os destinos do
+> `provar-painel` — com a asserção que **nomeia o nono**, para o número não voltar a subir por
+> acidente. **Bateria: 294 provas, 201 verdes, 0 regressões.** Antes disso, no mesmo dia: **o
+> consultor tem plano, e o plano tem número.** O
 > [PLANO-DO-CONSULTOR.md](PLANO-DO-CONSULTOR.md) desenha as cinco peças que faltam para a escola
 > poder nascer pela mão de outra pessoa: o cadastro do consultor (nome, CPF/CNPJ, equipamento,
 > activo/inactivo — **no KV**, nunca no git, com o token guardado como hash), a área dele em
@@ -2439,6 +2460,7 @@ Verificado nesta fotografia, com os comandos da §9.
 | **O vínculo da anamnese lê o ELENCO, e não só o `sujeitos` do PO** | **CONFIRMADO** 08/11/2026 (`provar-vinculo-do-elenco`, 26 asserções, com os envelopes e a linha de base **reais** da `batata`): uma aluna está vinculada quando o **elenco da turma que o PO observa** a inclui — a linha de base manda, e o `sujeitos` do PO é a herança —, e as duas fontes **somam-se** (quem saiu do elenco continua vinculada: um cadeado que se abre quando uma das fontes esquece um nome não é cadeado). Sem o elenco, o A/B reproduz o defeito: «solta», `PUT`/`DELETE` a 200, e o «Guardar» a **sobrescrever** o registo. Com ele, a Aluna B passa a «vinculada», as duas rotas dão **409**, e a gravação empilha elo novo. Sem leitor de linha de base a derivação degrada para o `sujeitos`, sem inventar vínculo. | `motor/nucleo/porta.js` (`vinculos`), `motor/servidor/rotas.js`, `motor/servidor/listas-do-acervo.js` |
 | **A turma tem três estados, e a edição pergunta antes** | **CONFIRMADO** 03/11/2026 (`provar-conteudos-e-estado-da-turma`, §B e §C): `livre` · `curada` · `vinculada`. A curada recusa a mudança de **nome** (a curadoria guarda o nome, e renomear partia a ligação em silêncio) e aceita o resto; a vinculada recusa tudo. A tela mostra o selo e desactiva o «Excluir»; a rota é quem decide. | `motor/nucleo/estado-da-turma.js`, `motor/servidor/bastidores.js` |
 | **Os conteúdos são da curadoria — e o mapa antigo continua a ler-se** | **CONFIRMADO** 03/11/2026 (§A, §D, §F): `conteudosDaTurma` e `mapaDeConteudos` compõem `turma-conteudos` com o `repertorio` de cada curadoria, colapsados pelo mesmo `idDe`; a curadoria **substituída** não entra. O passo 3 da turma ficou sem o bloco, e o cartão continua a mostrar a lista. | `motor/nucleo/conteudos.js`, `motor/servidor/bastidores.js` |
+| **O cadastro do consultor — F1 do plano** | **CONFIRMADO** 25/11/2026 na bancada (`provar-o-cadastro-do-consultor`, **88** asserções): `danca.padd.com.br/consultores` cadastra (nome, **pelo menos um** de CPF/CNPJ, praça, e-mail, telefone, equipamento declarado), lista com paginação e resumo, e **activa/desactiva**. O registo é **uma lista** em `consultores/registos` (uma chave por consultor obrigaria a enumeração, que é a operação do KV limitada por dia), com tecto de 200 e `retirados` na resposta. **Nasce inactivo**, e activar é um elo datado (`historico`) — activar quem já está activo dá `mudou: false` e não é falha. As três rotas não estão em `publicoPermitido`: **404** no endereço público. **KV mudo → 503** com a frase que diz que nada foi mostrado. **Não gera token, não abre link, não cria escola** — F2 e F3. | `motor/nucleo/consultores.js`, `motor/servidor/consultores-da-casa.js`, `motor/servidor/painel-html.js` (`paginaDosConsultores`), `motor/servidor/raiz.js` (as três rotas), `raiz/index.html` (o nono destino) |
 | **O formulário da curadoria só oferece o que o professor pode ensinar** | **CONFIRMADO** 03/11/2026 (§G): as modalidades vêm do `perfil.json` do professor; a tradição segue a modalidade (lista própria a vencer a compartilhada, e queda para a compartilhada quando não há própria). **Nenhuma modalidade tem `tradicoes.json` próprio** — o conteúdo é dela (P-16). | `motor/nucleo/tradicoes.js`, `motor/servidor/bastidores.js` |
 
 ### Parcial
@@ -2522,7 +2544,7 @@ Verificado nesta fotografia, com os comandos da §9.
 | `motor/nucleo/derivar-ciclo.js` | a fonte da aula: as oito secções, e a origem de cada uma |
 | `motor/nucleo/notacao.js` | o compositor: verbete + música → a grade de contagens |
 | `porta/`, `tools/templates/` | a folha e o desenho (peças do catálogo) |
-| `experimentos/provar-*.js` | **257** provas versionadas (**270** no disco). Medido a 19/11/2026 — a linha dizia «91 (104)», e era um número escrito sem ser medido |
+| `experimentos/provar-*.js` | **294** provas versionadas (**305** no disco, com a nova por versionar à espera do commit). Medido a 25/11/2026 com `git ls-files 'experimentos/provar-*.js'` e `ls` — a linha dizia «257 (270)», medida a 19/11/2026, e um número escrito sem ser medido é o defeito que esta casa persegue |
 | `tools/regerar-derivados.js` | põe as fontes derivadas de um ciclo em dia a partir dos envelopes |
 | `tools/` | infraestrutura — **congelado** |
 
@@ -5126,11 +5148,16 @@ repositório; o vocabulário do repositório tem hoje **93 termos**, e o ar só 
 
 ## 8. Pendências e dúvidas
 
-### O consultor — PLANO escrito a 25/11/2026, e sete decisões que são dela
+### O consultor — PLANO escrito a 25/11/2026, **F1 implementado**, e o que é dela
 
-O [PLANO-DO-CONSULTOR.md](PLANO-DO-CONSULTOR.md) fecha o desenho e **não implementa nada**: as cinco
-peças, as fases F1..F5 e as provas estão lá. O que fica aqui é o que **só ela pode responder**, e
-duas delas mudam o desenho:
+O [PLANO-DO-CONSULTOR.md](PLANO-DO-CONSULTOR.md) desenha as cinco peças e as fases F1..F5.
+~~F1~~ — **IMPLEMENTADO a 25/11/2026**: o cadastro, a lista e o botão de activar estão no ar em
+`danca.padd.com.br/consultores`, com o registo no KV (`consultores/registos`), a regra no núcleo
+puro (`motor/nucleo/consultores.js`) e **88 asserções** em
+`experimentos/provar-o-cadastro-do-consultor.js`. **O que F1 não abre, e é a fronteira:** um
+consultor registado hoje não gera token, não abre link e não cria escola — F2 é o acesso dele, F3 a
+criação pela visita. **F2 não foi começada**, e a decisão de a separar é o que permite isto estar no
+ar sem a terceira porta existir a meio. O que fica aqui é o que **só ela pode responder**:
 
 - **Q1 — os R$ 10 são por consultoria ou por sessão?** Recomendação: **por consultoria** (uma visita,
   uma escola, dez reais). Por sessão obrigaria a definir «sessão», e ele cobra à hora.
@@ -5145,7 +5172,11 @@ duas delas mudam o desenho:
 - **Q5** — o link expira em 30 dias? (recomendação: sim)
 - **Q6** — tecto de visitas por consultor? (recomendação: não; o que protege é a desactivação)
 - **Q7** — uma visita que dê duas escolas paga duas vezes? (recomendação: não — a taxa é por visita)
-- **Q8** — ele activa-se a si mesmo? (recomendação: não — nasce inactivo, e o «Activar» é dela)
+- ~~**Q8**~~ — ele activa-se a si mesmo? **DECIDIDO pela implementação a 25/11/2026: não.** O
+  consultor **nasce inactivo**, e o «Activar» é dela. A regra não é uma preferência: um acesso que
+  nasce aberto por omissão de um formulário não tem sintoma — **um consultor activo a mais parece
+  exactamente um consultor que trabalha**. A prova mede-o, e o controlo negativo (nascer activo)
+  reprova.
 
 ### O portão da aula dada — IMPLEMENTADO a 22/11/2026, com duas portas que ele não fecha
 
@@ -5722,7 +5753,18 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (25/11/2026 — a analítica do Cloudflare ligada ao painel)
+### Executado nesta fotografia (25/11/2026 — o cadastro do consultor, F1)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-o-cadastro-do-consultor.js` (**nova**) | **88/88**. §A a validação na ordem das perguntas. §B o cadastro é um dado e o acesso é uma decisão (nasce **inactivo**). §C activar é um elo datado. §D o mesmo documento não entra duas vezes. §E um KV que não responde não é uma lista vazia (**503**, com a frase). §F as três rotas, com **404** no endereço público e **401** sem a senha. §H os dois controlos negativos do `ativo`. §G o tecto da lista, e `retirados` dito na resposta |
+| o caso que a prova teve de aprender a medir | o mínimo do nome media-se com o nome **vazio** — que é apanhado antes, pela falta, com **outra** frase: a asserção media a frase errada e o ramo `minimo: 3` nunca era exercido. Passou a haver os dois casos (`''` → «informe o nome»; `'Jo'` → «pelo menos 3 letras») |
+| o defeito que uma asserção composta escondeu | o resumo estava num só `&&` de cinco parcelas e reprovou **meia hora** sem dizer qual falhava. Era um erro meu de escrita — `r.inactivos` com «c» —, a ler `undefined`. Em cinco asserções, saiu à primeira. **Uma asserção composta é um diagnóstico perdido** |
+| a regressão que a mudança causou, e o que ela ensinou | `provar-painel` exigia **oito** destinos no rail esquerdo, e o botão «Consultores» fez **nove**. A correcção subiu o número **e acrescentou a asserção que nomeia o nono** (`href="/consultores"`): sem ela, o nove só diria «há um a mais», e o próximo a mais passaria sem se saber se é pedido ou acidente |
+| as quatro conferências | `check-identidade` **0 problemas** (23) · `check-schemas` verde · `check-sem-destruicao` verde · `check-github-headers` 5 ok. A página nova usa **peças do catálogo** (`caixa`, `escolhas`, `escolha`, `campo-rotulo`, `selo`, `acao`, `aviso`) — nenhuma classe inventada |
+| `node tools/correr-provas.js --tecto=90` | **294 provas, 201 verdes, 93 conhecidas, 0 regressões.** A linha de base era 293/200/93/0: uma prova nova, um verde a mais, nada partido |
+
+### Executado nesta fotografia anterior (25/11/2026 — a analítica do Cloudflare ligada ao painel)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -7616,6 +7658,43 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **25/11/2026** — **O cadastro do consultor (F1), e o que ele não abre.** O botão «Consultores» na
+  barra de `danca.padd.com.br` leva a uma página que **cadastra, lista, activa e desactiva**. O que
+  ela pediu, campo a campo: nome, «o CPF e o CNPJ», os equipamentos «carro e habilitação e
+  computador próprio, um notebook próprio», e «um botão de ativar ou desativar e um status para
+  saber se ele está ativo ou não». **O cadastro não é um directório de contactos: é a identidade que
+  atribui** — é ela que o link vai levar (F2), é ela que a escola criada vai nomear (F3), e é ela
+  que sustenta a meta que ela descreveu («não vou premiar um consultor pelo mérito de outro»). Por
+  isso exige **praça** (sem praça não é atribuível) e **documento**. **Pelo menos um** de CPF/CNPJ, e
+  não os dois: exigir os dois fecharia a porta a quem faz consultoria como pessoa física, que é o
+  caso mais provável do primeiro consultor. **O que F1 não faz, e é a decisão da fase:** não gera
+  token, não abre link, não cria escola. A porta de F2 é uma **terceira porta** de criação de escola
+  — a que contorna a recusa que o `validarEscolha` faz hoje a `consultoria` no endereço público —, e
+  uma porta dessas a meio é um caminho para uma escola nascer com o plano errado, que só aparece no
+  dia em que ela fizer as contas. **O consultor nasce inactivo:** activar é o gesto que abre acesso,
+  e um acesso que nasce aberto por omissão de formulário é invisível — um consultor activo a mais
+  parece exactamente um consultor que trabalha. **Activar é um elo datado** (`historico: [{em, o,
+  motivo}]`), nunca uma sobrescrita; e activar quem já está activo responde `mudou: false`, **e não
+  é falha** — dois cliques não são duas decisões. **Três rotas, nenhuma pública:** `GET
+  /consultores`, `POST /api/consultores`, `POST /api/consultores/estado` — fora de
+  `publicoPermitido`, logo **404** em `lastro.padd.com.br`, e 404 e não 401 porque um 401 diria que
+  ali há uma porta e qual é. **Uma leitura falhada não é uma lista vazia:** KV mudo → **503** com
+  «nada foi mostrado para não o fazer decidir sobre um registo que não leu», senão quem lesse
+  «Nenhum consultor cadastrado» cadastraria o primeiro outra vez. O equipamento é **declarado com
+  data** (um booleano sem data é uma memória sem autor) e a ausência **diz-se** («Carro (não)»); o
+  resumo conta activos, inactivos, praças e quem tem «o equipamento todo declarado», porque um
+  consultor sem carro numa praça sem transporte é uma visita que não acontece. O tecto da lista é
+  duzentos, e aos duzentos e um a resposta **diz** `retirados: 1` — um limite que apaga em silêncio é
+  uma mentira por omissão. **A prova, 88 asserções**, aprendeu duas coisas a medir: o mínimo do nome
+  media-se com o nome **vazio**, que é apanhado antes por outra frase (passou a haver os dois casos,
+  «informe o nome» e `'Jo'` → «pelo menos 3 letras»); e o resumo estava numa asserção **composta**,
+  que reprovou meia hora sem dizer qual das cinco parcelas falhava — era um erro meu de escrita
+  (`inactivos` com «c»), que em cinco asserções saiu à primeira. **Uma asserção composta é um
+  diagnóstico perdido.** O botão novo fez o `provar-painel` reprovar a exigir oito destinos: subiu
+  para **nove**, com a asserção que **nomeia o nono** — quando um número sobe porque um pedido o fez
+  subir, a prova tem de dizer o que entrou. **Bateria: 294 provas, 201 verdes, 93 conhecidas, 0
+  regressões.**
 
 - **25/11/2026** — **O plano do consultor.** O cadastro (nome, CPF e/ou CNPJ, carro e habilitação,
   notebook próprio, activo/inactivo), o acesso dele por token em `lastro.padd.com.br/consultor/<…>`,

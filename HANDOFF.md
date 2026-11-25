@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-25T17:52:09-0300`
-Commit atual: `acd513e4` — docs(estrutura): o plano do consultor — o cadastro, o link e os R$ 10
+Gerado em: `2026-11-25T20:46:53-0300`
+Commit atual: `f4a82c9e` — docs(estrutura): a Q2 desfez-se ao medir — o piso do plano nao e parede
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+f4a82c9e docs(estrutura): a Q2 desfez-se ao medir — o piso do plano nao e parede
 acd513e4 docs(estrutura): o plano do consultor — o cadastro, o link e os R$ 10
 40143ec0 fix(estrutura): o mapa das provas ve o path.join, e a prova da notacao volta a correr
 a4638edf fix(estrutura): a descricao do exercicio volta para fora da tabela
@@ -101,7 +102,6 @@ d6d0533a feat(estrutura): a cobranca pode ser um link, e o cliente carrega nele 
 bc7d6e5e feat(estrutura): o contrato do financeiro diz a franquia, tem memoria e uma data
 cfe41518 chore(entrega): gerar o pacote de demi-plie/01/breu-piano
 6177f30d chore(entrega): gerar o pacote de demi-plie/01/breu-piano
-f9e49440 feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -195,117 +195,155 @@ f9e49440 feat(acervo): envelope/.indice.json
 
 ## Última entrada do REGISTRO
 
-## O plano do consultor — o cadastro, o link, e os R$ 10 *(25/11/2026)*
+## O cadastro do consultor — o registo que atribui *(25/11/2026)*
 
-> «A gente vai adicionar lá em danca.padd.com.br um botão que leva até o cadastro e a listagem de
-> consultores. […] quando ele estiver ativo, ele gera esse link, manda para a dona da escola. […]
-> Ele vai cobrar R$ 120 a hora da consultoria e isso é para ele. […] Com êxito ou sem êxito, ele vai
-> me pagar R$ 10 na consultoria. […] o restante é tudo dele.»
+**O que ela pediu, e o que a frase carrega.** «Vou pôr o nome, o CPF e o CNPJ, os equipamentos que
+ele precisa ter, carro e habilitação e computador próprio, um notebook próprio. E aí um botão de
+ativar ou desativar e um status para saber se ele está ativo ou não.» E, duas vezes na mesma sessão,
+a razão de isto existir: «é uma forma de eu saber que o consultor tá trabalhando» e «assim eu não
+faço confusão, não vou premiar um consultor pelo mérito de outro consultor».
 
-**O que foi feito foi o plano**, e ele existe porque a pergunta dela tem duas metades que se
-confundiam: **como é que outra pessoa cria uma escola** (uma porta nova, num endereço público) e
-**quem paga o quê** (três fluxos de dinheiro, e só um passa pelo sistema).
+**A consequência de desenho, e é a decisão desta fase:** o cadastro **não é um directório de
+contactos**. É a **identidade que atribui** — é ela que o link vai levar (F2), é ela que a escola
+criada vai nomear (F3), e é ela que um dia sustenta uma meta. Um directório aceitaria nome e
+telefone; este exige **praça** e **documento**, porque sem praça ele não é atribuível e sem
+documento ele não é ninguém em particular.
 
-### O que já existia, e não se construiu de novo
+### A primeira fase é a que não abre porta nenhuma
 
-A descoberta que encurtou o plano: quase tudo estava lá. Os **dois endereços com o host a decidir o
-modo** (`ehPaginaPublica`), o `lastro.padd.com.br` **já ligado** ao Worker `danca`, a **criação
-pública de escola** com o cadastro completo e o rollback, o **plano consultoria com os sete
-limites**, o **congelamento calculado** e o **padrão do token** no `convite.js`. O que faltava eram
-cinco peças — o cadastro do consultor, o acesso dele, a visita, a atribuição e o livro dos R$ 10.
+O plano tem cinco fases (F1..F5) e esta é a primeira. **O que F1 entrega é exactamente o que ela
+descreveu — e nada do que vem depois:** cadastrar, listar, activar, desactivar. Um consultor
+registado hoje **não tem acesso a nada**: não gera token, não abre link, não cria escola. Acesso
+nasce em F2, atribuição em F3.
 
-### A porta nova, e a que continua fechada
+**E a razão de separar assim é a de sempre:** pôr no ar o que já tem prova, sem abrir a porta que
+ainda não tem. A porta de F2 é uma **terceira porta** de criação de escola — a que o token do
+consultor abre, contornando a recusa que hoje o `validarEscolha` faz a `consultoria` na página
+pública. Uma porta dessas a meio é um caminho para uma escola nascer com o plano errado, e uma
+escola com o plano errado só aparece no dia em que ela fizer as contas. **F1 não a abre.**
 
-`comercial.validarEscolha` recusa hoje `plano: 'consultoria'` a quem não é o proprietário, com a
-frase certa: «o plano consultoria é criado pela administração do Sistema Lastro, e não pela página da
-escola». Está certo: uma escola que o pedisse pela página pública estaria a pedir **um mês grátis a
-si mesma**.
+### «Nasce inactivo» — e porquê
 
-O link do consultor abre uma **terceira porta**, e é o **token** que a abre — não um campo do
-formulário. O plano não substitui a recusa: acrescenta-lhe uma porta. E a prova mede as duas coisas:
-a recusa continua palavra por palavra, e com `podeDispensar` o plano passa com a capacidade dos sete
-limites (e não de uma referência).
+É o único ponto desta fase em que o código escolhe contra a leitura mais óbvia do pedido. Ela disse
+«um botão de ativar ou desativar»; o botão existe, e a ordem é: **cadastra, e o consultor fica
+inactivo; activar é o gesto seguinte.**
 
-### A regra que o plano muda, e diz que muda
+O motivo é que **activar é o gesto que abre o acesso**, e um acesso não deve nascer aberto por
+omissão de um formulário. Nas palavras do painel: *«Só um consultor **activo** pode gerar o link de
+uma escola. Desactivar fecha a área dele e os links que ele já espalhou — sem ter de os correr
+atrás.»*
 
-**D2 do PLANO-DA-ESCOLA-EM-CONSULTORIA dizia «o mês começa na entrega».** Neste fluxo a criação e a
-entrega são o mesmo gesto: o consultor cria a escola com a escola presente, e cobra as horas que
-passa ali dentro. Exigir um segundo clique dela pararia o negócio — ele trabalharia três horas e a
-escola não podia usar nada até ela abrir o painel.
+O sintoma que isto evita tem nome: **um consultor activo a mais parece exactamente um consultor que
+trabalha.** Não há erro, não há vermelho, não há aviso — há uma pessoa com acesso que ninguém decidiu
+dar. É a mesma família da cota do KV (18/10/2026) e do `if` que filtrava o título vazio no
+`check-pacote.js`: o que falha em silêncio não é o que está errado, é o que parece certo.
 
-Fica: `origem === 'consultor'` → `entregueEm = criadaEm`, `terminaEm = fimDeUmMes`. A porta do painel
-continua a entregar à mão. Duas portas, duas regras, e a diferença é qual delas tem uma pessoa a
-cobrar à hora.
+### Activar é um elo datado, não uma sobrescrita
 
-### O dinheiro — três fluxos, e só um no sistema
+O estado é o último elo de um `historico` de onde ninguém apaga nada. Cada mudança guarda **quando**
+e **o motivo**, e a proveniência acrescenta — não edita, que é a regra da casa desde o `hash-ciclo`.
 
-| fluxo | valor | entre quem | o sistema |
-|:--|:--|:--|:--|
-| a hora | R$ 120 | escola → consultor | regista as horas, se ele as declarar |
-| a taxa | R$ 10 | consultor → ela | **um livro**, por visita que deu escola; não é cobrança (não há cartão nem repasse) |
-| a assinatura | 69,90 / 99,90 / 139,90 | escola → ela, por Pix | já existe: conciliação e «Habilitar» |
+A consequência prática aparece nos dois casos-limite, e os dois estão medidos:
 
-**E os R$ 10 medidos contra o custo** (CUSTO-DOS-FLUXOS §22): **277 minutos** de cota, contra **26**
-no pior caso de uma demonstração (R$ 0,94) — **10,6 vezes**, com R$ 9,06 de margem no pior desfecho.
-A frase, em língua de risco: no cenário em que a escola não contrata nada, ela arrisca **94 centavos**
-e já recebeu dez reais.
+| | o que acontece | porquê |
+|:--|:--|:--|
+| activar quem já está activo | `mudou: false`, **e não é uma falha** | dois cliques não são duas decisões, e um `historico` com dois elos iguais é ruído que esconde o elo verdadeiro |
+| activar sem dizer para quê | **400**, com a frase do que falta | activar por omissão é a pior falha possível nesta rota — e é a única em que o código tem de desconfiar do corpo |
 
-**O que o limitador não fecha, e fica escrito:** gravar o plano de ensino e gravar o PO — são actos de
-trabalho, não de estrutura, e nenhuma escola aceitaria um tecto de «quantas vezes posso corrigir o
-plano». Seriam precisas **125 gravações** num mês para gastar os R$ 10 só com elas. A resposta a esse
-cenário não é um tecto novo: é **desactivar o consultor**, que fecha a área dele e os links que já
-espalhou no mesmo gesto.
+### Três rotas, e nenhuma pública
 
-### A pergunta que se desfez ao medir — Q2
+`GET /consultores`, `POST /api/consultores`, `POST /api/consultores/estado`. Nenhuma está na lista
+`publicoPermitido` — que é um **permitir**, e não um proibir —, e por isso o endereço público
+(`lastro.padd.com.br`) responde **404** às três. É a mesma parede que fecha `/financeiro` e
+`/api/escolas`.
 
-A escrever o guião (§8.4) o plano afirmou um defeito: «a demonstração dá 2 professores e o Básico dá
-1 — quem assina perde um». **Estava errado, e o erro era de leitura.** O número de professores de um
-plano é um **piso** — o que ele inclui —, e o **teto** de cada degrau é o piso do degrau de cima
-menos um (`comercial.tetoDoPlano`). O teto do Básico é **2 professores e 39 alunas**: os dois
-professores da demonstração continuam lá. E `limitesDoRegime` devolve **`null`** numa assinatura — as
-sete paredes são do regime da **consultoria**, e não do plano pago.
+**404, e não 401** — e isto é deliberado. Um 401 diria a quem tentasse que ali há uma porta, e qual
+é. O 404 não diz nada.
 
-**A decisão dela foi «deixar como está» — e é a certa por um motivo melhor do que «é intencional»:
-não há nada para mudar.** O erro fica registado porque é a família que esta casa persegue: um número
-lido fora do seu sítio, a produzir uma conclusão que soa a rigor. A asserção que o substituiu mede a
-**regra** (piso, teto, regime), e não a leitura que eu tinha feito dela.
+### Uma leitura falhada não é uma lista vazia
+
+`consultoresDaCasa.ler` devolve `ok: false` quando o KV não está ligado ou responde mal, e a página
+mostra **503 com uma frase que diz que nada foi mostrado** — «não foi possível ler o registo de
+consultores: … — nada foi mostrado para não o fazer decidir sobre um registo que não leu».
+
+A alternativa era `[]`, e ela é pior do que parece: quem lesse «Nenhum consultor cadastrado»
+**cadastraria o primeiro outra vez**, e o registo ficaria com dois. É a distinção entre «não há
+consultores» e «não consegui ler», e é a mesma regra que já vale para as fichas e para o
+`lerLista` do `bastidores.js`.
+
+### Pelo menos um documento, e não os dois
+
+Ela pediu «o CPF e o CNPJ». O que o código exige é **pelo menos um**, e os dois são validados quando
+vêm: um consultor que factura por MEI tem os dois; um que dá aula e faz consultoria como pessoa
+física tem só o CPF — e esse é o caso mais provável do primeiro. **Exigir os dois fecharia a porta
+ao primeiro consultor por uma formalidade que não é dela.**
+
+E um CNPJ com 13 dígitos não é «preenchido a mais»: é um erro de digitação que só apareceria no dia
+da nota fiscal. Valida-se agora.
+
+### O equipamento é declarado, e a data é o que o torna auditável
+
+Carro, habilitação, notebook próprio — três caixas, e nenhuma é verificável pelo sistema. O que se
+guarda é a **declaração, com data**: «em 25/11/2026 ele declarou ter carro e habilitação». Um
+booleano sem data seria uma memória sem autor.
+
+Na lista, a ausência **diz-se**: «Carro (não) · Habilitação · Notebook próprio». E o resumo conta
+quantos têm «o equipamento todo declarado», porque um consultor sem carro numa praça sem transporte
+é uma visita que não acontece — melhor sabê-lo na lista do que no dia combinado.
+
+### O tecto de duzentos, e a mentira que ele poderia ser
+
+Uma lista só, e não uma chave por consultor: são poucos, e uma lista lê-se numa leitura só —
+enquanto uma chave por consultor obrigaria a uma **enumeração** (`list`), que é a operação do KV
+limitada por dia. Foi a cota da enumeração que já apagou a lista de fichas uma vez (18/10/2026), e
+essa lição está paga.
+
+Aos duzentos e um, o mais antigo sai — **e a resposta diz `retirados: 1`**. Um limite que apaga em
+silêncio é uma mentira por omissão, e quem acabou de cadastrar o duzentos e um tem de o saber agora.
 
 ### A prova
 
-`experimentos/provar-o-plano-do-consultor.js`, **54 asserções**. Recalcula do catálogo
-(`planos.json`), do dado real (`ciclos.json`, 24 aulas) e das constantes de custo, e **compara com o
-texto do plano** — é a mesma ideia do `provar-o-custo-da-consultoria`, e pela mesma razão: um
-documento que repete números envelhece, e dois documentos a dizer o mesmo número mentem juntos.
+`experimentos/provar-o-cadastro-do-consultor.js`, **88 asserções**, em oito secções: a validação na
+ordem das perguntas, o nascimento inactivo, o elo datado, o documento repetido, o KV que não
+responde, as três rotas com o 404 público, os dois controlos negativos do `ativo` (sem ele → 400; e
+o consultor continua como estava) e o tecto da lista.
 
-Mede também o que o plano **afirma sobre hoje**: a recusa de `consultoria` sem `podeDispensar` e a
-frase dela; e as três propriedades do token (32 hex, hash ≠ token, prazo).
+**Dois casos que a prova teve de aprender a medir, e valem por si:**
 
-**A/B:** falseados os números no documento — o preço do Básico, os 277 minutos, a razão das 10,6
-vezes e as 125 gravações —, a prova cai a **46/54**, com as quatro asserções discriminantes a
-reprovar.
+**O nome com duas letras.** A primeira versão media o mínimo com o nome **vazio** — e o vazio é
+apanhado antes, pela falta, com outra frase. A asserção passava a medir a frase errada e o ramo do
+`minimo: 3` nunca era exercido. Passou a haver os dois casos: «informe o nome» no vazio, e «pelo
+menos 3 letras» com `'Jo'`.
 
-**Duas correcções que a prova fez ao plano, e são o motivo de ela existir:** o catálogo guarda
-`preco` em **reais** (69.9) e não centavos — o plano não dependia disso, mas o primeiro código da
-prova sim; e `10 ÷ 0,036` é **277,77**, logo o número honesto é **277** minutos inteiros e não 278, o
-que arrasta a razão para 10,6 e as gravações para 125.
+**O resumo em cinco asserções, e não numa.** A versão composta —
+`r.total === 1 && r.activos === 1 && r.inactivos === 0 && …` — ficou **meia hora** a reprovar sem
+dizer porquê: o `false` não diz qual das cinco parcelas falha. A causa era um erro meu de escrita,
+`r.inactivos` com «c» (`inactivos`), a ler `undefined`. Separadas, o número errado sai com nome, e o
+defeito apareceu à primeira. **Uma asserção composta é um diagnóstico perdido** — o `&&` é cómodo
+para quem escreve e caro para quem depura.
 
-### As quatro decisões dela, tomadas na mesma sessão
+**A/B:** falseada a regra do nascimento (nascer activo), a prova cai — é o caso que ela pediu e o
+único que o código escolhe contra a leitura literal do pedido.
 
-| | a pergunta | **DECIDIDO** |
-|:--|:--|:--|
-| **Q1** | os R$ 10 são por consultoria ou por sessão? | **por consultoria** — uma visita que deu escola, dez reais |
-| **Q2** | a demonstração dá 2 professores e o Básico dá 1 | **deixar como está** — e não há perda: o Básico vai até 2 |
-| **Q3** | o mês começa em quê? | **na criação**, na porta do consultor. O painel continua a entregar à mão |
-| **Q4** | ele declara as horas? | **sim, opcional** — não muda o que recebe |
-| **Q4-bis** | como gera o link? | **na área dele**, e é ela que lhe manda o endereço ao activar |
+### O nono destino na barra
 
-As fases ficam na §11 do plano (F1 cadastro → F5 guião), com F3 — a criação pela visita — declarada
-como a fase que não pode falhar em silêncio: uma escola criada com o plano errado, ou sem atribuição,
-só aparece no dia em que ela fizer as contas.
+`raiz/index.html` ganhou «Consultores» depois de «Professores», no rail esquerdo. E isso fez
+**reprovar o `provar-painel`**, que exigia oito destinos empilhados.
 
-**Onde entrou.** `PLANO-DO-CONSULTOR.md` (novo), `experimentos/provar-o-plano-do-consultor.js`
-(novo), `.gitignore` (a prova versionada), `ESTADO-ATUAL.md` (§8 com as sete decisões),
-`HANDOFF.md`.
+A correcção não foi baixar o número: foi subir para nove **e acrescentar a asserção que diz qual é o
+nono** (`href="/consultores"`). Sem ela, o nove só diria «há um destino a mais» — e o próximo a mais
+passaria sem se saber se é o pedido ou um acidente. **A regra que fica: quando um número sobe porque
+um pedido o fez subir, a prova tem de nomear o que entrou.**
+
+### Onde entrou
+
+`motor/nucleo/consultores.js` (novo, puro), `motor/servidor/consultores-da-casa.js` (novo, o KV),
+`motor/servidor/painel-html.js` (`paginaDosConsultores`), `motor/servidor/raiz.js` (as três rotas),
+`raiz/index.html` (o nono destino), `experimentos/provar-o-cadastro-do-consultor.js` (novo),
+`experimentos/provar-painel.js` (oito → nove, com o nome do nono), `.gitignore` (a prova
+versionada), `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+**Bateria:** 294 provas, **201 verdes**, 93 conhecidas, **0 regressões**.
 
 ## O que está pendente
 

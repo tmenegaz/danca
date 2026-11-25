@@ -43,6 +43,10 @@ const mensalidades = require('../nucleo/mensalidades.js');
  * lista. Não se escreve uma segunda: o rodapé, o `hidden` e o `data-por-pagina` são o acordo, e um
  * segundo acordo é uma segunda coisa para corrigir. */
 const paginacao = require('../nucleo/paginacao.js');
+/* O CONSULTOR (25/11/2026) — a regra do cadastro é do núcleo, e a página só a apresenta. As
+ * colunas «Documento», «Equipamento» e «Estado» são formatações dele, e não desta página: a mesma
+ * frase tem de sair igual na área dele (F2) e na lista daqui. */
+const consultores = require('../nucleo/consultores.js');
 /* O BOTÃO «COPIAR», NÚMERO UM (25/11/2026) — ver `motor/nucleo/copiar.js`.
  *
  * O RECONHECEDOR DO LINK já não é necessário nesta página (25/11/2026): ela deixou de mostrar o
@@ -1654,6 +1658,176 @@ function paginaDosContatos({ contatos } = {}) {
 }
 
 /**
+ * A PÁGINA DOS CONSULTORES — quem atende as escolas, e quem pode abrir uma (25/11/2026).
+ *
+ * O PEDIDO, na letra: «vou adicionar lá em danca.padd.com.br um botão que leva até o cadastro e a
+ * listagem de consultores. Nesse cadastro de consultor, eu vou pôr o nome, o CPF e o CNPJ, os
+ * equipamentos que ele precisa ter, carro e habilitação e computador próprio, um notebook próprio.
+ * E aí um botão de ativar ou desativar e um status para saber se ele está ativo ou não.»
+ *
+ * PORQUE É QUE O «ACTIVO» É UMA COLUNA COM UM BOTÃO, E NÃO UMA CAIXA NO FORMULÁRIO. O cadastro é um
+ * dado; o acesso é uma decisão, e são gestos separados — «um cadastro é um dado; o acesso é uma
+ * decisão» é a frase do plano, e ela decide o desenho. Um consultor nasce **inactivo**, e activá-lo
+ * é um clique com data e autor, que fica no histórico. Se nascesse activo, um cadastro feito à
+ * pressa abriria a porta que o link dele abre.
+ *
+ * A PRAÇA NÃO É DECORAÇÃO. É dela que o token dirá «em que praça é esta escola» (F3), e é o número
+ * que responde «em quantas regiões há gente» quando houver meta. Por isso ela é coluna, e não uma
+ * nota escondida.
+ *
+ * O EQUIPAMENTO É DECLARADO, E A FRASE DIZ «(não)». Não há como o sistema verificar se ele tem
+ * carro — o que ele guarda é a declaração, com data. Escrever só os que ele tem faria a linha de
+ * quem não tem nada parecer igual à de quem tem tudo; o «(não)» é o que a torna legível.
+ *
+ * NENHUMA PEÇA NOVA: `caixa`, `campo-rotulo`, `input`, `escolhas`/`escolha`, `acao`, `selo`,
+ * `table`. O mesmo formulário que a casa já desenha no Financeiro — e o `check-identidade` reprova
+ * qualquer classe que não seja da folha.
+ */
+function paginaDosConsultores({ consultores: lista, catalogo } = {}) {
+  const todos = Array.isArray(lista) ? lista : [];
+  const r = consultores.resumo(todos);
+
+  /* ── O RESUMO, EM QUATRO NÚMEROS ───────────────────────────────────────────────────────────
+   *
+   * Quatro, e não dez: «quem pode abrir link agora» (activos), «quem está cadastrado e não atende»
+   * (inactivos), «em quantas regiões há gente» (praças) e «quantos têm o equipamento todo». O
+   * último é o que evita a surpresa: um consultor sem carro numa praça sem transporte é uma visita
+   * que não acontece, e é melhor sabê-lo na lista do que no dia combinado. */
+  const resumoEmCaixa = '<div class="caixa" id="consultores-resumo">' +
+    '<h2>Quem atende hoje</h2>' +
+    '<p><strong>' + r.activos + '</strong> ' + (r.activos === 1 ? 'activo' : 'activos') +
+    ' · <strong>' + r.inativos + '</strong> ' + (r.inativos === 1 ? 'inactivo' : 'inactivos') +
+    ' · <strong>' + r.pracas + '</strong> ' + (r.pracas === 1 ? 'praça' : 'praças') +
+    ' · <strong>' + r.comEquipamentoCompleto + '</strong> com o equipamento todo declarado</p>' +
+    '<p class="aviso">Só um consultor <strong>activo</strong> pode gerar o link de uma escola. ' +
+    'Desactivar fecha a área dele e os links que ele já espalhou — sem ter de os correr atrás.</p>' +
+    '</div>';
+
+  /* ── O CADASTRO ─────────────────────────────────────────────────────────────────────────── */
+  const campo = (id, rotulo, tipo, dica) => '<p><label class="campo-rotulo" for="' + id + '">'
+    + esc(rotulo) + '</label><input id="' + id + '" type="' + tipo + '"'
+    + (dica ? ' placeholder="' + esc(dica) + '"' : '') + ' autocomplete="off"></p>';
+
+  const caixasDeEquipamento = '<fieldset class="escolhas"><legend class="campo-rotulo">' +
+    'O equipamento que ele declara ter</legend>' +
+    consultores.EQUIPAMENTOS.map((e) => '<label class="escolha"><input type="checkbox" ' +
+      'data-consultor-equipamento="' + e.id + '"><span>' + esc(e.rotulo) + '</span></label>').join('') +
+    '</fieldset>';
+
+  const formulario = '<div class="caixa" id="consultores-cadastro">' +
+    '<h2>Cadastrar um consultor</h2>' +
+    '<p>O cadastro nasce <strong>inactivo</strong>. Activar é o gesto seguinte, na lista — e é ele ' +
+    'que abre a porta de o consultor poder gerar links.</p>' +
+    campo('consultor-nome', 'Nome', 'text', 'como ele se apresenta à escola') +
+    campo('consultor-praca', 'Praça', 'text', 'a região onde ele atende') +
+    campo('consultor-cpf', 'CPF', 'text', '000.000.000-00') +
+    campo('consultor-cnpj', 'CNPJ (se factura como empresa)', 'text', '00.000.000/0000-00') +
+    campo('consultor-email', 'E-mail', 'email', 'é por aqui que se fala com ele') +
+    campo('consultor-telefone', 'Telefone', 'tel', '(00) 00000-0000') +
+    caixasDeEquipamento +
+    '<p class="aviso">Um dos dois documentos é obrigatório — o CPF, ou o CNPJ se ele factura como ' +
+    'empresa. Os dois podem vir juntos: quem dá aula e faz consultoria como MEI tem os dois.</p>' +
+    '<p><button class="acao" id="consultor-cadastrar" type="button">Cadastrar o consultor</button></p>' +
+    '<p id="consultor-recado" role="status" class="aviso" hidden></p>' +
+    '</div>';
+
+  /* ── A LISTA ────────────────────────────────────────────────────────────────────────────── */
+  const botaoDeEstado = (registo) => {
+    const activo = consultores.estaAtivo(registo);
+    return '<button class="acao pequena secundario" type="button" data-consultor-estado="'
+      + esc(registo.id) + '" data-para="' + (activo ? 'inativo' : 'ativo') + '">'
+      + (activo ? 'Desactivar' : 'Activar') + '</button>';
+  };
+
+  const selo = (registo) => (consultores.estaAtivo(registo)
+    ? '<span class="selo ok">activo</span>'
+    : '<span class="selo discreto">inactivo</span>');
+
+  /* A ÚLTIMA MUDANÇA VIRE DO HISTÓRICO, e não de uma coluna guardada à parte: o histórico é a
+   * fonte, e uma segunda coluna com a mesma data divergiria dela no dia em que um elo falhasse. */
+  const desde = (registo) => {
+    const hist = Array.isArray(registo.historico) ? registo.historico : [];
+    const ultimo = hist.length ? hist[hist.length - 1] : null;
+    if (!ultimo || !ultimo.em) return diaOuTraco(registo.criadoEm);
+    return diaOuTraco(ultimo.em) + ' · ' + esc(String(ultimo.o || ''));
+  };
+
+  const listaEmTabela = todos.length
+    ? tabelaPaginada('pa-lista-consultores', '<table>' +
+      '<thead><tr><th>Nome</th><th>Praça</th><th>Documento</th><th>Equipamento</th>' +
+      '<th>Como falar</th><th>Estado</th><th>Desde</th><th></th></tr></thead>' +
+      '<tbody>' + todos.slice().reverse().map((c) => '<tr>' +
+        '<td>' + esc(consultores.nomeDoConsultor(c)) + '</td>' +
+        '<td>' + esc(String(c.praca || '—')) + '</td>' +
+        '<td>' + esc(consultores.documentoEmTexto(c)) + '</td>' +
+        '<td>' + esc(consultores.equipamentoEmTexto(c)) + '</td>' +
+        '<td>' + (comoFalar(c.email, c.telefone) || '—') + '</td>' +
+        '<td>' + selo(c) + '</td>' +
+        '<td>' + desde(c) + '</td>' +
+        '<td>' + botaoDeEstado(c) + '</td>' +
+        '</tr>').join('') + '</tbody></table>' +
+      /* os equipamentos foram declarados; a data da declaração é a mesma do cadastro, e dizê-la
+       * aqui evita a pergunta «isto foi verificado quando?» — não foi verificado, foi declarado. */
+      '<p class="aviso">O equipamento é <strong>declarado</strong> por ele, com a data do cadastro. ' +
+      'O sistema não o verifica — guarda a declaração, que é o que se pode auditar.</p>', 'Consultores por página')
+    : '<div class="caixa nota">' +
+      '<h2>Nenhum consultor cadastrado</h2>' +
+      '<p>Quando houver um, ele aparece aqui com a praça, o documento, o equipamento que declarou e ' +
+      'o estado. É daqui que se activa — e é o «activo» que o deixa gerar o link de uma escola.</p>' +
+      '</div>';
+
+  /* ── O JAVASCRIPT ─────────────────────────────────────────────────────────────────────────
+   *
+   * CADASTRAR NÃO RECARREGA, MUDAR DE ESTADO RECARREGA. A diferença é a mesma do Financeiro e
+   * pela mesma razão: um cadastro que falha tem de mostrar a frase do servidor ao lado do
+   * formulário (e o formulário fica preenchido, para ela corrigir o campo e não o refazer todo); um
+   * estado que muda altera a linha inteira — selo, data e botão —, e refazê-la no cliente seria uma
+   * segunda composição da mesma regra. */
+  const script = '<script>(function(){' +
+    'function recado(t,erro){var cx=document.getElementById("consultor-recado");if(!cx)return;' +
+    'cx.hidden=!t;cx.textContent=t||"";cx.className=erro?"aviso alerta":"aviso";}' +
+    'function valor(id){var e=document.getElementById(id);return e?e.value:"";}' +
+    'var criar=document.getElementById("consultor-cadastrar");' +
+    'if(criar)criar.addEventListener("click",function(){' +
+    '  var eq={};var caixas=document.querySelectorAll("[data-consultor-equipamento]");' +
+    '  for(var i=0;i<caixas.length;i++)eq[caixas[i].getAttribute("data-consultor-equipamento")]=!!caixas[i].checked;' +
+    '  criar.disabled=true;recado("a cadastrar…",false);' +
+    '  fetch("/api/consultores",{method:"POST",headers:{"Content-Type":"application/json"},cache:"no-store",' +
+    '    body:JSON.stringify({nome:valor("consultor-nome"),praca:valor("consultor-praca"),' +
+    '      cpf:valor("consultor-cpf"),cnpj:valor("consultor-cnpj"),email:valor("consultor-email"),' +
+    '      telefone:valor("consultor-telefone"),equipamento:eq})})' +
+    '  .then(function(r){return r.json().catch(function(){return {};});})' +
+    '  .then(function(d){criar.disabled=false;' +
+    '    if(d&&d.ok){location.reload();return;}' +
+    '    recado((d&&d.erro)||"não foi possível cadastrar",true);})' +
+    '  .catch(function(){criar.disabled=false;recado("falha de rede — nada foi gravado",true);});' +
+    '});' +
+    'var mudar=document.querySelectorAll("[data-consultor-estado]");' +
+    'for(var j=0;j<mudar.length;j++)(function(b){' +
+    '  b.addEventListener("click",function(){' +
+    '    var para=b.getAttribute("data-para");if(!para)return;b.disabled=true;' +
+    '    fetch("/api/consultores/estado",{method:"POST",headers:{"Content-Type":"application/json"},cache:"no-store",' +
+    '      body:JSON.stringify({id:b.getAttribute("data-consultor-estado"),ativo:para==="ativo"})})' +
+    '    .then(function(r){return r.json().catch(function(){return {};});})' +
+    '    .then(function(d){if(d&&d.ok){location.reload();return;}b.disabled=false;' +
+    '      recado((d&&d.erro)||"não foi possível mudar o estado",true);})' +
+    '    .catch(function(){b.disabled=false;recado("falha de rede — nada foi alterado",true);});' +
+    '  });' +
+    '})(mudar[j]);' +
+    '})();</script>';
+
+  return pagina({
+    titulo: 'Consultores',
+    subtitulo: 'Quem atende as escolas em consultoria, em que praça, e quem pode gerar o link de ' +
+      'uma escola nova. Só um consultor activo abre essa porta.',
+    atual: 'consultores',
+    corpo: resumoEmCaixa + formulario + '<h2 id="a-lista">Consultores cadastrados</h2>' +
+      listaEmTabela + script +
+      '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',
+  });
+}
+
+/**
  * O FINANCEIRO — a chave que recebe, e quem paga menos (25/11/2026).
  *
  * O QUE ELA PEDIU, na letra: «vamos criar aqui o botão da onde eu coloco a minha chave Pix, tá?
@@ -2944,6 +3118,7 @@ module.exports = {
   indiceDaPagina, urlDaEscola, listaDeLigacoes, nomeDoProfessor,
   pagina, resposta, paginaDasApagadas, paginaDasVivas, paginaDosProfessores, paginaDoRegistro, paginaSemToken,
   paginaDosContatos,
+  paginaDosConsultores,
   paginaDoConvite,
   paginaFinanceira, SCRIPT_DO_FINANCEIRO, ENSAIO_PADRAO_MINUTOS,
   /* O MONITORAMENTO (17/11/2026) — a página, e as peças que a prova mede à parte. */

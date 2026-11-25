@@ -78,6 +78,14 @@ const contato = require('../nucleo/contato.js');
  * corrigida — com o sintoma pior possível: funcionar numa tela e mentir na outra. O que muda entre
  * os dois é só o contador do correio, que é passado daqui. */
 const contatoDoSite = require('./contato-do-site.js');
+/* O CONSULTOR (25/11/2026) — quem atende as escolas, e a porta que ele abre.
+ *
+ * A regra é do núcleo (`nucleo/consultores.js`, puro) e o registo vive no KV
+ * (`./consultores-da-casa.js`). O que fica nesta página é o que só ela tem: as rotas, e a recusa
+ * de as servir no endereço público — `/consultores` não está na lista `publicoPermitido`, e é a
+ * mesma parede que já fecha `/api/escolas` e o `/financeiro`. */
+const consultores = require('../nucleo/consultores.js');
+const consultoresDaCasa = require('./consultores-da-casa.js');
 
 const ACCOUNT_ID = '2628f36f9f72bd539b417dcb173d1f12';
 const DONO = 'tmenegaz';
@@ -4075,6 +4083,75 @@ async function fetch(request, env) {
     return new Response(JSON.stringify({ ok: true, porLer: contato.quantosPorLer(lista) }), {
       status: 200,
       headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' },
+    });
+  }
+
+  /* ══════════════════════════════════════════════════════════════════════════════════════════
+   * O CONSULTOR — O CADASTRO, A LISTA E O BOTÃO DE ACTIVAR (25/11/2026)
+   *
+   * «Vou adicionar lá em danca.padd.com.br um botão que leva até o cadastro e a listagem de
+   * consultores. […] E aí um botão de ativar ou desativar e um status para saber se ele está ativo
+   * ou não.»
+   *
+   * TRÊS ROTAS, E NENHUMA DELAS É PÚBLICA. Não estão na lista `publicoPermitido` — que é um
+   * permitir, e não um proibir —, e por isso o endereço público responde **404** a todas. É a
+   * mesma parede que fecha `/financeiro` e `/api/escolas`, e é a direcção certa: um 401 diria a
+   * quem tentasse que ali há uma porta, e qual é.
+   *
+   * O QUE ESTAS ROTAS AINDA **NÃO** FAZEM, e é de propósito: não geram token, não abrem link, não
+   * criam escola. O cadastro é F1 do plano (`PLANO-DO-CONSULTOR.md` §11), e um consultor registado
+   * aqui **não tem acesso a nada** — o acesso nasce em F2, e a atribuição de uma escola em F3.
+   * Separar as fases é o que permite pôr isto no ar sem abrir a porta que ainda não tem prova.
+   * ══════════════════════════════════════════════════════════════════════════════════════════ */
+
+  // A PÁGINA. Uma leitura de KV, e a lista inteira de uma vez — são poucos, e uma chave só.
+  if (url.pathname === '/consultores') {
+    const lido = await consultoresDaCasa.ler(env);
+    /* SE A LEITURA FALHOU, A PÁGINA DIZ ISSO, e não «nenhum consultor». A diferença é a diferença
+     * entre uma decisão e um acidente: quem lesse «nenhum consultor» cadastraria o primeiro outra
+     * vez, e o registo ficaria com dois. É a mesma regra do `lerLista` estrito do `bastidores.js`. */
+    if (!lido.ok) {
+      return painel.resposta(painel.paginaSemToken(
+        'não foi possível ler o registo de consultores: ' + (lido.erro || 'motivo não declarado')
+        + ' — nada foi mostrado para não o fazer decidir sobre um registo que não leu'), 503);
+    }
+    return painel.resposta(painel.paginaDosConsultores({ consultores: lido.lista }));
+  }
+
+  // CADASTRAR — valida, recusa documento repetido, e grava. O consultor nasce inactivo.
+  if (url.pathname === '/api/consultores' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch (erro) { corpo = {}; }
+    const criado = await consultoresDaCasa.criar(env, corpo);
+    if (!criado.ok) {
+      return responderJson({ ok: false, erro: criado.erro, erros: criado.erros || undefined }, criado.status || 400);
+    }
+    /* O QUE SAI DA LISTA DIZ-SE (o tecto de duzentos). Um limite que apaga em silêncio é uma
+     * mentira por omissão, e quem acabou de cadastrar o duzentos e um tem de o saber agora. */
+    return responderJson({
+      ok: true,
+      consultor: criado.registo,
+      retirados: criado.retirados || 0,
+    }, 201);
+  }
+
+  // ACTIVAR / DESACTIVAR — o gesto que abre e fecha a porta.
+  if (url.pathname === '/api/consultores/estado' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch (erro) { corpo = {}; }
+    /* O `ativo` chega como booleano do `data-para` da página; uma string `"true"` de um pedido
+     * escrito à mão também é aceite — o que NÃO se aceita é a ausência dele, que activaria por
+     * omissão. Activar por omissão é a pior falha possível nesta rota. */
+    if (corpo.ativo === undefined || corpo.ativo === null) {
+      return responderJson({ ok: false, erro: 'falta dizer se é para activar ou desactivar' }, 400);
+    }
+    const ativo = corpo.ativo === true || corpo.ativo === 'true' || corpo.ativo === 1;
+    const mudado = await consultoresDaCasa.mudarEstado(env, { id: corpo.id, ativo, motivo: corpo.motivo });
+    if (!mudado.ok) return responderJson({ ok: false, erro: mudado.erro }, mudado.status || 400);
+    return responderJson({
+      ok: true,
+      mudou: mudado.mudou,
+      consultor: { id: mudado.registo.id, nome: mudado.registo.nome, ativo: mudado.registo.ativo },
     });
   }
 

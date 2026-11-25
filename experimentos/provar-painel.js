@@ -242,8 +242,12 @@ async function principais() {
   const railEsq = (/<div class="rail rail-esq">([\s\S]*?)<div class="rail rail-dir"/.exec(home.html) || [])[1] || '';
   const destinos = (railEsq.match(/class="acao[^"]*"/g) || []).length;
   conferir('a coluna das ações existe', /<div class="rail rail-esq">/.test(home.html), null);
-  conferir('…com os oito destinos empilhados', destinos === 8, destinos);
+  /* NOVE, E NÃO OITO, DESDE 25/11/2026 — e o nove é pedido, não deriva. Ela: «a gente vai adicionar
+   * lá em danca.padd.com.br um botão que leva até o cadastro e a listagem de consultores.» O número
+   * sobe porque o destino existe; a asserção seguinte garante que o nono é esse, e não um qualquer. */
+  conferir('…com os nove destinos empilhados', destinos === 9, destinos);
   conferir('…incluindo «Professores»', /href="\/professores"[^>]*>Professores</.test(railEsq), null);
+  conferir('…e «Consultores», que é o nono', /href="\/consultores"[^>]*>Consultores</.test(railEsq), null);
   conferir('…e os dois botões de sempre', /id="btn-apagar"/.test(home.html) && /id="btn-criar"/.test(home.html), null);
   /* A COLUNA É PRESA E EMPILHADA — «fixos empilhados do lado esquerdo», que é a frase dela. Sem
    * esta asserção, alguém (eu) volta a trocar a coluna por um bloco no topo e a bancada continua

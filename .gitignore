@@ -2077,3 +2077,10 @@ experimentos/modelo-formulario/*
 # família de erro do §20 do CUSTO-DOS-FLUXOS, com uma prova a dizer 3 e o documento a dizer 2 durante
 # seis dias. Esta prova recalcula do catálogo e do dado, e reprova quando o texto se afasta.
 !experimentos/provar-o-plano-do-consultor.js
+
+# O CADASTRO DO CONSULTOR (25/11/2026). O F1 do plano é a lista de consultores, e a prova é o que
+# distingue «nasce inactivo» de «nasce activo» — sem ela, o botão de activar podia nascer ligado e
+# ninguém veria, porque um consultor activo a mais parece exactamente um consultor que trabalha.
+# Leva também o controlo negativo do `ativo` e o caso do KV que não responde: uma leitura falhada
+# não é uma lista vazia, e é a diferença entre «não há consultores» e «não consegui ler».
+!experimentos/provar-o-cadastro-do-consultor.js

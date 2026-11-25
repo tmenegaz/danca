@@ -62885,3 +62885,153 @@ só aparece no dia em que ela fizer as contas.
 **Onde entrou.** `PLANO-DO-CONSULTOR.md` (novo), `experimentos/provar-o-plano-do-consultor.js`
 (novo), `.gitignore` (a prova versionada), `ESTADO-ATUAL.md` (§8 com as sete decisões),
 `HANDOFF.md`.
+
+## O cadastro do consultor — o registo que atribui *(25/11/2026)*
+
+**O que ela pediu, e o que a frase carrega.** «Vou pôr o nome, o CPF e o CNPJ, os equipamentos que
+ele precisa ter, carro e habilitação e computador próprio, um notebook próprio. E aí um botão de
+ativar ou desativar e um status para saber se ele está ativo ou não.» E, duas vezes na mesma sessão,
+a razão de isto existir: «é uma forma de eu saber que o consultor tá trabalhando» e «assim eu não
+faço confusão, não vou premiar um consultor pelo mérito de outro consultor».
+
+**A consequência de desenho, e é a decisão desta fase:** o cadastro **não é um directório de
+contactos**. É a **identidade que atribui** — é ela que o link vai levar (F2), é ela que a escola
+criada vai nomear (F3), e é ela que um dia sustenta uma meta. Um directório aceitaria nome e
+telefone; este exige **praça** e **documento**, porque sem praça ele não é atribuível e sem
+documento ele não é ninguém em particular.
+
+### A primeira fase é a que não abre porta nenhuma
+
+O plano tem cinco fases (F1..F5) e esta é a primeira. **O que F1 entrega é exactamente o que ela
+descreveu — e nada do que vem depois:** cadastrar, listar, activar, desactivar. Um consultor
+registado hoje **não tem acesso a nada**: não gera token, não abre link, não cria escola. Acesso
+nasce em F2, atribuição em F3.
+
+**E a razão de separar assim é a de sempre:** pôr no ar o que já tem prova, sem abrir a porta que
+ainda não tem. A porta de F2 é uma **terceira porta** de criação de escola — a que o token do
+consultor abre, contornando a recusa que hoje o `validarEscolha` faz a `consultoria` na página
+pública. Uma porta dessas a meio é um caminho para uma escola nascer com o plano errado, e uma
+escola com o plano errado só aparece no dia em que ela fizer as contas. **F1 não a abre.**
+
+### «Nasce inactivo» — e porquê
+
+É o único ponto desta fase em que o código escolhe contra a leitura mais óbvia do pedido. Ela disse
+«um botão de ativar ou desativar»; o botão existe, e a ordem é: **cadastra, e o consultor fica
+inactivo; activar é o gesto seguinte.**
+
+O motivo é que **activar é o gesto que abre o acesso**, e um acesso não deve nascer aberto por
+omissão de um formulário. Nas palavras do painel: *«Só um consultor **activo** pode gerar o link de
+uma escola. Desactivar fecha a área dele e os links que ele já espalhou — sem ter de os correr
+atrás.»*
+
+O sintoma que isto evita tem nome: **um consultor activo a mais parece exactamente um consultor que
+trabalha.** Não há erro, não há vermelho, não há aviso — há uma pessoa com acesso que ninguém decidiu
+dar. É a mesma família da cota do KV (18/10/2026) e do `if` que filtrava o título vazio no
+`check-pacote.js`: o que falha em silêncio não é o que está errado, é o que parece certo.
+
+### Activar é um elo datado, não uma sobrescrita
+
+O estado é o último elo de um `historico` de onde ninguém apaga nada. Cada mudança guarda **quando**
+e **o motivo**, e a proveniência acrescenta — não edita, que é a regra da casa desde o `hash-ciclo`.
+
+A consequência prática aparece nos dois casos-limite, e os dois estão medidos:
+
+| | o que acontece | porquê |
+|:--|:--|:--|
+| activar quem já está activo | `mudou: false`, **e não é uma falha** | dois cliques não são duas decisões, e um `historico` com dois elos iguais é ruído que esconde o elo verdadeiro |
+| activar sem dizer para quê | **400**, com a frase do que falta | activar por omissão é a pior falha possível nesta rota — e é a única em que o código tem de desconfiar do corpo |
+
+### Três rotas, e nenhuma pública
+
+`GET /consultores`, `POST /api/consultores`, `POST /api/consultores/estado`. Nenhuma está na lista
+`publicoPermitido` — que é um **permitir**, e não um proibir —, e por isso o endereço público
+(`lastro.padd.com.br`) responde **404** às três. É a mesma parede que fecha `/financeiro` e
+`/api/escolas`.
+
+**404, e não 401** — e isto é deliberado. Um 401 diria a quem tentasse que ali há uma porta, e qual
+é. O 404 não diz nada.
+
+### Uma leitura falhada não é uma lista vazia
+
+`consultoresDaCasa.ler` devolve `ok: false` quando o KV não está ligado ou responde mal, e a página
+mostra **503 com uma frase que diz que nada foi mostrado** — «não foi possível ler o registo de
+consultores: … — nada foi mostrado para não o fazer decidir sobre um registo que não leu».
+
+A alternativa era `[]`, e ela é pior do que parece: quem lesse «Nenhum consultor cadastrado»
+**cadastraria o primeiro outra vez**, e o registo ficaria com dois. É a distinção entre «não há
+consultores» e «não consegui ler», e é a mesma regra que já vale para as fichas e para o
+`lerLista` do `bastidores.js`.
+
+### Pelo menos um documento, e não os dois
+
+Ela pediu «o CPF e o CNPJ». O que o código exige é **pelo menos um**, e os dois são validados quando
+vêm: um consultor que factura por MEI tem os dois; um que dá aula e faz consultoria como pessoa
+física tem só o CPF — e esse é o caso mais provável do primeiro. **Exigir os dois fecharia a porta
+ao primeiro consultor por uma formalidade que não é dela.**
+
+E um CNPJ com 13 dígitos não é «preenchido a mais»: é um erro de digitação que só apareceria no dia
+da nota fiscal. Valida-se agora.
+
+### O equipamento é declarado, e a data é o que o torna auditável
+
+Carro, habilitação, notebook próprio — três caixas, e nenhuma é verificável pelo sistema. O que se
+guarda é a **declaração, com data**: «em 25/11/2026 ele declarou ter carro e habilitação». Um
+booleano sem data seria uma memória sem autor.
+
+Na lista, a ausência **diz-se**: «Carro (não) · Habilitação · Notebook próprio». E o resumo conta
+quantos têm «o equipamento todo declarado», porque um consultor sem carro numa praça sem transporte
+é uma visita que não acontece — melhor sabê-lo na lista do que no dia combinado.
+
+### O tecto de duzentos, e a mentira que ele poderia ser
+
+Uma lista só, e não uma chave por consultor: são poucos, e uma lista lê-se numa leitura só —
+enquanto uma chave por consultor obrigaria a uma **enumeração** (`list`), que é a operação do KV
+limitada por dia. Foi a cota da enumeração que já apagou a lista de fichas uma vez (18/10/2026), e
+essa lição está paga.
+
+Aos duzentos e um, o mais antigo sai — **e a resposta diz `retirados: 1`**. Um limite que apaga em
+silêncio é uma mentira por omissão, e quem acabou de cadastrar o duzentos e um tem de o saber agora.
+
+### A prova
+
+`experimentos/provar-o-cadastro-do-consultor.js`, **88 asserções**, em oito secções: a validação na
+ordem das perguntas, o nascimento inactivo, o elo datado, o documento repetido, o KV que não
+responde, as três rotas com o 404 público, os dois controlos negativos do `ativo` (sem ele → 400; e
+o consultor continua como estava) e o tecto da lista.
+
+**Dois casos que a prova teve de aprender a medir, e valem por si:**
+
+**O nome com duas letras.** A primeira versão media o mínimo com o nome **vazio** — e o vazio é
+apanhado antes, pela falta, com outra frase. A asserção passava a medir a frase errada e o ramo do
+`minimo: 3` nunca era exercido. Passou a haver os dois casos: «informe o nome» no vazio, e «pelo
+menos 3 letras» com `'Jo'`.
+
+**O resumo em cinco asserções, e não numa.** A versão composta —
+`r.total === 1 && r.activos === 1 && r.inactivos === 0 && …` — ficou **meia hora** a reprovar sem
+dizer porquê: o `false` não diz qual das cinco parcelas falha. A causa era um erro meu de escrita,
+`r.inactivos` com «c» (`inactivos`), a ler `undefined`. Separadas, o número errado sai com nome, e o
+defeito apareceu à primeira. **Uma asserção composta é um diagnóstico perdido** — o `&&` é cómodo
+para quem escreve e caro para quem depura.
+
+**A/B:** falseada a regra do nascimento (nascer activo), a prova cai — é o caso que ela pediu e o
+único que o código escolhe contra a leitura literal do pedido.
+
+### O nono destino na barra
+
+`raiz/index.html` ganhou «Consultores» depois de «Professores», no rail esquerdo. E isso fez
+**reprovar o `provar-painel`**, que exigia oito destinos empilhados.
+
+A correcção não foi baixar o número: foi subir para nove **e acrescentar a asserção que diz qual é o
+nono** (`href="/consultores"`). Sem ela, o nove só diria «há um destino a mais» — e o próximo a mais
+passaria sem se saber se é o pedido ou um acidente. **A regra que fica: quando um número sobe porque
+um pedido o fez subir, a prova tem de nomear o que entrou.**
+
+### Onde entrou
+
+`motor/nucleo/consultores.js` (novo, puro), `motor/servidor/consultores-da-casa.js` (novo, o KV),
+`motor/servidor/painel-html.js` (`paginaDosConsultores`), `motor/servidor/raiz.js` (as três rotas),
+`raiz/index.html` (o nono destino), `experimentos/provar-o-cadastro-do-consultor.js` (novo),
+`experimentos/provar-painel.js` (oito → nove, com o nome do nono), `.gitignore` (a prova
+versionada), `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+**Bateria:** 294 provas, **201 verdes**, 93 conhecidas, **0 regressões**.
