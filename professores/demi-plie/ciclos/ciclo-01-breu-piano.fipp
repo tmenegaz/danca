@@ -10,13 +10,13 @@ type: Ciclo
 professor: demi-plie
 ciclo: 01
 variante: breu-piano
-hash_conteudo: 4159f705a5f3178bff5c4582b78225c3632536cc772786fa688c1adcaf5f0b98
+hash_conteudo: 05958b0302804750f8ab1af066e6106761bf732f57956ea078a4b7bd32aee13e
 parentHash: 
-hash: 722580618ab1570170b0f4a3be2dbca08228c994f7cea3023f340dd00a4de8b7
+hash: a18f3383c48e759e0491921bd0dc0f92587c32f1b759c5244a94e021e5385b64
 algoritmo: SHA-256
 po: professores/demi-plie/ciclos/ciclo-01-breu-piano-po.md
 po_state: Input_PO_Validado
-ancorado_em: 2026-11-24
+ancorado_em: 2026-11-25
 notacao: Código de dança
 notacao_modalidade: bale-classico
 notacao_alfabeto: ballet-classico

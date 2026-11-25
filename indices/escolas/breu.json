@@ -35,7 +35,7 @@
     {
       "ancora": {
         "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-24",
+        "ancorado_em": "2026-11-25",
         "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.fipp",
         "cobertura": [
           "professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.md",
@@ -58,7 +58,7 @@
     {
       "ancora": {
         "algoritmo": "SHA-256",
-        "ancorado_em": "2026-11-24",
+        "ancorado_em": "2026-11-25",
         "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano.fipp",
         "cobertura": [
           "professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.md",
@@ -73,8 +73,8 @@
           "professores/demi-plie/ciclos/ciclo-01-breu-piano.conf",
           "professores/demi-plie/ciclos/ciclo-01.conf"
         ],
-        "hash": "722580618ab1570170b0f4a3be2dbca08228c994f7cea3023f340dd00a4de8b7",
-        "hash_conteudo": "4159f705a5f3178bff5c4582b78225c3632536cc772786fa688c1adcaf5f0b98",
+        "hash": "a18f3383c48e759e0491921bd0dc0f92587c32f1b759c5244a94e021e5385b64",
+        "hash_conteudo": "05958b0302804750f8ab1af066e6106761bf732f57956ea078a4b7bd32aee13e",
         "id": "ciclo-01-breu-piano",
         "lida": true,
         "parent_hash": ""
@@ -83,7 +83,7 @@
         {
           "ancora": {
             "algoritmo": "SHA-256",
-            "ancorado_em": "2026-11-24",
+            "ancorado_em": "2026-11-25",
             "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.fipp",
             "cobertura": [
               "professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.md",
@@ -449,9 +449,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "aefcd3d"
+    "commit": "00df9fe"
   },
-  "gerado_em": "2026-11-24T11:27",
+  "gerado_em": "2026-11-25T00:32",
   "nao_indexado": [
     {
       "familia": "conteudo",

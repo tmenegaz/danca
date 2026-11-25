@@ -14,7 +14,7 @@ hash_conteudo: 1b7df154f2e78346fed05bd92bba679ec989cc68499b8179f5ea66cd84666012
 parentHash: 
 hash: 34f5e0cf8ef68e27e9f4be0e37bfe8847b8db5db7567ec120ed09a839d413c18
 algoritmo: SHA-256
-ancorado_em: 2026-11-24
+ancorado_em: 2026-11-25
 cobertura:
   - professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.md
   - professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-aula-01.md
