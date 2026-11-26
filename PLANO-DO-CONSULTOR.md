@@ -201,6 +201,22 @@ correr atrás deles. O link expira de qualquer forma em 30 dias, mas a desactiva
 
 ## 5. A visita e o link (P2, P3)
 
+### 5.0 O que o token carrega — e o que ele não carrega *(decidido a 25/11/2026, ao implementar)*
+
+Ela enumerou quatro coisas que o token «diz»: **quem é o consultor**, **qual é a escola**, **qual é a
+praça**, e **que é de uso único**. Três delas não vão no token, e a distinção importa:
+
+| o que ela disse | onde vive | porquê |
+|:--|:--|:--|
+| quem é o consultor | no **registo**, achado pelo hash | um token que carregasse o nome (`?consultor=joao`) seria forjável por quem soubesse escrever `joao` |
+| a praça | no **registo** | é um atributo dele, não do link; e é a mesma praça em todas as visitas dele |
+| qual é a escola | **no registo da visita**, como `escolaNome` provisório | o consultor escreve o nome para reconhecer a visita; quem dá o nome **definitivo** é a escola, ao abrir o link |
+| uso único | no **registo da visita**, como `usadaEm` | um token que dissesse «já fui usado» estaria a mentir no dia em que fosse usado |
+
+**A consequência prática:** o token é **opaco**. Ele não afirma nada — é a chave que chega a um
+registo, e é o registo que responde às quatro perguntas. Um token que afirmasse alguma coisa teria de
+ser verificado nessa afirmação, e a verificação seria uma segunda fonte da mesma verdade.
+
 ### 5.1 A visita é uma coisa, e não um parâmetro
 
 Uma **visita** é o registo de «este consultor vai a esta escola», e é ela que dá o link. Guarda:
@@ -457,10 +473,15 @@ responde mal é sempre o que ninguém está a olhar.
 | fase | o que entrega | porque nesta ordem |
 |:--|:--|:--|
 | **F1** | o cadastro, a lista e o activar/desactivar no painel | sem consultor não há link; e é a peça que ela usa sozinha, sem depender de ninguém |
-| **F2** | a área dele, o token, e «Nova visita» | é o que transforma o cadastro num serviço |
+| ~~**F2**~~ | a área dele, o token, e «Nova visita» — **IMPLEMENTADA a 25/11/2026** | é o que transforma o cadastro num serviço |
 | **F3** | `/visita/<token>` e a criação com `origem: 'consultor'` | é onde o plano consultoria passa a nascer pela mão de outra pessoa — a fase com mais risco, e a que precisa das provas mais duras |
 | **F4** | o livro dos R$ 10 e o «Marcar recebido» | só depois de haver visitas a cobrar |
 | **F5** | o guião no `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` §9 | conteúdo; não bloqueia nada |
+
+**O QUE A F2 DEIXA ABERTO, e é a fronteira dela:** o link nasce com o endereço **definitivo**
+(`/visita/<token>`), e a página que ele abre é a **F3**. Até lá esse endereço responde 404 — o link
+é gerado, guardado e entregue, mas não abre a criação de escola nenhuma. **Não se manda um link a uma
+escola antes de a F3 estar no ar**, e é a única coisa que a F2 não pode prometer.
 
 **F3 é a fase que não pode falhar em silêncio.** Uma escola criada com o plano errado, ou sem
 atribuição, é um cliente que existe e não se sabe de onde veio — e o erro só aparece no dia em que ela
@@ -474,8 +495,8 @@ Cada uma mede um comportamento que, sem ela, se descobre em produção.
 
 | prova | o que afirma | o controlo negativo |
 |:--|:--|:--|
-| `provar-o-consultor` | o cadastro valida CPF/CNPJ pelo mesmo normalizador; nasce inactivo; o «activo» é conferido nos três sítios | um consultor inactivo **não** gera visita, e o pedido escrito à mão também não |
-| `provar-o-link-do-consultor` | o token é aleatório, guardado como hash, expira e gasta-se uma vez; a desactivação fecha os links já espalhados | um token gasto, expirado ou de consultor inactivo responde **404** |
+| `provar-o-cadastro-do-consultor` *(escrita, **88** asserções)* | o cadastro valida CPF/CNPJ pelo mesmo normalizador; nasce inactivo; o documento repetido é recusado; o KV mudo não é uma lista vazia | sem `ativo` no corpo, a rota recusa — activar por omissão seria a pior falha possível |
+| `provar-o-link-do-consultor` *(escrita, **77** asserções)* | o token é aleatório, guardado só como hash, e o **âmbito** separa as três espécies; o endereço nasce do «Activar» e só existe uma vez; trocá-lo mata o anterior; a visita expira sem cron e o `tokenHash` nunca sai numa resposta | o consultor **inactivo** é recusado na rota (403), e não só pela ausência do botão; e o livro cheio **recusa** em vez de apagar |
 | `provar-a-escola-do-consultor` | a criação pela visita nasce `consultoria`, `ativa`, com `entregueEm = criadaEm`, com os sete limites e com a atribuição no registo | a **mesma** criação pela porta pública continua a **recusar** `consultoria`, palavra por palavra como hoje |
 | `provar-o-livro-do-consultor` | cada visita que deu escola soma R$ 10; a expirada soma zero; o recebido não se apaga | marcar recebido duas vezes não soma duas vezes |
 | `provar-o-guiao-do-consultor` | os números do §8 são os do catálogo (preços, franquias, piso e teto, R$ 8) | mudar o catálogo faz a prova reprovar até o guião mudar |
@@ -501,8 +522,8 @@ Nenhuma destas trava a F1, e três mudam o desenho. Ficam com a recomendação d
 | ~~**Q2**~~ | ~~a demonstração dá 2 professores e o Básico dá 1~~ | **DECIDIDO 25/11/2026 — deixar como está, e o motivo é que não há perda:** o Básico **vai até 2 professores**. A pergunta nasceu de ler o piso como se fosse parede (§8.4) |
 | ~~**Q3**~~ | ~~o mês da escola começa na criação (§6.1)~~ | **DECIDIDO 25/11/2026 — na criação.** A alternativa pararia o negócio de quem cobra à hora |
 | **Q4** | o consultor **declara as horas** na área dele? | **DECIDIDO 25/11/2026 — sim, opcional.** Não muda o que ele recebe; é o registo que lhe permite mostrar o que fez |
-| **Q5** | o link expira em **30 dias**? | sim. É o mesmo prazo de um mês de demonstração, e um link que não expira é uma porta que ninguém fecha |
-| **Q6** | ele pode gerar **quantas visitas** quiser? | **sim, sem tecto — mas o painel conta.** Um tecto aqui não protege de nada: o que protege é a desactivação, e essa é dela |
+| ~~**Q5**~~ | ~~o link expira em **30 dias**?~~ | **DECIDIDO 25/11/2026 — sim, 30 dias** (`consultores.DIAS_DO_LINK`). É o mesmo prazo de um mês de demonstração, e um link que não expira é uma porta que ninguém fecha. A reemissão conta o prazo de novo |
+| ~~**Q6**~~ | ~~ele pode gerar **quantas visitas** quiser?~~ | **DECIDIDO 25/11/2026 — sim, ao gerar.** Um tecto aqui não protege de nada: o que protege é a desactivação. Mas o **livro** recusa a partir de 1000 visitas, e recusa em vez de apagar — uma visita é uma linha de dinheiro, e o mais antigo não pode sair em silêncio como sai da lista de consultores |
 | ~~**Q4-bis**~~ | ~~como é que ele gera o link?~~ | **DECIDIDO 25/11/2026 — pela área dele**, `lastro.padd.com.br/consultor/<token>`: ela manda-lhe o endereço ao activar (§3, acto 2). Não é ela que gera no painel |
 | **Q8** | o consultor pode **activar-se** a si mesmo, ou só ela? | só ela. Nasce inactivo, e o «Activar» é o gesto que abre a porta (§3, acto 1) |
 | **Q7** | uma visita que dá escola **duas vezes** por engano (rollback e nova criação) paga **duas vezes**? | não: a taxa é por **visita**, e o token gasta-se na primeira criação que passa. Uma segunda escola exige um segundo link |

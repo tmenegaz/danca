@@ -1703,6 +1703,28 @@ function paginaDosConsultores({ consultores: lista, catalogo } = {}) {
     'Desactivar fecha a área dele e os links que ele já espalhou — sem ter de os correr atrás.</p>' +
     '</div>';
 
+  /* ── O ENDEREÇO DELE, QUE SÓ SE MOSTRA UMA VEZ ───────────────────────────────────────────────
+   *
+   * «ACTIVAR» É O GESTO QUE ABRE A PORTA, e a porta é um endereço com um token. O KV guarda o
+   * hash — não o token —, e por isso este endereço só pode ser mostrado no instante em que nasce:
+   * no fim de «Activar», ou no fim de «Novo endereço». Depois disso o sistema não o sabe, e é de
+   * propósito (é a mesma disciplina do convite: quem lê o KV não reconstrói o link).
+   *
+   * A CAIXA DIZ ISSO, e diz o que fazer: copiar agora e mandar-lhe por WhatsApp. Sem esta frase, o
+   * gesto de activar parecia não ter produzido nada — e o consultor ficava à espera de um endereço
+   * que ela julgava ter enviado.
+   *
+   * O `data-copiar` é o da folha, com a rotina de `nucleo/copiar.js` carregada nesta página: um
+   * botão de copiar sem ouvinte foi exactamente o defeito de 25/11/2026. */
+  const caixaDoAcesso = '<div class="caixa" id="consultores-acesso" hidden>' +
+    '<h2>O endereço deste consultor</h2>' +
+    '<p><input id="consultores-acesso-campo" type="text" readonly></p>' +
+    '<p><button class="acao" type="button" data-copiar="consultores-acesso-campo">Copiar o endereço</button></p>' +
+    '<p class="aviso">Este endereço aparece <strong>uma vez só</strong> — o sistema guarda o resumo ' +
+    'dele, e não ele. Copie agora e mande-o ao consultor. Se se perder, «Novo endereço» na linha ' +
+    'dele gera outro, e o anterior deixa de valer.</p>' +
+    '</div>';
+
   /* ── O CADASTRO ─────────────────────────────────────────────────────────────────────────── */
   const campo = (id, rotulo, tipo, dica) => '<p><label class="campo-rotulo" for="' + id + '">'
     + esc(rotulo) + '</label><input id="' + id + '" type="' + tipo + '"'
@@ -1736,7 +1758,14 @@ function paginaDosConsultores({ consultores: lista, catalogo } = {}) {
     const activo = consultores.estaAtivo(registo);
     return '<button class="acao pequena secundario" type="button" data-consultor-estado="'
       + esc(registo.id) + '" data-para="' + (activo ? 'inativo' : 'ativo') + '">'
-      + (activo ? 'Desactivar' : 'Activar') + '</button>';
+      + (activo ? 'Desactivar' : 'Activar') + '</button>'
+      /* O «NOVO ENDEREÇO» SÓ EXISTE PARA QUEM ESTÁ ACTIVO — um consultor inactivo não tem porta,
+       * e um botão que responde «active-o primeiro» é um botão a explicar-se. É o gesto de quem
+       * perdeu o link: troca a fechadura, e o endereço anterior deixa de valer. */
+      + (activo
+        ? '<br><button class="acao pequena secundario" type="button" data-novo-acesso="'
+          + esc(registo.id) + '">Novo endereço</button>'
+        : '');
   };
 
   const selo = (registo) => (consultores.estaAtivo(registo)
@@ -1783,7 +1812,19 @@ function paginaDosConsultores({ consultores: lista, catalogo } = {}) {
    * formulário (e o formulário fica preenchido, para ela corrigir o campo e não o refazer todo); um
    * estado que muda altera a linha inteira — selo, data e botão —, e refazê-la no cliente seria uma
    * segunda composição da mesma regra. */
-  const script = '<script>(function(){' +
+  const script = '<script>' + SCRIPT_DO_COPIAR + '</script>' +
+    '<script>(function(){' +
+    /* O ENDEREÇO É GUARDADO ENTRE O `fetch` E O `reload`, e o `sessionStorage` é o único sítio que
+     * sobrevive aos dois. A alternativa era não recarregar: a linha ficaria a dizer «Activar» com o
+     * consultor já activo — e a lista passaria a mentir sobre o estado, que é pior do que uma caixa
+     * que precisa de um sítio para o valor. Ao abrir, a página lê-o, mostra-o e apaga-o. */
+    'function mostrarAcesso(url){' +
+    'try{sessionStorage.setItem("consultor-acesso",url||"");}catch(e){}' +
+    'var cx=document.getElementById("consultores-acesso"),campo=document.getElementById("consultores-acesso-campo");' +
+    'if(!cx||!campo)return;campo.value=url||"";cx.hidden=false;' +
+    'try{cx.scrollIntoView({block:"start"});}catch(e){}}' +
+    'try{var guardado=sessionStorage.getItem("consultor-acesso");' +
+    'if(guardado){mostrarAcesso(guardado);sessionStorage.removeItem("consultor-acesso");}}catch(e){}' +
     'function recado(t,erro){var cx=document.getElementById("consultor-recado");if(!cx)return;' +
     'cx.hidden=!t;cx.textContent=t||"";cx.className=erro?"aviso alerta":"aviso";}' +
     'function valor(id){var e=document.getElementById(id);return e?e.value:"";}' +
@@ -1809,11 +1850,33 @@ function paginaDosConsultores({ consultores: lista, catalogo } = {}) {
     '    fetch("/api/consultores/estado",{method:"POST",headers:{"Content-Type":"application/json"},cache:"no-store",' +
     '      body:JSON.stringify({id:b.getAttribute("data-consultor-estado"),ativo:para==="ativo"})})' +
     '    .then(function(r){return r.json().catch(function(){return {};});})' +
-    '    .then(function(d){if(d&&d.ok){location.reload();return;}b.disabled=false;' +
+    '    .then(function(d){' +
+    '      if(d&&d.ok){' +
+    /* O ENDEREÇO NOVO VEM NA RESPOSTA DO «ACTIVAR», e é a única vez que existe. Recarregar a página
+     * a seguir perdia-o — e a página recarregada diria «activo» sem dar a ninguém a chave. Por isso
+     * o caso do endereço mostra primeiro, e recarrega depois: a caixa fica visível com o valor, e o
+     * `location.reload()` guarda-o no `sessionStorage`? Não — recarregar apagava-o do ecrã.
+     * A solução é não recarregar quando há endereço: a linha muda no sítio, e a caixa diz o resto. */
+    '        if(d.acesso&&d.acesso.url){mostrarAcesso(d.acesso.url);location.reload();return;}' +
+    '        location.reload();return;}' +
+    '      b.disabled=false;' +
     '      recado((d&&d.erro)||"não foi possível mudar o estado",true);})' +
     '    .catch(function(){b.disabled=false;recado("falha de rede — nada foi alterado",true);});' +
     '  });' +
     '})(mudar[j]);' +
+    'var novos=document.querySelectorAll("[data-novo-acesso]");' +
+    'for(var k=0;k<novos.length;k++)(function(b){' +
+    '  b.addEventListener("click",function(){' +
+    '    b.disabled=true;' +
+    '    fetch("/api/consultores/acesso",{method:"POST",headers:{"Content-Type":"application/json"},cache:"no-store",' +
+    '      body:JSON.stringify({id:b.getAttribute("data-novo-acesso")})})' +
+    '    .then(function(r){return r.json().catch(function(){return {};});})' +
+    '    .then(function(d){b.disabled=false;' +
+    '      if(d&&d.ok&&d.acesso&&d.acesso.url){mostrarAcesso(d.acesso.url);return;}' +
+    '      recado((d&&d.erro)||"não foi possível gerar o endereço",true);})' +
+    '    .catch(function(){b.disabled=false;recado("falha de rede — nada foi alterado",true);});' +
+    '  });' +
+    '})(novos[k]);' +
     '})();</script>';
 
   return pagina({
@@ -1821,7 +1884,7 @@ function paginaDosConsultores({ consultores: lista, catalogo } = {}) {
     subtitulo: 'Quem atende as escolas em consultoria, em que praça, e quem pode gerar o link de ' +
       'uma escola nova. Só um consultor activo abre essa porta.',
     atual: 'consultores',
-    corpo: resumoEmCaixa + formulario + '<h2 id="a-lista">Consultores cadastrados</h2>' +
+    corpo: resumoEmCaixa + caixaDoAcesso + formulario + '<h2 id="a-lista">Consultores cadastrados</h2>' +
       listaEmTabela + script +
       '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',
   });
@@ -3112,6 +3175,226 @@ function paginaSemToken(motivo) {
   });
 }
 
+/**
+ * A ÁREA DO CONSULTOR — `lastro.padd.com.br/consultor/<token>` (25/11/2026 — F2).
+ *
+ * O QUE ELA DIZ, nas palavras dela: «O consultor vai gerar esse link para N escolas que ele
+ * consultar e fizer a implementação.» A página é o lugar onde ele gera. Tem três coisas e mais
+ * nada — quem ele é, quantas visitas deu, e o botão que abre uma: um menu ao lado de um homem que
+ * veio trabalhar seria três portas que não abrem.
+ *
+ * O QUE ELA **NÃO** MOSTRA: nenhuma escola do sistema, nenhum movimento, nenhum valor de ninguém.
+ * Ele vê as visitas que ele próprio marcou, e só. É o que o plano declara — «ele não vê a lista de
+ * escolas, o financeiro, nem o movimento de ninguém» —, e é a razão de esta página ser servida
+ * pelo endereço público: ela não tem o painel atrás.
+ *
+ * O ENDEREÇO DO LINK APARECE UMA VEZ. O KV guarda o hash, e não o token: o servidor não consegue
+ * mostrar outra vez o que não guarda. Por isso a caixa diz «aparece uma vez só» e tem um «Copiar»,
+ * e um link perdido resolve-se com «Novo link» na linha da visita — que é um token novo para a
+ * mesma visita, e não uma visita nova.
+ *
+ * SEM MENU, e pela mesma razão da página do convite: `navDoPainel` desenha os destinos do dono, e
+ * um menu que leva a páginas que respondem 401 é pior do que não ter menu.
+ */
+function paginaDoConsultor({ consultor, token, visitas: lista, agora, suspenso, erro } = {}) {
+  const quem = consultor || {};
+  const nome = String(quem.nome || 'consultor');
+  const praca = String(quem.praca || '').trim();
+
+  /* O CASCO É DO CONVITE — `data-layout="documento"`, sem barra de painel. Duas páginas públicas
+   * com o mesmo desenho, e não duas folhas. */
+  const casco = (corpo, titulo) => '<!doctype html><html lang="pt-BR" data-paleta="verde">' +
+    '<head><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+    /* NÃO SE INDEXA. É uma página de trabalho com um segredo no endereço — e um link que aparece
+     * num motor de busca é um link que se gasta. */
+    '<meta name="robots" content="noindex">' +
+    '<title>' + esc(titulo) + ' · Sistema Lastro</title>' +
+    '<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">' +
+    '<link rel="stylesheet" href="/assets/style.css">' +
+    '</head><body id="top" data-layout="documento" data-tela="consultor">' +
+    '<header class="doc"><h1>' + esc(titulo) + '</h1>' +
+    '<p class="subtitulo">' + (praca ? esc('Consultoria · ' + praca) : 'Consultoria') + '</p></header>' +
+    '<main><div class="conteudo">' + corpo + '</div></main>' +
+    '</body></html>';
+
+  /* ── NÃO CONSEGUI LER ─────────────────────────────────────────────────────────────────────────
+   *
+   * A TERCEIRA RESPOSTA, e a que não pode ser confundida com a primeira. Um KV que não responde não
+   * é «este consultor não existe»: a página diz que não leu, e não mostra nada. A alternativa —
+   * desenhar a área com zero visitas — diria a um consultor com trinta visitas que ele não tem
+   * nenhuma, e era a mentira mais cara que esta página podia contar.
+   */
+  if (erro) {
+    return casco('<div class="caixa falta">' +
+      '<h2>Não consigo ler o registo agora</h2>' +
+      '<p>' + esc(String(erro)) + '</p>' +
+      '<p>Nada foi mostrado para não o fazer decidir sobre um registo que não foi lido. ' +
+      'Tente outra vez dentro de um minuto.</p>' +
+      '<p><a class="acao secundario" href="">Tentar outra vez</a></p>' +
+      '</div>', 'Área do consultor');
+  }
+
+  /* ── O ACESSO SUSPENSO ────────────────────────────────────────────────────────────────────────
+   *
+   * DESACTIVAR FECHA A ÁREA DELE, e ela sabe-o porque foi ela que o decidiu. O que ele lê não é
+   * «não encontrado»: é a frase que lhe diz a quem falar. Uma porta que se fecha em silêncio faz o
+   * consultor pensar que o sistema se partiu, e ele liga-lhe a dizer isso.
+   *
+   * O QUE ELE **NÃO** VÊ AQUI: as visitas. Um acesso suspenso é um acesso suspenso — a lista fica
+   * do lado de dentro da porta. */
+  if (suspenso) {
+    return casco('<div class="caixa falta">' +
+      '<h2>O seu acesso está suspenso</h2>' +
+      '<p>O acesso de <strong>' + esc(nome) + '</strong> à área de consultoria está inactivo. ' +
+      'As visitas que já marcou continuam registadas — nada se perdeu —, mas não é possível gerar ' +
+      'links novos enquanto o acesso estiver assim.</p>' +
+      '<p>Escreva para a administração do Sistema Lastro e peça a reactivação. Ao reactivar, ' +
+      'recebe um endereço novo: este deixa de valer.</p>' +
+      '<p><a class="acao secundario" href="mailto:lastro@padd.com.br">Escrever para a administração</a></p>' +
+      '</div>', 'Área do consultor');
+  }
+
+  const todas = Array.isArray(lista) ? lista : [];
+  const r = consultores.resumoDasVisitas(todas, agora);
+
+  const resumo = '<div class="caixa" id="consultor-resumo">' +
+    '<h2>O que já foi feito</h2>' +
+    '<p><strong>' + r.abertas + '</strong> ' + (r.abertas === 1 ? 'link aberto' : 'links abertos') +
+    ' · <strong>' + r.criadas + '</strong> ' + (r.criadas === 1 ? 'escola nasceu' : 'escolas nasceram') +
+    ' · <strong>' + r.expiradas + '</strong> ' + (r.expiradas === 1 ? 'expirado' : 'expirados') +
+    '</p>' +
+    /* O NÚMERO QUE ELE TEM DE VER. Um link expirado é uma visita que ele fez e que não vai contar —
+     * e se ele não vir esse número aqui, descobre-o no dia em que a escola não aparece. */
+    (r.expiradas
+      ? '<p class="aviso">' + (r.expiradas === 1 ? 'Um link expirou' : r.expiradas + ' links expiraram')
+        + ' sem a escola ter aberto. Um link vale ' + consultores.DIAS_DO_LINK + ' dias; na linha da '
+        + 'visita, «Novo link» gera outro.</p>'
+      : '') +
+    '</div>';
+
+  /* ── A VISITA NOVA ──────────────────────────────────────────────────────────────────────────── */
+  const campo = (id, rotulo, tipo, dica) => '<p><label class="campo-rotulo" for="' + id + '">'
+    + esc(rotulo) + '</label><input id="' + id + '" type="' + tipo + '"'
+    + (dica ? ' placeholder="' + esc(dica) + '"' : '') + ' autocomplete="off"></p>';
+
+  const formulario = '<div class="caixa" id="consultor-nova">' +
+    '<h2>Uma visita nova</h2>' +
+    '<p>Escreva o nome da escola como a conhece — é por ele que reconhece a visita nesta lista. ' +
+    'O nome definitivo é o que a escola escrever ao abrir o link.</p>' +
+    campo('consultor-escola', 'Escola', 'text', 'como a escola se chama') +
+    campo('consultor-cidade', 'Cidade (opcional)', 'text', 'onde ela fica') +
+    campo('consultor-data', 'Dia previsto (opcional)', 'date', '') +
+    '<p><button class="acao" id="consultor-gerar" type="button">Gerar o link</button></p>' +
+    '<p id="consultor-recado" role="status" class="aviso" hidden></p>' +
+    '</div>';
+
+  /* ── O LINK, QUE APARECE UMA VEZ ───────────────────────────────────────────────────────────── */
+  const caixaDoLink = '<div class="caixa" id="consultor-link-caixa" hidden>' +
+    '<h2>O link desta visita</h2>' +
+    '<p><input id="consultor-link" type="text" readonly></p>' +
+    '<p><button class="acao" type="button" data-copiar="consultor-link">Copiar o link</button></p>' +
+    '<p class="aviso" id="consultor-link-aviso">Este endereço aparece <strong>uma vez só</strong>: ' +
+    'o sistema guarda o resumo do link, e não o link. Copie-o agora e mande-o a quem decide na ' +
+    'escola — se o perder, «Novo link» na linha da visita gera outro.</p>' +
+    '</div>';
+
+  /* ── A LISTA ────────────────────────────────────────────────────────────────────────────────── */
+  const selo = (v) => {
+    const estado = consultores.estadoDaVisita(v, agora);
+    if (estado === 'criada') return '<span class="selo ok">escola criada</span>';
+    if (estado === 'expirada') return '<span class="selo alerta">expirado</span>';
+    return '<span class="selo discreto">aberto</span>';
+  };
+
+  const dia = (iso) => {
+    if (!iso) return '—';
+    const t = Date.parse(iso.length === 10 ? iso + 'T12:00:00.000Z' : iso);
+    if (!Number.isFinite(t)) return '—';
+    return new Date(t).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+  };
+
+  const acao = (v) => (v.usadaEm
+    ? '—'
+    : '<button class="acao pequena secundario" type="button" data-novo-link="' + esc(v.id) + '">Novo link</button>');
+
+  const listaEmTabela = todas.length
+    ? '<h2 id="as-visitas">As visitas</h2>' +
+      tabelaPaginada('pa-visitas-do-consultor', '<table>' +
+        '<thead><tr><th>Escola</th><th>Cidade</th><th>Prevista</th><th>O link vale até</th>' +
+        '<th>Estado</th><th></th></tr></thead>' +
+        '<tbody>' + todas.slice().reverse().map((v) => '<tr>' +
+          '<td>' + esc(v.escolaNome || '—') + '</td>' +
+          '<td>' + esc(v.cidade || '—') + '</td>' +
+          '<td>' + esc(dia(v.previstaPara)) + '</td>' +
+          '<td>' + esc(dia(v.expiraEm)) + '</td>' +
+          '<td>' + selo(v) + '</td>' +
+          '<td>' + acao(v) + '</td>' +
+          '</tr>').join('') + '</tbody></table>' +
+        /* O QUE O LINK FAZ, dito a quem o vai mandar — e não a quem o recebe. Ele precisa de saber
+         * isto para o explicar ao telefone, e a frase é a mesma do plano: um link, uma escola. */
+        '<p class="aviso">Cada link abre <strong>uma</strong> criação de escola, no plano de ' +
+        'consultoria, já atribuída a você. Ele vale ' + consultores.DIAS_DO_LINK + ' dias e gasta-se ' +
+        'na primeira vez que a escola o usar. Quem escolhe o nome definitivo da escola é ela; o ' +
+        'plano não se escolhe — é o da consultoria.</p>', 'Visitas por página')
+    : '<div class="caixa nota">' +
+      '<h2>Nenhuma visita ainda</h2>' +
+      '<p>Gere o primeiro link em «Uma visita nova». Cada link é de uma escola, e leva o seu nome: ' +
+      'é assim que se sabe quem trouxe cada escola que nascer.</p>' +
+      '</div>';
+
+  /* ── O JAVASCRIPT ─────────────────────────────────────────────────────────────────────────────
+   *
+   * O LINK É MOSTRADO NO CLIENTE, e não numa página nova: o token só existe na resposta, e um
+   * recarregamento perdia-o. É a mesma razão por que a caixa diz «uma vez só».
+   *
+   * A ROTINA DE COPIAR É A DA CASA (`data-copiar` → `nucleo/copiar.js`), e não uma cópia local:
+   * foi exactamente uma rotina que existia numa página e não nas outras que produziu o «o copiar
+   * não funciona» de 25/11/2026. */
+  const script = '<script>' + SCRIPT_DO_COPIAR + '</script>' +
+    '<script>(function(){' +
+    'function recado(t,erro){var cx=document.getElementById("consultor-recado");if(!cx)return;' +
+    'cx.hidden=!t;cx.textContent=t||"";cx.className=erro?"aviso alerta":"aviso";}' +
+    'function valor(id){var e=document.getElementById(id);return e?e.value:"";}' +
+    'function mostrarLink(url){' +
+    'var cx=document.getElementById("consultor-link-caixa"),campo=document.getElementById("consultor-link");' +
+    'if(!cx||!campo)return;campo.value=url||"";cx.hidden=false;' +
+    'try{cx.scrollIntoView({block:"start"});}catch(e){}' +
+    'if(campo.select){try{campo.focus();campo.select();}catch(e){}}' +
+    '}' +
+    'var gerar=document.getElementById("consultor-gerar");' +
+    'if(gerar)gerar.addEventListener("click",function(){' +
+    '  gerar.disabled=true;recado("a gerar o link…",false);' +
+    '  fetch("/api/consultor/__TOKEN__/visita",{method:"POST",headers:{"Content-Type":"application/json"},' +
+    '    cache:"no-store",body:JSON.stringify({escolaNome:valor("consultor-escola"),' +
+    '      cidade:valor("consultor-cidade"),previstaPara:valor("consultor-data")})})' +
+    '  .then(function(r){return r.json().catch(function(){return {};});})' +
+    '  .then(function(d){gerar.disabled=false;' +
+    '    if(d&&d.ok){recado("",false);mostrarLink(d.link);return;}' +
+    '    recado((d&&d.erro)||"não foi possível gerar o link",true);})' +
+    '  .catch(function(){gerar.disabled=false;recado("falha de rede — nada foi gravado",true);});' +
+    '});' +
+    'var novos=document.querySelectorAll("[data-novo-link]");' +
+    'for(var i=0;i<novos.length;i++)(function(b){' +
+    '  b.addEventListener("click",function(){' +
+    '    var id=b.getAttribute("data-novo-link");if(!id)return;b.disabled=true;' +
+    '    fetch("/api/consultor/__TOKEN__/visita/"+encodeURIComponent(id)+"/link",{method:"POST",' +
+    '      headers:{"Content-Type":"application/json"},cache:"no-store",body:"{}"})' +
+    '    .then(function(r){return r.json().catch(function(){return {};});})' +
+    '    .then(function(d){b.disabled=false;' +
+    '      if(d&&d.ok){mostrarLink(d.link);return;}' +
+    '      recado((d&&d.erro)||"não foi possível gerar outro link",true);})' +
+    '    .catch(function(){b.disabled=false;recado("falha de rede — nada foi alterado",true);});' +
+    '  });' +
+    '})(novos[i]);' +
+    '})();</script>';
+
+  /* O TOKEN ENTRA NO ENDEREÇO DO PEDIDO, e não no corpo: é ele que identifica o consultor, e a
+   * rota pública confere-o antes de olhar para o resto — a mesma disciplina do convite. */
+  return casco(resumo + formulario + caixaDoLink + listaEmTabela
+    + script.replace(/__TOKEN__/g, esc(token || '')), 'Consultoria · ' + nome);
+}
+
 module.exports = {
   esc, dia, diaOuTraco, quando,
   MARCADOR, MARCADOR_INDICE, tabelaDeEscolas, tabelaDeProfessores, blocoDeEscolas,
@@ -3119,6 +3402,7 @@ module.exports = {
   pagina, resposta, paginaDasApagadas, paginaDasVivas, paginaDosProfessores, paginaDoRegistro, paginaSemToken,
   paginaDosContatos,
   paginaDosConsultores,
+  paginaDoConsultor,
   paginaDoConvite,
   paginaFinanceira, SCRIPT_DO_FINANCEIRO, ENSAIO_PADRAO_MINUTOS,
   /* O MONITORAMENTO (17/11/2026) — a página, e as peças que a prova mede à parte. */

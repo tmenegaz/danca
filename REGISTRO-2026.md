@@ -63035,3 +63035,144 @@ um pedido o fez subir, a prova tem de nomear o que entrou.**
 versionada), `ESTADO-ATUAL.md`, `HANDOFF.md`.
 
 **Bateria:** 294 provas, **201 verdes**, 93 conhecidas, **0 regressões**.
+
+## O endereço do consultor e o link de cada visita *(25/11/2026)*
+
+**O que ela disse que o token carrega, e o que ele carrega de facto.** «Ele vai dizer quem é o
+consultor, qual é a escola que ele tá atendendo, vai dizer também qual é a praça desse consultor e
+vai dizer também que ele é acesso único, só pode ser feito uma vez.» Quatro coisas — e **três delas
+não vão no token**, e é isso que o torna seguro:
+
+| o que ela disse | onde vive | porquê |
+|:--|:--|:--|
+| quem é o consultor | no **registo**, achado pelo hash | um token com o nome (`?consultor=joao`) seria forjável por quem soubesse escrever `joao` |
+| a praça | no **registo** | é um atributo dele, e é a mesma em todas as visitas |
+| qual é a escola | no **registo da visita**, como nome provisório | ele escreve-o para reconhecer a visita; o nome definitivo é o que a escola escreve ao abrir o link |
+| uso único | no **registo**, como `usadaEm` | um token que dissesse «já fui usado» estaria a mentir no dia em que fosse usado |
+
+**O token é opaco: não afirma nada — é a chave que chega a um registo.** Um token que afirmasse
+alguma coisa teria de ser verificado nessa afirmação, e a verificação seria uma segunda fonte da
+mesma verdade.
+
+### Duas espécies de token, e não uma
+
+O **acesso** (o endereço dele) e o **link da visita** (o que ele manda à escola) são segredos com
+públicos diferentes: o primeiro é do consultor; o segundo passa por WhatsApp e por e-mail. Por isso
+são **âmbitos** diferentes no hash — `sha256('lastro/' + âmbito + '/' + token)` —, e um token de
+convite nunca confere como acesso. Está medido, e a mutação que tira o âmbito do hash derruba três
+asserções.
+
+**E a criptografia passou a ser uma só.** O token do convite vivia em `convite.js`; o consultor
+precisa de dois com as mesmas propriedades. Escrevê-los outra vez seria a **terceira cópia** da mesma
+criptografia — e três cópias de uma regra de segurança são três sítios onde ela pode ficar mais fraca
+sem ninguém notar. Ficou em `nucleo/segredo.js`, e o hash do convite **é o mesmo de antes**
+(`'lastro/convite/'`), logo os convites já emitidos continuam a abrir. `provar-recriar-escola`,
+94/94.
+
+### O endereço aparece uma vez, e isso é uma consequência, não uma escolha
+
+O KV guarda o **hash**, não o token: o servidor **não consegue** mostrar outra vez o que não guarda.
+O endereço nasce no fim do «Activar» e é devolvido nessa resposta; depois disso não há como o
+recuperar.
+
+**Duas consequências que o desenho teve de resolver:**
+
+1. **A caixa diz isso.** «Este endereço aparece **uma vez só** — o sistema guarda o resumo dele, e
+   não ele. Copie agora e mande-o ao consultor.» Sem esta frase, activar parecia não produzir nada, e
+   ela julgaria ter enviado um endereço que nunca viu.
+2. **Há um «Novo endereço»** na linha de quem está activo. É o gesto de quem perdeu o link, e é a
+   resposta a «se guarda, se troca, e se revoga desactivando» (§10 do plano).
+
+### Um link de visita que se perde não pode virar um fantasma
+
+O mesmo problema, um nível abaixo: o link da visita também só aparece uma vez. Sem remédio, um link
+apagado do WhatsApp seria **uma visita que nunca pode dar escola** — e a lista dele encher-se-ia de
+visitas mortas que ele fez e não vai contar.
+
+**«Novo link», na linha da visita, reemite para a MESMA visita** — outro token, o prazo a contar de
+novo, e um elo `link-reemitido` no histórico. Não é uma visita nova: a visita é o trabalho dele, o
+link é a chave dela.
+
+E **não se reemite uma visita cuja escola já nasceu**: aí o link cumpriu o que tinha a cumprir, e um
+segundo endereço seria um segundo caminho para a mesma escola.
+
+### Três paredes, e cada uma responde de forma diferente
+
+| o token | o que acontece | porquê |
+|:--|:--|:--|
+| não é de ninguém | **404**, sem explicação | um 401 diria a quem tentasse que ali há uma porta, e qual é |
+| é de um consultor **inactivo** | a página abre e diz que o acesso está **suspenso** | ele tem o token certo; uma porta que se fecha em silêncio faz o consultor ligar a dizer que o sistema partiu |
+| é de um activo | a área dele | — |
+
+**E a rota recusa (403) a um inactivo.** O botão ausente é a segunda barreira; **a primeira é o
+servidor**, porque quem escrever o pedido à mão não passa pela página. A mutação que tira essa
+barreira derruba cinco asserções, incluindo a que mede que o livro dele continua vazio.
+
+**Desactivar não apaga o endereço** — é o que permite a página dizer «suspenso» em vez de «não
+encontrado». **Reactivar emite outro**, e o antigo morre: reabrir com a mesma chave é reabrir a porta
+que se fechou, com uma chave que pode estar num WhatsApp antigo que ninguém apagou.
+
+### Onde o livro de visitas difere do directório de consultores
+
+A lista de consultores, no tecto, **deixa cair o mais antigo** e diz quantos caíram — é um directório
+de duzentos, e o duzentos e um é mais útil do que o primeiro.
+
+**O livro de visitas não pode fazer isso.** Uma visita que deu escola é uma linha do livro dos R$ 10
+(F4), e uma lista que apagasse a mais antiga estaria a **apagar uma dívida em silêncio** — o pior
+desfecho possível para um dado de dinheiro. Ao chegar a mil, **recusa**, com a frase que diz porquê.
+Recusar é visível, recuperável, e cabe numa linha. Mil visitas são oito anos a dez escolas por mês.
+
+**As duas políticas existem, e a diferença é declarada** — e está medida, com as duas no mesmo sítio
+da prova.
+
+### O estado é calculado, como a `expirada` do plano consultoria
+
+`aberta` · `expirada` · `criada`. Uma data guardada como estado precisaria de um relógio que a
+mudasse, e não há cron nesta casa; calculado, o estado nunca está velho. **Um link sem prazo legível
+conta como expirado** — a direcção do erro é a que fecha: um `expiraEm` corrompido não pode valer
+para sempre por omissão.
+
+### O `tokenHash` nunca sai numa resposta
+
+`visaoDaVisita` deixa-o de fora, e é de propósito: não é o token, mas é o que há de mais próximo dele,
+e um cliente que não precisa dele não deve recebê-lo — o que se envia fica nos registos de quem o
+recebeu. Há asserção a medir que o corpo da resposta não contém a palavra.
+
+### Duas páginas que emitiam marcação e ninguém media
+
+O `check-identidade` mede as peças de cada superfície que emite marcação, e a lista dessas
+superfícies é escrita à mão. **A página dos contatos (18/11) e a dos consultores (F1, hoje de manhã)
+não estavam lá** — e uma superfície que emite e não é medida é **aprovada por omissão**, que é o modo
+mais silencioso de não verificar nada. A checagem passou de **17 para 20 superfícies** (as três
+acrescentadas, mais a área do consultor), e todas usam peças do catálogo: nenhum gancho novo.
+
+### A fronteira da fase, dita sem rodeios
+
+O link nasce com o **endereço definitivo** — `https://lastro.padd.com.br/visita/<token>` — e a página
+que o serve é a **F3**. Hoje esse endereço responde **404**: o link é gerado, guardado e entregue, mas
+não abre a criação de escola nenhuma.
+
+**Não se manda um link a uma escola antes de a F3 estar no ar.** É a única coisa que a F2 não pode
+prometer, e é a razão de a fase seguinte não poder falhar em silêncio: uma escola criada com o plano
+errado, ou sem atribuição, é um cliente que existe e não se sabe de onde veio.
+
+### A prova
+
+`experimentos/provar-o-link-do-consultor.js`, **77 asserções**, com **prova de mutação**: quatro
+regras partidas, quatro quedas — sem a barreira do activo (5 asserções), sem a expiração (2), sem o
+âmbito no hash (3), e sem a recusa de reemitir uma visita gasta (1). Repostas as quatro, 77/77.
+
+**Um guarda que nunca se viu recusar não é um guarda** — e este é o terceiro desta casa a passar pela
+mesma mesa, depois do `provar-trava-de-repositorio` e do `provar-ambiente`.
+
+### Onde entrou
+
+`motor/nucleo/segredo.js` (novo), `motor/nucleo/convite.js` (a delegar), `motor/nucleo/consultores.js`
+(o acesso e as visitas), `motor/servidor/consultores-da-casa.js` (o token, o livro),
+`motor/servidor/painel-html.js` (`paginaDoConsultor`, a caixa do endereço e o «Novo endereço»),
+`motor/servidor/raiz.js` (as três rotas públicas e o `/api/consultores/acesso`),
+`tools/check-identidade.js` (três superfícies que faltavam),
+`experimentos/provar-o-link-do-consultor.js` (novo), `.gitignore` (a prova versionada),
+`PLANO-DO-CONSULTOR.md` (§5.0, §11, §12, §13), `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+**Bateria:** 295 provas, **202 verdes**, 93 conhecidas, **0 regressões**.

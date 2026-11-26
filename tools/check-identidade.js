@@ -1179,6 +1179,28 @@ function superficiesQueEmitem() {
       },
     })]);
     lista.push(['painel/sem-token', painel.paginaSemToken()]);
+    /* AS TRÊS PÁGINAS QUE NINGUÉM MEDIA (25/11/2026). Elas emitiam marcação desde antes de hoje e
+     * não estavam nesta lista — e uma superfície que emite e não é medida é aprovada por omissão,
+     * que é o modo mais silencioso de não verificar nada. As duas dos consultores são desta data; a
+     * dos contatos é de 18/11 e entrou aqui porque o defeito é o mesmo e a linha é uma. */
+    lista.push(['painel/contatos', painel.paginaDosContatos({ contatos: [{
+      quando: '2026-11-25T12:00:00.000Z', nome: 'Fulana', escola: 'Escola', email: 'a@b.com',
+      telefone: '(55) 99999-0000', mensagem: 'uma mensagem', lido: false, aviso: 'enviado',
+    }] })]);
+    lista.push(['painel/consultores', painel.paginaDosConsultores({ consultores: [{
+      id: 'c-1', nome: 'Maria Silva', praca: 'Santa Maria', cpf: '12345678901',
+      email: 'maria@exemplo.com', telefone: '(55) 99999-0000', ativo: true,
+      equipamento: { carro: true, habilitacao: true, notebook: true },
+      criadoEm: '2026-11-25T12:00:00.000Z', historico: [],
+    }] })]);
+    lista.push(['painel/consultor', painel.paginaDoConsultor({
+      consultor: { nome: 'Maria Silva', praca: 'Santa Maria' }, token: 'abc123',
+      agora: '2026-11-25T12:00:00.000Z',
+      visitas: [{
+        id: 'v-1', escolaNome: 'Studio Aurora', cidade: 'Santa Maria', previstaPara: '2026-12-02',
+        criadaEm: '2026-11-25T12:00:00.000Z', expiraEm: '2026-12-25T12:00:00.000Z', historico: [],
+      }],
+    })]);
   } catch (e) {
     erros.push('Peça: não foi possível gerar as páginas do painel (' + (e && e.message) + ')');
   }

@@ -4,7 +4,24 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **o consultor passou a existir no sistema, e existir
+> **Última fotografia:** 25/11/2026 — **o consultor tem endereço, e já gera links.** A fase F2 do
+> [PLANO-DO-CONSULTOR.md](PLANO-DO-CONSULTOR.md) está no ar em `lastro.padd.com.br/consultor/<token>`:
+> ao **activar**, o painel emite o endereço dele e mostra-o **uma vez** (o KV guarda o hash, não o
+> token — quem ler o KV não reconstrói o link); na área dele, **«Nova visita»** declara a escola e
+> devolve o link de `/visita/<token>`, com **30 dias** e uso único, e a linha da visita tem «Novo
+> link» para quando ele se perde — que reemite para a **mesma** visita, com o prazo a contar de novo.
+> **Desactivar fecha a área dele** (a página diz «suspenso», não «não encontrado» — uma porta que se
+> fecha em silêncio faz o consultor ligar a dizer que o sistema partiu), e **reactivar emite outro
+> endereço**: o antigo morre, porque reabrir com a mesma chave é reabrir a porta que se fechou.
+> **Um consultor inactivo é recusado na rota (403)**, e não apenas pela ausência do botão — é a
+> barreira que conta, porque quem escrever o pedido à mão não passa pela página. O token é **opaco**:
+> não diz o nome do consultor nem a praça (isso é do registo), e um token de convite nunca confere
+> como acesso porque o **âmbito** entra no hash. E o `tokenHash` **nunca sai numa resposta**. A prova
+> (`provar-o-link-do-consultor`, **77 asserções**) cai em quatro mutações diferentes: sem a barreira
+> do activo, sem a expiração, sem o âmbito, e sem a recusa de reemitir uma visita já gasta.
+> **A fronteira da fase:** o link nasce com o endereço definitivo, e a página que ele abre é a **F3**
+> — até lá responde 404. **Não se manda um link a uma escola antes de a F3 estar no ar.** Antes
+> disso, no mesmo dia: **o consultor passou a existir no sistema, e existir
 > ainda não abre porta nenhuma.** A fase F1 do [PLANO-DO-CONSULTOR.md](PLANO-DO-CONSULTOR.md) está
 > no ar: `danca.padd.com.br/consultores` cadastra (nome, **pelo menos um** de CPF/CNPJ, praça,
 > e-mail, telefone, e o equipamento declarado — carro, habilitação, notebook próprio), lista, e
@@ -2461,6 +2478,7 @@ Verificado nesta fotografia, com os comandos da §9.
 | **A turma tem três estados, e a edição pergunta antes** | **CONFIRMADO** 03/11/2026 (`provar-conteudos-e-estado-da-turma`, §B e §C): `livre` · `curada` · `vinculada`. A curada recusa a mudança de **nome** (a curadoria guarda o nome, e renomear partia a ligação em silêncio) e aceita o resto; a vinculada recusa tudo. A tela mostra o selo e desactiva o «Excluir»; a rota é quem decide. | `motor/nucleo/estado-da-turma.js`, `motor/servidor/bastidores.js` |
 | **Os conteúdos são da curadoria — e o mapa antigo continua a ler-se** | **CONFIRMADO** 03/11/2026 (§A, §D, §F): `conteudosDaTurma` e `mapaDeConteudos` compõem `turma-conteudos` com o `repertorio` de cada curadoria, colapsados pelo mesmo `idDe`; a curadoria **substituída** não entra. O passo 3 da turma ficou sem o bloco, e o cartão continua a mostrar a lista. | `motor/nucleo/conteudos.js`, `motor/servidor/bastidores.js` |
 | **O cadastro do consultor — F1 do plano** | **CONFIRMADO** 25/11/2026 na bancada (`provar-o-cadastro-do-consultor`, **88** asserções): `danca.padd.com.br/consultores` cadastra (nome, **pelo menos um** de CPF/CNPJ, praça, e-mail, telefone, equipamento declarado), lista com paginação e resumo, e **activa/desactiva**. O registo é **uma lista** em `consultores/registos` (uma chave por consultor obrigaria a enumeração, que é a operação do KV limitada por dia), com tecto de 200 e `retirados` na resposta. **Nasce inactivo**, e activar é um elo datado (`historico`) — activar quem já está activo dá `mudou: false` e não é falha. As três rotas não estão em `publicoPermitido`: **404** no endereço público. **KV mudo → 503** com a frase que diz que nada foi mostrado. **Não gera token, não abre link, não cria escola** — F2 e F3. | `motor/nucleo/consultores.js`, `motor/servidor/consultores-da-casa.js`, `motor/servidor/painel-html.js` (`paginaDosConsultores`), `motor/servidor/raiz.js` (as três rotas), `raiz/index.html` (o nono destino) |
+| **O endereço do consultor e o link de cada visita — F2 do plano** | **CONFIRMADO** 25/11/2026 na bancada (`provar-o-link-do-consultor`, **77** asserções): ao activar, o painel emite `lastro.padd.com.br/consultor/<token>` e mostra-o **uma vez** (o KV guarda o hash); a área dele tem o resumo, «Nova visita» e «Novo link», e o estado da visita é **calculado** (`aberta` / `expirada` / `criada`), sem cron. **Três paredes:** token desconhecido → **404** sem explicação; consultor inactivo → página «suspenso»; e a rota POST → **403**, porque a falta do botão não é a barreira. Desactivar não apaga o endereço; reactivar emite outro. O `tokenHash` nunca sai numa resposta. **A página que o link abre (`/visita/<token>`) é a F3** — até lá responde 404. | `motor/nucleo/segredo.js`, `motor/nucleo/consultores.js` (acesso e visitas), `motor/servidor/consultores-da-casa.js`, `motor/servidor/painel-html.js` (`paginaDoConsultor`), `motor/servidor/raiz.js` (as três rotas públicas + `/api/consultores/acesso`) |
 | **O formulário da curadoria só oferece o que o professor pode ensinar** | **CONFIRMADO** 03/11/2026 (§G): as modalidades vêm do `perfil.json` do professor; a tradição segue a modalidade (lista própria a vencer a compartilhada, e queda para a compartilhada quando não há própria). **Nenhuma modalidade tem `tradicoes.json` próprio** — o conteúdo é dela (P-16). | `motor/nucleo/tradicoes.js`, `motor/servidor/bastidores.js` |
 
 ### Parcial
@@ -5148,16 +5166,24 @@ repositório; o vocabulário do repositório tem hoje **93 termos**, e o ar só 
 
 ## 8. Pendências e dúvidas
 
-### O consultor — PLANO escrito a 25/11/2026, **F1 implementado**, e o que é dela
+### O consultor — PLANO escrito a 25/11/2026, **F1 e F2 implementadas**, e o que é dela
 
 O [PLANO-DO-CONSULTOR.md](PLANO-DO-CONSULTOR.md) desenha as cinco peças e as fases F1..F5.
 ~~F1~~ — **IMPLEMENTADO a 25/11/2026**: o cadastro, a lista e o botão de activar estão no ar em
 `danca.padd.com.br/consultores`, com o registo no KV (`consultores/registos`), a regra no núcleo
 puro (`motor/nucleo/consultores.js`) e **88 asserções** em
-`experimentos/provar-o-cadastro-do-consultor.js`. **O que F1 não abre, e é a fronteira:** um
-consultor registado hoje não gera token, não abre link e não cria escola — F2 é o acesso dele, F3 a
-criação pela visita. **F2 não foi começada**, e a decisão de a separar é o que permite isto estar no
-ar sem a terceira porta existir a meio. O que fica aqui é o que **só ela pode responder**:
+`experimentos/provar-o-cadastro-do-consultor.js`.
+
+~~F2~~ — **IMPLEMENTADO a 25/11/2026**: a área dele em `lastro.padd.com.br/consultor/<token>`, o
+endereço emitido no «Activar» e mostrado **uma vez**, as visitas com «Nova visita» e «Novo link», e
+as três paredes (404, suspenso, 403 na rota) — **77 asserções** em
+`experimentos/provar-o-link-do-consultor.js`. Ficou no `motor/nucleo/segredo.js` a criptografia dos
+**três** tokens desta casa (convite, acesso, link), com o âmbito como separador de domínio.
+
+**A fronteira de hoje:** o link de uma visita nasce com o endereço definitivo (`/visita/<token>`) e a
+página que o serve é a **F3**. Até lá responde 404 — **não se manda um link a uma escola antes de a
+F3 estar no ar**, e é a única coisa que a F2 não pode prometer. O que fica aqui é o que **só ela pode
+responder**:
 
 - **Q1 — os R$ 10 são por consultoria ou por sessão?** Recomendação: **por consultoria** (uma visita,
   uma escola, dez reais). Por sessão obrigaria a definir «sessão», e ele cobra à hora.
@@ -5169,8 +5195,12 @@ ar sem a terceira porta existir a meio. O que fica aqui é o que **só ela pode 
 - **Q4** — ~~ele declara as horas?~~ **DECIDIDO 25/11/2026: sim, opcional.**
 - **Q4-bis** — ~~como gera o link?~~ **DECIDIDO 25/11/2026: na área dele**, e é ela que lhe manda o
   endereço ao activar.
-- **Q5** — o link expira em 30 dias? (recomendação: sim)
-- **Q6** — tecto de visitas por consultor? (recomendação: não; o que protege é a desactivação)
+- ~~**Q5**~~ — ~~o link expira em 30 dias?~~ **DECIDIDO pela implementação a 25/11/2026: sim**
+  (`consultores.DIAS_DO_LINK`), e a reemissão conta o prazo de novo.
+- ~~**Q6**~~ — ~~tecto de visitas por consultor?~~ **DECIDIDO pela implementação a 25/11/2026: não há
+  tecto ao gerar** — o que protege é a desactivação. O **livro** recusa a partir de 1000, e recusa em
+  vez de apagar: uma visita é uma linha de dinheiro, e a mais antiga não pode sair em silêncio como
+  sai da lista de consultores, que é um directório.
 - **Q7** — uma visita que dê duas escolas paga duas vezes? (recomendação: não — a taxa é por visita)
 - ~~**Q8**~~ — ele activa-se a si mesmo? **DECIDIDO pela implementação a 25/11/2026: não.** O
   consultor **nasce inactivo**, e o «Activar» é dela. A regra não é uma preferência: um acesso que
@@ -5753,7 +5783,18 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (25/11/2026 — o cadastro do consultor, F1)
+### Executado nesta fotografia (25/11/2026 — o endereço do consultor e o link da visita, F2)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-o-link-do-consultor.js` (**nova**) | **77/77**, em nove secções: o token e o âmbito; o endereço que nasce do «Activar» e só existe uma vez; a troca que mata o anterior; a área (404 / suspenso / 200); a visita (prazo, estado calculado, `tokenHash` fora das respostas); a reemissão; a recusa ao inactivo **na rota**; o livro cheio que recusa; e as duas paredes (o painel não serve a área) |
+| a prova de mutação — quatro regras, quatro quedas | **M1** sem a barreira do `ativo` em `criarVisita`: **5** asserções caem. **M2** o link nunca expira: **2**. **M3** o âmbito sai do hash: **3**. **M4** a reemissão não recusa uma visita já gasta: **1**. Repostas as quatro, 77/77 |
+| o hash do convite não mudou ao mudar de sítio | a criptografia passou para `nucleo/segredo.js` com o âmbito `'lastro/convite/'` — o mesmo texto de antes. `provar-recriar-escola` **94/94** com os convites a abrirem como abriam |
+| as conferências | `check-identidade` **23 ok**, e a checagem 8 (**Peça**) passou de **17 para 20 superfícies** — as duas páginas dos consultores e a dos contatos emitiam marcação sem ninguém as medir |
+| `node experimentos/provar-o-plano-do-consultor.js` | **54/54** depois de o plano passar a declarar a F2, a Q5, a Q6 e o §5.0 (o que o token carrega) |
+| `node tools/correr-provas.js --tecto=90` | **295 provas, 202 verdes, 93 conhecidas, 0 regressões** (base 294/201/93/0) |
+
+### Executado nesta fotografia anterior (25/11/2026 — o cadastro do consultor, F1)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -7658,6 +7699,33 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **25/11/2026** — **O endereço do consultor e o link de cada visita (F2).** Ao **activar**, o
+  painel emite o endereço dele (`lastro.padd.com.br/consultor/<token>`) e mostra-o **uma vez só** —
+  numa caixa que diz isso, com «Copiar» —, porque o KV guarda o **hash** e não o token: quem ler o
+  KV não reconstrói o link. Na área dele: o resumo (links abertos, escolas nascidas, expirados),
+  **«Nova visita»** (escola, cidade e dia previsto opcionais) e a lista das visitas com o estado
+  **calculado** — `aberta`, `expirada` (30 dias, sem cron) e `criada` (a escola já nasceu). O link
+  aparece uma vez; um link perdido resolve-se com **«Novo link»**, que reemite para a **mesma**
+  visita e conta o prazo de novo — sem ele, um link apagado do WhatsApp seria uma visita que nunca
+  pode dar escola e a lista encher-se-ia de fantasmas. **Três paredes:** o token que não é de
+  ninguém dá **404** sem explicação; o de um consultor inactivo abre a página que diz «suspenso»
+  (ele tem o token certo — e uma porta que se fecha em silêncio faz o consultor ligar a dizer que o
+  sistema partiu); e a rota **recusa (403)** a um inactivo, porque a ausência do botão não é a
+  barreira. **Desactivar não apaga o endereço; reactivar emite outro** — o antigo morre, porque
+  reabrir com a mesma chave é reabrir a porta que se fechou. **O token é opaco**: não diz o nome nem
+  a praça (isso é do registo, e um `?consultor=joao` seria forjável), e o âmbito entra no hash, logo
+  um token de convite nunca confere como acesso. O `tokenHash` **nunca sai numa resposta**. **Três
+  decisões declaradas:** o livro de visitas **recusa** no tecto de 1000 em vez de deixar cair a mais
+  antiga (é dinheiro, e a lista de consultores pode cair porque é um directório); o estado da visita
+  é **calculado**, como a `expirada` do plano consultoria; e o `segredo.js` passou a ser o sítio
+  único da criptografia dos três tokens — convite, acesso e link —, com o hash do convite **igual**
+  ao de antes (os convites já emitidos continuam a abrir). **A fronteira da fase:** o link nasce com
+  o endereço definitivo e a página que o serve é a **F3**; até lá responde 404. **A prova,
+  77 asserções**, cai em **quatro mutações** — sem a barreira do activo (5 asserções), sem a
+  expiração (2), sem o âmbito (3) e sem a recusa de reemitir uma visita gasta (1). E o
+  `check-identidade` passou a medir **três páginas que emitiam marcação sem ninguém as medir** (os
+  contatos, de 18/11, e as duas dos consultores): 17 → **20 superfícies**.
 
 - **25/11/2026** — **O cadastro do consultor (F1), e o que ele não abre.** O botão «Consultores» na
   barra de `danca.padd.com.br` leva a uma página que **cadastra, lista, activa e desactiva**. O que

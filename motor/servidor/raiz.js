@@ -2626,6 +2626,132 @@ async function avisarOProprietario({ env, escola, nome, escolha, quando, profess
   return Object.assign({ para }, desfecho);
 }
 
+/* ══════════════════════════════════════════════════════════════════════════════════════════════
+ * A ÁREA DO CONSULTOR — `GET /consultor/<token>` (25/11/2026 — F2)
+ *
+ * É A QUARTA PORTA PÚBLICA deste Worker, e a única que não é do dono nem da escola: quem a abre é
+ * o consultor, num endereço que ela lhe mandou ao activar. O que a autentica é o token — 32 hex
+ * aleatórios, guardados só como hash (`nucleo/segredo.js`), no âmbito `acesso`.
+ *
+ * AS TRÊS RESPOSTAS, e a diferença entre elas é o desenho:
+ *
+ *   | o token | o que acontece |
+ *   |:--|:--|
+ *   | não é de ninguém | **404**, sem explicação. Um 401 ou uma frase diriam a quem tentasse que ali há uma porta |
+ *   | é de um consultor inactivo | a página abre e diz que o acesso está **suspenso** — ele tem o token certo, e uma porta que se fecha em silêncio faz o consultor ligar a dizer que o sistema partiu |
+ *   | é de um consultor activo | a área dele: as visitas, o botão de gerar, e nada mais |
+ *
+ * O QUE ESTA PÁGINA NUNCA MOSTRA: escola nenhuma do sistema, movimento nenhum, valor nenhum. Ele
+ * vê as visitas que ele próprio marcou. É a parede que separa o consultor do painel.
+ * ══════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/** O token que vem no caminho — sem a barra final que um link copiado às vezes traz. */
+function tokenDoCaminho(url, prefixo) {
+  const resto = String(url.pathname || '').startsWith(prefixo)
+    ? String(url.pathname || '').slice(prefixo.length)
+    : '';
+  let limpo = resto;
+  try { limpo = decodeURIComponent(resto); } catch (erro) { limpo = resto; }
+  return limpo.replace(/\/+$/, '').trim();
+}
+
+/** O 404 desta casa: o mesmo texto para todos os caminhos que não existem, e sem cache. */
+function naoEncontrado() {
+  return new Response('não encontrado', {
+    status: 404,
+    headers: { 'Content-Type': 'text/plain;charset=utf-8', 'Cache-Control': 'no-store' },
+  });
+}
+
+async function respostaDaAreaDoConsultor(request, env) {
+  const token = tokenDoCaminho(new URL(request.url), '/consultor/');
+  const procurado = await consultoresDaCasa.porToken(env, token);
+  /* UM KV QUE NÃO RESPONDE NÃO É «ESTE CONSULTOR NÃO EXISTE» — a distinção é a mesma do painel, e
+   * aqui vale a mesma frase: nada se mostra para não o fazer decidir sobre um registo que não leu. */
+  if (!procurado.ok) {
+    return painel.resposta(painel.paginaDoConsultor({
+      consultor: null,
+      erro: 'não foi possível ler o registo de consultores: ' + (procurado.erro || 'motivo não declarado'),
+    }), 503);
+  }
+  if (!procurado.consultor) return naoEncontrado();
+  if (!consultores.estaAtivo(procurado.consultor)) {
+    return painel.resposta(painel.paginaDoConsultor({ consultor: procurado.consultor, suspenso: true }));
+  }
+  const lidas = await consultoresDaCasa.lerVisitas(env, procurado.consultor.id);
+  if (!lidas.ok) {
+    return painel.resposta(painel.paginaDoConsultor({
+      consultor: procurado.consultor,
+      erro: 'não foi possível ler as visitas: ' + (lidas.erro || 'motivo não declarado'),
+    }), 503);
+  }
+  return painel.resposta(painel.paginaDoConsultor({
+    consultor: procurado.consultor,
+    token,
+    visitas: lidas.visitas,
+    agora: new Date().toISOString(),
+  }));
+}
+
+/**
+ * OS PEDIDOS DELE — `POST /api/consultor/<token>/visita` e `…/visita/<id>/link`.
+ *
+ * AS DUAS COISAS QUE ELE PODE FAZER, e são as duas que produzem um link. Não há uma terceira: ele
+ * não apaga uma visita (o livro é o que diz quantas foram), não muda o estado de nada, e não vê
+ * escola nenhuma.
+ *
+ * A RESPOSTA LEVA O TOKEN DO LINK EM CLARO, uma vez. É o único momento em que ele existe fora do
+ * `focalizador` — o KV guarda o hash. E o `tokenHash` nunca sai daqui: `visaoDaVisita` deixa-o de
+ * fora, e é de propósito.
+ */
+async function responderAoPedidoDoConsultor(request, env) {
+  const url = new URL(request.url);
+  const partes = url.pathname.split('/').filter(Boolean);   // api / consultor / <token> / visita [/ <id> / link]
+  let token = partes[2] || '';
+  try { token = decodeURIComponent(token); } catch (erro) { /* fica como veio */ }
+  const procurado = await consultoresDaCasa.porToken(env, token);
+  if (!procurado.ok) {
+    return responderJson({ ok: false, erro: procurado.erro || 'não foi possível ler o registo' }, 503);
+  }
+  if (!procurado.consultor) return naoEncontrado();
+
+  const agora = new Date().toISOString();
+  let corpo = {};
+  try { corpo = await request.json(); } catch (erro) { corpo = {}; }
+
+  /* O ENDEREÇO FINAL DO LINK. A página que ele abre é a `/visita/<token>`, e essa é a peça da fase
+   * seguinte (F3): aqui o link nasce, é guardado como hash e entregue; quem o serve é a fase que
+   * cria a escola. O endereço é o definitivo desde já — não haverá links antigos a corrigir. */
+  const linkDe = (t) => urlDaPaginaPublica(env) + '/visita/' + t;
+
+  if (partes.length === 4) {
+    const criada = await consultoresDaCasa.criarVisita(env, procurado.consultor.id, corpo, agora);
+    if (!criada.ok) return responderJson({ ok: false, erro: criada.erro, erros: criada.erros || undefined }, criada.status || 400);
+    return responderJson({
+      ok: true,
+      visita: consultores.visaoDaVisita(criada.visita, agora),
+      link: linkDe(criada.token),
+      /* O QUE APARECE UMA VEZ DIZ QUE APARECE UMA VEZ — na resposta, e não só na página. Quem
+       * tratar esta resposta num cliente sabe que não a pode pedir outra vez. */
+      umaVez: true,
+    }, 201);
+  }
+
+  if (partes.length === 6 && partes[5] === 'link') {
+    const visitaId = partes[4] || '';
+    const reemitido = await consultoresDaCasa.reemitirLink(env, procurado.consultor.id, visitaId, agora);
+    if (!reemitido.ok) return responderJson({ ok: false, erro: reemitido.erro }, reemitido.status || 400);
+    return responderJson({
+      ok: true,
+      visita: consultores.visaoDaVisita(reemitido.visita, agora),
+      link: linkDe(reemitido.token),
+      umaVez: true,
+    });
+  }
+
+  return naoEncontrado();
+}
+
 /**
  * A PÁGINA DO CONVITE — `GET /recriar/<slug>-<segredo>` (16/11/2026).
  *
@@ -3965,6 +4091,12 @@ async function fetch(request, env) {
      * não tem formulário e o `POST` não cria nada. */
     const ehConvite = url.pathname.startsWith('/recriar/') && request.method === 'GET';
     const ehEnvioDoConvite = url.pathname.startsWith('/api/recriar/') && request.method === 'POST';
+    /* A ÁREA DO CONSULTOR (25/11/2026 — F2). A terceira porta pública que faz mais do que ver, e
+     * a única cujo dono não é nem a dona do sistema nem a escola: é o consultor, num endereço
+     * que ela lhe manda ao activar. O que a autentica é o token — e sem token válido nada aqui abre. */
+    const ehAreaDoConsultor = /^\/consultor\/[^/]+\/?$/.test(url.pathname) && request.method === 'GET';
+    const ehPedidoDoConsultor = /^\/api\/consultor\/[^/]+\/visita(\/[^/]+\/link)?\/?$/.test(url.pathname)
+      && request.method === 'POST';
     const publicoPermitido = url.pathname === '/'
       || url.pathname === '/index.html'
       || url.pathname.startsWith('/assets/')
@@ -3975,7 +4107,9 @@ async function fetch(request, env) {
       || (url.pathname === '/api/contato' && request.method === 'POST')
       || url.pathname === '/api/pagina'
       || ehConvite
-      || ehEnvioDoConvite;
+      || ehEnvioDoConvite
+      || ehAreaDoConsultor
+      || ehPedidoDoConsultor;
     if (!publicoPermitido) {
       return new Response('não encontrado', {
         status: 404,
@@ -3991,6 +4125,8 @@ async function fetch(request, env) {
     }
     if (ehConvite) return await respostaDoConvite(request, env);
     if (ehEnvioDoConvite) return await receberOConvite(request, env);
+    if (ehAreaDoConsultor) return await respostaDaAreaDoConsultor(request, env);
+    if (ehPedidoDoConsultor) return await responderAoPedidoDoConsultor(request, env);
     return servirAPagina(request, env, { modo: 'publico' });
   }
 
@@ -4148,10 +4284,28 @@ async function fetch(request, env) {
     const ativo = corpo.ativo === true || corpo.ativo === 'true' || corpo.ativo === 1;
     const mudado = await consultoresDaCasa.mudarEstado(env, { id: corpo.id, ativo, motivo: corpo.motivo });
     if (!mudado.ok) return responderJson({ ok: false, erro: mudado.erro }, mudado.status || 400);
+    /* O ENDEREÇO VAI NA RESPOSTA DO «ACTIVAR», e é a única vez que ele existe: o KV guarda o hash.
+     * Devolvê-lo aqui evita o gesto a mais que de outro modo seria obrigatório («activar» e logo
+     * «novo endereço»), e a página mostra-o numa caixa que diz que aparece uma vez só. */
     return responderJson({
       ok: true,
       mudou: mudado.mudou,
       consultor: { id: mudado.registo.id, nome: mudado.registo.nome, ativo: mudado.registo.ativo },
+      acesso: mudado.token ? { url: urlDaPaginaPublica(env) + '/consultor/' + mudado.token, umaVez: true } : undefined,
+    });
+  }
+
+  /* TROCAR O ENDEREÇO DE UM CONSULTOR ACTIVO — o gesto de quem perdeu o link. O anterior deixa de
+   * valer no mesmo instante: a fechadura é trocada, e não duplicada. */
+  if (url.pathname === '/api/consultores/acesso' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch (erro) { corpo = {}; }
+    const trocado = await consultoresDaCasa.novoAcesso(env, { id: corpo.id });
+    if (!trocado.ok) return responderJson({ ok: false, erro: trocado.erro }, trocado.status || 400);
+    return responderJson({
+      ok: true,
+      consultor: { id: trocado.registo.id, nome: trocado.registo.nome, ativo: trocado.registo.ativo },
+      acesso: { url: urlDaPaginaPublica(env) + '/consultor/' + trocado.token, umaVez: true },
     });
   }
 

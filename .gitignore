@@ -2084,3 +2084,10 @@ experimentos/modelo-formulario/*
 # Leva também o controlo negativo do `ativo` e o caso do KV que não responde: uma leitura falhada
 # não é uma lista vazia, e é a diferença entre «não há consultores» e «não consegui ler».
 !experimentos/provar-o-cadastro-do-consultor.js
+
+# O ENDEREÇO DO CONSULTOR E O LINK DE CADA VISITA (25/11/2026 — F2). A prova mede as três coisas que
+# só se descobrem com um consultor a trabalhar: que o token é guardado como hash e o âmbito o separa
+# das outras duas espécies; que desactivar RECUSA na rota (a página sem botão não é a barreira); e
+# que o `tokenHash` nunca sai numa resposta. Sem ela, um link que continuasse a abrir depois de
+# desactivado não teria sintoma nenhum — funcionaria, e é isso que o tornaria caro.
+!experimentos/provar-o-link-do-consultor.js

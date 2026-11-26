@@ -1,5 +1,7 @@
 'use strict';
 
+const segredo = require('./segredo.js');
+
 /**
  * convite.js — O CONVITE DE RECRIAÇÃO, E O QUE O TORNA UM SEGREDO (16/11/2026).
  *
@@ -28,30 +30,23 @@
  * chamador, e quem envia é o `correio.js`.
  */
 
-/** Quantos dias um convite vale. Sete é o prazo de quem combinou o pagamento por WhatsApp. */
+/**
+ * A CRIPTOGRAFIA SAIU DAQUI A 25/11/2026, e o valor dos hashes NÃO mudou.
+ *
+ * O consultor precisa de dois tokens com as mesmas três propriedades — o acesso dele e o link de
+ * uma visita —, e a terceira cópia da mesma criptografia seria a terceira a poder ficar mais fraca
+ * sem ninguém notar. Ficou em `nucleo/segredo.js`, com o ÂMBITO como separador de domínio: o hash é
+ * `sha256('lastro/' + âmbito + '/' + token)`, e o do convite é `'lastro/convite/' + token` — que é
+ * exactamente o que este ficheiro já calculava. Por isso os convites emitidos antes de hoje
+ * continuam a abrir, e há asserção para isso (`provar-recriar-escola`).
+ *
+ * O que fica aqui é o PRAZO e o ESTADO — as duas coisas que são do convite, e de mais nada.
+ */
 const DIAS_DE_VALIDADE = 7;
-
-/** 32 caracteres hex = 16 bytes = 128 bits. O CSPRNG do runtime, nunca o `Math.random`. */
-function novoToken() {
-  const bytes = new Uint8Array(16);
-  globalThis.crypto.getRandomValues(bytes);
-  let s = '';
-  for (const b of bytes) s += b.toString(16).padStart(2, '0');
-  return s;
-}
-
-/** O SHA-256 do token, em hex — é ISTO que fica guardado, e é contra isto que se compara. */
-async function hashDoToken(token) {
-  const dados = new TextEncoder().encode('lastro/convite/' + String(token || ''));
-  const resumo = await globalThis.crypto.subtle.digest('SHA-256', dados);
-  return [...new Uint8Array(resumo)].map((b) => b.toString(16).padStart(2, '0')).join('');
-}
 
 /** `2026-11-16T12:00:00.000Z` → o instante em que um convite criado agora deixa de valer. */
 function validadeDe(agora) {
-  const base = agora ? new Date(agora) : new Date();
-  const t = Number.isFinite(base.getTime()) ? base.getTime() : Date.now();
-  return new Date(t + DIAS_DE_VALIDADE * 24 * 60 * 60 * 1000).toISOString();
+  return segredo.validadeDe(agora, DIAS_DE_VALIDADE);
 }
 
 /**
@@ -83,9 +78,18 @@ async function estadoDoConvite(registo, token, agora) {
         + DIAS_DE_VALIDADE + ' dias a contar do envio.',
     });
   }
-  const esperado = await hashDoToken(token);
+  const esperado = await segredo.hashDoToken('convite', token);
   if (esperado !== registo.hash) return recusado;
   return { ok: true, escola: registo.escola || null, expiraEm: registo.expiraEm };
+}
+
+/** Os dois que continuam a ser do convite, com a assinatura de sempre: quem os chama não mudou. */
+function novoToken() {
+  return segredo.novoToken();
+}
+
+function hashDoToken(token) {
+  return segredo.hashDoToken('convite', token);
 }
 
 module.exports = {

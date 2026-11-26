@@ -31,6 +31,7 @@
  */
 
 const cadastro = require('./cadastro-da-escola.js');
+const segredo = require('./segredo.js');
 
 /**
  * A CHAVE DO REGISTO — uma só, e uma lista.
@@ -335,6 +336,329 @@ function resumo(lista) {
   };
 }
 
+/* ══════════════════════════════════════════════════════════════════════════════════════════════
+ * F2 — O ACESSO DELE, E O LINK DE UMA VISITA (25/11/2026)
+ *
+ * «O consultor vai gerar esse link para N escolas que ele consultar e fizer a implementação.»
+ *
+ * DUAS ESPÉCIES DE TOKEN, e não uma. O **acesso** é o endereço dele em
+ * `lastro.padd.com.br/consultor/<token>`: quem o tem entra na área dele, e é ela que lho manda ao
+ * activar. O **link da visita** é o que ele manda à escola: abre a criação de UMA escola, no plano
+ * consultoria, atribuída a ele. São segredos diferentes com públicos diferentes — o primeiro é do
+ * consultor, o segundo passa por WhatsApp e por e-mail —, e por isso são âmbitos diferentes no
+ * `segredo.js`: um token de um nunca confere no outro.
+ *
+ * O QUE O TOKEN CARREGA, nas palavras dela: «ele vai dizer quem é o consultor, qual é a escola que
+ * ele tá atendendo, vai dizer também qual é a praça desse consultor e vai dizer também que ele é
+ * acesso único, só pode ser feito uma vez.» Três dessas quatro coisas NÃO vão no token — e é de
+ * propósito:
+ *
+ *   - **quem é o consultor** e **a praça** vivem no REGISTO, e o token é só a chave que lá chega.
+ *     Um token que carregasse o nome (`?consultor=joao`) seria forjável por quem soubesse escrever
+ *     `joao`;
+ *   - **qual é a escola** é o que a escola escreve depois de abrir o link — o consultor declara um
+ *     nome provisório (`escolaNome`), mas quem dá o nome final é quem cria;
+ *   - **acesso único** é uma propriedade do REGISTO (`usadaEm`), não do token: um token que
+ *     carregasse «já foi usado» estaria a mentir no dia em que fosse usado.
+ *
+ * A VISITA É UMA COISA, E NÃO UM PARÂMETRO. Um `?consultor=` no link responderia à atribuição e a
+ * mais nada; não responderia a «quantas visitas ele marcou», «quantas deram escola», «quando é que
+ * esta expira» — que são as três perguntas que a página dele faz e que os R$ 10 vão cobrar.
+ * ══════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/** Os dois âmbitos do `segredo.js` que este módulo usa. */
+const AMBITO_DO_ACESSO = 'acesso';
+const AMBITO_DO_LINK = 'visita';
+
+/**
+ * QUANTOS DIAS UM LINK DE VISITA VALE — trinta, que é a decisão Q5 do plano.
+ *
+ * É o mesmo prazo de um mês de demonstração, e não é coincidência: o link existe para abrir um mês,
+ * e um link que continuasse a abrir depois do mês teria uma vida que o produto não tem. Um link que
+ * não expira é uma porta que ninguém volta a fechar.
+ */
+const DIAS_DO_LINK = 30;
+
+/**
+ * O TECTO DE VISITAS DE UM CONSULTOR — e aqui ele **recusa**, em vez de deixar cair o mais antigo.
+ *
+ * A lista de consultores (duzentos) deixa cair o mais antigo e diz quantos caíram; esta não pode
+ * fazer isso. Uma visita que deu escola é uma linha do LIVRO dos R$ 10 (`F4`), e uma lista que
+ * apagasse a mais antiga estaria a apagar uma dívida em silêncio — o pior desfecho possível para um
+ * dado de dinheiro. Recusar é visível, recuperável, e cabe numa frase.
+ *
+ * MIL é um número que não se alcança: a dez escolas por mês, são oito anos.
+ */
+const MAXIMO_DE_VISITAS = 1000;
+
+/** A chave do livro de visitas de UM consultor — uma leitura para a área dele, e nenhuma enumeração. */
+function chaveDasVisitas(id) {
+  const alvo = String(id || '').trim();
+  return alvo ? 'consultores/visitas/' + alvo : '';
+}
+
+/**
+ * O ESTADO DE UMA VISITA — **calculado**, e não guardado.
+ *
+ * É a mesma disciplina da `expirada` do plano consultoria: uma data guardada como estado precisa de
+ * um relógio que a mude, e não há cron nesta casa. Calculado, o estado nunca está velho — e não há
+ * um segundo sítio onde a mesma verdade possa ser escrita mal.
+ *
+ * A ORDEM DAS PERGUNTAS É A ORDEM EM QUE O USO DEIXA DE SER POSSÍVEL: já deu escola (o link está
+ * gasto, e nenhuma data o devolve), expirou, ou está aberta.
+ */
+function estadoDaVisita(visita, agora) {
+  if (!visita) return 'inexistente';
+  if (visita.usadaEm) return 'criada';
+  const expira = Date.parse(visita.expiraEm || '');
+  const referencia = agora ? new Date(agora).getTime() : Date.now();
+  /* UM LINK SEM PRAZO LEGÍVEL É UM LINK EXPIRADO. A direcção do erro é a que fecha: um `expiraEm`
+   * que não se lê (ausente, corrompido) não pode valer para sempre por omissão. */
+  if (!Number.isFinite(expira) || expira <= referencia) return 'expirada';
+  return 'aberta';
+}
+
+/**
+ * A VISÃO PÚBLICA DE UMA VISITA — o que pode sair daqui para um cliente.
+ *
+ * O `tokenHash` NÃO SAI. Não é o token, mas é o que há de mais próximo dele, e um cliente que não
+ * precisa dele não deve recebê-lo: o hash de um link vivo é uma peça a menos para quem o quisesse
+ * forçar. É a mesma disciplina de nunca devolver o `cofre` numa resposta de listagem — o que não é
+ * necessário não se envia, porque o que se envia fica nos registos de quem o recebeu.
+ */
+function visaoDaVisita(visita, agora) {
+  if (!visita) return null;
+  return {
+    id: visita.id,
+    escolaNome: visita.escolaNome || '',
+    cidade: visita.cidade || '',
+    previstaPara: visita.previstaPara || null,
+    criadaEm: visita.criadaEm || null,
+    expiraEm: visita.expiraEm || null,
+    escolaSlug: visita.escolaSlug || null,
+    reemissoes: Number(visita.reemissoes) || 0,
+    estado: estadoDaVisita(visita, agora),
+  };
+}
+
+/** O estado em palavras, para a página — e a frase diz o que fazer a seguir. */
+function estadoDaVisitaEmTexto(visita, agora) {
+  const estado = estadoDaVisita(visita, agora);
+  if (estado === 'criada') return 'a escola nasceu';
+  if (estado === 'expirada') return 'expirado';
+  if (estado === 'aberta') return 'aberto';
+  return '—';
+}
+
+/** O dia (AAAA-MM-DD) ou `null` — e um formato inválido é recusado, não convertido em `null` calado. */
+function normalizarData(valor, { de = 'data prevista' } = {}) {
+  const bruto = String(valor == null ? '' : valor).trim();
+  if (!bruto) return { ok: true, valor: null };
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(bruto);
+  if (!m) return { ok: false, erro: 'a ' + de + ' tem de ser um dia no formato AAAA-MM-DD' };
+  const instante = Date.parse(bruto + 'T12:00:00.000Z');
+  if (!Number.isFinite(instante)) return { ok: false, erro: 'a ' + de + ' não é um dia que exista' };
+  /* O `Date.parse` aceita 2026-02-31 e devolve 3 de Março. A volta ao texto é o que separa «o dia
+   * que ela escreveu» de «o dia que o JavaScript arredondou». */
+  const volta = new Date(instante).toISOString().slice(0, 10);
+  if (volta !== bruto) return { ok: false, erro: 'a ' + de + ' não é um dia que exista' };
+  return { ok: true, valor: bruto };
+}
+
+/**
+ * VALIDA O QUE O CONSULTOR DECLARA ANTES DE GERAR O LINK.
+ *
+ * O NOME DA ESCOLA É OBRIGATÓRIO e é **provisório** — é a etiqueta com que ele reconhece a visita na
+ * lista dele. Quem dá o nome definitivo à escola é quem a cria, na página do link. Sem esta etiqueta
+ * ele não conseguiria distinguir duas visitas na própria lista, e «Visita 1 / Visita 2» não diria a
+ * ninguém o que foi feito.
+ *
+ * A CIDADE E A DATA SÃO OPCIONAIS — ele marca a visita muitas vezes já dentro do carro.
+ */
+function validarVisita(pedido) {
+  const p = pedido || {};
+  const erros = [];
+  const nome = cadastro.normalizarNome(p.escolaNome, { de: 'nome da escola', minimo: 2 });
+  if (!nome.ok) erros.push({ campo: 'escolaNome', erro: nome.erro });
+  const cidade = String(p.cidade == null ? '' : p.cidade).trim();
+  const data = normalizarData(p.previstaPara);
+  if (!data.ok) erros.push({ campo: 'previstaPara', erro: data.erro });
+  if (erros.length) return { ok: false, erros, erro: erros[0].erro };
+  return {
+    ok: true,
+    visita: {
+      escolaNome: nome.valor,
+      cidade: cidade ? cidade.slice(0, 80) : '',
+      previstaPara: data.valor,
+    },
+  };
+}
+
+/** O ID DA VISITA — carimbo e sal, como o do consultor, e pela mesma razão: dois cliques ao mesmo tempo. */
+function novoIdDeVisita(quando) {
+  const carimbo = String(quando || new Date().toISOString()).replace(/[^0-9]/g, '').slice(0, 14);
+  const sal = Math.random().toString(16).slice(2, 6);
+  return 'v-' + carimbo + '-' + sal;
+}
+
+/** LÊ AS VISITAS do que estava guardado, e deita fora o que não é visita (id e nome da escola). */
+function lerVisitas(bruto) {
+  if (!bruto) return [];
+  let dados;
+  try {
+    dados = typeof bruto === 'string' ? JSON.parse(bruto) : bruto;
+  } catch (erro) {
+    return [];
+  }
+  if (!Array.isArray(dados)) return [];
+  return dados.filter((v) => v && typeof v === 'object' && v.id && String(v.escolaNome || '').trim());
+}
+
+/**
+ * ACRESCENTA UMA VISITA — e recusa quando o livro está cheio, em vez de deixar cair a mais antiga.
+ * Ver `MAXIMO_DE_VISITAS`: aqui a visita é uma linha de dinheiro, e dinheiro não se apaga em silêncio.
+ */
+function acrescentarVisita(lista, visitaValida, hash, quando) {
+  const actual = Array.isArray(lista) ? lista.slice() : [];
+  const v = visitaValida || {};
+  if (!v.escolaNome) return { ok: false, erro: 'informe o nome da escola' };
+  if (!hash) return { ok: false, erro: 'segredo: o link nasceu sem hash — não foi guardado nada' };
+  if (actual.length >= MAXIMO_DE_VISITAS) {
+    return {
+      ok: false,
+      cheio: true,
+      erro: 'este consultor já tem ' + MAXIMO_DE_VISITAS + ' visitas registadas, e o livro não se '
+        + 'apaga — cada visita é uma linha de dinheiro. Escreva para a administração do Sistema Lastro.',
+    };
+  }
+  const em = String(quando || new Date().toISOString());
+  const registo = {
+    id: novoIdDeVisita(em),
+    escolaNome: v.escolaNome,
+    cidade: v.cidade || '',
+    previstaPara: v.previstaPara || null,
+    tokenHash: hash,
+    criadaEm: em,
+    expiraEm: segredo.validadeDe(em, DIAS_DO_LINK),
+    usadaEm: null,
+    escolaSlug: null,
+    reemissoes: 0,
+    historico: [{ em, o: 'criada' }],
+  };
+  return { ok: true, visita: registo, lista: actual.concat([registo]) };
+}
+
+/** Uma visita pelo id, ou `null`. */
+function porVisita(lista, id) {
+  const alvo = String(id || '').trim();
+  if (!alvo) return null;
+  return (Array.isArray(lista) ? lista : []).find((v) => v && v.id === alvo) || null;
+}
+
+/**
+ * REEMITE O LINK DE UMA VISITA — o segundo endereço para a mesma visita.
+ *
+ * PORQUE ISTO EXISTE, e é a consequência de guardar só o hash: o link aparece **uma vez**, no momento
+ * em que nasce, e não há como o mostrar outra vez — o servidor não o sabe. Sem reemissão, um link
+ * perdido (o WhatsApp apagado, o telemóvel trocado) seria uma visita que nunca pode dar escola, e a
+ * lista dele encher-se-ia de fantasmas.
+ *
+ * O QUE NÃO SE REEMITE: uma visita cuja escola já nasceu. Aí o link cumpriu o que tinha a cumprir, e
+ * um segundo endereço para a mesma visita seria um segundo caminho para a mesma escola.
+ *
+ * O PRAZO CONTA DE NOVO. Um link novo com o prazo do antigo não serviria a ninguém — a reemissão é
+ * um gesto de hoje, e vale trinta dias a partir de hoje.
+ */
+function reemitirLink(lista, id, hash, quando) {
+  const actual = Array.isArray(lista) ? lista.slice() : [];
+  const i = actual.findIndex((v) => v && v.id === String(id || '').trim());
+  if (i === -1) return { ok: false, erro: 'não há visita com este id — recarregue a página' };
+  const visita = actual[i];
+  if (visita.usadaEm) {
+    return { ok: false, gasto: true, erro: 'esta visita já deu escola — o link cumpriu o que tinha a cumprir' };
+  }
+  if (!hash) return { ok: false, erro: 'segredo: o link nasceu sem hash — não foi guardado nada' };
+  const em = String(quando || new Date().toISOString());
+  const novo = Object.assign({}, visita, {
+    tokenHash: hash,
+    expiraEm: segredo.validadeDe(em, DIAS_DO_LINK),
+    reemissoes: (Number(visita.reemissoes) || 0) + 1,
+    historico: (Array.isArray(visita.historico) ? visita.historico.slice() : []).concat([{ em, o: 'link-reemitido' }]),
+  });
+  const copia = actual.slice();
+  copia[i] = novo;
+  return { ok: true, visita: novo, lista: copia };
+}
+
+/**
+ * O RESUMO DA ÁREA DELE — quatro números, e cada um responde a uma pergunta que ele faz.
+ *
+ * `abertas` é «quantos links ainda podem abrir uma escola»; `criadas` é «quantas escolas nasceram»;
+ * `expiradas` é «quantos links se perderam» — e é o número que ele tem de ver, porque um link
+ * perdido é uma visita que ele fez e não vai contar. `escolas` é o mesmo que `criadas`, dito na
+ * palavra dela («quantas escolas nasceram»), e não se soma à parte.
+ */
+function resumoDasVisitas(lista, agora) {
+  const todas = Array.isArray(lista) ? lista : [];
+  let abertas = 0;
+  let criadas = 0;
+  let expiradas = 0;
+  for (const v of todas) {
+    const estado = estadoDaVisita(v, agora);
+    if (estado === 'aberta') abertas += 1;
+    else if (estado === 'criada') criadas += 1;
+    else if (estado === 'expirada') expiradas += 1;
+  }
+  return { total: todas.length, abertas, criadas, expiradas, escolas: criadas };
+}
+
+/* ── o acesso dele ──────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * O CONSULTOR QUE ESTE TOKEN ABRE — ou `null`.
+ *
+ * A COMPARAÇÃO É SOBRE O HASH, e é uma comparação de cadeias iguais: o token nunca é guardado, e o
+ * que se procura na lista é o hash. Um `hash` vazio não encontra ninguém — é a guarda que impede
+ * que um registo sem acesso (o de um consultor que nunca foi activado) seja aberto por um token
+ * vazio.
+ */
+function porAcesso(lista, hash) {
+  const alvo = String(hash || '');
+  if (!alvo) return null;
+  return (Array.isArray(lista) ? lista : []).find((r) => r && String(r.acessoHash || '') === alvo) || null;
+}
+
+/**
+ * DÁ (OU TROCA) O ENDEREÇO DE ACESSO — e a troca é um elo datado, como o activar.
+ *
+ * O HASH ANTIGO É SUBSTITUÍDO, e não guardado ao lado: dois endereços válidos para a mesma pessoa
+ * são duas portas onde ela pediu uma, e a que ela não usa é a que fica abertas para quem a encontrar
+ * num WhatsApp antigo. «Se guarda, se troca, e se revoga desactivando» — a troca é isto.
+ *
+ * Um consultor INACTIVO não recebe endereço: o acesso dele nasce do «Activar», e um endereço emitido
+ * fora desse gesto seria uma porta aberta por uma rota que ninguém olhou.
+ */
+function darAcesso(lista, id, hash, quando) {
+  const actual = Array.isArray(lista) ? lista.slice() : [];
+  const i = actual.findIndex((r) => r && r.id === String(id || '').trim());
+  if (i === -1) return { ok: false, erro: 'não há consultor com este id — recarregue a lista', status: 404 };
+  const registo = actual[i];
+  if (!estaAtivo(registo)) {
+    return { ok: false, inativo: true, erro: 'este consultor está inactivo — active-o primeiro, e o endereço nasce desse gesto' };
+  }
+  if (!hash) return { ok: false, erro: 'segredo: o endereço nasceu sem hash — não foi guardado nada' };
+  const em = String(quando || new Date().toISOString());
+  const novo = Object.assign({}, registo, {
+    acessoHash: hash,
+    acessoEm: em,
+    atualizadoEm: em,
+    historico: (Array.isArray(registo.historico) ? registo.historico.slice() : []).concat([{ em, o: 'acesso-emitido' }]),
+  });
+  const copia = actual.slice();
+  copia[i] = novo;
+  return { ok: true, registo: novo, lista: copia };
+}
+
 module.exports = {
   CHAVE,
   MAXIMO_NA_LISTA,
@@ -353,4 +677,23 @@ module.exports = {
   mudarEstado,
   porId,
   resumo,
+  /* F2 — o acesso dele e o link de uma visita */
+  AMBITO_DO_ACESSO,
+  AMBITO_DO_LINK,
+  DIAS_DO_LINK,
+  MAXIMO_DE_VISITAS,
+  chaveDasVisitas,
+  estadoDaVisita,
+  estadoDaVisitaEmTexto,
+  visaoDaVisita,
+  normalizarData,
+  validarVisita,
+  novoIdDeVisita,
+  lerVisitas,
+  acrescentarVisita,
+  porVisita,
+  reemitirLink,
+  resumoDasVisitas,
+  porAcesso,
+  darAcesso,
 };
