@@ -1,6 +1,6 @@
 {
   "ciclo": "01",
-  "escola": "breu",
+  "escola": "breu-piano",
   "professor": "demi-plie",
   "criado_em": "2026-11-25",
   "po": "po-20261125-0627",
@@ -13,6 +13,77 @@
   "origem": {
     "vava": "Francesa/Cecchetti"
   },
-  "aulas": {},
+  "aulas": {
+    "01": {
+      "data": "2027-01-04",
+      "presentes": [
+        "vava"
+      ],
+      "ausentes": [],
+      "duracao_min": 60,
+      "condicoes_contorno": {
+        "plano_seguido": "parcial",
+        "animo": 5,
+        "interesse": 5,
+        "harmonia": 3,
+        "mudou": "Teste do que mudou em relação ao plano — e o que foi ajustado"
+      },
+      "solo": {
+        "vava": {
+          "transferir_o_peso_entre_os_pes_sem_perder_o_alinhamento": "Domina"
+        }
+      },
+      "barra": {
+        "vava": {
+          "transferir_o_peso_entre_os_pes_sem_perder_o_alinhamento": "Domina"
+        }
+      },
+      "centro": {
+        "vava": {
+          "transferir_o_peso_entre_os_pes_sem_perder_o_alinhamento": "Domina"
+        }
+      },
+      "musicalidade": {
+        "vava": {
+          "transferir_o_peso_entre_os_pes_sem_perder_o_alinhamento": "Domina"
+        }
+      },
+      "expressao": {
+        "vava": {
+          "transferir_o_peso_entre_os_pes_sem_perder_o_alinhamento": "Domina"
+        }
+      },
+      "linha_de_base": {
+        "vava": [
+          {
+            "chave": "2_posicao_pes",
+            "item": "2ª posição — pés",
+            "marca": "Domina"
+          },
+          {
+            "chave": "o_passe",
+            "item": "o passé",
+            "marca": "Domina"
+          },
+          {
+            "chave": "formato_anatomico_dos_joelhos",
+            "item": "Formato anatômico dos joelhos",
+            "marca": "Domina"
+          },
+          {
+            "chave": "hiper_extensao_dos_joelhos",
+            "item": "Hiper extensão dos joelhos",
+            "marca": "Domina"
+          }
+        ]
+      },
+      "relatorio": {
+        "texto": "Teste do que aconteceu de novo — o que nenhum item acima previa",
+        "surpresas": "sim",
+        "ajustes": "Teste do que mudou em relação ao plano — e o que foi ajustado"
+      },
+      "ultimo_lancamento": "2026-11-26T15:00"
+    }
+  },
   "_nota": "JSON de dados do ciclo «do zero»: `aulas` vazio DE PROPÓSITO — é o estado de um ciclo que ainda não teve aula lançada pelo formulário. Gerado pelo «Guardar» do PO."
 }
