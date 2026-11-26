@@ -582,6 +582,34 @@ function referenciaDoPlano(contrato, eixo) {
 }
 
 /** O catálogo como a página o recebe: sem os campos internos de nota. */
+/**
+ * O PLANO CONSULTORIA COMO A PÁGINA DO LINK O MOSTRA (25/11/2026 — F3).
+ *
+ * PORQUE É UM ACESSO PRÓPRIO, E NÃO UM CAMPO A MAIS NO `catalogoDaPagina`. Aquele objecto é servido à
+ * PÁGINA PÚBLICA, e pôr lá a consultoria seria oferecê-la a quem a não pode pedir — a recusa do
+ * `validarEscolha` continuaria a valer, mas a página passaria a mostrar um plano que ela recusa, e um
+ * plano que se vê e não se pode ter é pior do que um plano que não se vê.
+ *
+ * A página do link precisa dos LIMITES e não do preço: é o que a escola está a aceitar, e ela tem de
+ * os ler antes de criar. Os números vêm do catálogo, e não de uma cópia — uma página que os
+ * escrevesse à mão passaria a mentir no dia em que o catálogo mudasse, e a mentira só apareceria na
+ * primeira recusa.
+ */
+function consultoriaDaPagina() {
+  const c = (CATALOGO && CATALOGO.consultoria) || {};
+  const lim = c.limites || {};
+  const n = (v) => (Number.isFinite(Number(v)) ? Number(v) : null);
+  return {
+    id: 'consultoria',
+    nome: c.nome || 'Plano consultoria',
+    duracaoMeses: n(c.duracaoMeses) === null ? 1 : n(c.duracaoMeses),
+    limites: {
+      professores: n(lim.professores), alunas: n(lim.alunas), ciclos: n(lim.ciclos),
+      modalidades: n(lim.modalidades), aulas: n(lim.aulas), salas: n(lim.salas), turmas: n(lim.turmas),
+    },
+  };
+}
+
 function catalogoDaPagina() {
   return {
     moeda: CATALOGO.moeda,
@@ -773,6 +801,7 @@ module.exports = {
   extensoesDoPlano,
   lotesDe,
   pacotesDeAulas,
+  consultoriaDaPagina,
   franquiaDoPlano,
   franquiaDoContrato,
   situacaoDaFranquia,

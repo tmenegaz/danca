@@ -1193,6 +1193,19 @@ function superficiesQueEmitem() {
       equipamento: { carro: true, habilitacao: true, notebook: true },
       criadoEm: '2026-11-25T12:00:00.000Z', historico: [],
     }] })]);
+    /* A PÁGINA DO LINK (25/11/2026 — F3). Emite um formulário inteiro e uma lista de limites, e é
+     * servida a quem não tem senha nenhuma — uma superfície a mais que a checagem 8 mede. */
+    lista.push(['painel/visita', painel.paginaDaVisita({
+      situacao: { ok: true, estado: 'aberta', escolaNome: 'Studio Aurora', expiraEm: '2026-12-25T12:00:00.000Z' },
+      consultor: { nome: 'Maria Silva' }, token: 'abc123',
+      catalogo: Object.assign({ modalidades: [{ id: 'bale-classico', nome: 'Balé clássico' }] },
+        require(path.join(raiz, 'motor/nucleo/comercial.js')).catalogoDaPagina(),
+        { consultoria: require(path.join(raiz, 'motor/nucleo/comercial.js')).consultoriaDaPagina() }),
+    })]);
+    lista.push(['painel/visita-fechada', painel.paginaDaVisita({
+      situacao: { ok: false, estado: 'gasta', motivo: 'este link já foi usado, e uma escola nasceu dele.' },
+      token: 'abc123',
+    })]);
     lista.push(['painel/consultor', painel.paginaDoConsultor({
       consultor: { nome: 'Maria Silva', praca: 'Santa Maria' }, token: 'abc123',
       agora: '2026-11-25T12:00:00.000Z',

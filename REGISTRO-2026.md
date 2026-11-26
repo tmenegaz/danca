@@ -63176,3 +63176,140 @@ mesma mesa, depois do `provar-trava-de-repositorio` e do `provar-ambiente`.
 `PLANO-DO-CONSULTOR.md` (§5.0, §11, §12, §13), `ESTADO-ATUAL.md`, `HANDOFF.md`.
 
 **Bateria:** 295 provas, **202 verdes**, 93 conhecidas, **0 regressões**.
+
+## A escola que nasce de um link *(25/11/2026)*
+
+**O que ela viu.** Gerou o link, abriu-o, e leu «não encontrado». Não era avaria: era a fronteira que a
+F2 declarou — o endereço nasce definitivo (`/visita/<token>`), mas a página que o serve é esta fase.
+
+**Agora o link abre.** E o que ele abre tem uma frase que não estava em nenhum plano e que se tornou
+a peça central da fase: **o link reserva-se antes de a escola nascer.**
+
+### A corrida que §7 deixava aberta
+
+O plano dizia «o token gasta-se na primeira criação que passa». Verdade, e insuficiente: dois pedidos
+simultâneos leem `usadaEm: null` **ao mesmo tempo**, ambos passam, e nascem **duas escolas do mesmo
+link**. O desfecho é exactamente o que ela quer evitar — «não vou premiar um consultor pelo mérito de
+outro» —, porque a segunda escola fica sem atribuição que a explique.
+
+A resposta é uma **reserva**: uma escrita de `reservadaEm` antes de criar. O segundo pedido encontra a
+porta fechada e lê «este link está a ser usado neste momento». E a reserva **cai sozinha em dez
+minutos**, porque um pedido que morreu a meio (o telemóvel perdeu a rede) não pode queimar o link.
+
+**A prova mede a corrida a sério**, com dois pedidos a correr ao mesmo tempo e uma criação lenta de
+propósito. Sem a reserva: **duas criações**. Com ela: uma, e a segunda recusada com 409.
+
+### A ordem da rota é a regra
+
+| # | o que acontece | se faltar |
+|:--|:--|:--|
+| 1 | valida o link (existe? o consultor está activo? a visita está aberta?) | cria-se sobre um link morto |
+| 2 | **reserva** a visita | duas escolas de um link |
+| 3 | cria a escola, pela máquina de sempre | — |
+| 4 | gasta a visita (`usadaEm` + `escolaSlug`) | o link abre segunda vez |
+| 5 | **larga** a reserva se a criação falhou | um erro de digitação queima o link |
+
+**O passo 5 é o que a escola sente.** Um CNPJ repetido, uma senha fraca, um e-mail mal escrito — cada
+um deles recusa a criação, e nenhum deles pode custar o link: a escola teria de pedir outro ao
+consultor por causa de uma vírgula. Medido: depois de uma criação recusada, **o link continua a
+abrir**.
+
+**E se o passo 4 falhar?** A escola existe e a visita fica reservada; a reserva cai em dez minutos. A
+resposta diz que a escola foi criada e que o link não ficou marcado. É o mal menor **declarado**:
+desfazer uma escola por causa de uma escrita de livro seria apagar um cliente.
+
+### Três decisões da porta, num núcleo puro
+
+Ficaram em `motor/nucleo/escola-do-consultor.js`, e não dentro da rota — porque a criação de escola é
+a função mais longa desta casa e a prova não a consegue correr sem um Cloudflare à frente:
+
+**1. O plano não se escolhe.** O corpo é substituído para `consultoria`, e não «validado»: se
+trouxesse `basico`, recusar obrigaria a escola a ver um erro por um campo que a página nem mostra.
+
+**2. O pagamento é dispensado — e só por esta porta.** `podeDispensar` deixa de significar «é o
+painel» e passa a significar «esta porta foi autorizada». A recusa do `validarEscolha` a `consultoria`
+pela página pública continua **palavra por palavra**, e há asserção para as duas metades.
+
+**3. O mês começa na criação.** É a única regra que o plano declara mudar (§6.1), e a razão está
+escrita: aqui a criação e a entrega são o mesmo gesto, e o contrário pararia o negócio de quem cobra
+à hora. O `terminaEm` usa o **mesmo** `fuso.fimDeUmMes` da rota de entrega — um segundo cálculo daria
+um vencimento a outra hora no dia em que o fuso mudasse.
+
+### O índice dos links, e porque não é uma enumeração
+
+As visitas vivem em `consultores/visitas/<id>`, uma chave por consultor. Daí não se chega ao dono de
+um token sem varrer todos — e varrer é `list`, a operação do KV limitada por dia que já apagou uma
+lista uma vez (18/10/2026).
+
+Então o link tem registo próprio: `consultores/link/<hash>` → quem o emitiu e a que visita pertence.
+**Um `get` por abertura, e nenhuma enumeração em sítio nenhum.** E é uma chave por **link**, não por
+visita: quando um link é reemitido, o antigo é **apagado**, senão ficavam dois endereços a apontar
+para a mesma visita.
+
+### A peça que estava desenhada numa página e usada em quatro
+
+A checagem 8 (**Peça**) reprovou a página nova por `par-botoes` «não desenhada em lugar nenhum» — e
+tinha razão de uma forma que eu não esperava: a classe existia, mas **inline, dentro dos Bastidores**.
+As três páginas do painel que a usam — a do convite, a da escola em consultoria e a do link — não
+tinham desenho nenhum, e os botões saíam colados ao texto.
+
+É a mesma família do «copiar» que só ouvia numa página: **a que falta não avisa**. A peça mudou para
+a folha (`tools/templates/ciclo.css`), a cópia inline saiu dos Bastidores, e as três cópias da folha
+nos pacotes foram regeneradas.
+
+### Duas lições de método, e as duas custaram trabalho
+
+**A prova que pendura é pior do que a prova que reprova.** A primeira versão da §E esperava a
+resposta do segundo pedido **antes** de libertar a criação lenta — e com a reserva desligada os dois
+ficavam à espera um do outro para sempre. Uma prova que bloqueia é contada pelo corredor como
+«tecto», e a regressão passa a viver numa lista de falhas conhecidas. Reescrita: os dois arrancam,
+solta-se sempre, e só depois se afirma.
+
+**`git checkout` num ficheiro com trabalho por commitar apaga o trabalho.** Usei-o para repor uma
+mutação e levei comigo as adições da F3 em `consultores-da-casa.js`. Reaplicadas a partir do bloco, e
+a regra que fica: **as mutações restauram-se de cópias em `/tmp`, como as outras quatro já faziam.**
+
+### A prova, e a tabela de mutação
+
+`experimentos/provar-a-escola-do-consultor.js`, **73 asserções**, em seis secções. E a tabela que
+mostra que ela mede o que diz medir — **sete regras, sete quedas**:
+
+| mutação | asserções que caem |
+|:--|:--|
+| o plano deixa de ser forçado | 1 |
+| a reserva é ignorada | **3** (e a criação acontece **duas** vezes) |
+| a falha não larga a reserva | 1 |
+| a visita não é gasta depois de criar | 3 |
+| o consultor inactivo não fecha o link | 3 |
+| o link não expira | 2 |
+| a lista de limites vazia desaparece | 1 |
+
+**Sete mutações é o número mais alto desta casa até hoje**, e a razão é a fase: é a que mexe com o
+dinheiro de alguém.
+
+### Onde entrou
+
+`motor/nucleo/escola-do-consultor.js` (novo, puro), `motor/nucleo/consultores.js` (a reserva, o
+estado do link), `motor/nucleo/comercial.js` (`consultoriaDaPagina`), `motor/servidor/consultores-da-casa.js`
+(o índice, a reserva, o gasto, a libertação), `motor/servidor/painel-html.js` (`paginaDaVisita`),
+`motor/servidor/raiz.js` (`respostaDaVisita`, `receberAVisita`, o ramo `'consultor'` na criação),
+`tools/templates/ciclo.css` (`.par-botoes`), `motor/servidor/bastidores.js` (a cópia inline saiu),
+`tools/check-identidade.js` (duas superfícies novas), `experimentos/provar-a-escola-do-consultor.js`
+(novo), `.gitignore`, `PLANO-DO-CONSULTOR.md`, `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+### A regressão que a fase causou, e a que ela revelou
+
+**A primeira foi minha, e o defeito era do âncora.** `provar-o-contrato-em-vigor` cortava o texto de
+`raiz.js` a partir de `const estadoComercial = escolha.pagamento` — e a F3 substituiu essa linha por
+uma chamada ao núcleo, porque o estado ao nascer passou a depender da porta. O `indexOf` devolveu `-1`,
+o trecho ficou vazio, e a prova reprovou uma gravação que estava certa. O conserto é no ÂNCORA, que
+passa a ancorar-se na gravação (`gravarCadastro`) e ganhou a asserção que faltava: **o trecho medido
+não está vazio**. Uma prova ancorada numa linha que outra mudança legítima vai reescrever mede o texto,
+não a regra.
+
+**A segunda é a prova do ar a fazer o seu trabalho.** `provar-ambiente` reprovou porque a folha mudou
+(o `.par-botoes`) e o site publicado ainda tem a de antes. Não é um defeito: é a diferença entre o
+repositório e o que está no ar, medida por quem existe para a medir. Passa no `deploy`.
+
+**Bateria:** 296 provas, **203 verdes**, 93 conhecidas, **0 regressões** — depois de as duas acima
+estarem fechadas.

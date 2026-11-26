@@ -294,13 +294,25 @@ const paginar = (contas) => painel.paginaFinanceira({
      * `pacotes`, senão a escola nasce com o pacote e acorda sem ele. Medir o objecto gravado seria
      * mais fiel, mas a criação passa pelo deploy e pelo GitHub — o que se pode medir sem rede é o
      * que a gravação leva, e é aí que o defeito estava. */
+    /* O ANCORA ERA LITERAL, E PARTIU A 25/11/2026 — sem que a asserção tivesse deixado de ser
+     * verdadeira. Ela cortava o texto a partir de `const estadoComercial = escolha.pagamento`, e a
+     * F3 substituiu essa linha por uma chamada ao núcleo (o estado ao nascer passou a depender da
+     * porta). O `indexOf` devolveu -1, o trecho ficou vazio, e a prova reprovou uma gravação que
+     * estava certa.
+     *
+     * O conserto é no ANCORA, e a lição é a de sempre: uma prova que se ancora numa linha que outra
+     * mudança legítima vai reescrever mede o texto, não a regra. Passa a ancorar-se na GRAVAÇÃO —
+     * `gravarCadastro`, que é o que a criação faz antes de gravar o comercial —, e o que se afirma
+     * continua a ser o que interessava: o registo leva os pacotes escolhidos. */
     const fonte = fs.readFileSync(path.join(RAIZ, 'motor/servidor/raiz.js'), 'utf8');
     const trecho = (() => {
-      const i = fonte.indexOf('const estadoComercial = escolha.pagamento');
+      const marca = 'const cadastroGravado = await gravarCadastro({';
+      const i = fonte.indexOf(marca);
       return i === -1 ? '' : fonte.slice(i, fonte.indexOf('const correioEnviado', i));
     })();
     provar('o registo da criação leva os pacotes escolhidos', /pacotes: escolha\.pacotes/.test(trecho),
       trecho.slice(0, 200));
+    provar('…e o trecho medido não está vazio (o âncora encontrou a gravação)', trecho.length > 200, trecho.length);
   }
 
   console.log('\n' + (falhas === 0

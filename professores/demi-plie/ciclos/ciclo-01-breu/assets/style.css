@@ -2046,6 +2046,16 @@ button.acao:hover:not(:disabled), a.acao:hover {
   background: transparent; color: var(--texto-suave); border-color: var(--borda-campo);
 }
 
+/* O PAR DE BOTÕES — dois `acao` lado a lado, que quebram linha quando não cabem (25/11/2026).
+ *
+ * A PEÇA MUDOU DE CASA, e a razão é o defeito que a mudança fechou: ela vivia numa folha INLINE dos
+ * Bastidores, e três páginas a usavam — a do convite, a da escola em consultoria e a do link do
+ * consultor — onde ela não tinha desenho nenhum. O botão saía colado ao texto, sem ar entre os dois.
+ * Uma peça que existe numa página e é usada em quatro é a mesma família do «copiar» que só ouvia
+ * numa: a que falta não avisa. */
+.par-botoes { display: flex; flex-wrap: wrap; gap: var(--esp-1); align-items: center; margin: var(--esp-2) 0 0; }
+.par-botoes button, .par-botoes .acao { margin: 0; }
+
 /* botões-ícone (o «×» de fechar, o de tirar um item) não herdam o preenchimento */
 button.icone {
   background: none; border: none; padding: 0 var(--esp-1); color: var(--texto-suave);

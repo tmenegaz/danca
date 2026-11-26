@@ -240,6 +240,18 @@ async function criarVisita(env, id, pedido, quando) {
   if (!acrescentado.ok) return { ok: false, erro: acrescentado.erro, cheio: acrescentado.cheio, status: 409 };
   const gravado = await gravarVisitas(env, alvo, acrescentado.lista);
   if (!gravado.ok) return { ok: false, erro: gravado.erro, status: 503 };
+  /* O ÍNDICE DO LINK (25/11/2026). Sem esta escrita o link nasce e não abre: a página da escola
+   * pergunta «de quem é este link?» a esta chave, e é a única resposta que existe. Se ela falhar, a
+   * resposta diz que o link não abre — e não devolve um endereço que já se sabe estar morto. */
+  const indexado = await gravarOLink(env, hash, {
+    consultorId: alvo,
+    consultorNome: quem.nome || '',
+    praca: quem.praca || '',
+    visitaId: acrescentado.visita.id,
+    escolaNome: acrescentado.visita.escolaNome || '',
+    em: acrescentado.visita.criadaEm,
+  });
+  if (!indexado.ok) return { ok: false, erro: indexado.erro, status: 503 };
   return { ok: true, token, visita: acrescentado.visita, lista: acrescentado.lista };
 }
 
@@ -256,13 +268,183 @@ async function reemitirLink(env, id, visitaId, quando) {
   }
   const visitas = await lerVisitas(env, alvo);
   if (!visitas.ok) return { ok: false, erro: visitas.erro, status: 503 };
+  /* O HASH ANTIGO, GUARDADO ANTES DE SER SUBSTITUÍDO — é ele que o índice tem de esquecer. Deixá-lo
+   * ficaria com dois endereços a apontar para a mesma visita, e o antigo seria uma porta que ninguém
+   * fechou (a visita recusava-o pelo `tokenHash`, mas com a frase errada). */
+  const antes = consultores.porVisita(visitas.visitas, visitaId);
+  const hashAntigo = antes && antes.tokenHash;
   const token = segredo.novoToken();
   const hash = await segredo.hashDoToken(consultores.AMBITO_DO_LINK, token);
   const reemitido = consultores.reemitirLink(visitas.visitas, visitaId, hash, quando);
   if (!reemitido.ok) return { ok: false, erro: reemitido.erro, gasto: reemitido.gasto, status: reemitido.gasto ? 409 : 404 };
   const gravado = await gravarVisitas(env, alvo, reemitido.lista);
   if (!gravado.ok) return { ok: false, erro: gravado.erro, status: 503 };
+  const indexado = await gravarOLink(env, hash, {
+    consultorId: alvo,
+    consultorNome: quem.nome || '',
+    praca: quem.praca || '',
+    visitaId: reemitido.visita.id,
+    escolaNome: reemitido.visita.escolaNome || '',
+    em: reemitido.visita.criadaEm,
+    reemitidoEm: quando ? String(quando) : new Date().toISOString(),
+  });
+  if (!indexado.ok) return { ok: false, erro: indexado.erro, status: 503 };
+  if (hashAntigo && hashAntigo !== hash) await apagarOLink(env, hashAntigo);
   return { ok: true, token, visita: reemitido.visita, lista: reemitido.lista };
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════════════════════
+ * F3 — O ÍNDICE DE LINKS, E A RESERVA DE UMA VISITA (25/11/2026)
+ *
+ * O ÍNDICE EXISTE PARA UMA PERGUNTA SÓ: «de quem é este link?». As visitas vivem em
+ * `consultores/visitas/<id>`, uma chave por consultor — e daí não se chega ao dono de um token sem
+ * varrer todos os consultores. Varrer seria uma ENUMERAÇÃO (`list`), que é a operação do KV
+ * limitada por dia e que já apagou uma lista uma vez (18/10/2026).
+ *
+ * Então o link tem o seu próprio registo: `consultores/link/<hash>` → quem o emitiu e a que visita
+ * pertence. Um `get` por abertura, e nenhuma enumeração em sítio nenhum.
+ *
+ * NÃO É UMA CHAVE POR VISITA: é uma chave por LINK. A diferença importa quando um link é reemitido —
+ * o antigo é APAGADO, e o hash novo ganha a sua. Deixá-lo ficaria com dois endereços a apontar para
+ * a mesma visita, e o segundo seria uma porta que ninguém fechou.
+ * ══════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/** Grava o índice de um link. Não faz falhar a emissão: sem ele o link não abre, e isso é dito. */
+async function gravarOLink(env, hash, dados) {
+  if (!temKv(env)) return SEM_KV;
+  const chave = consultores.chaveDoLink(hash);
+  if (!chave) return { ok: false, erro: 'falta o hash do link' };
+  try {
+    await env.PADD_KV.put(chave, JSON.stringify(dados || {}));
+    return { ok: true };
+  } catch (erro) {
+    return { ok: false, erro: 'não foi possível indexar o link: ' + ((erro && erro.message) || String(erro)) };
+  }
+}
+
+async function apagarOLink(env, hash) {
+  if (!temKv(env) || !hash) return { ok: true };
+  try {
+    await env.PADD_KV.delete(consultores.chaveDoLink(hash));
+    return { ok: true };
+  } catch (erro) {
+    return { ok: false, erro: 'não foi possível apagar o link antigo: ' + ((erro && erro.message) || String(erro)) };
+  }
+}
+
+/**
+ * DE QUEM É ESTE LINK — a pergunta que a página da escola faz ao abrir.
+ *
+ * Devolve `{ ok, dono }`, e `dono: null` quando o token não é de link nenhum. Um KV que não responde
+ * é `ok: false` — nunca `dono: null`, que diria «este link não existe» sobre um link que existe.
+ */
+async function porLink(env, token) {
+  const bruto = String(token || '').trim();
+  if (!bruto) return { ok: true, dono: null };
+  if (!temKv(env)) return { ok: false, erro: SEM_KV.erro, dono: null };
+  const hash = await segredo.hashDoToken(consultores.AMBITO_DO_LINK, bruto);
+  let guardado = null;
+  try {
+    guardado = await env.PADD_KV.get(consultores.chaveDoLink(hash));
+  } catch (erro) {
+    return { ok: false, erro: 'não foi possível ler o link: ' + ((erro && erro.message) || String(erro)), dono: null };
+  }
+  if (!guardado) return { ok: true, dono: null };
+  let dados;
+  try { dados = JSON.parse(guardado); } catch (erro) { return { ok: true, dono: null }; }
+  if (!dados || !dados.consultorId || !dados.visitaId) return { ok: true, dono: null };
+  return { ok: true, dono: Object.assign({}, dados, { hash }) };
+}
+
+/**
+ * O QUE A ESCOLA PODE SABER ANTES DE ESCREVER SEJA O QUE FOR — a resposta inteira, numa função.
+ *
+ * A ORDEM É A ORDEM EM QUE A PORTA SE FECHA, e cada caso tem a sua frase: o link não existe; o
+ * consultor deixou de estar activo; a visita está gasta, reservada ou expirada. **Só quando todos os
+ * anteriores passam é que há formulário.**
+ *
+ * O CONSULTOR INACTIVO FECHA O LINK, e é o que a F2 prometeu por palavras («desactivar fecha a área
+ * dele e os links que ele já espalhou — sem ter de os correr atrás»). A frase é diferente da do link
+ * inválido: aqui a escola tem um link verdadeiro, e o que a suspende é uma decisão administrativa —
+ * ela precisa de saber que o problema não é o endereço que colou.
+ */
+async function situacaoDoLink(env, token, agora) {
+  const achado = await porLink(env, token);
+  if (!achado.ok) return { ok: false, lido: false, motivo: achado.erro };
+  if (!achado.dono) return { ok: false, lido: true, motivo: consultores.MOTIVO_DO_LINK_INVALIDO };
+
+  const listaConsultores = await ler(env);
+  if (!listaConsultores.ok) return { ok: false, lido: false, motivo: listaConsultores.erro };
+  const quem = consultores.porId(listaConsultores.lista, achado.dono.consultorId);
+  if (!quem) return { ok: false, lido: true, motivo: consultores.MOTIVO_DO_LINK_INVALIDO };
+  if (!consultores.estaAtivo(quem)) {
+    return {
+      ok: false,
+      lido: true,
+      suspenso: true,
+      consultor: quem,
+      motivo: 'a demonstração com consultoria está suspensa. Escreva para a administração do '
+        + 'Sistema Lastro (lastro@padd.com.br) e ela resolve — o link que você tem está correcto.',
+    };
+  }
+
+  const lidas = await lerVisitas(env, quem.id);
+  if (!lidas.ok) return { ok: false, lido: false, motivo: lidas.erro };
+  const visita = consultores.porVisita(lidas.visitas, achado.dono.visitaId);
+  const estado = consultores.estadoDoLink(visita, agora);
+  if (!estado.ok) {
+    return { ok: false, lido: true, estado: estado.estado, consultor: quem, visita, motivo: estado.motivo };
+  }
+  return {
+    ok: true,
+    lido: true,
+    estado: 'aberta',
+    consultor: quem,
+    visita,
+    /* O NOME QUE O CONSULTOR ESCREVEU. É o que a página põe no campo da escola — editável, porque
+     * ele o escreveu de memória e quem sabe o nome é a escola. Mas prefilled, porque um campo vazio
+     * obriga a escola a descobrir o que ali vai. */
+    escolaNome: visita.escolaNome || '',
+    expiraEm: visita.expiraEm,
+  };
+}
+
+/**
+ * RESERVA A VISITA PARA ESTA CRIAÇÃO — o gesto que impede duas escolas de um link só.
+ *
+ * Devolve `{ ok, visita, lista }` ou a recusa com a frase. Quem chama tem de LARGAR a reserva se a
+ * criação falhar, e é por isso que esta função não é usada sozinha em sítio nenhum.
+ */
+async function reservar(env, consultorId, visitaId, agora) {
+  const lidas = await lerVisitas(env, consultorId);
+  if (!lidas.ok) return { ok: false, erro: lidas.erro };
+  const reservado = consultores.reservarVisita(lidas.visitas, visitaId, agora);
+  if (!reservado.ok) return { ok: false, erro: reservado.erro, estado: reservado.estado };
+  const gravado = await gravarVisitas(env, consultorId, reservado.lista);
+  if (!gravado.ok) return { ok: false, erro: gravado.erro };
+  return { ok: true, visita: reservado.visita, lista: reservado.lista };
+}
+
+/** GASTA A VISITA — depois de a escola existir. Devolve `{ ok }`; a falha viaja na resposta. */
+async function gastar(env, consultorId, visitaId, escolaSlug, agora) {
+  const lidas = await lerVisitas(env, consultorId);
+  if (!lidas.ok) return { ok: false, erro: lidas.erro };
+  const usada = consultores.marcarVisitaUsada(lidas.visitas, visitaId, escolaSlug, agora);
+  if (!usada.ok) return { ok: false, erro: usada.erro };
+  const gravado = await gravarVisitas(env, consultorId, usada.lista);
+  if (!gravado.ok) return { ok: false, erro: gravado.erro };
+  return { ok: true, visita: usada.visita };
+}
+
+/** LARGA A RESERVA — a criação falhou, e o link volta a servir para quem o tentar outra vez. */
+async function libertar(env, consultorId, visitaId, agora) {
+  const lidas = await lerVisitas(env, consultorId);
+  if (!lidas.ok) return { ok: false, erro: lidas.erro };
+  const largada = consultores.largarReserva(lidas.visitas, visitaId, agora);
+  if (!largada.ok) return { ok: false, erro: largada.erro };
+  const gravado = await gravarVisitas(env, consultorId, largada.lista);
+  if (!gravado.ok) return { ok: false, erro: gravado.erro };
+  return { ok: true, visita: largada.visita };
 }
 
 module.exports = {
@@ -278,4 +460,12 @@ module.exports = {
   gravarVisitas,
   criarVisita,
   reemitirLink,
+  /* F3 — o link que abre uma escola */
+  gravarOLink,
+  apagarOLink,
+  porLink,
+  situacaoDoLink,
+  reservar,
+  gastar,
+  libertar,
 };

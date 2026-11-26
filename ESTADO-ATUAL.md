@@ -4,7 +4,26 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **o consultor tem endereço, e já gera links.** A fase F2 do
+> **Última fotografia:** 25/11/2026 — **o link abre uma escola.** A fase F3 do
+> [PLANO-DO-CONSULTOR.md](PLANO-DO-CONSULTOR.md) está no ar: `lastro.padd.com.br/visita/<token>` deixou
+> de responder 404 e é hoje a porta por onde a escola nasce — no plano **consultoria**, `ativa`, com
+> **o mês a começar na criação** (`entregueEm = criadaEm`, §6.1 — a única regra que o plano declarava
+> mudar) e com a **atribuição no registo comercial** (`consultor: {id, nome, praça, visitaId}`), que é
+> o que responde «quem trouxe esta escola?». **O plano não se escolhe e o pagamento é dispensado**,
+> porque a porta foi autorizada pelo token e não pela senha — e a recusa de `consultoria` pela página
+> pública continua **palavra por palavra**, com asserção para as duas metades. **A fase inventou uma
+> peça que o plano não previa: a reserva.** «O token gasta-se na primeira criação que passa» deixava
+> uma corrida aberta — dois pedidos simultâneos lêem `usadaEm: null` ao mesmo tempo e nascem **duas**
+> escolas do mesmo link, que é exactamente o desfecho que ela quer evitar. Agora o link **reserva-se
+> antes de criar** e o segundo lê «está a ser usado neste momento»; e a reserva **cai em dez minutos**,
+> para um pedido que morreu a meio não queimar o link. **A criação que falha LARGA a reserva**, senão
+> um CNPJ repetido custava o link à escola. A regra da porta ficou num núcleo puro
+> (`motor/nucleo/escola-do-consultor.js`) para a prova a medir sem Cloudflare. A prova
+> (`provar-a-escola-do-consultor`, **73 asserções**) passa por **sete mutações — sete quedas**, o
+> número mais alto desta casa, e a mais cara é a reserva: sem ela, **duas** criações. E a checagem 8
+> reprovou a página nova por uma classe que existia **só inline nos Bastidores** enquanto quatro
+> páginas a usavam: `.par-botoes` mudou para a folha, e os botões das páginas do painel deixaram de
+> sair colados ao texto. Antes disso, no mesmo dia: **o consultor tem endereço, e já gera links.** A fase F2 do
 > [PLANO-DO-CONSULTOR.md](PLANO-DO-CONSULTOR.md) está no ar em `lastro.padd.com.br/consultor/<token>`:
 > ao **activar**, o painel emite o endereço dele e mostra-o **uma vez** (o KV guarda o hash, não o
 > token — quem ler o KV não reconstrói o link); na área dele, **«Nova visita»** declara a escola e
@@ -2479,6 +2498,7 @@ Verificado nesta fotografia, com os comandos da §9.
 | **Os conteúdos são da curadoria — e o mapa antigo continua a ler-se** | **CONFIRMADO** 03/11/2026 (§A, §D, §F): `conteudosDaTurma` e `mapaDeConteudos` compõem `turma-conteudos` com o `repertorio` de cada curadoria, colapsados pelo mesmo `idDe`; a curadoria **substituída** não entra. O passo 3 da turma ficou sem o bloco, e o cartão continua a mostrar a lista. | `motor/nucleo/conteudos.js`, `motor/servidor/bastidores.js` |
 | **O cadastro do consultor — F1 do plano** | **CONFIRMADO** 25/11/2026 na bancada (`provar-o-cadastro-do-consultor`, **88** asserções): `danca.padd.com.br/consultores` cadastra (nome, **pelo menos um** de CPF/CNPJ, praça, e-mail, telefone, equipamento declarado), lista com paginação e resumo, e **activa/desactiva**. O registo é **uma lista** em `consultores/registos` (uma chave por consultor obrigaria a enumeração, que é a operação do KV limitada por dia), com tecto de 200 e `retirados` na resposta. **Nasce inactivo**, e activar é um elo datado (`historico`) — activar quem já está activo dá `mudou: false` e não é falha. As três rotas não estão em `publicoPermitido`: **404** no endereço público. **KV mudo → 503** com a frase que diz que nada foi mostrado. **Não gera token, não abre link, não cria escola** — F2 e F3. | `motor/nucleo/consultores.js`, `motor/servidor/consultores-da-casa.js`, `motor/servidor/painel-html.js` (`paginaDosConsultores`), `motor/servidor/raiz.js` (as três rotas), `raiz/index.html` (o nono destino) |
 | **O endereço do consultor e o link de cada visita — F2 do plano** | **CONFIRMADO** 25/11/2026 na bancada (`provar-o-link-do-consultor`, **77** asserções): ao activar, o painel emite `lastro.padd.com.br/consultor/<token>` e mostra-o **uma vez** (o KV guarda o hash); a área dele tem o resumo, «Nova visita» e «Novo link», e o estado da visita é **calculado** (`aberta` / `expirada` / `criada`), sem cron. **Três paredes:** token desconhecido → **404** sem explicação; consultor inactivo → página «suspenso»; e a rota POST → **403**, porque a falta do botão não é a barreira. Desactivar não apaga o endereço; reactivar emite outro. O `tokenHash` nunca sai numa resposta. **A página que o link abre (`/visita/<token>`) é a F3** — até lá responde 404. | `motor/nucleo/segredo.js`, `motor/nucleo/consultores.js` (acesso e visitas), `motor/servidor/consultores-da-casa.js`, `motor/servidor/painel-html.js` (`paginaDoConsultor`), `motor/servidor/raiz.js` (as três rotas públicas + `/api/consultores/acesso`) |
+| **A escola que nasce de um link — F3 do plano** | **CONFIRMADO** 25/11/2026 na bancada (`provar-a-escola-do-consultor`, **73** asserções): `/visita/<token>` abre a criação no plano `consultoria`, `ativa`, com `entregueEm = criadaEm` e a atribuição no registo comercial. O plano é substituído no corpo e o pagamento dispensado (a porta é autorizada pelo token); a porta pública continua a recusar, palavra por palavra. **A reserva** impede duas escolas do mesmo link, cai em 10 minutos, e **é largada quando a criação falha**. O índice `consultores/link/<hash>` resolve o dono de um link com um `get`, sem enumeração. Cinco recusas com a saída na frase: inválido, suspenso, gasta, expirada, reservada. | `motor/nucleo/escola-do-consultor.js`, `motor/nucleo/consultores.js` (reserva e estado do link), `motor/nucleo/comercial.js` (`consultoriaDaPagina`), `motor/servidor/consultores-da-casa.js`, `motor/servidor/painel-html.js` (`paginaDaVisita`), `motor/servidor/raiz.js` (`respostaDaVisita`, `receberAVisita`) |
 | **O formulário da curadoria só oferece o que o professor pode ensinar** | **CONFIRMADO** 03/11/2026 (§G): as modalidades vêm do `perfil.json` do professor; a tradição segue a modalidade (lista própria a vencer a compartilhada, e queda para a compartilhada quando não há própria). **Nenhuma modalidade tem `tradicoes.json` próprio** — o conteúdo é dela (P-16). | `motor/nucleo/tradicoes.js`, `motor/servidor/bastidores.js` |
 
 ### Parcial
@@ -5180,10 +5200,13 @@ as três paredes (404, suspenso, 403 na rota) — **77 asserções** em
 `experimentos/provar-o-link-do-consultor.js`. Ficou no `motor/nucleo/segredo.js` a criptografia dos
 **três** tokens desta casa (convite, acesso, link), com o âmbito como separador de domínio.
 
-**A fronteira de hoje:** o link de uma visita nasce com o endereço definitivo (`/visita/<token>`) e a
-página que o serve é a **F3**. Até lá responde 404 — **não se manda um link a uma escola antes de a
-F3 estar no ar**, e é a única coisa que a F2 não pode prometer. O que fica aqui é o que **só ela pode
-responder**:
+~~F3~~ — **IMPLEMENTADO a 25/11/2026**: `/visita/<token>` abre a criação, no plano consultoria, com o
+mês a começar na criação e a atribuição no registo comercial. **O link já pode ser mandado a uma
+escola.** 73 asserções em `experimentos/provar-a-escola-do-consultor.js`, com sete mutações.
+
+**O que falta:** ~~F4~~ o livro dos R$ 10 (cada visita que deu escola soma uma linha, e o «Marcar
+recebido») e ~~F5~~ o guião no `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` §9. O que fica aqui é o que **só
+ela pode responder**:
 
 - **Q1 — os R$ 10 são por consultoria ou por sessão?** Recomendação: **por consultoria** (uma visita,
   uma escola, dez reais). Por sessão obrigaria a definir «sessão», e ele cobra à hora.
@@ -5783,7 +5806,20 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (25/11/2026 — o endereço do consultor e o link da visita, F2)
+### Executado nesta fotografia (25/11/2026 — a escola que nasce de um link, F3)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-a-escola-do-consultor.js` (**nova**) | **73/73**, em seis secções: a regra da porta; o controlo negativo da porta pública; as cinco recusas do link; a rota (reserva, gasto, libertação); **dois pedidos simultâneos**; e a página |
+| a tabela de mutação — **sete regras, sete quedas** | plano não forçado **1** · sem reserva **3** (e **duas** criações) · falha não larga a reserva **1** · visita não gasta **3** · consultor inactivo não fecha o link **3** · link não expira **2** · lista de limites vazia desaparece **1**. Repostas as sete, 73/73 |
+| a corrida, medida a sério | dois `receberAVisita` com a mesma visita e uma criação lenta de propósito: com a reserva, o segundo dá **409** e `quantasCriacoes` fica em **1**; sem ela, **2** |
+| o defeito que a checagem 8 apanhou | `.par-botoes` estava desenhada **só inline nos Bastidores** e quatro páginas a usavam: os botões saíam colados ao texto. Mudou para `tools/templates/ciclo.css`, a cópia inline saiu, e as três cópias da folha nos pacotes foram regeradas — `check-identidade` **23 ok**, agora com **22 superfícies** |
+| as âncoras depois de mudar o CSS | `hash-ciclo.sh demi-plie 01 breu --check` → **íntegro, cadeia intacta**; idem `breu-piano`. O `assets/style.css` não entra no hash, e por isso a mudança da folha não reancora nada |
+| as provas das fases anteriores | `provar-o-link-do-consultor` **77/77** · `provar-o-cadastro-do-consultor` **88/88** · `provar-o-plano-do-consultor` **54/54** · `provar-escola-a-nascer` **48/48** |
+| as quatro conferências | `check-identidade` **0 problemas** (23) · `check-schemas` verde · `check-sem-destruicao` verde · `check-github-headers` 5 ok |
+| `node tools/correr-provas.js --tecto=90` | **296 provas, 203 verdes, 93 conhecidas, 0 regressões** (base 295/202/93/0) |
+
+### Executado nesta fotografia anterior (25/11/2026 — o endereço do consultor e o link da visita, F2)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -7699,6 +7735,32 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **25/11/2026** — **A escola que nasce de um link (F3).** `lastro.padd.com.br/visita/<token>` deixou
+  de responder 404. A página declara o que se está a contratar — o plano **consultoria**, o mês, e os
+  **sete limites** lidos do catálogo (`comercial.consultoriaDaPagina`, um acesso próprio, porque o
+  `catalogoDaPagina` serve a página pública e pôr lá a consultoria seria oferecer um plano que ela
+  recusa) — e pede o mínimo: nome, CNPJ, contactos, o professor titular e as duas senhas. **O que a
+  porta decide, num núcleo puro** (`motor/nucleo/escola-do-consultor.js`): o plano é o da consultoria
+  e **não se escolhe** (o corpo é substituído, não validado); o pagamento é **dispensado** porque a
+  porta foi autorizada pelo token; o mês **começa na criação**, com o mesmo `fuso.fimDeUmMes` da rota
+  de entrega; e a **atribuição** (consultor, praça, `visitaId`) vai para o registo comercial, não para
+  o índice — o índice é versionado e o nome do consultor é dado de pessoa. **A RESERVA, que o plano
+  não previa:** «o token gasta-se na primeira criação que passa» deixava a corrida aberta — dois
+  pedidos simultâneos lêem `usadaEm: null` ao mesmo tempo e nascem duas escolas. Agora reserva-se
+  antes de criar (`reservadaEm`), o segundo lê «está a ser usado neste momento», e a reserva cai em
+  **dez minutos** para um pedido morto a meio não queimar o link. **A criação que falha larga a
+  reserva** — um CNPJ repetido não pode custar o link. Se o gasto falhar, a resposta diz que a escola
+  foi criada e que o link não ficou marcado (o mal menor, declarado). **O índice dos links**
+  (`consultores/link/<hash>`) existe para não enumerar: um `get` por abertura, e o hash antigo é
+  apagado quando o link é reemitido. **A checagem 8 apanhou um defeito de outra família:** `.par-botoes`
+  existia **só inline nos Bastidores** e quatro páginas a usavam sem desenho — mudou para a folha, a
+  cópia inline saiu, e as três cópias da folha nos pacotes foram regeneradas (âncoras intactas: o
+  `assets/style.css` não entra no hash). **A prova, 73 asserções, com sete mutações e sete quedas** —
+  a mais cara é a reserva (duas criações). Duas lições de método: **a prova que pendura é pior do que
+  a que reprova** (a primeira §E bloqueava em vez de falhar, e um bloqueio conta como «tecto»), e
+  **`git checkout` num ficheiro com trabalho por commitar apaga o trabalho** — as mutações passaram a
+  restaurar de cópias em `/tmp`.
 
 - **25/11/2026** — **O endereço do consultor e o link de cada visita (F2).** Ao **activar**, o
   painel emite o endereço dele (`lastro.padd.com.br/consultor/<token>`) e mostra-o **uma vez só** —

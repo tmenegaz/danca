@@ -474,11 +474,23 @@ responde mal é sempre o que ninguém está a olhar.
 |:--|:--|:--|
 | **F1** | o cadastro, a lista e o activar/desactivar no painel | sem consultor não há link; e é a peça que ela usa sozinha, sem depender de ninguém |
 | ~~**F2**~~ | a área dele, o token, e «Nova visita» — **IMPLEMENTADA a 25/11/2026** | é o que transforma o cadastro num serviço |
-| **F3** | `/visita/<token>` e a criação com `origem: 'consultor'` | é onde o plano consultoria passa a nascer pela mão de outra pessoa — a fase com mais risco, e a que precisa das provas mais duras |
+| ~~**F3**~~ | `/visita/<token>` e a criação com `origem: 'consultor'` — **IMPLEMENTADA a 25/11/2026** | é onde o plano consultoria passa a nascer pela mão de outra pessoa — a fase com mais risco, e a que precisou das provas mais duras |
 | **F4** | o livro dos R$ 10 e o «Marcar recebido» | só depois de haver visitas a cobrar |
 | **F5** | o guião no `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` §9 | conteúdo; não bloqueia nada |
 
-**O QUE A F2 DEIXA ABERTO, e é a fronteira dela:** o link nasce com o endereço **definitivo**
+**O QUE A F3 FECHOU, e o que ela acrescentou ao desenho do plano.** O link deixou de responder 404.
+A regra da porta ficou num núcleo puro (`motor/nucleo/escola-do-consultor.js`), com três decisões
+que a prova mede sem Worker: **o plano é o da consultoria e não se escolhe**, **o pagamento é
+dispensado** (a porta foi autorizada pelo token, e não pela senha) e **o mês começa na criação**.
+
+**Uma coisa que o plano não previa e teve de existir: a RESERVA.** §7 diz «o token gasta-se na
+primeira criação que passa», e essa frase, sozinha, deixa uma corrida aberta — dois pedidos
+simultâneos leem `usadaEm: null` ao mesmo tempo e nascem **duas** escolas do mesmo link. Com a
+reserva, o segundo encontra a porta fechada; a reserva cai sozinha em dez minutos, para um pedido
+que morreu a meio não queimar o link. A prova mede-o com dois pedidos a correrem ao mesmo tempo, e
+sem a reserva são **duas** criações.
+
+**O QUE A F2 DEIXAVA ABERTO, e já não está:** o link nasce com o endereço **definitivo**
 (`/visita/<token>`), e a página que ele abre é a **F3**. Até lá esse endereço responde 404 — o link
 é gerado, guardado e entregue, mas não abre a criação de escola nenhuma. **Não se manda um link a uma
 escola antes de a F3 estar no ar**, e é a única coisa que a F2 não pode prometer.
@@ -497,7 +509,7 @@ Cada uma mede um comportamento que, sem ela, se descobre em produção.
 |:--|:--|:--|
 | `provar-o-cadastro-do-consultor` *(escrita, **88** asserções)* | o cadastro valida CPF/CNPJ pelo mesmo normalizador; nasce inactivo; o documento repetido é recusado; o KV mudo não é uma lista vazia | sem `ativo` no corpo, a rota recusa — activar por omissão seria a pior falha possível |
 | `provar-o-link-do-consultor` *(escrita, **77** asserções)* | o token é aleatório, guardado só como hash, e o **âmbito** separa as três espécies; o endereço nasce do «Activar» e só existe uma vez; trocá-lo mata o anterior; a visita expira sem cron e o `tokenHash` nunca sai numa resposta | o consultor **inactivo** é recusado na rota (403), e não só pela ausência do botão; e o livro cheio **recusa** em vez de apagar |
-| `provar-a-escola-do-consultor` | a criação pela visita nasce `consultoria`, `ativa`, com `entregueEm = criadaEm`, com os sete limites e com a atribuição no registo | a **mesma** criação pela porta pública continua a **recusar** `consultoria`, palavra por palavra como hoje |
+| `provar-a-escola-do-consultor` *(escrita, **73** asserções)* | a criação pela visita nasce `consultoria`, `ativa`, com `entregueEm = criadaEm`, com os sete limites e com a atribuição no registo | a **mesma** criação pela porta pública continua a **recusar** `consultoria`, palavra por palavra como hoje; e dois pedidos **simultâneos** do mesmo link dão uma escola (sem a reserva, dão duas) |
 | `provar-o-livro-do-consultor` | cada visita que deu escola soma R$ 10; a expirada soma zero; o recebido não se apaga | marcar recebido duas vezes não soma duas vezes |
 | `provar-o-guiao-do-consultor` | os números do §8 são os do catálogo (preços, franquias, piso e teto, R$ 8) | mudar o catálogo faz a prova reprovar até o guião mudar |
 

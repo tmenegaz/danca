@@ -2091,3 +2091,10 @@ experimentos/modelo-formulario/*
 # que o `tokenHash` nunca sai numa resposta. Sem ela, um link que continuasse a abrir depois de
 # desactivado não teria sintoma nenhum — funcionaria, e é isso que o tornaria caro.
 !experimentos/provar-o-link-do-consultor.js
+
+# A ESCOLA QUE NASCE DE UM LINK (25/11/2026 — F3). A fase que não pode falhar em silêncio: uma escola
+# criada com o plano errado, ou sem atribuição, é um cliente que existe e não se sabe de onde veio.
+# A prova mede as duas coisas que só se descobrem aí — a porta (o plano forçado, o mês na criação, a
+# atribuição no registo) e o que acontece quando as coisas correm mal (a criação falha e o link tem de
+# voltar a servir; dois pedidos simultâneos têm de dar UMA escola).
+!experimentos/provar-a-escola-do-consultor.js

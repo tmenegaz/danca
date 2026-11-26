@@ -9363,7 +9363,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O CAMPO TAMBÉM CEDE (17/11/2026). A regra acima cedência é do `select`; a chave Pix
     // é um `input`, e sem esta linha ele não encolhe e o «Copiar» sai da caixa no telemóvel.
     '.par-associar input{flex:1 1 auto;min-width:0;max-width:none;}' +
-    '.par-botoes{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin:.55rem 0 0;}' +
+    /* O `.par-botoes` SAIU DAQUI A 25/11/2026 — está na folha (`tools/templates/ciclo.css`), que é
+     * o sítio das peças. Ele vivia nesta folha inline e três páginas do painel usavam-no sem
+     * desenho: os botões saíam colados ao texto. A checagem 8 apanhou-o quando a página do link
+     * passou a ser medida. */
     // A TABELA DO CONTEÚDO, NO PAINEL DA TURMA (12/11/2026). A peça é a `table` da folha; o que
     // esta linha acrescenta é o que o PAINEL pede — uma tabela dentro de uma caixa de leitura não
     // é o documento: sem margem exterior (o `.trio-painel` já tem ar), um corpo mais pequeno e um

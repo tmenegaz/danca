@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-25T21:25:04-0300`
-Commit atual: `0479255e` — feat(estrutura): o cadastro do consultor, e o que ele nao abre
+Gerado em: `2026-11-25T21:43:42-0300`
+Commit atual: `e62d135e` — feat(estrutura): o endereco do consultor e o link de cada visita
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+e62d135e feat(estrutura): o endereco do consultor e o link de cada visita
 0479255e feat(estrutura): o cadastro do consultor, e o que ele nao abre
 f4a82c9e docs(estrutura): a Q2 desfez-se ao medir — o piso do plano nao e parede
 acd513e4 docs(estrutura): o plano do consultor — o cadastro, o link e os R$ 10
@@ -101,7 +102,6 @@ fd4a0e16 feat(estrutura): o mes pago a menos nao fecha, e a clausula esta escrit
 d6d0533a feat(estrutura): a cobranca pode ser um link, e o cliente carrega nele para pagar
 34bf75f4 feat(estrutura): a cobranca Pix ganha uma coluna, e o documento reaparece onde a escola paga
 bc7d6e5e feat(estrutura): o contrato do financeiro diz a franquia, tem memoria e uma data
-cfe41518 chore(entrega): gerar o pacote de demi-plie/01/breu-piano
 ```
 
 ## Por professor
@@ -195,146 +195,142 @@ cfe41518 chore(entrega): gerar o pacote de demi-plie/01/breu-piano
 
 ## Última entrada do REGISTRO
 
-## O endereço do consultor e o link de cada visita *(25/11/2026)*
+## A escola que nasce de um link *(25/11/2026)*
 
-**O que ela disse que o token carrega, e o que ele carrega de facto.** «Ele vai dizer quem é o
-consultor, qual é a escola que ele tá atendendo, vai dizer também qual é a praça desse consultor e
-vai dizer também que ele é acesso único, só pode ser feito uma vez.» Quatro coisas — e **três delas
-não vão no token**, e é isso que o torna seguro:
+**O que ela viu.** Gerou o link, abriu-o, e leu «não encontrado». Não era avaria: era a fronteira que a
+F2 declarou — o endereço nasce definitivo (`/visita/<token>`), mas a página que o serve é esta fase.
 
-| o que ela disse | onde vive | porquê |
+**Agora o link abre.** E o que ele abre tem uma frase que não estava em nenhum plano e que se tornou
+a peça central da fase: **o link reserva-se antes de a escola nascer.**
+
+### A corrida que §7 deixava aberta
+
+O plano dizia «o token gasta-se na primeira criação que passa». Verdade, e insuficiente: dois pedidos
+simultâneos leem `usadaEm: null` **ao mesmo tempo**, ambos passam, e nascem **duas escolas do mesmo
+link**. O desfecho é exactamente o que ela quer evitar — «não vou premiar um consultor pelo mérito de
+outro» —, porque a segunda escola fica sem atribuição que a explique.
+
+A resposta é uma **reserva**: uma escrita de `reservadaEm` antes de criar. O segundo pedido encontra a
+porta fechada e lê «este link está a ser usado neste momento». E a reserva **cai sozinha em dez
+minutos**, porque um pedido que morreu a meio (o telemóvel perdeu a rede) não pode queimar o link.
+
+**A prova mede a corrida a sério**, com dois pedidos a correr ao mesmo tempo e uma criação lenta de
+propósito. Sem a reserva: **duas criações**. Com ela: uma, e a segunda recusada com 409.
+
+### A ordem da rota é a regra
+
+| # | o que acontece | se faltar |
 |:--|:--|:--|
-| quem é o consultor | no **registo**, achado pelo hash | um token com o nome (`?consultor=joao`) seria forjável por quem soubesse escrever `joao` |
-| a praça | no **registo** | é um atributo dele, e é a mesma em todas as visitas |
-| qual é a escola | no **registo da visita**, como nome provisório | ele escreve-o para reconhecer a visita; o nome definitivo é o que a escola escreve ao abrir o link |
-| uso único | no **registo**, como `usadaEm` | um token que dissesse «já fui usado» estaria a mentir no dia em que fosse usado |
+| 1 | valida o link (existe? o consultor está activo? a visita está aberta?) | cria-se sobre um link morto |
+| 2 | **reserva** a visita | duas escolas de um link |
+| 3 | cria a escola, pela máquina de sempre | — |
+| 4 | gasta a visita (`usadaEm` + `escolaSlug`) | o link abre segunda vez |
+| 5 | **larga** a reserva se a criação falhou | um erro de digitação queima o link |
 
-**O token é opaco: não afirma nada — é a chave que chega a um registo.** Um token que afirmasse
-alguma coisa teria de ser verificado nessa afirmação, e a verificação seria uma segunda fonte da
-mesma verdade.
+**O passo 5 é o que a escola sente.** Um CNPJ repetido, uma senha fraca, um e-mail mal escrito — cada
+um deles recusa a criação, e nenhum deles pode custar o link: a escola teria de pedir outro ao
+consultor por causa de uma vírgula. Medido: depois de uma criação recusada, **o link continua a
+abrir**.
 
-### Duas espécies de token, e não uma
+**E se o passo 4 falhar?** A escola existe e a visita fica reservada; a reserva cai em dez minutos. A
+resposta diz que a escola foi criada e que o link não ficou marcado. É o mal menor **declarado**:
+desfazer uma escola por causa de uma escrita de livro seria apagar um cliente.
 
-O **acesso** (o endereço dele) e o **link da visita** (o que ele manda à escola) são segredos com
-públicos diferentes: o primeiro é do consultor; o segundo passa por WhatsApp e por e-mail. Por isso
-são **âmbitos** diferentes no hash — `sha256('lastro/' + âmbito + '/' + token)` —, e um token de
-convite nunca confere como acesso. Está medido, e a mutação que tira o âmbito do hash derruba três
-asserções.
+### Três decisões da porta, num núcleo puro
 
-**E a criptografia passou a ser uma só.** O token do convite vivia em `convite.js`; o consultor
-precisa de dois com as mesmas propriedades. Escrevê-los outra vez seria a **terceira cópia** da mesma
-criptografia — e três cópias de uma regra de segurança são três sítios onde ela pode ficar mais fraca
-sem ninguém notar. Ficou em `nucleo/segredo.js`, e o hash do convite **é o mesmo de antes**
-(`'lastro/convite/'`), logo os convites já emitidos continuam a abrir. `provar-recriar-escola`,
-94/94.
+Ficaram em `motor/nucleo/escola-do-consultor.js`, e não dentro da rota — porque a criação de escola é
+a função mais longa desta casa e a prova não a consegue correr sem um Cloudflare à frente:
 
-### O endereço aparece uma vez, e isso é uma consequência, não uma escolha
+**1. O plano não se escolhe.** O corpo é substituído para `consultoria`, e não «validado»: se
+trouxesse `basico`, recusar obrigaria a escola a ver um erro por um campo que a página nem mostra.
 
-O KV guarda o **hash**, não o token: o servidor **não consegue** mostrar outra vez o que não guarda.
-O endereço nasce no fim do «Activar» e é devolvido nessa resposta; depois disso não há como o
-recuperar.
+**2. O pagamento é dispensado — e só por esta porta.** `podeDispensar` deixa de significar «é o
+painel» e passa a significar «esta porta foi autorizada». A recusa do `validarEscolha` a `consultoria`
+pela página pública continua **palavra por palavra**, e há asserção para as duas metades.
 
-**Duas consequências que o desenho teve de resolver:**
+**3. O mês começa na criação.** É a única regra que o plano declara mudar (§6.1), e a razão está
+escrita: aqui a criação e a entrega são o mesmo gesto, e o contrário pararia o negócio de quem cobra
+à hora. O `terminaEm` usa o **mesmo** `fuso.fimDeUmMes` da rota de entrega — um segundo cálculo daria
+um vencimento a outra hora no dia em que o fuso mudasse.
 
-1. **A caixa diz isso.** «Este endereço aparece **uma vez só** — o sistema guarda o resumo dele, e
-   não ele. Copie agora e mande-o ao consultor.» Sem esta frase, activar parecia não produzir nada, e
-   ela julgaria ter enviado um endereço que nunca viu.
-2. **Há um «Novo endereço»** na linha de quem está activo. É o gesto de quem perdeu o link, e é a
-   resposta a «se guarda, se troca, e se revoga desactivando» (§10 do plano).
+### O índice dos links, e porque não é uma enumeração
 
-### Um link de visita que se perde não pode virar um fantasma
+As visitas vivem em `consultores/visitas/<id>`, uma chave por consultor. Daí não se chega ao dono de
+um token sem varrer todos — e varrer é `list`, a operação do KV limitada por dia que já apagou uma
+lista uma vez (18/10/2026).
 
-O mesmo problema, um nível abaixo: o link da visita também só aparece uma vez. Sem remédio, um link
-apagado do WhatsApp seria **uma visita que nunca pode dar escola** — e a lista dele encher-se-ia de
-visitas mortas que ele fez e não vai contar.
+Então o link tem registo próprio: `consultores/link/<hash>` → quem o emitiu e a que visita pertence.
+**Um `get` por abertura, e nenhuma enumeração em sítio nenhum.** E é uma chave por **link**, não por
+visita: quando um link é reemitido, o antigo é **apagado**, senão ficavam dois endereços a apontar
+para a mesma visita.
 
-**«Novo link», na linha da visita, reemite para a MESMA visita** — outro token, o prazo a contar de
-novo, e um elo `link-reemitido` no histórico. Não é uma visita nova: a visita é o trabalho dele, o
-link é a chave dela.
+### A peça que estava desenhada numa página e usada em quatro
 
-E **não se reemite uma visita cuja escola já nasceu**: aí o link cumpriu o que tinha a cumprir, e um
-segundo endereço seria um segundo caminho para a mesma escola.
+A checagem 8 (**Peça**) reprovou a página nova por `par-botoes` «não desenhada em lugar nenhum» — e
+tinha razão de uma forma que eu não esperava: a classe existia, mas **inline, dentro dos Bastidores**.
+As três páginas do painel que a usam — a do convite, a da escola em consultoria e a do link — não
+tinham desenho nenhum, e os botões saíam colados ao texto.
 
-### Três paredes, e cada uma responde de forma diferente
+É a mesma família do «copiar» que só ouvia numa página: **a que falta não avisa**. A peça mudou para
+a folha (`tools/templates/ciclo.css`), a cópia inline saiu dos Bastidores, e as três cópias da folha
+nos pacotes foram regeneradas.
 
-| o token | o que acontece | porquê |
-|:--|:--|:--|
-| não é de ninguém | **404**, sem explicação | um 401 diria a quem tentasse que ali há uma porta, e qual é |
-| é de um consultor **inactivo** | a página abre e diz que o acesso está **suspenso** | ele tem o token certo; uma porta que se fecha em silêncio faz o consultor ligar a dizer que o sistema partiu |
-| é de um activo | a área dele | — |
+### Duas lições de método, e as duas custaram trabalho
 
-**E a rota recusa (403) a um inactivo.** O botão ausente é a segunda barreira; **a primeira é o
-servidor**, porque quem escrever o pedido à mão não passa pela página. A mutação que tira essa
-barreira derruba cinco asserções, incluindo a que mede que o livro dele continua vazio.
+**A prova que pendura é pior do que a prova que reprova.** A primeira versão da §E esperava a
+resposta do segundo pedido **antes** de libertar a criação lenta — e com a reserva desligada os dois
+ficavam à espera um do outro para sempre. Uma prova que bloqueia é contada pelo corredor como
+«tecto», e a regressão passa a viver numa lista de falhas conhecidas. Reescrita: os dois arrancam,
+solta-se sempre, e só depois se afirma.
 
-**Desactivar não apaga o endereço** — é o que permite a página dizer «suspenso» em vez de «não
-encontrado». **Reactivar emite outro**, e o antigo morre: reabrir com a mesma chave é reabrir a porta
-que se fechou, com uma chave que pode estar num WhatsApp antigo que ninguém apagou.
+**`git checkout` num ficheiro com trabalho por commitar apaga o trabalho.** Usei-o para repor uma
+mutação e levei comigo as adições da F3 em `consultores-da-casa.js`. Reaplicadas a partir do bloco, e
+a regra que fica: **as mutações restauram-se de cópias em `/tmp`, como as outras quatro já faziam.**
 
-### Onde o livro de visitas difere do directório de consultores
+### A prova, e a tabela de mutação
 
-A lista de consultores, no tecto, **deixa cair o mais antigo** e diz quantos caíram — é um directório
-de duzentos, e o duzentos e um é mais útil do que o primeiro.
+`experimentos/provar-a-escola-do-consultor.js`, **73 asserções**, em seis secções. E a tabela que
+mostra que ela mede o que diz medir — **sete regras, sete quedas**:
 
-**O livro de visitas não pode fazer isso.** Uma visita que deu escola é uma linha do livro dos R$ 10
-(F4), e uma lista que apagasse a mais antiga estaria a **apagar uma dívida em silêncio** — o pior
-desfecho possível para um dado de dinheiro. Ao chegar a mil, **recusa**, com a frase que diz porquê.
-Recusar é visível, recuperável, e cabe numa linha. Mil visitas são oito anos a dez escolas por mês.
+| mutação | asserções que caem |
+|:--|:--|
+| o plano deixa de ser forçado | 1 |
+| a reserva é ignorada | **3** (e a criação acontece **duas** vezes) |
+| a falha não larga a reserva | 1 |
+| a visita não é gasta depois de criar | 3 |
+| o consultor inactivo não fecha o link | 3 |
+| o link não expira | 2 |
+| a lista de limites vazia desaparece | 1 |
 
-**As duas políticas existem, e a diferença é declarada** — e está medida, com as duas no mesmo sítio
-da prova.
-
-### O estado é calculado, como a `expirada` do plano consultoria
-
-`aberta` · `expirada` · `criada`. Uma data guardada como estado precisaria de um relógio que a
-mudasse, e não há cron nesta casa; calculado, o estado nunca está velho. **Um link sem prazo legível
-conta como expirado** — a direcção do erro é a que fecha: um `expiraEm` corrompido não pode valer
-para sempre por omissão.
-
-### O `tokenHash` nunca sai numa resposta
-
-`visaoDaVisita` deixa-o de fora, e é de propósito: não é o token, mas é o que há de mais próximo dele,
-e um cliente que não precisa dele não deve recebê-lo — o que se envia fica nos registos de quem o
-recebeu. Há asserção a medir que o corpo da resposta não contém a palavra.
-
-### Duas páginas que emitiam marcação e ninguém media
-
-O `check-identidade` mede as peças de cada superfície que emite marcação, e a lista dessas
-superfícies é escrita à mão. **A página dos contatos (18/11) e a dos consultores (F1, hoje de manhã)
-não estavam lá** — e uma superfície que emite e não é medida é **aprovada por omissão**, que é o modo
-mais silencioso de não verificar nada. A checagem passou de **17 para 20 superfícies** (as três
-acrescentadas, mais a área do consultor), e todas usam peças do catálogo: nenhum gancho novo.
-
-### A fronteira da fase, dita sem rodeios
-
-O link nasce com o **endereço definitivo** — `https://lastro.padd.com.br/visita/<token>` — e a página
-que o serve é a **F3**. Hoje esse endereço responde **404**: o link é gerado, guardado e entregue, mas
-não abre a criação de escola nenhuma.
-
-**Não se manda um link a uma escola antes de a F3 estar no ar.** É a única coisa que a F2 não pode
-prometer, e é a razão de a fase seguinte não poder falhar em silêncio: uma escola criada com o plano
-errado, ou sem atribuição, é um cliente que existe e não se sabe de onde veio.
-
-### A prova
-
-`experimentos/provar-o-link-do-consultor.js`, **77 asserções**, com **prova de mutação**: quatro
-regras partidas, quatro quedas — sem a barreira do activo (5 asserções), sem a expiração (2), sem o
-âmbito no hash (3), e sem a recusa de reemitir uma visita gasta (1). Repostas as quatro, 77/77.
-
-**Um guarda que nunca se viu recusar não é um guarda** — e este é o terceiro desta casa a passar pela
-mesma mesa, depois do `provar-trava-de-repositorio` e do `provar-ambiente`.
+**Sete mutações é o número mais alto desta casa até hoje**, e a razão é a fase: é a que mexe com o
+dinheiro de alguém.
 
 ### Onde entrou
 
-`motor/nucleo/segredo.js` (novo), `motor/nucleo/convite.js` (a delegar), `motor/nucleo/consultores.js`
-(o acesso e as visitas), `motor/servidor/consultores-da-casa.js` (o token, o livro),
-`motor/servidor/painel-html.js` (`paginaDoConsultor`, a caixa do endereço e o «Novo endereço»),
-`motor/servidor/raiz.js` (as três rotas públicas e o `/api/consultores/acesso`),
-`tools/check-identidade.js` (três superfícies que faltavam),
-`experimentos/provar-o-link-do-consultor.js` (novo), `.gitignore` (a prova versionada),
-`PLANO-DO-CONSULTOR.md` (§5.0, §11, §12, §13), `ESTADO-ATUAL.md`, `HANDOFF.md`.
+`motor/nucleo/escola-do-consultor.js` (novo, puro), `motor/nucleo/consultores.js` (a reserva, o
+estado do link), `motor/nucleo/comercial.js` (`consultoriaDaPagina`), `motor/servidor/consultores-da-casa.js`
+(o índice, a reserva, o gasto, a libertação), `motor/servidor/painel-html.js` (`paginaDaVisita`),
+`motor/servidor/raiz.js` (`respostaDaVisita`, `receberAVisita`, o ramo `'consultor'` na criação),
+`tools/templates/ciclo.css` (`.par-botoes`), `motor/servidor/bastidores.js` (a cópia inline saiu),
+`tools/check-identidade.js` (duas superfícies novas), `experimentos/provar-a-escola-do-consultor.js`
+(novo), `.gitignore`, `PLANO-DO-CONSULTOR.md`, `ESTADO-ATUAL.md`, `HANDOFF.md`.
 
-**Bateria:** 295 provas, **202 verdes**, 93 conhecidas, **0 regressões**.
+### A regressão que a fase causou, e a que ela revelou
+
+**A primeira foi minha, e o defeito era do âncora.** `provar-o-contrato-em-vigor` cortava o texto de
+`raiz.js` a partir de `const estadoComercial = escolha.pagamento` — e a F3 substituiu essa linha por
+uma chamada ao núcleo, porque o estado ao nascer passou a depender da porta. O `indexOf` devolveu `-1`,
+o trecho ficou vazio, e a prova reprovou uma gravação que estava certa. O conserto é no ÂNCORA, que
+passa a ancorar-se na gravação (`gravarCadastro`) e ganhou a asserção que faltava: **o trecho medido
+não está vazio**. Uma prova ancorada numa linha que outra mudança legítima vai reescrever mede o texto,
+não a regra.
+
+**A segunda é a prova do ar a fazer o seu trabalho.** `provar-ambiente` reprovou porque a folha mudou
+(o `.par-botoes`) e o site publicado ainda tem a de antes. Não é um defeito: é a diferença entre o
+repositório e o que está no ar, medida por quem existe para a medir. Passa no `deploy`.
+
+**Bateria:** 296 provas, **203 verdes**, 93 conhecidas, **0 regressões** — depois de as duas acima
+estarem fechadas.
 
 ## O que está pendente
 

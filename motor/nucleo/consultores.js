@@ -659,6 +659,162 @@ function darAcesso(lista, id, hash, quando) {
   return { ok: true, registo: novo, lista: copia };
 }
 
+/* ══════════════════════════════════════════════════════════════════════════════════════════════
+ * F3 — O LINK QUE ABRE UMA ESCOLA (25/11/2026)
+ *
+ * «Depois que eu terminar o processo, a escola pode contratar o serviço ou não. […] Eu vou deixar
+ * para a escola esse ambiente configurado com o nome dela, disponível para ela usar por um mês.»
+ *
+ * UMA VISITA, UMA ESCOLA. É a regra inteira desta metade do módulo, e ela tem três consequências que
+ * precisam de código:
+ *
+ *   1. O link GASTA-SE na primeira criação que passa (`usadaEm` + `escolaSlug`). Um segundo pedido
+ *      com o mesmo link encontra a visita gasta e é recusado.
+ *   2. O link RESERVA-SE antes de a escola nascer, e a reserva é o que impede o caso que dois
+ *      pedidos simultâneos produziriam: dois leitores a verem `usadaEm: null` ao mesmo tempo, e duas
+ *      escolas a nascerem de um link só. Um link que dá duas escolas é um consultor a receber por um
+ *      trabalho que não fez — e é exactamente o que ela quer que não aconteça («não vou premiar um
+ *      consultor pelo mérito de outro»).
+ *   3. A reserva CAI quando a criação falha, e cai sozinha depois de `MINUTOS_DE_RESERVA`: um pedido
+ *      que morreu a meio (o telemóvel perdeu a rede) não pode queimar o link para sempre. O prazo é
+ *      curto porque a criação leva segundos; é longo o bastante para o pior caso de uma rede má.
+ * ══════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * QUANTOS MINUTOS UMA RESERVA VALE.
+ *
+ * Dez: uma criação de escola leva segundos (o trabalho pesado é o workflow, que corre depois), e o
+ * pior caso de uma rede má não chega a isto. Curto de mais queimaria links a quem tem má rede;
+ * longo de mais deixaria um link preso por uma hora a quem desistiu a meio.
+ */
+const MINUTOS_DE_RESERVA = 10;
+
+/** A CHAVE DO ÍNDICE DE LINKS — um `get` por abertura, e nunca uma enumeração. */
+function chaveDoLink(hash) {
+  const alvo = String(hash || '').trim();
+  return alvo ? 'consultores/link/' + alvo : '';
+}
+
+/** A reserva ainda vale? Uma reserva sem data legível vale como caída — a direcção do erro é a que abre. */
+function reservaActiva(visita, agora) {
+  if (!visita || !visita.reservadaEm) return false;
+  const em = Date.parse(visita.reservadaEm);
+  if (!Number.isFinite(em)) return false;
+  const referencia = agora ? new Date(agora).getTime() : Date.now();
+  return referencia - em < MINUTOS_DE_RESERVA * 60 * 1000;
+}
+
+/**
+ * O ESTADO DE UM LINK, DO PONTO DE VISTA DE QUEM O ABRE — uma resposta, e não três.
+ *
+ * A ORDEM É A ORDEM EM QUE A PORTA SE FECHA, e ela é a mesma do `estadoDaVisita` mais a reserva:
+ * gasta (a escola já nasceu), reservada (uma criação está a decorrer), expirada, e só então aberta.
+ *
+ * `motivo` é a FRASE que a escola lê. Cada uma diz a saída, e não o erro: quem abre este link está a
+ * criar uma escola, e uma recusa sem saída manda desistir uma pessoa que já pagou três horas de
+ * consultoria para chegar aqui.
+ */
+function estadoDoLink(visita, agora) {
+  if (!visita) return { ok: false, motivo: MOTIVO_DO_LINK_INVALIDO };
+  const expira = Date.parse(visita.expiraEm || '');
+  const referencia = agora ? new Date(agora).getTime() : Date.now();
+  if (visita.usadaEm) {
+    return {
+      ok: false,
+      estado: 'gasta',
+      motivo: 'este link já foi usado, e uma escola nasceu dele em '
+        + String(visita.usadaEm).slice(0, 10) + '. Cada link abre uma escola, e só uma — se esta '
+        + 'escola precisa de outra, peça ao consultor um link novo.',
+    };
+  }
+  if (reservaActiva(visita, agora)) {
+    return {
+      ok: false,
+      estado: 'reservada',
+      motivo: 'este link está a ser usado neste momento. Se foi você que o abriu, espere um minuto '
+        + 'e recarregue a página; se a criação falhou, o link volta a funcionar sozinho.',
+    };
+  }
+  if (!Number.isFinite(expira) || expira <= referencia) {
+    return {
+      ok: false,
+      estado: 'expirada',
+      motivo: 'este link de demonstração expirou'
+        + (Number.isFinite(expira) ? ' a ' + new Date(expira).toISOString().slice(0, 10) : '')
+        + '. Peça ao consultor um link novo — ele gera outro na área dele em segundos.',
+    };
+  }
+  return { ok: true, estado: 'aberta', expiraEm: visita.expiraEm };
+}
+
+/**
+ * A FRASE DO LINK INVÁLIDO — uma só, e sem distinguir «não existe» de «existe e não é seu».
+ *
+ * Distinguir os casos só ajudaria a quem está a adivinhar tokens. E o que a escola precisa de saber
+ * é o mesmo nos dois: o link não abre, e a quem pedir outro.
+ */
+const MOTIVO_DO_LINK_INVALIDO = 'este link não abre nenhuma escola. Confirme que copiou o endereço '
+  + 'inteiro da mensagem, e peça um novo ao consultor que o atendeu.';
+
+/** Reserva a visita para esta criação. Devolve a lista nova, ou `{ ok: false }` se ela já não serve. */
+function reservarVisita(lista, visitaId, agora) {
+  const actual = Array.isArray(lista) ? lista.slice() : [];
+  const i = actual.findIndex((v) => v && v.id === String(visitaId || '').trim());
+  if (i === -1) return { ok: false, erro: 'não há visita com este id' };
+  const visita = actual[i];
+  const estado = estadoDoLink(visita, agora);
+  if (!estado.ok) return { ok: false, estado: estado.estado, erro: estado.motivo };
+  const em = String(agora || new Date().toISOString());
+  const novo = Object.assign({}, visita, {
+    reservadaEm: em,
+    historico: (Array.isArray(visita.historico) ? visita.historico.slice() : []).concat([{ em, o: 'reservada' }]),
+  });
+  const copia = actual.slice();
+  copia[i] = novo;
+  return { ok: true, visita: novo, lista: copia };
+}
+
+/**
+ * MARCA A VISITA GASTA — e é o elo que diz qual escola nasceu dela.
+ *
+ * `escolaSlug` é o que responde, seis meses depois, a «esta escola veio de quem?» sem ter de
+ * percorrer o livro de visitas de todos os consultores. A reserva cai no mesmo gesto: são o mesmo
+ * facto visto de dois ângulos, e guardar as duas coisas separadas deixaria uma reserva pendurada
+ * numa visita já gasta.
+ */
+function marcarVisitaUsada(lista, visitaId, escolaSlug, agora) {
+  const actual = Array.isArray(lista) ? lista.slice() : [];
+  const i = actual.findIndex((v) => v && v.id === String(visitaId || '').trim());
+  if (i === -1) return { ok: false, erro: 'não há visita com este id' };
+  const em = String(agora || new Date().toISOString());
+  const novo = Object.assign({}, actual[i], {
+    usadaEm: em,
+    escolaSlug: String(escolaSlug || '').trim() || null,
+    historico: (Array.isArray(actual[i].historico) ? actual[i].historico.slice() : [])
+      .concat([{ em, o: 'escola-criada', escola: String(escolaSlug || '').trim() || null }]),
+  });
+  delete novo.reservadaEm;
+  const copia = actual.slice();
+  copia[i] = novo;
+  return { ok: true, visita: novo, lista: copia };
+}
+
+/** LARGA A RESERVA — a criação falhou, e o link tem de voltar a servir para quem o tentar outra vez. */
+function largarReserva(lista, visitaId, agora) {
+  const actual = Array.isArray(lista) ? lista.slice() : [];
+  const i = actual.findIndex((v) => v && v.id === String(visitaId || '').trim());
+  if (i === -1) return { ok: false, erro: 'não há visita com este id' };
+  const em = String(agora || new Date().toISOString());
+  const novo = Object.assign({}, actual[i], {
+    historico: (Array.isArray(actual[i].historico) ? actual[i].historico.slice() : [])
+      .concat([{ em, o: 'reserva-libertada' }]),
+  });
+  delete novo.reservadaEm;
+  const copia = actual.slice();
+  copia[i] = novo;
+  return { ok: true, visita: novo, lista: copia };
+}
+
 module.exports = {
   CHAVE,
   MAXIMO_NA_LISTA,
@@ -696,4 +852,13 @@ module.exports = {
   resumoDasVisitas,
   porAcesso,
   darAcesso,
+  /* F3 — o link que abre uma escola */
+  MINUTOS_DE_RESERVA,
+  MOTIVO_DO_LINK_INVALIDO,
+  chaveDoLink,
+  reservaActiva,
+  estadoDoLink,
+  reservarVisita,
+  marcarVisitaUsada,
+  largarReserva,
 };

@@ -28,6 +28,7 @@ const correio = require('./correio.js');
 /* A COMPOSIÇÃO COMERCIAL (25/11/2026) — os planos, a capacidade e a conta, de uma fonte só
  * (`biblioteca/comercial/planos.json`). Nenhum preço se escreve em código. */
 const comercial = require('../nucleo/comercial.js');
+const escolaDoConsultor = require('../nucleo/escola-do-consultor.js');
 /* AS COTAS DA CONSULTORIA (25/11/2026) — ver `motor/nucleo/cotas.js`. */
 const cotasDoNucleo = require('../nucleo/cotas.js');
 const cobrancasDoNucleo = require('../nucleo/cobrancas.js');
@@ -959,6 +960,31 @@ async function scheduled(event, env, ctx) {
 async function responderCriacao(request, env, opcoes) {
   const origem = (opcoes && opcoes.origem) || 'painel';
   const exigirCadastro = Boolean(opcoes && opcoes.exigirCadastro);
+  /* A TERCEIRA PORTA (25/11/2026 — F3). Quando `origem === 'consultor'`, quem está a criar é a
+   * escola, num link do consultor. O que muda, e só isto:
+   *
+   *   - o PLANO É O DA CONSULTORIA, e não se escolhe — é o que o link abre e o que a página declarou;
+   *   - `podeDispensar` é verdadeiro porque a porta foi autorizada pelo token, e não pela senha;
+   *   - o mês começa HOJE (`periodoDeConsultoria.entregueEm`), e não no «Entregar à escola».
+   *
+   * Todo o resto — validação, identidade única, slug, resíduo de expurgo, disparo, rollback — é o
+   * mesmo código. Duplicá-lo seria a segunda cópia da regra que mais defeitos já deu nesta casa. */
+  /* A DECISÃO DA PORTA FICA NO NÚCLEO (`escola-do-consultor.js`), e não aqui: o plano forçado, o
+   * `podeDispensar` e o período são TRÊS regras que a prova tem de medir sem um Cloudflare à
+   * frente. Uma regra que só se mede em produção descobre-se em produção — e esta é a fase que não
+   * pode falhar em silêncio. */
+  const preparado = escolaDoConsultor.prepararACriacao({
+    corpo: null,
+    origem,
+    consultor: (opcoes && opcoes.consultor) || null,
+    agora: new Date().toISOString(),
+  });
+  if (!preparado.ok) {
+    return new Response(JSON.stringify({ ok: false, erro: preparado.erro }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json;charset=utf-8' },
+    });
+  }
   const responderJson = (objeto, status) => new Response(JSON.stringify(objeto), {
     status: status || 200,
     headers: { 'Content-Type': 'application/json;charset=utf-8' },
@@ -1023,7 +1049,18 @@ async function responderCriacao(request, env, opcoes) {
      * catálogo é recusado AGORA — e o `dispensarPagamento` só vale na porta do proprietário
      * (`origem === 'painel'`), porque obrigá-la a pagar a si mesma em cada ensaio fecharia a porta
      * a quem mais usa o sistema. */
-    const escolhaComercial = comercial.validarEscolha(corpo, { podeDispensar: origem === 'painel' });
+    /* O PLANO DO CONSULTOR É SUBSTITUÍDO, e não pedido à página — pela função do núcleo. A página
+     * da visita não tem `<select>` de plano, e um pedido escrito à mão com outro plano é
+     * substituído: o link abre UMA coisa, que é o mês de consultoria. Aceitar outro por esta porta
+     * seria a escola a conceder-se a si mesma um plano pago. */
+    const corpoDaPorta = escolaDoConsultor.prepararACriacao({
+      corpo, origem, consultor: (opcoes && opcoes.consultor) || null,
+    });
+    if (!corpoDaPorta.ok) {
+      return responderJson({ ok: false, erro: corpoDaPorta.erro }, 400);
+    }
+    Object.assign(corpo, corpoDaPorta.corpo);
+    const escolhaComercial = comercial.validarEscolha(corpo, { podeDispensar: corpoDaPorta.podeDispensar });
     if (!escolhaComercial.ok) {
       return responderJson({ ok: false, erro: escolhaComercial.erro }, 400);
     }
@@ -1327,7 +1364,25 @@ async function responderCriacao(request, env, opcoes) {
      *
      * NÃO FAZ FALHAR A CRIAÇÃO, e é a mesma regra do cadastro e do correio: a escola já está no
      * ar. O que faltar viaja na resposta, ao lado do sucesso. */
-    const estadoComercial = escolha.pagamento === 'dispensado-pelo-proprietario' ? 'ativa' : 'aguardando';
+    /* O ESTADO AO NASCER VEM DO NÚCLEO, com o resto da decisão da porta: `aguardando` é o que a
+     * frase dela descreve («bateu na minha conta, eu verifico e aí libero o acesso»), e a excepção
+     * do pagamento dispensado — o ensaio dela e o link do consultor — nasce `ativa`. */
+    const estadoComercial = escolaDoConsultor.estadoAoNascer(corpoDaPorta);
+    /* O MÊS DA CONSULTORIA COMEÇA AGORA (25/11/2026 — a única regra que o plano declara mudar).
+     *
+     * Na porta do painel, o mês começa no «Entregar à escola», porque entre criar e entregar há o
+     * tempo da montagem. Aqui a criação e a entrega são o MESMO gesto: o consultor está ali, com a
+     * escola, e é ele que a está a entregar. Fazer o mês depender de um clique dela pararia o
+     * negócio de quem cobra à hora — e a escola ficaria com um ambiente a responder «a aguardar
+     * liberação» no dia em que o consultor a apresentou.
+     *
+     * O `terminaEm` usa o MESMO `fuso.fimDeUmMes` da rota de entrega: um segundo cálculo aqui daria
+     * um vencimento a outra hora no dia em que o fuso mudasse. */
+    const agoraDaCriacao = (corpoDaPorta.periodo && corpoDaPorta.periodo.entregueEm)
+      || new Date().toISOString();
+    const periodoDaConsultoria = (corpoDaPorta.periodo && corpoDaPorta.periodo.terminaEm)
+      ? corpoDaPorta.periodo
+      : undefined;
     const comercialGravado = await gravarComercial(env && env.PADD_KV, escola.escola, {
       estado: estadoComercial,
       plano: escolha.plano,
@@ -1360,6 +1415,11 @@ async function responderCriacao(request, env, opcoes) {
        * endereço para onde olhar quando a fila do Actions não anda. `null` quando a leitura de
        * volta falhou, e a linha fica sem link em vez de com um link errado. */
       disparoRun: (disparo && disparo.run) ? disparo.run : null,
+      /* A ATRIBUIÇÃO (25/11/2026). Fica no registo COMERCIAL, e não no índice: o índice é
+       * versionado, e o nome do consultor é um dado de pessoa; e «quem trouxe esta escola?» é uma
+       * pergunta comercial, que se responde ao lado do plano e do estado. `visitaId` é o que liga a
+       * escola à visita que a abriu — e é ele que a F4 vai ler para os R$ 10. */
+      ...escolaDoConsultor.camposComerciais(corpoDaPorta),
     }, origem);
     const correioEnviado = await mandarBoasVindas({
       env,
@@ -1384,6 +1444,18 @@ async function responderCriacao(request, env, opcoes) {
       // A PORTA POR ONDE A ESCOLA NASCEU. É um facto da proveniência: um dia se pergunta «esta
       // escola entrou pelo consultor ou pela página dela?», e só o registo do momento o sabe.
       origem,
+      /* O MÊS, DITO NA RESPOSTA. A página da visita tem de poder dizer «a escola fica em leitura em
+       * <data>» — é a promessa que ela acabou de aceitar, e uma promessa que não se lê depois de
+       * aceite é uma promessa escondida. */
+      ...(periodoDaConsultoria
+        ? {
+          consultoria: {
+            entregueEm: periodoDaConsultoria.entregueEm,
+            terminaEm: periodoDaConsultoria.terminaEm,
+            terminaEmTexto: fuso.quandoLocal(periodoDaConsultoria.terminaEm),
+          },
+        }
+        : {}),
     }), 201);
   } catch (err) {
     const status = (err && err.etapa === 'existe') ? 409 : (err && err.etapa === 'slug') ? 400 : 500;
@@ -2624,6 +2696,141 @@ async function avisarOProprietario({ env, escola, nome, escolha, quando, profess
     });
   }
   return Object.assign({ para }, desfecho);
+}
+
+/**
+ * A PÁGINA DO LINK — `GET /visita/<token>` (25/11/2026 — F3).
+ *
+ * A QUARTA PORTA PÚBLICA deixa de ser um 404: é aqui que a escola nasce. O que a autentica é o token
+ * do link, no âmbito `visita` — e o índice (`consultores/link/<hash>`) diz de que consultor e de que
+ * visita ele é, com um `get` e sem enumerar nada.
+ *
+ * AS RECUSAS SÃO A PÁGINA, e não um erro: o link inválido, o consultor suspenso, a visita gasta, a
+ * reservada e a expirada devolvem todos **200 com a frase** — quem abre este link é a escola, e uma
+ * página de erro do servidor não lhe diz o que fazer. O 404 fica para o que não é uma página: as
+ * rotas que não existem.
+ *
+ * A ÚNICA EXCEPÇÃO É A LEITURA QUE FALHOU: aí é **503**, e a página diz que não leu. É a mesma
+ * regra do painel e da área do consultor — «não consegui ler» não é «não existe».
+ */
+async function respostaDaVisita(request, env) {
+  const token = tokenDoCaminho(new URL(request.url), '/visita/');
+  const agora = new Date().toISOString();
+  const situacao = await consultoresDaCasa.situacaoDoLink(env, token, agora);
+  if (situacao.lido === false) {
+    return painel.resposta(painel.paginaDaVisita({
+      situacao: {
+        ok: false,
+        motivo: situacao.motivo
+          || 'não consegui ler o registo do link agora — nada foi mostrado, e nada foi criado.',
+      },
+      token,
+    }), 503);
+  }
+  return painel.resposta(painel.paginaDaVisita({
+    situacao,
+    consultor: situacao.consultor,
+    token,
+    /* AS MODALIDADES E OS SETE LIMITES VÊM DO CATÁLOGO — a mesma lista que os Bastidores e a
+     * página pública usam. Uma cópia aqui passaria a mentir no dia em que o catálogo mudasse. */
+    catalogo: Object.assign({}, comercial.catalogoDaPagina(), {
+      modalidades: (require('../nucleo/perfil-do-professor.js').LISTA_DE_MODALIDADES || [])
+        .map((m) => ({ id: m && m.id, nome: m && m.nome })).filter((m) => m.id),
+      /* O PLANO DA CONSULTORIA ENTRA AQUI, e só aqui: o `catalogoDaPagina` serve a página PÚBLICA,
+       * e pôr lá a consultoria seria oferecer um plano que ela recusa. */
+      consultoria: comercial.consultoriaDaPagina(),
+    }),
+  }));
+}
+
+/**
+ * A CRIAÇÃO PELA VISITA — `POST /api/visita/<token>` (25/11/2026 — F3).
+ *
+ * A ORDEM DESTA ROTA É A COISA MAIS DELICADA DA FASE, e é ela que impede duas escolas de um link só:
+ *
+ *   1. **valida o link** (existe? o consultor está activo? a visita está aberta?);
+ *   2. **RESERVA a visita** — a escrita que faz o segundo pedido simultâneo encontrar a porta
+ *      fechada. Sem ela, dois pedidos liam `usadaEm: null` ao mesmo tempo e nasciam duas escolas, e
+ *      o consultor receberia por um trabalho que não fez;
+ *   3. **cria a escola** pela máquina de sempre (`responderCriacao`, com `origem: 'consultor'`);
+ *   4. **gasta a visita** — `usadaEm` + `escolaSlug`. É o elo que diz qual escola nasceu dela;
+ *   5. **larga a reserva** se a criação falhou, para o link voltar a servir.
+ *
+ * O QUE ACONTECE SE O PASSO 4 FALHAR: a escola existe e a visita fica reservada — e a reserva cai
+ * sozinha em `MINUTOS_DE_RESERVA`. A resposta diz que a escola foi criada e que o link não ficou
+ * marcado. É o mal menor declarado: desfazer a escola seria apagar um cliente por causa de uma
+ * escrita de livro.
+ */
+async function receberAVisita(request, env, deps) {
+  const token = tokenDoCaminho(new URL(request.url), '/api/visita/');
+  const agora = new Date().toISOString();
+  const situacao = await consultoresDaCasa.situacaoDoLink(env, token, agora);
+  if (situacao.lido === false) {
+    return responderJson({ ok: false, erro: situacao.motivo || 'não consegui ler o registo do link' }, 503);
+  }
+  if (!situacao.ok) {
+    /* A RECUSA DO LINK NÃO É 404: é 410 quando a visita existiu e já não serve (gasta ou expirada),
+     * e 409 quando está a ser usada neste momento. O código importa porque a página o lê — mas a
+     * FRASE é o que a escola vê, e todas dizem a saída. */
+    const status = situacao.estado === 'reservada' ? 409
+      : (situacao.estado === 'gasta' || situacao.estado === 'expirada') ? 410
+        : 404;
+    return responderJson({ ok: false, erro: situacao.motivo, link: situacao.estado || null }, status);
+  }
+
+  let corpo = {};
+  try { corpo = await request.json(); } catch (erro) { corpo = {}; }
+
+  const reservado = await consultoresDaCasa.reservar(env, situacao.consultor.id, situacao.visita.id, agora);
+  if (!reservado.ok) {
+    return responderJson({ ok: false, erro: reservado.erro }, reservado.estado === 'reservada' ? 409 : 400);
+  }
+
+  /* A CRIAÇÃO É A MESMA FUNÇÃO DO PAINEL E DA PÁGINA PÚBLICA. O que vai de diferente é o contexto:
+   * o consultor, a visita, e a origem. Todo o resto — validação, identidade única, slug, resíduo de
+   * expurgo, disparo, rollback — é o código que já existe. Duplicá-lo seria a segunda cópia da regra
+   * que mais defeitos já deu nesta casa. */
+  const pedido = new Request(request.url.replace('/api/visita/', '/api/criar-escola'), {
+    method: 'POST',
+    headers: request.headers,
+    body: JSON.stringify(corpo),
+  });
+  let resposta;
+  try {
+    resposta = await deps.responderCriacao(pedido, env, {
+      origem: 'consultor',
+      exigirCadastro: true,
+      consultor: Object.assign({}, situacao.consultor, { visitaId: situacao.visita.id }),
+    });
+  } catch (erro) {
+    await consultoresDaCasa.libertar(env, situacao.consultor.id, situacao.visita.id, new Date().toISOString());
+    throw erro;
+  }
+
+  const texto = await resposta.text();
+  let resultado = {};
+  try { resultado = JSON.parse(texto); } catch (erro) { resultado = { ok: false, erro: texto }; }
+
+  if (!resultado.ok) {
+    /* A CRIAÇÃO FALHOU ⇒ O LINK VOLTA A SERVIR. Sem isto, uma senha fraca ou um CNPJ repetido
+     * queimavam o link — e a escola teria de pedir outro ao consultor por causa de um erro de
+     * digitação. A libertação não pode falhar a resposta: se ela própria falhar, a reserva cai
+     * sozinha em dez minutos. */
+    await consultoresDaCasa.libertar(env, situacao.consultor.id, situacao.visita.id, new Date().toISOString());
+    return responderJson(resultado, resposta.status);
+  }
+
+  const gasto = await consultoresDaCasa.gastar(
+    env, situacao.consultor.id, situacao.visita.id, resultado.escola, new Date().toISOString(),
+  );
+
+  return responderJson(Object.assign({}, resultado, {
+    /* A VISITA FICOU MARCADA? A resposta diz. Quando não, a escola existe e o link não ficou
+     * gasto — e isso é um facto que ela tem de poder ver, e não uma surpresa no dia das contas. */
+    visitaGasta: gasto.ok,
+    ...(gasto.ok ? {} : { aviso: 'a escola foi criada, mas o link não ficou marcado como usado: '
+      + (gasto.erro || 'motivo não declarado') }),
+  }), 201);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════════════════════
@@ -4097,6 +4304,10 @@ async function fetch(request, env) {
     const ehAreaDoConsultor = /^\/consultor\/[^/]+\/?$/.test(url.pathname) && request.method === 'GET';
     const ehPedidoDoConsultor = /^\/api\/consultor\/[^/]+\/visita(\/[^/]+\/link)?\/?$/.test(url.pathname)
       && request.method === 'POST';
+    /* O LINK QUE ABRE UMA ESCOLA (25/11/2026 — F3). É a porta que a F2 deixou prometida e a
+     * responder 404: o endereço já era o definitivo, e agora tem a página que o serve. */
+    const ehVisita = /^\/visita\/[^/]+\/?$/.test(url.pathname) && request.method === 'GET';
+    const ehCriacaoPelaVisita = /^\/api\/visita\/[^/]+\/?$/.test(url.pathname) && request.method === 'POST';
     const publicoPermitido = url.pathname === '/'
       || url.pathname === '/index.html'
       || url.pathname.startsWith('/assets/')
@@ -4109,7 +4320,9 @@ async function fetch(request, env) {
       || ehConvite
       || ehEnvioDoConvite
       || ehAreaDoConsultor
-      || ehPedidoDoConsultor;
+      || ehPedidoDoConsultor
+      || ehVisita
+      || ehCriacaoPelaVisita;
     if (!publicoPermitido) {
       return new Response('não encontrado', {
         status: 404,
@@ -4127,6 +4340,8 @@ async function fetch(request, env) {
     if (ehEnvioDoConvite) return await receberOConvite(request, env);
     if (ehAreaDoConsultor) return await respostaDaAreaDoConsultor(request, env);
     if (ehPedidoDoConsultor) return await responderAoPedidoDoConsultor(request, env);
+    if (ehVisita) return await respostaDaVisita(request, env);
+    if (ehCriacaoPelaVisita) return await receberAVisita(request, env, { responderCriacao });
     return servirAPagina(request, env, { modo: 'publico' });
   }
 
@@ -6172,6 +6387,11 @@ module.exports = {
   // de medir sem um Worker à frente: «este pedido é do público ou do proprietário?» decide o que
   // se serve e o que se recusa, e uma regra que só se testa em produção descobre-se em produção.
   responderCriacao, gravarCadastro, mandarBoasVindas, ehPaginaPublica, servirAPagina,
+  /* A ESCOLA QUE NASCE DE UM LINK (25/11/2026 — F3). `receberAVisita` é exportada porque recebe as
+   * dependências (`deps.responderCriacao`) e é isso que permite à prova exercer a reserva, o gasto
+   * e a libertação SEM um Cloudflare à frente — que é a única forma de medir o que acontece quando
+   * a criação falha a meio. */
+  receberAVisita, respostaDaVisita,
   removerDoPainel, marcarPagina, lerComercial, gravarComercial, chaveComercial, ESTADOS_COMERCIAL,
   hostDoProprietario, urlDaPaginaPublica,
   /* O FINANCEIRO E A CARÊNCIA (25/11/2026). Exportados pela mesma razão dos de cima: a conta dos

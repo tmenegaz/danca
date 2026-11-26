@@ -3395,6 +3395,205 @@ function paginaDoConsultor({ consultor, token, visitas: lista, agora, suspenso, 
     + script.replace(/__TOKEN__/g, esc(token || '')), 'Consultoria · ' + nome);
 }
 
+/**
+ * A PÁGINA DO LINK — `/visita/<token>`, a porta por onde a escola nasce (25/11/2026 — F3).
+ *
+ * QUEM A ABRE É A ESCOLA, num link que o consultor lhe mandou por WhatsApp. Ela não tem senha
+ * nenhuma, e não deve ter: o que autentica é o token, como no convite de recriação. O que ela vê é
+ * o mínimo para criar a escola — o nome (já preenchido com o que o consultor escreveu), o cadastro
+ * fiscal, as duas senhas —, e **uma frase que diz o que está a ser contratado**.
+ *
+ * O PLANO NÃO SE ESCOLHE, E ISSO É DITO. O plano é o da consultoria, com os sete limites, e um mês a
+ * contar de hoje. A página declara-o em vez de esconder: uma escola que descobrisse os limites
+ * depois de os bater não teria sabido o que aceitou. Quem quiser um plano pago fala com o consultor
+ * — e essa frase está aqui, porque é aqui que a pergunta nasce.
+ *
+ * O QUE ELA NÃO MOSTRA: nenhuma outra escola, nenhum valor de ninguém, nenhum movimento. E o nome do
+ * consultor aparece uma vez, no fim, na frase em que a escola agradece a quem a atendeu.
+ */
+function paginaDaVisita({ situacao, consultor, escolaNome, token, catalogo } = {}) {
+  const s = situacao || { ok: false };
+  const nomeDaEscola = String((s && s.escolaNome) || escolaNome || '');
+  const quem = consultor || (s && s.consultor) || {};
+  const nomeDoConsultor = String(quem.nome || '');
+
+  const casco = (corpo, titulo) => '<!doctype html><html lang="pt-BR" data-paleta="verde">' +
+    '<head><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+    /* NÃO SE INDEXA: é uma página com um segredo no endereço, e um link num motor de busca é um
+     * link que se gasta. */
+    '<meta name="robots" content="noindex">' +
+    '<title>' + esc(titulo) + ' · Sistema Lastro</title>' +
+    '<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">' +
+    '<link rel="stylesheet" href="/assets/style.css">' +
+    '</head><body id="top" data-layout="documento" data-tela="visita">' +
+    '<header class="doc"><h1>' + esc(titulo) + '</h1>' +
+    '<p class="subtitulo">Sistema Lastro · a memória da aula dada</p></header>' +
+    '<main><div class="conteudo">' + corpo + '</div></main>' +
+    '</body></html>';
+
+  /* ── A RECUSA ────────────────────────────────────────────────────────────────────────────────
+   *
+   * Quatro casos, quatro frases — e nenhuma delas é «erro». A frase diz sempre a saída: pedir outro
+   * link ao consultor, esperar um minuto, escrever para a administração. Quem chegou aqui passou por
+   * uma consultoria de três horas; uma recusa sem saída manda desistir uma pessoa que já investiu.
+   *
+   * A ÚNICA EXCEPÇÃO É O LINK INVÁLIDO, e a frase dele também é curta de propósito: distinguir
+   * «não existe» de «existe e não é seu» só ajudaria a quem está a adivinhar tokens. */
+  if (!s.ok) {
+    const titulo = s.suspenso ? 'Esta demonstração está suspensa' : 'Este link não abre nenhuma escola';
+    return casco('<div class="caixa ' + (s.suspenso ? 'nota' : 'falta') + '">' +
+      '<h2>' + esc(titulo) + '</h2>' +
+      '<p>' + esc(s.motivo || 'o link não abre nenhuma escola.') + '</p>' +
+      (s.suspenso
+        ? '<p><a class="acao secundario" href="mailto:lastro@padd.com.br">Escrever para a administração</a></p>'
+        : '') +
+      '<p class="aviso">Se você recebeu este endereço de um consultor do Sistema Lastro, fale com '
+      + 'ele: é ele que gera o link, e é ele que o pode gerar outra vez.</p>' +
+      '</div>', titulo);
+  }
+
+  /* ── O QUE SE ESTÁ A CONTRATAR ───────────────────────────────────────────────────────────────
+   *
+   * OS SETE LIMITES VÊM DO CATÁLOGO, e não de uma cópia: é o mesmo `planos.json` que o motor aplica
+   * nas recusas. Uma página que dissesse «cinco alunas» a partir de um número escrito à mão passaria
+   * a mentir no dia em que o catálogo mudasse — e a mentira só apareceria na recusa. */
+  const c = (catalogo && catalogo.consultoria) || {};
+  const lim = c.limites || {};
+  const numero = (v) => (Number.isFinite(Number(v)) ? Number(v) : null);
+  const item = (rotulo, v, singular, plural) => (numero(v) === null ? ''
+    : '<li><strong>' + numero(v) + '</strong> ' + esc(numero(v) === 1 ? singular : plural) + '</li>');
+  const itens = item('professores', lim.professores, 'professor', 'professores') +
+    item('alunas', lim.alunas, 'aluna', 'alunas') +
+    item('ciclos', lim.ciclos, 'ciclo', 'ciclos') +
+    item('modalidades', lim.modalidades, 'modalidade', 'modalidades') +
+    item('aulas', lim.aulas, 'aula', 'aulas') +
+    item('salas', lim.salas, 'sala', 'salas') +
+    item('turmas', lim.turmas, 'turma', 'turmas');
+  /* UMA LISTA VAZIA NÃO SE DESENHA — e não é detalhe. Se o catálogo não chegasse, os sete limites
+   * desapareciam e a página prometia «dentro do mês a escola pode ter:» seguido de nada. A escola
+   * criava a escola sem saber o que aceitou, e o defeito só apareceria na primeira recusa do motor.
+   * Por isso a ausência DIZ-SE. */
+  const limites = itens
+    ? '<ul>' + itens + '</ul>'
+    : '<p class="aviso">Os limites desta demonstração não chegaram até aqui — não crie a escola '
+      + 'antes de falar com o consultor: ele diz-lhe exactamente o que o mês inclui.</p>';
+
+  const campo = (id, rotulo, tipo, dica, valor) => '<label class="campo-rotulo" for="' + id + '">'
+    + esc(rotulo) + '</label><input id="' + id + '" type="' + tipo + '"'
+    + (dica ? ' placeholder="' + esc(dica) + '"' : '')
+    + (valor ? ' value="' + esc(valor) + '"' : '')
+    + ' autocomplete="' + (tipo === 'password' ? 'new-password' : 'off') + '">';
+
+  /* AS MODALIDADES VÊM DO CATÁLOGO, como na página pública — a mesma lista que os Bastidores
+   * mostram. É a habilidade do professor, e é ela que decide o que a escola pode ensinar. */
+  const modalidades = ((catalogo && catalogo.modalidades) || [])
+    .map((m) => '<option value="' + esc(m.id) + '">' + esc(m.nome) + '</option>').join('');
+
+  const corpo = '<div class="caixa nota">' +
+    '<h2>A escola «' + esc(nomeDaEscola || 'a sua escola') + '»</h2>' +
+    (nomeDoConsultor
+      ? '<p>A consultoria com <strong>' + esc(nomeDoConsultor) + '</strong> termina aqui: este é o '
+        + 'ambiente que fica para a sua escola, já com o nome dela.</p>'
+      : '<p>Este é o ambiente que fica para a sua escola.</p>') +
+    '<p><strong>O plano é o da consultoria</strong>, e começa hoje: <strong>um mês</strong> de uso, '
+    + 'uma vez, sem renovação automática. Dentro do mês, a escola pode ter:</p>' +
+    limites +
+    '<p class="aviso">No fim do mês, o ambiente <strong>fica em leitura</strong> — nada se perde, e '
+    + 'nada se apaga: a escola consulta o que registou, e não registra mais. Para continuar a usar, '
+    + 'contrate um plano com o seu consultor. É ele que apresenta os planos, as franquias e as '
+    + 'extensões.</p>' +
+    '</div>' +
+
+    '<h2>1. A escola</h2>' +
+    campo('visita-escola', 'nome da escola', 'text', 'como ela se chama', nomeDaEscola) +
+    campo('visita-cnpj', 'CNPJ da escola', 'text', '00.000.000/0000-00', '') +
+    campo('visita-email', 'e-mail da escola', 'email', 'para onde se fala com ela', '') +
+    campo('visita-telefone', 'telefone da escola', 'tel', '(00) 00000-0000', '') +
+
+    '<h2>2. O professor responsável</h2>' +
+    '<p class="aviso">É ele que abre a Área do Professor, e é ele o titular da escola. O sobrenome é '
+    + 'obrigatório: é ele que separa dois professores do mesmo nome.</p>' +
+    campo('visita-professor-nome', 'nome do professor', 'text', 'como ele assina', '') +
+    campo('visita-professor-sobrenome', 'sobrenome', 'text', '', '') +
+    campo('visita-professor-cpf', 'CPF do professor', 'text', '000.000.000-00', '') +
+    '<label class="campo-rotulo" for="visita-professor-modalidade">habilidade (o que ele ensina)</label>' +
+    '<select id="visita-professor-modalidade">' + modalidades + '</select>' +
+
+    '<h2>3. As senhas</h2>' +
+    campo('visita-senha-escola', 'senha da escola (a direção)', 'password', '', '') +
+    campo('visita-senha-professor', 'senha do professor (em branco = a mesma da escola)', 'password', '', '') +
+    '<p class="aviso"><strong>Guarde a senha da escola.</strong> Ela abre os Bastidores — o lugar '
+    + 'onde o professor planeja a aula. A senha do professor abre a Área do Professor.</p>' +
+
+    '<p class="res" id="visita-recado" role="status"></p>' +
+    '<p class="par-botoes"><button class="acao grande" type="button" id="visita-criar">' +
+    'Criar a escola</button></p>' +
+    '<p class="aviso">Ao criar, você concorda que os registos desta escola ficam no Sistema Lastro, '
+    + 'na forma do contrato de demonstração. Nada é publicado: o ambiente é da sua escola.</p>' +
+    '<p class="aviso">Depois de criar, o ambiente leva alguns minutos a ficar pronto — o Sistema '
+    + 'Lastro monta a escola inteira. Você recebe o endereço nesta página e por e-mail.</p>';
+
+  /* ── O JAVASCRIPT ────────────────────────────────────────────────────────────────────────────
+   *
+   * O TOKEN VAI NO ENDEREÇO DO PEDIDO, e não no corpo: é ele que identifica o link, e a rota
+   * confere-o antes de olhar para o resto. O `__TOKEN__` é substituído no servidor.
+   *
+   * OS CAMPOS VAZIOS SÃO VALIDADOS AQUI ANTES DO PEDIDO, e só os que o servidor recusaria de
+   * qualquer forma: um pedido que volta com «informe o CNPJ» depois de trinta segundos de espera é
+   * pior do que uma frase ao lado do campo.
+   */
+  const script = '<script>(function(){' +
+    'function v(id){var e=document.getElementById(id);return e?String(e.value||"").trim():"";}' +
+    'function recado(t,erro){var cx=document.getElementById("visita-recado");if(!cx)return;' +
+    'cx.hidden=!t;cx.textContent=t||"";cx.className=erro?"res alerta":"res";}' +
+    'var b=document.getElementById("visita-criar");if(!b)return;' +
+    'b.addEventListener("click",function(){' +
+    '  var senha=v("visita-senha-escola");' +
+    '  if(!senha){recado("escreva a senha da escola — é ela que abre o acesso",true);return;}' +
+    '  if(!v("visita-escola")){recado("escreva o nome da escola",true);return;}' +
+    '  if(!v("visita-professor-nome")||!v("visita-professor-sobrenome")){' +
+    '    recado("escreva o nome e o sobrenome do professor",true);return;}' +
+    '  var email=v("visita-email");' +
+    '  if(!email||email.indexOf("@")<1){recado("informe o e-mail da escola",true);return;}' +
+    '  b.disabled=true;recado("a criar a escola…",false);' +
+    '  fetch("/api/visita/__TOKEN__",{method:"POST",headers:{"Content-Type":"application/json"},cache:"no-store",' +
+    '    body:JSON.stringify({' +
+    '      nome:v("visita-escola"),cnpj:v("visita-cnpj"),email:email,telefone:v("visita-telefone"),' +
+    '      professorNome:v("visita-professor-nome"),professorSobrenome:v("visita-professor-sobrenome"),' +
+    '      cpf:v("visita-professor-cpf"),modalidade:v("visita-professor-modalidade"),' +
+    '      senhaAdmin:senha,senhaProfessor:v("visita-senha-professor")})})' +
+    '  .then(function(r){return r.json().catch(function(){return {};});})' +
+    '  .then(function(d){' +
+    '    if(d&&d.ok){' +
+    '      var cx=document.querySelector(".conteudo");' +
+    '      if(cx){cx.innerHTML="";}' +
+    '      recado("",false);' +
+    /* A PÁGINA DEIXA DE OFERECER O FORMULÁRIO NO INSTANTE EM QUE A ESCOLA EXISTE. Um botão que se
+     * pode carregar outra vez sobre um link já gasto só produziria uma recusa — e a recusa certa
+     * aqui é dizer que deu. */
+    '      var caixa=document.createElement("div");caixa.className="caixa nota";' +
+    '      var h=document.createElement("h2");h.textContent="A escola foi criada";' +
+    '      var p1=document.createElement("p");' +
+    '      p1.textContent="Ela fica no ar em instantes, em "+(d.url||"o endereço de sempre")+".";' +
+    '      var p2=document.createElement("p");' +
+    '      p2.textContent="Guarde a senha da escola: é ela que abre os Bastidores. "' +
+    '        +"Nada foi publicado, e esta página não volta a mostrar-se.";' +
+    '      caixa.appendChild(h);caixa.appendChild(p1);caixa.appendChild(p2);' +
+    '      if(cx)cx.appendChild(caixa);' +
+    '      return;' +
+    '    }' +
+    '    b.disabled=false;' +
+    '    recado((d&&d.erro)||"não foi possível criar a escola",true);' +
+    '  })' +
+    '  .catch(function(){b.disabled=false;recado("falha de rede — nada foi criado",true);});' +
+    '});' +
+    '})();</script>';
+
+  return casco(corpo + script.replace(/__TOKEN__/g, esc(token || '')),
+    'A escola «' + (nomeDaEscola || 'a sua escola') + '»');
+}
+
 module.exports = {
   esc, dia, diaOuTraco, quando,
   MARCADOR, MARCADOR_INDICE, tabelaDeEscolas, tabelaDeProfessores, blocoDeEscolas,
@@ -3403,6 +3602,7 @@ module.exports = {
   paginaDosContatos,
   paginaDosConsultores,
   paginaDoConsultor,
+  paginaDaVisita,
   paginaDoConvite,
   paginaFinanceira, SCRIPT_DO_FINANCEIRO, ENSAIO_PADRAO_MINUTOS,
   /* O MONITORAMENTO (17/11/2026) — a página, e as peças que a prova mede à parte. */
