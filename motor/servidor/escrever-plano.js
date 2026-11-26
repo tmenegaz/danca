@@ -238,7 +238,8 @@ async function comporManifestoDaTurma({ f, cabecalhos, url, caminho, contexto, p
     'Regra 9 não tem de onde sair',
   ];
 
-  const atual = await lerDoRepo({ f, url, cabecalhos });  const composto = comporConf({
+  const atual = await lerDoRepo({ f, url, cabecalhos });
+  const composto = comporConf({
     turma,
     faixa: faixaDaTurma,
     plano,
@@ -246,6 +247,11 @@ async function comporManifestoDaTurma({ f, cabecalhos, url, caminho, contexto, p
     escola,
     ciclo: numeroDoCiclo(contexto),
     docs: atual.existe ? docsDoConf(atual.texto) : undefined,
+    /* A MESMA VARIANTE QUE NOMEOU O CAMINHO (26/11/2026) — ver `comporConf`. Sem esta linha, o
+     * `.conf` da variante nova declarava a variante antiga, e o gerador ia buscar o manifesto
+     * errado: o ciclo ficava com dois nomes, e a pasta do pacote era a do nome que não é o do
+     * ficheiro. */
+    variante: varianteDoContexto(contexto),
   });
 
   const saida = {

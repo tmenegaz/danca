@@ -281,6 +281,73 @@ console.log('\nG. O ESCRITOR DE VERDADE — os dois `-plano.md` que saem para o 
   const sem2 = (await escritasDe('')).filter((c) => /-plano\.md$/.test(c));
   provar('CONTROLO: sem variante, os dois gravam no MESMO `-plano.md`', sem1[0] === sem2[0], { sem1, sem2 });
 
+  /* ── H. O `.conf` DIZ O NOME COM QUE FOI GRAVADO (26/11/2026) ───────────────────────────── */
+  /*
+   * O DEFEITO QUE ISTO FECHA, medido no repositório dela. A Sala «Piano» ganhou uma segunda faixa,
+   * a regra de §9.6 compôs `breu-piano-bale-classico`, o `escrever-plano` nomeou o CAMINHO com ela
+   * — e o CONTEÚDO, composto dentro do `comporConf` a partir do nome da turma, ficou
+   * `VARIANTE="breu-piano"`. O ficheiro passou a ter dois nomes:
+   *
+   *   professores/demi-plie/ciclos/ciclo-01-breu-piano-bale-classico.conf   ← o nome
+   *   VARIANTE="breu-piano"                                                ← o conteúdo
+   *
+   * O `gerar-ciclo.sh` lê o `.conf` pela variante do NOME e recebe de lá outra — o pacote foi para
+   * `ciclo-01-breu-piano/`, a pasta da variante antiga, e a aula 02 nunca apareceu. A asserção que
+   * discrimina é o PAR: com a variante pedida, o conteúdo diz o mesmo que o nome; sem ela, a
+   * derivação da turma continua a valer (a reserva não se perdeu).
+   */
+  console.log('\nH. O `.conf` diz o nome com que foi gravado — e a reserva continua de pé');
+  {
+    const { comporConf } = require(path.join(RAIZ, 'motor/servidor/compor-conf.js'));
+    /* A Sala dela, com as duas faixas: é a que faz a variante precisar da modalidade. */
+    const TURMA = {
+      id: 'piano', nome: 'Piano', frequencia: 3,
+      dias: ['seg', 'qua', 'sex'], horarios: { seg: '16:00', qua: '16:00', sex: '16:00' },
+      duracaoMin: 55, periodoInicio: '2027-01-04', periodoFim: '2027-02-26',
+      modalidade: 'Balé clássico', professor: 'demi-plie',
+      /* O PERÍODO VAI EM CADA FAIXA — é dele que saem `DATA_INICIO`, `TOTAL_AULAS` e a faixa de
+       * volume da Regra 9. A `FAIXAS` do topo não os tem porque as secções anteriores só medem o
+       * NOME; aqui a composição é a sério, e o manifesto exige-os. */
+      faixas: FAIXAS.map((f) => Object.assign({
+        periodoInicio: '2027-01-04', periodoFim: '2027-02-26',
+      }, f)),
+    };
+    const compor = (variante) => comporConf({
+      turma: TURMA, faixa: 'f1', plano: { respostas: {} }, identidade: { ESCOLA: 'Breu' },
+      escola: ESCOLA, ciclo: '01', docs: 'plano aula-01', variante,
+    }).texto;
+    const varianteDe = (texto) => (/^VARIANTE="([^"]*)"/m.exec(texto) || [])[1] || null;
+
+    const declarada = compor(VARIANTE_F1);
+    provar('com a variante pedida, o `.conf` declara ESSA — e não a que a turma derivaria',
+      varianteDe(declarada) === VARIANTE_F1, { declarada: varianteDe(declarada), esperada: VARIANTE_F1 });
+    /* A ASSERÇÃO É O INVARIANTE, e não o valor: o nome do ficheiro e o conteúdo são a mesma
+     * variante. Ela continua verdadeira no dia em que a regra de composição mudar. */
+    const nomeDoArquivo = path.posix.basename(
+      caminhoDoConf({ escola: ESCOLA, professor: 'demi-plie', ciclo: '01', turma: SALA,
+        variante: VARIANTE_F1 }), '.conf').replace(/^ciclo-01-/, '');
+    provar('…e é a MESMA que nomeia o ficheiro — é este invariante que faltava',
+      varianteDe(declarada) === nomeDoArquivo, { conteudo: varianteDe(declarada), arquivo: nomeDoArquivo });
+
+    /* A RESERVA: sem variante no contexto — uma bancada, um adaptador antigo —, a derivação pela
+     * turma continua a responder. Sem esta metade, «passar a variante» podia ter sido «exigir a
+     * variante», e todo o caminho antigo parava. */
+    provar('sem variante no contexto, a derivação pela turma continua a valer (a reserva)',
+      varianteDe(compor('')) === 'breu-piano', varianteDe(compor('')));
+
+    /* E o CONTROL NEGATIVO do defeito: a variante antiga pedida de propósito tem de sair no
+     * conteúdo — é o que prova que o conteúdo segue o pedido e não o nome da turma. */
+    provar('CONTROLO: pedida a variante antiga, é ELA que o `.conf` declara',
+      varianteDe(compor('breu-piano')) === 'breu-piano', varianteDe(compor('breu-piano')));
+
+    /* A NORMALIZAÇÃO É A MESMA DOS DOIS LADOS. Se o conteúdo aceitasse a variante em cru e o
+     * caminho a slugificasse, «Balé Clássico» daria `balé-clássico` dentro e `bale-classico` no
+     * nome — outra vez dois nomes, agora por acento. A asserção usa a variante escrita à mão. */
+    const comAcento = compor('Breu Piano — Balé Clássico');
+    provar('variante com acento e travessão: o conteúdo slugifica pela mesma regra do nome',
+      varianteDe(comAcento) === VARIANTE_F1, varianteDe(comAcento));
+  }
+
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + provas + ' asserções: duas Turmas da mesma sala, com modalidades diferentes, '
       + 'escrevem ficheiros diferentes; uma sala de uma faixa não muda nada do que existe; o envelope '

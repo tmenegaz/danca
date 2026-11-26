@@ -34,7 +34,7 @@ const ciclo = () => require('./escrever-ciclo.js');
 /* A VARIANTE VEM DA MESMA FUNÇÃO QUE TODOS OS ESCRITORES USAM (10/11/2026). `escrever-po` não
  * requer este módulo, pelo que o `require` de topo não fecha ciclo nenhum — e é ele que impede
  * esta conta de ser escrita uma segunda vez. Ver o comentário em `comporConf`. */
-const { varianteDoContexto } = require('./escrever-po.js');
+const { varianteDoContexto, slugificar } = require('./escrever-po.js');
 /* A FAIXA DE VOLUME PASSOU A SER CALCULÁVEL (20/11/2026) — `motor/nucleo/volume.js` é o
  * único sítio que a resolve. Antes dela havia cinco cópias da mesma escada `<=60 />60`, e
  * as cinco ficaram para trás à primeira duração nova. */
@@ -142,7 +142,7 @@ function linha(chave, valor) {
  * @returns {{texto: string, derivados: object, conflitos: string[], pendencias: string[]}}
  * @throws {Error} quando a turma não tem o que a geração exige (a mensagem nomeia o que falta)
  */
-function comporConf({ turma, faixa, plano, identidade, escola, ciclo: numeroDoCiclo, docs }) {
+function comporConf({ turma, faixa, plano, identidade, escola, ciclo: numeroDoCiclo, docs, variante: variantePedida }) {
   /* A FAIXA DA TURMA, PROJECTADA NA RAIZ (25/11/2026). O `.conf` é o que o gerador lê — `DURACOES`,
    * `FREQUENCIA`, a faixa de volume da Regra 9 e o número total de aulas saem todos daqui. Ler a
    * raiz de uma Sala com duas faixas daria um plano com a duração e os dias da OUTRA faixa, e o
@@ -180,7 +180,28 @@ function comporConf({ turma, faixa, plano, identidade, escola, ciclo: numeroDoCi
    * no dia em que uma delas mudasse.
    */
   const nomeDaTurma = String(turma.nome || id);
-  const variante = varianteDoContexto({ escola, turma: nomeDaTurma });
+  /* A VARIANTE QUE NOMEIA O FICHEIRO VENCE — E A FALTA DISTO CRIOU DOIS NOMES PARA UM CICLO
+   * (26/11/2026).
+   *
+   * O QUE ACONTECEU, medido no repositório dela. A Sala «Piano» ganhou uma segunda faixa, e a
+   * regra de §9.6 do PLANO-DE-OCUPACAO — que é a decidida — passou a compor
+   * `breu-piano-bale-classico`. O `escrever-plano` compôs o CAMINHO com essa variante (vem do
+   * contexto, campo `variante`) e este módulo compôs o CONTEÚDO sem ela, a partir do nome da
+   * turma («Piano» → `breu-piano`). O ficheiro ficou
+   * `ciclo-01-breu-piano-bale-classico.conf` a declarar `VARIANTE="breu-piano"`:
+   *
+   *   · o gerador lê o `.conf` pela variante do NOME (o `gerar-ciclo.sh` procura
+   *     `ciclo-NN-<variante>.conf`), e recebe de lá uma variante que não é a dele — o pacote foi
+   *     para `ciclo-01-breu-piano/`, a pasta da variante antiga;
+   *   · e `caminhoDoConf`, `caminhoDoPlano`, `hash-ciclo.sh`, a pasta do pacote e a âncora `.fipp`
+   *     passaram a ter duas respostas para o mesmo ciclo.
+   *
+   * A REGRA QUE FICA: quem compõe o NOME passa-o. Dois sítios a derivar a mesma identidade
+   * divergem no dia em que um deles muda — e é o mesmo defeito que o comentário acima já tinha
+   * fechado uma vez, entre o id e o nome. A derivação a partir da turma continua a ser a reserva,
+   * para quem chama sem variante (bancadas, adaptadores antigos).
+   */
+  const variante = slugificar(variantePedida) || varianteDoContexto({ escola, turma: nomeDaTurma });
 
   // O CONTEÚDO vem do plano — é o único campo que ele manda aqui. Ausente, fica a lacuna
   // declarada: nunca um texto inventado.

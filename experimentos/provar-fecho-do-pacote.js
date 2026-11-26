@@ -635,6 +635,115 @@ const CONTEXTO = {
   }
 
   // ==========================================================================
+  console.log('\nI. O DISPARO NÃO SE TENTA QUANDO NÃO CABE — E O FECHO É DECLARADO (26/11/2026)');
+  /*
+   * O DEFEITO, MEDIDO NO AR. No ciclo 2 da `breu`, a invocação gravou o `.conf`
+   * (commit `b93b9bf1`), o escritor RECUSOU as fontes por orçamento, e a guarda
+   * `fontesDoCicloProntas` disse «prontas» — porque olhava só para os campos (`conf`, `docs`,
+   * `cifrado`, `escritas`) e a recusa não escreve nenhum deles: devolve
+   * `{ok:false, motivo:'orcamento', escritas:[], puladas:[]}`. Logo, DISPARO. E o disparo é o
+   * ÚLTIMO subpedido de uma invocação já no teto: não há folga de um, há zero. O que ficou no
+   * registo da geração foi a frase do Cloudflare, a substituir a nossa — que tinha os números e
+   * dizia qual era o passo. E o Actions confirma o desfecho: nenhuma execução de «Gerar o ciclo»
+   * depois das 18:00, e o ciclo 2 por existir.
+   *
+   * AS TRÊS COISAS QUE ESTA SECÇÃO MEDE, e cada uma cai sozinha:
+   *   1. a guarda lê o `ok` do topo (sem isso, dispara sobre uma recusa);
+   *   2. o disparo não é tentado (o espião conta zero);
+   *   3. o servidor DECLARA a segunda passagem, com a turma — é o que a tela precisa para pedir.
+   * E o CONTROLO NEGATIVO: um disparo que falha por outro motivo (HTTP 403) NÃO a declara — sem
+   * ele, a página pediria uma segunda invocação para receber a mesma recusa.
+   */
+  {
+    const { criarConcluirPO } = require(path.join(RAIZ, 'motor/servidor/concluir-po.js'));
+    const { fontesDoCicloProntas } = require(path.join(RAIZ, 'motor/servidor/geracao.js'));
+
+    /* O relatório na forma EXACTA da recusa por orçamento — a mesma que o escritor devolve. */
+    const RECUSA = () => ({
+      ok: false, motivo: 'orcamento',
+      erro: orcamentoDeProva().motivo(18),
+      escritas: [], puladas: [], elos: [], conf: null, docs: null, schema: null,
+    });
+    /* A FRASE É A DO `subpedidos.js`, e não uma escrita à mão: é ela que a tela mostra. */
+    const orcamentoDeProva = () => contarSubpedidos(async () => ({ ok: true }), 50).subpedidos;
+
+    const SEM_PLANO = {
+      lerEnvelope: async () => null,
+      nomesDeEnvelopes: async () => [],
+      lerArquivo: async () => null,
+      turmaDoEnvelope: () => null,
+    };
+
+    const correr = async ({ cicloDevolve, disparo }) => {
+      const visto = { disparou: 0 };
+      const concluir = criarConcluirPO({
+        armazenamento: criarMemoria(), porta: SEM_PLANO,
+        escreverPO: async () => ({ ok: true }),
+        escreverCiclo: async () => cicloDevolve(),
+        disparar: async () => { visto.disparou += 1; return disparo(); },
+        geracao: null,
+        fontesDoCicloProntas,
+        linhaDeBaseDaTurma: async () => null,
+        anamnesesDaTurma: async () => [],
+        conteudoPO: ler('po/conteudo/po.json'),
+      });
+      const saida = await concluir(
+        { id: 'po-de-prova', respostas: {} },
+        { escola: ESCOLA, professor: 'demi-plie', ciclo: '01', turma: TURMA });
+      return { saida, visto };
+    };
+
+    // — 1. A GUARDA. O `ok` do topo conta.
+    provar('a guarda diz que as fontes NÃO estão prontas quando o relatório se reprova',
+      fontesDoCicloProntas({ ok: false, motivo: 'orcamento', escritas: [], puladas: [] }) === false);
+    provar('…e continua a dizer que estão quando o relatório é o de sucesso (sem `ok`)',
+      fontesDoCicloProntas({ conf: { ok: true }, escritas: [{ ok: true }], puladas: [] }) === true);
+
+    // — 2. O DISPARO NÃO É TENTADO, e o motivo é o NOSSO, não o do Cloudflare.
+    const recusa = await correr({
+      cicloDevolve: RECUSA,
+      disparo: () => ({ ok: true }),
+    });
+    provar('com a recusa por orçamento, o disparo NÃO é tentado', recusa.visto.disparou === 0,
+      { tentou: recusa.visto.disparou });
+    provar('…e o veredito diz que não se disparou, em vez de deixar o campo vazio',
+      Boolean(recusa.saida.disparo && recusa.saida.disparo.naoDisparado === true), recusa.saida.disparo);
+    provar('…e a frase que chega é a NOSSA, com os números do orçamento',
+      /subpedidos/.test(String(recusa.saida.disparo.erro || '')), recusa.saida.disparo.erro);
+    provar('…e NÃO a frase crua do Cloudflare',
+      !/too many subrequests/i.test(String(recusa.saida.disparo.erro || '')),
+      recusa.saida.disparo.erro);
+
+    // — 3. A DECLARAÇÃO, com a turma que o fecho precisa.
+    provar('…e o servidor declara a segunda passagem', Boolean(recusa.saida.fecharPacote),
+      recusa.saida.fecharPacote);
+    provar('…nomeando a TURMA', (recusa.saida.fecharPacote || {}).turmas
+      && recusa.saida.fecharPacote.turmas[0] === TURMA, recusa.saida.fecharPacote);
+    provar('…e levando o motivo, para a tela poder dizê-lo', Boolean((recusa.saida.fecharPacote || {}).motivo),
+      recusa.saida.fecharPacote);
+
+    // — 4. O MESMO, quando as fontes entram e o disparo morre NO RUNTIME (o caso de 26/11).
+    const estourou = await correr({
+      cicloDevolve: () => ({ conf: { ok: true }, escritas: [{ ok: true, caminho: 'x' }], puladas: [] }),
+      disparo: () => { throw new Error('Too many subrequests by single Worker invocation.'); },
+    });
+    provar('com as fontes gravadas e o disparo estourado no teto, o disparo foi tentado UMA vez',
+      estourou.visto.disparou === 1, { tentou: estourou.visto.disparou });
+    provar('…e mesmo assim a segunda passagem é declarada', Boolean(estourou.saida.fecharPacote),
+      estourou.saida.fecharPacote);
+
+    // — 5. O CONTROLO NEGATIVO: uma recusa que NÃO é de orçamento não se declara.
+    const outra = await correr({
+      cicloDevolve: () => ({ conf: { ok: true }, escritas: [{ ok: true, caminho: 'x' }], puladas: [] }),
+      disparo: () => ({ ok: false, status: 403, erro: 'o GitHub recusou o disparo (HTTP 403)' }),
+    });
+    provar('um disparo recusado por permissão NÃO pede uma segunda passagem',
+      !outra.saida.fecharPacote, outra.saida.fecharPacote);
+    provar('…e o motivo continua a chegar à tela (a correcção não engoliu o erro)',
+      /403/.test(String(outra.saida.disparo.erro || '')), outra.saida.disparo);
+  }
+
+  // ==========================================================================
   console.log('');
   if (falhas) {
     console.log('FALHARAM ' + falhas + ' de ' + provas + ' asserções.');

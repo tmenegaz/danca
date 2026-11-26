@@ -64281,3 +64281,111 @@ vocabulário dessa lista **1** · ignorar o tipo declarado (voltar ao `marca` fi
 
 `tools/validar-dados-ciclo.js` (`conferirItens` recebe os tipos; o `tipoDoItem` decide o domínio),
 `experimentos/provar-o-envio-da-aula.js` (§8), `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+## «Mandei criar a aula 2 e não gerou» — a ordem de partir nunca saiu *(26/11/2026)*
+
+**O relato:** «Eu acessei o ciclo, mandei fazer a aula 2 e não gerou. […] rodei a pipe no workflow e
+não tem a aula 2 criada. […] eu fiz um ajuste no Batman GT […] e mesmo assim não deu certo.»
+
+O ajuste do Battement jeté não tem culpa nenhuma. O que faltava não era um documento: era a **ordem
+de gerar**, que morreu dentro do Worker antes de sair.
+
+### O que o Actions diz, e é decisivo
+
+O `gerar-ciclo.yml` tem uma execução às 18:00:10 (`0af5bf99`) — a do lançamento da aula 1 —, e
+**nenhuma depois**. As execuções que ela viu a correr no separador Actions são «Publicar o sistema» e
+«Fechar os derivados», ambas disparadas por `push`. O workflow que gera o ciclo nunca arrancou para a
+aula 2.
+
+### O que o registo da geração dizia, e porque mentia
+
+Na chave `bastidores/breu/geracao/breu-piano` (lida com `--remote`) ficou:
+
+```json
+{"em":"2026-11-26T18:48:12.880Z","rotulo":"Gerar o ciclo · demi-plie/01/breu-piano",
+ "escritas":0,"puladas":0,"documentos":[],
+ "disparo":{"ok":false,"erro":"Too many subrequests by single Worker invocation. …"}}
+```
+
+`escritas: 0` e `documentos: []` dizem o que aconteceu antes do disparo: **o escritor recusou-se a
+começar**, porque a invocação já tinha gastado o teto de 50 subpedidos. O `.conf` da variante já
+estava gravado (commit `b93b9bf1`), as fontes do ciclo não. O disparo era o passo seguinte — e falhou.
+
+**A frase do Cloudflare no campo `disparo` é o defeito de leitura.** Ela descreve o sintoma («gastou
+o teto») no lugar do motivo («não cabia escrever o ciclo»), e aponta para a infraestrutura quando o
+que havia era uma recusa nossa, com números, guardada em `ciclo.erro`.
+
+### A causa: uma guarda que olhava para os campos e não para o veredicto
+
+`fontesDoCicloProntas` decide se o disparo pode partir. Olhava para `conf`, `docs`, `cifrado` e para
+cada `escritas[]`. Mas o escritor, para dizer «não comecei», não escreve **nenhum** campo desses —
+devolve `{ok:false, motivo:'orcamento', erro:<a frase>, escritas:[], puladas:[]}`. Todos os campos que
+a guarda consultava estavam ausentes ou vazios, logo «prontas», logo **disparo**.
+
+E o disparo é o ÚLTIMO subpedido de uma invocação já no teto: não há folga de um, há zero. O
+`ok` do topo nunca era lido. É a mesma família de erro que a `cadeia.js` já tinha documentado em
+`concluirPacote` («o relatório do escritor não tem `ok` no topo») — a lição estava escrita, e a guarda
+não a aplicava.
+
+### O segundo defeito: o servidor sabia, e não dizia
+
+O caminho para o teto não travar o trabalho **já existia** desde 10/11/2026: `POST
+/api/bastidores/cadeia-pacote` corre só o fecho, numa invocação própria, com os 50 subpedidos
+inteiros. O registo da cadeia da `breu` mostra-o a funcionar: às 09:27:21 uma travessia de
+`mudanca-de-sala` estourou o teto, e às 09:27:44 o `fechar-o-pacote` fechou.
+
+O que faltava era o **servidor declarar** que a segunda passagem era precisa, em cada sítio onde o
+teto morde — e não só no «Guardar» do plano de observação. A `cadeia.executar` recusa começar quando
+não há folga (`orcamento: true`) e sabia dizê-lo; não pedia o fecho. O `concluirPacote` descartava o
+campo que o `concluirPO` escrevia, porque tem forma de retorno própria. E a tela (`geracao-cliente.js`)
+só escutava esse campo nas respostas de `api/elicitar` — o teto não é do «Guardar».
+
+### O terceiro, que já vinha de trás: o `.conf` com dois nomes
+
+A Sala «Piano» ganhou uma segunda faixa (17:00, 70 min), e a regra de §9.6 do
+`PLANO-DE-OCUPACAO.md` compôs `breu-piano-bale-classico`. O `escrever-plano` nomeou o **caminho** com
+ela e o `comporConf` compôs o **conteúdo** a partir do nome da turma:
+
+```
+professores/demi-plie/ciclos/ciclo-01-breu-piano-bale-classico.conf
+VARIANTE="breu-piano"                       ← outra identidade
+```
+
+O `gerar-ciclo.sh` lê o `.conf` pela variante do NOME e recebe de lá outra. Duas identidades no mesmo
+ficheiro, e o pacote iria para a pasta da variante antiga.
+
+### O que passou a valer
+
+| correcção | onde |
+|:--|:--|
+| a guarda lê o `ok` do topo do relatório | `motor/servidor/geracao.js` |
+| o disparo que não coube é **declarado**, e não tentado | `motor/servidor/concluir-po.js` |
+| a declaração sobe ao topo da resposta da cadeia | `motor/servidor/cadeia.js` |
+| a rota devolve a declaração | `motor/servidor/bastidores.js` |
+| a tela pede o fecho por QUALQUER resposta que o declare, uma vez por página | `motor/servidor/geracao-cliente.js` |
+| a variante que nomeia o ficheiro vence a que se derivaria da turma | `motor/servidor/compor-conf.js` |
+
+### As provas
+
+`provar-fecho-do-pacote` ganhou a **§I** (57 → **70** asserções): a guarda, o disparo não tentado, a
+frase certa em vez da do Cloudflare, a declaração com a turma, o mesmo quando o estouro é do runtime,
+e o **controlo negativo** — um disparo recusado por permissão (HTTP 403) **não** pede segunda
+passagem, senão a página pediria uma invocação nova para receber a mesma recusa.
+
+**Três mutações, três quedas:** a guarda volta a ignorar o `ok` **7** · o `concluirPO` deixa de
+declarar **4** · declara sempre, mesmo sem ser orçamento **1**.
+
+`provar-a-variante-da-faixa` ganhou a **§H** (36 → **41**): com a variante pedida o conteúdo é o mesmo
+que nomeia o ficheiro, sem variante a derivação da turma continua a valer (a reserva não se perdeu), e
+uma variante com acento e travessão slugifica pela mesma regra do nome. **Três mutações:** ignorar a
+variante pedida **3** · aceitá-la em cru **1** · exigir a variante **1**.
+
+**Um erro meu, apanhado pela bateria:** ao passar a ler o corpo de toda resposta, o cartão lia o corpo
+**original** quando não havia `clone` — e uma `Response` só se consome uma vez. `provar-geracao` caiu
+(«o salto para a página da escola»). A correcção é a regra: **sem `clone`, não se lê**. O duplo da
+prova também estava mentiroso (devolvia o mesmo objeto a cada `json()`, e o `clone` devolvia o corpo
+seguinte da fila) e passou a modelar uma `Response` a sério.
+
+### O que a prova da bateria mediu
+
+300 provas, **208 verdes**, 92 conhecidas, **0 regressões**.

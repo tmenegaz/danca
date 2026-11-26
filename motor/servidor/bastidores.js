@@ -30467,6 +30467,11 @@ function parDaFaixa(sala, id) {
         ok: Boolean(r.ok),
         cadeia: montarEstadoDaCadeia(cadeia, contexto, r),
         erro: r.erro || null,
+        /* A SEGUNDA PASSAGEM VAI NA RESPOSTA DA ROTA (26/11/2026). A cadeia sabe quando o disparo
+         * não coube e diz-o; a tela lê o corpo da resposta inteira e pede o fecho à
+         * `/api/bastidores/cadeia-pacote`. Sem esta linha o campo morria dentro do estado da
+         * cadeia, que é uma forma curada — e o ciclo 2 da `breu` nunca foi gerado. */
+        fecharPacote: r.fecharPacote || null,
       });
     } catch (erro) {
       return json(200, { ok: false, erro: erro && erro.message ? erro.message : String(erro) });

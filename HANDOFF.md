@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-26T15:38:43-0300`
-Commit atual: `5b96c174` — chore(estrutura): fechar os derivados — âncoras e índices
+Gerado em: `2026-11-26T16:26:16-0300`
+Commit atual: `0c4819f5` — chore(estrutura): fechar os derivados — âncoras e índices
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -65,7 +65,7 @@ ramona-pires
 redinha-rosa
 rimel-preto
 sapatilha-de-ponta (16)
-- **Ciclos com manifesto:** 3 variante(s)
+- **Ciclos com manifesto:** 4 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -83,6 +83,15 @@ sapatilha-de-ponta (16)
 ## Últimos commits
 
 ```
+0c4819f5 chore(estrutura): fechar os derivados — âncoras e índices
+0191124f feat(acervo): envelope/po-20261126-1548.json
+1cdceb78 feat(acervo): envelope/.indice.json
+b93b9bf1 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+808f9530 feat(plano): o plano elicitado vira a fonte do ciclo
+16188085 feat(acervo): envelope/plano-20261126-1547.json
+38124249 feat(acervo): envelope/.indice.json
+d027be67 fix(estrutura): o «Enviar» abre o ciclo, e o validador aceita a régua na linha de base
+e2517cc4 docs(notacao): editar «Battement jeté» (8|2/4) no alfabeto bale-classico — ajuste: a versão anterior (até 2026-11-26) fica no histórico
 5b96c174 chore(estrutura): fechar os derivados — âncoras e índices
 16da54ae chore(entrega): gerar o pacote de demi-plie/01/breu-piano
 0af5bf99 feat(lancamento): a aula 01 de breu/demi-plie/breu-piano
@@ -94,15 +103,6 @@ e7c4e11d fix(estrutura): o «Enviar» da aula enviava nada, e não dizia nada
 0f379a12 docs(estrutura): o campo de horas do consultor saiu, e a razão é jurídica
 c8000e27 audit(estrutura): o Q7 e o Q8 do plano do consultor, agora medidos
 f6ecb866 docs(estrutura): o guiao do consultor, e as cinco fases fechadas
-1f2ab2dd fix(estrutura): o marcar recebido nao gravava, e nao dizia porquê
-0603b0be feat(estrutura): o livro dos R$ 10, e o que nao se cobra
-840b83d6 feat(acervo): envelope/.indice.json
-8b0cc471 feat(estrutura): criar a escola clablun (motor completo)
-f6b363ff fix(estrutura): o formulario do link nao criava a escola, e nao dizia porquê
-21328b50 fix(estrutura): o link que nasceu antes do indice abre, e o indice cura-se
-e0156ead feat(estrutura): a escola que nasce de um link
-e62d135e feat(estrutura): o endereco do consultor e o link de cada visita
-0479255e feat(estrutura): o cadastro do consultor, e o que ele nao abre
 ```
 
 ## Por professor
@@ -119,17 +119,19 @@ e62d135e feat(estrutura): o endereco do consultor e o link de cada visita
 
 ### demi-plie — 1 ciclo(s)
 
-**Ciclo 01** — variante(s): breu, breu-piano
+**Ciclo 01** — variante(s): breu, breu-piano, breu-piano-bale-classico
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
 | breu | (sem PO) | — | — |
 | breu | ciclo-01-breu-piano-po.md | Input_PO_Validado | 1 |
+| breu-piano-bale-classico | (sem PO) | — | — |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `e81a3e1cf08c` | (vazio) | — |
 | breu-piano | ciclo-01-breu-piano.fipp | `16aab9dc6676` | (vazio) | Input_PO_Validado |
+| breu-piano-bale-classico | ciclo-01-breu-piano-bale-classico.fipp | `b4474a58d149` | (vazio) | — |
 
 ### fernando-franciose — 0 ciclo(s)
 
@@ -208,213 +210,113 @@ e62d135e feat(estrutura): o endereco do consultor e o link de cada visita
 
 ## Última entrada do REGISTRO
 
-## «Tentei com 123 e também não deu» — não era a senha *(26/11/2026)*
+## «Mandei criar a aula 2 e não gerou» — a ordem de partir nunca saiu *(26/11/2026)*
 
-**O relato:** «Tentei usar a senha 2805 e não deu certo: "senha não reconhecida". Depois tentei com
-123. Também não deu certo.»
+**O relato:** «Eu acessei o ciclo, mandei fazer a aula 2 e não gerou. […] rodei a pipe no workflow e
+não tem a aula 2 criada. […] eu fiz um ajuste no Batman GT […] e mesmo assim não deu certo.»
 
-**Medido, e a senha não tem culpa.** Sem tocar no que estava gravado:
+O ajuste do Battement jeté não tem culpa nenhuma. O que faltava não era um documento: era a **ordem
+de gerar**, que morreu dentro do Worker antes de sair.
 
-| sonda | 2805 | 123 |
-|:--|:--|:--|
-| `POST /api/receber` | «senha não reconhecida» | **passa** («nenhum arquivo no pedido» é a resposta *depois* da senha) |
-| `POST /api/dados` (abrir o ciclo) | «senha não reconhecida» | **`ok: true`, com o texto em claro** |
+### O que o Actions diz, e é decisivo
 
-**E a aula 1 já estava gravada** — os dois commits de lançamento em `origin/main` são
-`d3dd9c8a` e `0af5bf99`, às **15:00:06 e 15:00:08**: os dois cliques dela. O envio funcionou. Foi o
-que veio *depois* que ficou preso.
+O `gerar-ciclo.yml` tem uma execução às 18:00:10 (`0af5bf99`) — a do lançamento da aula 1 —, e
+**nenhuma depois**. As execuções que ela viu a correr no separador Actions são «Publicar o sistema» e
+«Fechar os derivados», ambas disparadas por `push`. O workflow que gera o ciclo nunca arrancou para a
+aula 2.
 
-### O que veio depois — e é um estado novo, criado pelo próprio lançamento
+### O que o registo da geração dizia, e porque mentia
 
-Enquanto o ciclo tinha `lancamentos: 0`, a página abria-o **sem pedir senha** e devolvia a estrutura
-vazia. Assim que a aula 1 entrou, o ficheiro passou a dizer `lancamentos: 1`, e o ciclo passou a
-**exigir a senha para abrir** — o que é o desenho certo (é ele que protege o que está lá dentro).
+Na chave `bastidores/breu/geracao/breu-piano` (lida com `--remote`) ficou:
 
-O que não estava certo é o que a página fazia com isso:
-
-```
-O ciclo escolhido ainda não está aberto
-— digite a senha no alto da página e clique em Abrir.
+```json
+{"em":"2026-11-26T18:48:12.880Z","rotulo":"Gerar o ciclo · demi-plie/01/breu-piano",
+ "escritas":0,"puladas":0,"documentos":[],
+ "disparo":{"ok":false,"erro":"Too many subrequests by single Worker invocation. …"}}
 ```
 
-Ela escreveu a senha — **a certa** — no campo e carregou em **Enviar**. A mensagem mandou-a para
-outro botão, três ecrãs acima. Quem lê «digite a senha» com a senha digitada à frente conclui que o
-sistema não a aceita, e vai procurar outra. Foi exactamente o que ela fez: 2805, depois 123.
+`escritas: 0` e `documentos: []` dizem o que aconteceu antes do disparo: **o escritor recusou-se a
+começar**, porque a invocação já tinha gastado o teto de 50 subpedidos. O `.conf` da variante já
+estava gravado (commit `b93b9bf1`), as fontes do ciclo não. O disparo era o passo seguinte — e falhou.
 
-**A mensagem estava certa e era inútil.** O campo já tinha o que ela pedia.
+**A frase do Cloudflare no campo `disparo` é o defeito de leitura.** Ela descreve o sintoma («gastou
+o teto») no lugar do motivo («não cabia escrever o ciclo»), e aponta para a infraestrutura quando o
+que havia era uma recusa nossa, com números, guardada em `ciclo.erro`.
 
-### A correcção é o gesto, não a frase
+### A causa: uma guarda que olhava para os campos e não para o veredicto
 
-O **Enviar** passou a **abrir o ciclo com a senha que está no campo** e a seguir. É o mesmo acto — a
-senha autoriza a gravação — e é o botão que a pessoa já carregou. Uma regra que existe para poupar um
-clique não se cumpre a pedir dois.
+`fontesDoCicloProntas` decide se o disparo pode partir. Olhava para `conf`, `docs`, `cifrado` e para
+cada `escritas[]`. Mas o escritor, para dizer «não comecei», não escreve **nenhum** campo desses —
+devolve `{ok:false, motivo:'orcamento', erro:<a frase>, escritas:[], puladas:[]}`. Todos os campos que
+a guarda consultava estavam ausentes ou vazios, logo «prontas», logo **disparo**.
 
-E abrir revelou um segundo estado sem saída: **o painel de captura desaparece** para a aula já
-lançada (é o comportamento certo) e não ficava nada a dizer onde está o trabalho. Quem quer lançar a
-aula 2 ficava em modo de leitura. Agora o filtro avança para a **primeira aula sem dado** e **diz
-que avançou**.
+E o disparo é o ÚLTIMO subpedido de uma invocação já no teto: não há folga de um, há zero. O
+`ok` do topo nunca era lido. É a mesma família de erro que a `cadeia.js` já tinha documentado em
+`concluirPacote` («o relatório do escritor não tem `ok` no topo») — a lição estava escrita, e a guarda
+não a aplicava.
 
-### Os três becos que a prova encontrou, e que eu não tinha previsto
+### O segundo defeito: o servidor sabia, e não dizia
 
-Escrever a correcção revelou três defeitos que só existem neste caminho novo:
+O caminho para o teto não travar o trabalho **já existia** desde 10/11/2026: `POST
+/api/bastidores/cadeia-pacote` corre só o fecho, numa invocação própria, com os 50 subpedidos
+inteiros. O registo da cadeia da `breu` mostra-o a funcionar: às 09:27:21 uma travessia de
+`mudanca-de-sala` estourou o teto, e às 09:27:44 o `fechar-o-pacote` fechou.
 
-1. **`sel.aula.value = '02'` num `<select>` que ainda só tem «(todas)».** As opções nascem de
-   `opcoes()`, que corre no `trocarCiclo` — e o ciclo aqui abriu *por dentro* do Enviar, sem passar
-   por lá. O valor não existe, o browser descarta-o, e **o filtro ficava vazio**. Corrigido chamando
-   `opcoes()` antes de escolher.
-2. **Escolher à mão a aula 01 (já lançada) e carregar em Enviar** dava «não enviei: **falta o ânimo
-   (1-5), o interesse (1-5), a harmonia (1-5), o que aconteceu de novo, a marca do «surpreendeu?»**»
-   — sobre um ecrã que **não tem nenhum desses campos**. Uma lista de faltas que não se podem
-   preencher é o mesmo silêncio de antes, com mais palavras. Há agora uma guarda que diz o que se
-   passa e nomeia as duas saídas (outra aula, ou «Ajustar lançamento»).
-3. **O botão Enviar dentro de um acordeão fechado.** A mensagem de «não está aberto» fica dentro do
-   painel, e o botão que a resolve também — mas o acordeão ficava fechado, e o gesto pedido estava
-   escondido. Passa a abrir nesse estado.
+O que faltava era o **servidor declarar** que a segunda passagem era precisa, em cada sítio onde o
+teto morde — e não só no «Guardar» do plano de observação. A `cadeia.executar` recusa começar quando
+não há folga (`orcamento: true`) e sabia dizê-lo; não pedia o fecho. O `concluirPacote` descartava o
+campo que o `concluirPO` escrevia, porque tem forma de retorno própria. E a tela (`geracao-cliente.js`)
+só escutava esse campo nas respostas de `api/elicitar` — o teto não é do «Guardar».
 
-**E uma coisa que se decidiu não fazer:** quando a aula escolhida já tem dado, o filtro **não se move
-sozinho**. Quem escolheu a aula 01 pode querer lê-la; mexer-lhe no filtro por cima de uma escolha
-deliberada é o mesmo defeito com o sinal trocado. A prova afirma-o.
+### O terceiro, que já vinha de trás: o `.conf` com dois nomes
 
-### A prova
+A Sala «Piano» ganhou uma segunda faixa (17:00, 70 min), e a regra de §9.6 do
+`PLANO-DE-OCUPACAO.md` compôs `breu-piano-bale-classico`. O `escrever-plano` nomeou o **caminho** com
+ela e o `comporConf` compôs o **conteúdo** a partir do nome da turma:
 
-`provar-o-envio-da-aula` ganhou as **§6** e **§7** (22 → **41** asserções). O ficheiro servido passa a
-ser o que o pacote serve **depois do primeiro lançamento** — cifrado e com `lancamentos` > 0, com um
-`/api/dados` de bancada que confere a senha e devolve o texto, como o Worker faz. É isso que torna o
-estado «ciclo por abrir» representável sem um Cloudflare à frente.
+```
+professores/demi-plie/ciclos/ciclo-01-breu-piano-bale-classico.conf
+VARIANTE="breu-piano"                       ← outra identidade
+```
 
-**Sete mutações, todas caem** — as três primeiras já existiam:
+O `gerar-ciclo.sh` lê o `.conf` pela variante do NOME e recebe de lá outra. Duas identidades no mesmo
+ficheiro, e o pacote iria para a pasta da variante antiga.
 
-| mutação | quedas |
+### O que passou a valer
+
+| correcção | onde |
 |:--|:--|
-| o defeito do `tipoDaColuna`, reposto | 10 |
-| a reposição dos rádios sai | 10 |
-| `prefixoDaRaizDoPacote` volta a `''` | 1 |
-| **o Enviar volta a não abrir o ciclo** (o defeito de hoje) | **13** |
-| **sem a guarda do painel** (a lista de faltas impossíveis) | 1 |
-| **sem o `opcoes()` antes de escolher** | 8 |
-| **o acordeão fechado neste estado** | 1 |
+| a guarda lê o `ok` do topo do relatório | `motor/servidor/geracao.js` |
+| o disparo que não coube é **declarado**, e não tentado | `motor/servidor/concluir-po.js` |
+| a declaração sobe ao topo da resposta da cadeia | `motor/servidor/cadeia.js` |
+| a rota devolve a declaração | `motor/servidor/bastidores.js` |
+| a tela pede o fecho por QUALQUER resposta que o declare, uma vez por página | `motor/servidor/geracao-cliente.js` |
+| a variante que nomeia o ficheiro vence a que se derivaria da turma | `motor/servidor/compor-conf.js` |
 
-### Ao vivo, no sítio onde ela está
+### As provas
 
-A mesma sonda headless na página publicada, com a senha `123` e **um clique em Enviar**:
+`provar-fecho-do-pacote` ganhou a **§I** (57 → **70** asserções): a guarda, o disparo não tentado, a
+frase certa em vez da do Cloudflare, a declaração com a turma, o mesmo quando o estouro é do runtime,
+e o **controlo negativo** — um disparo recusado por permissão (HTTP 403) **não** pede segunda
+passagem, senão a página pediria uma invocação nova para receber a mesma recusa.
 
-```
-aviso:  «O ciclo abriu. O filtro passou para a aula 02, que é a primeira sem dado
-         — preencha-a e carregue em Enviar.»
-filtro: aula 02   ·   painel: «Lançando a aula 02 (ainda sem dado, campos em branco)»
-pedidos: /api/dados 200 · /api/lancadas 200   ·   pageerror: nenhum
-```
+**Três mutações, três quedas:** a guarda volta a ignorar o `ok` **7** · o `concluirPO` deixa de
+declarar **4** · declara sempre, mesmo sem ser orçamento **1**.
 
-Sem gravar nada — o `POST /api/receber` foi interceptado na sonda, porque o lançamento a sério é o
-acto dela.
+`provar-a-variante-da-faixa` ganhou a **§H** (36 → **41**): com a variante pedida o conteúdo é o mesmo
+que nomeia o ficheiro, sem variante a derivação da turma continua a valer (a reserva não se perdeu), e
+uma variante com acento e travessão slugifica pela mesma regra do nome. **Três mutações:** ignorar a
+variante pedida **3** · aceitá-la em cru **1** · exigir a variante **1**.
 
-### Onde entrou
+**Um erro meu, apanhado pela bateria:** ao passar a ler o corpo de toda resposta, o cartão lia o corpo
+**original** quando não havia `clone` — e uma `Response` só se consome uma vez. `provar-geracao` caiu
+(«o salto para a página da escola»). A correcção é a regra: **sem `clone`, não se lê**. O duplo da
+prova também estava mentiroso (devolvia o mesmo objeto a cada `json()`, e o `clone` devolvia o corpo
+seguinte da fila) e passou a modelar uma `Response` a sério.
 
-`tools/templates/lancamento.html` (o Enviar abre o ciclo, a guarda do painel, o avanço do filtro com
-`opcoes()`, a frase do estado por abrir, o acordeão),
-`professores/demi-plie/ciclos/ciclo-01-breu-piano/lancamento.html` (regerado),
-`experimentos/provar-o-envio-da-aula.js` (§6 e §7), `ESTADO-ATUAL.md`, `HANDOFF.md`.
+### O que a prova da bateria mediu
 
-### Duas notas do fecho desta correcção *(26/11/2026)*
-
-**1. Eu apaguei a `clablun` do ar durante alguns minutos, e o erro foi de comando.**
-
-Ao publicar a correcção usei `node tools/montar-publicacao.js breu` e depois `wrangler deploy -c
-wrangler.lastro-teste.jsonc`. O primeiro monta **uma** escola; o `wrangler deploy` substitui a versão
-inteira do Worker. A árvore subiu só com a `breu`, e a `clablun` — servida pelo mesmo shard — passou a
-responder **500** na anamnese e a página de «a escola está a nascer» na raiz. Detectado por
-`provar-ambiente` na bateria seguinte, e não por mim.
-
-O `publicar.yml` faz isto bem e diz porquê, no próprio comentário: num shard «monta-se o shard inteiro
-(`--shard`) e sobe-se a config do shard». O comando certo é
-`node tools/montar-publicacao.js --shard lastro-teste`. Restaurado no mesmo ciclo, com a página
-verificada (200 nas duas escolas).
-
-**2. E a montagem deixou a folha partilhada velha — um defeito real, que não era só meu.**
-
-O mesmo deploy revelou que `publicacao/assets/style.css` era de **23/11** enquanto as duas escolas já
-tinham a folha de **25/11**. O `garantirAssetsPartilhados` **não** actualiza a cópia quando ela
-diverge — e está certo que não o faça: uma folha própria é uma decisão legítima, e trocá-la em
-silêncio mudaria a cara de uma escola que ninguém abriu.
-
-O que faltava era a outra metade, e a documentação do próprio ficheiro prometia-a: «a pasta é
-reconstruída de zero». **Não era** — só a pasta de cada escola era apagada. Num checkout limpo do CI
-o problema não existe (a pasta nasce ali); numa máquina onde `publicacao/` já existe, a cópia velha
-sobrevive, a regra `!/assets/*` serve-a directo ao ASSETS, e a página publicada fica com uma folha que
-já não é a do repositório. Era isso que `provar-ambiente` media e reprovava: os bytes no ar contra os
-bytes da fonte.
-
-Corrigido no `montarShard`: a cópia partilhada é apagada antes de recomeçar e recriada da primeira
-escola montada. A regra de não unificar aparências fica intacta — o que muda é que a cópia deixa de
-poder ser a de ontem.
-
-**3. Uma prova que media o caso em vez da regra.**
-
-`provar-o-custo-da-consultoria` afirmava «nenhuma nasce lançada» **no índice do ciclo da breu**. Com a
-aula 01 lançada, a asserção passou a reprovar um facto verdadeiro: o ciclo já não é recém-nascido.
-Passou a medir a **derivação** — `lancada` é `true` exactamente para as aulas que o `-dados.json` da
-fonte tem —, que vale com zero, uma ou vinte e quatro aulas dadas, e é o que o §10.1-bis quer
-garantir: que o índice não diz uma coisa e a fonte outra. 53 → **54** asserções.
-
-### O validador recusava o lançamento que o servidor aceitou *(26/11/2026)*
-
-**Foi o `pre-commit` que o disse, e por isso a correcção não pôde ser adiada:**
-
-```
-refused — os dados do demi-plie/ciclo-01 (variante breu-piano) não satisfazem as regras do
-lançamento (§4.1, §4.3, §4.6).
-  - aula 01: linha_de_base.vava[0] 'Domina' não é marca do formulário (ok, parcial, nao, nao_vi ou vazio)
-  … (quatro)
-```
-
-**O dado estava certo; a regra é que estava atrasada.** A `linha_de_base` é a «revisita» da linha de
-base: uma lista por aluna, com uma marca por item do PO. E era a **única** coluna em que o validador
-ainda exigia as cinco marcas — enquanto a página, desde a decisão de 22/11 («**uma folha, uma
-régua**»), a desenha como `rubrica` sempre que a folha mede critérios pela régua da turma. Níveis
-como «Domina» ou «Satisfatório» passaram a ser legítimos, a página ofereceu-os, ela escolheu-os — e o
-validador do próprio repositório recusou-os.
-
-**O pior desfecho possível tinha acontecido:** o servidor aceitou, gravou e publicou; o validador
-recusou o mesmo registo. Um sistema que diz duas coisas sobre o mesmo dado, e a que chega por último —
-o `pre-commit`, dias depois — é a que bloqueia o trabalho.
-
-**A correcção é alinhar o validador com a decisão que já existia**, e não inventar uma: o
-`conferirItens` passa a receber o `tipo` que a captura da aula declara para a coluna, como o
-`conferirBlocos` já fazia desde 06/11. `rubrica` e `texto` são de **domínio aberto** — quem os declara
-é a escola —, e a `marca` continua fechada. Sem a captura (escola que ainda não gerou o pacote), vale
-o vocabulário de antes, e **nenhuma guarda antiga enfraquece**.
-
-### A prova, e os dois erros que ela apanhou em mim
-
-`provar-o-envio-da-aula` ganhou a **§8** (41 → **48** asserções). As duas metades que a tornam uma
-prova:
-
-| asserção | o que impede |
-|:--|:--|
-| o registo dela **passa** | é a que falhava |
-| o mesmo registo **sem a captura reprova** | que «alargar» fosse «desligar» — o vocabulário fechado continua a guardar |
-| numa lista declarada `marca`, um valor inventado **reprova** | o ramo certo: é o `conferirItens`, não o `conferirBlocos` |
-| a **mesma** lista declarada `rubrica` **aceita «Domina»** | a correcção, isolada |
-
-**Dois erros meus, os dois na prova:**
-
-1. Li só o `stdout` do validador para afirmar uma reprovação — e o validador escreve os erros em
-   `stderr`. O detalhe dizia «reprovou, como deve» e a asserção dizia que não. Um leitor que não lê o
-   canal onde a mensagem está é o mesmo defeito do `grep` que não encontra o que existe.
-2. A primeira versão do caso «marca inventada» usava uma coluna da folha **dela** — e todas são
-   `rubrica` (é a decisão de 22/11), portanto o valor foi, correctamente, aceite. E, ao trocar para
-   uma coluna `marca`, o caso caiu no `conferirBlocos` (bloco por pessoa) e **não** no
-   `conferirItens` — o ramo que eu tinha corrigido. Uma prova que só exercitasse esse caso passaria
-   com a correcção por medir. Foi a mutação que o disse: desligar o vocabulário do `conferirItens` não
-   fazia cair nada.
-
-**Três mutações, três quedas:** repor a exigência das marcas na lista por aluna **3** · desligar o
-vocabulário dessa lista **1** · ignorar o tipo declarado (voltar ao `marca` fixo) **3**.
-
-### Onde entrou
-
-`tools/validar-dados-ciclo.js` (`conferirItens` recebe os tipos; o `tipoDoItem` decide o domínio),
-`experimentos/provar-o-envio-da-aula.js` (§8), `ESTADO-ATUAL.md`, `HANDOFF.md`.
+300 provas, **208 verdes**, 92 conhecidas, **0 regressões**.
 
 ## O que está pendente
 

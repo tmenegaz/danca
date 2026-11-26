@@ -98,10 +98,33 @@ const NOMES_DOS_DOCUMENTOS = {
   'referencias': 'Referências',
 };
 
-/** O relatório do `escrever-ciclo.js` deixou as fontes prontas para gerar? */
+/**
+ * O relatório do `escrever-ciclo.js` deixou as fontes prontas para gerar?
+ *
+ * O `ok` DO TOPO CONTA, E NÃO CONTava (26/11/2026) — este é o defeito que fez o registo da geração
+ * mentir sobre a causa.
+ *
+ * A guarda olhava só para os CAMPOS (`conf`, `docs`, `cifrado`, cada `escrita`), e o escritor, para
+ * dizer «não comecei porque não caberia no orçamento», não escreve campo nenhum: devolve
+ * `{ok:false, motivo:'orcamento', erro:<a frase com os números>, escritas:[], puladas:[]}`. Todos
+ * os campos que a guarda olhava estavam ausentes ou vazios — logo «prontas», logo DISPARO.
+ *
+ * Medido no ar a 26/11/2026, no ciclo 2 da `breu`: a invocação gravou o `.conf` (commit
+ * `b93b9bf1`), o relatório do ciclo veio como recusa (`escritas: 0`), a guarda disse «prontas», o
+ * disparo saiu como o ÚLTIMO subpedido de uma invocação já no teto — e não saiu. O que ficou no
+ * registo foi `disparo.erro` = «Too many subrequests by single Worker invocation»: a frase do
+ * Cloudflare, sobre orçamento, a substituta da nossa, que tinha os números e dizia qual era o
+ * passo. E o Actions confirma: nenhuma execução de «Gerar o ciclo» depois das 18:00.
+ *
+ * `ok` só existe no relatório quando vale `false` (o sucesso não o escreve — é a nota que a
+ * `cadeia.js` já faz em `concluirPacote`), por isso a comparação é `=== false` e nunca `!r.ok`.
+ */
 function fontesDoCicloProntas(relatorio) {
   const r = relatorio;
   if (!r) return true; // sem escritor (modo local): não há o que bloquear
+  /* A RECUSA DO ESCRITOR, ANTES DE TUDO: quando o relatório se declara reprovado, nenhum dos
+   * campos abaixo é resposta — o trabalho não começou. */
+  if (r.ok === false) return false;
   if (r.conf && r.conf.ok === false) return false;
   if (r.docs && r.docs.ok === false) return false;
   if (r.cifrado && r.cifrado.ok === false) return false;

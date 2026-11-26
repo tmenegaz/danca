@@ -30,6 +30,10 @@
 const {
   rotulosDoChecklist, derivadosDoChecklist, obrigatoriosDoPO, derivarPO,
 } = require('../nucleo/derivar-po.js');
+/* A FRASE DO ORÇAMENTO RECONHECE-SE PELA MESMA RÉGUA EM TODOS OS SÍTIOS (26/11/2026): quem a
+ * escreve é o `subpedidos.js`, e comparar por aqui com um `indexOf` local voltaria a ter duas
+ * definições do mesmo facto — foi assim que o registo da geração passou a mentir. */
+const { ehOrcamento } = require('./subpedidos.js');
 
 /**
  * A FÁBRRICA. Recebe tudo o que o bloco usava do fecho da rota, para o corpo ficar igual ao que
@@ -219,6 +223,31 @@ function criarConcluirPO({
         } catch (erro) {
           saida.disparo = { ok: false, erro: erro.message };
         }
+      }
+    }
+
+    /* O PASSO QUE NÃO COUBE É DECLARADO, E NÃO TENTADO (26/11/2026).
+     *
+     * Quando a invocação já gastou o teto, o disparo é o ÚLTIMO subpedido — e é por isso que ele
+     * falha sempre: não há uma folga de um, há zero. Medido a 26/11/2026 na `breu`: o `.conf` foi
+     * gravado (`b93b9bf1`), o escritor recusou o resto por orçamento, e o disparo morreu com a
+     * frase do Cloudflare. O Actions não tem nenhuma execução de «Gerar o ciclo» depois das 18:00
+     * — o ciclo 2 não existiu porque a ordem de partir nunca saiu do Worker.
+     *
+     * A SEGUNDA INVOCAÇÃO JÁ EXISTE e é o caminho documentado (10/11/2026): `POST
+     * /api/bastidores/cadeia-pacote` corre só o fecho, com os 50 subpedidos inteiros. O que
+     * faltava era o servidor DIZER que ela é precisa — em cada sítio onde o teto morde, e não só
+     * no «Guardar» do PO. Quem pede é a tela (`geracao-cliente.js`), e só quando o campo vem.
+     *
+     * A DECLARAÇÃO NÃO SE REPETE: o `fecharPacotes` não a escreve (ele é o segundo passo), por
+     * isso não há laço possível. */
+    const recusaDoDisparo = saida.disparo && saida.disparo.ok === false;
+    if (recusaDoDisparo && ehOrcamento(saida.disparo.erro || saida.disparo.motivo)) {
+      /* SEM TURMA NÃO SE DECLARA UM PEDIDO ÀS CEGAS: `fecharPacotes` recusaria «nenhuma Turma
+       * corresponde a» e a tela iria buscar a mesma recusa numa segunda invocação. */
+      const turma = String((contexto && (contexto.turma || contexto['contexto-turma'])) || '').trim();
+      if (turma) {
+        saida.fecharPacote = { turmas: [turma], motivo: saida.disparo.erro || saida.disparo.motivo || null };
       }
     }
 

@@ -383,7 +383,17 @@ const SCRIPT = String.raw`(function () {
      * resposta o declarou (fecharPacote). Sem esse campo, nada acontece — e o comportamento
      * antigo fica exactamente como estava.
      */
+    /* UMA SEGUNDA PASSAGEM POR PÁGINA, E NÃO UMA POR RESPOSTA (26/11/2026).
+     *
+     * Enquanto a escuta do campo estava presa ao api/elicitar, uma resposta só podia declará-lo
+     * uma vez. Agora qualquer resposta pode — e a segunda invocação responde por uma rota que, se
+     * também não couber, volta a declarar. Sem esta trava, a página pediria o fecho em ciclo: cada
+     * pedido seria uma invocação nova, todas a falhar, e o cartão giraria para sempre. Uma vez
+     * pedido, o desfecho diz-se com o que veio. */
+    var jaPediuOFecho = false;
     function fecharEmOutraInvocacao(pedido) {
+      if (jaPediuOFecho) return;
+      jaPediuOFecho = true;
       try {
         montar();
         if (painel) painel.hidden = false;
@@ -427,18 +437,33 @@ const SCRIPT = String.raw`(function () {
         if (fecho) fecho.setAttribute('aria-busy', 'true');
         var promessa = fetchOriginal.apply(this, arguments);
         /* A SEGUNDA PASSAGEM, DECLARADA PELO SERVIDOR — ver fecharEmOutraInvocacao. O corpo é
-         * lido num clone: a porta continua a ler a resposta original, inteira e intocada. */
-        if (elicitar) {
-          promessa = promessa.then(function (r) {
-            try {
-              var copia = r.clone ? r.clone() : r;
-              Promise.resolve(copia.json()).then(function (dados) {
-                if (dados && dados.fecharPacote) fecharEmOutraInvocacao(dados.fecharPacote);
-              }, function () {});
-            } catch (e) { /* uma resposta que não é JSON não muda nada */ }
-            return r;
-          });
-        }
+         * lido num clone: a porta continua a ler a resposta original, inteira e intocada.
+         *
+         * O CAMPO fecharPacote VALE EM QUALQUER RESPOSTA, E NÃO SÓ NO «GUARDAR» DO PO
+         * (26/11/2026).
+         *
+         * Aqui a escuta estava presa ao api/elicitar, porque foi o primeiro sítio onde o teto
+         * mordeu (10/11/2026). O teto não é do «Guardar»: a 26/11/2026 mordeu na criação do ciclo
+         * 2 da breu, cuja resposta saiu por outra rota — o servidor declarou o fecho e a tela,
+         * que só olhava para um endereço, não perguntou nada. O ciclo nunca foi gerado, e do lado
+         * de fora o sintoma foi «mandei fazer a aula 2 e não gerou».
+         *
+         * Quem decide continua a ser o servidor: sem o campo, nada acontece. Ler o corpo de toda
+         * resposta custa um clone e um json — e o que se perde ao não ler é a única pista de que
+         * o trabalho parou a meio. */
+        promessa = promessa.then(function (r) {
+          try {
+            /* SEM clone, NÃO SE LÊ. O corpo de uma Response só se consome uma vez: ler o corpo
+             * ORIGINAL aqui deixaria a página sem o dele — a porta receberia uma resposta já
+             * gasta. O clone existe em todos os navegadores e no runtime do Worker; a guarda não
+             * é para o caso normal, é para que a leitura decorativa nunca coma a leitura real. */
+            if (!r || typeof r.clone !== 'function') return r;
+            Promise.resolve(r.clone().json()).then(function (dados) {
+              if (dados && dados.fecharPacote) fecharEmOutraInvocacao(dados.fecharPacote);
+            }, function () {});
+          } catch (e) { /* uma resposta que não é JSON não muda nada */ }
+          return r;
+        });
         if (!fecho) return promessa;
         var limpar = function () { fecho.removeAttribute('aria-busy'); };
         return promessa.then(function (r) { limpar(); return r; },

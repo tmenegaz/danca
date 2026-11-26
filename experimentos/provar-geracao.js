@@ -752,7 +752,21 @@ async function oRedirecionamento() {
     const win = dom.window;
     for (const [k, v] of Object.entries(sessao || {})) win.sessionStorage.setItem(k, v);
     const fila = respostas.slice();
-    win.fetch = async () => ({ ok: true, status: 200, json: async () => (fila.length > 1 ? fila.shift() : fila[0]) });
+    /* O CORPO É DE USO ÚNICO, COMO NUMA `Response` A SÉRIO (26/11/2026). Este duplo devolvia o
+     * mesmo objeto a cada `json()`, e o `clone()` ausente — combinado com um corpo que se podia
+     * ler duas vezes — escondia a diferença entre «leu o corpo» e «gastou o corpo». O cartão lê a
+     * resposta num clone para saber se o servidor declarou uma segunda passagem: se o duplo não
+     * tiver `clone`, a leitura tem de ser recusada, e é isso que aqui se modela. */
+    /* E O CORPO É ESCOLHIDO UMA VEZ, NA CRIAÇÃO DA RESPOSTA: um `clone` devolve uma CÓPIA do mesmo
+     * corpo, e não o corpo seguinte da fila. Foi a diferença que fez esta prova medir um cartão que
+     * lia a resposta errada. */
+    win.fetch = async () => {
+      const dados = fila.length > 1 ? fila.shift() : fila[0];
+      const corpo = () => ({ ok: true, status: 200, json: async () => dados });
+      const r = corpo();
+      r.clone = () => corpo();
+      return r;
+    };
     win.eval(SCRIPT_DO_CARTAO);
     return { dom, win, doc: win.document };
   }

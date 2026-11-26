@@ -211,4 +211,8 @@ function dicaDeAuth(status) {
 }
 
 module.exports = { escreverPO, criarEscritorDePO, caminhoDoPO, varianteDoContexto, varianteDaTurma,
-  dicaDeAuth, ACEITE, API_VERSAO };
+  dicaDeAuth, ACEITE, API_VERSAO,
+  /* O `slugificar` SAI PORQUE DEIXOU DE SER PRIVADO (26/11/2026). O `comporConf` passou a receber a
+   * variante que nomeia o ficheiro, e tem de a normalizar pela MESMA regra com que ela foi
+   * composta — uma segunda normalização escrita lá divergiria na primeira acentuação. */
+  slugificar };

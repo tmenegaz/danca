@@ -5982,7 +5982,25 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (26/11/2026 — a senha não era a senha)
+### Executado nesta fotografia (26/11/2026 — a aula 2, e a ordem de partir que nunca saiu)
+
+| Verificação | Resultado |
+|:--|:--|
+| as execuções do Actions, medidas na API | há **uma** execução de «Gerar o ciclo» às 18:00:10 (`0af5bf99`, a do lançamento da aula 1) e **nenhuma depois**. As que ela viu a correr são «Publicar o sistema» e «Fechar os derivados», de `push`. **O workflow da geração nunca arrancou para a aula 2** |
+| o registo da geração, lido com `--remote` | `bastidores/breu/geracao/breu-piano` → `escritas: 0`, `documentos: []`, `disparo.erro: "Too many subrequests by single Worker invocation"`. O `.conf` da variante já estava gravado (`b93b9bf1`); as fontes do ciclo, não. O disparo era o passo seguinte |
+| o que estava gravado na fonte | `-dados.json` com **aula 01** só, `ultimo_lancamento: 2026-11-26T15:00`. Nenhum ficheiro `aula-02` em nenhuma das variantes |
+| **a causa medida** | `fontesDoCicloProntas` consultava `conf`/`docs`/`cifrado`/`escritas[]`, e o escritor, para dizer «não comecei por orçamento», devolve `{ok:false, motivo:'orcamento', escritas:[], puladas:[]}` — **nenhum** desses campos. A guarda dizia «prontas» e disparava sobre uma recusa. O `ok` do topo nunca era lido |
+| **o segundo** | o servidor sabia e não dizia: a `cadeia.executar` recusa começar sem folga (`orcamento: true`) mas não pedia o fecho; o `concluirPacote` **descartava** o `fecharPacote` do `concluirPO` (tem forma de retorno própria); a tela só escutava o campo em `api/elicitar` — e o teto não é do «Guardar». O caminho para o teto não travar o trabalho já existia e funciona: às 09:27:21 a `mudanca-de-sala` estourou, às 09:27:44 o `fechar-o-pacote` fechou |
+| **o terceiro** | a Sala «Piano» ganhou 2.ª faixa e a regra de §9.6 compôs `breu-piano-bale-classico`; o caminho foi nomeado com ela e o conteúdo composto com `VARIANTE="breu-piano"`. **Duas identidades no mesmo ficheiro** |
+| `provar-fecho-do-pacote` (**§I nova**) | **70/70** (57 → 70): a guarda lê o `ok` do topo; o disparo **não é tentado** (espião a zero); a frase que chega é a nossa, com números, e **não** a do Cloudflare; a declaração leva a **turma** e o motivo; o mesmo quando o estouro vem do runtime; e o **controlo negativo** — um 403 **não** pede segunda passagem |
+| as mutações da §I — **três regras, três quedas** | a guarda volta a ignorar o `ok` **7** · o `concluirPO` deixa de declarar **4** · declara sempre, mesmo sem ser orçamento **1** |
+| `provar-a-variante-da-faixa` (**§H nova**) | **41/41** (36 → 41): com a variante pedida o conteúdo é o que nomeia o ficheiro; sem ela, a derivação da turma continua a valer (a reserva não se perdeu); uma variante com acento e travessão slugifica pela mesma regra do nome |
+| as mutações da §H — **três regras, três quedas** | ignorar a variante pedida **3** · aceitá-la em cru **1** · exigir a variante **1** |
+| **um erro meu, apanhado pela bateria** | ao passar a ler o corpo de toda resposta, o cartão lia o corpo **original** quando não havia `clone` — e uma `Response` só se consome uma vez. `provar-geracao` caiu («o salto para a página da escola»). Regra nova: **sem `clone`, não se lê**. O duplo da prova também mentia (o `clone` devolvia o corpo seguinte da fila) e passou a modelar uma `Response` a sério |
+| `node tools/correr-provas.js --paralelo=3 --tecto=180` | **300 provas, 208 verdes, 92 conhecidas, 0 regressões** |
+| o que **não** foi medido | a geração da aula 2 no ar. Ela vai expurgar a `breu` e recomeçar com duas faixas desde o início — é o acto dela, e é a próxima medição |
+
+### Executado nesta fotografia anterior (26/11/2026 — a senha não era a senha)
 
 | Verificação | Resultado |
 |:--|:--|

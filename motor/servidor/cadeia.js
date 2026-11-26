@@ -838,6 +838,11 @@ function criarCadeia({
       fonte: saida && saida.fonte ? saida.fonte.ok !== false : null,
       ciclo: saida && saida.ciclo ? saida.ciclo.ok !== false : null,
       disparo: saida && saida.disparo ? saida.disparo : null,
+      /* A DECLARAÇÃO DO ESCRITOR SOBE (26/11/2026). O `concluirPO` diz quando o disparo não coube
+       * no orçamento (`fecharPacote`); aqui ela era DESCARTADA, porque este retorno tem forma
+       * própria. Sem a subir, a tela nunca sabia que havia uma segunda invocação a pedir — e o
+       * ciclo 2 da `breu` ficou por gerar com o servidor a saber porquê. */
+      fecharPacote: (saida && saida.fecharPacote) || null,
       erro: finais.length ? finais.join(' · ')
         : (ok ? null : 'a geração não partiu, e o Worker não soube dizer porquê'),
     };
@@ -1217,6 +1222,12 @@ function criarCadeia({
         em: new Date().toISOString(), gatilho, rotulo: nucleoCadeia.rotuloDoGatilho(gatilho),
         elencos: elencos.map(String), turmas: turmas.map(String), motivo: motivo || null,
         ok: false, completa: false, alvos: [], erro: motivoOrcamento, orcamento: true,
+        /* A TRAVESSIA NÃO COMEÇOU — E O FECHO É A PEÇA QUE FALTA (26/11/2026). Esta é a mesma
+         * situação do «Guardar» do PO: a invocação gastou o teto e o passo seguinte precisa dos 50
+         * inteiros. `fecharPacotes` corre só a etapa 4 e por isso cabe; e ele não declara nada, por
+         * isso esta declaração não faz laço. */
+        fecharPacote: { turmas: turmas.map(String), elencos: elencos.map(String),
+          motivo: motivoOrcamento },
       };
       const log = await anotar(entradaCurta);
       return Object.assign({}, entradaCurta, { log });
@@ -1259,7 +1270,7 @@ function criarCadeia({
         }
         entrada.alvos.push({
           curadoria: c.id, turma, ciclo: r.ciclo || null, elenco: c.linhaDeBase || null,
-          ok: r.ok, erro: r.erro || null,
+          ok: r.ok, erro: r.erro || null, fecharPacote: r.fecharPacote || null,
           etapas: r.etapas.map((e) => ({
             chave: e.chave, estado: e.estado, falta: e.falta || null, detalhe: e.detalhe || null,
             /* O CARIMBO DO DOCUMENTO QUE A ETAPA NOMEIA (10/11/2026) — é ele que faz o link
@@ -1276,6 +1287,11 @@ function criarCadeia({
       // A COMPLETUDE DO REGISTO — a mesma pergunta que a primeira etapa fez, agregada.
       entrada.completa = entrada.alvos.every((a) =>
         !a.etapas.some((e) => e.chave === 'plano-de-ensino' && e.estado === 'bloqueada'));
+      /* O PEDIDO DA SEGUNDA PASSAGEM SOBE AO TOPO DA RESPOSTA (26/11/2026). O `concluirPacote` de
+       * cada alvo sabe se o disparo coube; a tela lê a resposta inteira e não os alvos, e é no
+       * topo que ela procura o campo. As turmas juntam-se — o fecho aceita uma lista. */
+      const pedidosDeFecho = entrada.alvos.map((a) => a.fecharPacote).filter(Boolean);
+      if (pedidosDeFecho.length) entrada.fecharPacote = pedidosDeFecho[0];
       const log = await anotar(entrada);
       return Object.assign({}, entrada, { log });
     } catch (erro) {
