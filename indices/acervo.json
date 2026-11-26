@@ -2,13 +2,13 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "b4474a58d14928cd62dcc1a529c001c3a3f556ff808b4b2efc7a8e6dca73a797",
-        "id": "ciclo-01-breu-piano-bale-classico",
+        "hash": "16aab9dc6676eb9f053b7684298e38cb01cb09150c3224d7b997875744c80da4",
+        "id": "ciclo-01-breu-piano",
         "lida": true,
         "parent_hash": ""
       },
       "aulas": 1,
-      "documentos": 22,
+      "documentos": 20,
       "escola": "breu",
       "estado": "ancorado",
       "id": "ciclo:demi-plie/01/breu",
@@ -411,9 +411,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "0191124"
+    "commit": "82b3c3f7"
   },
-  "gerado_em": "2026-11-26T18:48",
+  "gerado_em": "2026-11-26T20:09",
   "nao_indexado": [
     {
       "familia": "conteudo",

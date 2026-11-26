@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-26T16:26:16-0300`
-Commit atual: `0c4819f5` — chore(estrutura): fechar os derivados — âncoras e índices
+Gerado em: `2026-11-26T17:09:47-0300`
+Commit atual: `82b3c3f7` — fix(entrega): o disparo que não coube passa a ser declarado, e o `.conf` deixa de ter dois nomes
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -65,7 +65,7 @@ ramona-pires
 redinha-rosa
 rimel-preto
 sapatilha-de-ponta (16)
-- **Ciclos com manifesto:** 4 variante(s)
+- **Ciclos com manifesto:** 3 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -83,6 +83,7 @@ sapatilha-de-ponta (16)
 ## Últimos commits
 
 ```
+82b3c3f7 fix(entrega): o disparo que não coube passa a ser declarado, e o `.conf` deixa de ter dois nomes
 0c4819f5 chore(estrutura): fechar os derivados — âncoras e índices
 0191124f feat(acervo): envelope/po-20261126-1548.json
 1cdceb78 feat(acervo): envelope/.indice.json
@@ -102,7 +103,6 @@ e7c4e11d fix(estrutura): o «Enviar» da aula enviava nada, e não dizia nada
 6345ba3b fix(estrutura): o bloco «informar um pagamento» passa a dizer de que escola é
 0f379a12 docs(estrutura): o campo de horas do consultor saiu, e a razão é jurídica
 c8000e27 audit(estrutura): o Q7 e o Q8 do plano do consultor, agora medidos
-f6ecb866 docs(estrutura): o guiao do consultor, e as cinco fases fechadas
 ```
 
 ## Por professor
@@ -119,19 +119,17 @@ f6ecb866 docs(estrutura): o guiao do consultor, e as cinco fases fechadas
 
 ### demi-plie — 1 ciclo(s)
 
-**Ciclo 01** — variante(s): breu, breu-piano, breu-piano-bale-classico
+**Ciclo 01** — variante(s): breu, breu-piano
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
 | breu | (sem PO) | — | — |
 | breu | ciclo-01-breu-piano-po.md | Input_PO_Validado | 1 |
-| breu-piano-bale-classico | (sem PO) | — | — |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `e81a3e1cf08c` | (vazio) | — |
 | breu-piano | ciclo-01-breu-piano.fipp | `16aab9dc6676` | (vazio) | Input_PO_Validado |
-| breu-piano-bale-classico | ciclo-01-breu-piano-bale-classico.fipp | `b4474a58d149` | (vazio) | — |
 
 ### fernando-franciose — 0 ciclo(s)
 

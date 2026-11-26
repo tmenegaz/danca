@@ -64389,3 +64389,21 @@ seguinte da fila) e passou a modelar uma `Response` a sério.
 ### O que a prova da bateria mediu
 
 300 provas, **208 verdes**, 92 conhecidas, **0 regressões**.
+
+**O remanescente, removido a pedido dela *(26/11/2026, depois do commit `82b3c3f7`)***. O
+`ciclo-01-breu-piano-bale-classico.conf` — o ficheiro com o nome de uma variante e o conteúdo de
+outra — saiu da árvore, e com ele a sua âncora `…-bale-classico.fipp`, que era uma **segunda âncora**
+das mesmas fontes de `breu-piano` (nascida com `po: ausente`, no instante do defeito). Ficou o
+`…-bale-classico-plano.md`: o plano que ela elicitou hoje (`plano-20261126-1547`, o marco «Teste
+criar a aula 2») está certo no nome e no conteúdo — o que estava errado era o manifesto ao lado. O
+envelope guarda todas as respostas, e o expurgo da `breu` leva o resto.
+
+A auditoria **não ficou pior**: `auditar-proveniencia breu` dá os mesmos **3 bloqueios** de antes da
+remoção, todos anteriores e todos da escola que vai ser expurgada — `ancora-id` da `aula-01` (a âncora
+dela foi escrita com o id da variante nova), `fonte-sem-cobertura` do plano, e `ancora-nao-confere` do
+`breu-piano` porque o dicionário da modalidade passou de 64 para 65. Os índices da `breu` foram
+regerados com `--escola breu` (o `--escola` limita a escrita a uma escola e o acervo é sempre escrito),
+e `check-indices` fica em **0 falhas**.
+
+**O que isso deixa dito, e é o ponto:** até existir a escola nova, «gerar a aula 2» na `breu` **não**
+produz a aula 02. O manifesto que a tinha em `DOCS` era precisamente o que se removeu.
