@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-26T14:22:53-0300`
-Commit atual: `4e7464a3` — fix(estrutura): o nome da escola é o que ela declarou, e não o slug
+Gerado em: `2026-11-26T14:34:21-0300`
+Commit atual: `e7c4e11d` — fix(estrutura): o «Enviar» da aula enviava nada, e não dizia nada
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -83,6 +83,7 @@ sapatilha-de-ponta (16)
 ## Últimos commits
 
 ```
+e7c4e11d fix(estrutura): o «Enviar» da aula enviava nada, e não dizia nada
 4e7464a3 fix(estrutura): o nome da escola é o que ela declarou, e não o slug
 6345ba3b fix(estrutura): o bloco «informar um pagamento» passa a dizer de que escola é
 0f379a12 docs(estrutura): o campo de horas do consultor saiu, e a razão é jurídica
@@ -102,7 +103,6 @@ acd513e4 docs(estrutura): o plano do consultor — o cadastro, o link e os R$ 10
 40143ec0 fix(estrutura): o mapa das provas ve o path.join, e a prova da notacao volta a correr
 a4638edf fix(estrutura): a descricao do exercicio volta para fora da tabela
 9eb12e05 docs(estrutura): o custo da demonstracao medido na API — 16 min, e nao 22
-78ada910 docs(estrutura): o §22 mediu-se a si mesmo — documentar custa zero
 ```
 
 ## Por professor

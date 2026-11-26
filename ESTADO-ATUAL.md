@@ -5976,7 +5976,7 @@ recorta» como «a rota está fechada».
 | `node tools/montar-publicacao.js breu` | publicação montada; a página publicada passa a ter `tipoDaColunaEm` |
 | as provas vizinhas | `provar-senha-do-lancamento` **19/19** · `provar-familia-do-lancamento` **44/44** · `provar-declaracao-da-captura` **12/12** |
 | as quatro conferências | `check-identidade` **0 problemas** (exit 0) · `check-schemas` verde · `check-pacote` do ciclo **0 erro(s)** |
-| `node tools/correr-provas.js --paralelo=3 --tecto=90` | **299 provas, 207 verdes, 92 conhecidas, 0 regressões** (a prova nova entra na contagem a partir do commit — o corredor lê `git ls-files`) |
+| `node tools/correr-provas.js --paralelo=3 --tecto=90`, já com a prova versionada | **300 provas, 208 verdes, 92 conhecidas, 0 regressões.** Uma primeira passagem deu **1 regressão** com um `Node.js v24.12.0` no topo — um encerramento anómalo, e não uma asserção: a passagem seguinte, com o mesmo commit, deu 0 e o mesmo 208. Fica declarado como o que é, instabilidade, e não como um número limpo |
 | o que **não** foi medido | o lançamento a sério, com a senha certa. Ele **grava um ficheiro** no repositório e dispara a geração — é o acto dela, e é ela quem o faz |
 
 ### Executado nesta fotografia anterior (26/11/2026 — o nome da escola, e o defeito escondido na linha de base)
