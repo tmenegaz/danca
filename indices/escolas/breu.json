@@ -41,9 +41,9 @@
           "professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.md",
           "professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-aula-01.md"
         ],
-        "hash": "ea19a6db0b59c119bca54c5554f96c9ac7e6e7189da53487628e0bf1cfcdef8e",
+        "hash": "5e9acf0b467ff058d1e6e80c41d248a1cb08a997a716dc564e9fd4655e0bfb3d",
         "hash_conteudo": "397446166505af91e2e60408706627076bc087449321f2b1f97a9d6b7c3ec9e6",
-        "id": "ciclo-01-breu-piano-bale-classico-aula-01",
+        "id": "ciclo-01-breu-piano-aula-01",
         "lida": true,
         "parent_hash": ""
       },
@@ -89,9 +89,9 @@
               "professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.md",
               "professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-aula-01.md"
             ],
-            "hash": "ea19a6db0b59c119bca54c5554f96c9ac7e6e7189da53487628e0bf1cfcdef8e",
+            "hash": "5e9acf0b467ff058d1e6e80c41d248a1cb08a997a716dc564e9fd4655e0bfb3d",
             "hash_conteudo": "397446166505af91e2e60408706627076bc087449321f2b1f97a9d6b7c3ec9e6",
-            "id": "ciclo-01-breu-piano-bale-classico-aula-01",
+            "id": "ciclo-01-breu-piano-aula-01",
             "lida": true,
             "parent_hash": ""
           },
@@ -104,7 +104,6 @@
       "documentos": [
         "professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.fipp",
         "professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.md",
-        "professores/demi-plie/ciclos/ciclo-01-breu-piano-bale-classico-plano.md",
         "professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-aula-01.md",
         "professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-declaracao.json",
         "professores/demi-plie/ciclos/ciclo-01-breu-piano-dados.cifrado.json",
@@ -272,15 +271,6 @@
       "id": "documento:notacao:professores/demi-plie/ciclos/ciclo-01-breu-piano-notacao.md",
       "professor": "demi-plie",
       "tipo": "notacao"
-    },
-    {
-      "ancora_id": "ciclo-01-breu-piano",
-      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano-bale-classico-plano.md",
-      "ciclo_id": "ciclo:demi-plie/01/breu",
-      "escola": "breu",
-      "id": "documento:plano:professores/demi-plie/ciclos/ciclo-01-breu-piano-bale-classico-plano.md",
-      "professor": "demi-plie",
-      "tipo": "plano"
     },
     {
       "ancora_id": "ciclo-01-breu-piano",
@@ -475,9 +465,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "82b3c3f7"
+    "commit": "a0a27690"
   },
-  "gerado_em": "2026-11-26T20:09",
+  "gerado_em": "2026-11-26T20:24",
   "nao_indexado": [
     {
       "familia": "conteudo",

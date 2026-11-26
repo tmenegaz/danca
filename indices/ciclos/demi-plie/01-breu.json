@@ -41,7 +41,6 @@
     "documento:manifesto:professores/demi-plie/ciclos/ciclo-01-breu-piano.conf",
     "documento:manifesto:professores/demi-plie/ciclos/ciclo-01-breu.conf",
     "documento:notacao:professores/demi-plie/ciclos/ciclo-01-breu-piano-notacao.md",
-    "documento:plano:professores/demi-plie/ciclos/ciclo-01-breu-piano-bale-classico-plano.md",
     "documento:plano:professores/demi-plie/ciclos/ciclo-01-breu-piano-plano.md",
     "documento:po:professores/demi-plie/ciclos/ciclo-01-breu-piano-po.md",
     "documento:referencias:professores/demi-plie/ciclos/ciclo-01-breu-piano-referencias.md",
@@ -93,7 +92,7 @@
         "valor": "notacao"
       },
       {
-        "contagem": 2,
+        "contagem": 1,
         "rotulo": "plano",
         "valor": "plano"
       },
@@ -116,9 +115,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "82b3c3f7"
+    "commit": "a0a27690"
   },
-  "gerado_em": "2026-11-26T20:09",
+  "gerado_em": "2026-11-26T20:24",
   "id": "ciclo:demi-plie/01/breu",
   "professor": "demi-plie",
   "versao": 7
