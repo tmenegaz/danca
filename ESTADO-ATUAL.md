@@ -4,7 +4,20 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 26/11/2026 — **o «Marcar recebido» passou a gravar, e a falar.** Ela marcou os
+> **Última fotografia:** 26/11/2026 — **o plano do consultor está fechado: cinco fases, cinco
+> entregas.** A **F5** levou o guião ao manual de treino
+> ([FLUXO-DA-ESCOLA-EM-CONSULTORIA.md](FLUXO-DA-ESCOLA-EM-CONSULTORIA.md) §8): os três planos com
+> preço, franquia, **piso e teto**, os ciclos por mês calculados do `ciclos.json` real, as três regras
+> (pagamento antecipado · R$ 8,00 por aula excedente, discriminado · franquia que não acumula), a
+> distinção que gera queixa (**consultoria interrompe, plano pago onera**), os três sinais de migração,
+> o que ele **não** diz nunca, e as quatro perguntas que vai ouvir. **Duas correcções ao plano:**
+> **o teto vai ao lado do piso** — «o Básico inclui um e **vai até dois**», e a prova **proíbe** a
+> frase que vende um medo; e **as extensões estão no catálogo com `preco: 0`** — o plano dizia que ele
+> «pode vendê-las já», e com preço zero anunciar um valor é inventá-lo; o guião passou a dizer o que é
+> verdade (levanta o valor com a administração) e a prova **proíbe a palavra «grátis»**. A prova
+> (`provar-o-guiao-do-consultor`, **44 asserções**) recalcula do catálogo e compara com o texto **e
+> com o plano**, e cai em cinco mutações. Antes disso, no mesmo dia: **o «Marcar recebido» passou a
+> gravar, e a falar.** Ela marcou os
 > R$ 10 como pagos e o **KV de produção não tinha o elo**: `consultores/recebidos/` não existia. **O que
 > não era:** o deploy (o commit é anterior ao Worker), a rota (em bancada responde 200 e grava), o
 > saldo. **O que era — duas escolhas que falham em silêncio:** um `window.prompt` para pedir o valor,
@@ -5258,9 +5271,19 @@ escola.** 73 asserções em `experimentos/provar-a-escola-do-consultor.js`, com 
 partir das visitas e o recebido guardado como elo. **46 asserções** em
 `experimentos/provar-o-livro-do-consultor.js`, com seis mutações.
 
-**O que falta:** ~~F5~~ o guião no `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` §9 — **parcialmente feito**:
-a §2.1 (a taxa, e as três perguntas que ele vai ouvir) entrou com a F4. O que resta é o guião do §8 do
-plano (os três planos com números, o pagamento antecipado, quando falar das extensões). O que fica aqui é o que **só
+~~F5~~ — **IMPLEMENTADO a 26/11/2026**: o guião no `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` §8, com os
+três planos, as três regras, as extensões, a migração e o que ele não diz. **44 asserções** em
+`experimentos/provar-o-guiao-do-consultor.js`, com cinco mutações.
+
+**As cinco fases do plano do consultor estão fechadas.** O que fica por medir está na §14 do plano, e
+não é código: **quantas consultorias um consultor faz por mês** (não há dado — nenhuma aconteceu antes
+da Clablun), **quanto tempo uma consultoria leva na vida real** (as três horas são um exemplo dela), e
+**o custo dos trinta dias de uma escola a usar o ambiente sozinha** — a conta honesta é a do §7.3: as
+duas portas que o limitador não fecha.
+
+**Uma decisão fica em aberto, e é dela:** o **preço das extensões**. O catálogo declara as duas com
+`preco: 0`, e o guião diz ao consultor que não anuncie valor nenhum. Enquanto o zero estiver lá, é
+isso que se pode dizer com verdade. O que fica aqui é o que **só
 ela pode responder**:
 
 - **Q1 — os R$ 10 são por consultoria ou por sessão?** Recomendação: **por consultoria** (uma visita,
@@ -7791,6 +7814,22 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **26/11/2026** — **O guião do consultor (F5), e as cinco fases fechadas.** O guião do §8 do plano
+  passou ao manual de treino, e o plano deixou de o repetir. **Duas correcções que a implementação
+  fez ao plano:** a tabela dava só o **piso** («1 professor, 10 alunas»), e o consultor vai ser
+  perguntado sobre o **teto** — o guião diz os dois, e a prova protege «o Básico **inclui um e vai
+  até dois**», que é a frase que evita vender uma perda que não existe (o erro que o plano já
+  registara a 25/11, ao ler o piso como parede). E **as extensões estão no catálogo com
+  `preco: 0`**: o plano dizia «ele pode vendê-las já»; com preço zero, anunciar um valor é
+  inventá-lo, e anunciá-las como grátis é prometer o que ninguém prometeu. O guião passou a dizer a
+  frase verdadeira — levanta o valor com a administração — e a prova **proíbe a palavra «grátis»**.
+  **Declarar o preço das extensões fica como decisão dela.** A prova
+  (`provar-o-guiao-do-consultor`, **44 asserções**) lê as aulas de um ciclo do **índice real** de um
+  ciclo, não de uma constante, e compara o guião **com o plano** — dois documentos que repetem os
+  mesmos três preços não podem divergir. **Cinco mutações, cinco quedas.** Com a F5, as cinco fases
+  do [PLANO-DO-CONSULTOR.md](PLANO-DO-CONSULTOR.md) estão implementadas: cadastro, endereço, escola
+  que nasce do link, livro dos R$ 10 e guião.
 
 - **26/11/2026** — **O «Marcar recebido» não gravava, e não dizia porquê.** Ela marcou os R$ 10 e o
   KV de produção não tinha `consultores/recebidos/`. Diagnosticado por medição, não por suposição: o

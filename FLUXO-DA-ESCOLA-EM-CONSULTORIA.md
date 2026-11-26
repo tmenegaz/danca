@@ -365,7 +365,97 @@ mostrar nada.
 
 ---
 
-## 8. Onde isto está no sistema
+## 8. O guião — o que ele diz, com os números à frente
+
+Esta secção é para ser **sabida de cor**, não lida em voz alta. Todos os números vêm do catálogo
+(`biblioteca/comercial/planos.json`), e a prova `provar-o-guiao-do-consultor` recalcula-os de lá:
+quando o catálogo mudar, ela reprova até este texto mudar também.
+
+### 8.1 Os três planos
+
+| plano | por mês | franquia | inclui | **vai até** |
+|:--|--:|--:|:--|:--|
+| **Básico** | **R$ 69,90** | 130 aulas/mês | 1 professor · 10 alunas | **2 professores · 39 alunas** |
+| **Intermediário** | **R$ 99,90** | 320 aulas/mês | 3 professores · 40 alunas | **5 professores · 89 alunas** |
+| **Avançado** | **R$ 139,90** | 500 aulas/mês | 6 professores · 90 alunas | **20 professores · 500 alunas** |
+
+**As duas colunas de gente não são a mesma coisa, e confundi-las é o erro mais caro deste guião.**
+«Inclui» é o **piso** — o que o plano traz. «Vai até» é o **teto** — o ponto em que o degrau de cima
+começa. O Básico inclui **um** professor e **vai até dois**: uma escola que viu dois professores na
+demonstração **não perde nenhum** ao assinar o Básico.
+
+> Se ele disser «o Básico dá um professor» e a escola tiver dois, ele acabou de vender um medo. A
+> frase certa é: **«o Básico inclui um e vai até dois.»**
+
+**A frase que faz a escola escolher sozinha:** um ciclo tem **24 aulas**.
+
+| plano | ciclos por mês | o que isso é |
+|:--|--:|:--|
+| Básico | **5 e meio** | duas turmas, duas vezes por semana (umas 17 aulas), cabe com folga |
+| Intermediário | **13** | três a quatro turmas a rodar |
+| Avançado | **20** | a escola inteira, sem contar |
+
+### 8.2 As três regras que ele não pode deixar para o fim
+
+1. **O pagamento é antecipado.** «Você assina e usa.» Não há mês a crédito, e a habilitação só
+   acontece quando o dinheiro entra na conta — e quem habilita é ela, não ele.
+2. **O que passar da franquia custa R$ 8,00 por aula.** Entra **discriminado** na fatura do mês
+   seguinte, com o número de aulas e a conta à vista. **Não interrompe o trabalho** — onera.
+3. **A franquia é mensal e não acumula.** O que não foi usado não passa para o mês seguinte.
+
+**E a distinção que gera queixa quando ele hesita:** na **consultoria**, o limitador **interrompe** —
+a escola bate na parede e a parede é a demonstração. No **plano pago**, o excedente **onera** — a
+escola continua a dar aula e paga R$ 8,00. Uma coisa é uma demonstração com tamanho; a outra é uma
+assinatura com franquia. Ele diz isto com estas palavras, e não com «depende».
+
+### 8.3 As extensões — e o que ele **não** pode dizer delas
+
+O catálogo tem duas extensões de configuração (`Turma pronta — configuração` e `Turma pronta —
+configuração e conteúdo`). **E as duas estão com preço zero**: não há preço declarado.
+
+**Por isso ele não anuncia preço de extensão nenhum.** O que ele diz, e é verdade:
+
+> «Há um serviço de arranque em que as turmas ficam já montadas — eu levanto isso com a administração
+> e digo-lhe o valor.»
+
+**O momento de falar delas é um só, e é depois da primeira aula lançada** — nunca antes. A extensão
+resolve um trabalho que a escola já viu dar trabalho; oferecida antes, é um custo a mais numa conversa
+que ainda não tem problema.
+
+### 8.4 Quando é o melhor momento de migrar
+
+| o sinal | o que significa | o que ele diz |
+|:--|:--|:--|
+| a escola pediu o 6.º aluno, o 3.º ciclo ou a 4.ª aula | bateu no limite da demonstração | «isto é o plano de demonstração, não o sistema: o Básico já lhe dá 10 alunas e 130 aulas por mês» |
+| a escola perguntou «e depois do mês?» | já está a planear | **é o momento** — a pergunta é dela, não uma venda dele |
+| a escola quer dois professores | a demonstração dá 2, o Básico inclui 1 | «o Básico inclui um e **vai até dois** — os dois que você viu continuam lá» |
+
+**A regra de ouro:** ele não vende plano durante a consultoria. Ele **responde**. Uma venda feita no
+meio da montagem interrompe o trabalho e faz a escola sentir-se pressionada — e a demonstração é o
+argumento, não a tabela de preços.
+
+### 8.5 O que ele não diz, nunca
+
+- preço que não esteja no catálogo — **nem desconto**, nem «eu vejo com ela se dá para fazer»;
+- preço de extensão (não está declarado — §8.3);
+- prazo de activação que não seja «assim que o pagamento entrar»;
+- que a demonstração **se renova** — não se renova, e prorrogar é decisão dela;
+- que **ele** resolve a activação. Ele não resolve: **ele não tem o botão**.
+
+### 8.6 As quatro perguntas que ele vai ouvir, e as respostas
+
+| a pergunta | a resposta |
+|:--|:--|
+| «isto tem custo para mim?» | não. A hora da consultoria é paga a ele; o mês de demonstração é grátis |
+| «e para você?» | **R$ 10,00 por consultoria** — ele diz o número, porque um preço escondido aparece sempre (§2.1) |
+| «se eu não contratar, você perde?» | não. O risco de a escola não contratar é dela, não dele |
+| «quanto tempo eu tenho?» | **um mês a contar do dia em que a escola nasceu**, e no fim fica em leitura — nada se apaga |
+
+---
+
+---
+
+## 9. Onde isto está no sistema
 
 | o que | onde |
 |:--|:--|

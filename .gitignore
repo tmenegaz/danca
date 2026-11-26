@@ -2106,3 +2106,11 @@ experimentos/modelo-formulario/*
 # expirada, a reservada, a que ainda está aberta. Sem ela, uma visita que ninguém abriu passaria a
 # custar dez reais.
 !experimentos/provar-o-livro-do-consultor.js
+
+# O GUIÃO DO CONSULTOR (26/11/2026 — F5). O guião é conteúdo com NÚMEROS — preços, franquias, piso e
+# teto, os R$ 8,00 do excedente, os R$ 10,00 da taxa — e um documento que repete números envelhece.
+# Esta prova recalcula tudo do catálogo e do `ciclos.json` real e compara com o texto: quando o preço
+# mudar, ela reprova até o guião mudar. E protege a frase que impede vender um medo: o Básico
+# **inclui um** professor e **vai até dois**, e uma escola que viu dois na demonstração não perde
+# nenhum ao assinar.
+!experimentos/provar-o-guiao-do-consultor.js

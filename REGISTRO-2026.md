@@ -63584,3 +63584,73 @@ cair, e é assim que este gesto não volta a morrer calado.
 `motor/nucleo/aviso.js` (novo), `motor/servidor/painel-html.js` (a pilha no casco, o campo na célula,
 o script sem `prompt`), `experimentos/provar-o-livro-do-consultor.js` (§H), `ESTADO-ATUAL.md`,
 `HANDOFF.md`.
+
+## O guião do consultor — os números que ele diz de cor *(26/11/2026)*
+
+**O que faltava.** O plano tinha o guião escrito na §8 e nunca o tinha passado para o manual de treino.
+Um consultor a improvisar preços é a origem mais comum de cliente irritado — e o §8.5 do próprio plano
+diz que ele não pode dizer um preço que não esteja no catálogo. Faltava o sítio onde os números estão,
+e a prova que os impede de apodrecer.
+
+### O que o guião diz — e as duas coisas que a implementação corrigiu
+
+**1. O teto vai ao lado do piso.** A tabela do plano dava só o piso — «1 professor, 10 alunas» — e o
+consultor vai ser perguntado sobre o **teto**: «e se eu quiser mais?». O guião diz os dois:
+
+| plano | por mês | franquia | inclui | **vai até** |
+|:--|--:|--:|:--|:--|
+| Básico | R$ 69,90 | 130 aulas | 1 professor · 10 alunas | **2 professores · 39 alunas** |
+| Intermediário | R$ 99,90 | 320 aulas | 3 professores · 40 alunas | **5 professores · 89 alunas** |
+| Avançado | R$ 139,90 | 500 aulas | 6 professores · 90 alunas | **20 professores · 500 alunas** |
+
+**E a prova proíbe a frase que vende um medo.** «O Básico dá 1 professor» a uma escola que viu dois na
+demonstração é uma perda que não existe: o Básico **inclui** um e **vai até dois**. É o erro que o
+plano já tinha registado a 25/11 (ler o piso como se fosse parede), e agora há uma asserção a
+impedir que ele volte ao texto.
+
+**2. As extensões estão no catálogo com `preco: 0`.** O plano dizia que ele «pode vendê-las já». Com
+preço zero, anunciar um valor é inventá-lo — e anunciá-las como grátis é prometer o que ninguém
+prometeu. O guião passou a dizer o que é verdade: **ele não anuncia preço de extensão**, levanta o
+valor com a administração, e a prova **proíbe a palavra «grátis»**. Declarar o preço das extensões
+fica como decisão dela.
+
+### O que o guião leva, além dos preços
+
+- **os ciclos por mês**, calculados do `ciclos.json` real (24 aulas): o Básico comporta **5 e meio**,
+  e a frase que faz a escola escolher sozinha é «duas turmas, duas vezes por semana, cabem com folga»;
+- **as três regras** que não podem ficar para o fim: pagamento antecipado, R$ 8,00 por aula excedente
+  (discriminado, e **onera** em vez de interromper), e a franquia que **não acumula**;
+- **a distinção que gera queixa** quando ele hesita: na consultoria o limitador **interrompe**; no
+  plano pago o excedente **onera**. Uma coisa é uma demonstração com tamanho, a outra é uma assinatura;
+- **quando migrar** — três sinais, e a regra de ouro: ele não vende plano durante a consultoria, ele
+  **responde**;
+- **o que ele não diz nunca**, e **as quatro perguntas** que vai ouvir com as respostas — incluindo a
+  dos R$ 10,00, que ele **tem** de dizer.
+
+### A prova
+
+`experimentos/provar-o-guiao-do-consultor.js`, **44 asserções**, e cinco mutações com cinco quedas:
+
+| mutação | o que cai |
+|:--|:--|
+| o preço do Básico sobe no catálogo e o guião não muda | 2 asserções (no guião **e** no plano) |
+| a franquia do Básico muda | 2 |
+| o guião volta a dizer «o Básico dá 1 professor» | 1 |
+| o guião anuncia preço de extensão | 1 |
+| a taxa muda no catálogo | 1 |
+
+**O que ela mede a mais, e é o que a torna útil:** lê as aulas de um ciclo do **índice real** de um
+ciclo (não de uma constante), e compara o guião com o **plano** — dois documentos que repetem os
+mesmos três preços não podem divergir. É a mesma ideia do `provar-o-custo-da-consultoria`: um
+documento que repete números envelhece, e dois documentos a dizer o mesmo número mentem juntos.
+
+### Onde entrou
+
+`FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` §8 (e a renumeração: a antiga §8 passou a §9),
+`experimentos/provar-o-guiao-do-consultor.js` (novo), `.gitignore`, `PLANO-DO-CONSULTOR.md` (§8 e
+§11), `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+**A F5 fecha as cinco fases do plano do consultor:** o cadastro, o endereço, a escola que nasce do
+link, o livro dos R$ 10 e o guião. O que fica por medir está na §14 do plano, e não é código: quantas
+consultorias um consultor faz por mês, quanto tempo uma consultoria leva na vida real, e o custo dos
+trinta dias de uma escola a usar o ambiente sozinha.

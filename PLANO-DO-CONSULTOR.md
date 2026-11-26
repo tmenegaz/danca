@@ -383,9 +383,23 @@ consultor, que fecha o link e a área dele no mesmo gesto (§4.3).
 ## 8. O guião do consultor — o que ele tem de saber dizer
 
 Isto é conteúdo, e o consultor não o improvisa: os números vêm do catálogo
-(`biblioteca/comercial/planos.json`) e do que já está decidido. Quando isto for implementado, vira a
-§9 do [FLUXO-DA-ESCOLA-EM-CONSULTORIA.md](./FLUXO-DA-ESCOLA-EM-CONSULTORIA.md) — **um sítio só**, e
-este documento passa a apontar.
+(`biblioteca/comercial/planos.json`) e do que já está decidido.
+
+**ESTÁ IMPLEMENTADO no [FLUXO-DA-ESCOLA-EM-CONSULTORIA.md](./FLUXO-DA-ESCOLA-EM-CONSULTORIA.md) §8**,
+que é o sítio único — este documento aponta, e não repete. A prova
+`experimentos/provar-o-guiao-do-consultor.js` (**44 asserções**) recalcula do catálogo e do
+`ciclos.json` real, e **reprova quando o texto se afasta**: mudar o preço do Básico no catálogo faz
+cair duas asserções; mudar a franquia faz cair outras duas.
+
+**Duas coisas que a implementação acrescentou ao que aqui está escrito:**
+
+1. **O teto vai ao lado do piso.** A tabela de §8.1 dava só o piso (o que cada plano inclui), e o
+   consultor vai ser perguntado sobre o TETO — «e se eu quiser mais?». O guião diz os dois, e a
+   prova protege a frase que evita vender um medo: **«o Básico inclui um e vai até dois»**.
+2. **As extensões estão no catálogo com `preco: 0`.** Este plano dizia que ele «pode vendê-las já»;
+   com preço zero, anunciar um valor é inventá-lo. O guião passou a dizer o que é verdade: ele não
+   anuncia preço de extensão, levanta o valor com a administração, e **a prova proíbe a palavra
+   «grátis»**. Declarar um preço para as extensões é uma decisão que fica para ela.
 
 ### 8.1 Os três planos, ditos com o número
 
@@ -496,7 +510,7 @@ responde mal é sempre o que ninguém está a olhar.
 | ~~**F2**~~ | a área dele, o token, e «Nova visita» — **IMPLEMENTADA a 25/11/2026** | é o que transforma o cadastro num serviço |
 | ~~**F3**~~ | `/visita/<token>` e a criação com `origem: 'consultor'` — **IMPLEMENTADA a 25/11/2026** | é onde o plano consultoria passa a nascer pela mão de outra pessoa — a fase com mais risco, e a que precisou das provas mais duras |
 | ~~**F4**~~ | o livro dos R$ 10 e o «Marcar recebido» — **IMPLEMENTADA a 25/11/2026** | só depois de haver visitas a cobrar |
-| **F5** | o guião no `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` §9 | conteúdo; não bloqueia nada |
+| ~~**F5**~~ | o guião no `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` §8 — **IMPLEMENTADA a 26/11/2026** | conteúdo; não bloqueou nada |
 
 **O QUE A F3 FECHOU, e o que ela acrescentou ao desenho do plano.** O link deixou de responder 404.
 A regra da porta ficou num núcleo puro (`motor/nucleo/escola-do-consultor.js`), com três decisões
@@ -531,7 +545,7 @@ Cada uma mede um comportamento que, sem ela, se descobre em produção.
 | `provar-o-link-do-consultor` *(escrita, **77** asserções)* | o token é aleatório, guardado só como hash, e o **âmbito** separa as três espécies; o endereço nasce do «Activar» e só existe uma vez; trocá-lo mata o anterior; a visita expira sem cron e o `tokenHash` nunca sai numa resposta | o consultor **inactivo** é recusado na rota (403), e não só pela ausência do botão; e o livro cheio **recusa** em vez de apagar |
 | `provar-a-escola-do-consultor` *(escrita, **73** asserções)* | a criação pela visita nasce `consultoria`, `ativa`, com `entregueEm = criadaEm`, com os sete limites e com a atribuição no registo | a **mesma** criação pela porta pública continua a **recusar** `consultoria`, palavra por palavra como hoje; e dois pedidos **simultâneos** do mesmo link dão uma escola (sem a reserva, dão duas) |
 | `provar-o-livro-do-consultor` *(escrita, **46** asserções)* | cada visita que deu escola soma R$ 10; a expirada, a reservada e a aberta somam zero; o recebido não se apaga; a taxa vem do catálogo | receber a mais é **recusado** com o saldo na frase, e o KV mudo **não** é «deve zero» |
-| `provar-o-guiao-do-consultor` | os números do §8 são os do catálogo (preços, franquias, piso e teto, R$ 8) | mudar o catálogo faz a prova reprovar até o guião mudar |
+| `provar-o-guiao-do-consultor` *(escrita, **44** asserções)* | os números do guião são os do catálogo (preços, franquias, piso **e teto**, R$ 8,00, R$ 10,00) e os ciclos por mês saem do `ciclos.json` real | mudar o catálogo faz a prova reprovar até o guião mudar; e o guião **não** pode voltar a dizer que o Básico «dá um professor» |
 
 **E há uma já escrita, para o próprio plano:** `experimentos/provar-o-plano-do-consultor.js`
 (**54 asserções**) recalcula do catálogo, do `ciclos.json` real e das constantes de custo, e compara

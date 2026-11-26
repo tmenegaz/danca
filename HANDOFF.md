@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-26T09:01:48-0300`
-Commit atual: `0603b0be` — feat(estrutura): o livro dos R$ 10, e o que nao se cobra
+Gerado em: `2026-11-26T09:22:12-0300`
+Commit atual: `1f2ab2dd` — fix(estrutura): o marcar recebido nao gravava, e nao dizia porquê
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -83,6 +83,7 @@ sapatilha-de-ponta (16)
 ## Últimos commits
 
 ```
+1f2ab2dd fix(estrutura): o marcar recebido nao gravava, e nao dizia porquê
 0603b0be feat(estrutura): o livro dos R$ 10, e o que nao se cobra
 840b83d6 feat(acervo): envelope/.indice.json
 8b0cc471 feat(estrutura): criar a escola clablun (motor completo)
@@ -102,7 +103,6 @@ df41c5e6 docs(estrutura): o fluxo do consultor, e o custo da demonstracao medido
 1eae186d feat(estrutura): o contador de aulas, e o excedente como uma linha discriminada
 02ee797d fix(estrutura): a cobranca Pix le-se no mesmo calendario do vencimento
 fd4a0e16 feat(estrutura): o mes pago a menos nao fecha, e a clausula esta escrita onde ela paga
-9db153f9 feat(estrutura): a conciliacao volta, e o mes pago nao se cobra outra vez
 ```
 
 ## Por professor
@@ -208,70 +208,75 @@ fd4a0e16 feat(estrutura): o mes pago a menos nao fecha, e a clausula esta escrit
 
 ## Última entrada do REGISTRO
 
-## «Marquei como pago» e o livro não tinha o elo *(26/11/2026)*
+## O guião do consultor — os números que ele diz de cor *(26/11/2026)*
 
-**O que ela disse, e o que o KV dizia.** «Marquei como pago os 10 reais.» O KV de produção, lido com
-`--remote`, tinha três chaves dos consultores: `registos`, `visitas/<id>` e `link/<hash>`.
-**Nenhum `recebidos/<id>`.** O gesto não gravou nada.
+**O que faltava.** O plano tinha o guião escrito na §8 e nunca o tinha passado para o manual de treino.
+Um consultor a improvisar preços é a origem mais comum de cliente irritado — e o §8.5 do próprio plano
+diz que ele não pode dizer um preço que não esteja no catálogo. Faltava o sítio onde os números estão,
+e a prova que os impede de apodrecer.
 
-### O que não era
+### O que o guião diz — e as duas coisas que a implementação corrigiu
 
-Não era o deploy: o commit do livro (`0603b0be`, 22:45) é anterior ao Worker publicado. Não era a
-rota: em bancada, com a autenticação certa, ela responde **200** e grava o elo. Não era o saldo: o
-devido eram R$ 10,00 e o recebido era zero.
+**1. O teto vai ao lado do piso.** A tabela do plano dava só o piso — «1 professor, 10 alunas» — e o
+consultor vai ser perguntado sobre o **teto**: «e se eu quiser mais?». O guião diz os dois:
 
-### O que era — duas escolhas que falham em silêncio
+| plano | por mês | franquia | inclui | **vai até** |
+|:--|--:|--:|:--|:--|
+| Básico | R$ 69,90 | 130 aulas | 1 professor · 10 alunas | **2 professores · 39 alunas** |
+| Intermediário | R$ 99,90 | 320 aulas | 3 professores · 40 alunas | **5 professores · 89 alunas** |
+| Avançado | R$ 139,90 | 500 aulas | 6 professores · 90 alunas | **20 professores · 500 alunas** |
 
-| | a escolha | o que aconteceu |
-|:--|:--|:--|
-| 1 | `window.prompt` para pedir o valor | quando o browser o suprime, devolve **`null` sem lançar nada**, e o código fazia `return`. O gesto morria antes de enviar |
-| 2 | o erro ia para o `recado` do **formulário de cadastro, no topo** | o botão está na **tabela, em baixo**. Um erro a 600 px de distância de onde a pessoa olha é um erro que não se vê |
+**E a prova proíbe a frase que vende um medo.** «O Básico dá 1 professor» a uma escola que viu dois na
+demonstração é uma perda que não existe: o Básico **inclui** um e **vai até dois**. É o erro que o
+plano já tinha registado a 25/11 (ler o piso como se fosse parede), e agora há uma asserção a
+impedir que ele volte ao texto.
 
-É a **terceira vez** nesta frente que a mesma família aparece — e as três são a mesma frase: **o que
-existe e não se vê não existe.** A primeira foi o `class="res alerta"` (classe inexistente, parágrafo
-invisível). A segunda foi o elo órfão. Esta foi um `prompt` que não abre e não diz nada.
+**2. As extensões estão no catálogo com `preco: 0`.** O plano dizia que ele «pode vendê-las já». Com
+preço zero, anunciar um valor é inventá-lo — e anunciá-las como grátis é prometer o que ninguém
+prometeu. O guião passou a dizer o que é verdade: **ele não anuncia preço de extensão**, levanta o
+valor com a administração, e a prova **proíbe a palavra «grátis»**. Declarar o preço das extensões
+fica como decisão dela.
 
-### As duas correcções
+### O que o guião leva, além dos preços
 
-**1. O campo do valor passou a estar na própria célula** — o mesmo padrão do «Marcar pago» do
-financeiro, que já funciona: `<input type="text" inputmode="decimal">` com o valor devido
-pré-preenchido, e o botão ao lado. O `type="number"` não serve: recusa a vírgula em parte dos
-teclados e transforma um valor válido em vazio sem avisar.
+- **os ciclos por mês**, calculados do `ciclos.json` real (24 aulas): o Básico comporta **5 e meio**,
+  e a frase que faz a escola escolher sozinha é «duas turmas, duas vezes por semana, cabem com folga»;
+- **as três regras** que não podem ficar para o fim: pagamento antecipado, R$ 8,00 por aula excedente
+  (discriminado, e **onera** em vez de interromper), e a franquia que **não acumula**;
+- **a distinção que gera queixa** quando ele hesita: na consultoria o limitador **interrompe**; no
+  plano pago o excedente **onera**. Uma coisa é uma demonstração com tamanho, a outra é uma assinatura;
+- **quando migrar** — três sinais, e a regra de ouro: ele não vende plano durante a consultoria, ele
+  **responde**;
+- **o que ele não diz nunca**, e **as quatro perguntas** que vai ouvir com as respostas — incluindo a
+  dos R$ 10,00, que ele **tem** de dizer.
 
-**2. A mensagem passou a sair na pilha de avisos**, no canto do ecrã — a peça que **já existia** na
-folha (`.avisos` + `.aviso-do-gesto`, com `data-tipo="ok|erro|atencao"`, botão de fechar e prazo de
-oito segundos) e que **só os Bastidores sabiam emitir**: a função `avisar` vivia dentro do script da
-página de Produção.
+### A prova
 
-Ficou em `motor/nucleo/aviso.js` — `PILHA` e `SCRIPT_DO_AVISO` —, e a pilha entra no **casco do
-painel** (`pagina()`), não em cada página: todas as páginas do dono precisam de dizer «não deu», e uma
-que a esquecesse seria a próxima a falhar em silêncio. É a mesma história do `copiar.js`, e a mesma
-solução.
+`experimentos/provar-o-guiao-do-consultor.js`, **44 asserções**, e cinco mutações com cinco quedas:
 
-### A prova — e a lição que já custou duas vezes
+| mutação | o que cai |
+|:--|:--|
+| o preço do Básico sobe no catálogo e o guião não muda | 2 asserções (no guião **e** no plano) |
+| a franquia do Básico muda | 2 |
+| o guião volta a dizer «o Básico dá 1 professor» | 1 |
+| o guião anuncia preço de extensão | 1 |
+| a taxa muda no catálogo | 1 |
 
-`provar-o-livro-do-consultor` cresceu de 46 para **65 asserções**, com uma §H que **corre o handler**
-com um DOM de bolso:
-
-- o campo do valor e o botão **saem do HTML**, não de constantes da prova;
-- o clique tem de **enviar** o pedido, para a rota certa, com `10,00 → 1000` centavos;
-- no erro, o aviso tem de **sair na pilha** («o aviso é emitido», «é do tipo erro», «leva a frase do
-  servidor»);
-- com o campo vazio **não se envia nada**, e diz-se o que escrever;
-- e a `window.prompt` é **proibida** por asserção — não por disciplina.
-
-**Quatro mutações, quatro quedas:** voltar o `prompt` (1), voltar o aviso para o topo (3), tirar a
-pilha do casco (1), tirar o campo do valor (3).
-
-**A lição, terceira vez:** não se mede o texto do script — **corre-se o handler**. Foi assim que a
-senha do professor vazia deixou de passar, foi assim que o campo do e-mail apagado passou a fazer
-cair, e é assim que este gesto não volta a morrer calado.
+**O que ela mede a mais, e é o que a torna útil:** lê as aulas de um ciclo do **índice real** de um
+ciclo (não de uma constante), e compara o guião com o **plano** — dois documentos que repetem os
+mesmos três preços não podem divergir. É a mesma ideia do `provar-o-custo-da-consultoria`: um
+documento que repete números envelhece, e dois documentos a dizer o mesmo número mentem juntos.
 
 ### Onde entrou
 
-`motor/nucleo/aviso.js` (novo), `motor/servidor/painel-html.js` (a pilha no casco, o campo na célula,
-o script sem `prompt`), `experimentos/provar-o-livro-do-consultor.js` (§H), `ESTADO-ATUAL.md`,
-`HANDOFF.md`.
+`FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` §8 (e a renumeração: a antiga §8 passou a §9),
+`experimentos/provar-o-guiao-do-consultor.js` (novo), `.gitignore`, `PLANO-DO-CONSULTOR.md` (§8 e
+§11), `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+**A F5 fecha as cinco fases do plano do consultor:** o cadastro, o endereço, a escola que nasce do
+link, o livro dos R$ 10 e o guião. O que fica por medir está na §14 do plano, e não é código: quantas
+consultorias um consultor faz por mês, quanto tempo uma consultoria leva na vida real, e o custo dos
+trinta dias de uma escola a usar o ambiente sozinha.
 
 ## O que está pendente
 
