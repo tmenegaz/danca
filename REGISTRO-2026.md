@@ -63722,3 +63722,81 @@ confissão de que escrever prova à pressa produz prova que não corre.
 `experimentos/provar-o-livro-do-consultor.js` (§I, Q7: 65 → **71** asserções),
 `PLANO-DO-CONSULTOR.md` (§7.0 e §13 — Q7 e Q8 passam a **DECIDIDO**), `ESTADO-ATUAL.md`,
 `HANDOFF.md`.
+
+## O campo de horas saiu, e a razão é jurídica *(26/11/2026)*
+
+**A decisão é dela, e eu tinha-a decidido mal.** O Q4 estava no plano como «**DECIDIDO 25/11/2026 —
+sim, opcional**», com um argumento meu que parecia bom: «não muda o que ele recebe; é o registo que
+lhe permite mostrar o que fez». Ela reviu-o, e a razão dela é outra e é melhor:
+
+> «Os consultores não são meus funcionários. Eles são consultores, vão ser contratados pelo regime de
+> prestadores de serviço autónomos, e vão fazer o próprio horário. […] Se eu colocar um consultor com
+> hora de trabalho, o dia que trabalhou, a hora que trabalhou, quanto trabalhou, enfim, qualquer
+> controle de tempo, eu dou a entender, **mesmo que sendo um campo opcional**, que eu estou tentando
+> controlar o trabalho do prestador de serviço autónomo.»
+
+**O erro do meu argumento, dito com clareza:** eu avaliei o campo pelo que ele faz ao *produto* — «o
+consultor pode mostrar o que fez» — e não pelo que ele faz à *relação*. Um registo de horas num
+sistema da contratante não é neutro por ser opcional: a existência do campo é o que sugere a
+subordinação, e a subordinação é o que se alega. **Um campo opcional que só existe num dos lados do
+contrato não é uma opção — é uma infraestrutura.**
+
+### O que saiu
+
+| onde | o que dizia | o que diz |
+|:--|:--|:--|
+| `PLANO-DO-CONSULTOR.md` §7 (tabela) | «**registar** as horas que ele declarar (opcional), e nada mais» | «**nada.** O sistema não sabe dela, e não deve saber» |
+| `PLANO-DO-CONSULTOR.md` §13 (Q4) | «DECIDIDO — sim, opcional» | «**REMOVIDO**, e não é «não por agora»» |
+| `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` | não dizia nada (o consultor só descobriria no ecrã) | **§2.2** nova: «o sistema não sabe quantas horas ele trabalhou» |
+| `PLANO-DO-CONSULTOR.md` §14 | «o tempo real de uma consultoria» por medir | …**deixa de poder ser medido pelo sistema** |
+
+**Não havia código nenhum.** O campo nunca passou do papel — nenhuma rota, nenhuma chave no KV,
+nenhum campo no ecrã. A remoção foi de documentos, e é por isso que ela pôde ser feita a limpo: o que
+nunca existiu não deixa resíduo.
+
+### A distinção que fica escrita, porque é ela que protege a decisão no futuro
+
+A decisão **não** é «não guardar datas nenhumas». É não guardar **o trabalho dele**:
+
+| o que | de quem é | é controlo de tempo? |
+|:--|:--|:--|
+| `criadoEm`, `atualizadoEm`, `historico: [{em, o}]` | **dela** — quando cadastrou, ativou, desativou | **não**: é a proveniência de uma decisão administrativa |
+| `usadaEm` de uma visita | do sistema — quando a escola nasceu | **não**: é o instante de um facto do produto, e é o que o livro dos R$ 10 lê |
+| `previstaPara` de uma visita | dele | **não**: é a data em que *pretende* ir, não o tempo que lá passou |
+| horas, dias, duração, «quanto trabalhou» | — | **não existe, e não haverá** |
+
+**Sem esta tabela, a decisão seria frágil:** o primeiro pedido de «projectar receita com o tempo médio
+de uma consultoria» traria o campo de volta, com boas intenções. Com ela, a pergunta passa a ter
+resposta escrita — e a resposta é que o número vem da conversa com o consultor, como já vem o valor
+da hora.
+
+### A prova — a decisão passou a ser executável
+
+`experimentos/provar-o-plano-do-consultor.js` cresceu com uma **§H** que mede a ausência em **três
+sítios**, porque um campo pode voltar por qualquer um deles:
+
+1. **o documento** — a decisão está escrita, o Q4 diz «REMOVIDO», e a tabela do dinheiro já não manda
+   registar horas;
+2. **o código** — uma varredura por nome de campo (`horas`, `duracao`, `minutos`, `jornada`) no núcleo
+   do consultor **e** no módulo que grava no KV;
+3. **o registo que ficaria gravado** — cria um consultor, ativa-o, cria uma visita, gasta-a e marca um
+   recebimento; e depois **lê o que ficou no KV**. Se a palavra aparecer, há um caminho até lá.
+
+E duas asserções do lado oposto, que impedem a prova de aprovar por omissão: **as datas das decisões
+dela continuam lá** (`historico`, `2026-11`) e **o `usadaEm` também** — se a prova só exigisse a
+ausência de «horas», um código que deixasse de gravar tudo passaria.
+
+**Quatro mutações, quatro quedas — uma por cada porta:**
+
+| mutação | o que cai |
+|:--|:--|
+| o campo `horas: []` volta ao registo do consultor | 2 asserções (o código **e** o KV) |
+| a tabela do plano volta a «registar as horas declaradas» | 1 |
+| o Q4 volta a «DECIDIDO — sim, opcional» | 1 |
+| o manual deixa de dizer que o sistema não sabe as horas | 1 |
+
+### Onde entrou
+
+`PLANO-DO-CONSULTOR.md` (§7, §7.4 novo, §13, §14), `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` (§2.2 nova, e
+uma linha na §8.6), `experimentos/provar-o-plano-do-consultor.js` (§H: 54 → **65** asserções),
+`ESTADO-ATUAL.md`, `HANDOFF.md`.

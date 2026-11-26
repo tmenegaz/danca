@@ -219,6 +219,77 @@ provar('o convite declara um prazo em dias', Number(convite.DIAS_DE_VALIDADE) ==
   provar('com 6 aulas na demonstração, o guião do limite também muda',
     alterado.consultoria.limites.aulas !== Number(CATALOGO.consultoria.limites.aulas), null);
 
+  /* ── §H O SISTEMA NÃO GUARDA HORAS DO CONSULTOR (26/11/2026) ─────────────────────────────────
+   *
+   * A DECISÃO DELA, na letra: «os consultores não são meus funcionários. […] vão ser contratados pelo
+   * regime de prestadores de serviço autónomos, e vão fazer o próprio horário. […] Se eu colocar um
+   * consultor com hora de trabalho, o dia que trabalhou, a hora que trabalhou, quanto trabalhou,
+   * enfim, qualquer controle de tempo, eu dou a entender, mesmo que sendo um campo opcional, que eu
+   * estou tentando controlar o trabalho do prestador de serviço autónomo.»
+   *
+   * PORQUE É UMA PROVA E NÃO SÓ UM PARÁGRAFO. Um campo que desapareceu de um documento volta no dia
+   * em que alguém achar que «seria útil para projectar receita». Estas asserções fazem a decisão
+   * **executável**: enquanto elas correrem, o campo não pode reaparecer sem alguém ver.
+   *
+   * E mede-se em TRÊS sítios, porque um campo pode voltar por qualquer um deles: o documento que o
+   * decide, o código que o guardaria, e o registo que ficaria gravado.
+   */
+  console.log('\n§H o sistema não guarda horas do consultor — nem o dia, nem a duração');
+
+  provar('a decisão está escrita no plano, com o motivo jurídico',
+    /prestador/i.test(PLANO) && /controle de tempo|controlar o trabalho/i.test(PLANO), null);
+  provar('…e diz que não é «não por agora»: não há horas no registo e não haverá',
+    /n[ãa]o haverá/i.test(PLANO), null);
+  provar('…e o Q4 está REMOVIDO, e não adiado',
+    /REMOVIDO a 26\/11\/2026/.test(PLANO), null);
+  provar('…e a tabela do dinheiro já não manda o sistema registar horas',
+    !/registar\*\* as horas que ele declarar/i.test(PLANO), null);
+
+  /* O CÓDIGO: nenhuma chave de horas no núcleo nem no módulo do KV. A varredura é por nome de campo,
+   * e é a única forma de apanhar um `horas:` escrito amanhã. */
+  const nucleo = require('fs').readFileSync(path.join(RAIZ, 'motor/nucleo/consultores.js'), 'utf8');
+  const casaFonte = require('fs').readFileSync(path.join(RAIZ, 'motor/servidor/consultores-da-casa.js'), 'utf8');
+  const CAMPOS_DE_TEMPO = /\b(horas|horasTrabalhadas|duracao|minutos|jornada)\s*:/;
+  provar('o núcleo do consultor não tem campo de horas nem de duração',
+    !CAMPOS_DE_TEMPO.test(nucleo), (nucleo.match(CAMPOS_DE_TEMPO) || [])[0]);
+  provar('…nem o módulo que grava no KV', !CAMPOS_DE_TEMPO.test(casaFonte), (casaFonte.match(CAMPOS_DE_TEMPO) || [])[0]);
+
+  /* O REGISTO: cria-se um consultor, dá-se-lhe uma visita que deu escola, marca-se recebido — e
+   * lê-se o que ficou gravado. Se a palavra aparecer numa chave ou num valor, há um caminho até lá. */
+  const casaMod = require(path.join(RAIZ, 'motor/servidor/consultores-da-casa.js'));
+  const memoria = new Map();
+  const kv = {
+    async get(k) { return memoria.has(k) ? memoria.get(k) : null; },
+    async put(k, v) { memoria.set(k, String(v)); },
+    async delete(k) { memoria.delete(k); },
+  };
+  const env = { PADD_KV: kv };
+  const criado = await casaMod.criar(env, {
+    nome: 'Giabu', praca: 'PI', cpf: '123.456.789-01', email: 'g@exemplo.com', telefone: '(55) 99999-0000',
+  });
+  await casaMod.mudarEstado(env, { id: criado.registo.id, ativo: true }, '2026-11-25T12:00:00.000Z');
+  const visita = await casaMod.criarVisita(env, criado.registo.id, { escolaNome: 'Clablun' }, '2026-11-25T12:00:00.000Z');
+  await casaMod.gastar(env, criado.registo.id, visita.visita.id, 'clablun', '2026-11-26T01:29:08.000Z');
+  await casaMod.marcarRecebido(env, criado.registo.id, 1000, 'Pix');
+
+  const gravado = [...memoria.entries()].map(([k, v]) => k + '=' + v).join('\n');
+  provar('o que fica gravado não tem a palavra «horas» em chave nenhuma',
+    !/"(horas|horasTrabalhadas|duracao|minutos|jornada)"/.test(gravado),
+    (gravado.match(/"[^"]*(hora|duracao|minuto)[^"]*"/gi) || []).slice(0, 3));
+  /* E o que FICA, dito de propósito — porque a decisão não é «não guardar datas nenhumas»: é não
+   * guardar o TRABALHO dele. As datas das decisões dela ficam. */
+  provar('…e as datas das decisões dela ficam (a proveniência é dela, não o trabalho dele)',
+    /historico/.test(gravado) && /2026-11/.test(gravado), null);
+  provar('…e o instante em que a escola nasceu fica, porque é o que o livro dos R$ 10 lê',
+    /usadaEm/.test(gravado), null);
+
+  /* O manual de treino também tem de o dizer — é onde o consultor aprenderia que havia um campo. */
+  const fluxo = require('fs').readFileSync(path.join(RAIZ, 'FLUXO-DA-ESCOLA-EM-CONSULTORIA.md'), 'utf8');
+  provar('o manual de treino diz que o sistema não sabe as horas',
+    /n[ãa]o sabe quantas horas|n[ãa]o guarda horas/i.test(fluxo), null);
+  provar('…e diz porquê (prestador autónomo, e um campo sugeriria controlo)',
+    /prestador/i.test(fluxo), null);
+
   /* ── o resumo ───────────────────────────────────────────────────────────────────────────── */
 
   console.log('\n' + provas + ' asserções, ' + (provas - falhas) + ' ok, ' + falhas + ' falha(s)');

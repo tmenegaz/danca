@@ -70,6 +70,27 @@ que já foi recebido.
 **Uma coisa que ele não faz, nunca:** cobrar a taxa à escola, ou descontá-la das horas. São dois
 dinheiros diferentes, com dois donos diferentes — as horas são dele, a taxa é dela.
 
+### 2.2 O sistema não sabe quantas horas ele trabalhou — e é assim de propósito
+
+**A hora é um acordo entre ele e a escola**, e o Sistema Lastro não entra nela. Não há campo de horas,
+de dias, de duração ou de «quanto trabalhou» — nem no perfil dele, nem na visita, nem no livro.
+
+**E não é uma funcionalidade que falte: é uma que não pode existir.** Ele é um **prestador de serviço
+autónomo**, não um funcionário: faz o próprio horário, e o vínculo é praticamente nulo. Um campo de
+horas num sistema da contratante — **mesmo opcional** — é o tipo de registo que sugere controlo de
+jornada, e o que ele sugere é o que se alega.
+
+**O que o sistema guarda, e porque não é a mesma coisa:**
+
+| o que | de quem é | é controlo de tempo? |
+|:--|:--|:--|
+| quando ela o cadastrou, ativou ou desativou | dela | não — é a proveniência de uma decisão administrativa |
+| quando a escola nasceu pelo link dele (`usadaEm`) | do sistema | não — é o instante de um facto do produto, e é o que o livro dos R$ 10 lê |
+| o dia em que ele **pretende** ir (`previstaPara`) | dele | não — é uma intenção declarada, não o tempo que lá passou |
+
+**Se a escola lhe perguntar «quantas horas são?», ele responde ele** — e o número não fica registado
+aqui. É o mesmo princípio de §2: o que é do consultor não passa pelo sistema.
+
 ---
 
 ## 3. A história, em nove passos
@@ -450,6 +471,9 @@ argumento, não a tabela de preços.
 | «e para você?» | **R$ 10,00 por consultoria** — ele diz o número, porque um preço escondido aparece sempre (§2.1) |
 | «se eu não contratar, você perde?» | não. O risco de a escola não contratar é dela, não dele |
 | «quanto tempo eu tenho?» | **um mês a contar do dia em que a escola nasceu**, e no fim fica em leitura — nada se apaga |
+
+**E uma que ele não responde com o sistema:** «quantas horas você trabalhou?» — as horas são dele com
+a escola, e o Sistema Lastro não as regista (§2.2).
 
 ---
 

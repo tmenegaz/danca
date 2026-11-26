@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-26T10:01:56-0300`
-Commit atual: `f6ecb866` — docs(estrutura): o guiao do consultor, e as cinco fases fechadas
+Gerado em: `2026-11-26T10:09:21-0300`
+Commit atual: `c8000e27` — audit(estrutura): o Q7 e o Q8 do plano do consultor, agora medidos
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -83,6 +83,7 @@ sapatilha-de-ponta (16)
 ## Últimos commits
 
 ```
+c8000e27 audit(estrutura): o Q7 e o Q8 do plano do consultor, agora medidos
 f6ecb866 docs(estrutura): o guiao do consultor, e as cinco fases fechadas
 1f2ab2dd fix(estrutura): o marcar recebido nao gravava, e nao dizia porquê
 0603b0be feat(estrutura): o livro dos R$ 10, e o que nao se cobra
@@ -102,7 +103,6 @@ a4638edf fix(estrutura): a descricao do exercicio volta para fora da tabela
 df41c5e6 docs(estrutura): o fluxo do consultor, e o custo da demonstracao medido
 5472e427 feat(estrutura): o plano consultoria, o mes que corre da entrega, e o congelamento calculado
 1eae186d feat(estrutura): o contador de aulas, e o excedente como uma linha discriminada
-02ee797d fix(estrutura): a cobranca Pix le-se no mesmo calendario do vencimento
 ```
 
 ## Por professor
@@ -208,73 +208,83 @@ df41c5e6 docs(estrutura): o fluxo do consultor, e o custo da demonstracao medido
 
 ## Última entrada do REGISTRO
 
-## Q7 e Q8 — as duas perguntas que estavam abertas, e o que era preciso fazer *(26/11/2026)*
+## O campo de horas saiu, e a razão é jurídica *(26/11/2026)*
 
-**A pergunta que ela fez:** «verificou o q7 e q8 do plano do consultor?» A resposta honesta era
-**não** — no sentido que conta: o comportamento estava certo, e **não havia asserção nenhuma a
-afirmá-lo**. Duas perguntas que estavam no §13 do plano como «recomendação» continuavam a ser
-recomendação depois de implementadas.
+**A decisão é dela, e eu tinha-a decidido mal.** O Q4 estava no plano como «**DECIDIDO 25/11/2026 —
+sim, opcional**», com um argumento meu que parecia bom: «não muda o que ele recebe; é o registo que
+lhe permite mostrar o que fez». Ela reviu-o, e a razão dela é outra e é melhor:
 
-### Q8 — ele não se activa a si mesmo
+> «Os consultores não são meus funcionários. Eles são consultores, vão ser contratados pelo regime de
+> prestadores de serviço autónomos, e vão fazer o próprio horário. […] Se eu colocar um consultor com
+> hora de trabalho, o dia que trabalhou, a hora que trabalhou, quanto trabalhou, enfim, qualquer
+> controle de tempo, eu dou a entender, **mesmo que sendo um campo opcional**, que eu estou tentando
+> controlar o trabalho do prestador de serviço autónomo.»
 
-**Medido, e passa por duas vias independentes** — o que é a única forma de uma regra desta espécie
-valer, porque uma via só é uma via que alguém pode contornar:
+**O erro do meu argumento, dito com clareza:** eu avaliei o campo pelo que ele faz ao *produto* — «o
+consultor pode mostrar o que fez» — e não pelo que ele faz à *relação*. Um registo de horas num
+sistema da contratante não é neutro por ser opcional: a existência do campo é o que sugere a
+subordinação, e a subordinação é o que se alega. **Um campo opcional que só existe num dos lados do
+contrato não é uma opção — é uma infraestrutura.**
 
-| o que se tentou | o que aconteceu |
+### O que saiu
+
+| onde | o que dizia | o que diz |
+|:--|:--|:--|
+| `PLANO-DO-CONSULTOR.md` §7 (tabela) | «**registar** as horas que ele declarar (opcional), e nada mais» | «**nada.** O sistema não sabe dela, e não deve saber» |
+| `PLANO-DO-CONSULTOR.md` §13 (Q4) | «DECIDIDO — sim, opcional» | «**REMOVIDO**, e não é «não por agora»» |
+| `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` | não dizia nada (o consultor só descobriria no ecrã) | **§2.2** nova: «o sistema não sabe quantas horas ele trabalhou» |
+| `PLANO-DO-CONSULTOR.md` §14 | «o tempo real de uma consultoria» por medir | …**deixa de poder ser medido pelo sistema** |
+
+**Não havia código nenhum.** O campo nunca passou do papel — nenhuma rota, nenhuma chave no KV,
+nenhum campo no ecrã. A remoção foi de documentos, e é por isso que ela pôde ser feita a limpo: o que
+nunca existiu não deixa resíduo.
+
+### A distinção que fica escrita, porque é ela que protege a decisão no futuro
+
+A decisão **não** é «não guardar datas nenhumas». É não guardar **o trabalho dele**:
+
+| o que | de quem é | é controlo de tempo? |
+|:--|:--|:--|
+| `criadoEm`, `atualizadoEm`, `historico: [{em, o}]` | **dela** — quando cadastrou, ativou, desativou | **não**: é a proveniência de uma decisão administrativa |
+| `usadaEm` de uma visita | do sistema — quando a escola nasceu | **não**: é o instante de um facto do produto, e é o que o livro dos R$ 10 lê |
+| `previstaPara` de uma visita | dele | **não**: é a data em que *pretende* ir, não o tempo que lá passou |
+| horas, dias, duração, «quanto trabalhou» | — | **não existe, e não haverá** |
+
+**Sem esta tabela, a decisão seria frágil:** o primeiro pedido de «projectar receita com o tempo médio
+de uma consultoria» traria o campo de volta, com boas intenções. Com ela, a pergunta passa a ter
+resposta escrita — e a resposta é que o número vem da conversa com o consultor, como já vem o valor
+da hora.
+
+### A prova — a decisão passou a ser executável
+
+`experimentos/provar-o-plano-do-consultor.js` cresceu com uma **§H** que mede a ausência em **três
+sítios**, porque um campo pode voltar por qualquer um deles:
+
+1. **o documento** — a decisão está escrita, o Q4 diz «REMOVIDO», e a tabela do dinheiro já não manda
+   registar horas;
+2. **o código** — uma varredura por nome de campo (`horas`, `duracao`, `minutos`, `jornada`) no núcleo
+   do consultor **e** no módulo que grava no KV;
+3. **o registo que ficaria gravado** — cria um consultor, ativa-o, cria uma visita, gasta-a e marca um
+   recebimento; e depois **lê o que ficou no KV**. Se a palavra aparecer, há um caminho até lá.
+
+E duas asserções do lado oposto, que impedem a prova de aprovar por omissão: **as datas das decisões
+dela continuam lá** (`historico`, `2026-11`) e **o `usadaEm` também** — se a prova só exigisse a
+ausência de «horas», um código que deixasse de gravar tudo passaria.
+
+**Quatro mutações, quatro quedas — uma por cada porta:**
+
+| mutação | o que cai |
 |:--|:--|
-| o token dele no cabeçalho `Authorization: Bearer` | **401** |
-| o token dele **no corpo** do pedido (`{token: …}`) | **401** |
-| o «Novo endereço» com o token dele | **401** |
-| já activo, desactivar-se a si mesmo | **401** |
-
-E as duas metades que não dependem de autenticação: o histórico dele acaba em
-`criado > ativado > acesso-emitido > desativado`, **sem um `ativado` a seguir**; e os **recortes das
-duas funções dele** (`respostaDaAreaDoConsultor`, `responderAoPedidoDoConsultor`) não contêm
-`mudarEstado` nem `.ativo =`.
-
-**A mutação que mostra que isto mede:** fazer o `autorizado` aceitar um `Bearer` derruba **seis**
-asserções — a porta abria e ele activava-se.
-
-### Q7 — uma visita que dá escola duas vezes paga duas vezes?
-
-**Não — e a razão não é uma trava nova: é a FORMA do livro.** Ele conta **visitas com `usadaEm` e
-`escolaSlug`**, e não escolas. Uma visita é um elemento da lista; marcá-la usada duas vezes, ou
-trocar-lhe o slug, não a transforma em duas.
-
-| o cenário | o que o livro cobra |
-|:--|--:|
-| a mesma visita marcada usada duas vezes | **1** |
-| a mesma visita com o slug trocado (escola recriada) | **1** |
-| **duas visitas para a MESMA escola** | **2** |
-| criação que falhou (rollback) → link reabre → criação que passa | **1** |
-
-**A terceira linha é o controlo negativo, e é ela que faz a regra valer:** sem ela, «conta uma» seria
-indistinguível de «conta sempre uma». Duas visitas para a mesma escola são **dois trabalhos** — ele
-foi lá duas vezes.
-
-E o cenário da pergunta, de ponta a ponta: a criação falha com o rollback (`502`), o link **continua a
-abrir**, a segunda tentativa passa (`201`), e o livro cobra **uma** consultoria.
-
-**A mutação:** fazer o livro contar escolas em vez de visitas derruba a asserção do controlo negativo.
-
-### Dois erros meus, na escrita das asserções
-
-**1. `indexOf(...) || i + 6000`.** Quando a marca não existe depois de `i`, o `indexOf` devolve
-**-1** — e **-1 é truthy**. O `||` nunca corria, o `slice(i, -1)` ia até ao fim do ficheiro, e a
-asserção apanhava as rotas do painel (que escrevem `ativo` de propósito). Reprovava o código certo. O
-recorte passou a ser **por fronteira de função**, com uma asserção que exige que ele **não seja
-vazio** — senão uma asserção sobre um recorte vazio aprovaria tudo.
-
-**2. Uma secção escrita a correr.** Escrevi a §I com nomes que não existiam (`opcaoDoPedido`,
-`creadoQ8NaoExiste`). Foi reescrita com o que o ficheiro já tinha. Não é lição de método — é a
-confissão de que escrever prova à pressa produz prova que não corre.
+| o campo `horas: []` volta ao registo do consultor | 2 asserções (o código **e** o KV) |
+| a tabela do plano volta a «registar as horas declaradas» | 1 |
+| o Q4 volta a «DECIDIDO — sim, opcional» | 1 |
+| o manual deixa de dizer que o sistema não sabe as horas | 1 |
 
 ### Onde entrou
 
-`experimentos/provar-o-cadastro-do-consultor.js` (§I, Q8: 88 → **100** asserções),
-`experimentos/provar-o-livro-do-consultor.js` (§I, Q7: 65 → **71** asserções),
-`PLANO-DO-CONSULTOR.md` (§7.0 e §13 — Q7 e Q8 passam a **DECIDIDO**), `ESTADO-ATUAL.md`,
-`HANDOFF.md`.
+`PLANO-DO-CONSULTOR.md` (§7, §7.4 novo, §13, §14), `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` (§2.2 nova, e
+uma linha na §8.6), `experimentos/provar-o-plano-do-consultor.js` (§H: 54 → **65** asserções),
+`ESTADO-ATUAL.md`, `HANDOFF.md`.
 
 ## O que está pendente
 

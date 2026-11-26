@@ -4,7 +4,23 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 26/11/2026 — **o plano do consultor está fechado: cinco fases, cinco
+> **Última fotografia:** 26/11/2026 — **o sistema não guarda horas do consultor, e agora há prova
+> disso.** O **Q4** («ele declara as horas?») foi **removido**, e a razão é jurídica antes de ser
+> técnica, nas palavras dela: «os consultores não são meus funcionários. […] vão ser contratados pelo
+> regime de prestadores de serviço autónomos, e vão fazer o próprio horário. […] Se eu colocar um
+> consultor com hora de trabalho, o dia que trabalhou, a hora que trabalhou, quanto trabalhou, enfim,
+> qualquer controle de tempo, eu dou a entender, **mesmo que sendo um campo opcional**, que eu estou
+> tentando controlar o trabalho do prestador de serviço autónomo.» **Nunca houve código** — o campo
+> ficou no papel, e sai do papel. **A distinção que fica escrita** (plano §7.4, manual §2.2): *quando
+> ela o ativou* é um facto administrativo, dela; *quanto tempo ele trabalhou* é a vida de um
+> prestador, e o sistema não a conhece. `usadaEm` fica — é o instante em que a **escola nasceu**, e é
+> o que o livro dos R$ 10 lê; `previstaPara` fica — é uma **intenção** declarada, não tempo passado. **A
+> decisão passou a ser executável:** `provar-o-plano-do-consultor` §H mede-a em **três sítios** — o
+> documento que a decide, o código que a guardaria, e o **registo que ficaria gravado** (cria um
+> consultor, dá-lhe uma visita e um recebimento, e lê o KV) —, com **quatro mutações, uma por cada
+> porta**. E o que se perde fica dito: o «tempo real de uma consultoria» (§14) **deixa de poder ser
+> medido pelo sistema**; se ela quiser projectar receita, o número vem da conversa com o consultor.
+> Antes disso, no mesmo dia: **o plano do consultor está fechado: cinco fases, cinco
 > entregas.** A **F5** levou o guião ao manual de treino
 > ([FLUXO-DA-ESCOLA-EM-CONSULTORIA.md](FLUXO-DA-ESCOLA-EM-CONSULTORIA.md) §8): os três planos com
 > preço, franquia, **piso e teto**, os ciclos por mês calculados do `ciclos.json` real, as três regras
@@ -5293,7 +5309,15 @@ ela pode responder**:
   (`comercial.tetoDoPlano`). A pergunta nasceu de ler o piso como se fosse parede.
 - ~~**Q3**~~ — **DECIDIDO 25/11/2026: o mês começa na criação**, na porta do consultor. A porta do
   painel continua a entregar à mão.
-- **Q4** — ~~ele declara as horas?~~ **DECIDIDO 25/11/2026: sim, opcional.**
+- ~~**Q4**~~ — ~~ele declara as horas?~~ **REMOVIDO a 26/11/2026 — o campo não existe, e não é «não por
+  agora».** A razão é dela e é jurídica: «os consultores não são meus funcionários, vão ser contratados
+  pelo regime de prestadores de serviço autónomos e vão fazer o próprio horário. […] qualquer controle
+  de tempo, mesmo que sendo um campo opcional, eu dou a entender que estou tentando controlar o
+  trabalho do prestador.» **O sistema não guarda horas — nem o dia, nem a duração — e não guardará.** A
+  distinção que fica escrita no §7.4 do plano: *quando o ativei* é um facto administrativo, dela; e
+  *quanto tempo ele trabalhou* é a vida de um prestador, e o sistema não a conhece. Medido em três
+  sítios (documento, código e registo gravado) por `provar-o-plano-do-consultor` §H, com quatro
+  mutações — uma por cada porta por onde o campo poderia voltar.
 - **Q4-bis** — ~~como gera o link?~~ **DECIDIDO 25/11/2026: na área dele**, e é ela que lhe manda o
   endereço ao activar.
 - ~~**Q5**~~ — ~~o link expira em 30 dias?~~ **DECIDIDO pela implementação a 25/11/2026: sim**
@@ -7821,6 +7845,22 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **26/11/2026** — **O campo de horas do consultor foi removido, e a prova impede que volte.** O **Q4**
+  estava decidido como «sim, opcional», e ela reviu-o com uma razão que eu não tinha pesado: um campo
+  de horas num sistema da contratante — **mesmo opcional** — sugere controlo de jornada, e o consultor
+  é **prestador de serviço autónomo**, não funcionário. Não havia código nenhum (o campo nunca passou
+  do papel), e a remoção foi de documentos: o **Q4** no plano, a linha da tabela do dinheiro que
+  mandava «registar as horas que ele declarar», e o manual de treino, que passou a ter a **§2.2**
+  («o sistema não sabe quantas horas ele trabalhou — e é assim de propósito»). **O que fica, e a
+  distinção importa:** `criadoEm`/`historico` são a **proveniência das decisões dela**; `usadaEm` é o
+  instante em que a **escola nasceu** e é o que o livro dos R$ 10 lê; `previstaPara` é uma **intenção
+  dele**, não tempo passado. **O que se perde, declarado:** o «tempo real de uma consultoria» (§14 do
+  plano) deixa de poder ser medido pelo sistema — se ela quiser projectar receita, o número vem da
+  conversa com o consultor. **A decisão ficou executável:** `provar-o-plano-do-consultor` §H mede-a em
+  **três sítios** — o documento, o código (varredura por nome de campo no núcleo e no módulo do KV) e
+  o **registo que ficaria gravado** (cria um consultor, dá-lhe uma visita e um recebimento, e lê o
+  que ficou no KV) —, com **quatro mutações e quatro quedas**, uma por cada porta.
 
 - **26/11/2026** — **O guião do consultor (F5), e as cinco fases fechadas.** O guião do §8 do plano
   passou ao manual de treino, e o plano deixou de o repetir. **Duas correcções que a implementação

@@ -313,9 +313,36 @@ consultor diz, não o sistema.
 
 | fluxo | valor | entre quem | o sistema faz |
 |:--|:--|:--|:--|
-| **a hora da consultoria** | **R$ 120** | a escola paga ao consultor | **registar** as horas que ele declarar (opcional), e nada mais. Não cobra, não repassa, não retém |
+| **a hora da consultoria** | **R$ 120** | a escola paga ao consultor | **nada.** O sistema não sabe dela, e não deve saber: nem o dia, nem a hora, nem quanto durou (§7.4) |
 | **a taxa da consultoria** | **R$ 10** | o consultor paga a ela | **registar** o que é devido, por visita criada, e o que já foi recebido. É um livro, não uma cobrança |
 | **a assinatura** | R$ 69,90 · R$ 99,90 · R$ 139,90 por mês | a escola paga a ela, por Pix, directo | já existe: o financeiro, a conciliação, o «Habilitar» |
+
+### 7.4 O sistema não guarda horas do consultor — e não é uma simplificação *(26/11/2026)*
+
+**A decisão é dela, e a razão é jurídica antes de ser técnica:** «os consultores não são meus
+funcionários. Eles são consultores, vão ser contratados pelo regime de prestadores de serviço
+autónomos, e vão fazer o próprio horário. […] Se eu colocar um consultor com hora de trabalho, o dia
+que trabalhou, a hora que trabalhou, quanto trabalhou, enfim, qualquer controle de tempo, eu dou a
+entender, mesmo que sendo um campo opcional, que eu estou tentando controlar o trabalho do prestador
+de serviço autónomo.»
+
+**O que isto significa, em regras que se podem verificar:**
+
+| o que existe | de quem é | é controlo de tempo? |
+|:--|:--|:--|
+| `criadoEm`, `atualizadoEm`, `historico: [{em, o}]` | **dela** — quando ela cadastrou, ativou, desativou | **não.** É a proveniência das decisões dela, não o trabalho dele |
+| `usadaEm` de uma visita | do sistema — quando a escola nasceu | **não.** É o instante de um facto do produto, e é ele que o livro dos R$ 10 lê |
+| `previstaPara` de uma visita | dele, declarada por ele | **não.** É a data em que ele *pretende* ir, não o tempo que lá passou |
+| horas, dias, duração, «quanto trabalhou» | — | **não existe, em sítio nenhum** |
+
+**A distinção que fica escrita, porque é ela que protege a decisão no futuro:** *quando o ativei* é um
+facto administrativo, dela; *quanto tempo ele trabalhou* é a vida privada de um prestador, e o sistema
+não a conhece. A primeira fica; a segunda nunca existiu.
+
+**O que se perde, e é declarado:** a §14 dizia que «o tempo real de uma consultoria» era uma coisa por
+medir. Deixa de poder ser medida **pelo sistema** — nunca mais haverá um número de horas no registo.
+Se ela quiser projectar receita, o número vem da conversa com o consultor, como já vem o valor da
+hora. **O sistema não é testemunha dessa relação, e é isso que a mantém limpa.**
 
 ### 7.0 Como está implementado *(25/11/2026)*
 
@@ -573,7 +600,7 @@ Nenhuma destas trava a F1, e três mudam o desenho. Ficam com a recomendação d
 | ~~**Q1**~~ | ~~os R$ 10 são por consultoria ou por sessão?~~ | **DECIDIDO 25/11/2026 — por consultoria:** uma visita que deu escola, dez reais. Por sessão obrigaria a definir o que é uma sessão |
 | ~~**Q2**~~ | ~~a demonstração dá 2 professores e o Básico dá 1~~ | **DECIDIDO 25/11/2026 — deixar como está, e o motivo é que não há perda:** o Básico **vai até 2 professores**. A pergunta nasceu de ler o piso como se fosse parede (§8.4) |
 | ~~**Q3**~~ | ~~o mês da escola começa na criação (§6.1)~~ | **DECIDIDO 25/11/2026 — na criação.** A alternativa pararia o negócio de quem cobra à hora |
-| **Q4** | o consultor **declara as horas** na área dele? | **DECIDIDO 25/11/2026 — sim, opcional.** Não muda o que ele recebe; é o registo que lhe permite mostrar o que fez |
+| ~~**Q4**~~ | ~~o consultor **declara as horas** na área dele?~~ | **REMOVIDO a 26/11/2026, e não é «não por agora».** Um campo de horas — **mesmo opcional** — faz a contratante parecer controlar o tempo de um prestador autónomo. Não há horas no registo, e **não haverá**: §7.4, com asserção própria em `provar-o-plano-do-consultor` |
 | ~~**Q5**~~ | ~~o link expira em **30 dias**?~~ | **DECIDIDO 25/11/2026 — sim, 30 dias** (`consultores.DIAS_DO_LINK`). É o mesmo prazo de um mês de demonstração, e um link que não expira é uma porta que ninguém fecha. A reemissão conta o prazo de novo |
 | ~~**Q6**~~ | ~~ele pode gerar **quantas visitas** quiser?~~ | **DECIDIDO 25/11/2026 — sim, ao gerar.** Um tecto aqui não protege de nada: o que protege é a desactivação. Mas o **livro** recusa a partir de 1000 visitas, e recusa em vez de apagar — uma visita é uma linha de dinheiro, e o mais antigo não pode sair em silêncio como sai da lista de consultores |
 | ~~**Q4-bis**~~ | ~~como é que ele gera o link?~~ | **DECIDIDO 25/11/2026 — pela área dele**, `lastro.padd.com.br/consultor/<token>`: ela manda-lhe o endereço ao activar (§3, acto 2). Não é ela que gera no painel |
@@ -590,4 +617,6 @@ Nenhuma destas trava a F1, e três mudam o desenho. Ficam com a recomendação d
 2. **Quantas consultorias um consultor faz por mês**, para o número de R$ 10 virar receita
    projectada. Não há dado: nenhuma consultoria aconteceu ainda.
 3. **O tempo real de uma consultoria.** Ela disse «algumas horas» e «R$ 120 a hora»; as 3 horas do
-   exemplo são dela, não uma medida.
+   exemplo são dela, não uma medida. **E deixa de poder ser medido pelo sistema** (26/11/2026): o
+   campo de horas foi removido por razão jurídica (§7.4), e nunca haverá um número de horas no
+   registo. Se ela quiser projectar receita, vem da conversa com o consultor.
