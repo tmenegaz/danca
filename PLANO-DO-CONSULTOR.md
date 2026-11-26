@@ -337,6 +337,12 @@ adiantamento), mostra-se** — truncá-lo em zero esconderia a única coisa que 
 **Um KV mudo não é «deve zero»:** a célula do painel diz «não consegui ler», com o motivo, no lugar
 do valor. Num dado de dinheiro é a diferença entre uma decisão e um acidente.
 
+**A taxa é por VISITA, e não por escola** — e é a forma do livro que o garante, não uma trava
+acrescida. Marcada usada duas vezes, ou com o slug trocado, uma visita continua a ser um elemento da
+lista: uma consultoria, dez reais. **Duas visitas para a mesma escola são duas** — ele foi lá duas
+vezes, e são dois trabalhos. É a resposta ao Q7, e tem controlo negativo na prova: uma regra que só
+se medisse no caso que se quer proibir não distinguiria «conta uma» de «conta sempre uma».
+
 ### 7.1 Porque é que os R$ 10 são um livro e não uma cobrança
 
 O sistema não tem como cobrar: não há cartão, não há débito, não há conta do consultor. O que ele pode
@@ -571,8 +577,8 @@ Nenhuma destas trava a F1, e três mudam o desenho. Ficam com a recomendação d
 | ~~**Q5**~~ | ~~o link expira em **30 dias**?~~ | **DECIDIDO 25/11/2026 — sim, 30 dias** (`consultores.DIAS_DO_LINK`). É o mesmo prazo de um mês de demonstração, e um link que não expira é uma porta que ninguém fecha. A reemissão conta o prazo de novo |
 | ~~**Q6**~~ | ~~ele pode gerar **quantas visitas** quiser?~~ | **DECIDIDO 25/11/2026 — sim, ao gerar.** Um tecto aqui não protege de nada: o que protege é a desactivação. Mas o **livro** recusa a partir de 1000 visitas, e recusa em vez de apagar — uma visita é uma linha de dinheiro, e o mais antigo não pode sair em silêncio como sai da lista de consultores |
 | ~~**Q4-bis**~~ | ~~como é que ele gera o link?~~ | **DECIDIDO 25/11/2026 — pela área dele**, `lastro.padd.com.br/consultor/<token>`: ela manda-lhe o endereço ao activar (§3, acto 2). Não é ela que gera no painel |
-| **Q8** | o consultor pode **activar-se** a si mesmo, ou só ela? | só ela. Nasce inactivo, e o «Activar» é o gesto que abre a porta (§3, acto 1) |
-| **Q7** | uma visita que dá escola **duas vezes** por engano (rollback e nova criação) paga **duas vezes**? | não: a taxa é por **visita**, e o token gasta-se na primeira criação que passa. Uma segunda escola exige um segundo link |
+| ~~**Q8**~~ | ~~o consultor pode **activar-se** a si mesmo, ou só ela?~~ | **DECIDIDO pela implementação a 26/11/2026 — só ela**, e medido por duas vias independentes: ele **nasce inactivo**, e nenhuma rota dele escreve `ativo` (`provar-o-cadastro-do-consultor` §I: o token dele dá **401** nas rotas do painel, no cabeçalho e no corpo; e os dois recortes das funções dele não contêm `mudarEstado`) |
+| ~~**Q7**~~ | ~~uma visita que dá escola **duas vezes** por engano (rollback e nova criação) paga **duas vezes**?~~ | **DECIDIDO pela implementação a 26/11/2026 — não**, e a razão é a FORMA do livro, não uma trava nova: ele conta **visitas com `usadaEm` e `escolaSlug`**, e não escolas. Marcá-la usada duas vezes, ou trocar-lhe o slug, continua a dar uma. Medido em `provar-o-livro-do-consultor` §I, **com o controlo negativo**: duas visitas para a MESMA escola contam duas — foram dois trabalhos |
 
 ---
 

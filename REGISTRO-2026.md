@@ -63654,3 +63654,71 @@ documento que repete números envelhece, e dois documentos a dizer o mesmo núme
 link, o livro dos R$ 10 e o guião. O que fica por medir está na §14 do plano, e não é código: quantas
 consultorias um consultor faz por mês, quanto tempo uma consultoria leva na vida real, e o custo dos
 trinta dias de uma escola a usar o ambiente sozinha.
+
+## Q7 e Q8 — as duas perguntas que estavam abertas, e o que era preciso fazer *(26/11/2026)*
+
+**A pergunta que ela fez:** «verificou o q7 e q8 do plano do consultor?» A resposta honesta era
+**não** — no sentido que conta: o comportamento estava certo, e **não havia asserção nenhuma a
+afirmá-lo**. Duas perguntas que estavam no §13 do plano como «recomendação» continuavam a ser
+recomendação depois de implementadas.
+
+### Q8 — ele não se activa a si mesmo
+
+**Medido, e passa por duas vias independentes** — o que é a única forma de uma regra desta espécie
+valer, porque uma via só é uma via que alguém pode contornar:
+
+| o que se tentou | o que aconteceu |
+|:--|:--|
+| o token dele no cabeçalho `Authorization: Bearer` | **401** |
+| o token dele **no corpo** do pedido (`{token: …}`) | **401** |
+| o «Novo endereço» com o token dele | **401** |
+| já activo, desactivar-se a si mesmo | **401** |
+
+E as duas metades que não dependem de autenticação: o histórico dele acaba em
+`criado > ativado > acesso-emitido > desativado`, **sem um `ativado` a seguir**; e os **recortes das
+duas funções dele** (`respostaDaAreaDoConsultor`, `responderAoPedidoDoConsultor`) não contêm
+`mudarEstado` nem `.ativo =`.
+
+**A mutação que mostra que isto mede:** fazer o `autorizado` aceitar um `Bearer` derruba **seis**
+asserções — a porta abria e ele activava-se.
+
+### Q7 — uma visita que dá escola duas vezes paga duas vezes?
+
+**Não — e a razão não é uma trava nova: é a FORMA do livro.** Ele conta **visitas com `usadaEm` e
+`escolaSlug`**, e não escolas. Uma visita é um elemento da lista; marcá-la usada duas vezes, ou
+trocar-lhe o slug, não a transforma em duas.
+
+| o cenário | o que o livro cobra |
+|:--|--:|
+| a mesma visita marcada usada duas vezes | **1** |
+| a mesma visita com o slug trocado (escola recriada) | **1** |
+| **duas visitas para a MESMA escola** | **2** |
+| criação que falhou (rollback) → link reabre → criação que passa | **1** |
+
+**A terceira linha é o controlo negativo, e é ela que faz a regra valer:** sem ela, «conta uma» seria
+indistinguível de «conta sempre uma». Duas visitas para a mesma escola são **dois trabalhos** — ele
+foi lá duas vezes.
+
+E o cenário da pergunta, de ponta a ponta: a criação falha com o rollback (`502`), o link **continua a
+abrir**, a segunda tentativa passa (`201`), e o livro cobra **uma** consultoria.
+
+**A mutação:** fazer o livro contar escolas em vez de visitas derruba a asserção do controlo negativo.
+
+### Dois erros meus, na escrita das asserções
+
+**1. `indexOf(...) || i + 6000`.** Quando a marca não existe depois de `i`, o `indexOf` devolve
+**-1** — e **-1 é truthy**. O `||` nunca corria, o `slice(i, -1)` ia até ao fim do ficheiro, e a
+asserção apanhava as rotas do painel (que escrevem `ativo` de propósito). Reprovava o código certo. O
+recorte passou a ser **por fronteira de função**, com uma asserção que exige que ele **não seja
+vazio** — senão uma asserção sobre um recorte vazio aprovaria tudo.
+
+**2. Uma secção escrita a correr.** Escrevi a §I com nomes que não existiam (`opcaoDoPedido`,
+`creadoQ8NaoExiste`). Foi reescrita com o que o ficheiro já tinha. Não é lição de método — é a
+confissão de que escrever prova à pressa produz prova que não corre.
+
+### Onde entrou
+
+`experimentos/provar-o-cadastro-do-consultor.js` (§I, Q8: 88 → **100** asserções),
+`experimentos/provar-o-livro-do-consultor.js` (§I, Q7: 65 → **71** asserções),
+`PLANO-DO-CONSULTOR.md` (§7.0 e §13 — Q7 e Q8 passam a **DECIDIDO**), `ESTADO-ATUAL.md`,
+`HANDOFF.md`.

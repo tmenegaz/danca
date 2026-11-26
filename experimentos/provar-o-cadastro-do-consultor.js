@@ -375,6 +375,93 @@ provar('…e a frase diz «cada CNPJ é uma empresa»', /cada CNPJ é uma empres
 
   /* ── o resumo ───────────────────────────────────────────────────────────────────────────── */
 
+  /* ── §I Q8 do plano: ELE NÃO SE ACTIVA A SI MESMO ──────────────────────────────────────────
+   *
+   * A pergunta estava em aberto no §13 do PLANO-DO-CONSULTOR: «o consultor pode activar-se a si
+   * mesmo, ou só ela?» A recomendação era **só ela**, e o código cumpre-o por duas razões
+   * independentes — o que é a única forma de uma regra desta espécie valer:
+   *
+   *   1. o consultor **nasce inactivo** (§B desta prova), e nenhuma rota dele escreve `ativo`;
+   *   2. as rotas que escrevem `ativo` são as do PAINEL, e o painel exige a senha da dona — o token
+   *      dele, em qualquer forma (Bearer, no corpo), não passa.
+   *
+   * O QUE ESTA SECÇÃO MEDE, e é o que faltava: **nenhuma das formas de apresentar o token dele
+   * activa nada**. Sem esta asserção, um `autorizado` mal escrito — que aceitasse um Bearer por
+   * conveniência — abriria a porta e ninguém daria por isso: o consultor activo a mais parece
+   * exactamente um consultor que trabalha.
+   */
+  console.log('\n§I Q8 — ele não se activa a si mesmo: o token dele não abre as rotas do dono');
+
+  const kvQ8 = kvDeMentira();
+  const envQ8 = {
+    PADD_KV: kvQ8, SENHA_RAIZ: 'a-senha-da-bancada', HOST_DONO: 'danca.padd.com.br',
+    HOST_PUBLICO: 'lastro.padd.com.br',
+  };
+  const criadoQ8 = await daCasa.criar(envQ8, CADASTRO);
+  const activadoQ8 = await daCasa.mudarEstado(envQ8, { id: criadoQ8.registo.id, ativo: true }, '2026-11-25T12:00:00.000Z');
+  /* Desactivado por ela — é este o estado em que ele quereria activar-se. */
+  await daCasa.mudarEstado(envQ8, { id: criadoQ8.registo.id, ativo: false }, '2026-11-25T13:00:00.000Z');
+  const tokenQ8 = activadoQ8.token;
+  provar('a bancada tem o consultor inactivo e com um token válido em mãos',
+    Boolean(tokenQ8) && (await daCasa.ler(envQ8)).lista[0].ativo === false, Boolean(tokenQ8));
+
+  const comToken = (caminho, cabecalhos, corpo) => handler.fetch(new Request('https://danca.padd.com.br' + caminho, {
+    method: 'POST',
+    headers: Object.assign({ 'Content-Type': 'application/json' }, cabecalhos || {}),
+    body: JSON.stringify(corpo || {}),
+  }), envQ8);
+
+  const comoBearer = await comToken('/api/consultores/estado', { Authorization: 'Bearer ' + tokenQ8 },
+    { id: criadoQ8.registo.id, ativo: true });
+  provar('activar-se com o token no cabeçalho é RECUSADO (401)', comoBearer.status === 401, comoBearer.status);
+
+  const noCorpo = await comToken('/api/consultores/estado', {}, { id: criadoQ8.registo.id, ativo: true, token: tokenQ8 });
+  provar('…e com o token no corpo do pedido também (401)', noCorpo.status === 401, noCorpo.status);
+
+  const comAcesso = await comToken('/api/consultores/acesso', { Authorization: 'Bearer ' + tokenQ8 },
+    { id: criadoQ8.registo.id });
+  provar('…e o «Novo endereço» também (401)', comAcesso.status === 401, comAcesso.status);
+
+  const depoisQ8 = (await daCasa.ler(envQ8)).lista[0];
+  provar('…e ele continua INACTIVO depois de todas as tentativas', depoisQ8.ativo === false, depoisQ8.ativo);
+  provar('…e o histórico dele acaba no «desativado» dela, sem um «ativado» a seguir',
+    depoisQ8.historico.map((e) => e.o).join(' > ') === 'criado > ativado > acesso-emitido > desativado',
+    depoisQ8.historico.map((e) => e.o));
+
+  /* E A OUTRA METADE: mesmo ACTIVO, ele não muda o próprio estado — nem para desactivar. Desactivar
+   * fecha os links que ele já espalhou, e isso não é um gesto dele: é uma decisão de quem paga o
+   * servidor. */
+  await daCasa.mudarEstado(envQ8, { id: criadoQ8.registo.id, ativo: true }, '2026-11-25T14:00:00.000Z');
+  const desactivarSe = await comToken('/api/consultores/estado', { Authorization: 'Bearer ' + tokenQ8 },
+    { id: criadoQ8.registo.id, ativo: false });
+  provar('…e, já activo, também não se desactiva a si mesmo (401)', desactivarSe.status === 401, desactivarSe.status);
+  provar('…e continua activo', (await daCasa.ler(envQ8)).lista[0].ativo === true, null);
+
+  /* E AS ROTAS DELE NÃO TOCAM NO `ativo` — a segunda metade da regra, e a que nenhum 401 prova.
+   *
+   * O RECORTE É POR FRONTEIRA DE FUNÇÃO, e a primeira versão desta asserção estava errada por uma
+   * armadilha do JavaScript: `fonte.indexOf(marca, i) || i + 6000`. Quando a marca não existe depois
+   * de `i`, o `indexOf` devolve **-1**, e **-1 é truthy** — o `||` nunca corria, e o `slice(i, -1)`
+   * ia do início da função até ao fim do ficheiro, apanhando as rotas do painel (que escrevem
+   * `ativo` de propósito). A asserção reprovava o código certo.
+   *
+   * Agora o fim é a **próxima declaração de função**, e o recorte tem de ter tamanho plausível — uma
+   * asserção que medisse um recorte vazio passaria a aprovar tudo. */
+  const fonte = require('fs').readFileSync(path.join(RAIZ, 'motor/servidor/raiz.js'), 'utf8');
+  const recorteDe = (nome) => {
+    const i = fonte.indexOf('async function ' + nome);
+    if (i === -1) return '';
+    const j = fonte.indexOf('\nasync function ', i + 10);
+    return fonte.slice(i, j === -1 ? fonte.length : j);
+  };
+  for (const nome of ['respostaDaAreaDoConsultor', 'responderAoPedidoDoConsultor']) {
+    const bloco = recorteDe(nome);
+    provar('o recorte de ' + nome + ' tem corpo (não é vazio)',
+      bloco.length > 300 && bloco.indexOf('async function ' + nome) === 0, bloco.length);
+    provar('…e ' + nome + ' NÃO escreve o estado do consultor (só o painel o faz)',
+      !/mudarEstado\(|\.ativo\s*=[^=]/.test(bloco), (bloco.match(/mudarEstado\(|\.ativo\s*=[^=]/g) || []).slice(0, 3));
+  }
+
   const r = consultores.resumo(activado.lista);
   /*
    * UMA ASSERÇÃO POR NÚMERO, e não uma composta. A composta escondeu durante meia hora um erro meu

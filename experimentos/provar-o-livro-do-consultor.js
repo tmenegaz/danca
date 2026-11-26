@@ -389,6 +389,63 @@ async function bancada({ gastar = true } = {}) {
   provar('o casco do painel traz a pilha de avisos', /id="avisos"/.test(htmlH), null);
   provar('…e a função que a emite', /window\.avisar/.test(htmlH), null);
 
+  /* ── §I Q7 do plano: a taxa é por VISITA, e não por ESCOLA ────────────────────────────────
+   *
+   * A pergunta estava em aberto no §13 do PLANO-DO-CONSULTOR: «uma visita que dá escola duas vezes
+   * por engano (rollback e nova criação) paga duas vezes?» A recomendação era **não**, e o §7.1 já
+   * dizia «a taxa é por visita».
+   *
+   * O QUE FAZ A REGRA VERDADEIRA NÃO É UMA TRAVA NOVA — é a FORMA do livro: ele conta **visitas com
+   * `usadaEm` e `escolaSlug`**, e não escolas. Uma visita é um elemento da lista; marcá-la usada
+   * duas vezes, ou trocar-lhe o slug, não a transforma em duas. E duas visitas para a MESMA escola
+   * continuam a ser duas consultorias — dois trabalhos, dois dias, dois dez reais.
+   *
+   * O `escolaSlug` guarda o ÚLTIMO que passou, e o histórico guarda os dois elos: o rasto de que
+   * houve uma segunda criação fica lá, mesmo que a cobrança seja uma só.
+   */
+  console.log('\n§I Q7 — a taxa é por visita, e não por escola');
+
+  const umaVisita = [{ id: 'v-1', escolaNome: 'Clablun', expiraEm: '2026-12-26T00:00:00.000Z', historico: [] }];
+
+  const usadaDuasVezes = (() => {
+    const a = consultores.marcarVisitaUsada(umaVisita, 'v-1', 'clablun', '2026-11-26T01:00:00.000Z');
+    return consultores.marcarVisitaUsada(a.lista, 'v-1', 'clablun', '2026-11-26T02:00:00.000Z');
+  })();
+  const livroUma = consultores.resumoDoLivro(usadaDuasVezes.lista, [], taxa);
+  provar('marcar a mesma visita usada duas vezes cobra UMA consultoria',
+    livroUma.quantidadeDevida === 1, livroUma.quantidadeDevida);
+  provar('…e dez reais, e não vinte', livroUma.devidoCentavos === 1000, livroUma.devidoCentavos);
+
+  const slugTrocado = (() => {
+    const a = consultores.marcarVisitaUsada(umaVisita, 'v-1', 'clablun', '2026-11-26T01:00:00.000Z');
+    return consultores.marcarVisitaUsada(a.lista, 'v-1', 'outra-escola', '2026-11-26T03:00:00.000Z');
+  })();
+  const livroSlug = consultores.resumoDoLivro(slugTrocado.lista, [], taxa);
+  provar('…e uma visita cujo slug mudou continua a cobrar uma', livroSlug.quantidadeDevida === 1,
+    livroSlug.quantidadeDevida);
+  provar('…e a história guarda as duas criações (o rasto fica, a cobrança é uma)',
+    (slugTrocado.visita.historico || []).filter((e) => e.o === 'escola-criada').length === 2,
+    slugTrocado.visita.historico);
+
+  /* O CONTRÁRIO, e é ele que mostra que a regra não é «cobra sempre uma»: duas visitas para a MESMA
+   * escola são duas consultorias — ele foi lá duas vezes. */
+  const duasVisitas = [
+    { id: 'v-1', escolaNome: 'Clablun', escolaSlug: 'clablun', usadaEm: '2026-11-26T01:00:00.000Z' },
+    { id: 'v-2', escolaNome: 'Clablun', escolaSlug: 'clablun', usadaEm: '2026-12-10T01:00:00.000Z' },
+  ];
+  const livroDuas = consultores.resumoDoLivro(duasVisitas, [], taxa);
+  provar('…mas duas VISITAS para a mesma escola cobram duas (foram dois trabalhos)',
+    livroDuas.quantidadeDevida === 2 && livroDuas.devidoCentavos === 2000,
+    [livroDuas.quantidadeDevida, livroDuas.devidoCentavos]);
+
+  /* E O CENÁRIO DELA, ao contrário: uma criação que FALHOU não deixa rasto no livro. */
+  const falhouELimpou = consultores.largarReserva(
+    consultores.marcarVisitaUsada(umaVisita, 'v-1', 'clablun', '2026-11-26T01:00:00.000Z').lista,
+    'v-1', '2026-11-26T02:00:00.000Z',
+  );
+  provar('…e a reserva libertada depois de uma falha não apaga a escola que já nasceu',
+    consultores.resumoDoLivro(falhouELimpou.lista, [], taxa).quantidadeDevida === 1, null);
+
   console.log('\n' + provas + ' asserções, ' + (provas - falhas) + ' ok, ' + falhas + ' falha(s)');
   process.exit(falhas === 0 ? 0 : 1);
 })();
