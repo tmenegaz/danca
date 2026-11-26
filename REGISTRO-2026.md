@@ -63883,3 +63883,95 @@ faz cair a asserção do não-cruzamento.
 `motor/servidor/painel-html.js` (o rótulo do bloco, o cabeçalho da coluna),
 `experimentos/provar-conciliacao-do-painel.js` (§9), `ESTADO-ATUAL.md`, `HANDOFF.md`. Sem mudança de
 rota, de chave no KV ou de contrato: o gesto e o que ele grava são os mesmos de antes.
+
+## O nome da escola é o que ela declarou, e não o slug *(26/11/2026)*
+
+**A frase que abriu isto foi minha, ao fechar a correcção anterior:** «o resumo do cartão diz
+**breu** (breu) — porque no índice o *nome* da escola **é** o slug». Ela respondeu «Ajusta», e o que
+estava por trás do parêntesis repetido era maior do que a estética.
+
+### O defeito não era o parêntesis — era a mesma escola com dois nomes
+
+O índice do acervo (`indices/acervo.json`) guarda `nome: "breu"`, e guarda-o porque **nasce do
+repositório**: o nome que a escola declarou vive no cadastro, que é KV, e o `check-indices` proíbe
+contacto nos índices. Durante todo este tempo os ecrãs leram o índice e escreveram-no como se fosse
+o nome. O resultado tinha duas formas:
+
+| ecrã | o que dizia | de onde lia |
+|:--|:--|:--|
+| cartão do extrato, rótulo do pagamento, lista do desconto | «breu» | o índice — o slug |
+| tabela «os dados da escola» | «Clablun» | o cadastro, porque precisava do CNPJ ao lado |
+
+**A mesma escola, dois nomes, no mesmo ecrã** — e a linha que ela usa para telefonar dizia o slug.
+O parêntesis repetido não era feio: era o sintoma de que o nome nunca chegou àquele sítio.
+
+### O que mudou
+
+| onde | dizia | diz |
+|:--|:--|:--|
+| resumo do cartão | `breu (breu)` | `Breu do Vale (breu)` — e `clablun` quando o nome **é** o slug |
+| rótulo do bloco do pagamento | `Informar um pagamento de breu` | `…de Breu do Vale` |
+| lista do desconto | `breu` | `Breu do Vale (breu)` |
+
+**O parêntesis passou a ser condicional**, e é essa a regra que interessa: ele existe para
+desambiguar o nome da identidade técnica. Quando as duas são a mesma palavra, não desambigua nada —
+e repetir a mesma palavra não é informação, é ruído.
+
+### A decisão de custo, e porque inverti a ordem
+
+O nome está no cadastro (`bastidores/<slug>/cadastro`), e para uma escola expurgada no registo que o
+expurgo guardou (`cadastros/<slug>`, o **último** elo). Ler era o problema: o financeiro **já lê
+esse cadastro** para o CNPJ e os contactos, na tabela «os dados da escola».
+
+**A ordem das duas leituras inverteu-se.** O extrato era lido primeiro e a tabela depois; agora a
+tabela lê primeiro, e o mapa `{slug: nome}` que sai dela é o que o extrato consome. Zero leituras a
+mais, e — o que importa mais — **uma fonte só para o nome**. Duas leituras da mesma chave para o
+mesmo ecrã é como se chega a dois nomes diferentes, que é exactamente o defeito que se estava a
+corrigir.
+
+E a composição passou a ser uma função (`extratoComNomes`), não duas linhas na rota. **Uma regra que
+só se cumpre por a ordem das linhas estar certa não se consegue medir** — invertê-la devolveria o
+slug no ecrã inteiro sem quebrar nada visível. Como função, a prova exerce-a com um KV de mentira, e
+a inversão cai.
+
+### A prova — e o defeito que ela apanhou, escondido numa prova vermelha
+
+`provar-conciliacao-do-painel` ganhou a **§10** (78 → **98** asserções). As duas que discriminam são
+opostas: **com** o mapa, o extrato leva o nome declarado; **sem** o mapa, continua a levar o do
+índice. Sem a segunda, a correcção podia passar a inventar nomes; sem a primeira, não existia.
+
+**E um defeito meu, do commit anterior, que estava escondido.** A renomeação da coluna «Escola» para
+«Habilitação» (`6345ba3b`) quebrou uma asserção de `provar-financeiro-da-escola` — a que mede o
+cabeçalho do extrato. Essa prova **está na linha de base** (`provas-vermelhas.json`), e a linha de
+base guarda o **nome** da prova, não as asserções: uma prova vermelha que fica mais vermelha passa em
+silêncio. Só se descobriu porque fui correr as provas vizinhas por iniciativa própria, e porque
+medi o mesmo ficheiro numa worktree do `HEAD` para saber quais das 8 falhas eram minhas e quais eram
+anteriores.
+
+A asserção foi corrigida para o nome novo, com o motivo escrito ao lado — e o que fica registado é o
+buraco: **a linha de base protege contra regressões entre provas, e não dentro de uma prova que já
+falha.** Fechá-lo exigiria guardar a contagem de asserções por prova; fica declarado, não feito.
+
+**Mutações, medidas uma a uma — sete regras, oito quedas:**
+
+| mutação | o que cai |
+|:--|:--|
+| o parêntesis volta sempre | 1 |
+| a lista do desconto volta a ler o índice | 1 |
+| o extrato ignora o mapa de nomes | 1 |
+| o registo do expurgo deixa de responder pelo nome | 1 |
+| numa expurgada, o **primeiro** expurgo em vez do último | 1 |
+| sem cadastro, inventa o slug como nome | 2 |
+| a composição inverte a ordem (extrato sem nomes) | 3 |
+
+### Onde entrou
+
+`motor/servidor/raiz.js` (`nomesDasEscolas`, `nomesDasFichas`, `extratoComNomes`, e o `nomes` no
+extrato), `motor/servidor/painel-html.js` (o parêntesis condicional e a lista do desconto a ler do
+extrato), `experimentos/provar-conciliacao-do-painel.js` (§10), `experimentos/provar-financeiro-da-escola.js`
+(a asserção do cabeçalho, corrigida), `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+**O monitor também passou a dizer o nome** (`nomesDasEscolas`, um `get` por escola): a tabela da
+inadimplência é onde ela decide a quem telefonar, e uma linha que diz «breu» quando a escola se chama
+«Clablun» não serve para telefonar. O custo fica declarado no código: o extrato já gasta três
+leituras por escola, e esta é a quarta — a mesma ordem de grandeza, não uma classe nova.

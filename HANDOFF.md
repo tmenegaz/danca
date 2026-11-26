@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-26T10:31:35-0300`
-Commit atual: `0f379a12` — docs(estrutura): o campo de horas do consultor saiu, e a razão é jurídica
+Gerado em: `2026-11-26T10:52:34-0300`
+Commit atual: `6345ba3b` — fix(estrutura): o bloco «informar um pagamento» passa a dizer de que escola é
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -83,6 +83,7 @@ sapatilha-de-ponta (16)
 ## Últimos commits
 
 ```
+6345ba3b fix(estrutura): o bloco «informar um pagamento» passa a dizer de que escola é
 0f379a12 docs(estrutura): o campo de horas do consultor saiu, e a razão é jurídica
 c8000e27 audit(estrutura): o Q7 e o Q8 do plano do consultor, agora medidos
 f6ecb866 docs(estrutura): o guiao do consultor, e as cinco fases fechadas
@@ -102,7 +103,6 @@ a4638edf fix(estrutura): a descricao do exercicio volta para fora da tabela
 9eb12e05 docs(estrutura): o custo da demonstracao medido na API — 16 min, e nao 22
 78ada910 docs(estrutura): o §22 mediu-se a si mesmo — documentar custa zero
 df41c5e6 docs(estrutura): o fluxo do consultor, e o custo da demonstracao medido
-5472e427 feat(estrutura): o plano consultoria, o mes que corre da entrega, e o congelamento calculado
 ```
 
 ## Por professor
@@ -208,88 +208,97 @@ df41c5e6 docs(estrutura): o fluxo do consultor, e o custo da demonstracao medido
 
 ## Última entrada do REGISTRO
 
-## O bloco do pagamento passou a dizer de que escola é *(26/11/2026)*
+## O nome da escola é o que ela declarou, e não o slug *(26/11/2026)*
 
-**Ela encontrou-o a usar o sistema, e o diagnóstico dela está certo:**
+**A frase que abriu isto foi minha, ao fechar a correcção anterior:** «o resumo do cartão diz
+**breu** (breu) — porque no índice o *nome* da escola **é** o slug». Ela respondeu «Ajusta», e o que
+estava por trás do parêntesis repetido era maior do que a estética.
 
-> «Acontece que eu vou ter N escolas […] e nesse botão marcar como pago, me parece que eu tô marcando
-> como pago um lote todas. E eu não sei dizer aqui por meio desse bloco qual é a escola que eu tô
-> marcando como pago. Eu sei apenas dizer o mês e marcar como pago, mas a escola não.»
+### O defeito não era o parêntesis — era a mesma escola com dois nomes
 
-### A causa não era o botão — era a composição
+O índice do acervo (`indices/acervo.json`) guarda `nome: "breu"`, e guarda-o porque **nasce do
+repositório**: o nome que a escola declarou vive no cadastro, que é KV, e o `check-indices` proíbe
+contacto nos índices. Durante todo este tempo os ecrãs leram o índice e escreveram-no como se fosse
+o nome. O resultado tinha duas formas:
 
-O bloco **já sabia** de que escola era: o `data-pagamento-mes` e o `data-pagamento-gravar` levam o
-slug, e o `fetch` manda-o. Nada marcava um lote. O que falhava era outra coisa, e é de desenho:
+| ecrã | o que dizia | de onde lia |
+|:--|:--|:--|
+| cartão do extrato, rótulo do pagamento, lista do desconto | «breu» | o índice — o slug |
+| tabela «os dados da escola» | «Clablun» | o cadastro, porque precisava do CNPJ ao lado |
 
-1. o bloco usa a **mesma peça da barra de filtros da página** (`.caixa.filtrar`) — o que numa página
-   de painel lê como «controle de tudo»;
-2. fica no **fundo do cartão**, depois da tabela e depois da cláusula de quitação;
-3. o painel empilha **até dez cartões abertos** — quando se chega ao bloco, o resumo com o nome da
-   escola saiu do ecrã há muito.
+**A mesma escola, dois nomes, no mesmo ecrã** — e a linha que ela usa para telefonar dizia o slug.
+O parêntesis repetido não era feio: era o sintoma de que o nome nunca chegou àquele sítio.
 
-Um controle que se parece com o da página inteira, está longe do único sítio que diz de quem é, e não
-repete o nome, **lê-se como se fosse de todas**. Não era um bug de dados: era um bug de leitura — e
-os de leitura são os que fazem alguém carregar com medo.
-
-### O que ficou decidido, e a alternativa que foi posta à mesa
-
-Três caminhos possíveis, e eu levei-os a ela com o custo de cada um:
-
-| caminho | o que acontecia |
-|:--|:--|
-| **apagar o bloco** | perdia-se o **único** caminho para um mês que ainda não tem linha — o pagamento adiantado (a escola paga dezembro em novembro) e o mês que o relógio de ensaio abriu. O dinheiro entraria em novembro e o recibo diria dezembro |
-| **apagar o bloco e o gesto passar a última linha da tabela** | nada se perdia, mas era uma peça nova para um problema de rótulo |
-| **manter o bloco com o nome da escola no rótulo** | **escolhido por ela.** O bloco fica, e passa a dizer de quem é |
-
-**O argumento que decidiu não foi o meu gosto — foi a custódia.** Apagar o bloco faria a evidência
-mentir sobre o dia em que o dinheiro entrou: o pagamento adiantado só poderia ser registado quando o
-mês nascesse, e o `em` do livro é a data do registo. Um livro de recebimentos que não sabe quando
-recebeu deixa de servir para conciliar contra o extrato do banco, que é a única coisa que ele serve
-para fazer.
-
-### O que mudou no ecrã
+### O que mudou
 
 | onde | dizia | diz |
 |:--|:--|:--|
-| rótulo do bloco | «Informar um pagamento — mês» | «Informar um pagamento de **Breu** — mês» |
-| cabeçalho da 2.ª coluna | «Escola» (e o conteúdo era «habilitada») | «Habilitação» |
+| resumo do cartão | `breu (breu)` | `Breu do Vale (breu)` — e `clablun` quando o nome **é** o slug |
+| rótulo do bloco do pagamento | `Informar um pagamento de breu` | `…de Breu do Vale` |
+| lista do desconto | `breu` | `Breu do Vale (breu)` |
 
-**O segundo não foi pedido, e foi corrigido porque é a mesma mentira por outra via.** A coluna
-chamava-se «Escola» e guardava o `estadoComercial`; quem concilia lia «Escola: habilitada» e não ficava
-a saber de que escola se tratava. Chama-se «Habilitação» e não «Estado» porque «Situação», na coluna
-ao lado, já é a do pagamento — duas colunas a dizer «estado» seria a confusão a mudar de sítio. O nome
-**não** se repetiu no botão: dois nomes no mesmo gesto não o tornam mais claro, tornam-no mais longo.
-E o nome ficou no `<label for="…">` — é ele que o leitor de ecrã anuncia quando o foco chega ao mês.
+**O parêntesis passou a ser condicional**, e é essa a regra que interessa: ele existe para
+desambiguar o nome da identidade técnica. Quando as duas são a mesma palavra, não desambigua nada —
+e repetir a mesma palavra não é informação, é ruído.
 
-### A prova, e o erro que ela apanhou em mim
+### A decisão de custo, e porque inverti a ordem
 
-`provar-conciliacao-do-painel` ganhou a **§9** (71 → **78** asserções). A asserção que discrimina é o
-**par com o não-cruzamento**: com duas escolas, cada rótulo diz a sua e **nenhum diz o nome da outra**.
+O nome está no cadastro (`bastidores/<slug>/cadastro`), e para uma escola expurgada no registo que o
+expurgo guardou (`cadastros/<slug>`, o **último** elo). Ler era o problema: o financeiro **já lê
+esse cadastro** para o CNPJ e os contactos, na tabela «os dados da escola».
 
-**O meu primeiro erro estava na prova, e não no código:** escrevi
-`d.querySelectorAll('table thead th')` — a página inteira — para afirmar «nenhuma coluna se chama
-«Escola»». A página tem **outra** tabela com uma coluna legítima chamada «Escola» (a dos contactos). A
-asserção passava por acidente, enquanto essa tabela estivesse vazia, e reprovaria pela razão errada no
-dia em que ela tivesse dados. O seletor passou a ser o do cartão — `[data-conta="breu"] table thead
-th`. É a mesma família de erro do `if` que filtrava o título vazio: a pergunta «está aqui?» e a
-pergunta «existe?» não são a mesma pergunta.
+**A ordem das duas leituras inverteu-se.** O extrato era lido primeiro e a tabela depois; agora a
+tabela lê primeiro, e o mapa `{slug: nome}` que sai dela é o que o extrato consome. Zero leituras a
+mais, e — o que importa mais — **uma fonte só para o nome**. Duas leituras da mesma chave para o
+mesmo ecrã é como se chega a dois nomes diferentes, que é exactamente o defeito que se estava a
+corrigir.
 
-**Três mutações, quatro quedas:**
+E a composição passou a ser uma função (`extratoComNomes`), não duas linhas na rota. **Uma regra que
+só se cumpre por a ordem das linhas estar certa não se consegue medir** — invertê-la devolveria o
+slug no ecrã inteiro sem quebrar nada visível. Como função, a prova exerce-a com um KV de mentira, e
+a inversão cai.
+
+### A prova — e o defeito que ela apanhou, escondido numa prova vermelha
+
+`provar-conciliacao-do-painel` ganhou a **§10** (78 → **98** asserções). As duas que discriminam são
+opostas: **com** o mapa, o extrato leva o nome declarado; **sem** o mapa, continua a levar o do
+índice. Sem a segunda, a correcção podia passar a inventar nomes; sem a primeira, não existia.
+
+**E um defeito meu, do commit anterior, que estava escondido.** A renomeação da coluna «Escola» para
+«Habilitação» (`6345ba3b`) quebrou uma asserção de `provar-financeiro-da-escola` — a que mede o
+cabeçalho do extrato. Essa prova **está na linha de base** (`provas-vermelhas.json`), e a linha de
+base guarda o **nome** da prova, não as asserções: uma prova vermelha que fica mais vermelha passa em
+silêncio. Só se descobriu porque fui correr as provas vizinhas por iniciativa própria, e porque
+medi o mesmo ficheiro numa worktree do `HEAD` para saber quais das 8 falhas eram minhas e quais eram
+anteriores.
+
+A asserção foi corrigida para o nome novo, com o motivo escrito ao lado — e o que fica registado é o
+buraco: **a linha de base protege contra regressões entre provas, e não dentro de uma prova que já
+falha.** Fechá-lo exigiria guardar a contagem de asserções por prova; fica declarado, não feito.
+
+**Mutações, medidas uma a uma — sete regras, oito quedas:**
 
 | mutação | o que cai |
 |:--|:--|
-| o rótulo volta a «Informar um pagamento — mês» | 2 (as duas escolas deixam de ser nomeadas) |
-| todos os blocos levam o nome da **primeira** escola | 2 (a segunda perde o nome, **e o não-cruzamento**) |
-| o cabeçalho volta a «Escola» | 1 |
-
-A segunda mutação é a que vale: é **o defeito que ela descreveu** — «um lote todas» — e é a única que
-faz cair a asserção do não-cruzamento.
+| o parêntesis volta sempre | 1 |
+| a lista do desconto volta a ler o índice | 1 |
+| o extrato ignora o mapa de nomes | 1 |
+| o registo do expurgo deixa de responder pelo nome | 1 |
+| numa expurgada, o **primeiro** expurgo em vez do último | 1 |
+| sem cadastro, inventa o slug como nome | 2 |
+| a composição inverte a ordem (extrato sem nomes) | 3 |
 
 ### Onde entrou
 
-`motor/servidor/painel-html.js` (o rótulo do bloco, o cabeçalho da coluna),
-`experimentos/provar-conciliacao-do-painel.js` (§9), `ESTADO-ATUAL.md`, `HANDOFF.md`. Sem mudança de
-rota, de chave no KV ou de contrato: o gesto e o que ele grava são os mesmos de antes.
+`motor/servidor/raiz.js` (`nomesDasEscolas`, `nomesDasFichas`, `extratoComNomes`, e o `nomes` no
+extrato), `motor/servidor/painel-html.js` (o parêntesis condicional e a lista do desconto a ler do
+extrato), `experimentos/provar-conciliacao-do-painel.js` (§10), `experimentos/provar-financeiro-da-escola.js`
+(a asserção do cabeçalho, corrigida), `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+**O monitor também passou a dizer o nome** (`nomesDasEscolas`, um `get` por escola): a tabela da
+inadimplência é onde ela decide a quem telefonar, e uma linha que diz «breu» quando a escola se chama
+«Clablun» não serve para telefonar. O custo fica declarado no código: o extrato já gasta três
+leituras por escola, e esta é a quarta — a mesma ordem de grandeza, não uma classe nova.
 
 ## O que está pendente
 

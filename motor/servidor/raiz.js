@@ -3560,6 +3560,61 @@ async function lerCadastroHistorico(env, escola) {
   } catch (erro) { return null; }
 }
 
+/**
+ * OS NOMES QUE AS ESCOLAS DECLARARAM — `{ slug: nome }` (26/11/2026).
+ *
+ * O índice do acervo não os tem: ele nasce do repositório, e o nome da escola vive no cadastro, que
+ * é KV. O que o índice chama `nome` é o slug — a identidade técnica, que serve para o endereço e
+ * não para ler. Durante muito tempo os ecrãs escreveram o slug onde devia estar o nome, e o
+ * resultado é o parêntesis repetido («breu (breu)») e a mesma escola com dois nomes consoante a
+ * página.
+ *
+ * A ORDEM DAS FONTES É A MESMA DE `dadosDasEscolas`, e tem de ser: o cadastro vivo manda; o registo
+ * que o expurgo guardou responde por uma escola que já não existe — e é ele que impede o extrato de
+ * uma apagada de voltar a chamar-se pelo slug. Sem nenhum dos dois, o nome é `null` e quem chama
+ * cai no índice; **não se inventa um nome**.
+ *
+ * CUSTA UM `get` POR ESCOLA, em paralelo, e é o mínimo que isto pode custar. Onde o cadastro já foi
+ * lido para outra coisa — o financeiro, que o lê para a tabela dos dados — não se chama esta função:
+ * passa-se o mapa que já se tem. Duas leituras do mesmo dado para o mesmo ecrã é como se chega a
+ * dois nomes diferentes.
+ *
+ * Nunca lança: uma escola ilegível fica sem nome, e não derruba a lista.
+ */
+async function nomesDasEscolas({ env, escolas }) {
+  const nomes = {};
+  const lista = Array.isArray(escolas) ? escolas : [];
+  await Promise.all(lista.map(async (e) => {
+    const slug = String((e && e.slug) || '').trim();
+    if (!slug) return;
+    const vivo = await lerCadastroDaEscola(env, slug);
+    const nomeVivo = String((vivo && vivo.escolaNome) || '').trim();
+    if (nomeVivo) { nomes[slug] = nomeVivo; return; }
+    const guardado = await lerCadastroHistorico(env, slug);
+    const nomeGuardado = String((guardado && guardado.escolaNome) || '').trim();
+    if (nomeGuardado) nomes[slug] = nomeGuardado;
+  }));
+  return nomes;
+}
+
+/**
+ * `{ slug: nome }` A PARTIR DAS FICHAS QUE JÁ FORAM LIDAS — sem tocar no KV (26/11/2026).
+ *
+ * É a ponte entre `dadosDasEscolas` e `extratoDasEscolas` no financeiro: as duas precisam do nome da
+ * escola, o cadastro é lido UMA vez (na primeira), e esta função é o que impede a segunda de voltar
+ * a ler a mesma chave por escola para o mesmo ecrã. Só entra quem tem nome — uma ficha sem nome não
+ * escreve nada, e o extrato cai no índice como cai quando não há mapa nenhum.
+ */
+function nomesDasFichas(fichas) {
+  const nomes = {};
+  for (const f of Array.isArray(fichas) ? fichas : []) {
+    const slug = String((f && f.escola) || '').trim();
+    const nome = String((f && f.nome) || '').trim();
+    if (slug && nome) nomes[slug] = nome;
+  }
+  return nomes;
+}
+
 /** A ficha de contacto de uma pessoa (professor) — `professores/<slug>/contato`, ou `null`. */
 async function lerContatoDoProfessor(env, professor) {
   const kv = env && env.PADD_KV;
@@ -4106,8 +4161,23 @@ async function servirAPagina(request, env, { modo }) {
  * escola que já não existe é ruído. Cada conta leva `expurgada` e a data, e é isso que a página
  * usa para escrever a linha do estado e para NÃO oferecer as acções de cobrança — não se cobra uma
  * escola que não existe.
+ *
+ * O NOME É O QUE A ESCOLA DECLAROU, E NÃO O SLUG (26/11/2026).
+ *
+ * «O resumo do cartão diz breu (breu).» O índice do acervo guarda `nome` igual ao `slug` — o slug é
+ * a identidade técnica, e o índice nasce do repositório, onde o nome declarado nunca entra (o
+ * `check-indices` proíbe contacto, e o nome está no cadastro, que é KV). Ler o índice e escrevê-lo
+ * como se fosse o nome dá o parêntesis repetido — e, pior, dá a mesma escola com dois nomes
+ * consoante o ecrã: a tabela dos contactos já dizia «Clablun» (porque lê o cadastro) enquanto o
+ * cartão do extrato dizia «clablun» (porque lia o índice). Duas respostas para a mesma pergunta.
+ *
+ * O NOME CHEGA PRONTO NO `nomes` (`{ slug: nome }`), e não se lê aqui: quem chama já o leu para
+ * outra coisa — o financeiro o lê para a tabela «os dados da escola», e essa leitura serve às duas.
+ * Uma segunda leitura da mesma chave por escola seria o dobro do custo para o mesmo dado, e o
+ * momento em que as duas discordassem seria o momento em que ninguém sabe qual está certa. Sem
+ * `nomes`, cai no que o índice diz — que é o slug, e é a verdade que há.
  */
-async function extratoDasEscolas({ env, escolas, agora }) {
+async function extratoDasEscolas({ env, escolas, agora, nomes }) {
   const kv = env && env.PADD_KV;
   const livro = await mensalidades.lerLivro(kv);
   /* AS COBRANÇAS PIX, UMA LEITURA PARA TODAS AS ESCOLAS (25/11/2026). A chave é global
@@ -4154,7 +4224,7 @@ async function extratoDasEscolas({ env, escolas, agora }) {
       escola: slug, contrato, livro, agora, ensaio, cobrancas: daEscola, contagem,
     });
     lista.push(Object.assign({}, situacao, {
-      nome: (e && e.nome) || slug,
+      nome: (nomes && nomes[slug]) || (e && e.nome) || slug,
       frase: mensalidades.fraseDaSituacao(situacao.situacao),
       /* OS LOTES, para o formulário do contrato abrir no que está em vigor. Um registo antigo não
        * os tem (nasceram hoje) — e aí as caixas abrem vazias, que é a verdade: não se sabe quais
@@ -4179,6 +4249,30 @@ async function extratoDasEscolas({ env, escolas, agora }) {
     }));
   }
   return lista;
+}
+
+/**
+ * AS DUAS LEITURAS DO FINANCEIRO, NA ORDEM CERTA (26/11/2026).
+ *
+ * O extrato e os dados da escola precisam da MESMA coisa: o nome que a escola declarou, que só o
+ * cadastro tem (o índice do acervo guarda o slug, e é do repositório que ele nasce). Lidas em
+ * separado, cada uma ia buscar o nome à sua maneira — e o dia em que discordassem era o dia em que
+ * ninguém sabia qual estava certa. Aqui lê-se UMA vez: `dadosDasEscolas` já abre o cadastro de cada
+ * escola para o CNPJ e os contactos, e o nome vem dessa mesma leitura; o extrato recebe-o pronto.
+ *
+ * A ORDEM É A REGRA, e é por isso que isto é uma função e não duas linhas na rota: inverter as duas
+ * chamadas não quebra nada visível — devolve o slug no lugar do nome, no ecrã inteiro. Uma regra que
+ * se cumpre por a ordem das linhas estar certa não se consegue medir; assim, mede-se.
+ */
+async function extratoComNomes({ env, escolas, agora }) {
+  /* OS DADOS DA ESCOLA (23/11/2026) — a aba que responde «como falo com esta escola?». Lê o
+   * cadastro vivo de cada uma e, para as expurgadas, o registo que o expurgo guardou. Corre aqui e
+   * não na página porque a página não fala com o KV: ela desenha o que lhe dão. */
+  const dados = await dadosDasEscolas({ env, escolas });
+  const extrato = await extratoDasEscolas({
+    env, escolas, agora, nomes: nomesDasFichas(dados),
+  });
+  return { extrato, dados };
 }
 
 /**
@@ -4992,13 +5086,10 @@ async function fetch(request, env) {
        * conta de uma escola expurgada é história e tem de aparecer; um desconto para uma escola que
        * já não existe não é uma oferta, é um erro à espera de ser cometido. Duas listas porque são
        * duas perguntas: «o que entrou?» e «a quem posso conceder?». */
-      const extrato = await extratoDasEscolas({ env, escolas: escolas || [] });
-      /* OS DADOS DA ESCOLA (23/11/2026) — a aba que responde «como falo com esta escola?». Lê o
-       * cadastro vivo de cada uma e, para as expurgadas, o registo que o expurgo guardou. Corre
-       * aqui e não na página porque a página não fala com o KV: ela desenha o que lhe dão. */
-      const dados = await dadosDasEscolas({ env, escolas: escolas || [] });
+      const { extrato, dados } = await extratoComNomes({ env, escolas: escolas || [] });
       return painel.resposta(painel.paginaFinanceira({
-        pix, descontos, escolas: vivas, extrato, dados, catalogo: comercial.catalogoDaPagina(),
+        pix, descontos, escolas: vivas, extrato, dados,
+        catalogo: comercial.catalogoDaPagina(),
       }));
     } catch (err) {
       return painel.resposta(painel.paginaSemToken(
@@ -5290,7 +5381,13 @@ async function fetch(request, env) {
       const correio = monitoramento.resumirCorreio({ contadores, hoje });
 
       const descontos = await lerDescontos(kv);
-      const extrato = await extratoDasEscolas({ env, escolas, agora: agoraIso });
+      /* O MONITOR TAMBÉM LÊ O NOME (26/11/2026). A tabela da inadimplência é onde ela decide a
+       * quem ligar, e uma linha que diz «breu» quando a escola se chama «Clablun» é uma linha que
+       * não serve para telefonar. CUSTA UM `get` POR ESCOLA, e o número fica declarado porque é
+       * desta casa: o extrato logo abaixo já gasta três por escola (o comercial, o ensaio e a
+       * contagem), e este é o quarto — a mesma ordem de grandeza, não uma nova classe de custo. */
+      const nomes = await nomesDasEscolas({ env, escolas });
+      const extrato = await extratoDasEscolas({ env, escolas, agora: agoraIso, nomes });
       const receita = monitoramento.receita({ extrato, descontos, mes, agora: agoraIso });
       /* QUEM DEVE, E HÁ QUANTOS MESES (17/11/2026). «Pelo monitoramento eu vou saber se a escola
        * está adimplente ou inadimplente e vou entrar em contato com a escola, ver o que que
@@ -6442,6 +6539,11 @@ module.exports = {
    * o Worker nem tocar no Cloudflare. */
   guardarCadastroDoExpurgo, lerCadastroHistorico, chaveDoCadastroHistorico, dadosDasEscolas,
   herdarCadastroDoExpurgo, identidadeDoExpurgo,
+  /* O NOME QUE A ESCOLA DECLAROU, E NÃO O SLUG (26/11/2026). Exportada pela mesma razão das de
+   * cima: é REGRA, não desenho — decide que nome um ecrã escreve, e é ela que impede o parêntesis
+   * repetido («breu (breu)») e a mesma escola com dois nomes consoante a página. A prova exerce-a
+   * com um KV de mentira, sem subir o Worker. */
+  nomesDasEscolas, nomesDasFichas, extratoComNomes,
   lerContatoDoProfessor,
   // AS DUAS PORTAS E O QUE AS SEPARA (25/11/2026). Exportadas porque são a REGRA que a prova tem
   // de medir sem um Worker à frente: «este pedido é do público ou do proprietário?» decide o que

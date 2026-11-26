@@ -2068,8 +2068,16 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
       : '') +
     '</div>';
 
+  /* O NOME DA ESCOLA NO `<select>`, DA MESMA FONTE DO CARTÃO (26/11/2026). O extrato é quem sabe o
+   * nome que a escola declarou — o índice só tem o slug —, e a lista do desconto lê daqui em vez de
+   * ler do índice: uma segunda fonte para o mesmo nome é a segunda resposta para a mesma pergunta.
+   * Sem conta no extrato (uma escola sem contrato), cai no nome do índice, que é a verdade que há. */
+  const nomeDoExtrato = new Map(contas.map((c) => [String(c.escola || ''), c.nome || '']));
   const opcoes = vivas.map((e) => '<option value="' + esc(e.slug) + '">' +
-    esc(e.nome && e.nome !== e.slug ? e.nome + ' (' + e.slug + ')' : e.slug) + '</option>').join('');
+    esc((() => {
+      const nome = nomeDoExtrato.get(String(e.slug)) || e.nome || e.slug;
+      return nome && nome !== e.slug ? nome + ' (' + e.slug + ')' : e.slug;
+    })()) + '</option>').join('');
 
   const blocoDoDesconto = '<div class="caixa" id="financeiro-desconto">' +
     '<h2>Conceder um desconto</h2>' +
@@ -2484,7 +2492,11 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
       : '';
     return '<details class="acordeao" open data-conta="' + esc(c.escola) + '">' +
       '<summary><strong>' + esc(c.nome || c.escola) + '</strong> '
-      + '<span class="dono">(' + esc(c.escola) + ')</span> '
+      /* O SLUG SÓ QUANDO DIZ ALGO A MAIS (26/11/2026). «O resumo do cartão diz breu (breu).» O
+       * parêntesis existe para desambiguar o nome da identidade técnica — quando as duas são a
+       * mesma palavra, ele não desambigua nada e só ocupa espaço. */
+      + (c.nome && c.nome !== c.escola
+        ? '<span class="dono">(' + esc(c.escola) + ')</span> ' : '')
       + '<span class="selo discreto">' + esc(c.planoNome || '—') + '</span> '
       + (expurgada
         ? '<span class="selo discreto">expurgada</span>'

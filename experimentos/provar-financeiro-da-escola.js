@@ -290,16 +290,18 @@ function kvCom(dados) {
         const c = d0.querySelector('[data-conta="' + e + '"]');
         return c ? c.querySelector('table') : null;
       };
-      /* O SELO É A SEGUNDA CÉLULA — «Mês | Escola | Vencimento | Valor | Situação | Pago/ação» —, e
-       * repete-se em cada linha de propósito: a linha lê-se sozinha. */
+      /* O SELO É A SEGUNDA CÉLULA — «Mês | Habilitação | Vencimento | Valor | Situação | Pago/ação»
+       * —, e repete-se em cada linha de propósito: a linha lê-se sozinha. A COLUNA CHAMAVA-SE
+       * «ESCOLA» até 26/11/2026 e passou a «Habilitação»: ela guarda o estado comercial, não o nome
+       * (o nome está no resumo do cartão, e o cartão É a escola) — ver `painel-html.js`. */
       const selos = (e) => {
         const tab = linha(e);
         return tab ? [...tab.querySelectorAll('tbody tr')]
           .map((tr) => (tr.children[1] || {}).textContent.trim()) : [];
       };
       const cabecalho = (d0.querySelector('[data-conta="ativa"] thead') || { textContent: '' }).textContent;
-      conferir('o extrato ganhou a coluna «Escola», ao lado do mês',
-        /MêsEscola/.test(cabecalho.replace(/\s+/g, '')), cabecalho.replace(/\s+/g, ' '));
+      conferir('o extrato ganhou a coluna do estado da escola, ao lado do mês',
+        /MêsHabilitação/.test(cabecalho.replace(/\s+/g, '')), cabecalho.replace(/\s+/g, ' '));
       conferir('…habilitada quando o contrato está activo',
         selos('ativa').every((s) => /habilitada/.test(s)), selos('ativa'));
       conferir('…desabilitada quando ela foi suspensa nas escolas vivas',

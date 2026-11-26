@@ -4,7 +4,23 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 26/11/2026 — **o bloco que informa um pagamento passou a dizer de que
+> **Última fotografia:** 26/11/2026 — **o nome da escola é o que ela declarou, e não o slug.**
+> O cartão do extrato dizia «breu (breu)», e a causa era maior do que a estética: o índice do acervo
+> chama `nome` ao **slug** (nasce do repositório, e o nome declarado vive no cadastro, que é KV),
+> e os ecrãs liam-no como se fosse o nome. **A mesma escola tinha dois nomes no mesmo ecrã** — o
+> cartão do extrato dizia «clablun» e a tabela «os dados da escola» dizia «Clablun», porque só a
+> segunda lia o cadastro. Passam a dizer o mesmo: o extrato leva o nome declarado (via
+> `extratoComNomes`), o parêntesis passou a ser **condicional** (só aparece para desambiguar; quando
+> o nome **é** o slug, repeti-lo não é informação), e a lista do desconto e o **monitor da
+> inadimplência** dizem o nome. **A ordem das duas leituras inverteu-se** — a tabela dos dados lê
+> primeiro e o mapa que sai dela é o que o extrato consome: **zero leituras a mais e uma fonte só
+> para o nome**. A composição passou a ser função (`extratoComNomes`) porque uma regra que só se
+> cumpre por a ordem das linhas estar certa **não se consegue medir**. **Um defeito meu, escondido:**
+> a renomeação «Escola»→«Habilitação» de `6345ba3b` quebrou uma asserção de
+> `provar-financeiro-da-escola`, prova que **está na linha de base** — a base guarda o **nome** da
+> prova e não as asserções, portanto uma prova vermelha que fica mais vermelha passa em silêncio.
+> Corrigida; **o buraco fica declarado, não fechado.** Antes disso, no mesmo dia: **o bloco que informa
+> um pagamento passou a dizer de que
 > escola é.** Ela apanhou-o a usar o sistema: «eu vou ter N escolas […] nesse botão marcar como pago,
 > me parece que eu tô marcando como pago um lote todas. E eu não sei dizer aqui por meio desse bloco
 > qual é a escola que eu tô marcando como pago.» **Não havia lote nenhum** — o bloco já levava o slug
@@ -5932,7 +5948,21 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (26/11/2026 — o campo de horas removido e o bloco do pagamento nomeado)
+### Executado nesta fotografia (26/11/2026 — o nome da escola, e o defeito escondido na linha de base)
+
+| Verificação | Resultado |
+|:--|:--|
+| `node experimentos/provar-conciliacao-do-painel.js` (**§10 nova**) | **98/98** (78 → 98). As duas asserções que discriminam são **opostas**: com o mapa, o extrato leva o nome declarado; sem o mapa, continua a levar o do índice — sem a segunda, a correcção podia passar a inventar nomes. Mais: o parêntesis não aparece quando o nome **é** o slug; a expurgada conserva o nome pelo **último** elo do expurgo; um KV que falha deixa a escola sem nome em vez de derrubar a lista |
+| as mutações — **sete regras, oito quedas** | parêntesis sempre **1** · lista do desconto volta ao índice **1** · extrato ignora o mapa **1** · o expurgo deixa de responder pelo nome **1** · o **primeiro** elo em vez do último **1** · sem cadastro inventa o slug **2** · a composição inverte a ordem **3**. Repostas as sete, 98/98 |
+| **o defeito que a §10 não apanhou sozinha** | a renomeação «Escola»→«Habilitação» de `6345ba3b` quebrou `provar-financeiro-da-escola`. Só se viu porque as provas vizinhas foram corridas por iniciativa própria e porque o mesmo ficheiro foi medido **numa worktree do `HEAD`**: 8 falhas antes, 8 depois, **a mesma lista** — as 8 eram anteriores. A asserção do cabeçalho passou a `/MêsHabilitação/`, com o motivo escrito ao lado |
+| `node experimentos/provar-financeiro-da-escola.js` | **131/138**. Era **130/138** no `HEAD`: o `+1` é a asserção corrigida. As 7 restantes são **anteriores** a esta sessão (medidas na worktree), e a prova continua na linha de base |
+| o que a linha de base **não** protege | ela guarda o **nome** da prova, não as suas asserções. Uma prova vermelha que fica **mais** vermelha passa em silêncio. Fechá-lo exigiria guardar a contagem por prova — fica **declarado**, não feito |
+| `node tools/correr-provas.js --paralelo=3 --tecto=90` | **299 provas, 207 verdes, 92 conhecidas, 0 regressões** (igual antes e depois: a prova corrigida continua vermelha por 7 razões anteriores) |
+| a bancada local (Puppeteer, 1280 e 390) | «Breu do Vale (breu)» com nome declarado · «clablun» quando o nome **é** o slug · a lista do desconto idêntica · **nenhum transbordo** e nenhuma rolagem lateral em nenhuma das duas larguras |
+| as quatro conferências | `check-identidade` **0 problemas** (23 ok, exit 0) · `check-schemas` verde · `check-github-headers` **5 ok** |
+| o que **não** foi medido | o ecrã publicado com nomes reais — a produção tem `breu` e `clablun`, e o nome delas no cadastro **é** o slug, portanto ao vivo o parêntesis não aparece e a mudança lê-se sobretudo na ausência dele |
+
+### Executado nesta fotografia anterior (26/11/2026 — o campo de horas removido e o bloco do pagamento nomeado)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -7876,6 +7906,26 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **26/11/2026** — **O nome da escola é o que ela declarou, e não o slug.** O cartão do extrato dizia
+  «breu (breu)», e a causa era maior do que a estética: o índice do acervo chama **`nome` ao slug**
+  (nasce do repositório, e o nome declarado vive no cadastro, que é KV), e os ecrãs liam-no como se
+  fosse o nome. **A mesma escola tinha dois nomes no mesmo ecrã** — o cartão dizia «clablun» e a
+  tabela «os dados da escola» dizia «Clablun», porque só a segunda lia o cadastro. Corrigido nos
+  três sítios que faltavam (cartão, rótulo do pagamento, lista do desconto) e no **monitor da
+  inadimplência**, que é onde ela decide a quem telefonar. **O parêntesis passou a ser condicional**:
+  existe para desambiguar o nome da identidade técnica, e quando as duas são a mesma palavra não
+  desambigua nada. **A ordem das duas leituras inverteu-se** — a tabela dos dados já abria o cadastro
+  de cada escola, e o mapa `{slug: nome}` que sai dela é o que o extrato consome: **zero leituras a
+  mais e uma fonte só para o nome**. A composição passou a função (`extratoComNomes`) porque uma
+  regra que só se cumpre por a ordem das linhas estar certa **não se consegue medir** — invertê-la
+  devolveria o slug no ecrã inteiro sem quebrar nada visível. Prova: `provar-conciliacao-do-painel`
+  **§10** (78 → **98** asserções), sete mutações com oito quedas. **Um defeito meu, escondido:** a
+  renomeação «Escola»→«Habilitação» do commit `6345ba3b` quebrou uma asserção de
+  `provar-financeiro-da-escola`, e essa prova **está na linha de base** — a base guarda o **nome**
+  das provas e não as suas asserções, portanto uma prova vermelha que fica mais vermelha passa em
+  silêncio. Foi corrigida com o motivo ao lado; **o buraco fica declarado, não fechado** (fechá-lo
+  exigiria guardar a contagem de asserções por prova).
 
 - **26/11/2026** — **O bloco «informar um pagamento» passou a dizer de que escola é.** A queixa dela,
   a usar o sistema: «me parece que eu tô marcando como pago um lote todas. E eu não sei dizer aqui por

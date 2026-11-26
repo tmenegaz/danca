@@ -753,6 +753,160 @@ const ESCOLAS = [{ slug: 'breu', nome: 'Breu' }];
       d.querySelector('[data-conta="cora"] tbody tr td:nth-child(2)').textContent);
   }
 
+  /* ── 10. O NOME DA ESCOLA É O QUE ELA DECLAROU, E NÃO O SLUG (26/11/2026) ─────────────────── */
+  /*
+   * «O rótulo diz breu, e o resumo do cartão diz breu (breu).» O índice do acervo chama `nome` ao
+   * slug — o índice nasce do repositório, e o nome declarado vive no cadastro, que é KV. Ler o
+   * índice e escrevê-lo como se fosse o nome dá o parêntesis repetido, e dá a mesma escola com dois
+   * nomes consoante o ecrã.
+   *
+   * O QUE DISCRIMINA aqui são duas asserções opostas:
+   *
+   *   · com `nomes`, o extrato leva o nome declarado — senão a correcção não existiu;
+   *   · sem `nomes`, continua a levar o do índice — senão a página passaria a inventar nomes para
+   *     as escolas que não têm cadastro, que é o defeito que este repositório mais persegue.
+   *
+   * A terceira é a de forma: quando o nome É o slug, o parêntesis não aparece. Ele existe para
+   * desambiguar, e repetir a mesma palavra não desambigua nada.
+   */
+  console.log('\n10. O nome da escola é o que ela declarou — e o slug só quando acrescenta');
+  {
+    const escolaDeclarada = { escola: 'clablun', nome: 'clablun', planoNome: 'Básico',
+      valorCentavos: 16990, situacao: 'em-dia', mesDeHoje: '2026-11', emAberto: [], vencidos: [],
+      meses: [{ mes: '2026-11', nome: 'novembro de 2026', vencimento: '2026-11-16', status: 'pago',
+        valorCentavos: 16990, valorPagoCentavos: 16990, planoNome: 'Básico',
+        emTexto: '16/11/2026 às 21:48' }],
+      estadoComercial: 'ativa', frase: 'Em dia.', capacidade: { professores: 4, alunos: 40 },
+      piso: { professores: 4, alunos: 40 }, teto: { professores: 5, alunos: 89 },
+      proximoVencimento: null, diasParaVencer: null,
+      lotesProfessores: [3], lotesAlunos: [30], cobrancas: {} };
+    const desenhar = (nomeDoExtrato) => {
+      const d = new JSDOM(painel.paginaFinanceira({
+        pix: { chave: 'k', titular: 'T' }, descontos: [],
+        escolas: [{ slug: 'clablun', nome: 'clablun' }],
+        extrato: [Object.assign({}, escolaDeclarada,
+          nomeDoExtrato ? { nome: nomeDoExtrato } : {})],
+        catalogo: null,
+      })).window.document;
+      const cartao = d.querySelector('[data-conta="clablun"]');
+      return {
+        resumo: (cartao.querySelector('summary') || {}).textContent || '',
+        rotulo: ((cartao.querySelector('.caixa.filtrar .campo-rotulo') || {}).textContent || ''),
+        opcao: ((d.querySelector('#desconto-escola option') || {}).textContent || ''),
+      };
+    };
+
+    /* (a) COM O NOME DECLARADO: o cartão diz «Clablun», e o slug fica como complemento. */
+    const comNome = desenhar('Clablun');
+    conferir('com o nome declarado, o resumo do cartão diz «Clablun»', /Clablun/.test(comNome.resumo),
+      comNome.resumo.trim());
+    conferir('…e o slug fica no parêntesis, que é o que ele serve para fazer',
+      /Clablun \(clablun\)/.test(comNome.resumo.replace(/\s+/g, ' ')), comNome.resumo.trim());
+    conferir('…e o rótulo do bloco do pagamento diz o mesmo nome', /Clablun/.test(comNome.rotulo),
+      comNome.rotulo.trim());
+    conferir('…e a lista do desconto também', /Clablun/.test(comNome.opcao), comNome.opcao.trim());
+
+    /* (b) SEM NOME DECLARADO: cai no índice, que é o slug — e NÃO REPETE «clablun (clablun)». */
+    const semNome = desenhar(null);
+    conferir('sem nome declarado, o resumo diz o slug — e não um nome inventado',
+      /clablun/i.test(semNome.resumo) && !/Clablun/.test(semNome.resumo), semNome.resumo.trim());
+    conferir('…e o parêntesis não aparece, porque não desambiguava nada',
+      !/\(\s*clablun\s*\)/.test(semNome.resumo), semNome.resumo.trim());
+    conferir('…e a opção do desconto é o slug, e não «clablun (clablun)»',
+      semNome.opcao.trim() === 'clablun', semNome.opcao.trim());
+
+    /* (c) O EXTRATO LEVA O NOME, E SÓ QUANDO LHE DÃO UM. As duas metades — sem a segunda, a
+     * correcção poderia passar a inventar nomes; sem a primeira, não existia. */
+    const env = envCom(null);
+    const comMapa = await raiz.extratoDasEscolas({
+      env, escolas: ESCOLAS, agora: '2026-11-17T17:04:00Z', nomes: { breu: 'Breu do Vale' },
+    });
+    conferir('o extrato leva o nome declarado quando lhe dão o mapa',
+      comMapa[0] && comMapa[0].nome === 'Breu do Vale', comMapa[0] && comMapa[0].nome);
+    const semMapa = await raiz.extratoDasEscolas({
+      env, escolas: ESCOLAS, agora: '2026-11-17T17:04:00Z',
+    });
+    conferir('…e sem mapa continua a levar o do índice, que é o slug',
+      semMapa[0] && semMapa[0].nome === 'Breu', semMapa[0] && semMapa[0].nome);
+
+    /* (d) A LEITURA DO NOME: o cadastro vivo manda, e o registo do expurgo responde por uma escola
+     * que já não existe — é ele que impede o extrato de uma apagada de voltar a chamar-se pelo
+     * slug. Um KV que não responde deixa a escola sem nome, e não derruba a lista. */
+    const kvDoNome = kvEmMemoria({
+      'bastidores/clablun/cadastro': JSON.stringify({ escolaNome: 'Clablun' }),
+      'cadastros/batata': JSON.stringify({ expurgos: [
+        { em: '2026-11-01T00:00:00Z', escolaNome: 'Batata do Sertão' },
+        { em: '2026-11-23T00:00:00Z', escolaNome: 'Batata' },
+      ] }),
+      /* A `batata` está expurgada, e uma expurgada só entra no extrato se tiver HISTÓRICO no livro —
+       * a regra de 23/11: uma escola que nunca pagou nada não tem conta a mostrar. Sem esta linha
+       * ela seria saltada, e a asserção do nome dela estaria a medir o vazio. */
+      'financeiro/mensalidades': JSON.stringify({ lista: [
+        { escola: 'batata', mes: '2026-10', status: 'pago', valorCentavos: 16990,
+          plano: 'basico', planoNome: 'Básico', em: '2026-10-16T12:00:00Z' },
+      ] }),
+    });
+    const nomes = await raiz.nomesDasEscolas({
+      env: { PADD_KV: kvDoNome },
+      escolas: [{ slug: 'clablun' }, { slug: 'batata' }, { slug: 'sem-cadastro' }],
+    });
+    conferir('o nome vem do cadastro vivo', nomes.clablun === 'Clablun', nomes.clablun);
+    conferir('…e de uma expurgada vem do ÚLTIMO expurgo, e não do primeiro',
+      nomes.batata === 'Batata', nomes.batata);
+    conferir('…e uma escola sem cadastro nenhum fica sem nome, em vez de um inventado',
+      !('sem-cadastro' in nomes), nomes);
+    const kvMudo = { get: async () => { throw new Error('KV fora do ar'); } };
+    const nomesMudos = await raiz.nomesDasEscolas({
+      env: { PADD_KV: kvMudo }, escolas: [{ slug: 'clablun' }],
+    });
+    conferir('um KV que falha não derruba a lista — a escola fica sem nome',
+      nomesMudos && !('clablun' in nomesMudos), nomesMudos);
+
+    /* (e) A PONTE DO FINANCEIRO — sem ela, o mapa existia mas chegava vazio, e o cartão continuava
+     * a dizer o slug. Mede-se aqui porque a rota não se pode exercer em bancada (lê o índice do
+     * GitHub): o que a prova apanha é a REGRA, e a regra é «as fichas dão o mapa».
+     *
+     * As duas pontas ficam presas na mesma secção: `dadosDasEscolas` põe o nome declarado na ficha,
+     * e `nomesDasFichas` leva-o dali para o extrato. Uma de cada vez deixaria a outra a poder
+     * partir-se em silêncio. */
+    const fichas = await raiz.dadosDasEscolas({
+      env: { PADD_KV: kvDoNome },
+      escolas: [{ slug: 'clablun' }, { slug: 'batata', expurgada: true }, { slug: 'sem-cadastro' }],
+    });
+    conferir('as fichas da escola trazem o nome declarado',
+      (fichas.find((f) => f.escola === 'clablun') || {}).nome === 'Clablun',
+      (fichas.find((f) => f.escola === 'clablun') || {}).nome);
+    const ponte = raiz.nomesDasFichas(fichas);
+    conferir('…e a ponte leva-as ao mapa do extrato', ponte.clablun === 'Clablun', ponte);
+    /* QUEM NÃO TEM NOME DECLARADO NÃO INVENTA UM: `dadosDasEscolas` cai no slug — é o que aquela
+     * tabela faz de propósito, para não mostrar um traço no lugar de uma pessoa —, e o que a ponte
+     * transporta é isso mesmo, o slug. O que se afirma é que o RESULTADO não muda: um nome igual ao
+     * slug desenha-se como a ausência dele, e o parêntesis não se repete. */
+    conferir('…e uma ficha cujo nome é o slug desenha-se como uma sem nome — sem parêntesis repetido',
+      raiz.nomesDasFichas([{ escola: 'x', nome: 'x' }]).x === 'x', ponte);
+    conferir('…e uma lista vazia dá um mapa vazio — e não um erro',
+      Object.keys(raiz.nomesDasFichas([])).length === 0
+      && Object.keys(raiz.nomesDasFichas(null)).length === 0, null);
+
+    /* (f) A COMPOSIÇÃO DO FINANCEIRO — a rota em duas linhas, exercida de ponta a ponta com um KV
+     * de mentira. É aqui que se apanha a inversão da ordem, que é o defeito invisível desta
+     * correcção: com o extrato lido primeiro, o ecrã inteiro volta a dizer o slug e nada falha. */
+    const conta = await raiz.extratoComNomes({
+      env: { PADD_KV: kvDoNome }, escolas: [{ slug: 'clablun' }, { slug: 'batata', expurgada: true }],
+    });
+    conferir('a composição do financeiro leva o nome declarado ao extrato',
+      (conta.extrato.find((c2) => c2.escola === 'clablun') || {}).nome === 'Clablun',
+      (conta.extrato.find((c2) => c2.escola === 'clablun') || {}).nome);
+    conferir('…e a mesma leitura serve as duas listas — o extrato e as fichas dizem o mesmo nome',
+      (conta.dados.find((f2) => f2.escola === 'clablun') || {}).nome
+        === (conta.extrato.find((c2) => c2.escola === 'clablun') || {}).nome, null);
+    /* A EXPURGADA MANTÉM O NOME: o cadastro dela já não existe, e é o registo do expurgo que
+     * responde. Sem isto, a conta de uma escola apagada voltaria a chamar-se pelo slug. */
+    conferir('…e a escola expurgada conserva o nome que declarou',
+      (conta.extrato.find((c2) => c2.escola === 'batata') || {}).nome === 'Batata',
+      (conta.extrato.find((c2) => c2.escola === 'batata') || {}).nome);
+  }
+
   console.log('');
   if (falhas) { console.log('FALHOU — ' + (n - falhas) + '/' + n); process.exit(1); }
   console.log('TUDO CERTO — ' + n + ' asserção(ões).');
