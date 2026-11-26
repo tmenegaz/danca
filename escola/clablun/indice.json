@@ -1,0 +1,19 @@
+{
+  "escola": "clablun",
+  "worker": "clablun",
+  "criado_em": "2026-11-26T01:29:13.079071+00:00",
+  "professor": {
+    "slug": "ramona-pires",
+    "nome": "Ramona Pires"
+  },
+  "responsavel": "Ramona Pires",
+  "ciclo": "01",
+  "senha": {
+    "chave": "SENHA_CRIPTO",
+    "arquivo": "Worker (secret)"
+  },
+  "shard": "lastro-teste",
+  "estado": {
+    "habilitada": true
+  }
+}

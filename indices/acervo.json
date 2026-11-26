@@ -15,6 +15,22 @@
       "numero": "01",
       "professor": "demi-plie",
       "sem_ancora": false
+    },
+    {
+      "ancora": {
+        "hash": "a9d5d271c6397a20ee59eacce6a7465fd27a3626cbaaaa60a98fa3d0e2880ca8",
+        "id": "ciclo-01-clablun",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": 0,
+      "documentos": 3,
+      "escola": "clablun",
+      "estado": "ancorado",
+      "id": "ciclo:ramona-pires/01/clablun",
+      "numero": "01",
+      "professor": "ramona-pires",
+      "sem_ancora": false
     }
   ],
   "escolas": [
@@ -130,6 +146,34 @@
       "slug": "calango"
     },
     {
+      "ciclos": [
+        "ciclo:ramona-pires/01/clablun"
+      ],
+      "contagens": {
+        "anamneses": 0,
+        "aulas": 0,
+        "ciclos": 1,
+        "ciclos_com_ancora": 1,
+        "planos": 0,
+        "pos": 0,
+        "recortes": 0,
+        "registros": 0
+      },
+      "criada_em": "2026-11-26T01:29:13.079071+00:00",
+      "expurgada": false,
+      "expurgada_em": null,
+      "expurgos": 0,
+      "habilitada": true,
+      "id": "escola:clablun",
+      "nome": "clablun",
+      "professor": "ramona-pires",
+      "professores": [
+        "ramona-pires"
+      ],
+      "registros": [],
+      "slug": "clablun"
+    },
+    {
       "ciclos": [],
       "contagens": {
         "anamneses": 0,
@@ -182,13 +226,18 @@
       },
       {
         "contagem": 1,
+        "rotulo": "clablun",
+        "valor": "clablun"
+      },
+      {
+        "contagem": 1,
         "rotulo": "duo",
         "valor": "duo"
       }
     ],
     "estados": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Com âncora",
         "valor": "ancorado"
       }
@@ -301,6 +350,11 @@
       },
       {
         "contagem": 1,
+        "rotulo": "Ramona Pires",
+        "valor": "ramona-pires"
+      },
+      {
+        "contagem": 1,
         "rotulo": "redinha-rosa",
         "valor": "redinha-rosa"
       },
@@ -355,9 +409,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "9eb12e05"
+    "commit": "f6b363f"
   },
-  "gerado_em": "2026-11-25T20:03",
+  "gerado_em": "2026-11-26T01:29",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -587,6 +641,18 @@
       "nome": "Rabo Gramde",
       "pasta": true,
       "slug": "rabo-gramde"
+    },
+    {
+      "ciclos": [
+        "ciclo:ramona-pires/01/clablun"
+      ],
+      "escolas": [
+        "clablun"
+      ],
+      "id": "professor:ramona-pires",
+      "nome": "Ramona Pires",
+      "pasta": true,
+      "slug": "ramona-pires"
     },
     {
       "ciclos": [],

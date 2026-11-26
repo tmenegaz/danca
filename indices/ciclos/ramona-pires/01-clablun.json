@@ -1,0 +1,52 @@
+{
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-11-26",
+    "caminho": "professores/ramona-pires/ciclos/ciclo-01-clablun.fipp",
+    "cobertura": [
+      "professores/ramona-pires/ciclos/ciclo-01-clablun.conf",
+      "professores/ramona-pires/ciclos/ciclo-01.conf"
+    ],
+    "hash": "a9d5d271c6397a20ee59eacce6a7465fd27a3626cbaaaa60a98fa3d0e2880ca8",
+    "hash_conteudo": "e318498422a1e4381328bce13fb6558212d151a2e9e000ba9d17ea33274da98e",
+    "id": "ciclo-01-clablun",
+    "lida": true,
+    "parent_hash": ""
+  },
+  "aulas": [],
+  "ciclo": "01",
+  "documentos": [
+    "documento:ancora:professores/ramona-pires/ciclos/ciclo-01-clablun.fipp",
+    "documento:manifesto:professores/ramona-pires/ciclos/ciclo-01-clablun.conf",
+    "documento:schema:professores/ramona-pires/ciclos/ciclo-01-clablun/plano-observacao/envelope/elicitacao-schema.json"
+  ],
+  "escola": "clablun",
+  "estado": "ancorado",
+  "filtros": {
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "manifesto",
+        "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "schema",
+        "valor": "schema"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "f6b363f"
+  },
+  "gerado_em": "2026-11-26T01:29",
+  "id": "ciclo:ramona-pires/01/clablun",
+  "professor": "ramona-pires",
+  "versao": 7
+}

@@ -1,0 +1,161 @@
+{
+  "aspectos": [],
+  "aulas": [],
+  "ciclos": [
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-26",
+        "caminho": "professores/ramona-pires/ciclos/ciclo-01-clablun.fipp",
+        "cobertura": [
+          "professores/ramona-pires/ciclos/ciclo-01-clablun.conf",
+          "professores/ramona-pires/ciclos/ciclo-01.conf"
+        ],
+        "hash": "a9d5d271c6397a20ee59eacce6a7465fd27a3626cbaaaa60a98fa3d0e2880ca8",
+        "hash_conteudo": "e318498422a1e4381328bce13fb6558212d151a2e9e000ba9d17ea33274da98e",
+        "id": "ciclo-01-clablun",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": [],
+      "documentos": [
+        "professores/ramona-pires/ciclos/ciclo-01-clablun.conf",
+        "professores/ramona-pires/ciclos/ciclo-01-clablun.fipp",
+        "professores/ramona-pires/ciclos/ciclo-01-clablun/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "clablun",
+      "estado": "ancorado",
+      "id": "ciclo:ramona-pires/01/clablun",
+      "numero": "01",
+      "pacote": null,
+      "professor": "ramona-pires",
+      "sem_ancora": false,
+      "tipos": [
+        "ancora",
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": "ciclo-01-clablun",
+      "caminho": "professores/ramona-pires/ciclos/ciclo-01-clablun.fipp",
+      "ciclo_id": "ciclo:ramona-pires/01/clablun",
+      "escola": "clablun",
+      "id": "documento:ancora:professores/ramona-pires/ciclos/ciclo-01-clablun.fipp",
+      "professor": "ramona-pires",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-clablun",
+      "caminho": "professores/ramona-pires/ciclos/ciclo-01-clablun.conf",
+      "ciclo_id": "ciclo:ramona-pires/01/clablun",
+      "escola": "clablun",
+      "id": "documento:manifesto:professores/ramona-pires/ciclos/ciclo-01-clablun.conf",
+      "professor": "ramona-pires",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-clablun",
+      "caminho": "professores/ramona-pires/ciclos/ciclo-01-clablun/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:ramona-pires/01/clablun",
+      "escola": "clablun",
+      "id": "documento:schema:professores/ramona-pires/ciclos/ciclo-01-clablun/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "ramona-pires",
+      "tipo": "schema"
+    }
+  ],
+  "escola": {
+    "ciclos": [
+      "ciclo:ramona-pires/01/clablun"
+    ],
+    "contagens": {
+      "anamneses": 0,
+      "aulas": 0,
+      "ciclos": 1,
+      "ciclos_com_ancora": 1,
+      "planos": 0,
+      "pos": 0,
+      "recortes": 0,
+      "registros": 0
+    },
+    "criada_em": "2026-11-26T01:29:13.079071+00:00",
+    "expurgada": false,
+    "expurgada_em": null,
+    "expurgos": 0,
+    "habilitada": true,
+    "id": "escola:clablun",
+    "nome": "clablun",
+    "professor": "ramona-pires",
+    "professores": [
+      "ramona-pires"
+    ],
+    "registros": [],
+    "slug": "clablun"
+  },
+  "filtros": {
+    "anos": [],
+    "aspectos": [],
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:ramona-pires/01/clablun"
+        ],
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:ramona-pires/01/clablun"
+        ],
+        "rotulo": "ramona-pires",
+        "valor": "ramona-pires"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:ramona-pires/01/clablun"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "f6b363f"
+  },
+  "gerado_em": "2026-11-26T01:29",
+  "nao_indexado": [
+    {
+      "familia": "conteudo",
+      "motivo": "o índice guarda metadados; o corpo dos documentos não se copia"
+    },
+    {
+      "familia": "marcas",
+      "motivo": "vivem no lançamento da aula, que é cifrado no cofre — ainda sem leitor"
+    },
+    {
+      "familia": "presenca",
+      "motivo": "idem: o lançamento não tem leitor, e um zero aqui seria mentira"
+    },
+    {
+      "familia": "alunas-no-acervo",
+      "motivo": "dado de menor: o apelido só aparece no índice da própria escola"
+    },
+    {
+      "familia": "senhas",
+      "motivo": "nunca — nem hash, nem sal"
+    }
+  ],
+  "recortes": [],
+  "registros": [],
+  "versao": 7
+}
