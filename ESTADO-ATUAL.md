@@ -4,8 +4,23 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **o livro dos R$ 10 existe, e o que não se cobra também está
-> escrito.** A fase F4 do [PLANO-DO-CONSULTOR.md](PLANO-DO-CONSULTOR.md) está no ar: o painel dos
+> **Última fotografia:** 26/11/2026 — **o «Marcar recebido» passou a gravar, e a falar.** Ela marcou os
+> R$ 10 como pagos e o **KV de produção não tinha o elo**: `consultores/recebidos/` não existia. **O que
+> não era:** o deploy (o commit é anterior ao Worker), a rota (em bancada responde 200 e grava), o
+> saldo. **O que era — duas escolhas que falham em silêncio:** um `window.prompt` para pedir o valor,
+> que devolve **`null` sem lançar nada** quando o browser o suprime (e o código fazia `return`), e o
+> erro a sair no `recado` do **formulário de cadastro, no topo**, enquanto o botão está na **tabela, em
+> baixo**. **As duas correcções:** o campo do valor passou a estar **na própria célula** (o padrão do
+> «Marcar pago» do financeiro, com `inputmode="decimal"` e o saldo pré-preenchido), e a mensagem passou
+> a sair na **pilha de avisos** do canto — peça que **já existia** na folha e que só os Bastidores
+> sabiam emitir; ficou em `motor/nucleo/aviso.js` e a pilha entrou no **casco do painel**, não em cada
+> página. **É a terceira vez nesta frente que a mesma família aparece** — o `class="res alerta"`
+> invisível, o elo órfão, e agora um `prompt` que não abre e não diz nada — e as três são a mesma
+> frase: **o que existe e não se vê não existe.** A prova cresceu de 46 para **65 asserções** e passou
+> a **correr o handler** com um DOM de bolso: o campo e o botão saem do HTML, o clique tem de enviar
+> `10,00 → 1000` para a rota certa, e no erro o aviso tem de **sair na pilha**. **Quatro mutações,
+> quatro quedas** — e a `window.prompt` está **proibida por asserção**, não por disciplina. Antes
+> disso, no mesmo dia: **o livro dos R$ 10 existe.** A fase F4 do [PLANO-DO-CONSULTOR.md](PLANO-DO-CONSULTOR.md) está no ar: o painel dos
 > consultores ganhou a coluna **«O que deve»** (saldo em falta, o que já entrou, e o botão «Marcar
 > recebido» **só quando há o que receber**), e a linha da escola passou a dizer **«consultoria por
 > [nome] · [praça]»** — a **Clablun** criada hoje mostra `Giabu · PI`, lido do registo comercial e
@@ -7776,6 +7791,20 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **26/11/2026** — **O «Marcar recebido» não gravava, e não dizia porquê.** Ela marcou os R$ 10 e o
+  KV de produção não tinha `consultores/recebidos/`. Diagnosticado por medição, não por suposição: o
+  deploy tinha o código (o commit é anterior ao Worker), a rota respondia **200 em bancada**, e o
+  saldo estava certo. **Duas escolhas falhavam em silêncio:** `window.prompt` (devolve `null` sem
+  lançar quando o browser o suprime, e o código fazia `return`) e o erro escrito no `recado` do
+  formulário **no topo**, com o botão na **tabela em baixo**. Corrigido com o padrão que já funciona
+  no financeiro — **campo do valor na própria célula**, com o saldo pré-preenchido — e com a **pilha
+  de avisos** do canto, extraída para `motor/nucleo/aviso.js` e posta no **casco do painel**: a peça
+  já existia na folha, mas só os Bastidores a sabiam emitir. **É a terceira vez** que esta frente
+  apanha a mesma família (o `class="res alerta"`, o elo órfão, o `prompt` mudo), e a lição é uma só:
+  **o que existe e não se vê não existe.** Prova: 46 → **65 asserções**, com a §H a **correr o
+  handler** num DOM de bolso cujo campo e botão **saem do HTML**; quatro mutações, quatro quedas, e a
+  `window.prompt` **proibida por asserção**.
 
 - **25/11/2026** — **O livro dos R$ 10 (F4).** Uma coluna nova no painel dos consultores — **«O que
   deve»** — com o saldo, o recebido e o botão «Marcar recebido» (que **só aparece quando há o que

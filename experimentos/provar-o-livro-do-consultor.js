@@ -262,6 +262,133 @@ async function bancada({ gastar = true } = {}) {
     provar('cada <script> do painel compila', ok, null);
   }
 
+  /* ── §H o handler do «Marcar recebido», corrido ──────────────────────────────────────────
+   *
+   * O DEFEITO QUE ISTO EXISTE PARA IMPEDIR, e ele aconteceu a 26/11/2026: ela carregou em «Marcar
+   * recebido», disse «marquei como pago», e o KV **não tinha o elo**. Duas escolhas falhavam em
+   * silêncio, e nenhuma delas é visível a ler o código:
+   *
+   *   1. `window.prompt` — suprimido pelo browser, devolve `null` sem lançar nada, e o código fazia
+   *      `return`. Nada acontecia, nada dizia porquê;
+   *   2. o `recado` escrevia no formulário de cadastro, no TOPO da página, enquanto o botão estava
+   *      na tabela, em baixo.
+   *
+   * A LIÇÃO JÁ PAGA DUAS VEZES NESTA FRENTE: não se mede o texto do script, corre-se o handler. E
+   * o DOM de bolso nasce do HTML — senão apagar o campo do formulário não faz a prova cair.
+   */
+  console.log('\n§H o handler do «Marcar recebido», corrido com um DOM de bolso');
+
+  const htmlH = painel.paginaDosConsultores({
+    consultores: [{ id: 'c-1', nome: 'Giabu', praca: 'PI', cpf: '12345678901', ativo: true, equipamento: {}, historico: [] }],
+    livros: { 'c-1': { ok: true, resumo: { taxaCentavos: 1000, quantidadeDevida: 1, devidoCentavos: 1000, recebidoCentavos: 0, saldoCentavos: 1000 } } },
+    moeda: 'R$',
+  });
+  const codigoH = (htmlH.match(/<script>([\s\S]*?)<\/script>/g) || [])
+    .map((b) => b.replace(/^<script>/, '').replace(/<\/script>$/, ''))
+    .filter((b) => b.indexOf('data-receber') !== -1)[0] || '';
+
+  provar('o script do receber foi encontrado para a medição', codigoH.length > 100, codigoH.length);
+  provar('…e NÃO usa `window.prompt` (o que devolve null em silêncio)', !/window\.prompt/.test(codigoH), null);
+  provar('…e há um campo de valor na célula, com o saldo já preenchido',
+    /data-receber-valor/.test(htmlH) && /value="10,00"/.test(htmlH), null);
+
+  /* O DOM DE BOLSO, do HTML: só existe o que a página emite. */
+  /* TODO ELEMENTO SABE OUVIR — o script desta página regista ouvintes no cadastro, no estado, no
+   * endereço e no receber, e um DOM de bolso que só soubesse ouvir no botão que a prova quer medir
+   * rebentava a correr o resto. É a mesma lição do DOM que nasce do HTML: o de bolso tem de parecer
+   * a página inteira, e não só o pedaço em causa. */
+  const idsH = new Set([...htmlH.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+  const elementosH = {};
+  for (const id of idsH) {
+    elementosH[id] = {
+      value: '', textContent: '', className: '', disabled: false, hidden: false,
+      focus() {}, scrollIntoView() {},
+      addEventListener() {}, setAttribute() {}, getAttribute() { return null; },
+    };
+  }
+  const campoH = elementosH['receber-valor-c-1'];
+  provar('…e o campo do valor existe com esse id', Boolean(campoH), [...idsH].filter((x) => /receber/.test(x)));
+  if (campoH) campoH.value = '10,00';
+
+  /* O BOTÃO, COM OS ATRIBUTOS QUE O HTML LHE DEU — o `data-receber` sai da marcação, e não de uma
+   * constante da prova: se o id mudasse na página, a prova media outro botão. */
+  let ouvinteH = null;
+  const idNoBotao = (/data-receber="([^"]+)"/.exec(htmlH) || [])[1] || '';
+  const botaoH = {
+    disabled: false,
+    addEventListener: (n, f) => { if (n === 'click') ouvinteH = f; },
+    getAttribute: (nome) => (nome === 'data-receber' ? idNoBotao : null),
+    setAttribute() {},
+  };
+  provar('…e o botão da página aponta para um id de consultor', idNoBotao === 'c-1', idNoBotao);
+  elementosH['receber-c-1'] = botaoH;
+  const documentoH = {
+    getElementById: (id) => elementosH[id] || null,
+    querySelector: (sel) => {
+      const m = /\[data-receber-valor="([^"]+)"\]/.exec(sel);
+      return m && m[1] === 'c-1' ? campoH : null;
+    },
+    querySelectorAll: (sel) => (sel === '[data-receber]' ? [botaoH] : []),
+    createElement: () => ({ className: '', textContent: '', appendChild() {}, setAttribute() {} }),
+  };
+  /* A PILHA DE AVISOS é do casco; aqui ela é um elemento que recolhe o que foi dito — e é isso que
+   * permite afirmar que a mensagem SAIU, e não só que o código a tentou escrever. */
+  const ditos = [];
+  const janelaH = { avisar: (tipo, texto) => { ditos.push({ tipo, texto }); return {}; } };
+  let enviadoH = null;
+  let recarregou = false;
+  const fetchH = (url, opcoes) => {
+    enviadoH = { url, corpo: JSON.parse((opcoes && opcoes.body) || '{}') };
+    return Promise.resolve({ json: () => Promise.resolve({ ok: true, saldoCentavos: 0 }) });
+  };
+  /* `location` é lido no êxito; aqui ele é um objecto que se deixa recarregar sem sair da prova. */
+  const localizacaoH = { reload: () => { recarregou = true; } };
+
+  /* O `sessionStorage` É DO CASCO: o script do endereço lê-o ao abrir, e sem ele a chamada estoura
+   * dentro do `try` — o que não parte nada, mas mede-se aqui para o harness não depender disso. */
+  const janelaH2 = Object.assign({ sessionStorage: { getItem: () => null, setItem() {}, removeItem() {} } }, janelaH);
+  // eslint-disable-next-line no-new-func
+  new Function('document', 'fetch', 'window', 'location', codigoH)(documentoH, fetchH, janelaH2, localizacaoH);
+  provar('o script instala o ouvinte do botão de receber', typeof ouvinteH === 'function', typeof ouvinteH);
+  ouvinteH();
+  await new Promise((r) => setTimeout(r, 20));
+
+  provar('…e o clique ENVIA o pedido', Boolean(enviadoH), enviadoH && enviadoH.url);
+  provar('…para a rota do recebimento', Boolean(enviadoH) && enviadoH.url === '/api/consultores/receber',
+    enviadoH && enviadoH.url);
+  provar('…com o valor do campo convertido em centavos (10,00 → 1000)',
+    Boolean(enviadoH) && enviadoH.corpo.centavos === 1000, enviadoH && enviadoH.corpo);
+  provar('…e com o id do consultor', Boolean(enviadoH) && enviadoH.corpo.id === 'c-1', enviadoH && enviadoH.corpo);
+  provar('…e no êxito a página é relida (o saldo tem de mudar à vista)', recarregou === true, recarregou);
+
+  /* O CAMINHO DE ERRO: o aviso SAI, e sai na pilha — não no topo da página. */
+  ditos.length = 0;
+  ouvinteH();
+  // eslint-disable-next-line no-new-func
+  const fetchQueFalha = () => Promise.resolve({ json: () => Promise.resolve({ ok: false, erro: 'o valor recebido é maior do que o que está em falta' }) });
+  // eslint-disable-next-line no-new-func
+  new Function('document', 'fetch', 'window', 'location', codigoH)(documentoH, fetchQueFalha, janelaH2, localizacaoH);
+  ouvinteH();
+  await new Promise((r) => setTimeout(r, 20));
+  provar('no erro, o aviso é emitido', ditos.length > 0, ditos);
+  provar('…e é do tipo «erro»', ditos.length > 0 && ditos[ditos.length - 1].tipo === 'erro', ditos);
+  provar('…e leva a frase do servidor', ditos.length > 0 && /maior do que o que está em falta/.test(ditos[ditos.length - 1].texto), ditos);
+
+  /* O VALOR VAZIO OU ZERO NÃO VAI AO SERVIDOR — e diz-se porquê. */
+  ditos.length = 0;
+  enviadoH = null;
+  if (campoH) campoH.value = '';
+  // eslint-disable-next-line no-new-func
+  new Function('document', 'fetch', 'window', 'location', codigoH)(documentoH, fetchH, janelaH2, localizacaoH);
+  ouvinteH();
+  await new Promise((r) => setTimeout(r, 20));
+  provar('com o campo vazio, NÃO envia nada', enviadoH === null, enviadoH);
+  provar('…e diz o que escrever, na pilha', ditos.length > 0 && /escreva o valor recebido/.test(ditos[0].texto), ditos);
+
+  /* E A PILHA EXISTE NO CASCO — sem ela o `avisar` devolve `null` e o silêncio volta. */
+  provar('o casco do painel traz a pilha de avisos', /id="avisos"/.test(htmlH), null);
+  provar('…e a função que a emite', /window\.avisar/.test(htmlH), null);
+
   console.log('\n' + provas + ' asserções, ' + (provas - falhas) + ' ok, ' + falhas + ' falha(s)');
   process.exit(falhas === 0 ? 0 : 1);
 })();

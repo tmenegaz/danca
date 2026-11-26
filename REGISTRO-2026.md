@@ -63519,3 +63519,68 @@ descoberta por acaso.
 
 **A lição, e é a mesma do `provar-notacao`:** a linha de base é dívida declarada, e dívida declarada
 tem de ser **revisada**. Um ficheiro que só cresce transforma «conhecida» em «esquecida».
+
+## «Marquei como pago» e o livro não tinha o elo *(26/11/2026)*
+
+**O que ela disse, e o que o KV dizia.** «Marquei como pago os 10 reais.» O KV de produção, lido com
+`--remote`, tinha três chaves dos consultores: `registos`, `visitas/<id>` e `link/<hash>`.
+**Nenhum `recebidos/<id>`.** O gesto não gravou nada.
+
+### O que não era
+
+Não era o deploy: o commit do livro (`0603b0be`, 22:45) é anterior ao Worker publicado. Não era a
+rota: em bancada, com a autenticação certa, ela responde **200** e grava o elo. Não era o saldo: o
+devido eram R$ 10,00 e o recebido era zero.
+
+### O que era — duas escolhas que falham em silêncio
+
+| | a escolha | o que aconteceu |
+|:--|:--|:--|
+| 1 | `window.prompt` para pedir o valor | quando o browser o suprime, devolve **`null` sem lançar nada**, e o código fazia `return`. O gesto morria antes de enviar |
+| 2 | o erro ia para o `recado` do **formulário de cadastro, no topo** | o botão está na **tabela, em baixo**. Um erro a 600 px de distância de onde a pessoa olha é um erro que não se vê |
+
+É a **terceira vez** nesta frente que a mesma família aparece — e as três são a mesma frase: **o que
+existe e não se vê não existe.** A primeira foi o `class="res alerta"` (classe inexistente, parágrafo
+invisível). A segunda foi o elo órfão. Esta foi um `prompt` que não abre e não diz nada.
+
+### As duas correcções
+
+**1. O campo do valor passou a estar na própria célula** — o mesmo padrão do «Marcar pago» do
+financeiro, que já funciona: `<input type="text" inputmode="decimal">` com o valor devido
+pré-preenchido, e o botão ao lado. O `type="number"` não serve: recusa a vírgula em parte dos
+teclados e transforma um valor válido em vazio sem avisar.
+
+**2. A mensagem passou a sair na pilha de avisos**, no canto do ecrã — a peça que **já existia** na
+folha (`.avisos` + `.aviso-do-gesto`, com `data-tipo="ok|erro|atencao"`, botão de fechar e prazo de
+oito segundos) e que **só os Bastidores sabiam emitir**: a função `avisar` vivia dentro do script da
+página de Produção.
+
+Ficou em `motor/nucleo/aviso.js` — `PILHA` e `SCRIPT_DO_AVISO` —, e a pilha entra no **casco do
+painel** (`pagina()`), não em cada página: todas as páginas do dono precisam de dizer «não deu», e uma
+que a esquecesse seria a próxima a falhar em silêncio. É a mesma história do `copiar.js`, e a mesma
+solução.
+
+### A prova — e a lição que já custou duas vezes
+
+`provar-o-livro-do-consultor` cresceu de 46 para **65 asserções**, com uma §H que **corre o handler**
+com um DOM de bolso:
+
+- o campo do valor e o botão **saem do HTML**, não de constantes da prova;
+- o clique tem de **enviar** o pedido, para a rota certa, com `10,00 → 1000` centavos;
+- no erro, o aviso tem de **sair na pilha** («o aviso é emitido», «é do tipo erro», «leva a frase do
+  servidor»);
+- com o campo vazio **não se envia nada**, e diz-se o que escrever;
+- e a `window.prompt` é **proibida** por asserção — não por disciplina.
+
+**Quatro mutações, quatro quedas:** voltar o `prompt` (1), voltar o aviso para o topo (3), tirar a
+pilha do casco (1), tirar o campo do valor (3).
+
+**A lição, terceira vez:** não se mede o texto do script — **corre-se o handler**. Foi assim que a
+senha do professor vazia deixou de passar, foi assim que o campo do e-mail apagado passou a fazer
+cair, e é assim que este gesto não volta a morrer calado.
+
+### Onde entrou
+
+`motor/nucleo/aviso.js` (novo), `motor/servidor/painel-html.js` (a pilha no casco, o campo na célula,
+o script sem `prompt`), `experimentos/provar-o-livro-do-consultor.js` (§H), `ESTADO-ATUAL.md`,
+`HANDOFF.md`.

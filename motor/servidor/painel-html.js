@@ -58,6 +58,10 @@ const consultores = require('../nucleo/consultores.js');
  * mês a mês usa para decidir se a cobrança serve — uma regra, um sítio, como a do link. */
 const cobrancasDoNucleo = require('../nucleo/cobrancas.js');
 const { SCRIPT_DO_COPIAR } = require('../nucleo/copiar.js');
+/* O AVISO DO GESTO (26/11/2026) — a pilha no canto, e a função que a emite. Vive no casco do
+ * painel e não em cada página: todas as páginas do dono precisam de dizer «não deu», e uma que
+ * a esquecesse seria a próxima a falhar em silêncio. */
+const { PILHA: PILHA_DE_AVISOS, SCRIPT_DO_AVISO } = require('../nucleo/aviso.js');
 
 /**
  * OS MINUTOS DE UM PERÍODO DE ENSAIO (17/11/2026) — um número, num sítio só.
@@ -844,6 +848,11 @@ function pagina({ titulo, subtitulo, atual, corpo }) {
      * corpo (como o Financeiro fazia) registaria os ouvintes duas vezes, e um clique no «›»
      * adiantaria duas páginas. */
     '<script>' + paginacao.script + '</script>' +
+    /* A PILHA DOS AVISOS E A FUNÇÃO QUE OS EMITE (26/11/2026). Ficam no CASCO pela mesma razão da
+     * paginação: é o comportamento de todas as páginas deste painel, e uma que os esquecesse
+     * falharia em silêncio — que é exactamente o defeito que os trouxe para aqui. */
+    PILHA_DE_AVISOS +
+    '<script>' + SCRIPT_DO_AVISO + '</script>' +
     '<script src="/assets/nav.js"></script>' +
     '</body></html>';
 }
@@ -1818,6 +1827,16 @@ function paginaDosConsultores({ consultores: lista, catalogo, livros, moeda } = 
       partes.push('<span class="selo alerta">a mais ' + dinheiro(-r.saldoCentavos) + '</span>');
     }
     if (r.saldoCentavos > 0) {
+      /* O CAMPO DO VALOR, NA PRÓPRIA CÉLULA (26/11/2026) — o mesmo padrão do «Marcar pago» do
+       * financeiro, e pela mesma razão que ele existe lá: um `window.prompt` devolve `null` sem
+       * lançar nada quando o browser o suprime, e o código fazia `return` — o gesto morria em
+       * silêncio. Um campo `text` com `inputmode="decimal"` aceita a vírgula em qualquer teclado; o
+       * `type="number"` recusa-a em parte deles e transforma um valor válido em vazio sem avisar. */
+      const idDoCampo = 'receber-valor-' + esc(registo.id);
+      partes.push('<input id="' + idDoCampo + '" type="text" inputmode="decimal"'
+        + ' data-receber-valor="' + esc(registo.id) + '"'
+        + ' aria-label="valor recebido, em reais"'
+        + ' value="' + esc(dinheiro(r.saldoCentavos).replace(/^[^0-9]*/, '')) + '">');
       partes.push('<button class="acao pequena" type="button" data-receber="' + esc(registo.id)
         + '" data-devido="' + Math.round(r.saldoCentavos) + '">Marcar recebido</button>');
     }
@@ -1933,23 +1952,51 @@ function paginaDosConsultores({ consultores: lista, catalogo, livros, moeda } = 
      * A CONVERSÃO PARA CENTAVOS É FEITA AQUI, e não no servidor a partir do texto: `R$ 1.234,56`
      * passado como cadeia é a conta que dá 1234.5600000000002. O servidor aceita os dois, mas o
      * caminho normal manda o inteiro. */
+    /* O «MARCAR RECEBIDO», SEM PROMPT E COM O AVISO AO LADO DO GESTO (26/11/2026).
+     *
+     * Duas correcções, e as duas vêm do mesmo lugar — o gesto falhava em silêncio:
+     *
+     *   1. o `window.prompt` foi trocado por um CAMPO NA PRÓPRIA CÉLULA. Um prompt suprimido pelo
+     *      browser devolve `null` sem lançar nada, e o código fazia `return` — nada acontecia e nada
+     *      dizia porquê;
+     *   2. a mensagem passou a sair na PILHA DE AVISOS (`window.avisar`, do casco), no canto do
+     *      ecrã. O `recado` desta página escreve no formulário de cadastro, no TOPO — e um erro no
+     *      botão da tabela aparecia a 600 px de distância de onde a pessoa olhava.
+     *
+     * O CAMINHO DE ÊXITO RELÊ A PÁGINA, como todos os gestos deste painel que mudam uma linha. */
+    /* O «MARCAR RECEBIDO», SEM PROMPT E COM O AVISO AO LADO DO GESTO (26/11/2026).
+     *
+     * Duas correcções, e as duas vêm do mesmo lugar — o gesto falhava em silêncio:
+     *
+     *   1. o `window.prompt` foi trocado por um CAMPO NA PRÓPRIA CÉLULA. Um prompt suprimido pelo
+     *      browser devolve `null` sem lançar nada, e o código fazia `return` — nada acontecia e nada
+     *      dizia porquê;
+     *   2. a mensagem passou a sair na PILHA DE AVISOS (`window.avisar`, do casco), no canto do
+     *      ecrã. O `recado` desta página escreve no formulário de cadastro, no TOPO — e um erro no
+     *      botão da tabela aparecia a 600 px de distância de onde a pessoa olhava.
+     *
+     * O CAMINHO DE ÊXITO RELÊ A PÁGINA, como todos os gestos deste painel que mudam uma linha. */
     'var receber=document.querySelectorAll("[data-receber]");' +
     'for(var r=0;r<receber.length;r++)(function(b){' +
     '  b.addEventListener("click",function(){' +
-    '    var devido=Number(b.getAttribute("data-devido")||0);' +
-    '    var sugerido=(devido/100).toFixed(2).replace(".",",");' +
-    '    var escrito=window.prompt("Quanto foi recebido? (em reais)",sugerido);' +
-    '    if(escrito===null)return;' +
-    '    var centavos=Math.round(Number(String(escrito).replace(/\\./g,"").replace(",","."))*100);' +
-    '    if(!isFinite(centavos)||centavos<=0){recado("escreva um valor maior do que zero",true);return;}' +
-    '    b.disabled=true;' +
+    '    var id=b.getAttribute("data-receber")||"";' +
+    '    var campo=document.querySelector("[data-receber-valor=\\"" + id + "\\"]");' +
+    '    var escrito=campo?String(campo.value||"").trim():"";' +
+    '    var centavos=Math.round(Number(escrito.replace(/\\./g,"").replace(",","."))*100);' +
+    '    if(!isFinite(centavos)||centavos<=0){' +
+    '      if(window.avisar)window.avisar("atencao","escreva o valor recebido, em reais — por exemplo 10,00");' +
+    '      if(campo)campo.focus();' +
+    '      return;}' +
+    '    b.disabled=true;if(campo)campo.disabled=true;' +
     '    fetch("/api/consultores/receber",{method:"POST",headers:{"Content-Type":"application/json"},cache:"no-store",' +
-    '      body:JSON.stringify({id:b.getAttribute("data-receber"),centavos:centavos})})' +
+    '      body:JSON.stringify({id:id,centavos:centavos})})' +
     '    .then(function(x){return x.json().catch(function(){return {};});})' +
     '    .then(function(d){' +
     '      if(d&&d.ok){location.reload();return;}' +
-    '      b.disabled=false;recado((d&&d.erro)||"não foi possível marcar o recebimento",true);})' +
-    '    .catch(function(){b.disabled=false;recado("falha de rede — nada foi alterado",true);});' +
+    '      b.disabled=false;if(campo)campo.disabled=false;' +
+    '      if(window.avisar)window.avisar("erro",(d&&d.erro)||"não foi possível marcar o recebimento");})' +
+    '    .catch(function(){b.disabled=false;if(campo)campo.disabled=false;' +
+    '      if(window.avisar)window.avisar("erro","falha de rede — nada foi alterado");});' +
     '  });' +
     '})(receber[r]);' +
     '})();</script>';
