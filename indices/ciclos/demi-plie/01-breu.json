@@ -2,23 +2,18 @@
   "ancora": {
     "algoritmo": "SHA-256",
     "ancorado_em": "2026-11-26",
-    "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano.fipp",
+    "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano-bale-classico.fipp",
     "cobertura": [
       "professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.md",
+      "professores/demi-plie/ciclos/ciclo-01-breu-piano-bale-classico.conf",
       "professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-aula-01.md",
       "professores/demi-plie/ciclos/ciclo-01-breu-piano-dados.json",
-      "professores/demi-plie/ciclos/ciclo-01-breu-piano-glossario-codigo_de_danca.md",
-      "professores/demi-plie/ciclos/ciclo-01-breu-piano-harmonizacao.md",
-      "professores/demi-plie/ciclos/ciclo-01-breu-piano-notacao.md",
       "professores/demi-plie/ciclos/ciclo-01-breu-piano-plano.md",
-      "professores/demi-plie/ciclos/ciclo-01-breu-piano-po.md",
-      "professores/demi-plie/ciclos/ciclo-01-breu-piano-referencias.md",
-      "professores/demi-plie/ciclos/ciclo-01-breu-piano.conf",
       "professores/demi-plie/ciclos/ciclo-01.conf"
     ],
-    "hash": "16aab9dc6676eb9f053b7684298e38cb01cb09150c3224d7b997875744c80da4",
-    "hash_conteudo": "9aa284515622c158bc0b86a0148f13bec030107605d904cc9dd7811e8bd3857c",
-    "id": "ciclo-01-breu-piano",
+    "hash": "b4474a58d14928cd62dcc1a529c001c3a3f556ff808b4b2efc7a8e6dca73a797",
+    "hash_conteudo": "c9934607277ee96ef11029938b1d116df248e25e586eaf5fe12b64d0798d9d65",
+    "id": "ciclo-01-breu-piano-bale-classico",
     "lida": true,
     "parent_hash": ""
   },
@@ -28,6 +23,7 @@
   "ciclo": "01",
   "documentos": [
     "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.fipp",
+    "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu-piano-bale-classico.fipp",
     "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu-piano.fipp",
     "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu.fipp",
     "documento:aula:professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.md",
@@ -38,9 +34,11 @@
     "documento:declaracao:professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-declaracao.json",
     "documento:harmonizacao:professores/demi-plie/ciclos/ciclo-01-breu-piano-harmonizacao.md",
     "documento:indice:professores/demi-plie/ciclos/ciclo-01-breu-piano/ciclos.json",
+    "documento:manifesto:professores/demi-plie/ciclos/ciclo-01-breu-piano-bale-classico.conf",
     "documento:manifesto:professores/demi-plie/ciclos/ciclo-01-breu-piano.conf",
     "documento:manifesto:professores/demi-plie/ciclos/ciclo-01-breu.conf",
     "documento:notacao:professores/demi-plie/ciclos/ciclo-01-breu-piano-notacao.md",
+    "documento:plano:professores/demi-plie/ciclos/ciclo-01-breu-piano-bale-classico-plano.md",
     "documento:plano:professores/demi-plie/ciclos/ciclo-01-breu-piano-plano.md",
     "documento:po:professores/demi-plie/ciclos/ciclo-01-breu-piano-po.md",
     "documento:referencias:professores/demi-plie/ciclos/ciclo-01-breu-piano-referencias.md",
@@ -52,7 +50,7 @@
   "filtros": {
     "tipos": [
       {
-        "contagem": 3,
+        "contagem": 4,
         "rotulo": "ancora",
         "valor": "ancora"
       },
@@ -82,7 +80,7 @@
         "valor": "indice"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "manifesto",
         "valor": "manifesto"
       },
@@ -92,7 +90,7 @@
         "valor": "notacao"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "plano",
         "valor": "plano"
       },
@@ -115,9 +113,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "16da54a"
+    "commit": "0191124"
   },
-  "gerado_em": "2026-11-26T18:00",
+  "gerado_em": "2026-11-26T18:48",
   "id": "ciclo:demi-plie/01/breu",
   "professor": "demi-plie",
   "versao": 7
