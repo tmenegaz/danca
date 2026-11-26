@@ -3508,8 +3508,8 @@ function paginaDaVisita({ situacao, consultor, escolaNome, token, catalogo } = {
     '<h2>1. A escola</h2>' +
     campo('visita-escola', 'nome da escola', 'text', 'como ela se chama', nomeDaEscola) +
     campo('visita-cnpj', 'CNPJ da escola', 'text', '00.000.000/0000-00', '') +
-    campo('visita-email', 'e-mail da escola', 'email', 'para onde se fala com ela', '') +
-    campo('visita-telefone', 'telefone da escola', 'tel', '(00) 00000-0000', '') +
+    campo('visita-escola-email', 'e-mail da escola', 'email', 'para onde se fala com ela', '') +
+    campo('visita-escola-telefone', 'telefone da escola', 'tel', '(00) 00000-0000', '') +
 
     '<h2>2. O professor responsável</h2>' +
     '<p class="aviso">É ele que abre a Área do Professor, e é ele o titular da escola. O sobrenome é '
@@ -3517,6 +3517,12 @@ function paginaDaVisita({ situacao, consultor, escolaNome, token, catalogo } = {
     campo('visita-professor-nome', 'nome do professor', 'text', 'como ele assina', '') +
     campo('visita-professor-sobrenome', 'sobrenome', 'text', '', '') +
     campo('visita-professor-cpf', 'CPF do professor', 'text', '000.000.000-00', '') +
+    /* O E-MAIL E O TELEFONE DO PROFESSOR SÃO OBRIGATÓRIOS, e não são decoração: o cadastro da
+     * pessoa vive em `professores/<slug>/contato`, e é por eles que se encontra quem dá a aula
+     * quando a escola liga. O servidor recusa sem eles — e a página não os pedia, o que fazia da
+     * criação uma porta que não abria (25/11/2026). */
+    campo('visita-professor-email', 'e-mail do professor', 'email', 'o dele, não o da escola', '') +
+    campo('visita-professor-telefone', 'telefone do professor', 'tel', '(00) 00000-0000', '') +
     '<label class="campo-rotulo" for="visita-professor-modalidade">habilidade (o que ele ensina)</label>' +
     '<select id="visita-professor-modalidade">' + modalidades + '</select>' +
 
@@ -3545,8 +3551,15 @@ function paginaDaVisita({ situacao, consultor, escolaNome, token, catalogo } = {
    */
   const script = '<script>(function(){' +
     'function v(id){var e=document.getElementById(id);return e?String(e.value||"").trim():"";}' +
+    /* O RECADO TEM DE SE VER — e não se via (25/11/2026). A classe era `res alerta`, e o `.res` da
+     * folha é `display:none` até ganhar um dos três estados: `.ok`, `.erro`, `.aviso`. `alerta` não
+     * existe. Resultado: o servidor respondia com a frase certa, o browser escrevia-a no parágrafo,
+     * e o parágrafo continuava invisível — «cliquei em criar escola e não aconteceu nada». É a
+     * mesma família do «copiar» que só ouvia numa página: o que existe e não se vê não existe.
+     *
+     * A forma passa a ser a da casa (`dizer` do convite): `res` e, no erro, `res erro`. */
     'function recado(t,erro){var cx=document.getElementById("visita-recado");if(!cx)return;' +
-    'cx.hidden=!t;cx.textContent=t||"";cx.className=erro?"res alerta":"res";}' +
+    'cx.textContent=t||"";cx.className="res"+(erro?" erro":"");}' +
     'var b=document.getElementById("visita-criar");if(!b)return;' +
     'b.addEventListener("click",function(){' +
     '  var senha=v("visita-senha-escola");' +
@@ -3554,15 +3567,28 @@ function paginaDaVisita({ situacao, consultor, escolaNome, token, catalogo } = {
     '  if(!v("visita-escola")){recado("escreva o nome da escola",true);return;}' +
     '  if(!v("visita-professor-nome")||!v("visita-professor-sobrenome")){' +
     '    recado("escreva o nome e o sobrenome do professor",true);return;}' +
-    '  var email=v("visita-email");' +
+    '  var email=v("visita-escola-email");' +
     '  if(!email||email.indexOf("@")<1){recado("informe o e-mail da escola",true);return;}' +
+    /* O CAMPO DIZ «em branco = a mesma da escola», e agora cumpre-o. Antes mandava vazio e o
+     * servidor recusava com «informe a senha do professor» — a página prometia uma coisa e fazia
+     * outra, e quem preenchesse tudo como ela manda não conseguia criar. */
+    '  var senhaP=v("visita-senha-professor")||senha;' +
     '  b.disabled=true;recado("a criar a escola…",false);' +
     '  fetch("/api/visita/__TOKEN__",{method:"POST",headers:{"Content-Type":"application/json"},cache:"no-store",' +
     '    body:JSON.stringify({' +
-    '      nome:v("visita-escola"),cnpj:v("visita-cnpj"),email:email,telefone:v("visita-telefone"),' +
+    /* AS CHAVES SÃO AS QUE O SERVIDOR LÊ — `escolaEmail`, `escolaTelefone`, `professorEmail`,
+     * `professorTelefone` —, e não os nomes que a tela mostra. A primeira versão mandava `email` e
+     * `telefone`, que o `cadastro-da-escola` não conhece, e a resposta era «informe o e-mail da
+     * escola» para quem o tinha escrito. O contrato entre a página e o servidor é medido em
+     * `provar-a-escola-do-consultor` §G, que lê o corpo desta função e o passa aos validadores. */
+    '      nome:v("visita-escola"),cnpj:v("visita-cnpj"),' +
+    '      escolaEmail:email,escolaTelefone:v("visita-escola-telefone"),' +
     '      professorNome:v("visita-professor-nome"),professorSobrenome:v("visita-professor-sobrenome"),' +
-    '      cpf:v("visita-professor-cpf"),modalidade:v("visita-professor-modalidade"),' +
-    '      senhaAdmin:senha,senhaProfessor:v("visita-senha-professor")})})' +
+    '      professorNomeCompleto:(v("visita-professor-nome")+" "+v("visita-professor-sobrenome")).trim(),' +
+    '      cpf:v("visita-professor-cpf"),' +
+    '      professorEmail:v("visita-professor-email"),professorTelefone:v("visita-professor-telefone"),' +
+    '      modalidade:v("visita-professor-modalidade"),' +
+    '      senhaAdmin:senha,senhaProfessor:senhaP})})' +
     '  .then(function(r){return r.json().catch(function(){return {};});})' +
     '  .then(function(d){' +
     '    if(d&&d.ok){' +

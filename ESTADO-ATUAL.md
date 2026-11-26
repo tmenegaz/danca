@@ -4,7 +4,20 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **o link abre uma escola.** A fase F3 do
+> **Última fotografia:** 25/11/2026 — **o formulário do link passou a funcionar.** Ela preencheu tudo
+> e carregou em «Criar a escola»: **nada aconteceu**. Eram **três defeitos empilhados, e nenhum
+> visível** — a página mandava `email`/`telefone` e o servidor lê `escolaEmail`/`escolaTelefone`; não
+> mandava o e-mail nem o telefone do **professor**, que o cadastro exige; e o recado escrevia
+> `class="res alerta"`, quando o `.res` da folha é `display:none` até ganhar `.ok`/`.erro`/`.aviso` —
+> **`alerta` não existe**. O servidor respondeu certo em todas as tentativas e o browser escreveu a
+> frase certa; o parágrafo é que ficou invisível. **O que existe e não se vê não existe.** A senha do
+> professor em branco passou a ser preenchida com a da escola (o campo prometia-o e a página mandava
+> vazio). **A prova passou a correr o handler da página com um DOM de bolso**, e o corpo que o `fetch`
+> recebe vai aos validadores verdadeiros: **94 asserções, 6 mutações, 6 quedas**. Duas lições de
+> método: **a prova que substitui a variável que devia medir não mede nada** (a primeira versão
+> passava `senhaP` por parâmetro, e a mutação da senha vazia passou), e **o DOM de bolso não pode ter
+> os campos por conta própria** — tem de nascer do HTML, senão apagar um campo do formulário não a faz
+> cair. Antes disso, no mesmo dia: **o link abre uma escola.** A fase F3 do
 > [PLANO-DO-CONSULTOR.md](PLANO-DO-CONSULTOR.md) está no ar: `lastro.padd.com.br/visita/<token>` deixou
 > de responder 404 e é hoje a porta por onde a escola nasce — no plano **consultoria**, `ativa`, com
 > **o mês a começar na criação** (`entregueEm = criadaEm`, §6.1 — a única regra que o plano declarava
@@ -5814,8 +5827,8 @@ recorta» como «a rota está fechada».
 
 | Verificação | Resultado |
 |:--|:--|
-| `node experimentos/provar-a-escola-do-consultor.js` (**nova**) | **80/80**, em sete secções: a regra da porta; o controlo negativo da porta pública; as cinco recusas do link; a rota (reserva, gasto, libertação); **o link anterior ao índice, que se cura**; **dois pedidos simultâneos**; e a página |
-| a tabela de mutação — **sete regras, sete quedas** | plano não forçado **1** · sem reserva **3** (e **duas** criações) · falha não larga a reserva **1** · visita não gasta **3** · consultor inactivo não fecha o link **3** · link não expira **2** · lista de limites vazia desaparece **1**. Repostas as sete, 80/80 |
+| `node experimentos/provar-a-escola-do-consultor.js` (**nova**) | **94/94**, em nove secções (as duas últimas do formulário): a regra da porta; o controlo negativo da porta pública; as cinco recusas do link; a rota (reserva, gasto, libertação); **o link anterior ao índice, que se cura**; **dois pedidos simultâneos**; e a página |
+| a tabela de mutação — **sete regras, sete quedas** | plano não forçado **1** · sem reserva **3** (e **duas** criações) · falha não larga a reserva **1** · visita não gasta **3** · consultor inactivo não fecha o link **3** · link não expira **2** · lista de limites vazia desaparece **1**. Repostas as sete, 94/94 |
 | a corrida, medida a sério | dois `receberAVisita` com a mesma visita e uma criação lenta de propósito: com a reserva, o segundo dá **409** e `quantasCriacoes` fica em **1**; sem ela, **2** |
 | o defeito que a checagem 8 apanhou | `.par-botoes` estava desenhada **só inline nos Bastidores** e quatro páginas a usavam: os botões saíam colados ao texto. Mudou para `tools/templates/ciclo.css`, a cópia inline saiu, e as três cópias da folha nos pacotes foram regeradas — `check-identidade` **23 ok**, agora com **22 superfícies** |
 | as âncoras depois de mudar o CSS | `hash-ciclo.sh demi-plie 01 breu --check` → **íntegro, cadeia intacta**; idem `breu-piano`. O `assets/style.css` não entra no hash, e por isso a mudança da folha não reancora nada |
@@ -7740,6 +7753,24 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **25/11/2026** — **O formulário do link não criava a escola, e não dizia porquê.** Três defeitos
+  empilhados, nenhum visível: **(1)** a página mandava `email`/`telefone` e o `cadastro-da-escola` lê
+  **`escolaEmail`/`escolaTelefone`** — a recusa era «informe o e-mail da escola» para quem o tinha
+  escrito; **(2)** não mandava `professorEmail` nem `professorTelefone`, **obrigatórios** para um
+  professor novo (o cadastro da pessoa vive em `professores/<slug>/contato`, e é por eles que se
+  encontra quem dá a aula); **(3)** o recado escrevia `class="res alerta"`, e o `.res` da folha é
+  `display:none` até ganhar `.ok`, `.erro` ou `.aviso` — **`alerta` não existe**. O resultado foi
+  «cliquei em criar escola e não aconteceu nada»: o servidor respondeu certo, o texto foi escrito, e
+  ficou invisível. **A senha do professor em branco passou a ser preenchida com a da escola** — o
+  campo prometia-o e a página mandava vazio, e `validarCriacaoEscola` exige-a. **A prova
+  (`provar-a-escola-do-consultor`, 73 → 94 asserções) passou a correr o HANDLER da página** com um
+  DOM de bolso, e o corpo apanhado no `fetch` vai aos **validadores verdadeiros**; o DOM nasce do
+  HTML, e uma asserção exige que **todo campo que o script lê exista na marcação**. Mais uma
+  varredura: as classes que os scripts das três páginas escrevem em `className=` têm de existir na
+  folha — a checagem 8 só vê a marcação, e foi por essa fenda que o `alerta` passou. **6 mutações, 6
+  quedas.** Duas lições: **a prova que substitui a variável que devia medir não mede nada**, e **o
+  DOM de bolso não pode ter os campos por conta própria**.
 
 - **25/11/2026** — **A escola que nasce de um link (F3).** `lastro.padd.com.br/visita/<token>` deixou
   de responder 404. A página declara o que se está a contratar — o plano **consultoria**, o mês, e os

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-25T22:00:37-0300`
-Commit atual: `e0156ead` — feat(estrutura): a escola que nasce de um link
+Gerado em: `2026-11-25T22:21:04-0300`
+Commit atual: `21328b50` — fix(estrutura): o link que nasceu antes do indice abre, e o indice cura-se
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+21328b50 fix(estrutura): o link que nasceu antes do indice abre, e o indice cura-se
 e0156ead feat(estrutura): a escola que nasce de um link
 e62d135e feat(estrutura): o endereco do consultor e o link de cada visita
 0479255e feat(estrutura): o cadastro do consultor, e o que ele nao abre
@@ -101,7 +102,6 @@ fd4a0e16 feat(estrutura): o mes pago a menos nao fecha, e a clausula esta escrit
 2928fcfc docs(estrutura): o plano da escola em consultoria e do mes de demonstracao
 3379cfae fix(estrutura): o Copiar e uma rotina so, e copia nas tres paginas
 d6d0533a feat(estrutura): a cobranca pode ser um link, e o cliente carrega nele para pagar
-34bf75f4 feat(estrutura): a cobranca Pix ganha uma coluna, e o documento reaparece onde a escola paga
 ```
 
 ## Por professor
@@ -195,171 +195,78 @@ d6d0533a feat(estrutura): a cobranca pode ser um link, e o cliente carrega nele 
 
 ## Última entrada do REGISTRO
 
-## A escola que nasce de um link *(25/11/2026)*
+## «Cliquei em criar escola e não aconteceu nada» *(25/11/2026)*
 
-**O que ela viu.** Gerou o link, abriu-o, e leu «não encontrado». Não era avaria: era a fronteira que a
-F2 declarou — o endereço nasce definitivo (`/visita/<token>`), mas a página que o serve é esta fase.
+**O que ela viu.** Preencheu todos os campos da escola e do professor, a senha, carregou em «Criar a
+escola» — e **nada**. Nenhuma mensagem, nenhuma mudança, nenhum erro.
 
-**Agora o link abre.** E o que ele abre tem uma frase que não estava em nenhum plano e que se tornou
-a peça central da fase: **o link reserva-se antes de a escola nascer.**
+**Eram três defeitos empilhados, e nenhum dos três era visível.** É o caso mais instrutivo desta fase,
+porque cada um deles escondia o seguinte:
 
-### A corrida que §7 deixava aberta
-
-O plano dizia «o token gasta-se na primeira criação que passa». Verdade, e insuficiente: dois pedidos
-simultâneos leem `usadaEm: null` **ao mesmo tempo**, ambos passam, e nascem **duas escolas do mesmo
-link**. O desfecho é exactamente o que ela quer evitar — «não vou premiar um consultor pelo mérito de
-outro» —, porque a segunda escola fica sem atribuição que a explique.
-
-A resposta é uma **reserva**: uma escrita de `reservadaEm` antes de criar. O segundo pedido encontra a
-porta fechada e lê «este link está a ser usado neste momento». E a reserva **cai sozinha em dez
-minutos**, porque um pedido que morreu a meio (o telemóvel perdeu a rede) não pode queimar o link.
-
-**A prova mede a corrida a sério**, com dois pedidos a correr ao mesmo tempo e uma criação lenta de
-propósito. Sem a reserva: **duas criações**. Com ela: uma, e a segunda recusada com 409.
-
-### A ordem da rota é a regra
-
-| # | o que acontece | se faltar |
+| # | o defeito | o que ela viu |
 |:--|:--|:--|
-| 1 | valida o link (existe? o consultor está activo? a visita está aberta?) | cria-se sobre um link morto |
-| 2 | **reserva** a visita | duas escolas de um link |
-| 3 | cria a escola, pela máquina de sempre | — |
-| 4 | gasta a visita (`usadaEm` + `escolaSlug`) | o link abre segunda vez |
-| 5 | **larga** a reserva se a criação falhou | um erro de digitação queima o link |
+| 1 | a página mandava `email` e `telefone`; o `cadastro-da-escola` lê **`escolaEmail`** e **`escolaTelefone`** | nada — o erro ficava para o passo 3 |
+| 2 | a página não mandava `professorEmail` nem `professorTelefone`, que o cadastro **exige** do professor novo | nada — idem |
+| 3 | o recado escrevia `class="res alerta"`, e o `.res` da folha é **`display:none`** até ganhar `.ok`, `.erro` ou `.aviso` — **`alerta` não existe** | **nada**, com a frase certa escrita no parágrafo |
 
-**O passo 5 é o que a escola sente.** Um CNPJ repetido, uma senha fraca, um e-mail mal escrito — cada
-um deles recusa a criação, e nenhum deles pode custar o link: a escola teria de pedir outro ao
-consultor por causa de uma vírgula. Medido: depois de uma criação recusada, **o link continua a
-abrir**.
+O servidor respondeu correctamente em todas as tentativas. O browser escreveu a frase no sítio certo.
+E o parágrafo continuou invisível. **O que existe e não se vê não existe** — é a mesma família do
+«copiar» que só ouvia numa página, e a do `if` que filtrava o título vazio no `check-pacote.js`.
 
-**E se o passo 4 falhar?** A escola existe e a visita fica reservada; a reserva cai em dez minutos. A
-resposta diz que a escola foi criada e que o link não ficou marcado. É o mal menor **declarado**:
-desfazer uma escola por causa de uma escrita de livro seria apagar um cliente.
+### Porque é que nenhuma conferência apanhava isto
 
-### Três decisões da porta, num núcleo puro
+**A checagem 8 (*Peça*) olha a MARCAÇÃO** — os `class="…"` escritos no HTML. O `class="res alerta"`
+não estava na marcação: estava **dentro do script**, escrito em tempo de execução por
+`cx.className = erro ? "res alerta" : "res"`. Uma classe que só existe no JavaScript passou por todas
+as conferências desta casa.
 
-Ficaram em `motor/nucleo/escola-do-consultor.js`, e não dentro da rota — porque a criação de escola é
-a função mais longa desta casa e a prova não a consegue correr sem um Cloudflare à frente:
+**E o contrato entre a página e o servidor não era medido em sítio nenhum.** A criação pela página
+pública é testada com corpos escritos à mão; a página do link nasceu depois e ninguém comparou o que
+ela manda com o que o servidor lê.
 
-**1. O plano não se escolhe.** O corpo é substituído para `consultoria`, e não «validado»: se
-trouxesse `basico`, recusar obrigaria a escola a ver um erro por um campo que a página nem mostra.
+### O que se fez
 
-**2. O pagamento é dispensado — e só por esta porta.** `podeDispensar` deixa de significar «é o
-painel» e passa a significar «esta porta foi autorizada». A recusa do `validarEscolha` a `consultoria`
-pela página pública continua **palavra por palavra**, e há asserção para as duas metades.
+**1. O recado passou a usar a forma da casa** — `res` e, no erro, `res erro`, como o `dizer` do convite.
 
-**3. O mês começa na criação.** É a única regra que o plano declara mudar (§6.1), e a razão está
-escrita: aqui a criação e a entrega são o mesmo gesto, e o contrário pararia o negócio de quem cobra
-à hora. O `terminaEm` usa o **mesmo** `fuso.fimDeUmMes` da rota de entrega — um segundo cálculo daria
-um vencimento a outra hora no dia em que o fuso mudasse.
+**2. As chaves são as que o servidor lê**, e a página passou a ter os dois campos que faltavam
+(e-mail e telefone do professor). **A senha do professor em branco passou a ser preenchida com a da
+escola** — o campo prometia-o desde o primeiro dia e a página mandava vazio, e por isso quem
+preenchesse tudo como a tela manda recebia «informe a senha do professor».
 
-### O índice dos links, e porque não é uma enumeração
+**3. A prova passou a correr o HANDLER da página**, com um DOM de bolso:
 
-As visitas vivem em `consultores/visitas/<id>`, uma chave por consultor. Daí não se chega ao dono de
-um token sem varrer todos — e varrer é `list`, a operação do KV limitada por dia que já apagou uma
-lista uma vez (18/10/2026).
+- o corpo que o `fetch` recebe é passado aos **validadores verdadeiros** (`validarCriacaoEscola` e
+  `validarCadastro`) — renomear uma chave ou esquecer um campo obrigatório reprova;
+- **o DOM de bolso nasce do HTML**, e não de uma lista da prova: um campo que desapareça da tela
+  aparece vazio no corpo, que é a verdade;
+- uma asserção afirma que **todo campo que o script lê existe na marcação** — um `v("x")` sobre um id
+  que a página não emite devolve vazio em silêncio, e a recusa aparece ao utilizador como «informe o
+  e-mail» sobre um campo que ele viu;
+- depois de uma falha de rede, o recado tem **texto** e leva **um dos três estados que o `.res`
+  desenha** — a asserção que faltava em todas as outras conferências;
+- e uma varredura das classes que os scripts das três páginas desta frente escrevem em `className=`
+  exige que todas existam na folha.
 
-Então o link tem registo próprio: `consultores/link/<hash>` → quem o emitiu e a que visita pertence.
-**Um `get` por abertura, e nenhuma enumeração em sítio nenhum.** E é uma chave por **link**, não por
-visita: quando um link é reemitido, o antigo é **apagado**, senão ficavam dois endereços a apontar
-para a mesma visita.
+**6 mutações, 6 quedas:** as chaves de volta a `email`/`telefone` (3 asserções), sem o e-mail do
+professor no corpo (3), o recado de volta a `res alerta` (1), a senha do professor vazia (2), o campo
+do e-mail do professor fora do formulário (3), o campo do e-mail da escola fora (3).
 
-### A peça que estava desenhada numa página e usada em quatro
+**Duas lições de método, e a primeira custou uma versão inteira da prova:**
 
-A checagem 8 (**Peça**) reprovou a página nova por `par-botoes` «não desenhada em lugar nenhum» — e
-tinha razão de uma forma que eu não esperava: a classe existia, mas **inline, dentro dos Bastidores**.
-As três páginas do painel que a usam — a do convite, a da escola em consultoria e a do link — não
-tinham desenho nenhum, e os botões saíam colados ao texto.
+**A prova que substitui a variável que devia medir não mede nada.** A primeira versão extraía a
+expressão do `JSON.stringify` e passava-lhe `senha`, `senhaP` e `email` por parâmetro — e por isso a
+mutação que devolvia a senha do professor vazia **passou**. Correr o handler inteiro com um DOM de
+bolso resolve-o, porque a variável passa a ser calculada pela página.
 
-É a mesma família do «copiar» que só ouvia numa página: **a que falta não avisa**. A peça mudou para
-a folha (`tools/templates/ciclo.css`), a cópia inline saiu dos Bastidores, e as três cópias da folha
-nos pacotes foram regeneradas.
-
-### Duas lições de método, e as duas custaram trabalho
-
-**A prova que pendura é pior do que a prova que reprova.** A primeira versão da §E esperava a
-resposta do segundo pedido **antes** de libertar a criação lenta — e com a reserva desligada os dois
-ficavam à espera um do outro para sempre. Uma prova que bloqueia é contada pelo corredor como
-«tecto», e a regressão passa a viver numa lista de falhas conhecidas. Reescrita: os dois arrancam,
-solta-se sempre, e só depois se afirma.
-
-**`git checkout` num ficheiro com trabalho por commitar apaga o trabalho.** Usei-o para repor uma
-mutação e levei comigo as adições da F3 em `consultores-da-casa.js`. Reaplicadas a partir do bloco, e
-a regra que fica: **as mutações restauram-se de cópias em `/tmp`, como as outras quatro já faziam.**
-
-### A prova, e a tabela de mutação
-
-`experimentos/provar-a-escola-do-consultor.js`, **73 asserções**, em seis secções. E a tabela que
-mostra que ela mede o que diz medir — **sete regras, sete quedas**:
-
-| mutação | asserções que caem |
-|:--|:--|
-| o plano deixa de ser forçado | 1 |
-| a reserva é ignorada | **3** (e a criação acontece **duas** vezes) |
-| a falha não larga a reserva | 1 |
-| a visita não é gasta depois de criar | 3 |
-| o consultor inactivo não fecha o link | 3 |
-| o link não expira | 2 |
-| a lista de limites vazia desaparece | 1 |
-
-**Sete mutações é o número mais alto desta casa até hoje**, e a razão é a fase: é a que mexe com o
-dinheiro de alguém.
+**E o DOM de bolso não pode ter os campos por conta própria.** A segunda versão registava todos os
+campos que a prova conhecia, e apagar um campo do formulário não a fazia cair: o handler lia o valor
+de um elemento que a página já não punha lá. Agora nasce do HTML.
 
 ### Onde entrou
 
-`motor/nucleo/escola-do-consultor.js` (novo, puro), `motor/nucleo/consultores.js` (a reserva, o
-estado do link), `motor/nucleo/comercial.js` (`consultoriaDaPagina`), `motor/servidor/consultores-da-casa.js`
-(o índice, a reserva, o gasto, a libertação), `motor/servidor/painel-html.js` (`paginaDaVisita`),
-`motor/servidor/raiz.js` (`respostaDaVisita`, `receberAVisita`, o ramo `'consultor'` na criação),
-`tools/templates/ciclo.css` (`.par-botoes`), `motor/servidor/bastidores.js` (a cópia inline saiu),
-`tools/check-identidade.js` (duas superfícies novas), `experimentos/provar-a-escola-do-consultor.js`
-(novo), `.gitignore`, `PLANO-DO-CONSULTOR.md`, `ESTADO-ATUAL.md`, `HANDOFF.md`.
-
-### O link que já existia ficou órfão — e o índice cura-se
-
-**A fase subiu, o `publicar` correu, e o link que ela tinha gerado continuou a dizer «não abre nenhuma
-escola».** Não era avaria: era um **link órfão**. A F2 escrevia a visita em `consultores/visitas/<id>`
-e **não** escrevia o índice — o índice é desta fase. Todos os links emitidos antes de hoje apontavam
-para uma visita verdadeira e não tinham quem os ligasse a ela.
-
-**A resposta não foi uma migração.** Uma migração é um script que corre uma vez e que ninguém volta a
-correr quando aparecer outro caso; e o KV não tem uma data de corte fiável para «links anteriores a
-hoje». O caminho é o contrário: **na falha do índice, procura-se a visita nos consultores, e o que se
-encontra fica escrito**. O índice cura-se a si mesmo — a primeira abertura de um link antigo é N
-leituras (N = número de **consultores**, não de visitas: as visitas de cada um são uma chave só), e a
-segunda é um `get`.
-
-**O custo é limitado e está declarado:** com um consultor são duas leituras; o tecto da lista de
-consultores é duzentos. E só acontece na falha — um token inválido paga isto uma vez e mais nada.
-
-Medido ao vivo, no link dela: `A escola «Clablun»`, com os sete limites lidos do catálogo, e o nome já
-preenchido no campo.
-
-### A regressão que a fase causou, e a que ela revelou
-
-**A primeira foi minha, e o defeito era do âncora.** `provar-o-contrato-em-vigor` cortava o texto de
-`raiz.js` a partir de `const estadoComercial = escolha.pagamento` — e a F3 substituiu essa linha por
-uma chamada ao núcleo, porque o estado ao nascer passou a depender da porta. O `indexOf` devolveu `-1`,
-o trecho ficou vazio, e a prova reprovou uma gravação que estava certa. O conserto é no ÂNCORA, que
-passa a ancorar-se na gravação (`gravarCadastro`) e ganhou a asserção que faltava: **o trecho medido
-não está vazio**. Uma prova ancorada numa linha que outra mudança legítima vai reescrever mede o texto,
-não a regra.
-
-**A segunda é a prova do ar a fazer o seu trabalho.** `provar-ambiente` reprovou porque a folha mudou
-(o `.par-botoes`) e o site publicado ainda tem a de antes. Não é um defeito: é a diferença entre o
-repositório e o que está no ar, medida por quem existe para a medir. Passa no `deploy`.
-
-### Um âncora que partiu, e um link que ficou órfão — as duas lições
-
-A regressão do `provar-o-contrato-em-vigor` foi **do âncora**, não da regra: ele cortava o texto a
-partir de uma linha que a F3 reescreveu legitimamente. Passou a ancorar-se na gravação, e ganhou a
-asserção que faltava — o trecho medido não pode estar vazio.
-
-E o **link órfão** é a lição de outra espécie: uma fase que introduz um índice tem de pensar nos
-dados que já existiam. A cura no caminho de leitura resolve isto e o que vier depois.
-
-**Bateria:** 297 provas, **204 verdes**, 93 conhecidas, **0 regressões** — com a prova do ar verde
-depois do `publicar`, medida e não suposta.
+`motor/servidor/painel-html.js` (`paginaDaVisita`: dois campos novos, as chaves certas, a senha que
+herda, o recado visível), `experimentos/provar-a-escola-do-consultor.js` (**94** asserções, §G e
+§G-bis novas), `ESTADO-ATUAL.md`, `HANDOFF.md`.
 
 ## O que está pendente
 

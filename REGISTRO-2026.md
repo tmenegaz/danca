@@ -63342,3 +63342,76 @@ dados que já existiam. A cura no caminho de leitura resolve isto e o que vier d
 
 **Bateria:** 297 provas, **204 verdes**, 93 conhecidas, **0 regressões** — com a prova do ar verde
 depois do `publicar`, medida e não suposta.
+
+## «Cliquei em criar escola e não aconteceu nada» *(25/11/2026)*
+
+**O que ela viu.** Preencheu todos os campos da escola e do professor, a senha, carregou em «Criar a
+escola» — e **nada**. Nenhuma mensagem, nenhuma mudança, nenhum erro.
+
+**Eram três defeitos empilhados, e nenhum dos três era visível.** É o caso mais instrutivo desta fase,
+porque cada um deles escondia o seguinte:
+
+| # | o defeito | o que ela viu |
+|:--|:--|:--|
+| 1 | a página mandava `email` e `telefone`; o `cadastro-da-escola` lê **`escolaEmail`** e **`escolaTelefone`** | nada — o erro ficava para o passo 3 |
+| 2 | a página não mandava `professorEmail` nem `professorTelefone`, que o cadastro **exige** do professor novo | nada — idem |
+| 3 | o recado escrevia `class="res alerta"`, e o `.res` da folha é **`display:none`** até ganhar `.ok`, `.erro` ou `.aviso` — **`alerta` não existe** | **nada**, com a frase certa escrita no parágrafo |
+
+O servidor respondeu correctamente em todas as tentativas. O browser escreveu a frase no sítio certo.
+E o parágrafo continuou invisível. **O que existe e não se vê não existe** — é a mesma família do
+«copiar» que só ouvia numa página, e a do `if` que filtrava o título vazio no `check-pacote.js`.
+
+### Porque é que nenhuma conferência apanhava isto
+
+**A checagem 8 (*Peça*) olha a MARCAÇÃO** — os `class="…"` escritos no HTML. O `class="res alerta"`
+não estava na marcação: estava **dentro do script**, escrito em tempo de execução por
+`cx.className = erro ? "res alerta" : "res"`. Uma classe que só existe no JavaScript passou por todas
+as conferências desta casa.
+
+**E o contrato entre a página e o servidor não era medido em sítio nenhum.** A criação pela página
+pública é testada com corpos escritos à mão; a página do link nasceu depois e ninguém comparou o que
+ela manda com o que o servidor lê.
+
+### O que se fez
+
+**1. O recado passou a usar a forma da casa** — `res` e, no erro, `res erro`, como o `dizer` do convite.
+
+**2. As chaves são as que o servidor lê**, e a página passou a ter os dois campos que faltavam
+(e-mail e telefone do professor). **A senha do professor em branco passou a ser preenchida com a da
+escola** — o campo prometia-o desde o primeiro dia e a página mandava vazio, e por isso quem
+preenchesse tudo como a tela manda recebia «informe a senha do professor».
+
+**3. A prova passou a correr o HANDLER da página**, com um DOM de bolso:
+
+- o corpo que o `fetch` recebe é passado aos **validadores verdadeiros** (`validarCriacaoEscola` e
+  `validarCadastro`) — renomear uma chave ou esquecer um campo obrigatório reprova;
+- **o DOM de bolso nasce do HTML**, e não de uma lista da prova: um campo que desapareça da tela
+  aparece vazio no corpo, que é a verdade;
+- uma asserção afirma que **todo campo que o script lê existe na marcação** — um `v("x")` sobre um id
+  que a página não emite devolve vazio em silêncio, e a recusa aparece ao utilizador como «informe o
+  e-mail» sobre um campo que ele viu;
+- depois de uma falha de rede, o recado tem **texto** e leva **um dos três estados que o `.res`
+  desenha** — a asserção que faltava em todas as outras conferências;
+- e uma varredura das classes que os scripts das três páginas desta frente escrevem em `className=`
+  exige que todas existam na folha.
+
+**6 mutações, 6 quedas:** as chaves de volta a `email`/`telefone` (3 asserções), sem o e-mail do
+professor no corpo (3), o recado de volta a `res alerta` (1), a senha do professor vazia (2), o campo
+do e-mail do professor fora do formulário (3), o campo do e-mail da escola fora (3).
+
+**Duas lições de método, e a primeira custou uma versão inteira da prova:**
+
+**A prova que substitui a variável que devia medir não mede nada.** A primeira versão extraía a
+expressão do `JSON.stringify` e passava-lhe `senha`, `senhaP` e `email` por parâmetro — e por isso a
+mutação que devolvia a senha do professor vazia **passou**. Correr o handler inteiro com um DOM de
+bolso resolve-o, porque a variável passa a ser calculada pela página.
+
+**E o DOM de bolso não pode ter os campos por conta própria.** A segunda versão registava todos os
+campos que a prova conhecia, e apagar um campo do formulário não a fazia cair: o handler lia o valor
+de um elemento que a página já não punha lá. Agora nasce do HTML.
+
+### Onde entrou
+
+`motor/servidor/painel-html.js` (`paginaDaVisita`: dois campos novos, as chaves certas, a senha que
+herda, o recado visível), `experimentos/provar-a-escola-do-consultor.js` (**94** asserções, §G e
+§G-bis novas), `ESTADO-ATUAL.md`, `HANDOFF.md`.

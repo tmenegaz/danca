@@ -399,6 +399,160 @@ const CORPO_DA_ESCOLA = {
     enviadoAoPainel.status !== 200 || !/não abre nenhuma escola/.test(await enviadoAoPainel.text()),
     enviadoAoPainel.status);
 
+  /* ── §G o contrato entre a página e o servidor ────────────────────────────────────────────
+   *
+   * O DEFEITO QUE ISTO EXISTE PARA IMPEDIR, e ele aconteceu a 25/11/2026: ela preencheu todos os
+   * campos, carregou em «Criar a escola», e o browser não mostrou nada. Eram TRÊS defeitos
+   * empilhados, e nenhum dos três era visível:
+   *
+   *   1. a página mandava `email` e `telefone`; o servidor lê `escolaEmail` e `escolaTelefone`;
+   *   2. a página não mandava `professorEmail` nem `professorTelefone`, que o cadastro exige;
+   *   3. o recado escrevia `class="res alerta"`, e o `.res` da folha é `display:none` até ganhar
+   *      `.ok`, `.erro` ou `.aviso` — `alerta` não existe. A frase certa ficou escrita e invisível.
+   *
+   * COMO SE MEDE, E PORQUE NÃO BASTA LER O TEXTO. A primeira versão desta secção extraía a
+   * expressão do `JSON.stringify` e passava-lhe as variáveis locais (`senha`, `senhaP`, `email`) por
+   * parâmetro — e por isso uma mutação que devolvia a senha do professor VAZIA não a fez cair: a
+   * prova substituía a variável que devia estar a medir. O que se faz agora é correr o HANDLER
+   * INTEIRO, com um DOM de bolso e um `fetch` que só apanha o corpo. Assim mede-se o que a página
+   * faz, e não o que ela escreve.
+   */
+  console.log('\n§G o handler da página, corrido com um DOM de bolso, manda um corpo que o servidor aceita');
+
+  const htmlG = painel.paginaDaVisita({
+    situacao: { ok: true, estado: 'aberta', escolaNome: 'Clablun' }, token: 'abc123', catalogo,
+  });
+  const scriptsG = (htmlG.match(/<script>([\s\S]*?)<\/script>/g) || []).join('\n');
+  const codigoG = (htmlG.match(/<script>([\s\S]*?)<\/script>/g) || [])
+    .map((b) => b.replace(/^<script>/, '').replace(/<\/script>$/, ''))
+    .filter((b) => b.indexOf('visita-criar') !== -1)[0] || '';
+
+  /* O DOM DE BOLSO: os campos com o que uma pessoa escreveria, e o botão a guardar o ouvinte. */
+  const VALORES = {
+    'visita-escola': 'Clablun',
+    'visita-cnpj': '11.222.334/0001-81',
+    'visita-escola-email': 'escola@exemplo.com',
+    'visita-escola-telefone': '(55) 3222-0000',
+    'visita-professor-nome': 'Ana',
+    'visita-professor-sobrenome': 'Souza',
+    'visita-professor-cpf': '529.982.247-25',
+    'visita-professor-email': 'ana@exemplo.com',
+    'visita-professor-telefone': '(55) 99999-0000',
+    'visita-professor-modalidade': 'bale-classico',
+    'visita-senha-escola': 'uma-senha-boa',
+    'visita-senha-professor': '',
+  };
+  /* O DOM DE BOLSO NASCE DO HTML, E NÃO DA LISTA DE VALORES. A primeira versão registava todos os
+   * campos que a prova conhecia, e por isso apagar um campo do FORMULÁRIO não a fazia cair: o
+   * handler lia o valor de um elemento que a página já não punha lá. Agora só existe o que o HTML
+   * tem — e um campo que desapareça da tela aparece como vazio no corpo, que é a verdade. */
+  const idsNoHtml = new Set([...htmlG.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+  const elementos = {};
+  for (const id of idsNoHtml) {
+    if (id === 'visita-criar' || id === 'visita-recado') continue;
+    elementos[id] = { value: VALORES[id] === undefined ? '' : VALORES[id], hidden: false, className: '' };
+  }
+  /* E TODO CAMPO QUE O SCRIPT LÊ TEM DE EXISTIR NA PÁGINA — a asserção que separa «o campo tem
+   * valor» de «o campo está lá». Um `v("x")` sobre um id que a marcação não emite devolve vazio em
+   * silêncio, e a recusa aparece ao utilizador como «informe o e-mail» sobre um campo que ele viu. */
+  const lidosPeloScript = new Set([...codigoG.matchAll(/v\("([^"]+)"\)/g)].map((m) => m[1]));
+  const semCampo = [...lidosPeloScript].filter((id) => !idsNoHtml.has(id));
+  /* O RECADO TAMBÉM É UM ELEMENTO DA PÁGINA, e sem ele aqui o `recado()` sai por `if(!cx)return` —
+   * a prova mediria uma página que não escreve nada e passaria, que é exactamente o defeito que ela
+   * encontrou. Ele nasce com `hidden` e sem classe, como no HTML. */
+  elementos['visita-recado'] = { textContent: '', className: '', hidden: true };
+  let ouvinte = null;
+  const botao = { disabled: false, addEventListener: (nome, fn) => { if (nome === 'click') ouvinte = fn; } };
+  elementos['visita-criar'] = botao;
+  const documento = {
+    getElementById: (id) => elementos[id] || null,
+    querySelector: () => null,
+    querySelectorAll: () => [],
+    createElement: () => ({ className: '', textContent: '', appendChild() {} }),
+  };
+  let enviado = null;
+  const fetchDeBolso = (url, opcoes) => {
+    enviado = { url: url, corpo: JSON.parse((opcoes && opcoes.body) || '{}') };
+    /* O `fetch` FALHA de propósito: é o caminho que ela viu — «não aconteceu nada» era a mensagem
+     * de erro a ser escrita e a ficar invisível. Assim o handler segue até ao fim sem tocar em mais
+     * DOM do que o recado. */
+    return Promise.reject(new Error('rede indisponível'));
+  };
+
+  provar('todo campo que o script lê existe na marcação da página', semCampo.length === 0, semCampo);
+
+  let correu = true;
+  try {
+    // eslint-disable-next-line no-new-func
+    new Function('document', 'fetch', 'window', codigoG)(documento, fetchDeBolso, {});
+    provar('o script da página instala o ouvinte do botão', typeof ouvinte === 'function', typeof ouvinte);
+    ouvinte();
+  } catch (erro) { correu = false; provar('o handler correu de ponta a ponta', false, erro.message); }
+  provar('…e o clique chegou a enviar um pedido', Boolean(enviado), enviado && enviado.url);
+  provar('…para a rota da visita, com o token no endereço',
+    Boolean(enviado) && enviado.url === '/api/visita/abc123', enviado && enviado.url);
+  void correu;
+
+  const corpoDaPagina = (enviado && enviado.corpo) || {};
+  const validadoG = raiz.validarCriacaoEscola(corpoDaPagina, { permiteReuso: false });
+  provar('a forma do pedido passa em `validarCriacaoEscola`', validadoG.ok === true, validadoG.erro);
+
+  const cadastroG = require(path.join(RAIZ, 'motor/nucleo/cadastro-da-escola.js')).validarCadastro(
+    corpoDaPagina,
+    { exigirDadosDaEscola: true, modalidadesValidas: (catalogo.modalidades || []).map((m) => m.id) },
+  );
+  provar('…e o cadastro passa em `validarCadastro` (é aqui que as chaves erradas apareciam)',
+    cadastroG.ok === true, cadastroG.erro);
+  provar('…com o e-mail da escola no campo que o servidor lê',
+    cadastroG.ok && cadastroG.cadastro.escolaEmail === 'escola@exemplo.com',
+    cadastroG.ok && cadastroG.cadastro.escolaEmail);
+  provar('…e o do professor também', cadastroG.ok && cadastroG.cadastro.professorEmail === 'ana@exemplo.com',
+    cadastroG.ok && cadastroG.cadastro.professorEmail);
+  /* A SENHA DO PROFESSOR EM BRANCO É A DA ESCOLA — o campo promete-o, e a página cumpre-o. Só se
+   * mede a correr o handler: ler a expressão deixaria passar a variável por parâmetro. */
+  provar('…e a senha do professor em branco é preenchida com a da escola',
+    corpoDaPagina.senhaProfessor === 'uma-senha-boa', corpoDaPagina.senhaProfessor);
+
+  /* ── §G-bis o recado, e as classes que o script escreve ───────────────────────────────────
+   *
+   * A CHECAGEM 8 OLHA A MARCAÇÃO, e o `class="res alerta"` não estava na marcação: estava dentro do
+   * script, escrito em tempo de execução. Uma classe que só existe no JavaScript passou por todas as
+   * conferências e deixou a mensagem de erro invisível. Aqui mede-se o que a marcação não vê.
+   */
+  console.log('\n§G-bis o recado aparece — e só com classes que a folha desenha');
+
+  await new Promise((r) => setTimeout(r, 10));
+  const recado = elementos['visita-recado'] || {};
+  provar('depois da falha de rede, o recado tem texto', Boolean(String(recado.textContent || '').trim()),
+    recado.textContent);
+  provar('…e diz que nada foi criado', /nada foi criado/i.test(String(recado.textContent || '')), recado.textContent);
+  /* A ASSERÇÃO QUE FALTAVA EM TODAS AS OUTRAS CONFERÊNCIAS: a classe que torna o parágrafo visível. */
+  provar('…e leva um dos estados que o `.res` desenha (`.erro`, e não `alerta`)',
+    /^res (erro|ok|aviso)$/.test(String(recado.className || '')), recado.className);
+
+  const folha = require('fs').readFileSync(path.join(RAIZ, 'tools/templates/ciclo.css'), 'utf8');
+  const desenhadas = new Set((folha.match(/\.[A-Za-z][A-Za-z0-9_-]*/g) || []).map((x) => x.slice(1)));
+  const escritas = new Set();
+  for (const [nome, pagina] of [
+    ['visita', htmlG],
+    ['consultor', painel.paginaDoConsultor({
+      consultor: { nome: 'Maria Silva' }, token: 'abc', agora: '2026-11-25T12:00:00.000Z', visitas: [],
+    })],
+    ['consultores', painel.paginaDosConsultores({ consultores: [] })],
+  ]) {
+    const sc = (pagina.match(/<script>([\s\S]*?)<\/script>/g) || []).join('\n');
+    for (const m of sc.matchAll(/className\s*=\s*(?:erro\s*\?\s*)?"([^"]*)"/g)) {
+      for (const token of m[1].split(/\s+/)) if (token) escritas.add(token + ' @' + nome);
+    }
+    for (const m of sc.matchAll(/className\s*=\s*erro\s*\?\s*"([^"]*)"\s*:\s*"([^"]*)"/g)) {
+      for (const g of [m[1], m[2]]) for (const token of g.split(/\s+/)) if (token) escritas.add(token + ' @' + nome);
+    }
+  }
+  const orfas = [...escritas].filter((x) => !desenhadas.has(x.split(' @')[0]));
+  provar('nenhuma classe escrita por script falta na folha (o `alerta` invisível)',
+    orfas.length === 0, orfas);
+  provar('…e o script da visita foi encontrado para a medição', scriptsG.indexOf('visita-criar') !== -1, null);
+
   console.log('\n' + provas + ' asserções, ' + (provas - falhas) + ' ok, ' + falhas + ' falha(s)');
   process.exit(falhas === 0 ? 0 : 1);
 })();
