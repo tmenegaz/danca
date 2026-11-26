@@ -17,7 +17,7 @@
           "inicio": "16:00",
           "fim": "17:00",
           "marco": "transferir o peso entre os pés sem perder o alinhamento",
-          "lancada": false,
+          "lancada": true,
           "ancora": null,
           "prazo": "2027-01-05T16:00",
           "config": "captura-aula-01.json"
