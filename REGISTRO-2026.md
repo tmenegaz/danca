@@ -64073,3 +64073,211 @@ clique), `motor/nucleo/arvore-de-assets.js` (`prefixoDaRaizDoPacote`),
 `motor/servidor/producao.js` (a conversão passa a vir da mesma função),
 `professores/demi-plie/ciclos/ciclo-01-breu-piano/lancamento.html` (regerado),
 `experimentos/provar-o-envio-da-aula.js`, `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+## «Tentei com 123 e também não deu» — não era a senha *(26/11/2026)*
+
+**O relato:** «Tentei usar a senha 2805 e não deu certo: "senha não reconhecida". Depois tentei com
+123. Também não deu certo.»
+
+**Medido, e a senha não tem culpa.** Sem tocar no que estava gravado:
+
+| sonda | 2805 | 123 |
+|:--|:--|:--|
+| `POST /api/receber` | «senha não reconhecida» | **passa** («nenhum arquivo no pedido» é a resposta *depois* da senha) |
+| `POST /api/dados` (abrir o ciclo) | «senha não reconhecida» | **`ok: true`, com o texto em claro** |
+
+**E a aula 1 já estava gravada** — os dois commits de lançamento em `origin/main` são
+`d3dd9c8a` e `0af5bf99`, às **15:00:06 e 15:00:08**: os dois cliques dela. O envio funcionou. Foi o
+que veio *depois* que ficou preso.
+
+### O que veio depois — e é um estado novo, criado pelo próprio lançamento
+
+Enquanto o ciclo tinha `lancamentos: 0`, a página abria-o **sem pedir senha** e devolvia a estrutura
+vazia. Assim que a aula 1 entrou, o ficheiro passou a dizer `lancamentos: 1`, e o ciclo passou a
+**exigir a senha para abrir** — o que é o desenho certo (é ele que protege o que está lá dentro).
+
+O que não estava certo é o que a página fazia com isso:
+
+```
+O ciclo escolhido ainda não está aberto
+— digite a senha no alto da página e clique em Abrir.
+```
+
+Ela escreveu a senha — **a certa** — no campo e carregou em **Enviar**. A mensagem mandou-a para
+outro botão, três ecrãs acima. Quem lê «digite a senha» com a senha digitada à frente conclui que o
+sistema não a aceita, e vai procurar outra. Foi exactamente o que ela fez: 2805, depois 123.
+
+**A mensagem estava certa e era inútil.** O campo já tinha o que ela pedia.
+
+### A correcção é o gesto, não a frase
+
+O **Enviar** passou a **abrir o ciclo com a senha que está no campo** e a seguir. É o mesmo acto — a
+senha autoriza a gravação — e é o botão que a pessoa já carregou. Uma regra que existe para poupar um
+clique não se cumpre a pedir dois.
+
+E abrir revelou um segundo estado sem saída: **o painel de captura desaparece** para a aula já
+lançada (é o comportamento certo) e não ficava nada a dizer onde está o trabalho. Quem quer lançar a
+aula 2 ficava em modo de leitura. Agora o filtro avança para a **primeira aula sem dado** e **diz
+que avançou**.
+
+### Os três becos que a prova encontrou, e que eu não tinha previsto
+
+Escrever a correcção revelou três defeitos que só existem neste caminho novo:
+
+1. **`sel.aula.value = '02'` num `<select>` que ainda só tem «(todas)».** As opções nascem de
+   `opcoes()`, que corre no `trocarCiclo` — e o ciclo aqui abriu *por dentro* do Enviar, sem passar
+   por lá. O valor não existe, o browser descarta-o, e **o filtro ficava vazio**. Corrigido chamando
+   `opcoes()` antes de escolher.
+2. **Escolher à mão a aula 01 (já lançada) e carregar em Enviar** dava «não enviei: **falta o ânimo
+   (1-5), o interesse (1-5), a harmonia (1-5), o que aconteceu de novo, a marca do «surpreendeu?»**»
+   — sobre um ecrã que **não tem nenhum desses campos**. Uma lista de faltas que não se podem
+   preencher é o mesmo silêncio de antes, com mais palavras. Há agora uma guarda que diz o que se
+   passa e nomeia as duas saídas (outra aula, ou «Ajustar lançamento»).
+3. **O botão Enviar dentro de um acordeão fechado.** A mensagem de «não está aberto» fica dentro do
+   painel, e o botão que a resolve também — mas o acordeão ficava fechado, e o gesto pedido estava
+   escondido. Passa a abrir nesse estado.
+
+**E uma coisa que se decidiu não fazer:** quando a aula escolhida já tem dado, o filtro **não se move
+sozinho**. Quem escolheu a aula 01 pode querer lê-la; mexer-lhe no filtro por cima de uma escolha
+deliberada é o mesmo defeito com o sinal trocado. A prova afirma-o.
+
+### A prova
+
+`provar-o-envio-da-aula` ganhou as **§6** e **§7** (22 → **41** asserções). O ficheiro servido passa a
+ser o que o pacote serve **depois do primeiro lançamento** — cifrado e com `lancamentos` > 0, com um
+`/api/dados` de bancada que confere a senha e devolve o texto, como o Worker faz. É isso que torna o
+estado «ciclo por abrir» representável sem um Cloudflare à frente.
+
+**Sete mutações, todas caem** — as três primeiras já existiam:
+
+| mutação | quedas |
+|:--|:--|
+| o defeito do `tipoDaColuna`, reposto | 10 |
+| a reposição dos rádios sai | 10 |
+| `prefixoDaRaizDoPacote` volta a `''` | 1 |
+| **o Enviar volta a não abrir o ciclo** (o defeito de hoje) | **13** |
+| **sem a guarda do painel** (a lista de faltas impossíveis) | 1 |
+| **sem o `opcoes()` antes de escolher** | 8 |
+| **o acordeão fechado neste estado** | 1 |
+
+### Ao vivo, no sítio onde ela está
+
+A mesma sonda headless na página publicada, com a senha `123` e **um clique em Enviar**:
+
+```
+aviso:  «O ciclo abriu. O filtro passou para a aula 02, que é a primeira sem dado
+         — preencha-a e carregue em Enviar.»
+filtro: aula 02   ·   painel: «Lançando a aula 02 (ainda sem dado, campos em branco)»
+pedidos: /api/dados 200 · /api/lancadas 200   ·   pageerror: nenhum
+```
+
+Sem gravar nada — o `POST /api/receber` foi interceptado na sonda, porque o lançamento a sério é o
+acto dela.
+
+### Onde entrou
+
+`tools/templates/lancamento.html` (o Enviar abre o ciclo, a guarda do painel, o avanço do filtro com
+`opcoes()`, a frase do estado por abrir, o acordeão),
+`professores/demi-plie/ciclos/ciclo-01-breu-piano/lancamento.html` (regerado),
+`experimentos/provar-o-envio-da-aula.js` (§6 e §7), `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+### Duas notas do fecho desta correcção *(26/11/2026)*
+
+**1. Eu apaguei a `clablun` do ar durante alguns minutos, e o erro foi de comando.**
+
+Ao publicar a correcção usei `node tools/montar-publicacao.js breu` e depois `wrangler deploy -c
+wrangler.lastro-teste.jsonc`. O primeiro monta **uma** escola; o `wrangler deploy` substitui a versão
+inteira do Worker. A árvore subiu só com a `breu`, e a `clablun` — servida pelo mesmo shard — passou a
+responder **500** na anamnese e a página de «a escola está a nascer» na raiz. Detectado por
+`provar-ambiente` na bateria seguinte, e não por mim.
+
+O `publicar.yml` faz isto bem e diz porquê, no próprio comentário: num shard «monta-se o shard inteiro
+(`--shard`) e sobe-se a config do shard». O comando certo é
+`node tools/montar-publicacao.js --shard lastro-teste`. Restaurado no mesmo ciclo, com a página
+verificada (200 nas duas escolas).
+
+**2. E a montagem deixou a folha partilhada velha — um defeito real, que não era só meu.**
+
+O mesmo deploy revelou que `publicacao/assets/style.css` era de **23/11** enquanto as duas escolas já
+tinham a folha de **25/11**. O `garantirAssetsPartilhados` **não** actualiza a cópia quando ela
+diverge — e está certo que não o faça: uma folha própria é uma decisão legítima, e trocá-la em
+silêncio mudaria a cara de uma escola que ninguém abriu.
+
+O que faltava era a outra metade, e a documentação do próprio ficheiro prometia-a: «a pasta é
+reconstruída de zero». **Não era** — só a pasta de cada escola era apagada. Num checkout limpo do CI
+o problema não existe (a pasta nasce ali); numa máquina onde `publicacao/` já existe, a cópia velha
+sobrevive, a regra `!/assets/*` serve-a directo ao ASSETS, e a página publicada fica com uma folha que
+já não é a do repositório. Era isso que `provar-ambiente` media e reprovava: os bytes no ar contra os
+bytes da fonte.
+
+Corrigido no `montarShard`: a cópia partilhada é apagada antes de recomeçar e recriada da primeira
+escola montada. A regra de não unificar aparências fica intacta — o que muda é que a cópia deixa de
+poder ser a de ontem.
+
+**3. Uma prova que media o caso em vez da regra.**
+
+`provar-o-custo-da-consultoria` afirmava «nenhuma nasce lançada» **no índice do ciclo da breu**. Com a
+aula 01 lançada, a asserção passou a reprovar um facto verdadeiro: o ciclo já não é recém-nascido.
+Passou a medir a **derivação** — `lancada` é `true` exactamente para as aulas que o `-dados.json` da
+fonte tem —, que vale com zero, uma ou vinte e quatro aulas dadas, e é o que o §10.1-bis quer
+garantir: que o índice não diz uma coisa e a fonte outra. 53 → **54** asserções.
+
+### O validador recusava o lançamento que o servidor aceitou *(26/11/2026)*
+
+**Foi o `pre-commit` que o disse, e por isso a correcção não pôde ser adiada:**
+
+```
+refused — os dados do demi-plie/ciclo-01 (variante breu-piano) não satisfazem as regras do
+lançamento (§4.1, §4.3, §4.6).
+  - aula 01: linha_de_base.vava[0] 'Domina' não é marca do formulário (ok, parcial, nao, nao_vi ou vazio)
+  … (quatro)
+```
+
+**O dado estava certo; a regra é que estava atrasada.** A `linha_de_base` é a «revisita» da linha de
+base: uma lista por aluna, com uma marca por item do PO. E era a **única** coluna em que o validador
+ainda exigia as cinco marcas — enquanto a página, desde a decisão de 22/11 («**uma folha, uma
+régua**»), a desenha como `rubrica` sempre que a folha mede critérios pela régua da turma. Níveis
+como «Domina» ou «Satisfatório» passaram a ser legítimos, a página ofereceu-os, ela escolheu-os — e o
+validador do próprio repositório recusou-os.
+
+**O pior desfecho possível tinha acontecido:** o servidor aceitou, gravou e publicou; o validador
+recusou o mesmo registo. Um sistema que diz duas coisas sobre o mesmo dado, e a que chega por último —
+o `pre-commit`, dias depois — é a que bloqueia o trabalho.
+
+**A correcção é alinhar o validador com a decisão que já existia**, e não inventar uma: o
+`conferirItens` passa a receber o `tipo` que a captura da aula declara para a coluna, como o
+`conferirBlocos` já fazia desde 06/11. `rubrica` e `texto` são de **domínio aberto** — quem os declara
+é a escola —, e a `marca` continua fechada. Sem a captura (escola que ainda não gerou o pacote), vale
+o vocabulário de antes, e **nenhuma guarda antiga enfraquece**.
+
+### A prova, e os dois erros que ela apanhou em mim
+
+`provar-o-envio-da-aula` ganhou a **§8** (41 → **48** asserções). As duas metades que a tornam uma
+prova:
+
+| asserção | o que impede |
+|:--|:--|
+| o registo dela **passa** | é a que falhava |
+| o mesmo registo **sem a captura reprova** | que «alargar» fosse «desligar» — o vocabulário fechado continua a guardar |
+| numa lista declarada `marca`, um valor inventado **reprova** | o ramo certo: é o `conferirItens`, não o `conferirBlocos` |
+| a **mesma** lista declarada `rubrica` **aceita «Domina»** | a correcção, isolada |
+
+**Dois erros meus, os dois na prova:**
+
+1. Li só o `stdout` do validador para afirmar uma reprovação — e o validador escreve os erros em
+   `stderr`. O detalhe dizia «reprovou, como deve» e a asserção dizia que não. Um leitor que não lê o
+   canal onde a mensagem está é o mesmo defeito do `grep` que não encontra o que existe.
+2. A primeira versão do caso «marca inventada» usava uma coluna da folha **dela** — e todas são
+   `rubrica` (é a decisão de 22/11), portanto o valor foi, correctamente, aceite. E, ao trocar para
+   uma coluna `marca`, o caso caiu no `conferirBlocos` (bloco por pessoa) e **não** no
+   `conferirItens` — o ramo que eu tinha corrigido. Uma prova que só exercitasse esse caso passaria
+   com a correcção por medir. Foi a mutação que o disse: desligar o vocabulário do `conferirItens` não
+   fazia cair nada.
+
+**Três mutações, três quedas:** repor a exigência das marcas na lista por aluna **3** · desligar o
+vocabulário dessa lista **1** · ignorar o tipo declarado (voltar ao `marca` fixo) **3**.
+
+### Onde entrou
+
+`tools/validar-dados-ciclo.js` (`conferirItens` recebe os tipos; o `tipoDoItem` decide o domínio),
+`experimentos/provar-o-envio-da-aula.js` (§8), `ESTADO-ATUAL.md`, `HANDOFF.md`.

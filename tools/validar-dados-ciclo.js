@@ -485,7 +485,7 @@ function conferirObservado(aula, onde, erros, avisos) {
  * redação que o professor leu), e a marca está no vocabulário do formulário. É pouco, e é
  * exactamente o que a matriz escreve.
  */
-function conferirItens(aula, onde, apelidos, erros, avisos) {
+function conferirItens(aula, onde, apelidos, erros, avisos, tipos) {
   const universo = Object.keys(apelidos || {});
   Object.keys(aula).forEach((nome) => {
     if (nome.startsWith('_') || CHAVES_ESCALARES.includes(nome)) return;
@@ -510,8 +510,28 @@ function conferirItens(aula, onde, apelidos, erros, avisos) {
           erros.push(`${onde}: ${nome}.${p}[${i}].chave '${x.chave}' não é um slug`
             + ' (minúsculas, algarismos e `_`) — `Vistas.helpers.chaveDoItem` é a regra');
         }
+        /* O TIPO DECLARADO MANDA TAMBÉM AQUI (26/11/2026) — e faltava.
+         *
+         * A `linha_de_base` é um bloco de ITENS, não um bloco por pessoa, e era a única coluna em
+         * que este validador ainda exigia as cinco marcas. Só que a página, desde a decisão de
+         * 22/11 («uma folha, uma régua»), desenha essa coluna como `rubrica` quando a folha mede
+         * critérios pela régua da turma — e níveis como «Domina» ou «Satisfatório» passaram a ser
+         * legítimos. O resultado foi o pior possível: **o lançamento da pesquisadora foi aceite
+         * pelo servidor e recusado pelo validador do próprio repositório**, e o `pre-commit`
+         * bloqueou o commit seguinte com dez erros sobre um registo verdadeiro.
+         *
+         * A regra é a mesma dos blocos por pessoa, e a fonte é a mesma: o `tipo` que a captura da
+         * aula declara para a coluna. `rubrica` e `texto` são de DOMÍNIO ABERTO — quem os declara é
+         * a escola, e fechá-los aqui seria esta ferramenta a inventar vocabulário. A marca, essa,
+         * continua fechada. Sem a captura (escola que ainda não gerou o pacote), vale o vocabulário
+         * de antes, e nenhuma guarda antiga enfraquece. */
+        const colunaDaBase = (tipos && tipos[nome]) || {};
+        const tipoDoItem = colunaDaBase.observado_na_aula
+          || colunaDaBase[Object.keys(colunaDaBase)[0]] || 'marca';
         if (x.marca === undefined || !ehString(x.marca)) {
           erros.push(`${onde}: ${nome}.${p}[${i}].marca não é texto`);
+        } else if (tipoDoItem === 'rubrica' || tipoDoItem === 'texto') {
+          /* domínio aberto — ver o comentário acima */
         } else if (!MARCAS.includes(x.marca)) {
           erros.push(`${onde}: ${nome}.${p}[${i}] '${x.marca}' não é marca do formulário`
             + ` (${MARCAS.filter(Boolean).join(', ')} ou vazio)`);
@@ -553,7 +573,7 @@ function conferirAula(aula, id, apelidos, erros, avisos, provisorios, tipos) {
   if (ehObjeto(apelidos)) presentes = conferirParticao(aula, apelidos, onde, erros).presentes;
 
   conferirBlocos(aula, onde, presentes, erros, avisos, tipos);
-  conferirItens(aula, onde, apelidos, erros, avisos);
+  conferirItens(aula, onde, apelidos, erros, avisos, tipos);
   conferirObservado(aula, onde, erros, avisos);
 
   // A duração funcional por pessoa é do bloco; a da aula é a referência. Divergir é possível

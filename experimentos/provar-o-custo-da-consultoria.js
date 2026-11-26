@@ -118,9 +118,23 @@ const indice = lerJson(CICLO);
 const aulasDoCiclo = indice.ciclos[0].aulas;
 provar('o índice do ciclo traz as aulas datadas', Array.isArray(aulasDoCiclo), typeof aulasDoCiclo);
 provar('e são 24 — o número que o §22.2 usa', aulasDoCiclo.length === 24, aulasDoCiclo.length);
-provar('nenhuma nasce lançada — é a leitura B do §10.1-bis do plano',
-  aulasDoCiclo.every((a) => a.lancada === false),
-  aulasDoCiclo.filter((a) => a.lancada !== false).map((a) => a.n));
+/* A REGRA, E NÃO O CASO (26/11/2026).
+ *
+ * A premissa do §10.1-bis é «o ciclo NASCE com as aulas planeadas e nenhuma dada». Ela era medida
+ * nesta linha como «nenhuma do índice está lançada» — e em 26/11 a pesquisadora lançou a aula 01
+ * do ciclo da `breu`. A asserção passou a reprovar um facto VERDADEIRO: o ciclo já não é
+ * recém-nascido, é um ciclo em uso.
+ *
+ * O que o plano precisa de garantir não é a contagem — é a DERIVAÇÃO: `lancada` não se escreve à
+ * mão no índice, lê-se do `-dados.json` da fonte. Isso mede-se igual com zero, uma ou vinte e
+ * quatro aulas dadas, e é o que impede o índice de dizer uma coisa e a fonte outra. */
+const fonteDoCiclo = lerJson('professores/demi-plie/ciclos/ciclo-01-breu-piano-dados.json');
+const dadas = Object.keys((fonteDoCiclo && fonteDoCiclo.aulas) || {});
+provar('o índice diz «lancada» exactamente para as aulas que a fonte tem — e para mais nenhuma',
+  aulasDoCiclo.every((a) => (a.lancada === true) === dadas.includes(String(a.n))),
+  aulasDoCiclo.filter((a) => (a.lancada === true) !== dadas.includes(String(a.n))).map((a) => a.n));
+provar('…e as 24 continuam declaradas, dadas ou não — o ciclo nasce com elas',
+  aulasDoCiclo.length === 24, aulasDoCiclo.length);
 
 /* ── §B o tecto, recalculado ─────────────────────────────────────────────────────────────────── */
 

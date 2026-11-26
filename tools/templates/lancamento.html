@@ -2073,12 +2073,21 @@ function renderCaptura(opcoes) {
   caixa.hidden = !f && !naoAberto;
   if (naoAberto) {
     const meta = (indice && indice.ciclos.find((c) => c.id === escolhido)) || { id: escolhido };
+    /* DUAS PORTAS, E AS DUAS TÊM DE ESTAR À VISTA (26/11/2026).
+     *
+     * A frase dizia só «clique em Abrir», e o «Abrir» nasce no painel dos resultados — noutro
+     * sítio da página. Mas o gesto que resolve isto agora tem um segundo caminho, aqui dentro:
+     * escrever a senha e carregar em **Enviar**, que abre o ciclo e segue. A frase nomeia os dois,
+     * porque uma frase que esconde o botão que está ao lado manda a pessoa procurar longe. */
     alvo.innerHTML = '<p class="vazio">O <strong>Ciclo ' + esc(meta.id) + ' · ' + esc(meta.escola || '') +
-      '</strong> ainda não está aberto. Digite a <strong>senha da escola</strong> no alto da ' +
-      'página e clique em <strong>Abrir</strong> — o lançamento é escrito no arquivo do ciclo, ' +
-      'e ele só se abre com a senha.</p>';
-    // O acordeão fica como o utilizador o deixou: abrir sozinho seria o defeito de ontem ao
-    // contrário — o painel a mexer-se por conta própria depois de um clique.
+      '</strong> ainda não está aberto. Escreva a <strong>senha da escola</strong> no alto da ' +
+      'página e carregue em <strong>Enviar</strong> — a senha abre o ciclo e autoriza a gravação. ' +
+      'O <strong>Abrir</strong>, ao lado dos resultados, faz o mesmo sem lançar nada.</p>';
+    /* O ACORDEÃO ABRE NESTE ESTADO, e o comentário de 06/11 dizia o contrário — a razão daquela
+     * regra era não mexer o painel por conta própria depois de um clique. Aqui não é o painel a
+     * mexer-se: é o botão que resolve o estado a ficar à vista, dentro do acordeão que já está a
+     * dizer o que falta. Fechado, ele esconde exactamente o gesto que a mensagem pede. */
+    if (!caixa.open) caixa.open = true;
     return;
   }
   if (!f) { alvo.innerHTML = ''; return; }
@@ -2483,14 +2492,111 @@ function indiceComArquivo(id, nome) {
 async function gerarJson() {
   const aviso = el('aviso-json');
   const dizer = (html) => { if (aviso) aviso.innerHTML = html; };
-  const f = sel.ciclo.value ? cache[sel.ciclo.value] : null;
+  let f = sel.ciclo.value ? cache[sel.ciclo.value] : null;
   if (!f) {
-    /* A MESMA VERDADE DO PAINEL (06/11/2026): «escolha um ciclo» para quem já o escolheu é
-     * uma frase que manda fazer o que está feito. O que falta é abri-lo. */
-    dizer(sel.ciclo.value
-      ? '<span class="erro">O ciclo escolhido ainda não está aberto — digite a senha no alto da ' +
-        'página e clique em Abrir.</span>'
-      : '<span class="erro">Escolha um ciclo — o JSON é por ciclo.</span>');
+    if (!sel.ciclo.value) {
+      dizer('<span class="erro">Escolha um ciclo — o JSON é por ciclo.</span>');
+      return;
+    }
+    /* O «ENVIAR» ABRE O CICLO, E NÃO MANDA CARREGAR NOUTRO BOTÃO (26/11/2026).
+     *
+     * O QUE ACONTECEU, medido: ela lançou a aula 1 (gravou — duas vezes, os dois commits são os
+     * dois cliques). A partir daí o ficheiro passa a dizer `lancamentos: 1`, e o ciclo deixa de
+     * abrir sozinho: a página passa a exigir a senha, como deve. Ela escreveu a senha no campo,
+     * — a mesma senha, e a certa — e carregou em **Enviar**. A resposta foi «o ciclo escolhido
+     * ainda não está aberto — digite a senha no alto da página e clique em **Abrir**». A senha
+     * estava lá; o que faltava era carregar noutro botão, três ecrãs acima.
+     *
+     * A MENSAGEM ESTAVA CERTA e era inútil: o campo já tinha o que ela pede. Quem lê «digite a
+     * senha» com a senha digitada à frente conclui que o sistema não a aceita — e vai procurar
+     * outra senha, que é exactamente o que ela fez (2805, depois 123, que é a certa).
+     *
+     * A CORRECÇÃO É O GESTO, e não a frase: se há senha no campo, o Enviar abre o ciclo com ela e
+     * continua. É o mesmo acto (a senha autoriza a gravação), e é o mesmo botão que a pessoa já
+     * carregou. Uma regra que existe para poupar um clique não se cumpre a pedir dois. */
+    const escolhido = indice && Array.isArray(indice.ciclos)
+      ? indice.ciclos.find((x) => x.id === sel.ciclo.value) : null;
+    if (!escolhido) {
+      dizer('<span class="erro">O ciclo escolhido não está no índice — recarregue a página.</span>');
+      return;
+    }
+    if (!senhaDaEscola()) {
+      dizer('<span class="erro">O ciclo escolhido ainda não está aberto — escreva a senha da '
+        + 'escola no campo <strong>“Sua senha”</strong> e carregue em Enviar outra vez.</span>');
+      return;
+    }
+    dizer('<span class="fraco">a abrir o ciclo — a senha do campo abre-o e autoriza a gravação…</span>');
+    try {
+      await carregarCiclo(escolhido);
+    } catch (e) {
+      /* A RECUSA DIZ-SE COM A PALAVRA CERTA: `pedirSenha` distingue «sem senha», «recusada» e
+       * «outro motivo», e é essa distinção que impede a caça à terceira senha. */
+      dizer('<span class="erro">não enviei: ' + esc(e.message) + '.</span>');
+      return;
+    }
+    f = cache[sel.ciclo.value] || null;
+    if (!f) {
+      dizer('<span class="erro">o ciclo abriu mas não ficou em memória — recarregue a página.</span>');
+      return;
+    }
+    /* O PAINEL TEM DE ESTAR DESENHADO: `coletarCaptura` lê os CAMPOS, e os campos nascem do
+     * `renderCaptura`. Abrir o ciclo sem o redesenhar deixaria a leitura a devolver tudo vazio —
+     * e o envio recusaria por «falta a data» sobre uma data que está no ecrã. */
+    renderCaptura();
+    /* ABRIR REVELOU QUE A AULA DO FILTRO JÁ ESTÁ LANÇADA (26/11/2026).
+     *
+     * É o segundo caminho do mesmo engano, e ele aparece exactamente depois do primeiro
+     * lançamento: o índice passa a dizer `lancada: true` para a aula 01, `estadoCaptura()` deixa
+     * de a aceitar, e o painel de captura **desaparece**. Quem quer lançar a aula 2 fica com a
+     * página em modo de leitura e sem nada que diga «o trabalho agora é a aula seguinte» — o
+     * painel fecha-se em silêncio, e a leitura honesta é «não dá para lançar».
+     *
+     * O filtro avança para a primeira aula SEM dado — é onde o trabalho está, e é a mesma escolha
+     * que `trocarCiclo` faz ao trocar de ciclo. E DIZ o que fez: um filtro que se mexe sozinho sem
+     * dizer nada é o mesmo defeito com outro sentido. */
+    if (!estadoCaptura() && !estadoAjuste()) {
+      /* AS OPÇÕES TÊM DE EXISTIR ANTES DE SE ESCOLHER UMA (26/11/2026). O `<select>` das aulas é
+       * repovoado por `opcoes()`, e `opcoes()` corre no `trocarCiclo` — que aqui NÃO correu, porque
+       * o ciclo acabou de abrir por dentro do Enviar. Sem esta chamada, `sel.aula.value = '02'`
+       * escrevia num `<select>` que ainda só tinha «(todas)»: o valor não existe, o browser
+       * descarta-o, e o filtro ficava VAZIO. Medido pela prova antes da correcção. */
+      opcoes();
+      const proxima = primeiraSemDado(f.meta, f.dados);
+      if (proxima) {
+        sel.aula.value = proxima;
+        renderCaptura();
+        /* NÃO HÁ AQUI UM «A AULA N ESTAVA ESCOLHIDA» A DISTINGUIR (26/11/2026): sem o ciclo
+         * aberto o `<select>` das aulas está VAZIO — as opções nascem de `opcoes()`, e `opcoes()`
+         * só corre depois de o ciclo carregar. Portanto nunca há aula escolhida neste ramo, e um
+         * condicional sobre `sel.aula.value` seria um ramo que nunca corre. */
+        dizer('<span class="fraco">O ciclo abriu. O filtro passou para a <strong>aula '
+          + esc(proxima) + '</strong>, que é a primeira sem dado — preencha-a e carregue em '
+          + 'Enviar.</span>');
+      } else {
+        dizer('<span class="fraco">O ciclo abriu, mas todas as aulas dele já têm dado.</span>');
+      }
+      return;
+    }
+  }
+  /* O PAINEL DE CAPTURA TEM DE ESTAR EM CENA, E NÃO É UM DETALHE (26/11/2026).
+   *
+   * `coletarCaptura` lê os CAMPOS. Se a aula filtrada já tem dado, o painel não foi desenhado —
+   * não há campos nenhuns — e a leitura devolve tudo vazio. O que ela via era:
+   *
+   *   «não enviei: falta o ânimo (1-5), o interesse (1-5), a harmonia (1-5), o que aconteceu de
+   *    novo, a marca do «surpreendeu?».»
+   *
+   * sobre um ecrã que não tem nenhum desses campos. Uma lista de faltas que não se podem
+   * preencher é o mesmo silêncio de antes, com mais palavras: a aula está lançada, e o gesto de
+   * a corrigir é outro — o «Ajustar lançamento», que só abre dentro do prazo.
+   *
+   * A MENSAGEM NOMEIA AS DUAS SAÍDAS, porque são duas: escolher no filtro uma aula que ainda não
+   * tem dado (é o trabalho), ou ajustar esta (é a correcção, se o prazo ainda corre). */
+  if (!estadoCaptura() && !estadoAjuste()) {
+    const a = sel.aula.value;
+    dizer('<span class="erro">A aula ' + (a ? esc(a) + ' ' : '') + 'já tem dado — não há aqui '
+      + 'nada para enviar. Escolha no filtro uma aula que ainda não tenha, ou carregue em '
+      + '<strong>Ajustar lançamento</strong> para corrigir esta (dentro do prazo).</span>');
     return;
   }
   const { id, aula, faltando, motivo, autor } = coletarCaptura(f.dados);

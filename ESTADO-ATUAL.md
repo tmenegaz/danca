@@ -4,7 +4,25 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 26/11/2026 — **o «Enviar» da aula não enviava, e não dizia nada.** Ela
+> **Última fotografia:** 26/11/2026 — **«tentei com 123 e também não deu»: não era a senha.** Medido
+> sem tocar no que estava gravado: `123` **passa** no `/api/receber` e **abre** o ciclo no
+> `/api/dados`; `2805` não. **E a aula 1 já estava gravada** — os dois commits de lançamento no
+> `origin/main` são os dois cliques dela, às 15:00:06 e 15:00:08. **O que ficou preso foi o estado
+> seguinte:** enquanto o ciclo dizia `lancamentos: 0` abria sem senha; depois da aula 1 passa a
+> exigi-la (é o desenho certo), e o **Enviar** respondia «o ciclo ainda não está aberto — digite a
+> senha e clique em **Abrir**». A senha estava no campo; o botão que faltava estava três ecrãs acima.
+> **A mensagem estava certa e era inútil** — quem a lê com a senha à frente vai procurar outra, que
+> é o que ela fez. **A correcção é o gesto:** o Enviar **abre o ciclo com a senha do campo** e segue.
+> E abrir revelou um segundo beco: **o painel de captura desaparece** para a aula já lançada, sem
+> nada a dizer onde está o trabalho — o filtro passa a avançar para a **primeira sem dado**, e
+> **diz que avançou**. A prova nova encontrou três defeitos meus que só existem neste caminho:
+> `sel.aula.value` escrito num `<select>` que ainda só tinha «(todas)» (as opções nascem de
+> `opcoes()`, e o ciclo abriu por dentro do Enviar), a lista de faltas **impossíveis** («falta o
+> ânimo…» sobre um ecrã sem esses campos), e o **botão Enviar dentro de um acordeão fechado**.
+> `provar-o-envio-da-aula` **22 → 41** asserções, **sete mutações, todas caem** (o defeito de hoje
+> derruba 13). Ao vivo, na página publicada, com `123` e um clique em Enviar: ciclo aberto, filtro
+> na **aula 02**, painel desenhado, zero `pageerror`. Antes disso, no mesmo dia: **o «Enviar» da
+> aula não enviava, e não dizia nada.** Ela
 > preencheu todos os campos, pôs a senha, clicou em Enviar: nada foi enviado e a tela não disse nada.
 > **A causa era um nome fora de alcance** — `coletarCaptura` (quem lê o formulário) chamava
 > `tipoDaColuna`, que existia apenas dentro de `camposCaptura` (quem o desenha). No bloco da linha de
@@ -5964,7 +5982,31 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (26/11/2026 — o envio da aula)
+### Executado nesta fotografia (26/11/2026 — a senha não era a senha)
+
+| Verificação | Resultado |
+|:--|:--|
+| as senhas, medidas na produção | `2805` → «senha não reconhecida» no `/api/receber` **e** no `/api/dados`. `123` → **passa** nos dois (no `/api/receber` a resposta é «nenhum arquivo no pedido», que é o que vem *depois* da senha). **A senha é `123`** |
+| o que estava gravado, no remoto | dois commits de lançamento (`d3dd9c8a`, `0af5bf99`), às **15:00:06 e 15:00:08** — os dois cliques dela. A aula 01 está na fonte com 4 marcas de linha de base, relatório e `ultimo_lancamento: 2026-11-26T15:00` |
+| o estado que prendeu tudo | com `lancamentos: 0` o ciclo abria sem senha; depois da aula 1 o invólucro passa a `lancamentos: 1` e o ciclo passa a exigi-la. É aí que o «Enviar» dizia «não está aberto — clique em **Abrir**» com a senha já no campo |
+| a sonda ao vivo, antes da correcção | `123` no campo + clique em Enviar → aviso «o ciclo ainda não está aberto — digite a senha e clique em Abrir», **zero pedidos**, painel vazio |
+| `node experimentos/provar-o-envio-da-aula.js` (**§6 e §7 novas**) | **41/41** (22 → 41). A §6 serve o ficheiro **cifrado com `lancamentos: 1`** — o estado real depois do primeiro lançamento — e um `/api/dados` de bancada que confere a senha, como o Worker. Mede: sem senha nada sai e a mensagem aponta o **campo**; com senha errada a recusa **nomeia a senha**; com a senha certa o **Enviar abre o ciclo sozinho**, o filtro fica na aula que falta e os campos aparecem; e o envio seguinte **sai**. A §7 mede o avanço para a primeira sem dado, a recusa com as duas saídas, e que o filtro **não se move** por cima de uma escolha deliberada |
+| a mutação — **sete regras, todas caem** | `tipoDaColuna` local **10** · rádios **10** · prefixo da raiz `''` **1** · **o Enviar a não abrir o ciclo** **13** · **sem a guarda do painel** **1** · **sem o `opcoes()`** **8** · **acordeão fechado** **1** |
+| a sonda ao vivo, **depois** do deploy (com o `POST /api/receber` interceptado — nada é gravado) | `123` + **um clique em Enviar** → aviso «O ciclo abriu. O filtro passou para a aula 02, que é a primeira sem dado», filtro em **02**, painel «Lançando a aula 02 (ainda sem dado, campos em branco)», `/api/dados` **200**, `/api/lancadas` **200**, **zero `pageerror`** |
+| `tools/gerar-ciclo.sh demi-plie 01 breu-piano` + `montar-publicacao breu` + deploy do shard | **0 erro(s)**, 1 aviso (o PDF); o shard `lastro-teste` publicado duas vezes (antes e depois do acordeão) |
+| as conferências | `check-identidade` **0 problemas** (exit 0) |
+| o que **não** foi medido | o lançamento da aula 2 a sério. Ele grava um ficheiro e dispara a geração — é o acto dela |
+| **o erro de comando que tirou a `clablun` do ar** | ao publicar usei `montar-publicacao breu` (uma escola) + `wrangler deploy` do shard, que **substitui a versão inteira**: a `clablun` respondeu **500** na anamnese até à correcção. Detectado por `provar-ambiente` na bateria seguinte, não por mim. O comando certo é `montar-publicacao --shard lastro-teste`, e é o que o `publicar.yml` já documenta. Restaurado, com **200** nas duas escolas |
+| **o defeito de montagem que esse erro expôs** | `publicacao/assets/style.css` estava de **23/11** e as duas escolas tinham a folha de **25/11**: a cópia partilhada **nunca era apagada** (só a pasta de cada escola), e a regra `!/assets/*` servia-a directo ao ASSETS. O cabeçalho do ficheiro dizia «a pasta é reconstruída de zero» — não era. Corrigido: o `montarShard` apaga a cópia antes de recomeçar e recria-a da primeira escola. `provar-ambiente` **verde** |
+| `provar-o-custo-da-consultoria` | **54/54** (era 53, com 1 falha). A asserção «nenhuma nasce lançada» media o **caso** no ciclo da `breu`, que deixou de ser recém-nascido quando a aula 01 entrou; passou a medir a **derivação** (`lancada` é `true` exactamente para as aulas que a `-dados.json` da fonte tem), que vale com zero, uma ou 24 aulas |
+| **o `pre-commit` recusou o meu commit** — e com razão | «os dados do demi-plie/ciclo-01 (variante breu-piano) não satisfazem as regras do lançamento»: `linha_de_base.vava[0] 'Domina' não é marca do formulário`. **O dado estava certo; a regra é que estava atrasada.** A `linha_de_base` é a única coluna onde o validador ainda exigia as cinco marcas, e a página, desde a decisão de 22/11 («uma folha, uma régua»), desenha-a como `rubrica`. **O servidor aceitou, gravou e publicou; o validador do próprio repositório recusou o mesmo registo** |
+| a correcção do validador | o `conferirItens` passa a receber o `tipo` declarado pela captura, como o `conferirBlocos` já fazia desde 06/11. `rubrica` e `texto` ficam de domínio aberto; a `marca` continua fechada. **Sem a captura, vale o vocabulário de antes** — medido: o mesmo registo reprova **9** vezes sem ela e **0** com ela |
+| `provar-o-envio-da-aula` (**§8 nova**) | **48/48** (41 → 48). As quatro metades: o registo dela **passa**; o mesmo **sem captura reprova**; numa lista `marca` um valor inventado **reprova**; a mesma lista `rubrica` **aceita «Domina»** |
+| a mutação do validador — **três regras, três quedas** | repor a exigência das marcas na lista por aluna **3** · desligar o vocabulário dessa lista **1** · ignorar o tipo declarado **3** |
+| **dois erros meus, na prova** | (1) li só o `stdout` para afirmar uma reprovação, e o validador escreve em `stderr` — o detalhe dizia «reprovou» e a asserção dizia que não; (2) o caso «marca inventada» usava uma coluna da folha dela, **toda `rubrica`**, e depois caiu no `conferirBlocos` em vez do `conferirItens` — **a mutação é que o disse**: desligar o ramo corrigido não fazia cair nada |
+| `node tools/correr-provas.js --paralelo=3 --tecto=90` (a bateria desta correcção) | **300 provas, 208 verdes, 92 conhecidas, 0 regressões** |
+
+### Executado nesta fotografia anterior (26/11/2026 — o envio da aula)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -7937,6 +7979,26 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **26/11/2026** — **«Tentei com 123 e também não deu» — não era a senha.** `123` passa no
+  `/api/receber` e abre o ciclo no `/api/dados`; `2805` não. E a aula 1 já estava gravada (os dois
+  commits de lançamento no remoto são os dois cliques dela, às 15:00:06 e 15:00:08). **O que ficou
+  preso foi o estado seguinte:** com `lancamentos: 0` o ciclo abria sem senha; depois da aula 1 passa
+  a exigi-la, e o **Enviar** mandava para o botão **Abrir**, noutro sítio da página — com a senha já
+  escrita no campo. **A correcção é o gesto:** o Enviar abre o ciclo com a senha do campo e segue.
+  Abrir revelou um segundo beco: o painel desaparece para a aula já lançada e nada dizia onde estava
+  o trabalho — o filtro passa a avançar para a **primeira sem dado**, dizendo-o. **Três defeitos
+  meus que a prova encontrou:** `sel.aula.value` num `<select>` ainda só com «(todas)» (filtro
+  ficava vazio), a lista de faltas **impossíveis** sobre campos que não estão no ecrã, e o botão
+  **Enviar dentro de um acordeão fechado**. Prova: `provar-o-envio-da-aula` **22 → 41**, sete
+  mutações com quedas (13/10/10/8/1/1/1). Ao vivo: `123` + um clique em Enviar → ciclo aberto,
+  filtro na aula 02, painel desenhado, zero `pageerror`.
+  **E duas notas do fecho, as duas minhas:** ao publicar usei `montar-publicacao breu` em vez de
+  `--shard lastro-teste`, e o `wrangler deploy` **substituiu a versão inteira** — a `clablun`
+  respondeu 500 até ser restaurada no mesmo ciclo (apanhado por `provar-ambiente`, não por mim). O
+  mesmo erro expôs um defeito real do montador: a cópia partilhada de `/assets/` **nunca era
+  apagada**, e a folha publicada era a de 23/11 enquanto as escolas tinham a de 25/11. Corrigido, e
+  `provar-ambiente` está verde.
 
 - **26/11/2026** — **O «Enviar» da aula não enviava, e não dizia nada.** A causa era de âmbito:
   `coletarCaptura` chamava `tipoDaColuna`, um `const` local de `camposCaptura`. No bloco da linha de

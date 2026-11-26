@@ -1223,6 +1223,30 @@ function montarShard(shard) {
     process.exit(1);
   }
   console.log('shard «' + shard + '»: ' + escolas.length + ' escola(s) — ' + escolas.join(', '));
+  /* A CÓPIA PARTILHADA DE `/assets/` É APAGADA ANTES DE RECOMEÇAR (26/11/2026).
+   *
+   * O DEFEITO, medido ao vivo: `publicacao/assets/style.css` era de **23/11** e as duas escolas
+   * deste shard já traziam a folha de **25/11**. O `garantirAssetsPartilhados` NÃO a actualiza
+   * quando ela diverge — e é certo que não o faça: uma folha própria é uma decisão legítima, e
+   * trocá-la em silêncio mudaria a cara de uma escola que ninguém abriu.
+   *
+   * O que faltava é a outra metade: a cópia partilhada é SAÍDA, e o cabeçalho deste ficheiro diz
+   * que a pasta é «reconstruída de zero». Não era — só a pasta de cada escola era apagada. Num
+   * checkout limpo do CI o problema não existe, porque a pasta nasce ali; numa máquina onde
+   * `publicacao/` já existe, a cópia velha sobrevive, a regra `!/assets/*` do shard serve-a
+   * directo ao ASSETS, e a página publicada fica com uma folha que já não é a do repositório.
+   * Foi assim que a `breu` e a `clablun` passaram a ser servidas com um `style.css` diferente do
+   * `tools/templates/ciclo.css` — medido por `provar-ambiente`, que compara os bytes do que está
+   * no ar com os da fonte.
+   *
+   * Apagada, ela é recriada da PRIMEIRA escola montada, com a folha dessa escola; a comparação com
+   * as seguintes continua a avisar se divergirem. A regra de não unificar aparências fica intacta
+   * — o que muda é que a cópia deixa de poder ser a de ontem. */
+  const partilhado = path.join(PUB, 'assets');
+  if (fs.existsSync(partilhado)) {
+    fs.rmSync(partilhado, { recursive: true, force: true });
+    console.log('  /assets/ partilhado: apagado, para ser recriado da primeira escola');
+  }
   for (const escola of escolas) {
     const r = require('child_process').spawnSync(process.execPath,
       [__filename, escola].concat(extra, comPropostas),
