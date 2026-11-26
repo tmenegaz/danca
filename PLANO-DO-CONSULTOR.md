@@ -317,6 +317,26 @@ consultor diz, não o sistema.
 | **a taxa da consultoria** | **R$ 10** | o consultor paga a ela | **registar** o que é devido, por visita criada, e o que já foi recebido. É um livro, não uma cobrança |
 | **a assinatura** | R$ 69,90 · R$ 99,90 · R$ 139,90 por mês | a escola paga a ela, por Pix, directo | já existe: o financeiro, a conciliação, o «Habilitar» |
 
+### 7.0 Como está implementado *(25/11/2026)*
+
+**O devido é derivado, o recebido é guardado.** Uma visita conta quando tem `usadaEm` **e**
+`escolaSlug` — as duas coisas, porque uma visita marcada como usada sem escola é um estado
+inconsistente e o livro não cobra pelo que não sabe. O total devido **nunca** é escrito ao lado das
+visitas: seria um segundo número a divergir do primeiro. O que se guarda é o elo do recebimento, em
+`consultores/recebidos/<id>`, com data, valor e nota.
+
+**A taxa vive no catálogo** (`consultoria.taxaCentavos`), e não numa constante do código — há três
+sítios que dizem o número (o catálogo, o guião e o livro), e o guião já tinha prova a compará-lo
+desde a F3.
+
+**O livro recusa receber mais do que o saldo**, e a razão é declarada: um recebimento não se apaga, e
+não há estorno desenhado. Aceitar criaria um saldo negativo que ninguém saberia corrigir; recusar
+deixa o engano do lado de fora, onde se resolve à mão. **E um saldo negativo, quando existe (um
+adiantamento), mostra-se** — truncá-lo em zero esconderia a única coisa que precisa de ser vista.
+
+**Um KV mudo não é «deve zero»:** a célula do painel diz «não consegui ler», com o motivo, no lugar
+do valor. Num dado de dinheiro é a diferença entre uma decisão e um acidente.
+
 ### 7.1 Porque é que os R$ 10 são um livro e não uma cobrança
 
 O sistema não tem como cobrar: não há cartão, não há débito, não há conta do consultor. O que ele pode
@@ -475,7 +495,7 @@ responde mal é sempre o que ninguém está a olhar.
 | **F1** | o cadastro, a lista e o activar/desactivar no painel | sem consultor não há link; e é a peça que ela usa sozinha, sem depender de ninguém |
 | ~~**F2**~~ | a área dele, o token, e «Nova visita» — **IMPLEMENTADA a 25/11/2026** | é o que transforma o cadastro num serviço |
 | ~~**F3**~~ | `/visita/<token>` e a criação com `origem: 'consultor'` — **IMPLEMENTADA a 25/11/2026** | é onde o plano consultoria passa a nascer pela mão de outra pessoa — a fase com mais risco, e a que precisou das provas mais duras |
-| **F4** | o livro dos R$ 10 e o «Marcar recebido» | só depois de haver visitas a cobrar |
+| ~~**F4**~~ | o livro dos R$ 10 e o «Marcar recebido» — **IMPLEMENTADA a 25/11/2026** | só depois de haver visitas a cobrar |
 | **F5** | o guião no `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` §9 | conteúdo; não bloqueia nada |
 
 **O QUE A F3 FECHOU, e o que ela acrescentou ao desenho do plano.** O link deixou de responder 404.
@@ -510,7 +530,7 @@ Cada uma mede um comportamento que, sem ela, se descobre em produção.
 | `provar-o-cadastro-do-consultor` *(escrita, **88** asserções)* | o cadastro valida CPF/CNPJ pelo mesmo normalizador; nasce inactivo; o documento repetido é recusado; o KV mudo não é uma lista vazia | sem `ativo` no corpo, a rota recusa — activar por omissão seria a pior falha possível |
 | `provar-o-link-do-consultor` *(escrita, **77** asserções)* | o token é aleatório, guardado só como hash, e o **âmbito** separa as três espécies; o endereço nasce do «Activar» e só existe uma vez; trocá-lo mata o anterior; a visita expira sem cron e o `tokenHash` nunca sai numa resposta | o consultor **inactivo** é recusado na rota (403), e não só pela ausência do botão; e o livro cheio **recusa** em vez de apagar |
 | `provar-a-escola-do-consultor` *(escrita, **73** asserções)* | a criação pela visita nasce `consultoria`, `ativa`, com `entregueEm = criadaEm`, com os sete limites e com a atribuição no registo | a **mesma** criação pela porta pública continua a **recusar** `consultoria`, palavra por palavra como hoje; e dois pedidos **simultâneos** do mesmo link dão uma escola (sem a reserva, dão duas) |
-| `provar-o-livro-do-consultor` | cada visita que deu escola soma R$ 10; a expirada soma zero; o recebido não se apaga | marcar recebido duas vezes não soma duas vezes |
+| `provar-o-livro-do-consultor` *(escrita, **46** asserções)* | cada visita que deu escola soma R$ 10; a expirada, a reservada e a aberta somam zero; o recebido não se apaga; a taxa vem do catálogo | receber a mais é **recusado** com o saldo na frase, e o KV mudo **não** é «deve zero» |
 | `provar-o-guiao-do-consultor` | os números do §8 são os do catálogo (preços, franquias, piso e teto, R$ 8) | mudar o catálogo faz a prova reprovar até o guião mudar |
 
 **E há uma já escrita, para o próprio plano:** `experimentos/provar-o-plano-do-consultor.js`

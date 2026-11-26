@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-25T22:21:04-0300`
-Commit atual: `21328b50` — fix(estrutura): o link que nasceu antes do indice abre, e o indice cura-se
+Gerado em: `2026-11-25T22:45:07-0300`
+Commit atual: `840b83d6` — feat(acervo): envelope/.indice.json
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -61,10 +61,11 @@ lapis-rosa
 pe-pequeno
 pe-torto
 rabo-gramde
+ramona-pires
 redinha-rosa
 rimel-preto
-sapatilha-de-ponta (15)
-- **Ciclos com manifesto:** 2 variante(s)
+sapatilha-de-ponta (16)
+- **Ciclos com manifesto:** 3 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -82,6 +83,9 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+840b83d6 feat(acervo): envelope/.indice.json
+8b0cc471 feat(estrutura): criar a escola clablun (motor completo)
+f6b363ff fix(estrutura): o formulario do link nao criava a escola, e nao dizia porquê
 21328b50 fix(estrutura): o link que nasceu antes do indice abre, e o indice cura-se
 e0156ead feat(estrutura): a escola que nasce de um link
 e62d135e feat(estrutura): o endereco do consultor e o link de cada visita
@@ -99,9 +103,6 @@ df41c5e6 docs(estrutura): o fluxo do consultor, e o custo da demonstracao medido
 fd4a0e16 feat(estrutura): o mes pago a menos nao fecha, e a clausula esta escrita onde ela paga
 9db153f9 feat(estrutura): a conciliacao volta, e o mes pago nao se cobra outra vez
 2c83fd88 fix(experimentos): a prova do ar deixa de passar sem medir nada
-2928fcfc docs(estrutura): o plano da escola em consultoria e do mes de demonstracao
-3379cfae fix(estrutura): o Copiar e uma rotina so, e copia nas tres paginas
-d6d0533a feat(estrutura): a cobranca pode ser um link, e o cliente carrega nele para pagar
 ```
 
 ## Por professor
@@ -141,6 +142,18 @@ d6d0533a feat(estrutura): a cobranca pode ser um link, e o cliente carrega nele 
 ### pe-torto — 0 ciclo(s)
 
 ### rabo-gramde — 0 ciclo(s)
+
+### ramona-pires — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): clablun
+
+| Escola | PO | state | Marcadores [Preencher] |
+|:--|:--|:--|--:|
+| clablun | (sem PO) | — | — |
+
+| Variante | .fipp | hash (12) | parentHash | po_state |
+|:--|:--|:--|:--|:--|
+| clablun | ciclo-01-clablun.fipp | `a9d5d271c639` | (vazio) | — |
 
 ### redinha-rosa — 0 ciclo(s)
 
@@ -195,78 +208,31 @@ d6d0533a feat(estrutura): a cobranca pode ser um link, e o cliente carrega nele 
 
 ## Última entrada do REGISTRO
 
-## «Cliquei em criar escola e não aconteceu nada» *(25/11/2026)*
+## Duas provas que sararam e continuaram na lista de doentes *(25/11/2026)*
 
-**O que ela viu.** Preencheu todos os campos da escola e do professor, a senha, carregou em «Criar a
-escola» — e **nada**. Nenhuma mensagem, nenhuma mudança, nenhum erro.
+O `correr-provas` tem uma linha de base — `experimentos/provas-vermelhas.json` — com as provas que já
+falhavam nesta árvore, para distinguir «falha conhecida» de «REGRESSÃO». O próprio ficheiro diz o que
+fazer quando uma delas passa: **«apague-a, senão a próxima regressão dela passa em silêncio».**
 
-**Eram três defeitos empilhados, e nenhum dos três era visível.** É o caso mais instrutivo desta fase,
-porque cada um deles escondia o seguinte:
+**Duas sararam e ninguém as apagou:**
 
-| # | o defeito | o que ela viu |
+| prova | sarou em | ficou na lista até |
 |:--|:--|:--|
-| 1 | a página mandava `email` e `telefone`; o `cadastro-da-escola` lê **`escolaEmail`** e **`escolaTelefone`** | nada — o erro ficava para o passo 3 |
-| 2 | a página não mandava `professorEmail` nem `professorTelefone`, que o cadastro **exige** do professor novo | nada — idem |
-| 3 | o recado escrevia `class="res alerta"`, e o `.res` da folha é **`display:none`** até ganhar `.ok`, `.erro` ou `.aviso` — **`alerta` não existe** | **nada**, com a frase certa escrita no parágrafo |
+| `provar-notacao` | reescrita a 25/11 (92 asserções, lê a notação da árvore) | 25/11 |
+| `provar-sinais-da-modalidade` | corrigida em `f2c10da5` (o coupé e o sur-le-cou-de-pied passam a escrever-se) | 25/11 |
 
-O servidor respondeu correctamente em todas as tentativas. O browser escreveu a frase no sítio certo.
-E o parágrafo continuou invisível. **O que existe e não se vê não existe** — é a mesma família do
-«copiar» que só ouvia numa página, e a do `if` que filtrava o título vazio no `check-pacote.js`.
+A segunda passou **três corridas seguidas, exit 0**, e a linha de base continuava a chamar-lhe doente.
+O efeito é o pior possível: a prova deixou de proteger no dia em que sarou. Uma regressão futura nela
+seria classificada como «já conhecida», o commit passaria, e o defeito só apareceria onde ele sempre
+aparece — em produção, com alguém a olhar.
 
-### Porque é que nenhuma conferência apanhava isto
+**E a nota do ficheiro já mentia sobre si mesma:** dizia «as 96», e a lista tinha 92. Um número escrito
+à mão numa nota envelhece em silêncio; **a lista é que manda**. A nota passou a dizer o número medido,
+com a data e o comando, e a nomear as duas provas que sararam — para a próxima não precisar de ser
+descoberta por acaso.
 
-**A checagem 8 (*Peça*) olha a MARCAÇÃO** — os `class="…"` escritos no HTML. O `class="res alerta"`
-não estava na marcação: estava **dentro do script**, escrito em tempo de execução por
-`cx.className = erro ? "res alerta" : "res"`. Uma classe que só existe no JavaScript passou por todas
-as conferências desta casa.
-
-**E o contrato entre a página e o servidor não era medido em sítio nenhum.** A criação pela página
-pública é testada com corpos escritos à mão; a página do link nasceu depois e ninguém comparou o que
-ela manda com o que o servidor lê.
-
-### O que se fez
-
-**1. O recado passou a usar a forma da casa** — `res` e, no erro, `res erro`, como o `dizer` do convite.
-
-**2. As chaves são as que o servidor lê**, e a página passou a ter os dois campos que faltavam
-(e-mail e telefone do professor). **A senha do professor em branco passou a ser preenchida com a da
-escola** — o campo prometia-o desde o primeiro dia e a página mandava vazio, e por isso quem
-preenchesse tudo como a tela manda recebia «informe a senha do professor».
-
-**3. A prova passou a correr o HANDLER da página**, com um DOM de bolso:
-
-- o corpo que o `fetch` recebe é passado aos **validadores verdadeiros** (`validarCriacaoEscola` e
-  `validarCadastro`) — renomear uma chave ou esquecer um campo obrigatório reprova;
-- **o DOM de bolso nasce do HTML**, e não de uma lista da prova: um campo que desapareça da tela
-  aparece vazio no corpo, que é a verdade;
-- uma asserção afirma que **todo campo que o script lê existe na marcação** — um `v("x")` sobre um id
-  que a página não emite devolve vazio em silêncio, e a recusa aparece ao utilizador como «informe o
-  e-mail» sobre um campo que ele viu;
-- depois de uma falha de rede, o recado tem **texto** e leva **um dos três estados que o `.res`
-  desenha** — a asserção que faltava em todas as outras conferências;
-- e uma varredura das classes que os scripts das três páginas desta frente escrevem em `className=`
-  exige que todas existam na folha.
-
-**6 mutações, 6 quedas:** as chaves de volta a `email`/`telefone` (3 asserções), sem o e-mail do
-professor no corpo (3), o recado de volta a `res alerta` (1), a senha do professor vazia (2), o campo
-do e-mail do professor fora do formulário (3), o campo do e-mail da escola fora (3).
-
-**Duas lições de método, e a primeira custou uma versão inteira da prova:**
-
-**A prova que substitui a variável que devia medir não mede nada.** A primeira versão extraía a
-expressão do `JSON.stringify` e passava-lhe `senha`, `senhaP` e `email` por parâmetro — e por isso a
-mutação que devolvia a senha do professor vazia **passou**. Correr o handler inteiro com um DOM de
-bolso resolve-o, porque a variável passa a ser calculada pela página.
-
-**E o DOM de bolso não pode ter os campos por conta própria.** A segunda versão registava todos os
-campos que a prova conhecia, e apagar um campo do formulário não a fazia cair: o handler lia o valor
-de um elemento que a página já não punha lá. Agora nasce do HTML.
-
-### Onde entrou
-
-`motor/servidor/painel-html.js` (`paginaDaVisita`: dois campos novos, as chaves certas, a senha que
-herda, o recado visível), `experimentos/provar-a-escola-do-consultor.js` (**94** asserções, §G e
-§G-bis novas), `ESTADO-ATUAL.md`, `HANDOFF.md`.
+**A lição, e é a mesma do `provar-notacao`:** a linha de base é dívida declarada, e dívida declarada
+tem de ser **revisada**. Um ficheiro que só cresce transforma «conhecida» em «esquecida».
 
 ## O que está pendente
 
@@ -801,6 +767,7 @@ mente.
 - **22/11/2026** — O estúdio, e o modelo do painel inicial → `REGISTRO-2026.md` L58154
 - **24/11/2026** — O REGISTRO partido por ano: o índice e o arquivo anual → `REGISTRO-2026.md` L60174
 - **demi-plie · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
+- **ramona-pires · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
 

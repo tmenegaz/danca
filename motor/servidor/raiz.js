@@ -4466,7 +4466,24 @@ async function fetch(request, env) {
         'não foi possível ler o registo de consultores: ' + (lido.erro || 'motivo não declarado')
         + ' — nada foi mostrado para não o fazer decidir sobre um registo que não leu'), 503);
     }
-    return painel.resposta(painel.paginaDosConsultores({ consultores: lido.lista }));
+    /* O LIVRO DE CADA UM (25/11/2026 — F4). A página precisa do devido, do recebido e do saldo de
+     * cada consultor, e isso são DUAS leituras por linha: as visitas e os recebimentos. São poucos
+     * consultores, e a página é aberta raramente — mas se uma leitura falhar o painel NÃO diz «não
+     * deve nada»: diz que não conseguiu ler, e é a diferença entre uma decisão e um acidente.
+     *
+     * As leituras correm em paralelo: são independentes, e uma página que espera N vezes por N
+     * consultores soma latências que não se somam. */
+    const livros = await Promise.all(lido.lista.map(async (c) => {
+      const l = await consultoresDaCasa.livroDoConsultor(env, c.id);
+      return { id: c.id, ok: l.ok, resumo: l.resumo, erro: l.erro || null };
+    }));
+    const porId = {};
+    for (const l of livros) porId[l.id] = l;
+    return painel.resposta(painel.paginaDosConsultores({
+      consultores: lido.lista,
+      livros: porId,
+      moeda: (comercial.catalogoDaPagina() || {}).moeda_simbolo,
+    }));
   }
 
   // CADASTRAR — valida, recusa documento repetido, e grava. O consultor nasce inactivo.
@@ -4521,6 +4538,40 @@ async function fetch(request, env) {
       ok: true,
       consultor: { id: trocado.registo.id, nome: trocado.registo.nome, ativo: trocado.registo.ativo },
       acesso: { url: urlDaPaginaPublica(env) + '/consultor/' + trocado.token, umaVez: true },
+    });
+  }
+
+  /* O LIVRO DOS R$ 10 — «Marcar recebido» (25/11/2026 — F4).
+   *
+   * É um LIVRO e não uma cobrança: o sistema não tem como receber. O que ele guarda é o elo do que
+   * foi recebido, com data e nota, e deriva o que é devido das visitas que deram escola. Um
+   * recebimento não se apaga — um engano corrige-se com um elo novo, como tudo nesta casa.
+   *
+   * A ROTA NÃO PERTENCE AO PÚBLICO, como as outras dos consultores: não está em `publicoPermitido`,
+   * e por isso o endereço da escola responde 404. */
+  if (url.pathname === '/api/consultores/receber' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch (erro) { corpo = {}; }
+    /* O VALOR CHEGA EM CENTAVOS, e o painel converte antes de enviar: somar `R$ 69,90` a partir de
+     * uma cadeia é a conta que dá 69,90000000000001. Um valor em reais com vírgula é aceite e
+     * convertido — pedir centavos a quem lê «10,00» no ecrã seria uma armadilha. */
+    let centavos = corpo.centavos;
+    if (centavos === undefined && corpo.valor !== undefined) {
+      centavos = Math.round(Number(String(corpo.valor).replace(/\./g, '').replace(',', '.')) * 100);
+    }
+    const recebido = await consultoresDaCasa.marcarRecebido(env, corpo.id, centavos, corpo.nota);
+    if (!recebido.ok) {
+      return responderJson({
+        ok: false, erro: recebido.erro,
+        ...(recebido.saldoCentavos === undefined ? {} : { saldoCentavos: recebido.saldoCentavos }),
+      }, recebido.status || 400);
+    }
+    return responderJson({
+      ok: true,
+      elo: recebido.elo,
+      devidoCentavos: recebido.resumo.devidoCentavos,
+      recebidoCentavos: recebido.resumo.recebidoCentavos,
+      saldoCentavos: recebido.resumo.saldoCentavos,
     });
   }
 
@@ -5854,6 +5905,15 @@ async function fetch(request, env) {
             plano: c.plano || null,
             planoNome: c.planoNome || null,
             consultoria: comercial.periodoDaConsultoria(c),
+            /* QUEM TROUXE ESTA ESCOLA (25/11/2026 — F4, §6.2 do plano). «No painel, a linha da
+             * escola passa a dizer «consultoria por <nome>» ao lado do estado. É o controlo que ela
+             * pediu — e ele é lido do registo, nunca deduzido do link.» Vai o nome e a praça, e não
+             * o id nem a visita: a lista mostra pessoas, e o rasto fica no registo comercial. */
+            consultor: (c.consultor && c.consultor.nome) ? {
+              nome: c.consultor.nome,
+              praca: c.consultor.praca || '',
+              em: c.consultor.em || null,
+            } : null,
             aulasDaConsultoria: cotasDoNucleo.aulasNoLivro(c.aulasDaConsultoria),
             tetoDeAulas: (cotasDoNucleo.limitesDoRegime(c) || {}).aulas || null,
             aNascer: nasceAgora.has(e.slug) || undefined,

@@ -2098,3 +2098,11 @@ experimentos/modelo-formulario/*
 # atribuição no registo) e o que acontece quando as coisas correm mal (a criação falha e o link tem de
 # voltar a servir; dois pedidos simultâneos têm de dar UMA escola).
 !experimentos/provar-a-escola-do-consultor.js
+
+# O LIVRO DOS R$ 10 (25/11/2026 — F4). A prova mede as duas coisas que só se descobrem com dinheiro a
+# sério: que o DEVIDO se deriva das visitas (e não de um total guardado ao lado delas, que divergiria),
+# e que o livro RECUSA o que não é um recebimento — receber a mais, zero, negativo — em vez de aceitar
+# e deixar um saldo negativo que ninguém sabe desfazer. Leva ainda o que NÃO se cobra: a visita
+# expirada, a reservada, a que ainda está aberta. Sem ela, uma visita que ninguém abriu passaria a
+# custar dez reais.
+!experimentos/provar-o-livro-do-consultor.js

@@ -815,6 +815,159 @@ function largarReserva(lista, visitaId, agora) {
   return { ok: true, visita: novo, lista: copia };
 }
 
+/* ══════════════════════════════════════════════════════════════════════════════════════════════
+ * F4 — O LIVRO DOS R$ 10 (25/11/2026)
+ *
+ * «Cada vez que ele fizer a consultoria e rodar uma aula, rodar lá, criar um professor e tudo mais,
+ * qualquer outra coisa, R$ 10 já me paga.»
+ *
+ * UM LIVRO, E NÃO UMA COBRANÇA. O sistema não tem como cobrar: não há cartão, não há débito, não há
+ * conta do consultor. O que ele pode fazer — e é o que serve — é dizer a verdade sobre o que é
+ * devido, e guardar o que já foi recebido.
+ *
+ * A FORMA É A DO CONTADOR DE AULAS, e é a decisão que faz este módulo pequeno: **o devido é
+ * DERIVADO, o recebido é GUARDADO**. Uma visita que deu escola (`usadaEm`) deve uma taxa; contar as
+ * visitas é contar factos que já existem, e guardar o total ao lado delas seria um segundo número a
+ * divergir do primeiro — a família de erro que esta casa persegue desde o `-dados.json`. O que não se
+ * pode derivar é o acto de receber: esse é um elo, com data e nota, e vive no seu próprio registo.
+ *
+ * O QUE NÃO SE PAGA: uma visita expirada sem escola. Não houve consultoria, houve um link. A frase é
+ * dela e está certa — «com êxito ou sem êxito» fala da consultoria que ACONTECEU, e uma visita que
+ * ninguém abriu é um link que se perdeu.
+ * ══════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/** A chave dos recebimentos de UM consultor — a mesma forma das visitas, e pela mesma razão. */
+function chaveDosRecebimentos(id) {
+  const alvo = String(id || '').trim();
+  return alvo ? 'consultores/recebidos/' + alvo : '';
+}
+
+/**
+ * A TAXA DE UMA CONSULTORIA, em centavos — lida do catálogo, e nunca de uma constante daqui.
+ *
+ * Uma constante neste ficheiro seria o terceiro sítio (o catálogo, o guião e o código), e o guião já
+ * tem prova a compará-lo com o catálogo. Devolve `null` quando o catálogo não a declara: um livro
+ * que inventasse uma taxa de zero diria «não deves nada», que é pior do que «não sei».
+ */
+function taxaDaConsultoria() {
+  const c = require('../../biblioteca/comercial/planos.json').consultoria || {};
+  const n = Number(c.taxaCentavos);
+  return Number.isFinite(n) && n > 0 ? Math.round(n) : null;
+}
+
+/** LÊ OS RECEBIMENTOS do que estava guardado, e deita fora o que não é um elo. */
+function lerRecebimentos(bruto) {
+  if (!bruto) return [];
+  let dados;
+  try {
+    dados = typeof bruto === 'string' ? JSON.parse(bruto) : bruto;
+  } catch (erro) {
+    return [];
+  }
+  if (!Array.isArray(dados)) return [];
+  return dados.filter((e) => e && typeof e === 'object' && Number.isFinite(Number(e.centavos)) && Number(e.centavos) > 0);
+}
+
+/**
+ * QUANTO ESTE CONSULTOR DEVE, HOJE — derivado das visitas.
+ *
+ * A visita conta quando tem `usadaEm` e uma escola: é o sinal de que a consultoria ACONTECEU e a
+ * escola nasceu. Conta pelo `usadaEm` (o instante em que a escola nasceu), e não pela data da visita,
+ * porque é esse o facto que o livro regista — a mesma escolha do contador de aulas, que conta pela
+ * data da aula e não pelo dia do lançamento.
+ */
+function devidas(visitas, taxa) {
+  const t = Number(taxa);
+  const preco = Number.isFinite(t) && t > 0 ? Math.round(t) : 0;
+  const lista = Array.isArray(visitas) ? visitas : [];
+  const pagas = lista.filter((v) => v && v.usadaEm && v.escolaSlug);
+  return {
+    quantidade: pagas.length,
+    centavos: pagas.length * preco,
+    taxaCentavos: preco || null,
+    /* AS VISITAS QUE DERAM ESCOLA, para o painel poder nomear cada uma. Uma linha de dinheiro sem
+     * saber de onde vem é uma linha que ninguém consegue conferir. */
+    linhas: pagas.map((v) => ({
+      visitaId: v.id,
+      escolaNome: v.escolaNome || '',
+      escolaSlug: v.escolaSlug || null,
+      em: v.usadaEm,
+    })),
+  };
+}
+
+/**
+ * O RESUMO DO LIVRO: devido, recebido, e o que falta.
+ *
+ * `saldo` pode ser NEGATIVO, e isso não é um erro a esconder: significa que ele pagou a mais (um
+ * pagamento adiantado, ou um engano num valor). Mostrá-lo é mais honesto do que truncar em zero — um
+ * zero esconderia o engano, e a única forma de o corrigir é vê-lo.
+ */
+function resumoDoLivro(visitas, recebimentos, taxa) {
+  const d = devidas(visitas, taxa === undefined ? taxaDaConsultoria() : taxa);
+  const elos = Array.isArray(recebimentos) ? recebimentos : [];
+  const recebidoCentavos = elos.reduce((soma, e) => soma + Math.round(Number(e.centavos) || 0), 0);
+  return {
+    quantidadeDevida: d.quantidade,
+    devidoCentavos: d.centavos,
+    taxaCentavos: d.taxaCentavos,
+    recebidoCentavos,
+    saldoCentavos: d.centavos - recebidoCentavos,
+    linhas: d.linhas,
+    recebimentos: elos,
+  };
+}
+
+/**
+ * ACRESCENTA UM RECEBIMENTO — e recusa o que não é um recebimento.
+ *
+ * PORQUE É QUE RECUSA RECEBER MAIS DO QUE O SALDO. O livro é monótono: um elo não se apaga, e um
+ * engano corrige-se com outro elo. Só que um «estorno» é uma coisa que ninguém desenhou ainda — não
+ * há botão, não há frase, não há prova. Aceitar um valor a mais criava um saldo negativo que ninguém
+ * saberia desfazer; recusar, com a frase que diz quanto é devido, deixa o engano do lado de fora,
+ * onde ele se corrige à mão em dois segundos.
+ *
+ * O ZERO E O NEGATIVO SÃO RECUSADOS pela mesma razão, e com a mesma frase.
+ */
+function receber(recebimentos, centavos, quando, nota) {
+  const lista = Array.isArray(recebimentos) ? recebimentos.slice() : [];
+  const valor = Math.round(Number(centavos));
+  if (!Number.isFinite(valor) || valor <= 0) {
+    return { ok: false, erro: 'o valor recebido tem de ser maior do que zero — escreva quanto ele pagou' };
+  }
+  const em = String(quando || new Date().toISOString());
+  const razao = String(nota == null ? '' : nota).trim();
+  const elo = { em, centavos: valor };
+  if (razao) elo.nota = razao.slice(0, 200);
+  return { ok: true, elo, lista: lista.concat([elo]) };
+}
+
+/** O LIVRO EM PALAVRAS — a frase que o painel mostra, e a mesma que a prova confere. */
+function livroEmTexto(resumo, moeda) {
+  const r = resumo || {};
+  const m = String(moeda || 'R$');
+  const emReais = (c) => m + ' ' + (Math.round(Number(c) || 0) / 100).toFixed(2).replace('.', ',');
+  if (!r.taxaCentavos) {
+    return 'a taxa da consultoria não está declarada no catálogo — o livro não pode ser calculado';
+  }
+  if (!r.quantidadeDevida) {
+    if (!r.recebidoCentavos) return 'nenhuma consultoria com escola ainda';
+    /* RECEBIDO SEM NADA DEVIDO: é um adiantamento, ou um engano — e as duas coisas se dizem. Um
+     * «recebido R$ 5,00» seco leria como uma dívida paga, quando não havia dívida nenhuma. */
+    return r.saldoCentavos < 0
+      ? 'nenhuma consultoria com escola ainda · recebido ' + emReais(r.recebidoCentavos)
+        + ' · a mais ' + emReais(-r.saldoCentavos)
+      : 'nenhuma consultoria com escola ainda · recebido ' + emReais(r.recebidoCentavos);
+  }
+  const base = r.quantidadeDevida + (r.quantidadeDevida === 1 ? ' consultoria' : ' consultorias')
+    + ' · devido ' + emReais(r.devidoCentavos);
+  if (!r.recebidoCentavos) return base + ' · nada recebido';
+  if (r.saldoCentavos === 0) return base + ' · recebido, nada em falta';
+  if (r.saldoCentavos > 0) return base + ' · recebido ' + emReais(r.recebidoCentavos)
+    + (r.saldoCentavos === r.devidoCentavos ? '' : ' · falta ' + emReais(r.saldoCentavos));
+  return base + ' · recebido ' + emReais(r.recebidoCentavos) + ' · a mais ' + emReais(-r.saldoCentavos);
+}
+
 module.exports = {
   CHAVE,
   MAXIMO_NA_LISTA,
@@ -861,4 +1014,12 @@ module.exports = {
   reservarVisita,
   marcarVisitaUsada,
   largarReserva,
+  /* F4 — o livro dos R$ 10 */
+  chaveDosRecebimentos,
+  taxaDaConsultoria,
+  lerRecebimentos,
+  devidas,
+  resumoDoLivro,
+  receber,
+  livroEmTexto,
 };

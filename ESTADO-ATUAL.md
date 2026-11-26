@@ -4,7 +4,24 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 25/11/2026 — **o formulário do link passou a funcionar.** Ela preencheu tudo
+> **Última fotografia:** 25/11/2026 — **o livro dos R$ 10 existe, e o que não se cobra também está
+> escrito.** A fase F4 do [PLANO-DO-CONSULTOR.md](PLANO-DO-CONSULTOR.md) está no ar: o painel dos
+> consultores ganhou a coluna **«O que deve»** (saldo em falta, o que já entrou, e o botão «Marcar
+> recebido» **só quando há o que receber**), e a linha da escola passou a dizer **«consultoria por
+> [nome] · [praça]»** — a **Clablun** criada hoje mostra `Giabu · PI`, lido do registo comercial e
+> nunca deduzido do link. **A decisão que faz o módulo pequeno: o DEVIDO é derivado e o RECEBIDO é
+> guardado** — a mesma forma do contador de aulas. Uma visita conta quando tem `usadaEm` **e**
+> `escolaSlug`; guardar o total ao lado dos factos que o produzem seria um segundo número a divergir
+> do primeiro. **E o que NÃO se cobra fica medido:** a visita expirada, a reservada e a que ainda
+> está aberta somam zero — «com êxito ou sem êxito» fala da consultoria que ACONTECEU, e um link que
+> ninguém abriu não é uma consultoria. **A taxa vive no catálogo** (`consultoria.taxaCentavos`), não
+> numa constante: há três sítios a dizer o número, e o guião já tinha prova a compará-lo. **O livro
+> recusa receber a mais** — um recebimento não se apaga e não há estorno desenhado, logo o engano
+> fica do lado de fora, onde se corrige à mão; **e um saldo negativo mostra-se** em vez de ser
+> truncado em zero. **Um KV mudo não é «deve zero»:** a célula diz «não consegui ler». A prova
+> **apanhou uma lacuna verdadeira no primeiro sítio em que correu** — o manual do consultor **não
+> dizia a taxa**, e passou a ter uma §2.1 com as três perguntas que ele vai ouvir. **46 asserções, 6
+> mutações, 6 quedas.** Antes disso, no mesmo dia: **o formulário do link passou a funcionar.** Ela preencheu tudo
 > e carregou em «Criar a escola»: **nada aconteceu**. Eram **três defeitos empilhados, e nenhum
 > visível** — a página mandava `email`/`telefone` e o servidor lê `escolaEmail`/`escolaTelefone`; não
 > mandava o e-mail nem o telefone do **professor**, que o cadastro exige; e o recado escrevia
@@ -2516,6 +2533,7 @@ Verificado nesta fotografia, com os comandos da §9.
 | **O cadastro do consultor — F1 do plano** | **CONFIRMADO** 25/11/2026 na bancada (`provar-o-cadastro-do-consultor`, **88** asserções): `danca.padd.com.br/consultores` cadastra (nome, **pelo menos um** de CPF/CNPJ, praça, e-mail, telefone, equipamento declarado), lista com paginação e resumo, e **activa/desactiva**. O registo é **uma lista** em `consultores/registos` (uma chave por consultor obrigaria a enumeração, que é a operação do KV limitada por dia), com tecto de 200 e `retirados` na resposta. **Nasce inactivo**, e activar é um elo datado (`historico`) — activar quem já está activo dá `mudou: false` e não é falha. As três rotas não estão em `publicoPermitido`: **404** no endereço público. **KV mudo → 503** com a frase que diz que nada foi mostrado. **Não gera token, não abre link, não cria escola** — F2 e F3. | `motor/nucleo/consultores.js`, `motor/servidor/consultores-da-casa.js`, `motor/servidor/painel-html.js` (`paginaDosConsultores`), `motor/servidor/raiz.js` (as três rotas), `raiz/index.html` (o nono destino) |
 | **O endereço do consultor e o link de cada visita — F2 do plano** | **CONFIRMADO** 25/11/2026 na bancada (`provar-o-link-do-consultor`, **77** asserções): ao activar, o painel emite `lastro.padd.com.br/consultor/<token>` e mostra-o **uma vez** (o KV guarda o hash); a área dele tem o resumo, «Nova visita» e «Novo link», e o estado da visita é **calculado** (`aberta` / `expirada` / `criada`), sem cron. **Três paredes:** token desconhecido → **404** sem explicação; consultor inactivo → página «suspenso»; e a rota POST → **403**, porque a falta do botão não é a barreira. Desactivar não apaga o endereço; reactivar emite outro. O `tokenHash` nunca sai numa resposta. **A página que o link abre (`/visita/<token>`) é a F3** — até lá responde 404. | `motor/nucleo/segredo.js`, `motor/nucleo/consultores.js` (acesso e visitas), `motor/servidor/consultores-da-casa.js`, `motor/servidor/painel-html.js` (`paginaDoConsultor`), `motor/servidor/raiz.js` (as três rotas públicas + `/api/consultores/acesso`) |
 | **A escola que nasce de um link — F3 do plano** | **CONFIRMADO** 25/11/2026 na bancada (`provar-a-escola-do-consultor`, **73** asserções): `/visita/<token>` abre a criação no plano `consultoria`, `ativa`, com `entregueEm = criadaEm` e a atribuição no registo comercial. O plano é substituído no corpo e o pagamento dispensado (a porta é autorizada pelo token); a porta pública continua a recusar, palavra por palavra. **A reserva** impede duas escolas do mesmo link, cai em 10 minutos, e **é largada quando a criação falha**. O índice `consultores/link/<hash>` resolve o dono de um link com um `get`, sem enumeração. Cinco recusas com a saída na frase: inválido, suspenso, gasta, expirada, reservada. | `motor/nucleo/escola-do-consultor.js`, `motor/nucleo/consultores.js` (reserva e estado do link), `motor/nucleo/comercial.js` (`consultoriaDaPagina`), `motor/servidor/consultores-da-casa.js`, `motor/servidor/painel-html.js` (`paginaDaVisita`), `motor/servidor/raiz.js` (`respostaDaVisita`, `receberAVisita`) |
+| **O livro dos R$ 10 — F4 do plano** | **CONFIRMADO** 25/11/2026 na bancada (`provar-o-livro-do-consultor`, **46** asserções) e **no KV de produção** (a Clablun: `plano consultoria`, `ativa`, `consultor: Giabu · PI`, `periodoDeConsultoria` a começar na criação). O devido é derivado das visitas com `usadaEm` + `escolaSlug`; o recebido é um elo guardado. **O que não se cobra:** expirada, reservada, aberta. **Receber a mais é recusado** com o saldo na frase; **saldo negativo mostra-se**. KV mudo → «não consegui ler». A taxa vem do catálogo (`taxaCentavos: 1000`), e o manual do consultor passou a nomeá-la. | `motor/nucleo/consultores.js` (o livro), `motor/servidor/consultores-da-casa.js`, `motor/servidor/raiz.js` (`POST /api/consultores/receber`), `motor/servidor/painel-html.js` (a coluna e o «consultoria por [nome]»), `biblioteca/comercial/planos.json`, `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` §2.1 |
 | **O formulário da curadoria só oferece o que o professor pode ensinar** | **CONFIRMADO** 03/11/2026 (§G): as modalidades vêm do `perfil.json` do professor; a tradição segue a modalidade (lista própria a vencer a compartilhada, e queda para a compartilhada quando não há própria). **Nenhuma modalidade tem `tradicoes.json` próprio** — o conteúdo é dela (P-16). | `motor/nucleo/tradicoes.js`, `motor/servidor/bastidores.js` |
 
 ### Parcial
@@ -5221,8 +5239,13 @@ as três paredes (404, suspenso, 403 na rota) — **77 asserções** em
 mês a começar na criação e a atribuição no registo comercial. **O link já pode ser mandado a uma
 escola.** 73 asserções em `experimentos/provar-a-escola-do-consultor.js`, com sete mutações.
 
-**O que falta:** ~~F4~~ o livro dos R$ 10 (cada visita que deu escola soma uma linha, e o «Marcar
-recebido») e ~~F5~~ o guião no `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` §9. O que fica aqui é o que **só
+~~F4~~ — **IMPLEMENTADO a 25/11/2026**: o livro dos R$ 10, com «Marcar recebido», o derivado a
+partir das visitas e o recebido guardado como elo. **46 asserções** em
+`experimentos/provar-o-livro-do-consultor.js`, com seis mutações.
+
+**O que falta:** ~~F5~~ o guião no `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` §9 — **parcialmente feito**:
+a §2.1 (a taxa, e as três perguntas que ele vai ouvir) entrou com a F4. O que resta é o guião do §8 do
+plano (os três planos com números, o pagamento antecipado, quando falar das extensões). O que fica aqui é o que **só
 ela pode responder**:
 
 - **Q1 — os R$ 10 são por consultoria ou por sessão?** Recomendação: **por consultoria** (uma visita,
@@ -7753,6 +7776,22 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **25/11/2026** — **O livro dos R$ 10 (F4).** Uma coluna nova no painel dos consultores — **«O que
+  deve»** — com o saldo, o recebido e o botão «Marcar recebido» (que **só aparece quando há o que
+  receber**), e a linha da escola a dizer **«consultoria por [nome] · [praça]»**, lida do registo
+  comercial. **O devido é DERIVADO** das visitas com `usadaEm` **e** `escolaSlug`; **o recebido é
+  GUARDADO** em `consultores/recebidos/<id>` como elo com data, valor e nota — a mesma divisão do
+  contador de aulas. **O que não se cobra está medido:** visita expirada, reservada e aberta somam
+  zero. **A taxa vive no catálogo** (`planos.json` → `consultoria.taxaCentavos = 1000`), com uma nota
+  que diz porque não é uma constante do código. **O livro recusa receber a mais** (409, com o saldo na
+  frase) porque um elo não se apaga e não há estorno desenhado; **e o saldo negativo mostra-se**. **KV
+  mudo → «não consegui ler»**, não «R$ 0,00». **A prova apanhou uma lacuna verdadeira:** o manual do
+  consultor não dizia a taxa — passou a ter a §2.1, com as três perguntas que ele vai ouvir, incluindo
+  «e para você? → R$ 10,00 por consultoria», porque um preço escondido aparece sempre.
+  **`provar-o-livro-do-consultor`, 46 asserções, 6 mutações com 6 quedas.** No ar: a **Clablun** foi
+  criada pelo link, com `Giabu · PI` atribuído, `plano consultoria`, `estado ativa` e o mês a começar
+  na criação — a cadeia inteira da F3 verificada **no KV de produção**.
 
 - **25/11/2026** — **O formulário do link não criava a escola, e não dizia porquê.** Três defeitos
   empilhados, nenhum visível: **(1)** a página mandava `email`/`telefone` e o `cadastro-da-escola` lê

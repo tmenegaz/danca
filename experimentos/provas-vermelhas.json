@@ -1,8 +1,8 @@
 {
   "_nota": "As provas que JÁ FALHAM nesta árvore, medidas a 24/11/2026. O `tools/correr-provas.js` usa esta lista para distinguir «falha conhecida» de «REGRESSÃO»: só a segunda recusa um commit. Uma prova que aqui está e passa é DITA em cada corrida — apague-a, senão a próxima regressão dela passa em silêncio.",
   "_medido_em": "2026-11-25",
-  "_medido_com": "node tools/correr-provas.js --tecto=60 — 273 provas, 178 verdes, 95 falhas, 0 regressões, 181 s",
-  "_o_que_nao_e": "Não é tolerância com defeito: é a diferença entre «esta prova mede um ecrã que mudou» e «este commit quebrou alguma coisa». As 96 são dívida de manutenção, declarada no REGISTRO-2026.md.",
+  "_medido_com": "node tools/correr-provas.js --tecto=90 — 297 provas, 205 verdes, 92 falhas, 0 regressões, 214 s",
+  "_o_que_nao_e": "Não é tolerância com defeito: é a diferença entre «esta prova mede um ecrã que mudou» e «este commit quebrou alguma coisa». As 92 são dívida de manutenção, declarada no REGISTRO-2026.md. A lista TINHA 96 e duas provas sararam sem sair dela — `provar-notacao` (25/11) e `provar-sinais-da-modalidade` (corrigida em f2c10da5, ficou aqui até 25/11). Um número escrito à mão numa nota envelhece; a lista é que manda.",
   "falham": [
     "provar-a-aula-que-vem",
     "provar-a-carencia-nao-se-burla",
@@ -87,7 +87,6 @@
     "provar-selo",
     "provar-sequencia-que-acompanha",
     "provar-sessao-na-barra",
-    "provar-sinais-da-modalidade",
     "provar-tabela-da-notacao",
     "provar-tema",
     "provar-titulo-e-barra",

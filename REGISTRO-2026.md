@@ -63415,3 +63415,107 @@ de um elemento que a página já não punha lá. Agora nasce do HTML.
 `motor/servidor/painel-html.js` (`paginaDaVisita`: dois campos novos, as chaves certas, a senha que
 herda, o recado visível), `experimentos/provar-a-escola-do-consultor.js` (**94** asserções, §G e
 §G-bis novas), `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+## O livro dos R$ 10 *(25/11/2026)*
+
+**A frase, e o limite que está dentro dela.** «Cada vez que ele fizer a consultoria e rodar uma aula,
+rodar lá, criar um professor e tudo mais, qualquer outra coisa, R$ 10 já me paga.» A taxa é da
+**consultoria** — e o plano já a tinha lido assim: uma visita que **deu escola** paga; uma que
+expirou sem escola **não**. Não houve consultoria, houve um link.
+
+### A decisão que faz o módulo pequeno: derivado e guardado
+
+**O devido é DERIVADO. O recebido é GUARDADO.** É a mesma forma do contador de aulas, e a
+consequência é o que evita a família de erro que esta casa persegue: um total guardado ao lado dos
+factos que o produzem é um segundo número a divergir do primeiro. Contar as visitas com `usadaEm` e
+`escolaSlug` é contar factos que **já existem**; o que não se pode derivar é o acto de receber, e
+esse é um elo com data e nota.
+
+**E a taxa vive no catálogo** (`planos.json` → `consultoria.taxaCentavos`), não numa constante do
+código. Há três sítios que dizem o número — o catálogo, o guião do consultor e o livro —, e o guião
+já tem prova a compará-lo com o catálogo desde a F3. Uma constante no código seria o quarto.
+
+**A prova apanhou uma lacuna verdadeira no primeiro sítio em que correu:** o manual do consultor
+**não dizia a taxa**. Ele cobra R$ 120,00 a hora e a escola paga-lhe a ele; o que ele paga é outra
+coisa, e o manual de treino não a nomeava. Passou a haver uma §2.1 com a tabela das três perguntas
+que ele vai ouvir e as três respostas — incluindo a que ele **tem** de dizer: «R$ 10,00 por
+consultoria», porque um preço escondido aparece sempre.
+
+### O livro é monótono, e recusa o que não cabe
+
+Um recebimento é um elo: data, valor, e a nota (opcional). Não se apaga. Dois recebimentos somam-se,
+e nenhum substitui o outro.
+
+**Mas um recebimento a mais é RECUSADO**, e a decisão merece ser lida: o livro não sabe desfazer um
+valor — não há estorno desenhado, não há botão, não há prova. Aceitar criaria um saldo negativo que
+ninguém saberia corrigir; recusar deixa o engano **do lado de fora**, onde se resolve à mão em dois
+segundos. A frase diz o saldo: «o valor recebido (R$ 10,00) é maior do que o que está em falta
+(R$ 0,00)».
+
+**E o saldo negativo, quando existe, MOSTRA-SE.** Ele aparece quando há recebimentos e nenhuma
+consultoria devida — um adiantamento, ou um engano. Truncá-lo em zero esconderia exactamente a coisa
+que precisa de ser vista.
+
+### Um KV mudo não é «deve zero»
+
+É a regra de sempre aplicada a dinheiro, e é onde ela mais custa: se as visitas não se leem, o devido
+é **desconhecido**, e um livro que dissesse «R$ 0,00» transformaria uma falha de leitura numa
+absolvição. A célula do painel diz **«não consegui ler»**, com o motivo, no lugar do zero.
+
+### O que se lê no painel
+
+Uma coluna nova — **«O que deve»** — com o saldo em falta, o que já foi recebido, e o botão «Marcar
+recebido» **só quando há o que receber**. Um botão que abre uma caixa para dizer «não deves nada» é
+um clique a mais para a mesma informação.
+
+**E a linha da escola passou a dizer «consultoria por \<nome\> · \<praça\>»** ao lado do estado — o
+controlo que ela pediu no §6.2 do plano. É lido do registo comercial, nunca deduzido do link. A
+escola **Clablun** criada hoje mostra `Giabu · PI`.
+
+### A prova, e a tabela de mutação
+
+`experimentos/provar-o-livro-do-consultor.js`, **46 asserções**, e seis mutações com seis quedas:
+
+| mutação | asserções que caem |
+|:--|:--|
+| cobrar a visita expirada, e não só a que deu escola | **5** |
+| a taxa como constante no código, e não do catálogo | **5** |
+| aceitar receber a mais (sem controlo de saldo) | **5** |
+| o KV mudo a devolver um livro vazio | 2 |
+| a célula do painel a mostrar R$ 0,00 quando não leu | 1 |
+| a rota a deixar de aceitar reais com vírgula | 2 |
+
+### Onde entrou
+
+`biblioteca/comercial/planos.json` (`taxaCentavos` e a nota dele), `motor/nucleo/consultores.js` (o
+livro: derivar, receber, resumir, dizer), `motor/servidor/consultores-da-casa.js` (ler e gravar), com
+`motor/servidor/raiz.js` (`POST /api/consultores/receber`, o livro de cada consultor na página, e o
+`consultor` na linha da escola), `motor/servidor/painel-html.js` (a coluna «O que deve», o botão, e o
+«consultoria por \<nome\>»), `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` §2.1,
+`experimentos/provar-o-livro-do-consultor.js` (novo), `.gitignore`, `ESTADO-ATUAL.md`, `HANDOFF.md`.
+
+## Duas provas que sararam e continuaram na lista de doentes *(25/11/2026)*
+
+O `correr-provas` tem uma linha de base — `experimentos/provas-vermelhas.json` — com as provas que já
+falhavam nesta árvore, para distinguir «falha conhecida» de «REGRESSÃO». O próprio ficheiro diz o que
+fazer quando uma delas passa: **«apague-a, senão a próxima regressão dela passa em silêncio».**
+
+**Duas sararam e ninguém as apagou:**
+
+| prova | sarou em | ficou na lista até |
+|:--|:--|:--|
+| `provar-notacao` | reescrita a 25/11 (92 asserções, lê a notação da árvore) | 25/11 |
+| `provar-sinais-da-modalidade` | corrigida em `f2c10da5` (o coupé e o sur-le-cou-de-pied passam a escrever-se) | 25/11 |
+
+A segunda passou **três corridas seguidas, exit 0**, e a linha de base continuava a chamar-lhe doente.
+O efeito é o pior possível: a prova deixou de proteger no dia em que sarou. Uma regressão futura nela
+seria classificada como «já conhecida», o commit passaria, e o defeito só apareceria onde ele sempre
+aparece — em produção, com alguém a olhar.
+
+**E a nota do ficheiro já mentia sobre si mesma:** dizia «as 96», e a lista tinha 92. Um número escrito
+à mão numa nota envelhece em silêncio; **a lista é que manda**. A nota passou a dizer o número medido,
+com a data e o comando, e a nomear as duas provas que sararam — para a próxima não precisar de ser
+descoberta por acaso.
+
+**A lição, e é a mesma do `provar-notacao`:** a linha de base é dívida declarada, e dívida declarada
+tem de ser **revisada**. Um ficheiro que só cresce transforma «conhecida» em «esquecida».

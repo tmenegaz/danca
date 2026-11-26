@@ -497,6 +497,112 @@ async function libertar(env, consultorId, visitaId, agora) {
   return { ok: true, visita: largada.visita };
 }
 
+/* ══════════════════════════════════════════════════════════════════════════════════════════════
+ * F4 — O LIVRO, NO KV (25/11/2026)
+ *
+ * A REGRA ESTÁ NO NÚCLEO. Aqui está só o que precisa do KV: ler os recebimentos, e acrescentar um.
+ * O DEVIDO NÃO SE GUARDA — deriva-se das visitas, que já estão em `consultores/visitas/<id>`. Um
+ * total guardado ao lado dos factos que o produzem é um segundo número a divergir do primeiro.
+ * ══════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/** LÊ OS RECEBIMENTOS. `ok: false` quando o KV não responde — nunca `[]` a fingir de resposta. */
+async function lerRecebimentos(env, id) {
+  if (!temKv(env)) return Object.assign({}, SEM_KV, { recebimentos: [] });
+  const chave = consultores.chaveDosRecebimentos(id);
+  if (!chave) return { ok: false, erro: 'falta o id do consultor', recebimentos: [] };
+  let bruto;
+  try {
+    bruto = await env.PADD_KV.get(chave);
+  } catch (erro) {
+    return {
+      ok: false,
+      recebimentos: [],
+      erro: 'não foi possível ler os recebimentos deste consultor: ' + ((erro && erro.message) || String(erro)),
+    };
+  }
+  return { ok: true, recebimentos: consultores.lerRecebimentos(bruto), vazio: !bruto };
+}
+
+/**
+ * O LIVRO DE UM CONSULTOR — o devido (das visitas), o recebido (do seu registo), e o saldo.
+ *
+ * LÊ AS DUAS CHAVES E DIZ SE ALGUMA FALHOU. Se as visitas não se leram, o devido é desconhecido — e
+ * um livro que dissesse «deve zero» por não ter conseguido ler seria o pior desfecho possível para um
+ * dado de dinheiro.
+ */
+async function livroDoConsultor(env, id, taxa) {
+  const visitas = await lerVisitas(env, id);
+  const recebidos = await lerRecebimentos(env, id);
+  if (!visitas.ok || !recebidos.ok) {
+    return {
+      ok: false,
+      erro: visitas.erro || recebidos.erro || 'não foi possível ler o livro',
+      resumo: null,
+    };
+  }
+  return {
+    ok: true,
+    resumo: consultores.resumoDoLivro(visitas.visitas, recebidos.recebimentos,
+      taxa === undefined ? consultores.taxaDaConsultoria() : taxa),
+  };
+}
+
+/**
+ * MARCA RECEBIDO — grava um elo, e recusa um valor que não seja um recebimento.
+ *
+ * A ORDEM É A DA CASA: lê o livro AGORA (o saldo de há um minuto não serve para decidir este
+ * recebimento), confere que o valor cabe no que é devido, e só então escreve.
+ */
+async function marcarRecebido(env, id, centavos, nota, quando) {
+  const alvo = String(id || '').trim();
+  if (!alvo) return { ok: false, erro: 'falta o id do consultor', status: 400 };
+  const lido = await ler(env);
+  if (!lido.ok) return { ok: false, erro: lido.erro, status: 503 };
+  if (!consultores.porId(lido.lista, alvo)) return { ok: false, erro: 'não há consultor com este id', status: 404 };
+
+  /* AS TRÊS LEITURAS SÃO UMA DE CADA: as visitas (para o devido), os recebimentos (para o recebido),
+   * e a lista de consultores já foi lida acima. Ler o livro inteiro e voltar a ler os recebimentos
+   * seria uma quarta, e duas leituras do mesmo dado numa só decisão podem discordar. */
+  const visitas = await lerVisitas(env, alvo);
+  const recebidos = await lerRecebimentos(env, alvo);
+  if (!visitas.ok || !recebidos.ok) {
+    return { ok: false, erro: visitas.erro || recebidos.erro, status: 503 };
+  }
+  const taxa = consultores.taxaDaConsultoria();
+  if (!taxa) {
+    return { ok: false, erro: 'a taxa da consultoria não está declarada no catálogo — nada foi gravado', status: 503 };
+  }
+  const resumo = consultores.resumoDoLivro(visitas.visitas, recebidos.recebimentos, taxa);
+
+  const juntos = consultores.receber(recebidos.recebimentos, centavos, quando, nota);
+  if (!juntos.ok) return { ok: false, erro: juntos.erro, status: 400 };
+  if (juntos.elo.centavos > resumo.saldoCentavos) {
+    const m = (c) => 'R$ ' + (Math.round(Number(c) || 0) / 100).toFixed(2).replace('.', ',');
+    return {
+      ok: false,
+      erro: 'o valor recebido (' + m(juntos.elo.centavos) + ') é maior do que o que está em falta ('
+        + m(resumo.saldoCentavos) + '). Um recebimento não se apaga, e o livro não sabe desfazer um '
+        + 'valor a mais: confirme o valor.',
+      saldoCentavos: resumo.saldoCentavos,
+      status: 409,
+    };
+  }
+  try {
+    await env.PADD_KV.put(consultores.chaveDosRecebimentos(alvo), JSON.stringify(juntos.lista));
+  } catch (erro) {
+    return {
+      ok: false,
+      erro: 'não foi possível gravar o recebimento: ' + ((erro && erro.message) || String(erro)),
+      status: 503,
+    };
+  }
+  return {
+    ok: true,
+    elo: juntos.elo,
+    resumo: consultores.resumoDoLivro(visitas.visitas, juntos.lista, taxa),
+  };
+}
+
 module.exports = {
   temKv,
   ler,
@@ -519,4 +625,8 @@ module.exports = {
   reservar,
   gastar,
   libertar,
+  /* F4 — o livro dos R$ 10 */
+  lerRecebimentos,
+  livroDoConsultor,
+  marcarRecebido,
 };

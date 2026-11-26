@@ -341,6 +341,13 @@ function tabelaDeEscolas(escolas, modo, ordem, professores) {
     const consultoria = (e.consultoria && typeof e.consultoria === 'object') ? e.consultoria : null;
     const ehConsultoria = String(e.plano || '') === 'consultoria' || Boolean(consultoria);
     const daConsultoria = (e.expurgada || !ehConsultoria) ? '' : (() => {
+      /* «CONSULTORIA POR <NOME>» — o controlo de quem trouxe a escola (§6.2). Fica ANTES do prazo,
+       * porque é a primeira pergunta que se faz a uma escola em demonstração, e o nome sozinho não
+       * diz nada: quem atendeu é o que liga a escola a alguém. */
+      const quemTrouxe = (e.consultor && e.consultor.nome)
+        ? '<br><span class="sub">consultoria por ' + esc(e.consultor.nome)
+          + (e.consultor.praca ? ' · ' + esc(e.consultor.praca) : '') + '</span>'
+        : '';
       const prazo = consultoria && consultoria.terminaEm
         ? '<br><span class="sub">termina em ' + esc(fuso.quandoLocal(consultoria.terminaEm))
           + (Array.isArray(consultoria.prorrogacoes) && consultoria.prorrogacoes.length
@@ -362,7 +369,7 @@ function tabelaDeEscolas(escolas, modo, ordem, professores) {
           + 'data-escola="' + esc(e.slug) + '" '
           + 'title="começar o mês da demonstração — o prazo conta de agora, e não se reinicia">'
           + 'Entregar à escola</button>';
-      return prazo + aulas + '<br>' + botao;
+      return quemTrouxe + prazo + aulas + '<br>' + botao;
     })();
 
     const celulas = ['<td>' + rotulo + '</td>'];
@@ -1683,7 +1690,7 @@ function paginaDosContatos({ contatos } = {}) {
  * `table`. O mesmo formulário que a casa já desenha no Financeiro — e o `check-identidade` reprova
  * qualquer classe que não seja da folha.
  */
-function paginaDosConsultores({ consultores: lista, catalogo } = {}) {
+function paginaDosConsultores({ consultores: lista, catalogo, livros, moeda } = {}) {
   const todos = Array.isArray(lista) ? lista : [];
   const r = consultores.resumo(todos);
 
@@ -1781,10 +1788,50 @@ function paginaDosConsultores({ consultores: lista, catalogo } = {}) {
     return diaOuTraco(ultimo.em) + ' · ' + esc(String(ultimo.o || ''));
   };
 
+  /* ── O LIVRO DE CADA UM (25/11/2026 — F4) ────────────────────────────────────────────────────
+   *
+   * A CÉLULA DIZ TRÊS COISAS, e nenhuma delas é decorativa: quanto é devido (derivado das visitas
+   * que deram escola), quanto já entrou, e o que falta. Quando o livro não se leu, ela DIZ ISSO — em
+   * vez de mostrar «R$ 0,00», que é a pior resposta possível sobre dinheiro.
+   *
+   * O BOTÃO SÓ APARECE QUANDO HÁ O QUE RECEBER. Um botão que abre uma caixa para dizer «não deves
+   * nada» é um clique a mais para a mesma informação. */
+  const dinheiro = (c) => String(moeda || 'R$') + ' ' + (Math.round(Number(c) || 0) / 100)
+    .toFixed(2).replace('.', ',');
+
+  const celulaDoLivro = (registo) => {
+    const l = livros && livros[registo.id];
+    if (!l) return '<span class="selo discreto">—</span>';
+    if (!l.ok) {
+      return '<span class="selo alerta">não consegui ler</span>'
+        + '<br><span class="aviso">' + esc(String(l.erro || 'o livro não respondeu')) + '</span>';
+    }
+    const r = l.resumo || {};
+    if (!r.taxaCentavos) return '<span class="selo alerta">taxa não declarada</span>';
+    const partes = ['<strong>' + dinheiro(r.saldoCentavos > 0 ? r.saldoCentavos : 0) + '</strong> em falta'];
+    if (r.recebidoCentavos > 0) {
+      partes.push('recebido ' + dinheiro(r.recebidoCentavos));
+    }
+    if (r.saldoCentavos < 0) {
+      /* UM SALDO NEGATIVO MOSTRA-SE. Escondê-lo atrás de um zero deixaria um engano de valor
+       * invisível — e é a única forma de ele ser corrigido. */
+      partes.push('<span class="selo alerta">a mais ' + dinheiro(-r.saldoCentavos) + '</span>');
+    }
+    if (r.saldoCentavos > 0) {
+      partes.push('<button class="acao pequena" type="button" data-receber="' + esc(registo.id)
+        + '" data-devido="' + Math.round(r.saldoCentavos) + '">Marcar recebido</button>');
+    }
+    return partes.join('<br>')
+      + (r.quantidadeDevida
+        ? '<br><span class="aviso">' + r.quantidadeDevida
+          + (r.quantidadeDevida === 1 ? ' consultoria deu escola' : ' consultorias deram escola') + '</span>'
+        : '');
+  };
+
   const listaEmTabela = todos.length
     ? tabelaPaginada('pa-lista-consultores', '<table>' +
       '<thead><tr><th>Nome</th><th>Praça</th><th>Documento</th><th>Equipamento</th>' +
-      '<th>Como falar</th><th>Estado</th><th>Desde</th><th></th></tr></thead>' +
+      '<th>Como falar</th><th>Estado</th><th>O que deve</th><th>Desde</th><th></th></tr></thead>' +
       '<tbody>' + todos.slice().reverse().map((c) => '<tr>' +
         '<td>' + esc(consultores.nomeDoConsultor(c)) + '</td>' +
         '<td>' + esc(String(c.praca || '—')) + '</td>' +
@@ -1792,6 +1839,7 @@ function paginaDosConsultores({ consultores: lista, catalogo } = {}) {
         '<td>' + esc(consultores.equipamentoEmTexto(c)) + '</td>' +
         '<td>' + (comoFalar(c.email, c.telefone) || '—') + '</td>' +
         '<td>' + selo(c) + '</td>' +
+        '<td>' + celulaDoLivro(c) + '</td>' +
         '<td>' + desde(c) + '</td>' +
         '<td>' + botaoDeEstado(c) + '</td>' +
         '</tr>').join('') + '</tbody></table>' +
@@ -1877,6 +1925,33 @@ function paginaDosConsultores({ consultores: lista, catalogo } = {}) {
     '    .catch(function(){b.disabled=false;recado("falha de rede — nada foi alterado",true);});' +
     '  });' +
     '})(novos[k]);' +
+    /* O «MARCAR RECEBIDO» — um `prompt` com o valor devido já preenchido, e não um campo novo na
+     * tabela: a tabela tem nove colunas, e um campo em cada linha seria um formulário inteiro
+     * montado para um clique. O valor vem do `data-devido` (em centavos) e é mostrado em reais —
+     * quem lê «10,00» no ecrã não deve ter de escrever «1000».
+     *
+     * A CONVERSÃO PARA CENTAVOS É FEITA AQUI, e não no servidor a partir do texto: `R$ 1.234,56`
+     * passado como cadeia é a conta que dá 1234.5600000000002. O servidor aceita os dois, mas o
+     * caminho normal manda o inteiro. */
+    'var receber=document.querySelectorAll("[data-receber]");' +
+    'for(var r=0;r<receber.length;r++)(function(b){' +
+    '  b.addEventListener("click",function(){' +
+    '    var devido=Number(b.getAttribute("data-devido")||0);' +
+    '    var sugerido=(devido/100).toFixed(2).replace(".",",");' +
+    '    var escrito=window.prompt("Quanto foi recebido? (em reais)",sugerido);' +
+    '    if(escrito===null)return;' +
+    '    var centavos=Math.round(Number(String(escrito).replace(/\\./g,"").replace(",","."))*100);' +
+    '    if(!isFinite(centavos)||centavos<=0){recado("escreva um valor maior do que zero",true);return;}' +
+    '    b.disabled=true;' +
+    '    fetch("/api/consultores/receber",{method:"POST",headers:{"Content-Type":"application/json"},cache:"no-store",' +
+    '      body:JSON.stringify({id:b.getAttribute("data-receber"),centavos:centavos})})' +
+    '    .then(function(x){return x.json().catch(function(){return {};});})' +
+    '    .then(function(d){' +
+    '      if(d&&d.ok){location.reload();return;}' +
+    '      b.disabled=false;recado((d&&d.erro)||"não foi possível marcar o recebimento",true);})' +
+    '    .catch(function(){b.disabled=false;recado("falha de rede — nada foi alterado",true);});' +
+    '  });' +
+    '})(receber[r]);' +
     '})();</script>';
 
   return pagina({

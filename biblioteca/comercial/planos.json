@@ -111,6 +111,8 @@
     "id": "consultoria",
     "nome": "Plano consultoria",
     "preco": 0,
+    "_notaDaTaxa": "A TAXA DA CONSULTORIA (25/11/2026) — R$ 10,00 por consultoria que deu escola, pagos pelo CONSULTOR a quem administra o Sistema Lastro. Nao e o preco da escola: `preco` acima e o que a escola paga, e e zero porque e uma demonstracao. O numero existe no catalogo, e nao numa constante de codigo, porque e ele que paga a cota do servidor (CUSTO-DOS-FLUXOS §22: R$ 10 compram 277 minutos, e o pior caso de uma demonstracao sao 26). Trocar o numero aqui muda o livro e o guiao do consultor ao mesmo tempo — e `provar-o-livro-do-consultor` recalcula os dois e reprova se o texto se afastar.",
+    "taxaCentavos": 1000,
     "aulas": 3,
     "publico": false,
     "duracaoMeses": 1,

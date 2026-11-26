@@ -47,6 +47,29 @@ mais.
 que ele não pode é **assumir compromisso comercial** — nem preço, nem prazo, nem «deixe que eu
 resolvo». Uma promessa feita por quem não paga a conta é a origem mais comum de cliente irritado.
 
+### 2.1 O que o consultor paga, e porquê — o guião de dez reais
+
+**Ele cobra R$ 120,00 a hora da escola, e paga R$ 10,00 por consultoria a quem administra o
+Sistema Lastro.** A taxa é por **consultoria que deu escola**, e não por hora nem por sessão: é ela que paga
+a cota do serviço (R$ 10,00 compram 277 minutos de processamento, e o pior caso de uma demonstração são
+26 — ver o [CUSTO-DOS-FLUXOS.md](./CUSTO-DOS-FLUXOS.md) §22).
+
+**O que ele tem de saber dizer, e não é opcional:**
+
+| a pergunta que ele vai ouvir | a resposta |
+|:--|:--|
+| «isto tem custo para mim?» | não. A escola paga a hora da consultoria a ele, e o mês de demonstração é grátis |
+| «e para você?» | **R$ 10,00 por consultoria** — e ele diz o número, porque um preço escondido aparece sempre |
+| «se eu não contratar, você perde?» | **não** — os R$ 10,00 são dele para ela, e o risco de a escola não contratar é dela, não dele |
+
+**Quando é que ele paga:** a taxa conta quando a **escola nasce** pelo link dele. Um link que
+ninguém abriu não custa nada a ninguém — não houve consultoria, houve um link. E o pagamento é
+combinado **fora do sistema**: não há cartão nem repasse, e o sistema só guarda o que é devido e o
+que já foi recebido.
+
+**Uma coisa que ele não faz, nunca:** cobrar a taxa à escola, ou descontá-la das horas. São dois
+dinheiros diferentes, com dois donos diferentes — as horas são dele, a taxa é dela.
+
 ---
 
 ## 3. A história, em nove passos
