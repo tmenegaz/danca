@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-26T10:09:21-0300`
-Commit atual: `c8000e27` — audit(estrutura): o Q7 e o Q8 do plano do consultor, agora medidos
+Gerado em: `2026-11-26T10:31:35-0300`
+Commit atual: `0f379a12` — docs(estrutura): o campo de horas do consultor saiu, e a razão é jurídica
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -83,6 +83,7 @@ sapatilha-de-ponta (16)
 ## Últimos commits
 
 ```
+0f379a12 docs(estrutura): o campo de horas do consultor saiu, e a razão é jurídica
 c8000e27 audit(estrutura): o Q7 e o Q8 do plano do consultor, agora medidos
 f6ecb866 docs(estrutura): o guiao do consultor, e as cinco fases fechadas
 1f2ab2dd fix(estrutura): o marcar recebido nao gravava, e nao dizia porquê
@@ -102,7 +103,6 @@ a4638edf fix(estrutura): a descricao do exercicio volta para fora da tabela
 78ada910 docs(estrutura): o §22 mediu-se a si mesmo — documentar custa zero
 df41c5e6 docs(estrutura): o fluxo do consultor, e o custo da demonstracao medido
 5472e427 feat(estrutura): o plano consultoria, o mes que corre da entrega, e o congelamento calculado
-1eae186d feat(estrutura): o contador de aulas, e o excedente como uma linha discriminada
 ```
 
 ## Por professor
@@ -208,83 +208,88 @@ df41c5e6 docs(estrutura): o fluxo do consultor, e o custo da demonstracao medido
 
 ## Última entrada do REGISTRO
 
-## O campo de horas saiu, e a razão é jurídica *(26/11/2026)*
+## O bloco do pagamento passou a dizer de que escola é *(26/11/2026)*
 
-**A decisão é dela, e eu tinha-a decidido mal.** O Q4 estava no plano como «**DECIDIDO 25/11/2026 —
-sim, opcional**», com um argumento meu que parecia bom: «não muda o que ele recebe; é o registo que
-lhe permite mostrar o que fez». Ela reviu-o, e a razão dela é outra e é melhor:
+**Ela encontrou-o a usar o sistema, e o diagnóstico dela está certo:**
 
-> «Os consultores não são meus funcionários. Eles são consultores, vão ser contratados pelo regime de
-> prestadores de serviço autónomos, e vão fazer o próprio horário. […] Se eu colocar um consultor com
-> hora de trabalho, o dia que trabalhou, a hora que trabalhou, quanto trabalhou, enfim, qualquer
-> controle de tempo, eu dou a entender, **mesmo que sendo um campo opcional**, que eu estou tentando
-> controlar o trabalho do prestador de serviço autónomo.»
+> «Acontece que eu vou ter N escolas […] e nesse botão marcar como pago, me parece que eu tô marcando
+> como pago um lote todas. E eu não sei dizer aqui por meio desse bloco qual é a escola que eu tô
+> marcando como pago. Eu sei apenas dizer o mês e marcar como pago, mas a escola não.»
 
-**O erro do meu argumento, dito com clareza:** eu avaliei o campo pelo que ele faz ao *produto* — «o
-consultor pode mostrar o que fez» — e não pelo que ele faz à *relação*. Um registo de horas num
-sistema da contratante não é neutro por ser opcional: a existência do campo é o que sugere a
-subordinação, e a subordinação é o que se alega. **Um campo opcional que só existe num dos lados do
-contrato não é uma opção — é uma infraestrutura.**
+### A causa não era o botão — era a composição
 
-### O que saiu
+O bloco **já sabia** de que escola era: o `data-pagamento-mes` e o `data-pagamento-gravar` levam o
+slug, e o `fetch` manda-o. Nada marcava um lote. O que falhava era outra coisa, e é de desenho:
 
-| onde | o que dizia | o que diz |
+1. o bloco usa a **mesma peça da barra de filtros da página** (`.caixa.filtrar`) — o que numa página
+   de painel lê como «controle de tudo»;
+2. fica no **fundo do cartão**, depois da tabela e depois da cláusula de quitação;
+3. o painel empilha **até dez cartões abertos** — quando se chega ao bloco, o resumo com o nome da
+   escola saiu do ecrã há muito.
+
+Um controle que se parece com o da página inteira, está longe do único sítio que diz de quem é, e não
+repete o nome, **lê-se como se fosse de todas**. Não era um bug de dados: era um bug de leitura — e
+os de leitura são os que fazem alguém carregar com medo.
+
+### O que ficou decidido, e a alternativa que foi posta à mesa
+
+Três caminhos possíveis, e eu levei-os a ela com o custo de cada um:
+
+| caminho | o que acontecia |
+|:--|:--|
+| **apagar o bloco** | perdia-se o **único** caminho para um mês que ainda não tem linha — o pagamento adiantado (a escola paga dezembro em novembro) e o mês que o relógio de ensaio abriu. O dinheiro entraria em novembro e o recibo diria dezembro |
+| **apagar o bloco e o gesto passar a última linha da tabela** | nada se perdia, mas era uma peça nova para um problema de rótulo |
+| **manter o bloco com o nome da escola no rótulo** | **escolhido por ela.** O bloco fica, e passa a dizer de quem é |
+
+**O argumento que decidiu não foi o meu gosto — foi a custódia.** Apagar o bloco faria a evidência
+mentir sobre o dia em que o dinheiro entrou: o pagamento adiantado só poderia ser registado quando o
+mês nascesse, e o `em` do livro é a data do registo. Um livro de recebimentos que não sabe quando
+recebeu deixa de servir para conciliar contra o extrato do banco, que é a única coisa que ele serve
+para fazer.
+
+### O que mudou no ecrã
+
+| onde | dizia | diz |
 |:--|:--|:--|
-| `PLANO-DO-CONSULTOR.md` §7 (tabela) | «**registar** as horas que ele declarar (opcional), e nada mais» | «**nada.** O sistema não sabe dela, e não deve saber» |
-| `PLANO-DO-CONSULTOR.md` §13 (Q4) | «DECIDIDO — sim, opcional» | «**REMOVIDO**, e não é «não por agora»» |
-| `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` | não dizia nada (o consultor só descobriria no ecrã) | **§2.2** nova: «o sistema não sabe quantas horas ele trabalhou» |
-| `PLANO-DO-CONSULTOR.md` §14 | «o tempo real de uma consultoria» por medir | …**deixa de poder ser medido pelo sistema** |
+| rótulo do bloco | «Informar um pagamento — mês» | «Informar um pagamento de **Breu** — mês» |
+| cabeçalho da 2.ª coluna | «Escola» (e o conteúdo era «habilitada») | «Habilitação» |
 
-**Não havia código nenhum.** O campo nunca passou do papel — nenhuma rota, nenhuma chave no KV,
-nenhum campo no ecrã. A remoção foi de documentos, e é por isso que ela pôde ser feita a limpo: o que
-nunca existiu não deixa resíduo.
+**O segundo não foi pedido, e foi corrigido porque é a mesma mentira por outra via.** A coluna
+chamava-se «Escola» e guardava o `estadoComercial`; quem concilia lia «Escola: habilitada» e não ficava
+a saber de que escola se tratava. Chama-se «Habilitação» e não «Estado» porque «Situação», na coluna
+ao lado, já é a do pagamento — duas colunas a dizer «estado» seria a confusão a mudar de sítio. O nome
+**não** se repetiu no botão: dois nomes no mesmo gesto não o tornam mais claro, tornam-no mais longo.
+E o nome ficou no `<label for="…">` — é ele que o leitor de ecrã anuncia quando o foco chega ao mês.
 
-### A distinção que fica escrita, porque é ela que protege a decisão no futuro
+### A prova, e o erro que ela apanhou em mim
 
-A decisão **não** é «não guardar datas nenhumas». É não guardar **o trabalho dele**:
+`provar-conciliacao-do-painel` ganhou a **§9** (71 → **78** asserções). A asserção que discrimina é o
+**par com o não-cruzamento**: com duas escolas, cada rótulo diz a sua e **nenhum diz o nome da outra**.
 
-| o que | de quem é | é controlo de tempo? |
-|:--|:--|:--|
-| `criadoEm`, `atualizadoEm`, `historico: [{em, o}]` | **dela** — quando cadastrou, ativou, desativou | **não**: é a proveniência de uma decisão administrativa |
-| `usadaEm` de uma visita | do sistema — quando a escola nasceu | **não**: é o instante de um facto do produto, e é o que o livro dos R$ 10 lê |
-| `previstaPara` de uma visita | dele | **não**: é a data em que *pretende* ir, não o tempo que lá passou |
-| horas, dias, duração, «quanto trabalhou» | — | **não existe, e não haverá** |
+**O meu primeiro erro estava na prova, e não no código:** escrevi
+`d.querySelectorAll('table thead th')` — a página inteira — para afirmar «nenhuma coluna se chama
+«Escola»». A página tem **outra** tabela com uma coluna legítima chamada «Escola» (a dos contactos). A
+asserção passava por acidente, enquanto essa tabela estivesse vazia, e reprovaria pela razão errada no
+dia em que ela tivesse dados. O seletor passou a ser o do cartão — `[data-conta="breu"] table thead
+th`. É a mesma família de erro do `if` que filtrava o título vazio: a pergunta «está aqui?» e a
+pergunta «existe?» não são a mesma pergunta.
 
-**Sem esta tabela, a decisão seria frágil:** o primeiro pedido de «projectar receita com o tempo médio
-de uma consultoria» traria o campo de volta, com boas intenções. Com ela, a pergunta passa a ter
-resposta escrita — e a resposta é que o número vem da conversa com o consultor, como já vem o valor
-da hora.
-
-### A prova — a decisão passou a ser executável
-
-`experimentos/provar-o-plano-do-consultor.js` cresceu com uma **§H** que mede a ausência em **três
-sítios**, porque um campo pode voltar por qualquer um deles:
-
-1. **o documento** — a decisão está escrita, o Q4 diz «REMOVIDO», e a tabela do dinheiro já não manda
-   registar horas;
-2. **o código** — uma varredura por nome de campo (`horas`, `duracao`, `minutos`, `jornada`) no núcleo
-   do consultor **e** no módulo que grava no KV;
-3. **o registo que ficaria gravado** — cria um consultor, ativa-o, cria uma visita, gasta-a e marca um
-   recebimento; e depois **lê o que ficou no KV**. Se a palavra aparecer, há um caminho até lá.
-
-E duas asserções do lado oposto, que impedem a prova de aprovar por omissão: **as datas das decisões
-dela continuam lá** (`historico`, `2026-11`) e **o `usadaEm` também** — se a prova só exigisse a
-ausência de «horas», um código que deixasse de gravar tudo passaria.
-
-**Quatro mutações, quatro quedas — uma por cada porta:**
+**Três mutações, quatro quedas:**
 
 | mutação | o que cai |
 |:--|:--|
-| o campo `horas: []` volta ao registo do consultor | 2 asserções (o código **e** o KV) |
-| a tabela do plano volta a «registar as horas declaradas» | 1 |
-| o Q4 volta a «DECIDIDO — sim, opcional» | 1 |
-| o manual deixa de dizer que o sistema não sabe as horas | 1 |
+| o rótulo volta a «Informar um pagamento — mês» | 2 (as duas escolas deixam de ser nomeadas) |
+| todos os blocos levam o nome da **primeira** escola | 2 (a segunda perde o nome, **e o não-cruzamento**) |
+| o cabeçalho volta a «Escola» | 1 |
+
+A segunda mutação é a que vale: é **o defeito que ela descreveu** — «um lote todas» — e é a única que
+faz cair a asserção do não-cruzamento.
 
 ### Onde entrou
 
-`PLANO-DO-CONSULTOR.md` (§7, §7.4 novo, §13, §14), `FLUXO-DA-ESCOLA-EM-CONSULTORIA.md` (§2.2 nova, e
-uma linha na §8.6), `experimentos/provar-o-plano-do-consultor.js` (§H: 54 → **65** asserções),
-`ESTADO-ATUAL.md`, `HANDOFF.md`.
+`motor/servidor/painel-html.js` (o rótulo do bloco, o cabeçalho da coluna),
+`experimentos/provar-conciliacao-do-painel.js` (§9), `ESTADO-ATUAL.md`, `HANDOFF.md`. Sem mudança de
+rota, de chave no KV ou de contrato: o gesto e o que ele grava são os mesmos de antes.
 
 ## O que está pendente
 

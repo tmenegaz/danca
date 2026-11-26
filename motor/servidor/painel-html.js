@@ -2436,7 +2436,16 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
       '</tr>').join('');
 
     const corpoDaTabela = linhas
-      ? '<div class="rolagem-caixa"><table><thead><tr><th>Mês</th><th>Escola</th>' +
+      ? '<div class="rolagem-caixa"><table><thead><tr><th>Mês</th>' +
+        /* A COLUNA CHAMAVA-SE «ESCOLA» E NÃO MOSTRAVA ESCOLA NENHUMA (26/11/2026). Ela guarda o
+         * `estadoComercial` — «habilitada», «desabilitada», «a aguardar» —, e um cabeçalho que
+         * promete o nome e entrega o estado é o que faz uma linha deixar de dizer de quem é: quem
+         * concilia lê «Escola: habilitada» e não fica a saber de que escola se trata. Cada cartão já
+         * é UMA escola, e o nome dela está no resumo, à vista; o que a coluna diz é outra coisa, e
+         * passa a dizê-la pelo nome. «Habilitação» e não «Estado» porque «Situação», na coluna ao
+         * lado, já é o do pagamento — duas colunas a dizer «estado» seria a confusão a mudar de
+         * sítio. */
+        '<th>Habilitação</th>' +
         '<th>Vencimento</th><th>Valor</th><th>Situação</th>' +
         /* A COLUNA DA COBRANÇA FICA NO FIM, e continua a ser outro assunto: o «pago» é a
          * conciliação (o dinheiro entrou) e a cobrança é a entrega do documento (o dinheiro ainda
@@ -2575,11 +2584,25 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
          *
          * O `type="month"` é o campo nativo, e o seu valor é `AAAA-MM` — exactamente a competência
          * que o livro guarda. Um campo de texto livre obrigaria a validar o formato à mão, e o
-         * formato é a única coisa que este campo tem de acertar. */
+         * formato é a única coisa que este campo tem de acertar.
+         *
+         * O NOME DA ESCOLA ENTROU NO RÓTULO (26/11/2026). «Eu vou ter N escolas […] nesse botão
+         * marcar como pago, me parece que eu tô marcando como pago um lote todas. E eu não sei dizer
+         * aqui por meio desse bloco qual é a escola que eu tô marcando como pago. Eu sei apenas
+         * dizer o mês e marcar como pago, mas a escola não.»
+         *
+         * O diagnóstico dela está certo, e a causa é de composição: este bloco usa a MESMA peça da
+         * barra de filtros da página (`.caixa.filtrar`), fica no FUNDO do cartão — depois da tabela
+         * e da cláusula — e com dez cartões abertos o resumo com o nome já saiu do ecrã. Um controle
+         * que se parece com o da página inteira e não diz de quem é lê-se como se fosse de todas.
+         *
+         * O RÓTULO NOMEIA A ESCOLA, e é o sítio certo: é ele que já está colado ao campo e ao botão,
+         * e é ele que o leitor de ecrã anuncia ao chegar ao mês. O nome não se repete no botão —
+         * dois nomes no mesmo gesto não o tornam mais claro, tornam-no mais longo. */
         '<div class="caixa filtrar">' +
         '<div class="campo-filtro">' +
-        '<label class="campo-rotulo" for="pagar-mes-' + esc(c.escola) + '">Informar um pagamento — ' +
-        'mês</label>' +
+        '<label class="campo-rotulo" for="pagar-mes-' + esc(c.escola) + '">Informar um pagamento de ' +
+        '<strong>' + esc(c.nome || c.escola) + '</strong> — mês</label>' +
         '<input id="pagar-mes-' + esc(c.escola) + '" type="month" data-pagamento-mes="' +
         esc(c.escola) + '" value="' + esc(c.mesDeHoje || '') + '">' +
         '</div>' +

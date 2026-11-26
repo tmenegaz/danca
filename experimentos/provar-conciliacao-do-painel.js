@@ -680,6 +680,79 @@ const ESCOLAS = [{ slug: 'breu', nome: 'Breu' }];
       && (await env.PADD_KV.get('financeiro/mensalidades')) === antes, zeroRota);
   }
 
+  /* ── 9. O BLOCO QUE INFORMA UM PAGAMENTO DIZ DE QUE ESCOLA É (26/11/2026) ────────────────── */
+  /*
+   * «Eu vou ter N escolas […] nesse botão marcar como pago, me parece que eu tô marcando como pago
+   * um lote todas. E eu não sei dizer aqui por meio desse bloco qual é a escola que eu tô marcando
+   * como pago. Eu sei apenas dizer o mês e marcar como pago, mas a escola não.»
+   *
+   * O BLOCO FICA — é o único caminho para o mês que ainda não tem linha (o pagamento adiantado, o
+   * mês que o ensaio abriu). O que muda é ele passar a dizer de quem é.
+   *
+   * AS DUAS ASSERÇÕES QUE DISCRIMINAM são a do par e a do NÃO-CRUZAMENTO. Uma implementação que
+   * escrevesse o nome da PRIMEIRA escola em todos os blocos passaria na primeira e falharia na
+   * segunda; uma que não escrevesse nome nenhum falharia nas duas. E a última asserção prende o
+   * bloco ao cartão da escola certa: um rótulo com o nome certo mas no cartão errado é a mesma
+   * mentira, com mais letras.
+   */
+  console.log('\n9. O bloco «informar um pagamento» diz de QUE escola é — e não se cruza');
+  {
+    const item = (slug, nome, estado) => ({
+      escola: slug, nome, planoNome: 'Básico', valorCentavos: 16990,
+      situacao: 'em-dia', mesDeHoje: '2026-11', emAberto: [], vencidos: [],
+      meses: [{ mes: '2026-11', nome: 'novembro de 2026', vencimento: '2026-11-16', status: 'pago',
+        valorCentavos: 16990, valorPagoCentavos: 16990, planoNome: 'Básico',
+        emTexto: '16/11/2026 às 21:48' }],
+      estadoComercial: estado, frase: 'Em dia.', capacidade: { professores: 4, alunos: 40 },
+      piso: { professores: 4, alunos: 40 }, teto: { professores: 5, alunos: 89 },
+      proximoVencimento: null, diasParaVencer: null,
+      lotesProfessores: [3], lotesAlunos: [30], cobrancas: {},
+    });
+    const html = painel.paginaFinanceira({
+      pix: { chave: 'k', titular: 'T' }, descontos: [],
+      escolas: [{ slug: 'breu', nome: 'Breu' }, { slug: 'cora', nome: 'Cora' }],
+      extrato: [item('breu', 'Breu', 'ativa'), item('cora', 'Cora', 'suspensa')],
+      catalogo: null,
+    });
+    const d = new JSDOM(html).window.document;
+    const rotuloDe = (slug) => {
+      const cartao = d.querySelector('[data-conta="' + slug + '"]');
+      const campo = cartao && cartao.querySelector('[data-pagamento-mes="' + slug + '"]');
+      return campo && cartao.querySelector('label[for="' + campo.id + '"]');
+    };
+    const textoDe = (slug) => (rotuloDe(slug) || {}).textContent || '';
+
+    conferir('o rótulo do bloco do Breu diz «Breu»', /Breu/.test(textoDe('breu')), textoDe('breu'));
+    conferir('…o rótulo do bloco da Cora diz «Cora»', /Cora/.test(textoDe('cora')), textoDe('cora'));
+    conferir('…e nenhum dos dois diz o nome da OUTRA escola — é isto que impede o «lote todas»',
+      !/Cora/.test(textoDe('breu')) && !/Breu/.test(textoDe('cora')),
+      { breu: textoDe('breu'), cora: textoDe('cora') });
+    conferir('…e cada bloco está no cartão da sua própria escola',
+      Boolean(d.querySelector('[data-conta="breu"] [data-pagamento-gravar="breu"]'))
+      && Boolean(d.querySelector('[data-conta="cora"] [data-pagamento-gravar="cora"]'))
+      && !d.querySelector('[data-conta="breu"] [data-pagamento-gravar="cora"]'), null);
+    /* O RÓTULO ESTÁ LIGADO AO CAMPO (`for` = `id`), e não é só texto ao lado: é esta ligação que faz
+     * o leitor de ecrã anunciar de que escola é o mês quando o foco chega ao campo. */
+    conferir('…e o rótulo é o rótulo do campo do mês, ligado por `for`',
+      Boolean(rotuloDe('breu')) && rotuloDe('breu').tagName === 'LABEL', null);
+
+    /* A COLUNA QUE SE CHAMAVA «ESCOLA» E MOSTRAVA O ESTADO. «Escola: habilitada» não diz de que
+     * escola se trata — diz como ela está. A coluna passa a dizer o que guarda.
+     *
+     * O SELETOR É O DO CARTÃO, e não o da página: o financeiro tem OUTRA tabela com uma coluna
+     * legítima chamada «Escola» (a dos contactos, «com quem falo e com que CNPJ»), e uma asserção
+     * sobre a página inteira reprovaria por causa dela — ou, pior, passaria por acidente enquanto
+     * essa tabela estivesse vazia. */
+    const colunas = [...d.querySelectorAll('[data-conta="breu"] table thead th')]
+      .map((th) => th.textContent.trim());
+    conferir('a coluna do estado comercial chama-se «Habilitação», e não «Escola»',
+      colunas.includes('Habilitação') && !colunas.includes('Escola'), colunas);
+    conferir('…e ela continua a mostrar o estado de cada escola, na linha',
+      /habilitada/.test(d.querySelector('[data-conta="breu"] tbody tr td:nth-child(2)').textContent || '')
+      && /desabilitada/.test(d.querySelector('[data-conta="cora"] tbody tr td:nth-child(2)').textContent || ''),
+      d.querySelector('[data-conta="cora"] tbody tr td:nth-child(2)').textContent);
+  }
+
   console.log('');
   if (falhas) { console.log('FALHOU — ' + (n - falhas) + '/' + n); process.exit(1); }
   console.log('TUDO CERTO — ' + n + ' asserção(ões).');
