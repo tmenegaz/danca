@@ -100,7 +100,7 @@
   "id": "ballet-classico",
   "modalidade": "bale-classico",
   "nome": "Código de dança (ballet clássico)",
-  "versao": 64,
+  "versao": 65,
   "aplicaseA": [
     "codigo-de-danca"
   ],
@@ -1220,14 +1220,16 @@
                 "→",
                 "-",
                 "●",
-                "×",
+                "+",
                 "5ª"
               ],
-              "descricao": "Lançamento rápido da perna estendida a uma altura baixa (geralmente a 45 graus do chão), escovando o chão\nLê-se: Peso, quinta posição, conduz a, ao lado, fecha, atrás, quinta posição.",
-              "ordem": 1,
+              "descricao": "Lançamento rápido da perna estendida a uma altura baixa (geralmente a 45 graus do chão), escovando o chão\nLê-se: Peso, quinta posição, conduz a, ao lado, fecha, à frente, quinta posição.",
+              "ordem": 2,
               "repeticoes": 2,
               "orientacao": "croise"
-            },
+            }
+          ],
+          "devant": [
             {
               "contagem": "1–2",
               "categoria": "Peso",
@@ -1236,11 +1238,11 @@
                 "→",
                 "-",
                 "●",
-                "+",
+                "×",
                 "5ª"
               ],
-              "descricao": "Lançamento rápido da perna estendida a uma altura baixa (geralmente a 45 graus do chão), escovando o chão\nLê-se: Peso, quinta posição, conduz a, ao lado, fecha, à frente, quinta posição.",
-              "ordem": 2,
+              "descricao": "Lançamento rápido da perna estendida a uma altura baixa (geralmente a 45 graus do chão), escovando o chão\nLê-se: Peso, quinta posição, conduz a, ao lado, fecha, atrás, quinta posição.",
+              "ordem": 1,
               "repeticoes": 2,
               "orientacao": "croise"
             }
@@ -1253,6 +1255,49 @@
             "cobre": 8,
             "posicao": null,
             "metodo": "compartilhada",
+            "celulas": {
+              "a-la-seconde": [
+                {
+                  "contagem": "1–2",
+                  "categoria": "Peso",
+                  "sinais": [
+                    "5ª",
+                    "→",
+                    "-",
+                    "●",
+                    "×",
+                    "5ª"
+                  ],
+                  "descricao": "Lançamento rápido da perna estendida a uma altura baixa (geralmente a 45 graus do chão), escovando o chão\nLê-se: Peso, quinta posição, conduz a, ao lado, fecha, atrás, quinta posição.",
+                  "ordem": 1,
+                  "repeticoes": 2,
+                  "orientacao": "croise"
+                },
+                {
+                  "contagem": "1–2",
+                  "categoria": "Peso",
+                  "sinais": [
+                    "5ª",
+                    "→",
+                    "-",
+                    "●",
+                    "+",
+                    "5ª"
+                  ],
+                  "descricao": "Lançamento rápido da perna estendida a uma altura baixa (geralmente a 45 graus do chão), escovando o chão\nLê-se: Peso, quinta posição, conduz a, ao lado, fecha, à frente, quinta posição.",
+                  "ordem": 2,
+                  "repeticoes": 2,
+                  "orientacao": "croise"
+                }
+              ]
+            },
+            "motivo": "ajuste do verbete"
+          },
+          {
+            "ate": "2026-11-26",
+            "cobre": 8,
+            "posicao": null,
+            "metodo": "Vaganova",
             "celulas": {
               "a-la-seconde": [
                 {
