@@ -4,7 +4,23 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 26/11/2026 — **o nome da escola é o que ela declarou, e não o slug.**
+> **Última fotografia:** 26/11/2026 — **o «Enviar» da aula não enviava, e não dizia nada.** Ela
+> preencheu todos os campos, pôs a senha, clicou em Enviar: nada foi enviado e a tela não disse nada.
+> **A causa era um nome fora de alcance** — `coletarCaptura` (quem lê o formulário) chamava
+> `tipoDaColuna`, que existia apenas dentro de `camposCaptura` (quem o desenha). No bloco da linha de
+> base, o único com `secoes`, dava `ReferenceError`, e a excepção subia sem `catch`: o clique morria
+> antes do `fetch`. **Medido no Worker vivo:** zero pedidos a `/api/receber`, aviso em branco,
+> `pageerror` no console. **Nenhuma prova exercia o GESTO** — as do lançamento medem o desenho dos
+> campos e a leitura da página, e um formulário pode desenhar-se bem e nunca enviar. **Dois defeitos
+> mais, encontrados a preencher o painel como uma pessoa:** marcar a presença **apagava as respostas**
+> de rádio (o painel reconstrói-se e a reposição andava por `id`; os rádios não têm `id`), e o
+> `/api/dados` procurava o `-dados.json` na **raiz do ASSETS**, que no shard é `publicacao/` e não
+> `publicacao/<escola>/` — esse só morderia **depois** do primeiro lançamento («a aula 1 entra, a 2
+> nunca abre»). **O envio passou a nunca falhar em silêncio:** o clique tem `catch`, e o próximo
+> defeito desta família aparece escrito no ecrã. Prova nova `provar-o-envio-da-aula` (**22
+> asserções**) sobre o ciclo dela, três mutações com 10/10/1 quedas. Ao vivo depois do deploy: `POST
+> /api/receber` presente, aviso na tela, zero `pageerror`. Antes disso, no mesmo dia: **o nome da
+> escola é o que ela declarou, e não o slug.**
 > O cartão do extrato dizia «breu (breu)», e a causa era maior do que a estética: o índice do acervo
 > chama `nome` ao **slug** (nasce do repositório, e o nome declarado vive no cadastro, que é KV),
 > e os ecrãs liam-no como se fosse o nome. **A mesma escola tinha dois nomes no mesmo ecrã** — o
@@ -5948,7 +5964,22 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (26/11/2026 — o nome da escola, e o defeito escondido na linha de base)
+### Executado nesta fotografia (26/11/2026 — o envio da aula)
+
+| Verificação | Resultado |
+|:--|:--|
+| a sonda ao vivo, **antes** da correcção (headless, no Worker publicado) | preencheu tudo, respondeu ao «plano seguido» e ao «surpreendeu?», marcou presença, pôs a senha, clicou em Enviar: **zero pedidos a `/api/receber`**, `#aviso-json` **em branco**, e `pageerror` `tipoDaColuna is not defined` |
+| `node experimentos/provar-o-envio-da-aula.js` (**nova**) | **22/22**. Serve o **template** por HTTP, abre a página num DOM, preenche pelos campos que a página desenhou, marca a presença, clica em Enviar e exige o `POST` — com a **aula 01** e a **marca da linha de base** no ficheiro enviado. Usa o ciclo **dela** e começa por afirmar que a folha tem `linha_de_base` e o PO tem itens no corpo |
+| a mutação — **três regras, 10/10/1 quedas** | `tipoDaColuna` volta a ser local de `camposCaptura` **10** · a reposição dos rádios sai **10** · `prefixoDaRaizDoPacote` volta a `''` **1** |
+| a sonda ao vivo, **depois** do deploy (senha errada de propósito — não grava nada) | `POST /api/receber` **presente**, HTTP 200, aviso na tela («não enviei: senha não reconhecida — o lançamento não foi gravado»), **zero `pageerror`** |
+| `tools/gerar-ciclo.sh demi-plie 01 breu-piano` | o pacote regerado: **0 erro(s)**, 1 aviso (o PDF, que deixou de ser gerado a 20/11/2026); 9 páginas, 259 links |
+| `node tools/montar-publicacao.js breu` | publicação montada; a página publicada passa a ter `tipoDaColunaEm` |
+| as provas vizinhas | `provar-senha-do-lancamento` **19/19** · `provar-familia-do-lancamento` **44/44** · `provar-declaracao-da-captura` **12/12** |
+| as quatro conferências | `check-identidade` **0 problemas** (exit 0) · `check-schemas` verde · `check-pacote` do ciclo **0 erro(s)** |
+| `node tools/correr-provas.js --paralelo=3 --tecto=90` | **299 provas, 207 verdes, 92 conhecidas, 0 regressões** (a prova nova entra na contagem a partir do commit — o corredor lê `git ls-files`) |
+| o que **não** foi medido | o lançamento a sério, com a senha certa. Ele **grava um ficheiro** no repositório e dispara a geração — é o acto dela, e é ela quem o faz |
+
+### Executado nesta fotografia anterior (26/11/2026 — o nome da escola, e o defeito escondido na linha de base)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -7906,6 +7937,21 @@ Não se muda sem ela decidir.
 ## 11. Histórico recente
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
+
+- **26/11/2026** — **O «Enviar» da aula não enviava, e não dizia nada.** A causa era de âmbito:
+  `coletarCaptura` chamava `tipoDaColuna`, um `const` local de `camposCaptura`. No bloco da linha de
+  base (o único com `secoes`) o nome não está no alcance → `ReferenceError`, que subia de `gerarJson`
+  sem `catch`. **O clique morria antes do `fetch`.** Medido no Worker vivo: zero pedidos, aviso em
+  branco, `pageerror`. **A lição:** as provas do lançamento mediam o DESENHO dos campos e a leitura da
+  página — nenhuma exercia o GESTO. Um formulário pode desenhar-se bem e nunca enviar. **Dois defeitos
+  mais, encontrados a preencher o painel como uma pessoa:** (a) marcar a presença **apagava as
+  respostas de rádio**, porque o painel se reconstrói e a reposição andava por `id` — e os rádios não
+  têm `id`, têm `name`; (b) o `/api/dados` procurava o `-dados.json` na raiz do ASSETS, e no shard o
+  pacote está debaixo da escola — defeito que só morde **depois** do primeiro lançamento, e o sintoma
+  seria «a aula 1 entrou, a 2 nunca abre». **O envio passou a nunca falhar em silêncio** (o clique tem
+  `catch`, e o motivo aparece no ecrã). Prova nova: `provar-o-envio-da-aula` (**22 asserções**), no
+  ciclo dela, com **três mutações e 10/10/1 quedas**. Ao vivo depois do deploy: `POST /api/receber`
+  presente, aviso na tela, zero `pageerror`.
 
 - **26/11/2026** — **O nome da escola é o que ela declarou, e não o slug.** O cartão do extrato dizia
   «breu (breu)», e a causa era maior do que a estética: o índice do acervo chama **`nome` ao slug**

@@ -63975,3 +63975,101 @@ extrato), `experimentos/provar-conciliacao-do-painel.js` (§10), `experimentos/p
 inadimplência é onde ela decide a quem telefonar, e uma linha que diz «breu» quando a escola se chama
 «Clablun» não serve para telefonar. O custo fica declarado no código: o extrato já gasta três
 leituras por escola, e esta é a quarta — a mesma ordem de grandeza, não uma classe nova.
+
+## O «Enviar» da aula não enviava — e não dizia nada *(26/11/2026)*
+
+**Ela estava a usar o sistema, e o relato é exacto:** «Eu preenchi os campos, todos eles […] Coloquei
+a senha, cliquei em enviar e nada foi enviado. Não deu certo.» Preencheu tudo, o botão não fez nada, e
+a tela não disse nada — é a segunda metade que custou a tarde.
+
+### A causa: um nome fora de alcance
+
+`coletarCaptura` — quem LÊ o formulário — chamava `tipoDaColuna`, que existia apenas **dentro de
+`camposCaptura`**, quem o DESENHA. No bloco da linha de base (o único com `secoes`) o nome não está
+no alcance:
+
+```
+ReferenceError: tipoDaColuna is not defined
+```
+
+A excepção subia de `gerarJson` sem ninguém a apanhar — a função é `async` e o clique não tinha
+`catch` —, e o resultado era um botão que não faz nada. Medido no Worker vivo com uma sonda headless
+antes da correcção: **zero pedidos a `/api/receber`, aviso em branco, `pageerror` no console.**
+
+**Porque é que só agora.** A linha de base só é lida quando o PO tem itens no eixo do corpo — e o
+ciclo dela tem nove dimensões, quatro de corpo. Um ciclo sem PO nunca passava por ali.
+
+**Porque é que nenhuma prova o apanhou.** As provas do lançamento medem o **desenho** dos campos e a
+**leitura** da página. Nenhuma exercia o **gesto**: preencher, clicar, e ver o pedido sair. Um
+formulário pode desenhar-se maravilhosamente e nunca enviar nada — e a diferença entre as duas coisas
+é exactamente o clique.
+
+### O segundo defeito, que a sonda expôs
+
+Ao preencher o painel como uma pessoa — responder, e só no fim marcar quem esteve — descobriu-se que
+**marcar a presença apagava as respostas**. O painel reconstrói-se quando a presença muda
+(`presencaMudou` → `renderCaptura`), e a reposição andava por `id`; os rádios do «plano foi
+seguido?» e do «surpreendeu?» **não têm `id`** — quem os agrupa é o `name`. Voltavam a branco, e o
+envio pedia depois uma resposta que já tinha sido dada.
+
+Corrigido nas duas metades (`valoresDoPainel` e `reporValores`), com a razão escrita ao lado.
+
+### O terceiro, que só apareceria na aula 2
+
+O `/api/dados` — quem decifra o `-dados.json` quando o ciclo já tem lançamentos — procurava o
+ficheiro na **raiz do ASSETS**. Isso era verdade quando um Worker servia uma escola. No shard o
+ASSETS é `publicacao/` e o pacote é `publicacao/<escola>/`, portanto o caminho certo tem o prefixo da
+escola — e com a string vazia o leitor respondia «o pacote não tem …» sobre um ficheiro publicado e
+legível. O mesmo defeito de 06/11/2026, uma camada abaixo, reintroduzido pelo shard.
+
+**E ele só morde DEPOIS do primeiro lançamento:** enquanto o invólucro diz `lancamentos: 0`, a
+página nem pede o ficheiro ao Worker — devolve a estrutura vazia. A partir da aula 1, pede. O
+sintoma seria: «a aula 1 entrou, a 2 nunca abre».
+
+A correcção é uma função só — `prefixoDaRaizDoPacote`, em `arvore-de-assets.js` —, que devolve
+`breu/` no shard e `''` no Worker de uma escola. A conversão (`/breu` → `breu/`) era feita à mão em
+`producao.js` para a porta; passa a ser feita uma vez, para os três leitores do ASSETS.
+
+### O que se fez para o envio nunca mais falhar em silêncio
+
+O `catch` no clique não corrige um `ReferenceError` — nenhum catch corrige. Ele garante que o
+**próximo** defeito desta família apareça **escrito no ecrã**, com o motivo. A diferença entre um
+erro e um mistério. Foi ele que, na mutação, transformou o silêncio em «não enviei: tipoDaColuna is
+not defined».
+
+### A prova — o gesto, e não o desenho
+
+`experimentos/provar-o-envio-da-aula.js` (**nova**, 22 asserções). Ela **serve o template** por HTTP
+(a fonte, não o artefacto de ontem), abre a página num DOM, preenche pelos campos que a página
+desenhou, marca a presença, carrega em «Enviar» — e exige o `POST`.
+
+O ciclo usado é **o dela** (`demi-plie/ciclo-01-breu-piano`), o que tem a folha com `linha_de_base` e
+um PO com itens: a combinação que faz o defeito disparar. A prova começa por afirmar que essa
+combinação existe — senão estaria a medir um caminho que ninguém percorre.
+
+E mede o que vai no corpo: a aula 01, e a marca da linha de base (é a leitura com o tipo da coluna
+que estava fora de alcance). Sem isto, um `POST` com um ficheiro vazio passaria.
+
+**Três mutações, três quedas:**
+
+| mutação | o que cai |
+|:--|:--|
+| `tipoDaColuna` volta a ser local de `camposCaptura` (o defeito, reposto) | **10** — o `POST` deixa de existir, e o aviso passa a dizer o `ReferenceError` |
+| a reposição dos rádios sai | **10** — o «surpreendeu?» volta a branco, e o envio pede-o outra vez |
+| `prefixoDaRaizDoPacote` volta a `''` | **1** — o `-dados.json` deixa de ser encontrado debaixo da escola |
+
+### Ao vivo, depois do deploy
+
+A mesma sonda headless, agora com uma senha errada de propósito (exercita tudo até ao `fetch` sem
+gravar nada): **`POST /api/receber` presente, HTTP 200, aviso na tela** («não enviei: senha não
+reconhecida — o lançamento não foi gravado»), **zero `pageerror`**. Antes: nenhum pedido, aviso em
+branco, `ReferenceError`.
+
+### Onde entrou
+
+`tools/templates/lancamento.html` (`medePelaReguaNaFolha`, `tipoDaColunaEm`, os rádios, o `catch` do
+clique), `motor/nucleo/arvore-de-assets.js` (`prefixoDaRaizDoPacote`),
+`motor/servidor/cloudflare.js` (o leitor do `/api/dados`),
+`motor/servidor/producao.js` (a conversão passa a vir da mesma função),
+`professores/demi-plie/ciclos/ciclo-01-breu-piano/lancamento.html` (regerado),
+`experimentos/provar-o-envio-da-aula.js`, `ESTADO-ATUAL.md`, `HANDOFF.md`.

@@ -1143,7 +1143,7 @@ const REGUA_PADRAO = ['Satisfatório', 'Razoável', 'Em desenvolvimento', 'Não 
 let reguaAtual = REGUA_PADRAO.slice();
 // A régua foi DECLARADA pela turma (e não é a de recurso)? É a diferença entre «esta turma mede
 // assim» e «ninguém declarou nada, e a página não pode ficar sem escala». Governa a matriz do
-// corpo junto com `comRegua` — ver `tipoDaColuna`, em `camposCaptura`.
+// corpo junto com `comRegua` — ver `tipoDaColunaEm`.
 let reguaDeclarada = false;
 
 // A régua do ciclo em cena. O vazio NÃO é uma régua: sem níveis, volta o padrão.
@@ -1152,6 +1152,38 @@ function usarRegua(plano) {
     .filter((x) => typeof x === 'string' && x.trim()).map((x) => x.trim());
   reguaDeclarada = declarada.length > 0;
   reguaAtual = reguaDeclarada ? declarada : REGUA_PADRAO.slice();
+}
+
+/**
+ * A FOLHA EM CENA MEDE-SE PELA RÉGUA? — a pergunta que decide o TIPO da coluna do corpo.
+ *
+ * Ela morava dentro de `camposCaptura`, e o preço de lá estar foi o defeito de 26/11/2026: quem
+ * LÊ o formulário (`coletarCaptura`) precisava da mesma resposta, não a tinha, e chamava uma
+ * função que só existe dentro da outra. O `ReferenceError` matava o envio **em silêncio** — sem
+ * mensagem, sem pedido, sem nada.
+ *
+ * A ORDEM IMPORTA e é a de `camposCaptura`: a régua do ciclo entra em cena ANTES de se perguntar
+ * se a folha declara `rubrica`. É idempotente — chamar com o mesmo plano dá o mesmo estado —, e é
+ * isso que permite às duas funções a chamarem cada uma por si.
+ */
+function medePelaReguaNaFolha(captura, planoDoCiclo) {
+  const blocos = captura ? Vistas.helpers.blocosDaCaptura(captura) : [];
+  const comRegua = blocos.some((b) => (b.colunas || []).some((c) => c.tipo === 'rubrica'));
+  usarRegua(planoDoCiclo);
+  return comRegua || reguaDeclarada;
+}
+
+/**
+ * O TIPO DE UMA COLUNA NA FOLHA EM CENA — uma resposta só, para desenhar e para ler.
+ *
+ * Duas implementações — a que DESENHA o campo e a que LÊ o que foi preenchido — divergiriam no
+ * primeiro dia em que uma delas mudasse, e o sintoma seria um valor lido com o tipo errado. A
+ * regra é a da PÁGINA (22/11/2026): se a folha em cena mede critérios pela régua, o corpo
+ * mede-se pela mesma, e uma folha inteira em marcas fica como estava.
+ */
+function tipoDaColunaEm(medePelaRegua, b, c) {
+  if (b && b.chave === 'linha_de_base' && medePelaRegua) return 'rubrica';
+  return (c && c.tipo) || 'marca';
 }
 
 
@@ -1698,10 +1730,7 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
    * escala só. Uma folha inteira em marcas — o ciclo antigo — fica como estava: não se inventa uma
    * escala nova em cima de um ciclo que nunca a teve. */
   const medePelaRegua = comRegua || reguaDeclarada;
-  const tipoDaColuna = (b, c) => {
-    if (b && b.chave === 'linha_de_base' && medePelaRegua) return 'rubrica';
-    return (c && c.tipo) || 'marca';
-  };
+  const tipoDaColuna = (b, c) => tipoDaColunaEm(medePelaRegua, b, c);
   // A legenda das marcas aparece quando alguma coluna RENDERIZA como marca — e `marca` é o ramo
   // padrão de `campo()`: uma coluna cujo tipo ninguém declarou cai nele, e a legenda tem de
   // explicá-la. Só o que é de outro registro declarado (número, booleano, texto, régua) fica fora.
@@ -2094,6 +2123,14 @@ function valoresDoPainel(raiz) {
   raiz.querySelectorAll('input[id], select[id], textarea[id]').forEach((x) => {
     v[x.id] = x.type === 'checkbox' ? x.checked : x.value;
   });
+  /* AS MARCAS DE RÁDIO NÃO TÊM `id` (26/11/2026). Quem as agrupa é o `name`, e o
+   * «plano foi seguido?» e o «surpreendeu?» são rádios. Sem esta linha, o painel reconstruía-se
+   * — coisa que acontece quando se marca a presença de alguém — e as duas respostas voltavam a
+   * branco: quem já as tinha dado via-as desaparecer, e no fim o envio dizia «falta o plano
+   * seguido» sobre uma pergunta que estava respondida há um minuto. */
+  raiz.querySelectorAll('input[type="radio"][name]').forEach((x) => {
+    if (x.checked) v['radio:' + x.name] = x.value;
+  });
   return v;
 }
 
@@ -2102,6 +2139,11 @@ function reporValores(raiz, v) {
     if (!Object.prototype.hasOwnProperty.call(v, x.id)) return;
     if (x.type === 'checkbox') x.checked = v[x.id];
     else x.value = v[x.id];
+  });
+  // O PAR DOS RÁDIOS — pelo `name`, e não pelo `id`, porque `id` é o que eles não têm.
+  raiz.querySelectorAll('input[type="radio"][name]').forEach((x) => {
+    const escolhido = v['radio:' + x.name];
+    x.checked = escolhido !== undefined && x.value === escolhido;
   });
 }
 
@@ -2279,6 +2321,17 @@ function coletarCaptura(dados) {
   // A MESMA escolha do painel: o config da aula, com queda no `captura-XX.json`.
   const capturaDaVez = (pecas.capturas || {})[sel.aula.value] ?? pecas.captura;
   const blocosDoCiclo = capturaDaVez ? Vistas.helpers.blocosDaCaptura(capturaDaVez) : [];
+  /* O TIPO DA COLUNA VEM DA MESMA REGRA QUE A DESENHOU (26/11/2026).
+   *
+   * Aqui chamava-se `tipoDaColuna` — que só existe DENTRO de `camposCaptura`. O `ReferenceError`
+   * disparava no bloco da linha de base (o único com `secoes`), ou seja, em TODO lançamento de um
+   * ciclo com PO: `gerarJson` morria antes do `fetch`, e a tela não dizia nada. «Cliquei em enviar
+   * e nada foi enviado.»
+   *
+   * A régua do ciclo entra em cena pela mesma função do desenho — e é isso que impede o valor de
+   * ser lido com um tipo e desenhado com outro. */
+  const medePelaRegua = medePelaReguaNaFolha(capturaDaVez, pecas.plano);
+  const tipoDaColuna = (b, c) => tipoDaColunaEm(medePelaRegua, b, c);
   const lerValor = (id, tipo) => {
     const x = el(id);
     if (tipo === 'booleano') return !!(x && x.checked);
@@ -2905,7 +2958,26 @@ async function trocarCiclo(modo) {
     el('gerar').addEventListener('click', gerarMd);
     // o campo "Gerado por" é obrigatório: enquanto estiver vazio, o botão fica travado
     el('autor').addEventListener('input', atualizarBotaoMd);
-    el('gerar-json').addEventListener('click', gerarJson);
+    /* O ENVIO NUNCA FALHA EM SILÊNCIO (26/11/2026).
+     *
+     * «Eu preenchi os campos, todos eles […] cliquei em enviar e nada foi enviado.» Nada foi
+     * enviado E NADA FOI DITO — e é a segunda metade que custou a tarde: dentro de `gerarJson`,
+     * uma excepção (um nome fora de alcance, um `JSON.parse` que não passa) subia sem ninguém a
+     * apanhar. O botão ficava igual, a página ficava igual, e a conclusão honesta de quem estava
+     * a olhar era «não deu certo».
+     *
+     * O `catch` não substitui a correcção do defeito — nenhum catch corrige um `ReferenceError`.
+     * Ele garante que o PRÓXIMO defeito desta família apareça escrito no ecrã, com o motivo, em
+     * vez de aparecer como um botão que não faz nada. É a diferença entre um erro e um mistério. */
+    el('gerar-json').addEventListener('click', () => {
+      gerarJson().catch((erro) => {
+        const aviso = el('aviso-json');
+        if (!aviso) return;
+        aviso.innerHTML = '<span class="erro">não enviei: '
+          + esc((erro && erro.message) || String(erro))
+          + '. Os dados continuam aqui — tente de novo.</span>';
+      });
+    });
     // o ajuste: abre o formulário com o que já estava lançado; cancelar volta à leitura
     el('ajustar').addEventListener('click', () => {
       ajustando = true;

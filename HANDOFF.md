@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-26T10:52:34-0300`
-Commit atual: `6345ba3b` — fix(estrutura): o bloco «informar um pagamento» passa a dizer de que escola é
+Gerado em: `2026-11-26T14:22:53-0300`
+Commit atual: `4e7464a3` — fix(estrutura): o nome da escola é o que ela declarou, e não o slug
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -83,6 +83,7 @@ sapatilha-de-ponta (16)
 ## Últimos commits
 
 ```
+4e7464a3 fix(estrutura): o nome da escola é o que ela declarou, e não o slug
 6345ba3b fix(estrutura): o bloco «informar um pagamento» passa a dizer de que escola é
 0f379a12 docs(estrutura): o campo de horas do consultor saiu, e a razão é jurídica
 c8000e27 audit(estrutura): o Q7 e o Q8 do plano do consultor, agora medidos
@@ -102,7 +103,6 @@ acd513e4 docs(estrutura): o plano do consultor — o cadastro, o link e os R$ 10
 a4638edf fix(estrutura): a descricao do exercicio volta para fora da tabela
 9eb12e05 docs(estrutura): o custo da demonstracao medido na API — 16 min, e nao 22
 78ada910 docs(estrutura): o §22 mediu-se a si mesmo — documentar custa zero
-df41c5e6 docs(estrutura): o fluxo do consultor, e o custo da demonstracao medido
 ```
 
 ## Por professor
@@ -208,97 +208,103 @@ df41c5e6 docs(estrutura): o fluxo do consultor, e o custo da demonstracao medido
 
 ## Última entrada do REGISTRO
 
-## O nome da escola é o que ela declarou, e não o slug *(26/11/2026)*
+## O «Enviar» da aula não enviava — e não dizia nada *(26/11/2026)*
 
-**A frase que abriu isto foi minha, ao fechar a correcção anterior:** «o resumo do cartão diz
-**breu** (breu) — porque no índice o *nome* da escola **é** o slug». Ela respondeu «Ajusta», e o que
-estava por trás do parêntesis repetido era maior do que a estética.
+**Ela estava a usar o sistema, e o relato é exacto:** «Eu preenchi os campos, todos eles […] Coloquei
+a senha, cliquei em enviar e nada foi enviado. Não deu certo.» Preencheu tudo, o botão não fez nada, e
+a tela não disse nada — é a segunda metade que custou a tarde.
 
-### O defeito não era o parêntesis — era a mesma escola com dois nomes
+### A causa: um nome fora de alcance
 
-O índice do acervo (`indices/acervo.json`) guarda `nome: "breu"`, e guarda-o porque **nasce do
-repositório**: o nome que a escola declarou vive no cadastro, que é KV, e o `check-indices` proíbe
-contacto nos índices. Durante todo este tempo os ecrãs leram o índice e escreveram-no como se fosse
-o nome. O resultado tinha duas formas:
+`coletarCaptura` — quem LÊ o formulário — chamava `tipoDaColuna`, que existia apenas **dentro de
+`camposCaptura`**, quem o DESENHA. No bloco da linha de base (o único com `secoes`) o nome não está
+no alcance:
 
-| ecrã | o que dizia | de onde lia |
-|:--|:--|:--|
-| cartão do extrato, rótulo do pagamento, lista do desconto | «breu» | o índice — o slug |
-| tabela «os dados da escola» | «Clablun» | o cadastro, porque precisava do CNPJ ao lado |
+```
+ReferenceError: tipoDaColuna is not defined
+```
 
-**A mesma escola, dois nomes, no mesmo ecrã** — e a linha que ela usa para telefonar dizia o slug.
-O parêntesis repetido não era feio: era o sintoma de que o nome nunca chegou àquele sítio.
+A excepção subia de `gerarJson` sem ninguém a apanhar — a função é `async` e o clique não tinha
+`catch` —, e o resultado era um botão que não faz nada. Medido no Worker vivo com uma sonda headless
+antes da correcção: **zero pedidos a `/api/receber`, aviso em branco, `pageerror` no console.**
 
-### O que mudou
+**Porque é que só agora.** A linha de base só é lida quando o PO tem itens no eixo do corpo — e o
+ciclo dela tem nove dimensões, quatro de corpo. Um ciclo sem PO nunca passava por ali.
 
-| onde | dizia | diz |
-|:--|:--|:--|
-| resumo do cartão | `breu (breu)` | `Breu do Vale (breu)` — e `clablun` quando o nome **é** o slug |
-| rótulo do bloco do pagamento | `Informar um pagamento de breu` | `…de Breu do Vale` |
-| lista do desconto | `breu` | `Breu do Vale (breu)` |
+**Porque é que nenhuma prova o apanhou.** As provas do lançamento medem o **desenho** dos campos e a
+**leitura** da página. Nenhuma exercia o **gesto**: preencher, clicar, e ver o pedido sair. Um
+formulário pode desenhar-se maravilhosamente e nunca enviar nada — e a diferença entre as duas coisas
+é exactamente o clique.
 
-**O parêntesis passou a ser condicional**, e é essa a regra que interessa: ele existe para
-desambiguar o nome da identidade técnica. Quando as duas são a mesma palavra, não desambigua nada —
-e repetir a mesma palavra não é informação, é ruído.
+### O segundo defeito, que a sonda expôs
 
-### A decisão de custo, e porque inverti a ordem
+Ao preencher o painel como uma pessoa — responder, e só no fim marcar quem esteve — descobriu-se que
+**marcar a presença apagava as respostas**. O painel reconstrói-se quando a presença muda
+(`presencaMudou` → `renderCaptura`), e a reposição andava por `id`; os rádios do «plano foi
+seguido?» e do «surpreendeu?» **não têm `id`** — quem os agrupa é o `name`. Voltavam a branco, e o
+envio pedia depois uma resposta que já tinha sido dada.
 
-O nome está no cadastro (`bastidores/<slug>/cadastro`), e para uma escola expurgada no registo que o
-expurgo guardou (`cadastros/<slug>`, o **último** elo). Ler era o problema: o financeiro **já lê
-esse cadastro** para o CNPJ e os contactos, na tabela «os dados da escola».
+Corrigido nas duas metades (`valoresDoPainel` e `reporValores`), com a razão escrita ao lado.
 
-**A ordem das duas leituras inverteu-se.** O extrato era lido primeiro e a tabela depois; agora a
-tabela lê primeiro, e o mapa `{slug: nome}` que sai dela é o que o extrato consome. Zero leituras a
-mais, e — o que importa mais — **uma fonte só para o nome**. Duas leituras da mesma chave para o
-mesmo ecrã é como se chega a dois nomes diferentes, que é exactamente o defeito que se estava a
-corrigir.
+### O terceiro, que só apareceria na aula 2
 
-E a composição passou a ser uma função (`extratoComNomes`), não duas linhas na rota. **Uma regra que
-só se cumpre por a ordem das linhas estar certa não se consegue medir** — invertê-la devolveria o
-slug no ecrã inteiro sem quebrar nada visível. Como função, a prova exerce-a com um KV de mentira, e
-a inversão cai.
+O `/api/dados` — quem decifra o `-dados.json` quando o ciclo já tem lançamentos — procurava o
+ficheiro na **raiz do ASSETS**. Isso era verdade quando um Worker servia uma escola. No shard o
+ASSETS é `publicacao/` e o pacote é `publicacao/<escola>/`, portanto o caminho certo tem o prefixo da
+escola — e com a string vazia o leitor respondia «o pacote não tem …» sobre um ficheiro publicado e
+legível. O mesmo defeito de 06/11/2026, uma camada abaixo, reintroduzido pelo shard.
 
-### A prova — e o defeito que ela apanhou, escondido numa prova vermelha
+**E ele só morde DEPOIS do primeiro lançamento:** enquanto o invólucro diz `lancamentos: 0`, a
+página nem pede o ficheiro ao Worker — devolve a estrutura vazia. A partir da aula 1, pede. O
+sintoma seria: «a aula 1 entrou, a 2 nunca abre».
 
-`provar-conciliacao-do-painel` ganhou a **§10** (78 → **98** asserções). As duas que discriminam são
-opostas: **com** o mapa, o extrato leva o nome declarado; **sem** o mapa, continua a levar o do
-índice. Sem a segunda, a correcção podia passar a inventar nomes; sem a primeira, não existia.
+A correcção é uma função só — `prefixoDaRaizDoPacote`, em `arvore-de-assets.js` —, que devolve
+`breu/` no shard e `''` no Worker de uma escola. A conversão (`/breu` → `breu/`) era feita à mão em
+`producao.js` para a porta; passa a ser feita uma vez, para os três leitores do ASSETS.
 
-**E um defeito meu, do commit anterior, que estava escondido.** A renomeação da coluna «Escola» para
-«Habilitação» (`6345ba3b`) quebrou uma asserção de `provar-financeiro-da-escola` — a que mede o
-cabeçalho do extrato. Essa prova **está na linha de base** (`provas-vermelhas.json`), e a linha de
-base guarda o **nome** da prova, não as asserções: uma prova vermelha que fica mais vermelha passa em
-silêncio. Só se descobriu porque fui correr as provas vizinhas por iniciativa própria, e porque
-medi o mesmo ficheiro numa worktree do `HEAD` para saber quais das 8 falhas eram minhas e quais eram
-anteriores.
+### O que se fez para o envio nunca mais falhar em silêncio
 
-A asserção foi corrigida para o nome novo, com o motivo escrito ao lado — e o que fica registado é o
-buraco: **a linha de base protege contra regressões entre provas, e não dentro de uma prova que já
-falha.** Fechá-lo exigiria guardar a contagem de asserções por prova; fica declarado, não feito.
+O `catch` no clique não corrige um `ReferenceError` — nenhum catch corrige. Ele garante que o
+**próximo** defeito desta família apareça **escrito no ecrã**, com o motivo. A diferença entre um
+erro e um mistério. Foi ele que, na mutação, transformou o silêncio em «não enviei: tipoDaColuna is
+not defined».
 
-**Mutações, medidas uma a uma — sete regras, oito quedas:**
+### A prova — o gesto, e não o desenho
+
+`experimentos/provar-o-envio-da-aula.js` (**nova**, 22 asserções). Ela **serve o template** por HTTP
+(a fonte, não o artefacto de ontem), abre a página num DOM, preenche pelos campos que a página
+desenhou, marca a presença, carrega em «Enviar» — e exige o `POST`.
+
+O ciclo usado é **o dela** (`demi-plie/ciclo-01-breu-piano`), o que tem a folha com `linha_de_base` e
+um PO com itens: a combinação que faz o defeito disparar. A prova começa por afirmar que essa
+combinação existe — senão estaria a medir um caminho que ninguém percorre.
+
+E mede o que vai no corpo: a aula 01, e a marca da linha de base (é a leitura com o tipo da coluna
+que estava fora de alcance). Sem isto, um `POST` com um ficheiro vazio passaria.
+
+**Três mutações, três quedas:**
 
 | mutação | o que cai |
 |:--|:--|
-| o parêntesis volta sempre | 1 |
-| a lista do desconto volta a ler o índice | 1 |
-| o extrato ignora o mapa de nomes | 1 |
-| o registo do expurgo deixa de responder pelo nome | 1 |
-| numa expurgada, o **primeiro** expurgo em vez do último | 1 |
-| sem cadastro, inventa o slug como nome | 2 |
-| a composição inverte a ordem (extrato sem nomes) | 3 |
+| `tipoDaColuna` volta a ser local de `camposCaptura` (o defeito, reposto) | **10** — o `POST` deixa de existir, e o aviso passa a dizer o `ReferenceError` |
+| a reposição dos rádios sai | **10** — o «surpreendeu?» volta a branco, e o envio pede-o outra vez |
+| `prefixoDaRaizDoPacote` volta a `''` | **1** — o `-dados.json` deixa de ser encontrado debaixo da escola |
+
+### Ao vivo, depois do deploy
+
+A mesma sonda headless, agora com uma senha errada de propósito (exercita tudo até ao `fetch` sem
+gravar nada): **`POST /api/receber` presente, HTTP 200, aviso na tela** («não enviei: senha não
+reconhecida — o lançamento não foi gravado»), **zero `pageerror`**. Antes: nenhum pedido, aviso em
+branco, `ReferenceError`.
 
 ### Onde entrou
 
-`motor/servidor/raiz.js` (`nomesDasEscolas`, `nomesDasFichas`, `extratoComNomes`, e o `nomes` no
-extrato), `motor/servidor/painel-html.js` (o parêntesis condicional e a lista do desconto a ler do
-extrato), `experimentos/provar-conciliacao-do-painel.js` (§10), `experimentos/provar-financeiro-da-escola.js`
-(a asserção do cabeçalho, corrigida), `ESTADO-ATUAL.md`, `HANDOFF.md`.
-
-**O monitor também passou a dizer o nome** (`nomesDasEscolas`, um `get` por escola): a tabela da
-inadimplência é onde ela decide a quem telefonar, e uma linha que diz «breu» quando a escola se chama
-«Clablun» não serve para telefonar. O custo fica declarado no código: o extrato já gasta três
-leituras por escola, e esta é a quarta — a mesma ordem de grandeza, não uma classe nova.
+`tools/templates/lancamento.html` (`medePelaReguaNaFolha`, `tipoDaColunaEm`, os rádios, o `catch` do
+clique), `motor/nucleo/arvore-de-assets.js` (`prefixoDaRaizDoPacote`),
+`motor/servidor/cloudflare.js` (o leitor do `/api/dados`),
+`motor/servidor/producao.js` (a conversão passa a vir da mesma função),
+`professores/demi-plie/ciclos/ciclo-01-breu-piano/lancamento.html` (regerado),
+`experimentos/provar-o-envio-da-aula.js`, `ESTADO-ATUAL.md`, `HANDOFF.md`.
 
 ## O que está pendente
 

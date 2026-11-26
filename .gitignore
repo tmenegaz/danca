@@ -2114,3 +2114,9 @@ experimentos/modelo-formulario/*
 # **inclui um** professor e **vai até dois**, e uma escola que viu dois na demonstração não perde
 # nenhum ao assinar.
 !experimentos/provar-o-guiao-do-consultor.js
+# O ENVIO DA AULA (26/11/2026). Ela preencheu tudo, clicou em «Enviar» e nada foi enviado — nem o
+# pedido, nem uma frase. A causa era um nome fora de alcance (`tipoDaColuna`, local de
+# `camposCaptura`, chamado por `coletarCaptura`), e nenhuma prova exercia o GESTO: as do lançamento
+# medem o desenho dos campos e a leitura da página. Esta preenche, clica, e exige o `POST` com a
+# aula lá dentro — no ciclo dela, o que tem o bloco da linha de base com itens no PO.
+!experimentos/provar-o-envio-da-aula.js

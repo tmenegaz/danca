@@ -29,4 +29,21 @@ function prefixoDaArvore(env) {
   return escola ? '/' + escola : '';
 }
 
-module.exports = { prefixoDaArvore };
+/**
+ * O MESMO PREFIXO, NA FORMA QUE O `servirEstatico` CONCATENA — `breu/`, ou `''`.
+ *
+ * PORQUE ISTO EXISTE (26/11/2026). `servirEstatico` faz `(prefixo || '') + rel`: o prefixo entra
+ * por CONCATENAÇÃO, sem barra pelo meio. `prefixoDaArvore` devolve `/breu`, e concatená-lo dava
+ * `/breupiano/…` — um caminho que não existe e que ninguém procura por engano. A conversão já
+ * era feita à mão em `prefixoDosAssetsDaPorta` (`raiz.slice(1) + '/'`); passa a ser feita aqui,
+ * uma vez, para os três leitores do ASSETS (a porta, o `-dados.json` e o índice de aulas).
+ *
+ * SEM A ESCOLA DEVOLVE `''`, e isso não é um caso degradado: é o Worker de uma escola só, onde a
+ * raiz do ASSETS é a raiz do pacote.
+ */
+function prefixoDaRaizDoPacote(env) {
+  const raiz = prefixoDaArvore(env);
+  return raiz ? raiz.replace(/^\/+/, '') + '/' : '';
+}
+
+module.exports = { prefixoDaArvore, prefixoDaRaizDoPacote };

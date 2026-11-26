@@ -38,6 +38,7 @@ const { criarIndice } = require('./indice-acervo.js');
 // O ESTADO DA GERAÇÃO — o que a tela pergunta enquanto o Actions trabalha.
 const { criarGeracao } = require('./geracao.js');
 const { criarLeitorDeDados } = require('./ler-dados.js');
+const { prefixoDaRaizDoPacote } = require('../nucleo/arvore-de-assets.js');
 
 const { senhaDaEscolaOk } = require('./bastidores.js');
 const { derivarPO } = require('../nucleo/derivar-po.js');
@@ -596,11 +597,19 @@ async function fetch(request, env, opcoes) {
    * 08/11/2026 ficou gravado com as fontes do ciclo por gravar. */
   const subpedidos = contarSubpedidos(buscarNaRede, (env && env.SUBPEDIDOS) || LIMITE_PADRAO);
   const { disparar, escreverPO, escreverPlano, escreverCiclo, apagarCiclo, geracao } = passosDeGeracao(env, subpedidos);
-  // O PREFIXO DO LEITOR É VAZIO, e não o da porta: o `-dados.json` do ciclo mora na RAIZ do
-  // pacote (é lá que o formulário de lançamento o busca, ao lado do `ciclos.json`), enquanto o
-  // CONTEÚDO da porta vive sob o `prefixo` (`plano-observacao/`). Trocar os dois faz o leitor
-  // procurar `plano-observacao/ciclo-01-barra-dados.json` e responder «o pacote não tem …».
-  const lerDados = criarLeitor(env, '');
+  /* O PREFIXO DO LEITOR É O DA RAIZ DO PACOTE — e não o da porta, nem vazio (26/11/2026).
+   *
+   * O `-dados.json` do ciclo mora na RAIZ do pacote (é lá que o formulário de lançamento o busca,
+   * ao lado do `ciclos.json`), enquanto o CONTEÚDO da porta vive sob `/plano-observacao/`. Trocar
+   * os dois faz o leitor responder «o pacote não tem …».
+   *
+   * E «a raiz do pacote» NÃO é a raiz do ASSETS: no shard o ASSETS é `publicacao/` e o pacote é
+   * `publicacao/<escola>/`. Com a string vazia — que era o que aqui estava — o leitor procurava
+   * `piano/ciclo-01-…-dados.json` na raiz da árvore, onde ele não existe. O «Abrir» do formulário
+   * respondia `o pacote não tem …` para um ficheiro publicado e legível, e a página contava isso
+   * como senha recusada — o mesmo defeito de 06/11/2026, uma camada abaixo, reintroduzido pelo
+   * shard. `prefixoDaRaizDoPacote` devolve `breu/` no shard e `''` no Worker de uma escola só. */
+  const lerDados = criarLeitor(env, prefixoDaRaizDoPacote(env));
   const lancamentoSeguro = criarLancamento(env);
   /* A CONSOLIDAÇÃO DO QUE FICOU NO KV (06/11/2026) — o acto que resgata os lançamentos gravados
    * antes de a família `lancamento/` existir. Lê o armazenamento antigo (o KV), decifra com a

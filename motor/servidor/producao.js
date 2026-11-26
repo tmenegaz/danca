@@ -342,8 +342,9 @@ const PREFIXO_ASSETS = 'plano-observacao/';
  * quatro vezes nos ramos abaixo.
  */
 function prefixoDosAssetsDaPorta(env) {
-  const raiz = prefixoDaArvore(env);
-  return (raiz ? raiz.slice(1) + '/' : '') + PREFIXO_ASSETS;
+  // A CONVERSÃO DA RAIZ MUDOU DE CASA (26/11/2026): `prefixoDaRaizDoPacote` faz `breu/` — a forma
+  // que o `servirEstatico` concatena. Era feita aqui à mão, e o `-dados.json` ficava sem ela.
+  return prefixoDaRaizDoPacote(env) + PREFIXO_ASSETS;
 }
 
 function caminhoDaPorta(path, prefixo) {
@@ -395,7 +396,7 @@ const MENU_EM_CACHE = new Map();
 /* A REGRA MUDOU DE CASA (22/11/2026): mora em `motor/nucleo/arvore-de-assets.js`, para os
  * Bastidores a poderem ler sem fechar o ciclo de `require` que existe entre este módulo e
  * aquele. Continua a ser UMA definição, e continua a ser esta a porta por onde a produção entra. */
-const { prefixoDaArvore } = require('../nucleo/arvore-de-assets.js');
+const { prefixoDaArvore, prefixoDaRaizDoPacote } = require('../nucleo/arvore-de-assets.js');
 
 /**
  * `/assets/…` É PARTILHADO, E NÃO SE REESCREVE (14/11/2026).
@@ -1501,7 +1502,7 @@ module.exports = {
   /* A ÁRVORE, exportada para a prova (14/11/2026). A bancada do shard mede `caminhoNaArvore` e
    * `ehAssetPartilhado` directamente — são elas que decidem se `/aulas/` vira `/calango/aulas/`
    * e se `/assets/style.css` fica quieto, e uma prova que as reconstruísse mediria a prova. */
-  prefixoDaArvore, caminhoNaArvore, ehAssetPartilhado, prefixoDosAssetsDaPorta,
+  prefixoDaArvore, prefixoDaRaizDoPacote, caminhoNaArvore, ehAssetPartilhado, prefixoDosAssetsDaPorta,
   /* O ENDEREÇO COM A ESCOLA COLADA (20/11/2026) — exportado para a prova medir a decisão do
    * caminho, e não o `fetch` inteiro: é ela que decide se há 302 ou 404. */
   caminhoSemAEscola,
