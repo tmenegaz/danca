@@ -349,11 +349,61 @@ async function porLink(env, token) {
   } catch (erro) {
     return { ok: false, erro: 'não foi possível ler o link: ' + ((erro && erro.message) || String(erro)), dono: null };
   }
-  if (!guardado) return { ok: true, dono: null };
+  if (!guardado) return await porLinkLegado(env, hash);
   let dados;
   try { dados = JSON.parse(guardado); } catch (erro) { return { ok: true, dono: null }; }
   if (!dados || !dados.consultorId || !dados.visitaId) return { ok: true, dono: null };
   return { ok: true, dono: Object.assign({}, dados, { hash }) };
+}
+
+/**
+ * OS LINKS QUE NASCERAM ANTES DO ÍNDICE — e porquê um caminho de excepção em vez de uma migração.
+ *
+ * O índice (`consultores/link/<hash>`) é desta fase. Os links emitidos pela F2 escreveram a visita
+ * em `consultores/visitas/<id>` e **não** o índice — e um deles é o que ela gerou para testar. Sem
+ * isto, todos os links anteriores a hoje ficavam órfãos: existiam, apontavam para uma visita
+ * verdadeira, e a página dizia «não abre nenhuma escola».
+ *
+ * PORQUE NÃO UMA MIGRAÇÃO. Uma migração é um script que corre uma vez e que ninguém volta a correr
+ * quando aparecer outro caso; e o KV não tem uma data de corte fiável para «links anteriores a
+ * hoje». Este caminho é o contrário: **cura-se a si mesmo** — quando encontra a visita, escreve o
+ * índice, e a segunda abertura já é um `get` só.
+ *
+ * O CUSTO É LIMITADO, e é o que o torna aceitável: N leituras, onde N é o número de CONSULTORES (não
+ * de visitas) — as visitas de cada um são UMA chave, um array. Com um consultor são duas leituras; o
+ * tecto da lista de consultores é duzentos. E só acontece na FALHA do índice: um token inválido paga
+ * isto uma vez e mais nada, porque a resposta não é guardada.
+ *
+ * SE A LISTA ESTIVER VAZIA, não há legado nenhum a procurar — e é o caso de uma instalação nova.
+ */
+async function porLinkLegado(env, hash) {
+  const lista = await ler(env);
+  if (!lista.ok || !lista.lista.length) return { ok: true, dono: null };
+  for (const quem of lista.lista) {
+    /* eslint-disable no-await-in-loop */
+    const lidas = await lerVisitas(env, quem.id);
+    if (!lidas.ok) continue;
+    const achada = lidas.visitas.find((v) => v && String(v.tokenHash || '') === hash);
+    if (!achada) continue;
+    /* CURADO. A escrita é best-effort: se falhar, o link abre na mesma e a próxima abertura volta a
+     * procurar — o que se perde é uma leitura, não o link. */
+    await gravarOLink(env, hash, {
+      consultorId: quem.id,
+      consultorNome: quem.nome || '',
+      praca: quem.praca || '',
+      visitaId: achada.id,
+      escolaNome: achada.escolaNome || '',
+      em: achada.criadaEm || null,
+      curadoEm: new Date().toISOString(),
+    }).catch(() => ({ ok: false }));
+    return {
+      ok: true,
+      dono: { consultorId: quem.id, consultorNome: quem.nome || '', praca: quem.praca || '',
+        visitaId: achada.id, escolaNome: achada.escolaNome || '', hash, legado: true },
+    };
+    /* eslint-enable no-await-in-loop */
+  }
+  return { ok: true, dono: null };
 }
 
 /**
@@ -464,6 +514,7 @@ module.exports = {
   gravarOLink,
   apagarOLink,
   porLink,
+  porLinkLegado,
   situacaoDoLink,
   reservar,
   gastar,

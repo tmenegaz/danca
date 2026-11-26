@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-25T21:43:42-0300`
-Commit atual: `e62d135e` — feat(estrutura): o endereco do consultor e o link de cada visita
+Gerado em: `2026-11-25T22:00:37-0300`
+Commit atual: `e0156ead` — feat(estrutura): a escola que nasce de um link
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -82,6 +82,7 @@ sapatilha-de-ponta (15)
 ## Últimos commits
 
 ```
+e0156ead feat(estrutura): a escola que nasce de um link
 e62d135e feat(estrutura): o endereco do consultor e o link de cada visita
 0479255e feat(estrutura): o cadastro do consultor, e o que ele nao abre
 f4a82c9e docs(estrutura): a Q2 desfez-se ao medir — o piso do plano nao e parede
@@ -101,7 +102,6 @@ fd4a0e16 feat(estrutura): o mes pago a menos nao fecha, e a clausula esta escrit
 3379cfae fix(estrutura): o Copiar e uma rotina so, e copia nas tres paginas
 d6d0533a feat(estrutura): a cobranca pode ser um link, e o cliente carrega nele para pagar
 34bf75f4 feat(estrutura): a cobranca Pix ganha uma coluna, e o documento reaparece onde a escola paga
-bc7d6e5e feat(estrutura): o contrato do financeiro diz a franquia, tem memoria e uma data
 ```
 
 ## Por professor
@@ -315,6 +315,26 @@ estado do link), `motor/nucleo/comercial.js` (`consultoriaDaPagina`), `motor/ser
 `tools/check-identidade.js` (duas superfícies novas), `experimentos/provar-a-escola-do-consultor.js`
 (novo), `.gitignore`, `PLANO-DO-CONSULTOR.md`, `ESTADO-ATUAL.md`, `HANDOFF.md`.
 
+### O link que já existia ficou órfão — e o índice cura-se
+
+**A fase subiu, o `publicar` correu, e o link que ela tinha gerado continuou a dizer «não abre nenhuma
+escola».** Não era avaria: era um **link órfão**. A F2 escrevia a visita em `consultores/visitas/<id>`
+e **não** escrevia o índice — o índice é desta fase. Todos os links emitidos antes de hoje apontavam
+para uma visita verdadeira e não tinham quem os ligasse a ela.
+
+**A resposta não foi uma migração.** Uma migração é um script que corre uma vez e que ninguém volta a
+correr quando aparecer outro caso; e o KV não tem uma data de corte fiável para «links anteriores a
+hoje». O caminho é o contrário: **na falha do índice, procura-se a visita nos consultores, e o que se
+encontra fica escrito**. O índice cura-se a si mesmo — a primeira abertura de um link antigo é N
+leituras (N = número de **consultores**, não de visitas: as visitas de cada um são uma chave só), e a
+segunda é um `get`.
+
+**O custo é limitado e está declarado:** com um consultor são duas leituras; o tecto da lista de
+consultores é duzentos. E só acontece na falha — um token inválido paga isto uma vez e mais nada.
+
+Medido ao vivo, no link dela: `A escola «Clablun»`, com os sete limites lidos do catálogo, e o nome já
+preenchido no campo.
+
 ### A regressão que a fase causou, e a que ela revelou
 
 **A primeira foi minha, e o defeito era do âncora.** `provar-o-contrato-em-vigor` cortava o texto de
@@ -329,8 +349,17 @@ não a regra.
 (o `.par-botoes`) e o site publicado ainda tem a de antes. Não é um defeito: é a diferença entre o
 repositório e o que está no ar, medida por quem existe para a medir. Passa no `deploy`.
 
-**Bateria:** 296 provas, **203 verdes**, 93 conhecidas, **0 regressões** — depois de as duas acima
-estarem fechadas.
+### Um âncora que partiu, e um link que ficou órfão — as duas lições
+
+A regressão do `provar-o-contrato-em-vigor` foi **do âncora**, não da regra: ele cortava o texto a
+partir de uma linha que a F3 reescreveu legitimamente. Passou a ancorar-se na gravação, e ganhou a
+asserção que faltava — o trecho medido não pode estar vazio.
+
+E o **link órfão** é a lição de outra espécie: uma fase que introduz um índice tem de pensar nos
+dados que já existiam. A cura no caminho de leitura resolve isto e o que vier depois.
+
+**Bateria:** 297 provas, **204 verdes**, 93 conhecidas, **0 regressões** — com a prova do ar verde
+depois do `publicar`, medida e não suposta.
 
 ## O que está pendente
 

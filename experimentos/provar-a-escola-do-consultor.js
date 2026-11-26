@@ -254,6 +254,41 @@ const CORPO_DA_ESCOLA = {
   const aposEstouro = await daCasa.situacaoDoLink(f.env, f.token, '2026-11-26T00:05:00.000Z');
   provar('…e mesmo assim o link volta a abrir', aposEstouro.ok === true, aposEstouro.motivo);
 
+  /* ── §D-bis o link que nasceu ANTES do índice ─────────────────────────────────────────────
+   *
+   * O defeito que ela encontrou ao vivo, a 25/11/2026: gerou o link pela F2, abriu-o depois de a F3
+   * estar no ar, e leu «não abre nenhuma escola». Não era avaria do link — era um link órfão: a F2
+   * escrevia a visita e não o índice, e o índice é desta fase.
+   *
+   * A resposta não é uma migração (que ninguém volta a correr quando aparecer outro caso): é o
+   * caminho de excepção que SE CURA. Na falha do índice, procura-se a visita nos consultores — N
+   * leituras, onde N é o número de CONSULTORES, não de visitas — e, achada, o índice escreve-se.
+   * A segunda abertura já é um `get` só.
+   */
+  console.log('\n§D-bis o link que nasceu antes do índice abre — e o índice cura-se');
+
+  const lb = await bancada();
+  const segredo = require(path.join(RAIZ, 'motor/nucleo/segredo.js'));
+  const hashDoLink = await segredo.hashDoToken(consultores.AMBITO_DO_LINK, lb.token);
+  lb.env.PADD_KV.mem.delete(consultores.chaveDoLink(hashDoLink));
+  /* A PRECONDIÇÃO, medida à parte: a chave do índice não existe, e é isso que faz deste um link da
+   * F2. Sem esta asserção, o resto passaria com um índice que nunca faltou. */
+  provar('a chave do índice não existe (é um link da F2)',
+    !lb.env.PADD_KV.mem.has(consultores.chaveDoLink(hashDoLink)), null);
+  /* E o caminho de excepção NÃO é uma porta: um hash que não está em visita nenhuma não acha dono. */
+  provar('…e o caminho de excepção não inventa dono para um hash desconhecido',
+    (await daCasa.porLinkLegado(lb.env, 'hash-que-nao-existe')).dono === null, null);
+  const legado = await daCasa.situacaoDoLink(lb.env, lb.token, '2026-11-26T00:00:00.000Z');
+  provar('…mas a página do link encontra-o pelo livro de visitas', legado.ok === true, legado.motivo);
+  provar('…e diz de que escola é', legado.escolaNome === 'Studio Aurora', legado.escolaNome);
+  provar('…e o índice fica escrito (a próxima abertura é um `get` só)',
+    lb.env.PADD_KV.mem.has(consultores.chaveDoLink(hashDoLink)), null);
+  const curado = JSON.parse(lb.env.PADD_KV.mem.get(consultores.chaveDoLink(hashDoLink)));
+  provar('…e o registo curado diz que foi curado', Boolean(curado.curadoEm), Object.keys(curado));
+  /* E um token que não é de ninguém continua a não abrir — o caminho de excepção não é uma porta. */
+  const semNada = await daCasa.situacaoDoLink(lb.env, 'nao-e-um-link', '2026-11-26T00:00:00.000Z');
+  provar('…e um token inventado continua a não abrir nada', semNada.ok === false, null);
+
   /* ── §E dois pedidos simultâneos, uma escola ──────────────────────────────────────────── */
 
   console.log('\n§E dois pedidos SIMULTÂNEOS do mesmo link dão UMA escola — é para isto que a reserva existe');

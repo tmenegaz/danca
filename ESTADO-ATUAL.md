@@ -20,7 +20,11 @@
 > um CNPJ repetido custava o link à escola. A regra da porta ficou num núcleo puro
 > (`motor/nucleo/escola-do-consultor.js`) para a prova a medir sem Cloudflare. A prova
 > (`provar-a-escola-do-consultor`, **73 asserções**) passa por **sete mutações — sete quedas**, o
-> número mais alto desta casa, e a mais cara é a reserva: sem ela, **duas** criações. E a checagem 8
+> número mais alto desta casa, e a mais cara é a reserva: sem ela, **duas** criações. **O link que
+> ela já tinha gerado ficou órfão** — a F2 escrevia a visita e não o índice, e o índice é desta fase —,
+> e a resposta não foi uma migração: na falha do índice, a visita procura-se nos consultores e o que
+> se encontra **fica escrito**, logo a segunda abertura é um `get`. Medido ao vivo no link dela:
+> «A escola «Clablun»», com os sete limites. E a checagem 8
 > reprovou a página nova por uma classe que existia **só inline nos Bastidores** enquanto quatro
 > páginas a usavam: `.par-botoes` mudou para a folha, e os botões das páginas do painel deixaram de
 > sair colados ao texto. Antes disso, no mesmo dia: **o consultor tem endereço, e já gera links.** A fase F2 do
@@ -5810,14 +5814,15 @@ recorta» como «a rota está fechada».
 
 | Verificação | Resultado |
 |:--|:--|
-| `node experimentos/provar-a-escola-do-consultor.js` (**nova**) | **73/73**, em seis secções: a regra da porta; o controlo negativo da porta pública; as cinco recusas do link; a rota (reserva, gasto, libertação); **dois pedidos simultâneos**; e a página |
-| a tabela de mutação — **sete regras, sete quedas** | plano não forçado **1** · sem reserva **3** (e **duas** criações) · falha não larga a reserva **1** · visita não gasta **3** · consultor inactivo não fecha o link **3** · link não expira **2** · lista de limites vazia desaparece **1**. Repostas as sete, 73/73 |
+| `node experimentos/provar-a-escola-do-consultor.js` (**nova**) | **80/80**, em sete secções: a regra da porta; o controlo negativo da porta pública; as cinco recusas do link; a rota (reserva, gasto, libertação); **o link anterior ao índice, que se cura**; **dois pedidos simultâneos**; e a página |
+| a tabela de mutação — **sete regras, sete quedas** | plano não forçado **1** · sem reserva **3** (e **duas** criações) · falha não larga a reserva **1** · visita não gasta **3** · consultor inactivo não fecha o link **3** · link não expira **2** · lista de limites vazia desaparece **1**. Repostas as sete, 80/80 |
 | a corrida, medida a sério | dois `receberAVisita` com a mesma visita e uma criação lenta de propósito: com a reserva, o segundo dá **409** e `quantasCriacoes` fica em **1**; sem ela, **2** |
 | o defeito que a checagem 8 apanhou | `.par-botoes` estava desenhada **só inline nos Bastidores** e quatro páginas a usavam: os botões saíam colados ao texto. Mudou para `tools/templates/ciclo.css`, a cópia inline saiu, e as três cópias da folha nos pacotes foram regeradas — `check-identidade` **23 ok**, agora com **22 superfícies** |
 | as âncoras depois de mudar o CSS | `hash-ciclo.sh demi-plie 01 breu --check` → **íntegro, cadeia intacta**; idem `breu-piano`. O `assets/style.css` não entra no hash, e por isso a mudança da folha não reancora nada |
 | as provas das fases anteriores | `provar-o-link-do-consultor` **77/77** · `provar-o-cadastro-do-consultor` **88/88** · `provar-o-plano-do-consultor` **54/54** · `provar-escola-a-nascer` **48/48** |
 | as quatro conferências | `check-identidade` **0 problemas** (23) · `check-schemas` verde · `check-sem-destruicao` verde · `check-github-headers` 5 ok |
-| `node tools/correr-provas.js --tecto=90` | **296 provas, 203 verdes, 93 conhecidas, 0 regressões** (base 295/202/93/0) |
+| o link que já existia | depois do `publicar`, o link que ela gerou pela F2 continuava a dizer «não abre nenhuma escola» — **órfão**, porque a F2 não escrevia o índice. O `porLinkLegado` procura na falha e **cura**: ao vivo, o link dela abriu «A escola «Clablun»» com os sete limites |
+| `node tools/correr-provas.js --tecto=90` | **297 provas, 204 verdes, 93 conhecidas, 0 regressões** (base 296/203/93/0) — a prova nova e a do ar, e nada partido |
 
 ### Executado nesta fotografia anterior (25/11/2026 — o endereço do consultor e o link da visita, F2)
 
@@ -7760,7 +7765,9 @@ Alterações materiais desde a fotografia anterior (não existia; a referência 
   a mais cara é a reserva (duas criações). Duas lições de método: **a prova que pendura é pior do que
   a que reprova** (a primeira §E bloqueava em vez de falhar, e um bloqueio conta como «tecto»), e
   **`git checkout` num ficheiro com trabalho por commitar apaga o trabalho** — as mutações passaram a
-  restaurar de cópias em `/tmp`.
+  restaurar de cópias em `/tmp`. **E uma fase que introduz um índice tem de pensar nos dados que já
+  existem:** o link que ela gerou antes desta fase apontava para uma visita verdadeira e não tinha
+  quem o ligasse a ela. O `porLinkLegado` fecha-o, e **cura-se** — escreve o índice quando encontra.
 
 - **25/11/2026** — **O endereço do consultor e o link de cada visita (F2).** Ao **activar**, o
   painel emite o endereço dele (`lastro.padd.com.br/consultor/<token>`) e mostra-o **uma vez só** —
