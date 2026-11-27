@@ -13,7 +13,7 @@
     "arquivo": "Worker (secret)"
   },
   "estado": {
-    "habilitada": true
+    "habilitada": false
   },
   "expurgo": [
     {
@@ -1226,6 +1226,145 @@
           "fontes": 12,
           "variantes": 2,
           "cobertos": 14
+        },
+        "fases": {
+          "estrutura": "feita",
+          "ancora": "nao-recalculada",
+          "derivacao": "nao-conferida"
+        }
+      }
+    },
+    {
+      "em": "2026-11-27T00:51:17.592Z",
+      "motivo": "expurgada pela página «Sistema Lastro»",
+      "apagado": [
+        "escola/breu/envelopes/.indice.json",
+        "escola/breu/envelopes/anamnese-20261123-1055.json",
+        "escola/breu/envelopes/plano-20261124-0811.json",
+        "escola/breu/envelopes/plano-20261125-0627.json",
+        "escola/breu/envelopes/plano-20261126-1547.json",
+        "escola/breu/envelopes/po-20261124-0815.json",
+        "escola/breu/envelopes/po-20261125-0627.json",
+        "escola/breu/envelopes/po-20261126-1548.json",
+        "escola/breu/linhas-de-base/.indice.json",
+        "escola/breu/linhas-de-base/tami--20261124-1107.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.fipp",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.md",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-aula-01.md",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano-captura-declaracao.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano-dados.cifrado.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano-dados.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano-glossario-codigo_de_danca.md",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano-harmonizacao.md",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano-notacao.md",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano-plano.md",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano-po.md",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano-referencias.md",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano.conf",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano.fipp",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/README.md",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/assets/eixos.js",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/assets/favicon.svg",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/assets/fontes/LEIA-ME.md",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/assets/fontes/OFL.txt",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/assets/fontes/open-sans-variavel-italico.woff2",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/assets/fontes/open-sans-variavel.woff2",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/assets/lib-cifra.js",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/assets/lib-vistas.js",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/assets/nav.js",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/assets/rizoma-corrigido.svg",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/assets/rizoma-slide.svg",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/assets/style.css",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/aula-01.html",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/captura-01.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/captura-aula-01.html",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/captura-aula-01.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/ciclo-01-breu-piano-dados.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/ciclos.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/glossario-codigo_de_danca.html",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/harmonizacao.html",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/index.html",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/lancamento.html",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/notacao.html",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/plano-01.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/plano-aula-01-anterior.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/plano-aula-01.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/plano-observacao/assets/markdown.js",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/plano-observacao/conteudo/anamnese.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/plano-observacao/envelope/elicitacao-schema.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/plano-observacao/index.html",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/plano-observacao/plano/conteudo/plano.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/plano-observacao/po/conteudo/po.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/plano-observacao/prompts/elicitar-ciclo.md",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/plano.html",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/po-01.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu-piano/referencias.html",
+        "professores/demi-plie/ciclos/ciclo-01-breu.conf",
+        "professores/demi-plie/ciclos/ciclo-01-breu.fipp",
+        "professores/demi-plie/ciclos/ciclo-01-breu/assets/favicon.svg",
+        "professores/demi-plie/ciclos/ciclo-01-breu/assets/fontes/LEIA-ME.md",
+        "professores/demi-plie/ciclos/ciclo-01-breu/assets/fontes/OFL.txt",
+        "professores/demi-plie/ciclos/ciclo-01-breu/assets/fontes/open-sans-variavel-italico.woff2",
+        "professores/demi-plie/ciclos/ciclo-01-breu/assets/fontes/open-sans-variavel.woff2",
+        "professores/demi-plie/ciclos/ciclo-01-breu/assets/lib-cifra.js",
+        "professores/demi-plie/ciclos/ciclo-01-breu/assets/nav.js",
+        "professores/demi-plie/ciclos/ciclo-01-breu/assets/style.css",
+        "professores/demi-plie/ciclos/ciclo-01-breu/index.html",
+        "professores/demi-plie/ciclos/ciclo-01-breu/plano-observacao/assets/markdown.js",
+        "professores/demi-plie/ciclos/ciclo-01-breu/plano-observacao/conteudo/anamnese.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu/plano-observacao/index.html",
+        "professores/demi-plie/ciclos/ciclo-01-breu/plano-observacao/plano/conteudo/plano.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu/plano-observacao/po/conteudo/po.json",
+        "professores/demi-plie/ciclos/ciclo-01-breu/plano-observacao/prompts/elicitar-ciclo.md",
+        "professores/demi-plie/ciclos/historico/ciclo-01-breu-piano-aula-01.antes-de-po-20261125-0627.md",
+        "professores/demi-plie/ciclos/historico/ciclo-01-breu-piano-dados.antes-de-po-20261124-0815.json",
+        "professores/demi-plie/ciclos/historico/ciclo-01-breu-piano-dados.antes-de-po-20261125-0627.json",
+        "professores/demi-plie/ciclos/historico/ciclo-01-breu-piano-po.antes-de-po-20261125-0627.md",
+        "professores/demi-plie/ciclos/ciclo-01.conf"
+      ],
+      "commit_antes": "7536e12aafa3f199e7d432404be39459d70a3ef3",
+      "kv": {
+        "ok": true,
+        "apagadas": 0,
+        "restantes": 0,
+        "namespaceId": "2ee331c7a5bc446ca86c8f2cb039ec16",
+        "prefixos": [
+          "breu/",
+          "bastidores/breu/"
+        ],
+        "em": "2026-11-27T00:51:17.592Z"
+      },
+      "proveniencia": {
+        "auditada": true,
+        "em": "2026-11-27T00:51:05.416Z",
+        "ancoras": [
+          {
+            "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano-aula-01.fipp",
+            "id": "ciclo-01-breu-piano-aula-01",
+            "hash": "5e9acf0b467ff058d1e6e80c41d248a1cb08a997a716dc564e9fd4655e0bfb3d",
+            "tipo": "Aula"
+          },
+          {
+            "caminho": "professores/demi-plie/ciclos/ciclo-01-breu-piano.fipp",
+            "id": "ciclo-01-breu-piano",
+            "hash": "16aab9dc6676eb9f053b7684298e38cb01cb09150c3224d7b997875744c80da4",
+            "tipo": "Ciclo"
+          },
+          {
+            "caminho": "professores/demi-plie/ciclos/ciclo-01-breu.fipp",
+            "id": "ciclo-01-breu",
+            "hash": "e81a3e1cf08cacc8cb0e0ba9009d1c8b999012c558f948d006d5ddbe32da95f2",
+            "tipo": "Ciclo"
+          }
+        ],
+        "fontes": 10,
+        "impressao": "e1e6c19284ebec19e601f73c14159968916f3af6269dffc0948cc884b78e2017",
+        "resumo": {
+          "ancoras": 3,
+          "fontes": 10,
+          "variantes": 2,
+          "cobertos": 12
         },
         "fases": {
           "estrutura": "feita",
