@@ -168,10 +168,22 @@ async function digital(slug) {
   if (ausentes.length) {
     console.log('aviso: sem resposta (e por isso fora da bateria): ' + ausentes.join(', ') + '\n');
   }
+  /* «FORA DA BATERIA» TEM DE SER VERDADE (26/11/2026) — e não era.
+   *
+   * Esta prova montava a lista das que respondem (`vivas`), escrevia «e por isso fora da bateria»,
+   * e depois percorria `ESCOLAS` — TODAS — nos sete laços abaixo. Enquanto as três escolas estavam
+   * no ar, a diferença era invisível. No dia em que duas saíram (o expurgo da `breu` e as duas de
+   * teste já suspensas), o primeiro `fetch` a um host morto lançou `TypeError: fetch failed` e a
+   * bateria inteira morreu sem medir nada — com a linha acima já a dizer que as tinha excluído.
+   *
+   * Uma frase que anuncia uma exclusão que o código não faz é pior do que não a anunciar: quem lê o
+   * relatório conclui que as outras foram medidas. O que se percorre passa a ser a lista que
+   * respondeu. */
+  const ALVOS = ESCOLAS.filter((e) => vivas.indexOf(e.slug) !== -1);
 
   /* ── GESTÃO 1 · cada host serve a sua escola ─────────────────────────────────────────────── */
   console.log('1. abrir `/` de cada escola pelo domínio próprio');
-  for (const e of ESCOLAS) {
+  for (const e of ALVOS) {
     const r = await chamar(e.slug, '/');
     const teste = (/data-escola-teste="([^"]*)"/.exec(r.texto) || [])[1];
     provar('`/' + e.slug + '` responde 200', r.status === 200, r.status);
@@ -185,7 +197,7 @@ async function digital(slug) {
 
   /* ── GESTÃO 2 · os documentos servidos, no caminho de hoje ──────────────────────────────── */
   console.log('\n2. `/aulas/`, `/ciclos/planos/` e um PDF');
-  for (const e of ESCOLAS) {
+  for (const e of ALVOS) {
     for (const caminho of ['/aulas/', '/ciclos/planos/']) {
       const r = await chamar(e.slug, caminho);
       provar('`' + caminho + '` de ' + e.slug + ' responde 200', r.status === 200, r.status);
@@ -206,8 +218,14 @@ async function digital(slug) {
      *
      * A primeira metade é a que apanha o defeito que esta secção existe para apanhar (o caminho
      * mal reescrito no shard); a segunda é a que confirma o tipo, quando há o que confirmar. */
-    const caminhoDoPdf = '/rosa/ciclo-01-calango-rosa.pdf';
-    const r = await chamar('calango', caminhoDoPdf);
+    /* A ESCOLA VEM DA LISTA QUE RESPONDEU, e não escrita à mão (26/11/2026). Aqui estava
+     * `calango` em dois sítios, e a `calango` já não existe: a bateria morria com `fetch failed` na
+     * secção do PDF, depois de as secções anteriores terem corrido bem. O que esta secção mede é o
+     * REWRITE do caminho pelo Worker — o nome da escola é acidente, e escreve-o quem sabe qual
+     * está viva. */
+    const escolaDoPdf = ALVOS[0].slug;
+    const caminhoDoPdf = '/rosa/ciclo-01-' + escolaDoPdf + '-rosa.pdf';
+    const r = await chamar(escolaDoPdf, caminhoDoPdf);
     const existe = r.status === 200;
     provar('o caminho do PDF é reconhecido (200 quando há, 404 de ASSETS quando ainda não)',
       existe || r.status === 404, r.status);
@@ -215,14 +233,14 @@ async function digital(slug) {
       provar('…e vem como PDF', /^%PDF/.test(r.texto.slice(0, 4)), r.texto.slice(0, 12));
     } else {
       provar('…e sem ciclo gerado, a ausência é do PDF e não da escola (a lista responde)',
-        (await chamar('calango', '/ciclos/planos/')).status === 200, null);
+        (await chamar(escolaDoPdf, '/ciclos/planos/')).status === 200, null);
     }
   }
 
   /* ── GESTÃO 3 · os assets, e a igualdade que autoriza partilhá-los ─────────────────────── */
-  console.log('\n3. `/assets/style.css` e `/nav.js` — servidos, e iguais nas três');
+  console.log('\n3. `/assets/style.css` e `/nav.js` — servidos, e iguais nas que respondem');
   const hashes = {};
-  for (const e of ESCOLAS) {
+  for (const e of ALVOS) {
     hashes[e.slug] = {};
     for (const f of ['style.css', 'nav.js']) {
       const r = await chamar(e.slug, '/assets/' + f);
@@ -231,14 +249,18 @@ async function digital(slug) {
     }
   }
   for (const f of ['style.css', 'nav.js']) {
-    const distintos = new Set(ESCOLAS.map((e) => hashes[e.slug][f]));
-    provar('`' + f + '` é IGUAL nas três escolas (é o que autoriza a cópia partilhada do passo 2)',
+    /* A IGUALDADE É ENTRE AS QUE RESPONDERAM. `ESCOLAS` aqui lia o `hashes` de uma escola que nunca
+     * foi pedida (`undefined`), e o `.map` rebentava com «Cannot read properties of undefined» —
+     * a terceira morte seguida da mesma causa: uma lista de escolas escrita à mão onde o código já
+     * tinha, ao lado, a lista de quem existe. Com as três vivas a diferença era invisível. */
+    const distintos = new Set(ALVOS.map((e) => hashes[e.slug][f]));
+    provar('`' + f + '` é IGUAL em todas as escolas que responderam (é o que autoriza a cópia partilhada do passo 2)',
       distintos.size === 1, [...distintos]);
   }
 
   /* ── GESTÃO 10 · o mapa respondeu, e não uma `var` de deploy ───────────────────────────── */
   console.log('\n10. `/api/saude` de cada host');
-  for (const e of ESCOLAS) {
+  for (const e of ALVOS) {
     const r = await chamar(e.slug, '/api/saude');
     provar('`/api/saude` de ' + e.slug + ' diz `slug: ' + e.slug + '`',
       r.corpo && r.corpo.slug === e.slug, r.corpo && r.corpo.slug);
@@ -250,14 +272,39 @@ async function digital(slug) {
 
   /* ── A IMPRESSÃO ANTES DOS GESTOS QUE ESCREVEM ─────────────────────────────────────────── */
   const antes = {};
-  for (const e of ESCOLAS) antes[e.slug] = await digital(e.slug);
+  for (const e of ALVOS) antes[e.slug] = await digital(e.slug);
 
+  /* A ESCOLA DOS GESTOS DE TURMA NASCE AQUI, no âmbito de fora, porque a secção do isolamento —
+   * lá em baixo — tem de perguntar-lhe se a turma de prova ficou apagada. Declarada dentro do
+   * `else`, ela não existia onde é usada. */
+  let escolaDaTurma = null;
   if (SO_LEITURA) {
     console.log('\n(só leitura — os gestos 7, 8 e 9 não foram corridos)');
     pendente('gestos 8 e 9 (turma, professor)', '--so-leitura');
   } else {
     /* ── GESTÃO 8 · a turma: criar, mudar de sala, apagar ──────────────────────────────────── */
-    console.log('\n8. turma — criar, editar, apagar (na `batata`, que não tinha nenhuma)');
+    /* A ESCOLA DA SECÇÃO É ESCOLHIDA PELO ESTADO QUE A SECÇÃO PRECISA (26/11/2026). Aqui estava
+     * `batata` escrita à mão, e com uma razão: é a que não tinha turma nenhuma. O nome fixo virou
+     * dependência de uma escola específica estar viva — quando ela saiu, a bateria morreu aqui.
+     *
+     * O que a secção precisa é «uma escola viva sem turmas de prova». Pergunta-se, em vez de se
+     * supor; e quando nenhuma serve, a secção SALTA e diz porquê, em vez de inventar um alvo que
+     * não existe ou de sujar a escola de outra pessoa. */
+    escolaDaTurma = await (async () => {
+      for (const e of ALVOS) {
+        try {
+          const r = await chamar(e.slug, '/api/bastidores/turmas');
+          const lista = (r.corpo && r.corpo.turmas) || [];
+          if (!lista.some((t) => /Prova do Shard/.test(String(t.nome)))) return e.slug;
+        } catch (erro) { /* host que caiu entre a lista e agora: tenta o seguinte */ }
+      }
+      return null;
+    })();
+    if (!escolaDaTurma) {
+      console.log('   NÃO FEITO — nenhuma escola viva está sem uma «Prova do Shard» de uma ' +
+        'passagem anterior; a secção não corre para não deixar lixo na escola de outra pessoa.');
+    } else {
+    console.log('\n8. turma — criar, editar, apagar (na `' + escolaDaTurma + '`, que não tinha nenhuma)');
     const turma = {
       nome: 'Prova do Shard',
       dias: ['ter', 'qui'],
@@ -266,7 +313,7 @@ async function digital(slug) {
       periodoInicio: '2026-11-20',
       periodoFim: '2026-12-20',
     };
-    const criada = await chamar('batata', '/api/bastidores/turma', { metodo: 'POST', corpo: turma });
+    const criada = await chamar(escolaDaTurma, '/api/bastidores/turma', { metodo: 'POST', corpo: turma });
     provar('criar a turma responde 201', criada.status === 201, [criada.status, criada.corpo && criada.corpo.erro]);
     const idTurma = criada.corpo && criada.corpo.id;
 
@@ -275,7 +322,7 @@ async function digital(slug) {
      * primeira versão desta bateria ficou a apontar para ele. Não é defeito do sistema: o
      * `turma-editar` reescreve a chave dos vínculos turma↔termo justamente porque o id mudou, e
      * diz o id novo na resposta (`id`, e o antigo em `eraId`). */
-    const editada = await chamar('batata', '/api/bastidores/turma-editar', {
+    const editada = await chamar(escolaDaTurma, '/api/bastidores/turma-editar', {
       metodo: 'POST', corpo: Object.assign({ id: idTurma }, turma, { nome: 'Prova do Shard (movida)' }),
     });
     provar('editar a turma responde 200', editada.status === 200, [editada.status, editada.corpo && editada.corpo.erro]);
@@ -283,17 +330,19 @@ async function digital(slug) {
     provar('…e a resposta diz o id NOVO, e o antigo em `eraId`',
       editada.corpo && editada.corpo.id === 'prova-do-shard-movida' && editada.corpo.eraId === idTurma,
       editada.corpo && { id: editada.corpo.id, eraId: editada.corpo.eraId });
-    const listaBatata = await chamar('batata', '/api/bastidores/turmas');
+    const listaBatata = await chamar(escolaDaTurma, '/api/bastidores/turmas');
     provar('…e o nome novo está na lista', /Prova do Shard \(movida\)/.test(JSON.stringify(listaBatata.corpo)), null);
     provar('…e o nome antigo não ficou como segunda turma',
       (listaBatata.corpo.turmas || []).filter((t) => /Prova do Shard/.test(String(t.nome))).length === 1,
       (listaBatata.corpo.turmas || []).map((t) => t.nome));
 
-    const apagada = await chamar('batata', '/api/bastidores/turma', { metodo: 'DELETE', corpo: { id: idEditada } });
+    const apagada = await chamar(escolaDaTurma, '/api/bastidores/turma', { metodo: 'DELETE', corpo: { id: idEditada } });
     provar('apagar a turma responde 200', apagada.status === 200, [apagada.status, apagada.corpo && apagada.corpo.erro]);
-    const depoisBatata = await chamar('batata', '/api/bastidores/turmas');
+    const depoisBatata = await chamar(escolaDaTurma, '/api/bastidores/turmas');
     provar('…e a escola volta a não ter turmas de prova',
       !(depoisBatata.corpo.turmas || []).some((t) => /Prova do Shard/.test(String(t.nome))), null);
+
+    }
 
     /* ── GESTÃO 9 · o professor: cadastrar, desligar, excluir ──────────────────────────────── */
     console.log('\n9. professor — cadastrar, desligar, excluir (na `breu`)');
@@ -479,7 +528,7 @@ async function digital(slug) {
   /* ── O ISOLAMENTO · o gesto numa escola não toca nas outras ─────────────────────────────── */
   console.log('\nISOLAMENTO — a impressão de quem não devia mudar');
   const depois = {};
-  for (const e of ESCOLAS) depois[e.slug] = await digital(e.slug);
+  for (const e of ALVOS) depois[e.slug] = await digital(e.slug);
 
   /* DUAS AFIRMAÇÕES DIFERENTES, e a distinção é o ponto.
    *
@@ -489,7 +538,13 @@ async function digital(slug) {
    *   · a escola ONDE O GESTO CORREU não fecha igual, e não é falha: o professor desligado FICA,
    *     por decisão (proveniência). Exigir-lhe o mesmo hash seria exigir que a bancada apagasse o
    *     que o sistema, coerentemente, guarda. */
-  const INTOCADAS = SO_LEITURA ? ESCOLAS.map((e) => e.slug) : ['calango'];
+  /* AS INTOCADAS SÃO AS QUE RESPONDERAM, e não um nome escrito à mão. Aqui estava `['calango']`,
+   * e com a `calango` fora do ar o `antes[slug]` era `undefined` — o `Object.keys` rebentava, e a
+   * bateria morria na ÚLTIMA secção, depois de todas as outras terem medido. Um isolamento que só
+   * se pode medir contra uma escola específica não é um isolamento: é uma dependência. */
+  const INTOCADAS = (SO_LEITURA ? ALVOS.map((e) => e.slug) : ALVOS.map((e) => e.slug)
+    .filter((slug) => antes[slug] && depois[slug]))
+    .filter((slug) => antes[slug] && depois[slug]);
   for (const slug of INTOCADAS) {
     const mudou = Object.keys(antes[slug]).filter((k) => antes[slug][k] !== depois[slug][k]);
     provar('`' + slug + '`, onde NENHUM gesto correu, fecha com a MESMA impressão digital',
@@ -497,8 +552,11 @@ async function digital(slug) {
   }
   if (!SO_LEITURA) {
     const turmasDe = async (slug) => (await chamar(slug, '/api/bastidores/turmas')).corpo.turmas || [];
-    provar('o gesto da `batata` (turma) deixou a `batata` sem turma de prova — o que se cria, apaga-se',
-      !(await turmasDe('batata')).some((t) => /Prova do Shard/.test(String(t.nome))), null);
+    /* O RÓTULO DIZ A ESCOLA QUE FOI USADA, e não a que costumava ser. «o gesto da batata» sobre um
+     * gesto que correu na `breu` é a mesma mentira pequena do «fora da bateria»: quem lê procura o
+     * rasto no sítio errado. */
+    provar('o gesto da turma deixou `' + escolaDaTurma + '` sem turma de prova — o que se cria, apaga-se',
+      !(await turmasDe(escolaDaTurma)).some((t) => /Prova do Shard/.test(String(t.nome))), null);
     provar('…e a `breu` (professor) ficou com o registo do desligado, como proveniência',
       /Prova Do Shard/i.test((await chamar('breu', '/bastidores/estudio')).texto), null);
   }

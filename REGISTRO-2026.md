@@ -64572,3 +64572,94 @@ escolas, lê-se como regressão em vez de «já conhecida».
 **301 provas, 199 verdes, 91 conhecidas, 0 já-conhecidas-escondidas — 11 vermelhas, todas
 nomeadas acima e todas pela mesma causa.** `provar-ambiente` voltou a **verde** (mede 1 escola, a
 `clablun`), e é a confirmação de que a `breu` saiu do ar.
+
+## «Estou preso nessa página» — o fim do convite não dava por onde sair *(26/11/2026, 22:14)*
+
+**O relato:** «cliquei no botão criar a escola. Só que agora eu estou preso nessa página. Assim, não
+tem nada errado, nenhum erro. Mas ele não me mostrou um link para ir para a escola criada, não me deu
+nenhum feedback, nenhum retorno a respeito do processo.»
+
+**A escola FOI criada** — `59f89008 feat(estrutura): criar a escola breu (motor completo)`, escrito
+pelo `github-actions[bot]`, com o registo comercial `origem: "convite"`. O trabalho aconteceu; a tela
+é que não o disse.
+
+### O que a página fazia, medido antes de mexer em nada
+
+Com o DOM da própria página e um `fetch` de mentira:
+
+| o que ela via | porquê |
+|:--|:--|
+| «a criar o acesso…» num `<p class="res">` **no meio do formulário** | quem acabou de clicar está no **fim** de uma página comprida, a olhar para o botão — o recado nasce fora do campo de visão |
+| **zero** links | o endereço da escola ia **dentro de uma frase em texto puro**: «…o endereço da escola é https://breu.padd.com.br.» |
+| o botão desabilitado para sempre | e nenhum sinal de que o processo tinha dois tempos |
+
+**O processo tem dois tempos, e a página não dizia nenhum:** o Worker cria o placeholder, grava o
+registo comercial e dispara o motor — segundos; o motor (GitHub Actions) escreve a escola de verdade
+e faz o deploy — um a dois minutos. A frase antiga juntava os dois num «está a ser criada» que não se
+podia conferir.
+
+### O que passou a valer
+
+| peça | o que faz |
+|:--|:--|
+| **o véu** — `.veu-de-operacao` + `data-ocupado`, a peça do catálogo | cobre a página **enquanto o pedido corre**, diz o passo («a criar a escola…»), e põe `inert` em tudo o resto — o segundo clique não abre duas criações a competir pelo mesmo `main` |
+| **o fim** — `.caixa`, a peça de «um bloco de leitura» | o formulário sai de cena, e entra o título com o nome da escola, o aviso de que o motor ainda está a subir, e **um link** — `.acao`, com o rótulo «abrir breu.padd.com.br» |
+| o erro e a falha de rede | o véu **sai** nos dois, e a frase da rede deixou de dizer «nada foi alterado» — o browser não sabe o que o servidor fez, e mandava conferir em «Escolas» |
+
+Nenhuma classe foi inventada: `veu-de-operacao`, `veu-texto`, `caixa`, `acao`, `par-botoes`, `res`,
+`aviso` — todas do catálogo, e o `check-identidade` (Peça) passou sem gancho novo.
+
+### Dois erros meus, os dois apanhados pela própria página a não funcionar
+
+1. Escrevi o bloco do fim com `innerHTML` e aspas escapadas: o JavaScript saiu com
+   `SyntaxError: Unexpected identifier 'par'`, e a página ficava com **o véu preso** — o pior dos
+   mundos, que é exactamente o que esta correcção vem resolver. Passou a ser construído pelo DOM
+   (`createElement` + `textContent`), onde a aspa não tem como quebrar nada.
+2. `url.replace(/^https?:\/\//,"")` dentro de um literal de JavaScript chegou ao browser como
+   `/^https?:///` — o regex fechava cedo e o script inteiro morria com «missing ) after argument
+   list». Duas substituições de texto fazem o mesmo sem escape nenhum.
+
+**A lição, e é a mesma dos dois:** um `provar` que não corre é a forma mais barata de «passar». A
+prova nova apanhou-os porque o primeiro caso a correr foi o de **sucesso** — e um véu que não sai
+num sucesso aparece na primeira asserção.
+
+### As provas
+
+`provar-o-fim-do-convite` (**nova, 29 asserções**), em cinco secções: o véu durante (diz o passo,
+tranca os irmãos, e **não** fica inerte ele próprio — um `role="status"` dentro de uma árvore inerte
+não é anunciado); o fim (link, rótulo, título, e os dois tempos do processo); sem `url` na resposta
+(não se inventa um link); o erro (o véu sai, a frase chega, o formulário fica); e a falha de rede.
+
+**Cinco mutações caem:** o véu não sobe **2** · o fim não é chamado **10** · o véu não sai no erro
+**1** · o `inert` não é posto **1** · o link é um `<span>` **2**.
+
+**CONTROLO NEGATIVO contra o `HEAD`: 18 asserções caem.** E foi ele que apanhou uma fragilidade da
+minha própria prova: na página antiga o véu não existe, e o `TypeError` matava a prova antes de ela
+dizer «falhou». Uma prova que rebenta não distingue «o defeito está lá» de «a prova está mal
+escrita» — passou a tratar a ausência como falha.
+
+### O que o expurgo expôs nas provas vizinhas: uma frase que mentia
+
+`provar-bateria-do-shard` montava a lista das escolas que respondem (`vivas`), escrevia «e por isso
+**fora da bateria**», e depois percorria `ESCOLAS` — **todas** — nos sete laços abaixo. Enquanto as
+três estavam no ar a diferença era invisível; com a `calango` e a `batata` fora, o primeiro `fetch` a
+um host morto lançou `TypeError: fetch failed` e a bateria morreu **sem medir nada**, com a linha
+acima já a dizer que as tinha excluído. Uma frase que anuncia uma exclusão que o código não faz é
+pior do que não a anunciar: quem lê conclui que o resto foi medido.
+
+Três dependências do mesmo tipo foram encontradas na mesma prova: o PDF em `'calango'` escrito à mão,
+a secção da turma em `'batata'` (que era a que não tinha turmas — passou a escolher a escola **pelo
+estado que a secção precisa**, e a saltar com motivo quando nenhuma serve), e o isolamento em
+`['calango']`. **Agora percorre `ALVOS` — quem respondeu.** 30/30 asserções, com 4 gestos pendentes
+declarados.
+
+### O estado da bateria, e uma decisão que mudei
+
+**301 provas, 202 verdes, 99 conhecidas, 0 regressões.**
+
+A 21:51 eu escrevi aqui que **não** punha as onze provas da fixture no `provas-vermelhas.json`, «para
+não as esconder». **Mudei de opinião, e o motivo é medido:** sem elas lá, cada passagem anunciava
+«11 regressões» que não existem — e é esse ruído que esconde a regressão verdadeira. Elas passaram a
+estar registadas **com o motivo escrito** (`_nota_das_fixtures`). E a lista já se está a corrigir
+sozinha: a recriação da `breu` trouxe os envelopes de volta, e `provar-estante-do-po` e
+`provar-o-registo-abre` saíram dela por passarem — que é o mecanismo a funcionar.

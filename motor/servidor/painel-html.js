@@ -1067,7 +1067,23 @@ function paginaDoConvite({ escola, nome, token, catalogo, pix, estado, retrato, 
     '<header class="doc"><h1>Recriar a escola «' + esc(nomeDaEscola) + '»</h1>' +
     '<p class="subtitulo">Escolher o plano, criar as senhas e pagar por Pix.</p></header>' +
     '<main><div class="conteudo">' + corpo + '</div></main>' +
-    (estado && estado.ok === false ? '' : SCRIPT_DO_CONVITE.replace(/__TOKEN__/g, esc(token || ''))) +
+    /* O RESULTADO DEPOIS DE A ESCOLA EXISTIR (26/11/2026) — a peça `.caixa`, que é a do catálogo
+     * para «um bloco de leitura». Nasce vazio e escondido: quem o preenche é o cliente, com o que o
+     * servidor devolveu. Ele fica FORA do `.conteudo` de propósito — o formulário sai de cena
+     * quando a escola existe, e um resultado escrito dentro do que acabou de se fechar não se lê. */
+    '<section class="conteudo" id="convite-fim" hidden>' +
+    '<div class="caixa" id="convite-fim-caixa"></div></section>' +
+    /* O VÉU — a peça da folha (`.veu-de-operacao` + `data-ocupado`), a mesma dos Bastidores e da
+     * porta. Não se inventa desenho novo: o que este sítio traz é o ESTADO e o TEXTO. */
+    '<div class="veu-de-operacao" id="convite-veu" role="status" aria-live="polite">' +
+    '<p class="veu-texto" id="convite-veu-texto">a criar a escola…</p></div>' +
+    (estado && estado.ok === false ? '' : SCRIPT_DO_CONVITE
+      /* O NOME DA ESCOLA VAI PARA O CLIENTE (26/11/2026) — é ele que a mensagem de fim usa quando a
+       * resposta não o trouxer, e é ele que a frase da falha de rede nomeia. O `esc` dos dois lados
+       * não é zelo: o nome entra num literal de JavaScript, e uma aspa no nome de uma escola
+       * quebraria o script inteiro — a página ficaria com o véu preso, que é o pior dos mundos. */
+      .replace(/__NOME__/g, JSON.stringify(String(nomeDaEscola || '')).replace(/</g, '\\u003c'))
+      .replace(/__TOKEN__/g, esc(token || ''))) +
     '</body></html>';
 }
 
@@ -1092,6 +1108,7 @@ const SCRIPT_DO_CONVITE = '<script>(function(){' +
   'lotes=document.getElementById("convite-capacidade");' +
   'if(!plano||!enviar)return;' +
   'var moeda=(lotes&&lotes.getAttribute("data-moeda"))||"R$";' +
+  'var NOME=__NOME__;' +
   'var perda=document.getElementById("convite-perda");' +
   'var retrato=null;try{retrato=JSON.parse((perda&&perda.getAttribute("data-retrato"))||"null");}catch(e){retrato=null;}' +
   /* A PERDA CONFIRMADA, E SÓ DELA SE MANDA O PEDIDO (16/11/2026). `perdeu` nasce falso a cada troca
@@ -1147,6 +1164,84 @@ const SCRIPT_DO_CONVITE = '<script>(function(){' +
   '    dizer("Escolha outro plano, ou mais adicionais, e eu volto a conferir.",false);' +
   '    if(plano)plano.focus();});}' +
   'function dizer(t,erro){if(!recado)return;recado.textContent=t||"";recado.className="res"+(erro?" erro":"");}' +
+  /* ── O VÉU, E O FIM DO PROCESSO (26/11/2026) ────────────────────────────────────────────────
+   *
+   * O QUE ELA VIU, e é a razão destas três funções: «cliquei no criar a escola. […] estou preso
+   * nessa página. Não tem nada errado, nenhum erro. Mas não me mostrou um link para ir para a escola
+   * criada, não me deu nenhum feedback, nenhum retorno a respeito do processo.»
+   *
+   * O PROCESSO TEM DOIS TEMPOS, e a página não dizia nenhum dos dois: (1) o Worker cria o
+   * placeholder, sobe o registo comercial e dispara o motor — segundos; (2) o motor (GitHub Actions)
+   * escreve a escola de verdade e faz o deploy — um a dois minutos. A frase antiga juntava os dois
+   * num «está a ser criada» que não se podia conferir, e não dava endereço nenhum para clicar.
+   *
+   * Por isso: o véu cobre o PRIMEIRO tempo enquanto o pedido corre, e o FIM diz o segundo com o
+   * link. Quem chega antes de o deploy acabar vê a porta da escola a dizer «implantação em
+   * andamento» — que é a verdade, e é a mesma página. */
+  'var veu=document.getElementById("convite-veu"),veuTexto=document.getElementById("convite-veu-texto");' +
+  'var fim=document.getElementById("convite-fim"),fimCaixa=document.getElementById("convite-fim-caixa");' +
+  'function ocupar(t){' +
+  '  if(veuTexto)veuTexto.textContent=String(t||"a criar a escola\u2026");' +
+  '  if(veu)veu.setAttribute("data-ocupado","sim");' +
+  /* O `inert` NOS IRMÃOS é o que tranca: sem ele um segundo clique põe duas criações a competir pelo
+     mesmo `main` — a doutrina dos Bastidores, aplicada aqui. O conteúdo final fica de fora, porque
+     é ele que tem de ficar acessível quando o véu sair. */
+  '  var f=document.body?document.body.children:[];' +
+  '  for(var i=0;i<f.length;i++){if(f[i].id!=="convite-veu"&&f[i].id!=="convite-fim")f[i].inert=true;}' +
+  '}' +
+  'function liberar(){' +
+  '  if(veu)veu.removeAttribute("data-ocupado");' +
+  '  var f=document.body?document.body.children:[];' +
+  '  for(var i=0;i<f.length;i++)f[i].inert=false;' +
+  '}' +
+  /* O FIM: o formulário sai, o resultado entra, o véu levanta. A caixa é a peça do catálogo para «um
+   * bloco de leitura», e o link é um `.acao` — o mesmo botão que levou até aqui, agora a levar para
+   * a escola. */
+  'function mostrarOFim(d){' +
+  '  liberar();' +
+  '  var nome=(d&&(d.nome||d.escola))||NOME||"a escola";' +
+  '  var url=(d&&d.url)||"";' +
+  '  var conteudo=document.querySelector("main .conteudo");' +
+  '  if(conteudo)conteudo.hidden=true;' +
+  '  if(!fimCaixa||!fim)return;' +
+  /* A CAIXA É CONSTRUÍDA PELO DOM, e não por uma string de HTML. O nome da escola e o endereço vêm
+   * do servidor, e uma aspa no nome quebraria o atributo — a primeira versão disto escrevia
+   * `innerHTML` com aspas escapadas e o JavaScript saiu com um erro de sintaxe: a página ficava com
+   * o véu preso, que é o pior dos mundos. `textContent` não tem esse problema por construção, e a
+   * única coisa que precisa de atributo é o link, que se cria com `createElement`. */
+  '  while(fimCaixa.firstChild)fimCaixa.removeChild(fimCaixa.firstChild);' +
+  '  var h=document.createElement("h2");' +
+  '  h.textContent="A escola \u00ab"+nome+"\u00bb foi criada";fimCaixa.appendChild(h);' +
+  '  var p1=document.createElement("p");' +
+  '  p1.textContent="O motor est\u00e1 a ser montado pelo GitHub agora \u2014 isso leva de um a " +' +
+  '    "dois minutos. Se abrir o endere\u00e7o antes de ele terminar, a pr\u00f3pria p\u00e1gina diz " +' +
+  '    "que a implanta\u00e7\u00e3o est\u00e1 em andamento; recarregue-a depois.";' +
+  '  fimCaixa.appendChild(p1);' +
+  '  var p2=document.createElement("p");' +
+  '  var forte=document.createElement("b");' +
+  '  forte.textContent="O acesso abre quando a concilia\u00e7\u00e3o do Pix for confirmada";' +
+  '  p2.appendChild(forte);' +
+  '  p2.appendChild(document.createTextNode(" \u2014 em at\u00e9 24 horas. A senha da dire\u00e7\u00e3o " +' +
+  '    "é a que voc\u00ea acabou de escolher."));' +
+  '  fimCaixa.appendChild(p2);' +
+  '  if(url){' +
+  '    var pa=document.createElement("p");pa.className="par-botoes";' +
+  '    var a=document.createElement("a");a.className="acao grande";a.href=url;' +
+  /* SEM REGEX AQUI (26/11/2026): `\/` dentro de um literal de JavaScript é uma barra, e
+   * `/^https?:\/\//` chegou ao browser como `/^https?:///` — o regex fechava cedo e o script
+   * inteiro morria com «missing ) after argument list». Duas substituições de texto fazem o mesmo
+   * e não têm escape nenhum para correr mal. */
+  '    a.textContent="abrir "+String(url).replace("https://","").replace("http://","");' +
+  '    pa.appendChild(a);fimCaixa.appendChild(pa);' +
+  '  } else {' +
+  '    var pa2=document.createElement("p");pa2.className="aviso";' +
+  '    pa2.textContent="O endere\u00e7o da escola n\u00e3o veio na resposta. Procure-a em " +' +
+  '      "\u00abEscolas\u00bb no painel \u2014 ela j\u00e1 est\u00e1 l\u00e1.";' +
+  '    fimCaixa.appendChild(pa2);' +
+  '  }' +
+  '  fim.hidden=false;' +
+  '  if(fim.scrollIntoView)fim.scrollIntoView();' +
+  '}' +
   'function reais(c){return moeda+" "+(Math.round(c)/100).toFixed(2).replace(".",",");}' +
   /* A ESCOLHA DOS LOTES — as caixas que o SERVIDOR renderizou (16/11/2026). A página não sabe
    * quais são: lê as que estão. Cada uma diz o eixo, a quantidade e o preço em cêntimos, e é isso
@@ -1184,7 +1279,15 @@ const SCRIPT_DO_CONVITE = '<script>(function(){' +
   /* A PERGUNTA VEM ANTES DO PEDIDO, e não como recusa depois: quem não respondeu vê a caixa, e o
    * formulário não sai. O servidor recusa na mesma (409) — esta é a cortesia, aquela é a regra. */
   'if(!perdeu&&mostrarPerda()){dizer("confirme em baixo se aceita perder os registos mais antigos",true);return;}' +
-  'dizer("a criar o acesso…");enviar.disabled=true;' +
+  /* O VÉU, ANTES DO PEDIDO (26/11/2026). O que aqui estava era uma linha no `.res` («a criar o
+   * acesso…») e o botão desabilitado — e o que ela viu foi a página parada: «não me deu nenhum
+   * feedback, nenhum retorno a respeito do processo». O `.res` é um parágrafo no fluxo, no meio do
+   * formulário; quem acabou de clicar está no fim da página, a olhar para o botão.
+   *
+   * A peça é a do catálogo (`veu-de-operacao` + `data-ocupado`), e o que este sítio traz é o
+   * ESTADO e o TEXTO. O `inert` nos irmãos é o que impede um segundo clique de pôr duas criações a
+   * competir pelo mesmo `main` — a mesma razão dos Bastidores. */
+  'ocupar("a criar a escola…");dizer("");enviar.disabled=true;' +
   /* O PEDIDO VAI PARA A RAIZ DO SÍTIO, e não para o lado da página (16/11/2026). Aqui esteve
    * `fetch("api/recriar/…")`, relativo: dentro de `/recriar/<token>` isso resolve para
    * `/recriar/api/recriar/<token>` — 404, e a página dizia «não foi possível concluir o cadastro»
@@ -1196,14 +1299,13 @@ const SCRIPT_DO_CONVITE = '<script>(function(){' +
   'perderDados:perdeu===true})})' +
   '.then(function(r){return r.json().catch(function(){return {};});})' +
   '.then(function(d){' +
-  'if(d&&d.ok){' +
-  'dizer("Pronto. A escola «"+(d.nome||d.escola)+"» está a ser criada, e o acesso abre quando a ' +
-  'conciliação do Pix for confirmada (até 24 horas). Guarde esta página: o endereço da escola é " + ' +
-  '(d.url||"o mesmo de sempre")+".");' +
-  'enviar.disabled=true;' +
-  'if(se)se.value="";if(sp)sp.value="";return;}' +
-  'enviar.disabled=false;dizer((d&&d.erro)||"não foi possível concluir o cadastro",true);})' +
-  '.catch(function(){enviar.disabled=false;dizer("falha de rede — nada foi alterado",true);});});' +
+  'if(d&&d.ok){mostrarOFim(d);return;}' +
+  'enviar.disabled=false;liberar();dizer((d&&d.erro)||"não foi possível concluir o cadastro",true);})' +
+  '.catch(function(){enviar.disabled=false;liberar();' +
+  /* A FRASE DA FALHA DE REDE NÃO PODE AFIRMAR QUE NADA ACONTECEU (26/11/2026): o pedido pode ter
+   * chegado e o pedido seguinte ter morrido. «Nada foi alterado» era uma promessa sobre o servidor
+   * feita pelo browser. */
+  'dizer("o pedido não chegou ao fim — confira em «Escolas» se «"+(NOME||"a escola")+"» já aparece antes de repetir",true);});});' +
   '})();</script>';
 
 /**

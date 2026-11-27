@@ -874,8 +874,15 @@ const LOTE_ALUNO = comercial.catalogoDaPagina().lotes.alunos[0].qtd;
         && JSON.stringify(pedidos[0].corpo.lotesProfessores) === JSON.stringify([])
         && JSON.stringify(pedidos[0].corpo.lotesAlunos) === JSON.stringify([]),
       pedidos[0].corpo);
+    /* A FRASE MUDOU DE SÍTIO, E ISSO É O QUE A CORRECÇÃO DE 26/11 FEZ. Ela era escrita no
+     * `#convite-recado` — um parágrafo NO MEIO do formulário, fora do campo de visão de quem acabou
+     * de clicar no botão. Passou para o bloco do fim (`#convite-fim`), que substitui o formulário e
+     * traz o link. A asserção continua a ser a mesma pergunta — «a página diz que a conciliação é
+     * manual?» —, feita onde a resposta agora está. Se o texto desaparecesse dos dois sítios, ela
+     * cai na mesma. */
     conferir('…e a página diz o que aconteceu a seguir (a conciliação é manual)',
-      /concilia/i.test(d.getElementById('convite-recado').textContent), null);
+      /concilia/i.test((d.getElementById('convite-fim') || d.createElement('div')).textContent
+        + d.getElementById('convite-recado').textContent), null);
     conferir('…sem um erro de jsdom a estragar o resto do script', erros.length === 0, erros.slice(0, 1));
     dom.window.close();
   }

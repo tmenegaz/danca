@@ -5982,7 +5982,26 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (26/11/2026, 21:51 — o expurgo da `breu` FECHOU)
+### Executado nesta fotografia (26/11/2026, 22:14 — o fim do convite, e o véu que faltava)
+
+| Verificação | Resultado |
+|:--|:--|
+| o relato | «estou preso nessa página, criar a escola […] não me mostrou um link para ir para a escola criada, não me deu nenhum feedback» |
+| **a escola foi criada** | `59f89008 feat(estrutura): criar a escola breu (motor completo)`, por `github-actions[bot]`; o registo comercial com `origem: "convite"`. **O trabalho aconteceu; a tela não o disse** |
+| o que a página fazia, medido no DOM com `fetch` de mentira | o recado «a criar o acesso…» num `<p class="res">` **no meio do formulário** (fora do campo de visão de quem clicou no botão); **0 links** (o endereço ia em texto puro dentro de uma frase); e o botão desabilitado sem sinal de fim |
+| **o processo tem dois tempos, e a página não dizia nenhum** | (1) o Worker cria o placeholder, grava o comercial e dispara — segundos; (2) o motor escreve a escola e faz o deploy — 1 a 2 minutos |
+| o que passou a valer | **o véu** (`.veu-de-operacao` + `data-ocupado`, peça do catálogo) enquanto o pedido corre, com `inert` em tudo o resto; e **o fim** (`.caixa`) com o nome, os dois tempos, e o **link** `.acao` «abrir breu.padd.com.br» |
+| o erro e a falha de rede | o véu **sai** nos dois; e «nada foi alterado» deixou de ser dito — o browser não sabe o que o servidor fez |
+| `provar-o-fim-do-convite` (**nova**) | **29/29**, em cinco secções: o véu durante (diz o passo, tranca os irmãos, e NÃO fica inerte ele próprio), o fim (link, rótulo, título, os dois tempos), sem `url` (não se inventa um link), o erro, e a falha de rede |
+| as mutações — **cinco regras, todas caem** | o véu não sobe **2** · o fim não é chamado **10** · o véu não sai no erro **1** · o `inert` não é posto **1** · o link é um `<span>` **2** |
+| **CONTROLO NEGATIVO contra o `HEAD`** | **18 asserções caem.** E ele apanhou uma fragilidade da prova: na página antiga o véu não existe e o `TypeError` matava a prova antes de ela dizer «falhou» — a ausência passou a ser falha, e não excepção |
+| **dois erros meus, apanhados pela página** | (1) o fim escrito com `innerHTML` e aspas escapadas deu `SyntaxError` e **prendeu o véu** — o pior dos mundos; passou a ser construído pelo DOM. (2) `replace(/^https?:\/\//)` chegou ao browser como `/^https?:///` e matou o script com «missing ) after argument list» |
+| **o que o expurgo expôs na prova do shard** | ela montava a lista das que respondem, escrevia «e por isso fora da bateria», e percorria **todas** — com a `calango` e a `batata` fora, o `fetch` lançou e a bateria morreu **sem medir nada**. Mais três nomes à mão: o PDF em `'calango'`, a secção da turma em `'batata'` (passou a escolher a escola pelo estado que precisa, e a saltar com motivo), e o isolamento em `['calango']`. Agora percorre `ALVOS`: **30/30** |
+| **uma decisão que mudei** | a 21:51 escrevi que não punha as onze provas da fixture na linha de base «para não as esconder». **Mudei:** sem elas lá, cada passagem anunciava «11 regressões» que não existem, e é esse ruído que esconde a verdadeira. Passaram a estar registadas **com o motivo** (`_nota_das_fixtures`), e a lista já se corrige sozinha — a recriação trouxe os envelopes e `provar-estante-do-po` e `provar-o-registo-abre` saíram dela por passarem |
+| a bateria | **301 provas, 202 verdes, 99 conhecidas, 0 regressões** |
+| o que **não** foi medido | o clique dela no ar. A prova corre o gesto no DOM da página de verdade, com o `fetch` interceptado; o acto de criar uma escola é dela |
+
+### Executado nesta fotografia anterior (26/11/2026, 21:51 — o expurgo da `breu` FECHOU)
 
 | Verificação | Resultado |
 |:--|:--|

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-26T22:05:13-0300`
-Commit atual: `1e0dd6b1` — chore(estrutura): fechar os derivados — âncoras e índices
+Gerado em: `2026-11-26T22:54:37-0300`
+Commit atual: `59f89008` — feat(estrutura): criar a escola breu (motor completo)
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -65,7 +65,7 @@ ramona-pires
 redinha-rosa
 rimel-preto
 sapatilha-de-ponta (16)
-- **Ciclos com manifesto:** 1 variante(s)
+- **Ciclos com manifesto:** 2 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -83,6 +83,8 @@ sapatilha-de-ponta (16)
 ## Últimos commits
 
 ```
+59f89008 feat(estrutura): criar a escola breu (motor completo)
+b82c5cad docs(registro): o expurgo da breu fechou, e o que ele levou
 1e0dd6b1 chore(estrutura): fechar os derivados — âncoras e índices
 81aaae14 chore(estrutura): expurgar a escola breu
 7536e12a fix(estrutura): o expurgo que ficou a meio pode ser completado
@@ -101,8 +103,6 @@ e2517cc4 docs(notacao): editar «Battement jeté» (8|2/4) no alfabeto bale-clas
 5b96c174 chore(estrutura): fechar os derivados — âncoras e índices
 16da54ae chore(entrega): gerar o pacote de demi-plie/01/breu-piano
 0af5bf99 feat(lancamento): a aula 01 de breu/demi-plie/breu-piano
-d3dd9c8a feat(lancamento): a aula 01 de breu/demi-plie/breu-piano
-5389b048 docs(estrutura): a contagem da bateria, medida e não estimada
 ```
 
 ## Por professor
@@ -117,7 +117,17 @@ d3dd9c8a feat(lancamento): a aula 01 de breu/demi-plie/breu-piano
 
 ### dedao-aberto — 0 ciclo(s)
 
-### demi-plie — 0 ciclo(s)
+### demi-plie — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): breu
+
+| Escola | PO | state | Marcadores [Preencher] |
+|:--|:--|:--|--:|
+| breu | (sem PO) | — | — |
+
+| Variante | .fipp | hash (12) | parentHash | po_state |
+|:--|:--|:--|:--|:--|
+| breu | ciclo-01-breu.fipp | `e81a3e1cf08c` | (vazio) | — |
 
 ### fernando-franciose — 0 ciclo(s)
 
@@ -196,79 +206,96 @@ d3dd9c8a feat(lancamento): a aula 01 de breu/demi-plie/breu-piano
 
 ## Última entrada do REGISTRO
 
-## O expurgo da `breu` fechou — e levou a única fixture completa do repositório *(26/11/2026, 21:51)*
+## «Estou preso nessa página» — o fim do convite não dava por onde sair *(26/11/2026, 22:14)*
 
-**Ela disse «Estou excluindo breu», e desta vez entrou.** A retomada correu: `81aaae14
-chore(estrutura): expurgar a escola breu`, **85 ficheiros, −53 218 linhas**, e o
-`1e0dd6b1 chore(estrutura): fechar os derivados` regerou as âncoras e os índices.
+**O relato:** «cliquei no botão criar a escola. Só que agora eu estou preso nessa página. Assim, não
+tem nada errado, nenhum erro. Mas ele não me mostrou um link para ir para a escola criada, não me deu
+nenhum feedback, nenhum retorno a respeito do processo.»
 
-### As quatro fases, medidas uma a uma
+**A escola FOI criada** — `59f89008 feat(estrutura): criar a escola breu (motor completo)`, escrito
+pelo `github-actions[bot]`, com o registo comercial `origem: "convite"`. O trabalho aconteceu; a tela
+é que não o disse.
 
-| fase | o que ficou | medido como |
-|:--|:--|:--|
-| ar | nada | `breu.padd.com.br` não resolve · HTTP `000` |
-| mapa do shard | só `clablun` | `escolas/por-host` |
-| KV | vazio | `kv list --prefix bastidores/breu/` → `[]`, e `breu/` → `[]` |
-| repositório | **0 ficheiros** da escola | `git ls-tree origin/main` |
-| o elo | escrito, **15 expurgos** | `expurgada: true`, `expurgada_em: 2026-11-27T00:51:17.592Z` |
+### O que a página fazia, medido antes de mexer em nada
 
-E o `ciclo-01.conf` foi apagado **com razão**: a `breu` era a única escola do `demi-plie` no ciclo
-01. Os cinco `-schema.json` ficaram — são o modelo de que nasce toda escola nova.
+Com o DOM da própria página e um `fetch` de mentira:
 
-### O que a correcção de ontem NÃO foi
-
-O motivo gravado no elo é o **da página** («expurgada pela página «Sistema Lastro»»), e não o que a
-retomada acrescenta («— conclusão de um expurgo interrompido»). **A retomada não foi o que
-desbloqueou.** O mais provável é o que ela descreveu: desabilitou a escola outra vez pela tela, o que
-recriou `bastidores/breu/comercial` com um `desabilitadaEm` novo, e passado o minuto da carência a
-**regra** autorizou o expurgo — legitimamente, sem retomada nenhuma.
-
-Fica dito porque é o que os registos dizem, e não o que seria mais lisonjeiro para o trabalho de
-ontem. A retomada continua a ser a rede para o caso em que não há como reabilitar — e está provada.
-
-### Uma perda que corrigi, com o registo a dizê-lo
-
-`cadastros/breu` foi escrito com **`cnpj: null`, `email: null`, `telefone: null`** e
-`escolaNome: "breu"` (o slug). O expurgo leu o cadastro **depois** de a metade anterior ter limpado o
-prefixo `bastidores/breu/`, e não havia o que ler. O CPF e o contacto do professor sobreviveram —
-vivem na chave dele, fora do prefixo.
-
-Os valores repostos são os que uma sonda de **26/11/2026, 21:19 UTC**, leu no KV antes da limpeza:
-CNPJ `61275523000135`, `tmenegaz77@gmail.com`, `54991752662`, nome «Breu». E o elo ganhou
-`corrigido_em` e `corrigido_motivo` — **o registo diz que foi corrigido**, senão passaria a afirmar
-que o expurgo leu um CNPJ que ele não leu.
-
-### A consequência que ninguém pediu: 11 provas perderam a fixture
-
-A `breu` era a **única** escola com pacote gerado e envelopes de verdade. O expurgo levou-os, e onze
-provas que mediam contra ela ficaram vermelhas — todas pela mesma razão, e o detalhe de cada uma
-diz qual:
-
-| prova | o que perdeu |
+| o que ela via | porquê |
 |:--|:--|
-| `provar-estante-do-po` | `escola/breu/envelopes` |
-| `provar-o-envio-da-aula` | `professores/demi-plie/ciclos/ciclo-01-breu-piano/captura-aula-01.json` |
-| `provar-o-guiao-do-consultor` | `…/ciclo-01-breu-piano/ciclos.json` |
-| `provar-estado-do-po` | «há POs no repositório para medir» → **0** |
-| `provar-barra-e-caminho` | «há um `lancamento.html` de pacote para ser medido» → **nenhum** |
-| `provar-ar-das-paginas`, `provar-a-descricao-do-exercicio`, `provar-o-custo-da-consultoria`, `provar-o-plano-do-consultor`, `provar-o-registo-abre`, `provar-remocao-do-elenco` | leem `[0]` de uma lista que passou a vazia |
+| «a criar o acesso…» num `<p class="res">` **no meio do formulário** | quem acabou de clicar está no **fim** de uma página comprida, a olhar para o botão — o recado nasce fora do campo de visão |
+| **zero** links | o endereço da escola ia **dentro de uma frase em texto puro**: «…o endereço da escola é https://breu.padd.com.br.» |
+| o botão desabilitado para sempre | e nenhum sinal de que o processo tinha dois tempos |
 
-**Não mexi na linha de base para as esconder.** Uma prova vermelha por falta de fixture é um facto
-sobre o repositório, e escondê-la agora faria a próxima regressão passar em silêncio. As que só
-perguntam «existe?» voltam sozinhas quando houver escola com pacote. As que citam o caminho
-`ciclo-01-breu-piano/…` vão precisar de actualização: a sala nova, com duas faixas, dá uma variante
-com a modalidade (§9.6), e o caminho será outro.
+**O processo tem dois tempos, e a página não dizia nenhum:** o Worker cria o placeholder, grava o
+registo comercial e dispara o motor — segundos; o motor (GitHub Actions) escreve a escola de verdade
+e faz o deploy — um a dois minutos. A frase antiga juntava os dois num «está a ser criada» que não se
+podia conferir.
 
-**E uma prova que passou a «verde» sem medir:** `provar-bateria-do-shard` sai com `0` quando não há
-escolas («uma bateria sem escolas mede o vazio»), o que é defensável — mas estava na linha de base
-como vermelha, e o corredor avisou. Saiu da linha de base: agora, se voltar a falhar quando houver
-escolas, lê-se como regressão em vez de «já conhecida».
+### O que passou a valer
 
-### O estado da bateria
+| peça | o que faz |
+|:--|:--|
+| **o véu** — `.veu-de-operacao` + `data-ocupado`, a peça do catálogo | cobre a página **enquanto o pedido corre**, diz o passo («a criar a escola…»), e põe `inert` em tudo o resto — o segundo clique não abre duas criações a competir pelo mesmo `main` |
+| **o fim** — `.caixa`, a peça de «um bloco de leitura» | o formulário sai de cena, e entra o título com o nome da escola, o aviso de que o motor ainda está a subir, e **um link** — `.acao`, com o rótulo «abrir breu.padd.com.br» |
+| o erro e a falha de rede | o véu **sai** nos dois, e a frase da rede deixou de dizer «nada foi alterado» — o browser não sabe o que o servidor fez, e mandava conferir em «Escolas» |
 
-**301 provas, 199 verdes, 91 conhecidas, 0 já-conhecidas-escondidas — 11 vermelhas, todas
-nomeadas acima e todas pela mesma causa.** `provar-ambiente` voltou a **verde** (mede 1 escola, a
-`clablun`), e é a confirmação de que a `breu` saiu do ar.
+Nenhuma classe foi inventada: `veu-de-operacao`, `veu-texto`, `caixa`, `acao`, `par-botoes`, `res`,
+`aviso` — todas do catálogo, e o `check-identidade` (Peça) passou sem gancho novo.
+
+### Dois erros meus, os dois apanhados pela própria página a não funcionar
+
+1. Escrevi o bloco do fim com `innerHTML` e aspas escapadas: o JavaScript saiu com
+   `SyntaxError: Unexpected identifier 'par'`, e a página ficava com **o véu preso** — o pior dos
+   mundos, que é exactamente o que esta correcção vem resolver. Passou a ser construído pelo DOM
+   (`createElement` + `textContent`), onde a aspa não tem como quebrar nada.
+2. `url.replace(/^https?:\/\//,"")` dentro de um literal de JavaScript chegou ao browser como
+   `/^https?:///` — o regex fechava cedo e o script inteiro morria com «missing ) after argument
+   list». Duas substituições de texto fazem o mesmo sem escape nenhum.
+
+**A lição, e é a mesma dos dois:** um `provar` que não corre é a forma mais barata de «passar». A
+prova nova apanhou-os porque o primeiro caso a correr foi o de **sucesso** — e um véu que não sai
+num sucesso aparece na primeira asserção.
+
+### As provas
+
+`provar-o-fim-do-convite` (**nova, 29 asserções**), em cinco secções: o véu durante (diz o passo,
+tranca os irmãos, e **não** fica inerte ele próprio — um `role="status"` dentro de uma árvore inerte
+não é anunciado); o fim (link, rótulo, título, e os dois tempos do processo); sem `url` na resposta
+(não se inventa um link); o erro (o véu sai, a frase chega, o formulário fica); e a falha de rede.
+
+**Cinco mutações caem:** o véu não sobe **2** · o fim não é chamado **10** · o véu não sai no erro
+**1** · o `inert` não é posto **1** · o link é um `<span>` **2**.
+
+**CONTROLO NEGATIVO contra o `HEAD`: 18 asserções caem.** E foi ele que apanhou uma fragilidade da
+minha própria prova: na página antiga o véu não existe, e o `TypeError` matava a prova antes de ela
+dizer «falhou». Uma prova que rebenta não distingue «o defeito está lá» de «a prova está mal
+escrita» — passou a tratar a ausência como falha.
+
+### O que o expurgo expôs nas provas vizinhas: uma frase que mentia
+
+`provar-bateria-do-shard` montava a lista das escolas que respondem (`vivas`), escrevia «e por isso
+**fora da bateria**», e depois percorria `ESCOLAS` — **todas** — nos sete laços abaixo. Enquanto as
+três estavam no ar a diferença era invisível; com a `calango` e a `batata` fora, o primeiro `fetch` a
+um host morto lançou `TypeError: fetch failed` e a bateria morreu **sem medir nada**, com a linha
+acima já a dizer que as tinha excluído. Uma frase que anuncia uma exclusão que o código não faz é
+pior do que não a anunciar: quem lê conclui que o resto foi medido.
+
+Três dependências do mesmo tipo foram encontradas na mesma prova: o PDF em `'calango'` escrito à mão,
+a secção da turma em `'batata'` (que era a que não tinha turmas — passou a escolher a escola **pelo
+estado que a secção precisa**, e a saltar com motivo quando nenhuma serve), e o isolamento em
+`['calango']`. **Agora percorre `ALVOS` — quem respondeu.** 30/30 asserções, com 4 gestos pendentes
+declarados.
+
+### O estado da bateria, e uma decisão que mudei
+
+**301 provas, 202 verdes, 99 conhecidas, 0 regressões.**
+
+A 21:51 eu escrevi aqui que **não** punha as onze provas da fixture no `provas-vermelhas.json`, «para
+não as esconder». **Mudei de opinião, e o motivo é medido:** sem elas lá, cada passagem anunciava
+«11 regressões» que não existem — e é esse ruído que esconde a regressão verdadeira. Elas passaram a
+estar registadas **com o motivo escrito** (`_nota_das_fixtures`). E a lista já se está a corrigir
+sozinha: a recriação da `breu` trouxe os envelopes de volta, e `provar-estante-do-po` e
+`provar-o-registo-abre` saíram dela por passarem — que é o mecanismo a funcionar.
 
 ## O que está pendente
 
@@ -802,6 +829,7 @@ mente.
 - **22/11/2026** — Uma régua só, e um plano só na escolha → `REGISTRO-2026.md` L58073
 - **22/11/2026** — O estúdio, e o modelo do painel inicial → `REGISTRO-2026.md` L58154
 - **24/11/2026** — O REGISTRO partido por ano: o índice e o arquivo anual → `REGISTRO-2026.md` L60174
+- **demi-plie · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **ramona-pires · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
