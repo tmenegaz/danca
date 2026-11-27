@@ -5982,7 +5982,27 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (26/11/2026 — o expurgo que apagou a prova da sua própria guarda)
+### Executado nesta fotografia (26/11/2026, 21:51 — o expurgo da `breu` FECHOU)
+
+| Verificação | Resultado |
+|:--|:--|
+| o commit do expurgo | `81aaae14 chore(estrutura): expurgar a escola breu` — **85 ficheiros, −53 218 linhas**; e `1e0dd6b1` regerou âncoras e índices |
+| **ar** | `breu.padd.com.br` não resolve · HTTP `000` |
+| **mapa do shard** | `escolas/por-host` → só `clablun` |
+| **KV** | `bastidores/breu/` → `[]` e `breu/` → `[]`, medidos os dois prefixos |
+| **repositório** | **0 ficheiros** da escola em `origin/main` |
+| **o elo** | escrito: `expurgada: true`, `expurgos: 15`, `expurgada_em: 2026-11-27T00:51:17.592Z` |
+| o `ciclo-01.conf` apagado | **com razão** — a `breu` era a única escola do `demi-plie` no ciclo 01; os cinco `-schema.json` ficaram (modelo de toda escola nova) |
+| **a correcção de ontem não foi o que desbloqueou** | o motivo no elo é o da PÁGINA, e não o da retomada («— conclusão de um expurgo interrompido»). O mais provável: ela desabilitou a escola outra vez, o `comercial` renasceu com `desabilitadaEm` novo, e passado o minuto a **regra** autorizou. A retomada continua a ser a rede, e está provada — mas não foi ela |
+| **a identidade fiscal, corrigida com o registo a dizê-lo** | `cadastros/breu` nasceu com `cnpj/email/telefone` nulos e `escolaNome: "breu"` (o slug): o expurgo leu o cadastro depois de a metade anterior ter limpado o prefixo. Repostos os valores da sonda de 26/11 21:19 UTC — CNPJ `61275523000135`, `tmenegaz77@gmail.com`, `54991752662`, «Breu» — e o elo ganhou `corrigido_em`/`corrigido_motivo` |
+| **11 provas perderam a fixture** | a `breu` era a única escola com pacote e envelopes. `provar-estante-do-po`, `provar-o-envio-da-aula`, `provar-o-guiao-do-consultor`, `provar-estado-do-po`, `provar-barra-e-caminho`, `provar-ar-das-paginas`, `provar-a-descricao-do-exercicio`, `provar-o-custo-da-consultoria`, `provar-o-plano-do-consultor`, `provar-o-registo-abre`, `provar-remocao-do-elenco`. **A linha de base NÃO foi mexida para as esconder** |
+| as que voltam e as que não | as que só perguntam «existe?» voltam quando houver escola com pacote; as que citam `ciclo-01-breu-piano/…` vão precisar de actualização, porque a sala nova (duas faixas) dá variante com a modalidade (§9.6) |
+| `provar-bateria-do-shard` | saiu da linha de base: sai com `0` quando não há escolas, e estava lá como vermelha. Agora, se falhar quando houver escolas, lê-se como regressão |
+| `provar-ambiente` | **verde**, a medir **1** escola (`clablun`) — a confirmação de que a `breu` saiu do ar |
+| a bateria | **301 provas, 199 verdes, 91 conhecidas, 11 vermelhas** — todas nomeadas acima e todas da mesma causa |
+| o que **não** foi medido | a escola nova. A próxima medição é a criação dela **com dois marcos** (senão a aula 2 nasce com `[Preencher: … o plano não respondeu «aula-2-parametro»]`) |
+
+### Executado nesta fotografia anterior (26/11/2026 — o expurgo que apagou a prova da sua própria guarda)
 
 | Verificação | Resultado |
 |:--|:--|

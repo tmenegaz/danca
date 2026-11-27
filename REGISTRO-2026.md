@@ -64498,3 +64498,77 @@ expurgo dela foi a 23/11 de manhã). O CNPJ sobreviveu por acidente — estava l
 passou a **verde** — as duas pelo mesmo facto: a `breu` saiu do ar mas ainda está no repositório. Não
 se ajusta a linha de base sobre um estado que vai mudar: as duas medem-se outra vez depois de o
 expurgo fechar. **300 provas, 208 verdes, 91 conhecidas, 1 vermelha explicada.**
+
+## O expurgo da `breu` fechou — e levou a única fixture completa do repositório *(26/11/2026, 21:51)*
+
+**Ela disse «Estou excluindo breu», e desta vez entrou.** A retomada correu: `81aaae14
+chore(estrutura): expurgar a escola breu`, **85 ficheiros, −53 218 linhas**, e o
+`1e0dd6b1 chore(estrutura): fechar os derivados` regerou as âncoras e os índices.
+
+### As quatro fases, medidas uma a uma
+
+| fase | o que ficou | medido como |
+|:--|:--|:--|
+| ar | nada | `breu.padd.com.br` não resolve · HTTP `000` |
+| mapa do shard | só `clablun` | `escolas/por-host` |
+| KV | vazio | `kv list --prefix bastidores/breu/` → `[]`, e `breu/` → `[]` |
+| repositório | **0 ficheiros** da escola | `git ls-tree origin/main` |
+| o elo | escrito, **15 expurgos** | `expurgada: true`, `expurgada_em: 2026-11-27T00:51:17.592Z` |
+
+E o `ciclo-01.conf` foi apagado **com razão**: a `breu` era a única escola do `demi-plie` no ciclo
+01. Os cinco `-schema.json` ficaram — são o modelo de que nasce toda escola nova.
+
+### O que a correcção de ontem NÃO foi
+
+O motivo gravado no elo é o **da página** («expurgada pela página «Sistema Lastro»»), e não o que a
+retomada acrescenta («— conclusão de um expurgo interrompido»). **A retomada não foi o que
+desbloqueou.** O mais provável é o que ela descreveu: desabilitou a escola outra vez pela tela, o que
+recriou `bastidores/breu/comercial` com um `desabilitadaEm` novo, e passado o minuto da carência a
+**regra** autorizou o expurgo — legitimamente, sem retomada nenhuma.
+
+Fica dito porque é o que os registos dizem, e não o que seria mais lisonjeiro para o trabalho de
+ontem. A retomada continua a ser a rede para o caso em que não há como reabilitar — e está provada.
+
+### Uma perda que corrigi, com o registo a dizê-lo
+
+`cadastros/breu` foi escrito com **`cnpj: null`, `email: null`, `telefone: null`** e
+`escolaNome: "breu"` (o slug). O expurgo leu o cadastro **depois** de a metade anterior ter limpado o
+prefixo `bastidores/breu/`, e não havia o que ler. O CPF e o contacto do professor sobreviveram —
+vivem na chave dele, fora do prefixo.
+
+Os valores repostos são os que uma sonda de **26/11/2026, 21:19 UTC**, leu no KV antes da limpeza:
+CNPJ `61275523000135`, `tmenegaz77@gmail.com`, `54991752662`, nome «Breu». E o elo ganhou
+`corrigido_em` e `corrigido_motivo` — **o registo diz que foi corrigido**, senão passaria a afirmar
+que o expurgo leu um CNPJ que ele não leu.
+
+### A consequência que ninguém pediu: 11 provas perderam a fixture
+
+A `breu` era a **única** escola com pacote gerado e envelopes de verdade. O expurgo levou-os, e onze
+provas que mediam contra ela ficaram vermelhas — todas pela mesma razão, e o detalhe de cada uma
+diz qual:
+
+| prova | o que perdeu |
+|:--|:--|
+| `provar-estante-do-po` | `escola/breu/envelopes` |
+| `provar-o-envio-da-aula` | `professores/demi-plie/ciclos/ciclo-01-breu-piano/captura-aula-01.json` |
+| `provar-o-guiao-do-consultor` | `…/ciclo-01-breu-piano/ciclos.json` |
+| `provar-estado-do-po` | «há POs no repositório para medir» → **0** |
+| `provar-barra-e-caminho` | «há um `lancamento.html` de pacote para ser medido» → **nenhum** |
+| `provar-ar-das-paginas`, `provar-a-descricao-do-exercicio`, `provar-o-custo-da-consultoria`, `provar-o-plano-do-consultor`, `provar-o-registo-abre`, `provar-remocao-do-elenco` | leem `[0]` de uma lista que passou a vazia |
+
+**Não mexi na linha de base para as esconder.** Uma prova vermelha por falta de fixture é um facto
+sobre o repositório, e escondê-la agora faria a próxima regressão passar em silêncio. As que só
+perguntam «existe?» voltam sozinhas quando houver escola com pacote. As que citam o caminho
+`ciclo-01-breu-piano/…` vão precisar de actualização: a sala nova, com duas faixas, dá uma variante
+com a modalidade (§9.6), e o caminho será outro.
+
+**E uma prova que passou a «verde» sem medir:** `provar-bateria-do-shard` sai com `0` quando não há
+escolas («uma bateria sem escolas mede o vazio»), o que é defensável — mas estava na linha de base
+como vermelha, e o corredor avisou. Saiu da linha de base: agora, se voltar a falhar quando houver
+escolas, lê-se como regressão em vez de «já conhecida».
+
+### O estado da bateria
+
+**301 provas, 199 verdes, 91 conhecidas, 0 já-conhecidas-escondidas — 11 vermelhas, todas
+nomeadas acima e todas pela mesma causa.** `provar-ambiente` voltou a **verde** (mede 1 escola, a
+`clablun`), e é a confirmação de que a `breu` saiu do ar.

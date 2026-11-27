@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-26T21:44:16-0300`
-Commit atual: `55e6554f` — fix(ciclo-01): a âncora da aula deixa de ter o id de outra variante
+Gerado em: `2026-11-26T22:05:13-0300`
+Commit atual: `1e0dd6b1` — chore(estrutura): fechar os derivados — âncoras e índices
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -65,7 +65,7 @@ ramona-pires
 redinha-rosa
 rimel-preto
 sapatilha-de-ponta (16)
-- **Ciclos com manifesto:** 3 variante(s)
+- **Ciclos com manifesto:** 1 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -83,6 +83,9 @@ sapatilha-de-ponta (16)
 ## Últimos commits
 
 ```
+1e0dd6b1 chore(estrutura): fechar os derivados — âncoras e índices
+81aaae14 chore(estrutura): expurgar a escola breu
+7536e12a fix(estrutura): o expurgo que ficou a meio pode ser completado
 55e6554f fix(ciclo-01): a âncora da aula deixa de ter o id de outra variante
 a0a27690 fix(entrega): sai o manifesto que tinha o nome de uma variante e o conteúdo de outra
 82b3c3f7 fix(entrega): o disparo que não coube passa a ser declarado, e o `.conf` deixa de ter dois nomes
@@ -100,9 +103,6 @@ e2517cc4 docs(notacao): editar «Battement jeté» (8|2/4) no alfabeto bale-clas
 0af5bf99 feat(lancamento): a aula 01 de breu/demi-plie/breu-piano
 d3dd9c8a feat(lancamento): a aula 01 de breu/demi-plie/breu-piano
 5389b048 docs(estrutura): a contagem da bateria, medida e não estimada
-e7c4e11d fix(estrutura): o «Enviar» da aula enviava nada, e não dizia nada
-4e7464a3 fix(estrutura): o nome da escola é o que ela declarou, e não o slug
-6345ba3b fix(estrutura): o bloco «informar um pagamento» passa a dizer de que escola é
 ```
 
 ## Por professor
@@ -117,19 +117,7 @@ e7c4e11d fix(estrutura): o «Enviar» da aula enviava nada, e não dizia nada
 
 ### dedao-aberto — 0 ciclo(s)
 
-### demi-plie — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): breu, breu-piano
-
-| Escola | PO | state | Marcadores [Preencher] |
-|:--|:--|:--|--:|
-| breu | (sem PO) | — | — |
-| breu | ciclo-01-breu-piano-po.md | Input_PO_Validado | 1 |
-
-| Variante | .fipp | hash (12) | parentHash | po_state |
-|:--|:--|:--|:--|:--|
-| breu | ciclo-01-breu.fipp | `e81a3e1cf08c` | (vazio) | — |
-| breu-piano | ciclo-01-breu-piano.fipp | `16aab9dc6676` | (vazio) | Input_PO_Validado |
+### demi-plie — 0 ciclo(s)
 
 ### fernando-franciose — 0 ciclo(s)
 
@@ -208,96 +196,79 @@ e7c4e11d fix(estrutura): o «Enviar» da aula enviava nada, e não dizia nada
 
 ## Última entrada do REGISTRO
 
-## O expurgo apagou a prova que a sua própria guarda exige *(26/11/2026)*
+## O expurgo da `breu` fechou — e levou a única fixture completa do repositório *(26/11/2026, 21:51)*
 
-**O relato, e é o defeito com as palavras dela:** «Não consigo excluir novamente a escola breu aqui
-pela tela.» E a frase que a tela dava:
+**Ela disse «Estou excluindo breu», e desta vez entrou.** A retomada correu: `81aaae14
+chore(estrutura): expurgar a escola breu`, **85 ficheiros, −53 218 linhas**, e o
+`1e0dd6b1 chore(estrutura): fechar os derivados` regerou as âncoras e os índices.
 
-> Não há cadastro comercial desta escola — e sem cadastro não há como saber que ela está suspensa.
+### As quatro fases, medidas uma a uma
 
-### O estado que o sistema construiu sozinho
-
-O expurgo tem duas metades, e a ordem é **Cloudflare → repositório** (§5 da rota). Na `breu` a
-primeira correu inteira e a segunda não:
-
-| metade | o que ficou | medido como |
+| fase | o que ficou | medido como |
 |:--|:--|:--|
-| Cloudflare | rota removida, mapa sem a entrada, `bastidores/breu/` **vazio** | DNS não resolve · `escolas/por-host` sem `breu` · `kv list` → `[]` |
-| repositório | **83 ficheiros** + `ciclo-01.conf` | `git ls-tree origin/main` · elo com `expurgada: false` |
+| ar | nada | `breu.padd.com.br` não resolve · HTTP `000` |
+| mapa do shard | só `clablun` | `escolas/por-host` |
+| KV | vazio | `kv list --prefix bastidores/breu/` → `[]`, e `breu/` → `[]` |
+| repositório | **0 ficheiros** da escola | `git ls-tree origin/main` |
+| o elo | escrito, **15 expurgos** | `expurgada: true`, `expurgada_em: 2026-11-27T00:51:17.592Z` |
 
-A regra do expurgo lê `bastidores/<escola>/comercial` para saber se a escola está suspensa e se a
-carência venceu. **O expurgo apagou esse registo**, porque ele mora dentro do prefixo que a limpeza
-do KV percorre — e apagou-o **antes** do passo que falhou. O resultado é um beco sem saída que o
-próprio sistema cria: a evidência que a guarda exige foi destruída pelo acto que a guarda autorizou,
-e nenhuma tentativa seguinte a pode recriar.
+E o `ciclo-01.conf` foi apagado **com razão**: a `breu` era a única escola do `demi-plie` no ciclo
+01. Os cinco `-schema.json` ficaram — são o modelo de que nasce toda escola nova.
 
-**É a mesma família do `tipoDaColuna` e do `fontesDoCicloProntas`, um passo adiante:** um passo
-apaga o que o passo seguinte precisa, e o erro só aparece quando o segundo falha.
+### O que a correcção de ontem NÃO foi
 
-### Porque é que a guarda continua certa
+O motivo gravado no elo é o **da página** («expurgada pela página «Sistema Lastro»»), e não o que a
+retomada acrescenta («— conclusão de um expurgo interrompido»). **A retomada não foi o que
+desbloqueou.** O mais provável é o que ela descreveu: desabilitou a escola outra vez pela tela, o que
+recriou `bastidores/breu/comercial` com um `desabilitadaEm` novo, e passado o minuto da carência a
+**regra** autorizou o expurgo — legitimamente, sem retomada nenhuma.
 
-A carência protege uma escola que **tem dado** — as alunas, os ciclos, o trabalho de quem paga.
-Numa escola neste estado não há dado nenhum: o KV está vazio, ela saiu do ar e do mapa, e o que
-sobra é o ficheiro do repositório, que é precisamente o que a retomada vem remover. **O prazo já foi
-cumprido** — cumprido no pedido que autorizou o primeiro expurgo. Recusar aqui não protege ninguém:
-tranca o acto que a própria regra já tinha autorizado.
+Fica dito porque é o que os registos dizem, e não o que seria mais lisonjeiro para o trabalho de
+ontem. A retomada continua a ser a rede para o caso em que não há como reabilitar — e está provada.
 
-### A assinatura: três factos medidos, nenhum inferido
+### Uma perda que corrigi, com o registo a dizê-lo
 
-1. a escola declara `shard` no elo — **só uma escola de shard pode chegar aqui**, porque a limpeza do
-   KV corre contra o namespace da MORADA, e no shard esse namespace é o partilhado; uma escola com
-   Worker próprio tem namespace próprio e o comercial dela no KV do painel nunca é tocado;
-2. o prefixo `bastidores/<escola>/` está **vazio** — a limpeza passou;
-3. a escola **não está no mapa** do shard — sem entrada, não recebe tráfego.
+`cadastros/breu` foi escrito com **`cnpj: null`, `email: null`, `telefone: null`** e
+`escolaNome: "breu"` (o slug). O expurgo leu o cadastro **depois** de a metade anterior ter limpado o
+prefixo `bastidores/breu/`, e não havia o que ler. O CPF e o contacto do professor sobreviveram —
+vivem na chave dele, fora do prefixo.
 
-Falhando um, a resposta volta a ser a da regra. E se a listagem do KV falhar, **não se conclui**: uma
-leitura falhada não é «zero chaves» (§13 do plano).
+Os valores repostos são os que uma sonda de **26/11/2026, 21:19 UTC**, leu no KV antes da limpeza:
+CNPJ `61275523000135`, `tmenegaz77@gmail.com`, `54991752662`, nome «Breu». E o elo ganhou
+`corrigido_em` e `corrigido_motivo` — **o registo diz que foi corrigido**, senão passaria a afirmar
+que o expurgo leu um CNPJ que ele não leu.
 
-### O que passou a valer
+### A consequência que ninguém pediu: 11 provas perderam a fixture
 
-`podeExpurgar({ env, slug })` — a pergunta inteira num sítio só. A regra (`estadoDoExpurgo`) **não foi
-tocada**; é ela que decide ainda, e a retomada só é perguntada quando a regra recusou por não haver
-registo **e** há token. A rota deixou de decidir e passou a perguntar, que era o que o comentário dela
-já dizia desde 16/11. O motivo que vai ao elo passa a dizer que foi uma retomada: «conclusão de um
-expurgo interrompido (o KV e o ar já tinham saído)».
+A `breu` era a **única** escola com pacote gerado e envelopes de verdade. O expurgo levou-os, e onze
+provas que mediam contra ela ficaram vermelhas — todas pela mesma razão, e o detalhe de cada uma
+diz qual:
 
-E o estado **não se inventa**: o veredicto devolve `estado: null`, e não «suspensa» — não há registo
-que o diga, e afirmá-lo seria medir com a imaginação o que não se mediu.
+| prova | o que perdeu |
+|:--|:--|
+| `provar-estante-do-po` | `escola/breu/envelopes` |
+| `provar-o-envio-da-aula` | `professores/demi-plie/ciclos/ciclo-01-breu-piano/captura-aula-01.json` |
+| `provar-o-guiao-do-consultor` | `…/ciclo-01-breu-piano/ciclos.json` |
+| `provar-estado-do-po` | «há POs no repositório para medir» → **0** |
+| `provar-barra-e-caminho` | «há um `lancamento.html` de pacote para ser medido» → **nenhum** |
+| `provar-ar-das-paginas`, `provar-a-descricao-do-exercicio`, `provar-o-custo-da-consultoria`, `provar-o-plano-do-consultor`, `provar-o-registo-abre`, `provar-remocao-do-elenco` | leem `[0]` de uma lista que passou a vazia |
 
-### As provas
+**Não mexi na linha de base para as esconder.** Uma prova vermelha por falta de fixture é um facto
+sobre o repositório, e escondê-la agora faria a próxima regressão passar em silêncio. As que só
+perguntam «existe?» voltam sozinhas quando houver escola com pacote. As que citam o caminho
+`ciclo-01-breu-piano/…` vão precisar de actualização: a sala nova, com duas faixas, dá uma variante
+com a modalidade (§9.6), e o caminho será outro.
 
-`provar-expurgo-interrompido` (**nova**, **35 asserções**), em quatro secções: o reconhecimento com os
-três factos um a um; a decisão com os controlos negativos; a regra intocada; e a rota de verdade
-(`raiz.fetch`, com o `env` da raiz) a mostrar que o 409 deixou de ser o fim da linha.
+**E uma prova que passou a «verde» sem medir:** `provar-bateria-do-shard` sai com `0` quando não há
+escolas («uma bateria sem escolas mede o vazio»), o que é defensável — mas estava na linha de base
+como vermelha, e o corredor avisou. Saiu da linha de base: agora, se voltar a falhar quando houver
+escolas, lê-se como regressão em vez de «já conhecida».
 
-**Cinco mutações caem:** o mapa deixa de contar **2** · listagem falhada vale como zero chaves **2** ·
-a condição do shard desaparece **3** · o veredicto afirma «suspensa» **1** · a rota volta a perguntar
-só à regra **2**.
+### O estado da bateria
 
-**Uma sexta mutação NÃO cai, e está escrito porquê:** tirar a condição `!veredicto.semCadastro` não
-muda comportamento nenhum — se há registo comercial, a chave existe, logo o prefixo não está vazio,
-logo a retomada responde `false` de qualquer maneira. A condição é o atalho (poupa três subpedidos);
-a garantia é o facto medido.
-
-**Dois enganos meus, na prova, os dois apanhados por ela a falhar:** o regex do duplo do GitHub não
-casava com o caminho (que tem barras), e os casos da carência ficaram em cima da fronteira — a
-carência de teste é **1 minuto**, e um caso a 60 segundos mede o `<` da comparação, não a regra.
-
-### Uma perda que foi reposta, e não era do código
-
-`cadastros/breu` **não existia**: o passo que guarda a identidade fiscal antes de apagar o KV não
-chegou a escrever, e a `breu` nunca tivera essa entrada (o mecanismo nasceu a 23/11 à noite, o último
-expurgo dela foi a 23/11 de manhã). O CNPJ sobreviveu por acidente — estava lido numa sonda de
-17:19 —, e `bastidores/breu/cadastro` foi reposto com os valores medidos: `61275523000135`,
-`tmenegaz77@gmail.com`, `54991752662`. Sem isso, a nova tentativa gravaria a identidade fiscal como
-`null`.
-
-### O estado da bateria tem duas linhas em movimento, e é por isto
-
-`provar-ambiente` ficou **vermelha** («breu: o Worker não respondeu») e `provar-bateria-do-shard`
-passou a **verde** — as duas pelo mesmo facto: a `breu` saiu do ar mas ainda está no repositório. Não
-se ajusta a linha de base sobre um estado que vai mudar: as duas medem-se outra vez depois de o
-expurgo fechar. **300 provas, 208 verdes, 91 conhecidas, 1 vermelha explicada.**
+**301 provas, 199 verdes, 91 conhecidas, 0 já-conhecidas-escondidas — 11 vermelhas, todas
+nomeadas acima e todas pela mesma causa.** `provar-ambiente` voltou a **verde** (mede 1 escola, a
+`clablun`), e é a confirmação de que a `breu` saiu do ar.
 
 ## O que está pendente
 
@@ -831,7 +802,6 @@ mente.
 - **22/11/2026** — Uma régua só, e um plano só na escolha → `REGISTRO-2026.md` L58073
 - **22/11/2026** — O estúdio, e o modelo do painel inicial → `REGISTRO-2026.md` L58154
 - **24/11/2026** — O REGISTRO partido por ano: o índice e o arquivo anual → `REGISTRO-2026.md` L60174
-- **demi-plie · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **ramona-pires · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
