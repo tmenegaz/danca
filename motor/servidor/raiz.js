@@ -1747,6 +1747,141 @@ async function regimeDeTeste(kv, agora) {
 }
 
 /**
+ * O EXPURGO QUE FICOU A MEIO — a metade que apagou o KV e não chegou ao repositório (26/11/2026).
+ *
+ * O QUE ACONTECEU, medido na `breu`. O expurgo tem duas metades, e a ordem é Cloudflare → repositório
+ * (§5 da rota). A primeira correu inteira: a rota saiu, o mapa do shard perdeu a entrada, e as
+ * chaves de `bastidores/<escola>/` foram apagadas — **o comercial entre elas**. A segunda não
+ * chegou a escrever o commit, e os 83 ficheiros da escola ficaram no repositório.
+ *
+ * O ESTADO QUE ISSO CRIA É UM BECO SEM SAÍDA, e o sistema construiu-o sozinho: a regra do expurgo
+ * lê `bastidores/<escola>/comercial` para saber se a escola está suspensa e se a carência venceu — e
+ * o registo que responde a isso foi apagado pelo próprio expurgo, antes do passo que falhou. A
+ * partir daí a rota recusa com «não há cadastro comercial desta escola», e nenhuma tentativa outra
+ * pode passar: a evidência que a guarda exige já não existe. Ela leu exactamente essa frase:
+ * «Não consigo excluir novamente a escola breu aqui pela tela.»
+ *
+ * PORQUE É QUE A GUARDA CONTINUA CERTA, E NÃO SE ESTÁ A BURLAR NADA. A carência protege uma escola
+ * que **tem dado** — as alunas, os ciclos, o trabalho de quem paga. Numa escola neste estado não há
+ * dado nenhum: o KV está vazio, ela saiu do ar e do mapa, e o que sobra é o ficheiro que a memória
+ * guarda no repositório, que é precisamente o que esta retomada vem remover. O prazo **já foi
+ * cumprido** — foi cumprido no pedido que autorizou o primeiro expurgo, e é o mesmo acto a acabar.
+ * Recusar aqui não protege ninguém: tranca o acto que a própria regra já tinha autorizado.
+ *
+ * A ASSINATURA, e são três factos medidos — nenhum deles uma suposição:
+ *
+ *   1. a escola declara `shard` no elo. Só uma escola de shard pode chegar aqui: a limpeza do KV
+ *      corre contra o namespace da MORADA, e no shard esse namespace é o partilhado — é lá que mora
+ *      `bastidores/<escola>/comercial`. Uma escola com Worker próprio tem namespace próprio, e a
+ *      limpeza nunca lhe toca o comercial no KV do painel;
+ *   2. o prefixo `bastidores/<escola>/` está VAZIO — a limpeza passou e não deixou chave;
+ *   3. a escola NÃO está no mapa do shard — sem entrada, ela já não recebe tráfego. Uma escola viva
+ *      está sempre lá: é o mapa que diz quais existem.
+ *
+ * Com os três, a conclusão não é uma inferência sobre a intenção de ninguém: é o estado em que o
+ * expurgo deixa a escola quando falha a meio. Sem os três, e sobretudo se a escola estiver no mapa,
+ * a resposta é a de sempre — e é a guarda que decide, não esta função.
+ *
+ * Devolve `{ interrompido, motivo, porque }` — `porque` diz qual das três condições falhou, para que
+ * uma recusa futura não volte a ser um silêncio.
+ */
+async function expurgoInterrompido({ kv, token, slug }) {
+  const e = String(slug || '').trim();
+  if (!e) return { interrompido: false, porque: 'sem escola' };
+  if (!kv || typeof kv.get !== 'function' || typeof kv.list !== 'function') {
+    return { interrompido: false, porque: 'sem KV onde medir' };
+  }
+  let shard = '';
+  try {
+    const doIndice = await lerArquivo({
+      token, dono: DONO, repo: REPO, ref: REF, caminho: 'escola/' + e + '/indice.json',
+    });
+    shard = String((JSON.parse(doIndice) || {}).shard || '').trim();
+  } catch (erro) { shard = ''; }
+  if (!shard) return { interrompido: false, porque: 'a escola não é de um shard' };
+  let chaves = null;
+  try {
+    const lista = await kv.list({ prefix: 'bastidores/' + e + '/' });
+    chaves = (lista && Array.isArray(lista.keys)) ? lista.keys : null;
+  } catch (erro) { chaves = null; }
+  /* UMA LEITURA FALHADA NÃO É ZERO CHAVES (§13 do plano). Sem saber o que está lá, responde-se como
+   * antes: a guarda recusa, e ninguém apaga o dado de uma escola por uma listagem que não veio. */
+  if (chaves === null) return { interrompido: false, porque: 'não consegui listar as chaves' };
+  if (chaves.length) {
+    return { interrompido: false, porque: 'o KV ainda tem ' + chaves.length + ' chave(s)' };
+  }
+  let mapa = null;
+  try {
+    mapa = await require('./mapa-de-escolas.js').lerMapa(kv);
+  } catch (erro) { mapa = null; }
+  if (mapa && typeof mapa === 'object') {
+    const noMapa = Object.keys(mapa).filter((h) => String(mapa[h] || '') === e);
+    if (noMapa.length) {
+      return { interrompido: false, porque: 'a escola ainda está no mapa do shard (' + noMapa.length + ' endereço(s))' };
+    }
+  }
+  return {
+    interrompido: true,
+    shard,
+    motivo: 'O expurgo desta escola ficou a meio: o endereço, o mapa e as chaves já saíram '
+      + '(o prefixo ' + 'bastidores/' + e + '/ está vazio e ela não está no mapa do shard «'
+      + shard + '»), e o commit que a apaga do repositório não chegou a entrar. A carência já foi '
+      + 'cumprida quando o primeiro expurgo foi autorizado, e não há dado nenhum a proteger: este '
+      + 'gesto completa a metade que faltou.',
+  };
+}
+
+/**
+ * «ESTA ESCOLA PODE SER APAGADA?» — a pergunta inteira, num lugar só (26/11/2026).
+ *
+ * A regra é `estadoDoExpurgo` e não muda aqui: esta função junta-lhe a única coisa que a rota
+ * acrescentava — a RETOMADA de um expurgo que ficou a meio (`expurgoInterrompido`) —, e devolve o
+ * mesmo veredicto de sempre. Existe por três razões, e as três são de disciplina:
+ *
+ *   1. a rota deixa de decidir, e passa a perguntar. Era o que o comentário dela já dizia («este
+ *      `if` não é uma segunda opinião») e o que o código não cumpria desde que a retomada nasceu;
+ *   2. a retomada passa a ser PROVÁVEL sem rede de verdade nem Cloudflare — o que se mede é a
+ *      decisão, não o caminho até ela;
+ *   3. a leitura do elo e do KV só acontece no caso raro: a regra deixou passar, não há registo
+ *      comercial, e há token. Uma escola normal não paga nenhum subpedido por isto.
+ *
+ * Devolve o veredicto da regra acrescido de `interrompido` (booleano) e `porque` (a razão de a
+ * retomada não ter valido, quando foi tentada).
+ */
+async function podeExpurgar({ env, slug, agora }) {
+  const kv = env && env.PADD_KV;
+  const comercial = await lerComercial(kv, slug);
+  const regimeDesde = await regimeDeTeste(kv);
+  const veredicto = estadoDoExpurgo(comercial, { regimeDesde, agora });
+  if (veredicto.pode) return Object.assign({}, veredicto, { interrompido: false });
+  /* SÓ SE PERGUNTA PELA RETOMADA QUANDO A REGRA RECUSOU POR NÃO HAVER REGISTO — e foi o próprio
+   * expurgo que o apagou. Perguntar noutro caso seria uma segunda opinião sobre a carência: a
+   * burla que ela recusou a 16/11. */
+  if (!veredicto.semCadastro || !(env && env.GITHUB_TOKEN)) {
+    return Object.assign({}, veredicto, { interrompido: false });
+  }
+  let medido = null;
+  try {
+    medido = await expurgoInterrompido({ kv, token: env.GITHUB_TOKEN, slug });
+  } catch (erro) { medido = null; }
+  if (!medido || !medido.interrompido) {
+    return Object.assign({}, veredicto, {
+      interrompido: false, porque: (medido && medido.porque) || null,
+    });
+  }
+  return Object.assign({}, veredicto, {
+    pode: true,
+    /* O ESTADO NÃO SE INVENTA. Não há registo: dizer «suspensa» seria afirmar o que ninguém mediu.
+     * O que se diz é o que se sabe — que o expurgo ficou a meio. */
+    estado: null,
+    estadoDoExpurgo: 'interrompido',
+    motivo: medido.motivo,
+    interrompido: true,
+    porque: null,
+  });
+}
+
+/**
  * A REGRA DO EXPURGO — UMA, E TRÊS CHAMADORES (16/11/2026).
  *
  * O QUE ELA VIU, e é o defeito inteiro: «Eu coloquei a escola em carência e aí ela ainda não tinha
@@ -6077,7 +6212,7 @@ async function fetch(request, env) {
     try { corpo = await request.json(); } catch { corpo = null; }
     const slug = String((corpo && corpo.escola) || '').trim();
     const confirmacao = String((corpo && corpo.confirmacao) || '').trim();
-    const motivo = String((corpo && corpo.motivo) || '').trim() || 'expurgada pela raiz';
+    let motivo = String((corpo && corpo.motivo) || '').trim() || 'expurgada pela raiz';
     if (!slug) return responderJson({ ok: false, erro: 'informe a escola' }, 400);
     if (confirmacao !== slug) {
       return responderJson({ ok: false, erro: 'a confirmação não é o slug da escola — nada foi apagado' }, 400);
@@ -6090,9 +6225,12 @@ async function fetch(request, env) {
      * O ESTADO VEM DO MESMO SÍTIO QUE A LISTA LÊ (`bastidores/<escola>/comercial`), e o regime de
      * teste da mesma função — três leituras do mesmo KV para a mesma pergunta seriam três
      * respostas à espera de divergir. */
-    const comercialDaVez = await lerComercial(env && env.PADD_KV, slug);
-    const regimeDaVez = await regimeDeTeste(env && env.PADD_KV);
-    const veredicto = estadoDoExpurgo(comercialDaVez, { regimeDesde: regimeDaVez });
+    const veredicto = await podeExpurgar({ env, slug });
+    /* O ELO DIZ QUE FOI UMA RETOMADA. Sem isto, o registo da escola guardaria mais um expurgo
+     * igual aos outros, e quem o lesse amanhã não saberia que o primeiro ficou a meio. */
+    if (veredicto.interrompido === true) {
+      motivo = motivo + ' — conclusão de um expurgo interrompido (o KV e o ar já tinham saído)';
+    }
     if (!veredicto.pode) {
       return responderJson({
         ok: false,
@@ -6100,6 +6238,9 @@ async function fetch(request, env) {
         estadoComercial: veredicto.estado,
         carenciaAte: veredicto.carenciaAte,
         restanteMs: veredicto.restanteMs,
+        /* PORQUE É QUE A RETOMADA NÃO VALEU, quando foi tentada. Sem esta linha, uma escola que não
+         * é de shard e uma que ainda tem chaves davam a mesma frase, e a diferença é o que fazer. */
+        ...(veredicto.porque ? { expurgoInterrompido: veredicto.porque } : {}),
         erro: 'A escola «' + slug + '» não pode ser apagada agora. ' + veredicto.motivo
           + ' O expurgo acontece só sobre uma escola suspensa cuja carência venceu — e nenhum '
           + 'pedido o contorna: nem a confirmação escrita, nem o `forcar`.',
@@ -6570,6 +6711,7 @@ module.exports = {
   /* A REGRA DO EXPURGO É EXPORTADA PORQUE É UMA REGRA (16/11/2026). Três chamadores — a lista, a
    * rota que apaga e a varredura —, e a prova tem de poder afirmar os três sem subir o Worker. */
   estadoDoExpurgo, regimeDeTeste, CHAVE_DO_REGIME,
+  podeExpurgar, expurgoInterrompido,
   /* O VEREDICTO DA LISTA DAS VIVAS (16/11/2026). Exportado porque a etiqueta «pode apagar» é a
    * ponta visível da mesma regra: a escola re-habilitada conserva o `desabilitadaEm` (facto) e não
    * pode conservar a etiqueta. A prova tem de poder medir a linha desenhada sem subir o Worker. */

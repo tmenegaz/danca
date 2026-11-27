@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-26T17:09:47-0300`
-Commit atual: `82b3c3f7` — fix(entrega): o disparo que não coube passa a ser declarado, e o `.conf` deixa de ter dois nomes
+Gerado em: `2026-11-26T21:44:16-0300`
+Commit atual: `55e6554f` — fix(ciclo-01): a âncora da aula deixa de ter o id de outra variante
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -83,6 +83,8 @@ sapatilha-de-ponta (16)
 ## Últimos commits
 
 ```
+55e6554f fix(ciclo-01): a âncora da aula deixa de ter o id de outra variante
+a0a27690 fix(entrega): sai o manifesto que tinha o nome de uma variante e o conteúdo de outra
 82b3c3f7 fix(entrega): o disparo que não coube passa a ser declarado, e o `.conf` deixa de ter dois nomes
 0c4819f5 chore(estrutura): fechar os derivados — âncoras e índices
 0191124f feat(acervo): envelope/po-20261126-1548.json
@@ -101,8 +103,6 @@ d3dd9c8a feat(lancamento): a aula 01 de breu/demi-plie/breu-piano
 e7c4e11d fix(estrutura): o «Enviar» da aula enviava nada, e não dizia nada
 4e7464a3 fix(estrutura): o nome da escola é o que ela declarou, e não o slug
 6345ba3b fix(estrutura): o bloco «informar um pagamento» passa a dizer de que escola é
-0f379a12 docs(estrutura): o campo de horas do consultor saiu, e a razão é jurídica
-c8000e27 audit(estrutura): o Q7 e o Q8 do plano do consultor, agora medidos
 ```
 
 ## Por professor
@@ -208,113 +208,96 @@ c8000e27 audit(estrutura): o Q7 e o Q8 do plano do consultor, agora medidos
 
 ## Última entrada do REGISTRO
 
-## «Mandei criar a aula 2 e não gerou» — a ordem de partir nunca saiu *(26/11/2026)*
+## O expurgo apagou a prova que a sua própria guarda exige *(26/11/2026)*
 
-**O relato:** «Eu acessei o ciclo, mandei fazer a aula 2 e não gerou. […] rodei a pipe no workflow e
-não tem a aula 2 criada. […] eu fiz um ajuste no Batman GT […] e mesmo assim não deu certo.»
+**O relato, e é o defeito com as palavras dela:** «Não consigo excluir novamente a escola breu aqui
+pela tela.» E a frase que a tela dava:
 
-O ajuste do Battement jeté não tem culpa nenhuma. O que faltava não era um documento: era a **ordem
-de gerar**, que morreu dentro do Worker antes de sair.
+> Não há cadastro comercial desta escola — e sem cadastro não há como saber que ela está suspensa.
 
-### O que o Actions diz, e é decisivo
+### O estado que o sistema construiu sozinho
 
-O `gerar-ciclo.yml` tem uma execução às 18:00:10 (`0af5bf99`) — a do lançamento da aula 1 —, e
-**nenhuma depois**. As execuções que ela viu a correr no separador Actions são «Publicar o sistema» e
-«Fechar os derivados», ambas disparadas por `push`. O workflow que gera o ciclo nunca arrancou para a
-aula 2.
+O expurgo tem duas metades, e a ordem é **Cloudflare → repositório** (§5 da rota). Na `breu` a
+primeira correu inteira e a segunda não:
 
-### O que o registo da geração dizia, e porque mentia
+| metade | o que ficou | medido como |
+|:--|:--|:--|
+| Cloudflare | rota removida, mapa sem a entrada, `bastidores/breu/` **vazio** | DNS não resolve · `escolas/por-host` sem `breu` · `kv list` → `[]` |
+| repositório | **83 ficheiros** + `ciclo-01.conf` | `git ls-tree origin/main` · elo com `expurgada: false` |
 
-Na chave `bastidores/breu/geracao/breu-piano` (lida com `--remote`) ficou:
+A regra do expurgo lê `bastidores/<escola>/comercial` para saber se a escola está suspensa e se a
+carência venceu. **O expurgo apagou esse registo**, porque ele mora dentro do prefixo que a limpeza
+do KV percorre — e apagou-o **antes** do passo que falhou. O resultado é um beco sem saída que o
+próprio sistema cria: a evidência que a guarda exige foi destruída pelo acto que a guarda autorizou,
+e nenhuma tentativa seguinte a pode recriar.
 
-```json
-{"em":"2026-11-26T18:48:12.880Z","rotulo":"Gerar o ciclo · demi-plie/01/breu-piano",
- "escritas":0,"puladas":0,"documentos":[],
- "disparo":{"ok":false,"erro":"Too many subrequests by single Worker invocation. …"}}
-```
+**É a mesma família do `tipoDaColuna` e do `fontesDoCicloProntas`, um passo adiante:** um passo
+apaga o que o passo seguinte precisa, e o erro só aparece quando o segundo falha.
 
-`escritas: 0` e `documentos: []` dizem o que aconteceu antes do disparo: **o escritor recusou-se a
-começar**, porque a invocação já tinha gastado o teto de 50 subpedidos. O `.conf` da variante já
-estava gravado (commit `b93b9bf1`), as fontes do ciclo não. O disparo era o passo seguinte — e falhou.
+### Porque é que a guarda continua certa
 
-**A frase do Cloudflare no campo `disparo` é o defeito de leitura.** Ela descreve o sintoma («gastou
-o teto») no lugar do motivo («não cabia escrever o ciclo»), e aponta para a infraestrutura quando o
-que havia era uma recusa nossa, com números, guardada em `ciclo.erro`.
+A carência protege uma escola que **tem dado** — as alunas, os ciclos, o trabalho de quem paga.
+Numa escola neste estado não há dado nenhum: o KV está vazio, ela saiu do ar e do mapa, e o que
+sobra é o ficheiro do repositório, que é precisamente o que a retomada vem remover. **O prazo já foi
+cumprido** — cumprido no pedido que autorizou o primeiro expurgo. Recusar aqui não protege ninguém:
+tranca o acto que a própria regra já tinha autorizado.
 
-### A causa: uma guarda que olhava para os campos e não para o veredicto
+### A assinatura: três factos medidos, nenhum inferido
 
-`fontesDoCicloProntas` decide se o disparo pode partir. Olhava para `conf`, `docs`, `cifrado` e para
-cada `escritas[]`. Mas o escritor, para dizer «não comecei», não escreve **nenhum** campo desses —
-devolve `{ok:false, motivo:'orcamento', erro:<a frase>, escritas:[], puladas:[]}`. Todos os campos que
-a guarda consultava estavam ausentes ou vazios, logo «prontas», logo **disparo**.
+1. a escola declara `shard` no elo — **só uma escola de shard pode chegar aqui**, porque a limpeza do
+   KV corre contra o namespace da MORADA, e no shard esse namespace é o partilhado; uma escola com
+   Worker próprio tem namespace próprio e o comercial dela no KV do painel nunca é tocado;
+2. o prefixo `bastidores/<escola>/` está **vazio** — a limpeza passou;
+3. a escola **não está no mapa** do shard — sem entrada, não recebe tráfego.
 
-E o disparo é o ÚLTIMO subpedido de uma invocação já no teto: não há folga de um, há zero. O
-`ok` do topo nunca era lido. É a mesma família de erro que a `cadeia.js` já tinha documentado em
-`concluirPacote` («o relatório do escritor não tem `ok` no topo») — a lição estava escrita, e a guarda
-não a aplicava.
-
-### O segundo defeito: o servidor sabia, e não dizia
-
-O caminho para o teto não travar o trabalho **já existia** desde 10/11/2026: `POST
-/api/bastidores/cadeia-pacote` corre só o fecho, numa invocação própria, com os 50 subpedidos
-inteiros. O registo da cadeia da `breu` mostra-o a funcionar: às 09:27:21 uma travessia de
-`mudanca-de-sala` estourou o teto, e às 09:27:44 o `fechar-o-pacote` fechou.
-
-O que faltava era o **servidor declarar** que a segunda passagem era precisa, em cada sítio onde o
-teto morde — e não só no «Guardar» do plano de observação. A `cadeia.executar` recusa começar quando
-não há folga (`orcamento: true`) e sabia dizê-lo; não pedia o fecho. O `concluirPacote` descartava o
-campo que o `concluirPO` escrevia, porque tem forma de retorno própria. E a tela (`geracao-cliente.js`)
-só escutava esse campo nas respostas de `api/elicitar` — o teto não é do «Guardar».
-
-### O terceiro, que já vinha de trás: o `.conf` com dois nomes
-
-A Sala «Piano» ganhou uma segunda faixa (17:00, 70 min), e a regra de §9.6 do
-`PLANO-DE-OCUPACAO.md` compôs `breu-piano-bale-classico`. O `escrever-plano` nomeou o **caminho** com
-ela e o `comporConf` compôs o **conteúdo** a partir do nome da turma:
-
-```
-professores/demi-plie/ciclos/ciclo-01-breu-piano-bale-classico.conf
-VARIANTE="breu-piano"                       ← outra identidade
-```
-
-O `gerar-ciclo.sh` lê o `.conf` pela variante do NOME e recebe de lá outra. Duas identidades no mesmo
-ficheiro, e o pacote iria para a pasta da variante antiga.
+Falhando um, a resposta volta a ser a da regra. E se a listagem do KV falhar, **não se conclui**: uma
+leitura falhada não é «zero chaves» (§13 do plano).
 
 ### O que passou a valer
 
-| correcção | onde |
-|:--|:--|
-| a guarda lê o `ok` do topo do relatório | `motor/servidor/geracao.js` |
-| o disparo que não coube é **declarado**, e não tentado | `motor/servidor/concluir-po.js` |
-| a declaração sobe ao topo da resposta da cadeia | `motor/servidor/cadeia.js` |
-| a rota devolve a declaração | `motor/servidor/bastidores.js` |
-| a tela pede o fecho por QUALQUER resposta que o declare, uma vez por página | `motor/servidor/geracao-cliente.js` |
-| a variante que nomeia o ficheiro vence a que se derivaria da turma | `motor/servidor/compor-conf.js` |
+`podeExpurgar({ env, slug })` — a pergunta inteira num sítio só. A regra (`estadoDoExpurgo`) **não foi
+tocada**; é ela que decide ainda, e a retomada só é perguntada quando a regra recusou por não haver
+registo **e** há token. A rota deixou de decidir e passou a perguntar, que era o que o comentário dela
+já dizia desde 16/11. O motivo que vai ao elo passa a dizer que foi uma retomada: «conclusão de um
+expurgo interrompido (o KV e o ar já tinham saído)».
+
+E o estado **não se inventa**: o veredicto devolve `estado: null`, e não «suspensa» — não há registo
+que o diga, e afirmá-lo seria medir com a imaginação o que não se mediu.
 
 ### As provas
 
-`provar-fecho-do-pacote` ganhou a **§I** (57 → **70** asserções): a guarda, o disparo não tentado, a
-frase certa em vez da do Cloudflare, a declaração com a turma, o mesmo quando o estouro é do runtime,
-e o **controlo negativo** — um disparo recusado por permissão (HTTP 403) **não** pede segunda
-passagem, senão a página pediria uma invocação nova para receber a mesma recusa.
+`provar-expurgo-interrompido` (**nova**, **35 asserções**), em quatro secções: o reconhecimento com os
+três factos um a um; a decisão com os controlos negativos; a regra intocada; e a rota de verdade
+(`raiz.fetch`, com o `env` da raiz) a mostrar que o 409 deixou de ser o fim da linha.
 
-**Três mutações, três quedas:** a guarda volta a ignorar o `ok` **7** · o `concluirPO` deixa de
-declarar **4** · declara sempre, mesmo sem ser orçamento **1**.
+**Cinco mutações caem:** o mapa deixa de contar **2** · listagem falhada vale como zero chaves **2** ·
+a condição do shard desaparece **3** · o veredicto afirma «suspensa» **1** · a rota volta a perguntar
+só à regra **2**.
 
-`provar-a-variante-da-faixa` ganhou a **§H** (36 → **41**): com a variante pedida o conteúdo é o mesmo
-que nomeia o ficheiro, sem variante a derivação da turma continua a valer (a reserva não se perdeu), e
-uma variante com acento e travessão slugifica pela mesma regra do nome. **Três mutações:** ignorar a
-variante pedida **3** · aceitá-la em cru **1** · exigir a variante **1**.
+**Uma sexta mutação NÃO cai, e está escrito porquê:** tirar a condição `!veredicto.semCadastro` não
+muda comportamento nenhum — se há registo comercial, a chave existe, logo o prefixo não está vazio,
+logo a retomada responde `false` de qualquer maneira. A condição é o atalho (poupa três subpedidos);
+a garantia é o facto medido.
 
-**Um erro meu, apanhado pela bateria:** ao passar a ler o corpo de toda resposta, o cartão lia o corpo
-**original** quando não havia `clone` — e uma `Response` só se consome uma vez. `provar-geracao` caiu
-(«o salto para a página da escola»). A correcção é a regra: **sem `clone`, não se lê**. O duplo da
-prova também estava mentiroso (devolvia o mesmo objeto a cada `json()`, e o `clone` devolvia o corpo
-seguinte da fila) e passou a modelar uma `Response` a sério.
+**Dois enganos meus, na prova, os dois apanhados por ela a falhar:** o regex do duplo do GitHub não
+casava com o caminho (que tem barras), e os casos da carência ficaram em cima da fronteira — a
+carência de teste é **1 minuto**, e um caso a 60 segundos mede o `<` da comparação, não a regra.
 
-### O que a prova da bateria mediu
+### Uma perda que foi reposta, e não era do código
 
-300 provas, **208 verdes**, 92 conhecidas, **0 regressões**.
+`cadastros/breu` **não existia**: o passo que guarda a identidade fiscal antes de apagar o KV não
+chegou a escrever, e a `breu` nunca tivera essa entrada (o mecanismo nasceu a 23/11 à noite, o último
+expurgo dela foi a 23/11 de manhã). O CNPJ sobreviveu por acidente — estava lido numa sonda de
+17:19 —, e `bastidores/breu/cadastro` foi reposto com os valores medidos: `61275523000135`,
+`tmenegaz77@gmail.com`, `54991752662`. Sem isso, a nova tentativa gravaria a identidade fiscal como
+`null`.
+
+### O estado da bateria tem duas linhas em movimento, e é por isto
+
+`provar-ambiente` ficou **vermelha** («breu: o Worker não respondeu») e `provar-bateria-do-shard`
+passou a **verde** — as duas pelo mesmo facto: a `breu` saiu do ar mas ainda está no repositório. Não
+se ajusta a linha de base sobre um estado que vai mudar: as duas medem-se outra vez depois de o
+expurgo fechar. **300 provas, 208 verdes, 91 conhecidas, 1 vermelha explicada.**
 
 ## O que está pendente
 

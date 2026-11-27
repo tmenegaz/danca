@@ -64407,3 +64407,94 @@ e `check-indices` fica em **0 falhas**.
 
 **O que isso deixa dito, e é o ponto:** até existir a escola nova, «gerar a aula 2» na `breu` **não**
 produz a aula 02. O manifesto que a tinha em `DOCS` era precisamente o que se removeu.
+
+## O expurgo apagou a prova que a sua própria guarda exige *(26/11/2026)*
+
+**O relato, e é o defeito com as palavras dela:** «Não consigo excluir novamente a escola breu aqui
+pela tela.» E a frase que a tela dava:
+
+> Não há cadastro comercial desta escola — e sem cadastro não há como saber que ela está suspensa.
+
+### O estado que o sistema construiu sozinho
+
+O expurgo tem duas metades, e a ordem é **Cloudflare → repositório** (§5 da rota). Na `breu` a
+primeira correu inteira e a segunda não:
+
+| metade | o que ficou | medido como |
+|:--|:--|:--|
+| Cloudflare | rota removida, mapa sem a entrada, `bastidores/breu/` **vazio** | DNS não resolve · `escolas/por-host` sem `breu` · `kv list` → `[]` |
+| repositório | **83 ficheiros** + `ciclo-01.conf` | `git ls-tree origin/main` · elo com `expurgada: false` |
+
+A regra do expurgo lê `bastidores/<escola>/comercial` para saber se a escola está suspensa e se a
+carência venceu. **O expurgo apagou esse registo**, porque ele mora dentro do prefixo que a limpeza
+do KV percorre — e apagou-o **antes** do passo que falhou. O resultado é um beco sem saída que o
+próprio sistema cria: a evidência que a guarda exige foi destruída pelo acto que a guarda autorizou,
+e nenhuma tentativa seguinte a pode recriar.
+
+**É a mesma família do `tipoDaColuna` e do `fontesDoCicloProntas`, um passo adiante:** um passo
+apaga o que o passo seguinte precisa, e o erro só aparece quando o segundo falha.
+
+### Porque é que a guarda continua certa
+
+A carência protege uma escola que **tem dado** — as alunas, os ciclos, o trabalho de quem paga.
+Numa escola neste estado não há dado nenhum: o KV está vazio, ela saiu do ar e do mapa, e o que
+sobra é o ficheiro do repositório, que é precisamente o que a retomada vem remover. **O prazo já foi
+cumprido** — cumprido no pedido que autorizou o primeiro expurgo. Recusar aqui não protege ninguém:
+tranca o acto que a própria regra já tinha autorizado.
+
+### A assinatura: três factos medidos, nenhum inferido
+
+1. a escola declara `shard` no elo — **só uma escola de shard pode chegar aqui**, porque a limpeza do
+   KV corre contra o namespace da MORADA, e no shard esse namespace é o partilhado; uma escola com
+   Worker próprio tem namespace próprio e o comercial dela no KV do painel nunca é tocado;
+2. o prefixo `bastidores/<escola>/` está **vazio** — a limpeza passou;
+3. a escola **não está no mapa** do shard — sem entrada, não recebe tráfego.
+
+Falhando um, a resposta volta a ser a da regra. E se a listagem do KV falhar, **não se conclui**: uma
+leitura falhada não é «zero chaves» (§13 do plano).
+
+### O que passou a valer
+
+`podeExpurgar({ env, slug })` — a pergunta inteira num sítio só. A regra (`estadoDoExpurgo`) **não foi
+tocada**; é ela que decide ainda, e a retomada só é perguntada quando a regra recusou por não haver
+registo **e** há token. A rota deixou de decidir e passou a perguntar, que era o que o comentário dela
+já dizia desde 16/11. O motivo que vai ao elo passa a dizer que foi uma retomada: «conclusão de um
+expurgo interrompido (o KV e o ar já tinham saído)».
+
+E o estado **não se inventa**: o veredicto devolve `estado: null`, e não «suspensa» — não há registo
+que o diga, e afirmá-lo seria medir com a imaginação o que não se mediu.
+
+### As provas
+
+`provar-expurgo-interrompido` (**nova**, **35 asserções**), em quatro secções: o reconhecimento com os
+três factos um a um; a decisão com os controlos negativos; a regra intocada; e a rota de verdade
+(`raiz.fetch`, com o `env` da raiz) a mostrar que o 409 deixou de ser o fim da linha.
+
+**Cinco mutações caem:** o mapa deixa de contar **2** · listagem falhada vale como zero chaves **2** ·
+a condição do shard desaparece **3** · o veredicto afirma «suspensa» **1** · a rota volta a perguntar
+só à regra **2**.
+
+**Uma sexta mutação NÃO cai, e está escrito porquê:** tirar a condição `!veredicto.semCadastro` não
+muda comportamento nenhum — se há registo comercial, a chave existe, logo o prefixo não está vazio,
+logo a retomada responde `false` de qualquer maneira. A condição é o atalho (poupa três subpedidos);
+a garantia é o facto medido.
+
+**Dois enganos meus, na prova, os dois apanhados por ela a falhar:** o regex do duplo do GitHub não
+casava com o caminho (que tem barras), e os casos da carência ficaram em cima da fronteira — a
+carência de teste é **1 minuto**, e um caso a 60 segundos mede o `<` da comparação, não a regra.
+
+### Uma perda que foi reposta, e não era do código
+
+`cadastros/breu` **não existia**: o passo que guarda a identidade fiscal antes de apagar o KV não
+chegou a escrever, e a `breu` nunca tivera essa entrada (o mecanismo nasceu a 23/11 à noite, o último
+expurgo dela foi a 23/11 de manhã). O CNPJ sobreviveu por acidente — estava lido numa sonda de
+17:19 —, e `bastidores/breu/cadastro` foi reposto com os valores medidos: `61275523000135`,
+`tmenegaz77@gmail.com`, `54991752662`. Sem isso, a nova tentativa gravaria a identidade fiscal como
+`null`.
+
+### O estado da bateria tem duas linhas em movimento, e é por isto
+
+`provar-ambiente` ficou **vermelha** («breu: o Worker não respondeu») e `provar-bateria-do-shard`
+passou a **verde** — as duas pelo mesmo facto: a `breu` saiu do ar mas ainda está no repositório. Não
+se ajusta a linha de base sobre um estado que vai mudar: as duas medem-se outra vez depois de o
+expurgo fechar. **300 provas, 208 verdes, 91 conhecidas, 1 vermelha explicada.**

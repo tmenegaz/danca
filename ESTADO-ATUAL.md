@@ -5982,7 +5982,22 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (26/11/2026 — a aula 2, e a ordem de partir que nunca saiu)
+### Executado nesta fotografia (26/11/2026 — o expurgo que apagou a prova da sua própria guarda)
+
+| Verificação | Resultado |
+|:--|:--|
+| o estado da `breu`, medido nos quatro sítios | **ar**: DNS não resolve · **mapa**: `escolas/por-host` sem `breu` · **KV**: `bastidores/breu/` → `[]` · **repositório**: **83 ficheiros** + `ciclo-01.conf`, elo `expurgada: false`. Metade correu, metade não |
+| por que o painel a mostra viva | ele lê `indices/acervo.json`, não o ar — e o índice deriva «expurgada» da AUSÊNCIA de ficheiros, que ainda existem |
+| **a causa do bloqueio** | a regra lê `bastidores/<escola>/comercial`; o expurgo apagou-o (mora no prefixo que a limpeza percorre) **antes** do passo que falhou. A evidência que a guarda exige foi destruída pelo acto que a guarda autorizou — e nenhuma tentativa a pode recriar |
+| `provar-expurgo-interrompido` (**nova**) | **35/35**. Os três factos da assinatura um a um (declara `shard` · prefixo do KV vazio · fora do mapa), a decisão com controlos negativos, a regra intocada, e a rota de verdade (`raiz.fetch`) a mostrar que o 409 deixou de ser o fim da linha |
+| as mutações — **cinco regras, todas caem** | o mapa deixa de contar **2** · listagem falhada vale como zero chaves **2** · a condição do shard desaparece **3** · o veredicto afirma «suspensa» **1** · a rota volta a perguntar só à regra **2** |
+| **uma sexta mutação não cai, e está escrito** | tirar `!veredicto.semCadastro` não muda nada: com registo, a chave existe, logo o prefixo não está vazio. A condição é atalho; a garantia é o facto medido |
+| **dois enganos meus, na prova** | o regex do duplo do GitHub não casava com o caminho (tem barras); e os casos da carência ficaram em cima da fronteira — a carência de teste é **1 minuto**, e um caso a 60 s mede o `<`, não a regra |
+| **a perda que foi reposta** | `cadastros/breu` não existia (o passo que guarda a identidade fiscal não chegou a escrever). `bastidores/breu/cadastro` reposto com o que a sonda de 17:19 leu: `61275523000135`, `tmenegaz77@gmail.com`, `54991752662` — sem isso a nova tentativa gravaria o CNPJ como `null` |
+| **duas linhas da bateria em movimento, declaradas** | `provar-ambiente` ficou **vermelha** («breu: o Worker não respondeu») e `provar-bateria-do-shard` passou a **verde** — as duas pelo mesmo facto: a `breu` saiu do ar e ainda está no repositório. Não se ajusta a linha de base sobre um estado que vai mudar |
+| o que **não** foi medido | a retomada **no ar**: a rota pede a senha da raiz, e ela não está neste worktree. Mede-se no clique dela — e é ela quem repete |
+
+### Executado nesta fotografia anterior (26/11/2026 — a aula 2, e a ordem de partir que nunca saiu)
 
 | Verificação | Resultado |
 |:--|:--|

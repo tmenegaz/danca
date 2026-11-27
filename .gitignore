@@ -1432,6 +1432,7 @@ experimentos/modelo-formulario/*
 # a carência contada do instante em que o sistema suspendeu, a proveniência que POUPA a escola, e as
 # duas réguas — a de teste e a de produção —, porque medir só a que está ligada deixaria a outra a
 # estrear-se no dia em que apaga escolas a sério.
+!experimentos/provar-expurgo-interrompido.js
 !experimentos/provar-expurgo-por-carencia.js
 
 # AS TRÊS ABAS DO PROFESSOR E A FICHA INTEIRA EDITÁVEL (16/11/2026). «Então a gente vai organizar em
