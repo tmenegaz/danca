@@ -98,7 +98,8 @@
       "nome": "breu",
       "professor": "demi-plie",
       "professores": [
-        "demi-plie"
+        "demi-plie",
+        "prova-do-shard"
       ],
       "registros": [
         "anamnese:anamnese-20261123-1055",
@@ -347,6 +348,11 @@
       },
       {
         "contagem": 1,
+        "rotulo": "Prova Do Shard",
+        "valor": "prova-do-shard"
+      },
+      {
+        "contagem": 1,
         "rotulo": "Rabo Gramde",
         "valor": "rabo-gramde"
       },
@@ -411,9 +417,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "b82c5ca"
+    "commit": "91c7dc2"
   },
-  "gerado_em": "2026-11-27T01:12",
+  "gerado_em": "2026-11-27T01:43",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -633,6 +639,16 @@
       "nome": "Perna Boa",
       "pasta": false,
       "slug": "perna-boa"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "breu"
+      ],
+      "id": "professor:prova-do-shard",
+      "nome": "Prova Do Shard",
+      "pasta": true,
+      "slug": "prova-do-shard"
     },
     {
       "ciclos": [],
