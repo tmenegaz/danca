@@ -39,6 +39,9 @@ const RAIZ = path.join(__dirname, '..');
 const mensalidades = require(path.join(RAIZ, 'motor/nucleo/mensalidades.js'));
 const comercial = require(path.join(RAIZ, 'motor/nucleo/comercial.js'));
 const painel = require(path.join(RAIZ, 'motor/servidor/painel-html.js'));
+/* O LADO DA ESCOLA — o caminho real do cartão e do «mês a mês» (27/11/2026). A prova do núcleo
+ * não garante que o CHAMADOR lhe passe o recorte; este require é o que permite medir os dois. */
+const bastidores = require(path.join(RAIZ, 'motor/servidor/bastidores.js'));
 /* O CATÁLOGO CRU — a prova do teto lê o número declarado, e não a função que o devolve. */
 const CATALOGO = JSON.parse(fs.readFileSync(path.join(RAIZ, 'biblioteca/comercial/planos.json'), 'utf8'));
 
@@ -154,6 +157,123 @@ function kvCom(dados) {
     /* O LIVRO DE OUTRA ESCOLA NÃO ENTRA NESTE EXTRATO. */
     conferir('o extrato de uma escola não mostra os meses de outra',
       s.meses.every((m) => m.mes !== '2026-11' || m.status !== 'pago'), null);
+  }
+
+  console.log('\nC2. A recriação: dois extratos, um livro — o de controle vê tudo, o da escola vê a relação em vigor');
+  {
+    /* A ESCOLA RECRIADA, com os números da `breu`: o contrato em vigor nasceu a 27/11/2026, e o
+     * livro tem sete meses pagos a 23/11/2026 — pela encarnação que o expurgo encerrou. */
+    const contrato = {
+      plano: 'basico', planoNome: 'Básico', valorCentavos: 6990, estado: 'ativa',
+      criadoEm: '2026-11-27T10:03:38.469Z',
+    };
+    const daEncarnacaoAnterior = (mes, em) => ({
+      escola: 'breu', mes, status: 'pago', valorCentavos: 6990, recebidoCentavos: 6990,
+      planoNome: 'Básico', em,
+    });
+    const livro = ['2026-11', '2026-12', '2027-01', '2027-02', '2027-03', '2027-04', '2027-05']
+      .map((mes) => daEncarnacaoAnterior(mes, '2026-11-23T10:30:00Z'));
+    const agora = '2026-11-27T22:29:00Z';
+
+    /* O CONTROLE — o dela, em danca.padd.com.br. A regra de 23/11 continua inteira. */
+    const controle = mensalidades.situacaoDaEscola({ escola: 'breu', contrato, livro, agora });
+    conferir('o extrato de CONTROLE mantém os SETE meses — a receita que existiu não se apaga',
+      controle.meses.length === 7, controle.meses.map((m) => m.mes));
+    conferir('…e todos eles pagos, porque foram pagos de verdade',
+      controle.meses.every((m) => m.status === 'pago'), controle.meses.map((m) => m.status));
+
+    /* A ESCOLA — o `/bastidores/estudio`. A relação anterior não é dela. */
+    const daEscola = mensalidades.situacaoDaEscola({
+      escola: 'breu', contrato, livro, agora, incluirRelacoesAnteriores: false,
+    });
+    conferir('o extrato da ESCOLA começa na adesão: um mês, e não sete',
+      daEscola.meses.length === 1 && daEscola.meses[0].mes === '2026-11',
+      daEscola.meses.map((m) => m.mes));
+    conferir('…e o mês da adesão fica EM ABERTO — o pagamento de novembro era da relação anterior',
+      daEscola.meses[0].status === 'aberto' && !daEscola.meses[0].valorPagoCentavos,
+      { status: daEscola.meses[0].status, pago: daEscola.meses[0].valorPagoCentavos });
+    conferir('…e não se inventa dívida: o mês ainda não venceu, e a situação é «em dia»',
+      daEscola.situacao === 'em-dia' && daEscola.vencidos.length === 0,
+      { situacao: daEscola.situacao, vencidos: daEscola.vencidos });
+
+    /* O ADIANTAMENTO DA RELAÇÃO NOVA APARECE — o corte é a data do pagamento, não o mês. */
+    const comAdiantamento = mensalidades.situacaoDaEscola({
+      escola: 'breu', contrato, livro: livro.concat([daEncarnacaoAnterior('2026-12', '2026-11-27T12:00:00Z')]),
+      agora, incluirRelacoesAnteriores: false,
+    });
+    const dezembro = comAdiantamento.meses.find((m) => m.mes === '2026-12');
+    conferir('…e um pagamento gravado JÁ nesta relação aparece, mesmo sendo adiantado',
+      Boolean(dezembro) && dezembro.status === 'pago', dezembro && dezembro.status);
+
+    /* SEM CONTRATO (a expurgada) NÃO HÁ RECORTE: as únicas linhas são as do livro. */
+    const semContrato = mensalidades.situacaoDaEscola({
+      escola: 'breu', contrato: null, livro, agora, incluirRelacoesAnteriores: false,
+    });
+    conferir('sem contrato em vigor não há relação a recortar: os sete meses continuam lá',
+      semContrato.meses.length === 7, semContrato.meses.length);
+
+    /* O CAMINHO REAL — `dadosDaEscolaParaAProducao` serve o cartão e o «mês a mês» da escola. Uma
+     * prova sobre o núcleo não mede o argumento que o chamador lhe passa, e é aí que o defeito
+     * voltaria: a função certa, chamada sem o recorte, mostra os sete meses outra vez. */
+    const kv = kvCom({
+      'bastidores/breu/comercial': JSON.stringify(contrato),
+      'financeiro/mensalidades': JSON.stringify({ lista: livro, atualizadoEm: 'x' }),
+    });
+    const dados = await bastidores.dadosDaEscolaParaAProducao({}, kv, 'breu');
+    /* A asserção NÃO conta os meses: o caminho real usa o relógio de agora, e uma prova que
+     * contasse passaria hoje e reprovaria em dezembro, sem nada ter mudado. O que se mede é o que
+     * importa — nenhum mês da relação anterior aparece, e o mês da adesão continua lá. */
+    const mesesDaEscola = dados.ok && dados.situacao
+      ? dados.situacao.meses.map((m) => m.mes) : [];
+    conferir('e a função que serve a ESCOLA aplica o recorte — nenhum mês da relação anterior',
+      dados.ok && mesesDaEscola.indexOf('2026-11') !== -1
+        && !mesesDaEscola.some((m) => m > '2026-11'), mesesDaEscola);
+  }
+
+  console.log('\nC3. A dívida — o que impede a escola de recomeçar (27/11/2026)');
+  {
+    const p = (mes, status, recebido, valor, em) => ({
+      escola: 'duo', mes, status, recebidoCentavos: recebido, valorCentavos: valor,
+      em: em || '2026-10-05T10:00:00Z',
+    });
+    const situacao = (contrato, livro, agora) => mensalidades.situacaoDaEscola({
+      escola: 'duo', contrato, livro, agora,
+    });
+    const AGORA_DIVIDA = '2026-11-27T22:00:00Z';
+
+    /* TUDO PAGO — e o controlo que impede a trava de travar tudo. */
+    const pago = mensalidades.dividaDaSituacao(situacao(null, [p('2026-10', 'pago', 6990, 6990)], AGORA_DIVIDA));
+    conferir('tudo pago: não há dívida, e não há frase',
+      pago.tem === false && pago.n === 0 && pago.frase === null, pago);
+
+    /* O PARCIAL SEM CONTRATO — o caso que o guarda existe para apanhar. O expurgo levou o
+     * contrato, e o que resta é a linha do livro: entrou parte, e a fatura não fechou. */
+    const parcial = mensalidades.dividaDaSituacao(situacao(null, [p('2026-10', 'parcial', 3000, 6990)], AGORA_DIVIDA));
+    conferir('um mês parcial conta como dívida, mesmo sem contrato',
+      parcial.tem === true && parcial.n === 1 && parcial.meses[0] === '2026-10', parcial);
+    conferir('…e o valor é o SALDO (39,90), e não a fatura inteira',
+      parcial.centavos === 3990, parcial.centavos);
+    conferir('…e a frase diz o mês, o valor e o que ele trava',
+      /outubro de 2026/.test(parcial.frase || '') && /R\$ 39,90/.test(parcial.frase || '')
+        && /não há dívida/.test(parcial.frase || ''), parcial.frase);
+
+    /* A ESCOLA VIVA: o mês em curso não é dívida — cobrá-lo seria contar o futuro.
+     * No PRÓPRIO dia do vencimento ainda está no prazo (o atraso começa no dia seguinte). */
+    const c = { plano: 'basico', valorCentavos: 6990, criadoEm: '2026-11-20T12:00:00Z' };
+    const soOAberto = mensalidades.dividaDaSituacao(situacao(c, [], '2026-11-20T15:00:00Z'));
+    conferir('a escola viva, no dia do vencimento, ainda NÃO tem dívida',
+      soOAberto.tem === false, soOAberto);
+
+    /* A ESCOLA VIVA COM MESES VENCIDOS: aí há dívida, e o `desde` é o mês mais antigo. */
+    const devendo = mensalidades.dividaDaSituacao(situacao(c, [], AGORA_DIVIDA));
+    conferir('a escola viva com meses vencidos tem dívida, e o «desde» é o mais antigo',
+      devendo.tem === true && devendo.desde === '2026-11', { desde: devendo.desde, n: devendo.n });
+
+    /* UM MÊS PAGO NÃO CONTA, mesmo pago dentro de um período com outro em falta. */
+    const misto = mensalidades.dividaDaSituacao(situacao(null,
+      [p('2026-09', 'pago', 6990, 6990), p('2026-10', 'parcial', 1000, 6990)], AGORA_DIVIDA));
+    conferir('só os meses NÃO quitados contam — o pago fica de fora',
+      misto.n === 1 && misto.meses.indexOf('2026-09') === -1, misto.meses);
   }
 
   console.log('\nD. O livro guarda o valor do momento, e não recalcula depois');

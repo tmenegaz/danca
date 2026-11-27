@@ -393,9 +393,29 @@ function instanteDoEnsaio({ contrato, ensaio, agora } = {}) {
  *     quando já passou);
  *   · `meses` — a lista do extrato, do mais recente para o mais antigo, com `status`, `vencimento`,
  *     `valorCentavos` e o `em` do pagamento quando há.
+ *
+ * `incluirRelacoesAnteriores` — QUEM LÊ O EXTRATO, e o que cada um vê (27/11/2026).
+ *
+ * Uma escola expurgada e recriada tem DUAS relações no mesmo slug: a que morreu no expurgo e a que
+ * nasceu depois. O livro (`financeiro/mensalidades`) é uma chave global e guarda as duas, porque o
+ * expurgo apaga por prefixo (`bastidores/<escola>/*`) e nunca o alcançou. A discriminação não é
+ * possível pelo slug — é a DATA que separa: um pagamento gravado ANTES do `criadoEm` do contrato
+ * em vigor não pode ser deste contrato, porque este contrato ainda não existia.
+ *
+ *   · `true` (o DEFAULT) — o extrato de CONTROLE, o dela, em `danca.padd.com.br`. A linha do tempo
+ *     é a união: os meses do contrato em vigor mais tudo o que foi pago, de qualquer relação. A
+ *     regra é a de 23/11/2026 — «a parte financeira não pode expurgar, ela fica para histórico» —,
+ *     e é aqui que ela a lê. Uma recriação não apaga o que a escola pagou: essa receita existiu, e
+ *     é ela que diz se há dívida antes de reabilitar.
+ *   · `false` — o extrato da ESCOLA, o `/bastidores/estudio`. A relação anterior NÃO aparece: ela
+ *     foi encerrada, a escola quitou, e a relação nova começa na adesão. Mostrar-lhe meses de um
+ *     contrato que ela encerrou seria apresentar-lhe a contabilidade de outra pessoa — e a decisão
+ *     é dela: «É meu, é para o meu controle, não para o da escola.»
+ *
+ * O DADO NÃO SE PERDE em nenhum dos dois: o livro é o mesmo, e o que muda é o recorte de quem lê.
  */
 function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas,
-  cobrancas, contagem, ciclos } = {}) {
+  cobrancas, contagem, ciclos, incluirRelacoesAnteriores } = {}) {
   /* `aulasUsadas` chega de FORA, e é opcional de propósito: quem conta as aulas tem o plano
    * próprio (PLANO-CONTADOR-DE-AULAS.md) e ainda não existe. Sem ele, a franquia é mostrada e
    * o consumo é omitido — ver o comentário no `franquia` do objecto devolvido. */
@@ -455,23 +475,57 @@ function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas,
    * `mesesEntre` vai da adesão até hoje, e isso basta para a cobrança: não se cobra o futuro. Mas
    * uma página do livro pode estar FORA dessa janela, e ela é um pagamento que existiu:
    *
-   *   · para trás — um mês anterior à adesão (um acerto, uma migração de contrato);
    *   · para a frente — um pagamento adiantado, e é o caso que a `breu` tem: sete meses pagos de
    *     2026-11 a 2027-05, com «hoje» em novembro de 2026. Ao recriar a escola, a adesão nova é de
-   *     novembro, `mesesEntre` devolveria UM mês, e os outros seis desapareceriam do extrato —
-   *     exactamente o que esta correcção existe para impedir.
+   *     novembro, `mesesEntre` devolveria UM mês, e os outros seis desapareceriam do extrato.
    *
    * A regra é a mesma dos dois lados: o que se cobra vem da adesão; o que foi pago vem do livro; a
-   * vista é a soma dos dois. Ordenada, porque a aritmética acima conta com a ordem crescente. */
+   * vista é a soma dos dois.
+   *
+   * O RECORTE DE QUEM LÊ (27/11/2026) — a nota datada que faltava, e ela não desfaz a linha acima:
+   * a união continua a ser a regra do extrato de CONTROLE (o dela). O que se acrescenta é a
+   * possibilidade de o extrato da ESCOLA não a fazer — `incluirRelacoesAnteriores: false` —,
+   * porque uma escola recriada não tem relação com os meses da encarnação anterior. O corte é a
+   * data do pagamento contra o `criadoEm`: gravado antes de o contrato existir, o pagamento não é
+   * deste contrato. Sem data no registo, cai-se no mês (anterior ao mês da adesão).
+   *
+   * A SUBSTITUIÇÃO DO PONTO «para trás» ACIMA: ele dizia «um acerto, uma migração de contrato», e
+   * é verdade — mas um pagamento anterior à adesão só é desta relação se tiver sido GRAVADO
+   * depois de ela começar (um acerto feito já com o contrato em vigor). Gravado antes, é passado —
+   * e no extrato da escola o passado não entra. Ordenada, porque a aritmética acima conta com a
+   * ordem crescente. */
   const daAdesao = inicio ? mesesEntre(inicio, hojeIso) : [];
-  const doLivro = Object.keys(pagamentos);
+  const corteDaRelacao = inicio ? Date.parse(inicio) : NaN;
+  const mesDaAdesao = inicio ? competencia(inicio) : null;
+  /* Uma linha do livro é de uma relação anterior quando o pagamento foi gravado antes de o
+   * contrato em vigor nascer. O `em` ausente (registo antigo) não decide por si: usa-se o mês. */
+  const ehDaRelacaoAnterior = (mes) => {
+    if (!Number.isFinite(corteDaRelacao)) return false;
+    const registo = pagamentos[mes];
+    const quando = registo && registo.em ? Date.parse(registo.em) : NaN;
+    if (Number.isFinite(quando)) return quando < corteDaRelacao;
+    return Boolean(mesDaAdesao) && mes < mesDaAdesao;
+  };
+  /* O RECORTE VALE TAMBÉM PARA O REGISTO DO MÊS, e não só para a lista (27/11/2026).
+   *
+   * Um corte que filtre só as CHAVES do livro deixa `pagamentos` intacto para desenhar as linhas —
+   * e o mês da adesão, que pertence à relação nova, vai buscar o PAGAMENTO ANTIGO. A escola recriada
+   * veria «novembro · pago» com o dinheiro da encarnação anterior: metade do defeito corrigida, e a
+   * outra metade a mentir no sítio mais visível. Um mês só existe com o registo que é dele — se o
+   * pagamento é de outra relação, o mês desta fica em aberto. */
+  const pagamentosDoEscopo = {};
+  for (const mes of Object.keys(pagamentos)) {
+    if (incluirRelacoesAnteriores === false && ehDaRelacaoAnterior(mes)) continue;
+    pagamentosDoEscopo[mes] = pagamentos[mes];
+  }
+  const doLivro = Object.keys(pagamentosDoEscopo);
   const meses = daAdesao.concat(doLivro.filter((m) => daAdesao.indexOf(m) === -1)).sort();
 
   const linhas = meses.map((mes) => {
     /* O REGISTO DO MÊS, e ele pode estar em dois estados (25/11/2026): `pago` (quitado) ou
      * `parcial` (entrou parte, e ainda falta). Um registo antigo não tem `status` — é um pagamento
      * inteiro do tempo em que só havia um, e lê-se como `pago`. */
-    const registo = pagamentos[mes] || null;
+    const registo = pagamentosDoEscopo[mes] || null;
     const statusDoRegisto = registo ? String(registo.status || 'pago') : null;
     const quitado = statusDoRegisto === 'pago';
     /* O QUE ENTROU. `recebidoCentavos` é o acumulado; um registo antigo só tem `valorCentavos`, e
@@ -923,6 +977,71 @@ function fraseDaSituacao(situacao) {
   return 'Aguardando a liberação: a cobrança começa quando a escola é habilitada.';
 }
 
+/* ── A DÍVIDA, E O QUE ELA IMPEDE *(27/11/2026)* ───────────────────────────────────────────────
+ *
+ * «Eu só posso começar um processo novo, reabilitar a escola, se ela não tiver dívida também. Eu
+ * nem posso acionar o botão se ela tiver dívida. É por isso que o extrato fica para mim.»
+ *
+ * A REGRA QUE CONTA, e é a mesma da inadimplência (`monitoramento.inadimplencia`): um mês é dívida
+ * quando **venceu e não está quitado**. Um mês que ainda não venceu é o mês em curso, e cobrá-lo
+ * como dívida seria contar o futuro; um mês pago não conta, mesmo pago com atraso — o atraso já foi
+ * resolvido, e o que interessa à conversa é o que falta.
+ *
+ * O CASO DA ESCOLA SEM CONTRATO — e ele é o que este guarda existe para apanhar. O expurgo leva o
+ * contrato, e sem contrato não há calendário: `vencimento` é nulo, e o mês nunca «vence» por
+ * cálculo. Mas um registo de pagamento NÃO QUITADO (`parcial`) é dinheiro em falta por definição —
+ * entrou parte e a fatura não fechou. Nesse caso o mês conta, mesmo sem data de vencimento.
+ *
+ * O QUE ESTA FUNÇÃO NÃO FAZ: não decide nada. Ela devolve o facto — quais meses, quanto, desde
+ * quando — e é quem lê que escolhe o que fazer com ele. A recriação é o primeiro consumidor, e não
+ * é o único possível.
+ */
+function dividaDaSituacao(situacao) {
+  const linhas = Array.isArray(situacao && situacao.meses) ? situacao.meses : [];
+  const devedores = linhas.filter((m) => {
+    if (!m || m.status === 'pago') return false;
+    if (m.venceu) return true;
+    /* Sem calendário (escola sem contrato), o vencimento não existe: um registo não quitado é o
+     * único sinal que resta de que falta dinheiro, e ignorá-lo deixaria passar exatamente o caso
+     * que a regra dela quer travar. */
+    return !m.vencimento;
+  });
+  /* O VALOR DE CADA MÊS é o que se deve dele — o **saldo**, e não a fatura nem a mora. Num mês
+   * parcial, a dívida já não é o valor inteiro.
+   *
+   * PORQUE NÃO SE USA A MORA NO TOTAL, ao contrário da inadimplência: o extrato de uma escola SEM
+   * CONTRATO não tem calendário, e `diaDaAdesao(null)` devolve 1 — o mês ganha um vencimento no
+   * dia 1 que ninguém contratou, e a mora calculada sobre ele seria um número inventado com
+   * aparência de cobrança. O saldo é facto em qualquer dos casos; a mora fica **separada**, e quem
+   * for cobrar usa-a com o contrato à frente. */
+  const valorDe = (m) => {
+    if (m.faltaCentavos != null) return Math.max(0, Number(m.faltaCentavos) || 0);
+    return Math.max(0, Number(m.valorCentavos) || 0);
+  };
+  const meses = devedores.map((m) => String(m.mes || ''));
+  const centavos = devedores.reduce((s, m) => s + valorDe(m), 0);
+  const moraCentavos = devedores.reduce((s, m) => s
+    + Math.max(0, (m.encargos && m.encargos.encargosCentavos) || 0), 0);
+  /* `desde` é o mês mais antigo — o que ancora a conversa, como na inadimplência. */
+  const desde = meses.length ? meses.slice().sort()[0] : null;
+  const tem = devedores.length > 0;
+  const emReais = (c) => (c / 100).toFixed(2).replace('.', ',');
+  return {
+    tem,
+    meses: meses.slice().sort(),
+    n: devedores.length,
+    desde,
+    centavos,
+    moraCentavos,
+    /* A FRASE diz o que trava, quanto, e desde quando — as três coisas que uma recusa precisa de
+     * dizer para não parecer avaria. */
+    frase: !tem ? null
+      : 'A escola tem ' + devedores.length + ' mensalidade(s) vencida(s) sem pagamento'
+        + (desde ? ', desde ' + nomeDoMes(desde) : '')
+        + ': R$ ' + emReais(centavos) + '. Uma relação nova só começa quando não há dívida.',
+  };
+}
+
 /* ── MULTA E JUROS DE MORA — a política das contas de consumo *(25/11/2026)* ─────────────────
  *
  * «A gente vai adotar a mesma política de multa e juros que tem em um serviço como, por exemplo,
@@ -1063,4 +1182,5 @@ module.exports = {
   mudancaDePlano,
   extraDoContrato,
   fraseDaSituacao,
+  dividaDaSituacao,
 };

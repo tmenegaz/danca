@@ -238,6 +238,41 @@ const LOTE_ALUNO = comercial.catalogoDaPagina().lotes.alunos[0].qtd;
       conferir('recriação já em curso: 409, e não manda outro convite',
         r.status === 409 && /já está em curso/.test(r.corpo.erro || ''), r);
     } finally { delete globalThis.fetch; }
+
+    /* A QUARTA RECUSA — A DÍVIDA (27/11/2026). «Eu só posso começar um processo novo, reabilitar a
+     * escola, se ela não tiver dívida também. Eu nem posso acionar o botão se ela tiver dívida.» */
+    const ghDivida = githubFalso();
+    globalThis.fetch = ghDivida.fetch;
+    try {
+      const livroComDivida = {
+        lista: [{
+          escola: 'duo', mes: '2026-10', status: 'parcial', valorCentavos: 6990,
+          recebidoCentavos: 3000, em: '2026-10-05T10:00:00Z',
+        }],
+        atualizadoEm: 'x',
+      };
+      const r = await pedirConvite(envCom(kvCom({
+        'financeiro/mensalidades': JSON.stringify(livroComDivida),
+      })), 'duo');
+      conferir('com dívida: 409, e a recusa diz o mês e o valor',
+        r.status === 409 && /mensalidade/.test(r.corpo.erro || '') && /R\$/.test(r.corpo.erro || ''), r);
+      conferir('…e a recusa não cria convite nenhum (nada foi disparado)',
+        ghDivida.disparos.length === 0, ghDivida.disparos);
+
+      /* O CONTROLE, e ele é o que impede a trava de travar tudo: o MESMO mês, quitado, deixa o
+       * convite passar. Uma guarda que nunca se viu deixar passar não é uma guarda — é uma parede. */
+      const rPago = await pedirConvite(envCom(kvCom({
+        'financeiro/mensalidades': JSON.stringify({
+          lista: [{
+            escola: 'duo', mes: '2026-10', status: 'pago', valorCentavos: 6990,
+            recebidoCentavos: 6990, em: '2026-10-05T10:00:00Z',
+          }],
+          atualizadoEm: 'x',
+        }),
+      })), 'duo');
+      conferir('…e com o mesmo mês quitado o convite passa',
+        rPago.status === 200, { status: rPago.status, erro: rPago.corpo.erro });
+    } finally { delete globalThis.fetch; }
   }
 
   console.log('\nC. O convite que sai: um e-mail, um link, e o KV sem o segredo');
@@ -678,6 +713,30 @@ const LOTE_ALUNO = comercial.catalogoDaPagina().lotes.alunos[0].qtd;
       !/recriar-senha-admin/.test(html) && !/recriar-senha-professor/.test(html), null);
     conferir('…nem a lista de planos: quem escolhe é a escola',
       !/id="recriar-plano"/.test(html), null);
+
+    /* A DÍVIDA DESLIGA O BOTÃO E DIZ PORQUÊ (27/11/2026). «Eu nem posso acionar o botão se ela
+     * tiver dívida.» O botão continua a existir — a mesma escolha dos Habilitar/Desabilitar — e o
+     * motivo vai à vista, porque um botão apagado sem explicação lê-se como avaria. */
+    conferir('sem dívida, o botão «Recriar» está ACESO (o controle antes da trava)',
+      /data-recriar="duo"/.test(html) && !/data-recriar="duo" disabled/.test(html), null);
+    const htmlComDivida = painel.paginaDasApagadas({
+      escolas: [{
+        slug: 'duo', nome: 'Duo', professor: 'fernando-franciose', professores: ['fernando-franciose'],
+        criada_em: '2026-11-16T12:25:10.000Z', expurgada_em: '2026-11-16T13:56:53.000Z',
+        expurgada: true, expurgos: 1, planoAnterior: { id: PLANO, nome: 'Básico', valor: '69,90' },
+        divida: {
+          tem: true, n: 1, meses: ['2026-10'], desde: '2026-10', centavos: 39900, moraCentavos: 0,
+          frase: 'A escola tem 1 mensalidade(s) vencida(s) sem pagamento, desde outubro de 2026: '
+            + 'R$ 399,00. Uma relação nova só começa quando não há dívida.',
+        },
+      }],
+      professores: [],
+      catalogo,
+    });
+    conferir('com dívida, o botão «Recriar» fica DESLIGADO',
+      /data-recriar="duo" disabled/.test(htmlComDivida), null);
+    conferir('…e a página diz porquê, em texto — com o mês e o valor',
+      /mensalidade\(s\) vencida/.test(htmlComDivida) && /R\$ 399,00/.test(htmlComDivida), null);
 
     const vc = new VirtualConsole();
     const erros = [];

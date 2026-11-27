@@ -487,11 +487,30 @@ function tabelaDeEscolas(escolas, modo, ordem, professores) {
        * O GESTO NÃO É UMA ORDEM IRREVERSÍVEL, e por isso não copia a cerimónia do apagar: abre uma
        * confirmação com o plano e as senhas (as senhas não estão na proveniência, e uma escola sem
        * senha não abre para ninguém). */
+      /* A DÍVIDA TRAVA O BOTÃO, E DIZ PORQUÊ (27/11/2026).
+       *
+       * «Eu só posso começar um processo novo, reabilitar a escola, se ela não tiver dívida também.
+       * Eu nem posso acionar o botão se ela tiver dívida.»
+       *
+       * O botão CONTINUA A EXISTIR e fica DESLIGADO — a mesma escolha dos «Habilitar/Desabilitar»
+       * logo acima: uma célula que muda de forma conforme o estado obriga a procurar onde se clica.
+       * O motivo vai no `title` (para o rato) e numa linha de texto (para quem lê a página), porque
+       * um botão apagado sem explicação lê-se como avaria.
+       *
+       * A DÍVIDA CHEGA PRONTA DO SERVIDOR (`mensalidades.dividaDaSituacao`, calculada na raiz sobre
+       * o livro): a página não a recalcula. Duas contas da mesma dívida dariam duas respostas, e a
+       * que ficasse a valer seria a que ela lesse primeiro. */
+      const divida = e.divida || null;
+      const temDivida = Boolean(divida && divida.tem);
       celulas.push('<td>' + (e.expurgada
         ? '<button class="acao pequena" type="button" data-recriar="' + esc(e.slug) + '"' +
+          (temDivida ? ' disabled title="' + esc(divida.frase || '') + '"' : '') +
           (e.planoAnterior && e.planoAnterior.id
             ? ' data-plano-anterior="' + esc(e.planoAnterior.id) + '"' : '') +
-          '>Recriar</button>'
+          '>Recriar</button>' +
+          (temDivida
+            ? '<p class="sub">' + esc(divida.frase || '') + '</p>'
+            : '')
         : '—') + '</td>');
     }
     return '<tr>' + celulas.join('') + '</tr>';

@@ -4,7 +4,17 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 26/11/2026 — **«tentei com 123 e também não deu»: não era a senha.** Medido
+> **Última fotografia:** 27/11/2026 — **o extrato da escola recomeça na relação em vigor, e o da
+> proprietária não.** A `breu` foi expurgada e recriada, e o estúdio dela mostrava os sete meses
+> pagos da encarnação anterior — seis deles futuros. A regra de 23/11 («um mês que foi pago nunca se
+> esconde») **nomeava a recriação** como o caso que existe para cobrir, e o que faltava era **para
+> quem**: «É meu, é para o meu controle, não para o da escola.» O recorte passou a ser de quem lê
+> (`situacaoDaEscola({ incluirRelacoesAnteriores })`), com o corte na **data do pagamento** contra o
+> `criadoEm` do contrato em vigor; o livro não perde uma linha. **E a trava do «Recriar» por dívida,
+> que estava declarada como pendência, foi feita** a pedido dela: `dividaDaSituacao` (um sítio só),
+> `criarConvite` a recusar **409**, o botão desligado com o motivo à vista. Antes disso, no mesmo dia: **a oferta
+> vendia professores e alunas**, e o §ADITIVO §2 proibia-o desde 17/11. **E antes, a 26/11:
+> «tentei com 123 e também não deu»: não era a senha.** Medido
 > sem tocar no que estava gravado: `123` **passa** no `/api/receber` e **abre** o ciclo no
 > `/api/dados`; `2805` não. **E a aula 1 já estava gravada** — os dois commits de lançamento no
 > `origin/main` são os dois cliques dela, às 15:00:06 e 15:00:08. **O que ficou preso foi o estado
@@ -4997,6 +5007,29 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      o formulário a enviar para a rota verdadeira — está em `provar-o-ciclo-das-faixas.js` (**33**,
      vermelha sem a mudança).
 
+192. **O EXTRATO DA ESCOLA RECOMEÇA NA RELAÇÃO EM VIGOR — o da proprietária vê tudo.** Uma escola
+     expurgada e recriada tem duas relações no mesmo slug, e o livro (`financeiro/mensalidades`)
+     guarda as duas. **DECIDIDO** 27/11/2026: o **recorte é de quem lê**, e o dado não se apaga em
+     nenhum dos dois. O extrato de **controle** (`danca.padd.com.br` → Financeiro) mantém a união de
+     23/11 — os meses do contrato em vigor e tudo o que foi pago, de qualquer relação —, e é ali que
+     a dívida se lê antes de reabilitar. O extrato da **escola** (`/bastidores/estudio`) mostra só a
+     relação em vigor, da adesão até hoje: a anterior foi encerrada. Palavras dela: «É meu, é para o
+     meu controle, não para o da escola.» O corte é a **data** — um pagamento gravado antes do
+     `criadoEm` do contrato em vigor não é desse contrato —, porque o slug não distingue as
+     relações. Implementado em `situacaoDaEscola({ incluirRelacoesAnteriores })`, com o recorte a
+     valer para a lista e para o registo do mês. Ver `REGISTRO.md`, 27/11/2026.
+
+193. **A DÍVIDA TRAVA A RELAÇÃO NOVA — no servidor, e não só no botão.** «Eu só posso começar um
+     processo novo, reabilitar a escola, se ela não tiver dívida também. Eu nem posso acionar o botão
+     se ela tiver dívida.» **DECIDIDO e IMPLEMENTADO** 27/11/2026. A conta é uma só
+     (`mensalidades.dividaDaSituacao`): um mês é dívida quando **venceu e não está quitado** — a
+     mesma regra da inadimplência — e, numa escola **sem contrato** (expurgada, sem calendário), um
+     registo **parcial** conta porque é dinheiro em falta. `criarConvite` recusa **409** com o mês e
+     o valor; em `/escolas-apagadas` o botão continua a existir e fica **desligado**, com o motivo à
+     vista. O valor é o **saldo**, e não a mora: o extrato de uma escola sem contrato inventa o dia 1
+     como vencimento, e cobrar juros sobre uma data que ninguém contratou seria inventar cobrança.
+     Ver `REGISTRO.md`, 27/11/2026.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -5982,7 +6015,23 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (27/11/2026 — «o plano não cobre o que a escola tinha», e não era verdade)
+### Executado nesta fotografia (27/11/2026 — o extrato da escola recomeça na relação em vigor)
+
+| Verificação | Resultado |
+|:--|:--|
+| o relato | «recriei a escola […] em bastidores, estúdio financeiro […] aparece aqui todos os meses de pagamento da escola. Mas […] foi expurgada e depois foi recriada […] a gente está começando uma relação nova» |
+| **estava contemplado — ao contrário** | a regra de 23/11 diz «um mês que foi pago nunca se esconde — a linha do tempo é a UNIÃO» e **nomeia a recriação** como o caso que existe para cobrir; `provar-o-financeiro-que-fica` §A3 defende-a. Não era lacuna, era regra |
+| **o que faltava era o endereço** | até hoje nenhum documento dizia **para quem** o extrato não se apaga. Palavras dela: «É meu, é para o meu controle, não para o da escola.» **CONFIRMADO** por varredura: a distinção não estava em ficheiro nenhum |
+| a medição do defeito | com os números da `breu` (contrato de 27/11, livro com 7 meses pagos a 23/11): o extrato mostrava **7 meses**, seis deles **futuros**, na relação nova |
+| **o alcance** | a mesma função serve o estúdio **e** a escola — o «Ver o mês a mês» dela mostrava os sete meses de uma relação que não é a dela |
+| a correcção | `situacaoDaEscola({ incluirRelacoesAnteriores })`: `true` (default) = o extrato de controle; `false` = o da escola. O corte é a **data do pagamento** contra o `criadoEm` — o slug não distingue relações |
+| **a fresta que a medição apanhou** | o primeiro corte filtrava as chaves e deixava o mapa intacto: o mês da adesão lia o **pagamento antigo** e a escola via «novembro · pago» com o dinheiro da encarnação anterior. O recorte passou a valer também para o registo do mês — sem pagamento desta relação, o mês fica **em aberto** |
+| o que não mudou | o livro, as 7 linhas da `breu`, os valores e os carimbos; o extrato de controle (a união de 23/11 intacta); o cartão da expurgada (sem contrato não há recorte) |
+| `provar-financeiro-da-escola` (secção **C2**, nova) | **139/146** — as **7 falhas são as de antes** (131/138 no `HEAD`, comparadas num `git worktree`: as mesmas sete, todas de `jsdom`) |
+| as provas vizinhas | `provar-o-financeiro-que-fica` 30/30 · `provar-o-contrato-em-vigor` 38/38 · `provar-relogio-do-ensaio` 41/41 · `provar-a-mora` 24/24 · `provar-o-contador` 46/46 |
+| **PENDENTE — uma regra que ela acredita que existe** | «eu nem posso acionar o botão se ela tiver dívida». **CONFIRMADO que não estava implementado**: nem o botão «Recriar» nem `criarConvite` consultavam o extrato. **IMPLEMENTADO no mesmo dia**, a pedido dela: `mensalidades.dividaDaSituacao` (a conta), `criarConvite` recusa **409** com dívida, e o botão fica **desligado** com o motivo à vista |
+
+### Executado nesta fotografia anterior (27/11/2026 — «o plano não cobre o que a escola tinha», e não era verdade)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -8072,6 +8121,20 @@ Não se muda sem ela decidir.
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **27/11/2026** — **O extrato da escola recomeça na relação em vigor; o da proprietária não.** A
+  `breu` foi expurgada e recriada, e o estúdio financeiro dela mostrava os **sete meses pagos** da
+  encarnação anterior — seis deles futuros. A verificação achou o contrário da suspeita: a regra de
+  23/11 («um mês que foi pago nunca se esconde — a linha do tempo é a UNIÃO») **nomeava a recriação**
+  como o caso que existe para cobrir, e `provar-o-financeiro-que-fica` §A3 defendia-a. O que faltava
+  era o **endereço**, e ela deu-o: «É meu, é para o meu controle, não para o da escola.» O recorte
+  passou a ser de quem lê — `situacaoDaEscola({ incluirRelacoesAnteriores })`, `false` no
+  `/bastidores/estudio`, `true` (default) no `danca.padd.com.br` —, com o corte na **data** do
+  pagamento contra o `criadoEm` do contrato em vigor, porque o slug não distingue relações. O livro
+  não perde uma linha. A medição apanhou uma fresta da primeira versão (o mês da adesão lia o
+  pagamento antigo); o recorte passou a valer também para o registo do mês. **E a trava do «Recriar»
+  por dívida**, que estava declarada como pendência e ela mandou fazer: `mensalidades.dividaDaSituacao`
+  (um sítio só), `criarConvite` a recusar **409**, e o botão desligado com o motivo à vista.
+  `provar-recriar-escola` **94 → 100** · `provar-financeiro-da-escola` **146/153** (as 7 de antes).
 - **26/11/2026** — **«Tentei com 123 e também não deu» — não era a senha.** `123` passa no
   `/api/receber` e abre o ciclo no `/api/dados`; `2805` não. E a aula 1 já estava gravada (os dois
   commits de lançamento no remoto são os dois cliques dela, às 15:00:06 e 15:00:08). **O que ficou

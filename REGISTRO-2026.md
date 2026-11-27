@@ -59446,6 +59446,20 @@ depois do `PUT`.
 
 ---
 
+> **Nota de 27/11/2026 — o alcance do «não se apaga», precisado por ela.** Esta entrada fixou «a
+> parte financeira não se apaga», e a frase seguinte — «a linha do tempo é a UNIÃO» — fez dela a
+> regra de **todos** os extratos, inclusive o da escola. **Não era isso.** Palavras dela a 27/11:
+> «Ele não se apaga no endereço danca.padd.com.br financeiro. É lá que não se apaga. E no financeiro
+> que é de bastidores e estúdio financeiro, esse se apaga sim. […] Para a escola, ela encerrou
+> aquilo. Não tem mais nenhuma relação. […] É meu, é para o meu controle, não para o da escola.»
+>
+> O que fica: o **livro** não perde uma linha — nem aqui, nem no painel dela. O que se corrige é o
+> **recorte de quem lê**: o extrato de controle mantém a união; o extrato da escola começa na adesão
+> do contrato em vigor. A regra de 23/11 não foi desfeita — foi **endereçada**. Ver a entrada de
+> 27/11/2026, «O extrato da escola recomeça na relação em vigor — o da proprietária não».
+
+---
+
 ## 23/11/2026 — Os dados da escola: o CNPJ que o expurgo apagava, e o que «outra Breu» quer dizer
 
 **AS DUAS PERGUNTAS DELA, e a segunda é uma armadilha que ela mesma farejou.**
@@ -64884,3 +64898,111 @@ consome**: ela está ou não está disponível — é por isso que ela é escopo
 que o contador de aulas não a toca. (3) `planos.json → teto.aulas` fica `null`, e é deliberado: o
 teto comercial é uma promessa, e a promessa é a franquia. A `_nota` do JSON ainda diz «enquanto não
 se decide a C25», e a C25 está decidida desde 17/11 — deriva de redação, não de número, e fica dita.
+
+## O extrato da escola recomeça na relação em vigor — o da proprietária não *(27/11/2026)*
+
+**O que ela viu.** «Eu recriei a escola Abreu […] agora que eu estou aqui em bastidores, estúdio
+financeiro da escola Abreu, na área que é destinada à escola, aparece aqui todos os meses de
+pagamento da escola. Mas acontece que ela foi expurgada e depois foi recriada. Então não existe essa
+relação de pagamento mais. A gente está começando uma relação nova. […] Você pode verificar isso,
+fazer a análise, mas eu acho que não está contemplado isso.»
+
+**A verificação, e o resultado é o contrário da suspeita: estava contemplado — na direção oposta.**
+A 23/11/2026 ficaram duas regras, ambas com estas palavras gravadas: «o financeiro de uma escola
+expurgada não se apaga» e «um mês que foi pago nunca se esconde — a linha do tempo é a UNIÃO». A
+segunda **nomeia a recriação como o caso que existe para cobrir**: «ao recriar a escola, a adesão
+nova é de novembro, `mesesEntre` devolveria UM mês, e os outros seis desapareceriam do extrato —
+exactamente o que esta correcção existe para impedir». E há prova a defendê-lo:
+`provar-o-financeiro-que-fica` §A3, «a escola RECRIADA continua a mostrar os sete meses pagos». Não
+era lacuna; era regra — e a regra estava a dizer ao mesmo tempo mais e menos do que ela quis.
+
+**O que faltava era O ENDEREÇO.** Perguntei-lhe a quem se destinava o extrato, e a resposta separou
+duas coisas que a regra de 23/11 tinha juntado:
+
+> «Ele não se apaga no endereço danca.padd.com.br financeiro. É lá que não se apaga. E no financeiro
+> que é de bastidores e estúdio financeiro, esse se apaga sim. […] Para a escola, ela encerrou
+> aquilo. Não tem mais nenhuma relação. Acabou. Ela quitou. […] É meu, é para o meu controle, não
+> para o da escola.»
+
+E verificou-se o que ela pediu para verificar: **a distinção não estava registada.** O `REGISTRO` diz
+«fica para histórico» e «é a receita que existiu» — verdade, mas sem dizer para quem. Não havia, em
+nenhum ficheiro, as palavras «é para mim, não para a escola». Ficam agora.
+
+**A DECISÃO.** O livro é **um só** e não perde uma linha — a proibição de apagar o financeiro
+continua inteira. O que muda é o **recorte de quem lê**:
+
+| quem lê | o que vê |
+|:--|:--|
+| o extrato de **controle** (`danca.padd.com.br` → Financeiro) | a união de 23/11: os meses do contrato em vigor **e tudo o que foi pago**, de qualquer relação. É onde ela decide se há dívida antes de reabilitar |
+| o extrato da **escola** (`/bastidores/estudio`, cartão e «mês a mês») | só a relação em vigor: da adesão até hoje. A anterior foi encerrada e não é dela |
+
+**O CORTE É A DATA, e não o slug.** O livro é chaveado por escola, e o slug é o mesmo antes e depois
+do expurgo — não há identidade de relação para distinguir as duas. O que distingue é o facto: **um
+pagamento gravado antes do `criadoEm` do contrato em vigor não pode ser desse contrato, porque esse
+contrato ainda não existia.** Um pagamento adiantado gravado já na relação nova aparece (é dela); um
+pagamento da encarnação anterior, ainda que no mesmo mês da adesão, não aparece. Sem `em` no registo
+(linha antiga), cai-se no mês: anterior ao mês da adesão é de outra relação.
+
+**A FRESTA QUE A PRIMEIRA IMPLEMENTAÇÃO DEIXOU, e a medição apanhou.** O primeiro corte filtrava as
+**chaves** do livro e deixava o mapa intacto para desenhar as linhas — e o mês da adesão, que
+pertence à relação nova, ia buscar o **pagamento antigo**: a escola recriada via «novembro · pago»
+com o dinheiro da encarnação anterior. Metade do defeito corrigida e a outra metade a mentir no
+sítio mais visível. O recorte passou a valer também para o registo do mês: sem pagamento desta
+relação, o mês fica **em aberto** — e não se inventa dívida, porque vencido é o que a data diz.
+
+**O que NÃO mudou.** O livro, as 7 linhas da `breu`, os valores e os carimbos. O extrato de controle,
+que continua a ser a união — a regra de 23/11 intacta no sítio onde ela a quis. O cartão da escola
+expurgada (sem contrato não há recorte: as únicas linhas são as que foram pagas). E a asserção A3 de
+`provar-o-financeiro-que-fica`, que continua a medir a união — agora com o nome do seu destinatário.
+
+**Onde entrou.** `motor/nucleo/mensalidades.js` (`situacaoDaEscola`: o parâmetro
+`incluirRelacoesAnteriores`, com o recorte a valer para a lista **e** para o registo do mês),
+`motor/servidor/bastidores.js` (a chamada da escola passa `false`),
+`experimentos/provar-financeiro-da-escola.js` (secção **C2**, oito asserções — incluindo o caminho
+real, `dadosDaEscolaParaAProducao`), `REGISTRO.md` (a contagem do índice).
+
+**MEDIDO.** `provar-financeiro-da-escola` **139/146** — as **7 falhas são as de antes** (131/138 no
+`HEAD`, comparadas linha a linha com um `git worktree`: as mesmas sete, todas de `jsdom` na página da
+escola). `provar-o-financeiro-que-fica` 30/30 · `provar-o-contrato-em-vigor` 38/38 ·
+`provar-relogio-do-ensaio` 41/41 · `provar-a-mora` 24/24 · `provar-o-contador` 46/46. A medição que
+fechou a fresta, com os números da `breu` (contrato de 27/11, livro de 23/11): antes do segundo
+corte, a escola via `2026-11:pago`; depois, `2026-11:aberto · 2026-12:pago` — e o controle, os sete
+meses.
+
+**O que ainda não está feito — e é uma regra que ela acredita que existe.** Ela disse «eu só posso
+começar um processo novo, reabilitar a escola, se ela não tiver dívida também. Eu nem posso acionar o
+botão se ela tiver dívida». **Verificado: não está implementado.** Nem o botão «Recriar» em
+`/escolas-apagadas` nem `criarConvite` consultam o extrato — as guardas que existem são só «tem elo?»,
+«foi expurgada?» e «já voltou?». Fica declarado, e não implementado: travar a recriação por dívida
+muda o que ela pode fazer hoje com as escolas de teste, e é decisão dela — não se infere de uma frase
+de justificação.
+
+> **Nota de 27/11/2026 (mesmo dia, horas depois) — a dívida passou a travar, e ela pediu-o.**
+> O parágrafo acima declarou a trava como pendência «e é decisão dela». Ela decidiu, nesta frase:
+> «Faz». **IMPLEMENTADO**, e em dois sítios porque um só não chega:
+>
+> | onde | o que faz |
+> |:--|:--|
+> | `mensalidades.dividaDaSituacao` | **a conta, num sítio só**: um mês é dívida quando **venceu e não está quitado** — a mesma regra da inadimplência. Devolve `{tem, meses, n, desde, centavos, moraCentavos, frase}` |
+> | `POST /api/recriar-convite` (`criarConvite`) | **a trava**: com dívida, **409** e a frase com o mês e o valor. É a porta — o botão desligado seria só a informação |
+> | `/escolas-apagadas` → a coluna «Ações» | o botão **continua a existir e fica DESLIGADO**, com o motivo em `title` e numa linha de texto. A mesma escolha dos «Habilitar/Desabilitar»: uma célula que muda de forma obriga a procurar onde se clica |
+>
+> **O caso que a conta teve de apanhar, e não era o óbvio.** O expurgo leva o contrato, e sem
+> contrato não há calendário — o extrato de uma escola apagada só tem as linhas do livro. Um mês
+> **parcial** (entrou parte, a fatura não fechou) é dinheiro em falta por definição, e a regra
+> «venceu e não está quitado» apanha-o porque o `vencimento` de uma escola sem contrato cai no dia 1.
+> A escola **viva** fica com o mês em curso fora da conta: no próprio dia do vencimento ainda está no
+> prazo, e o atraso começa no dia seguinte.
+>
+> **O que o valor NÃO leva, e é deliberado:** a **mora**. O extrato de uma escola sem contrato
+> inventa o dia 1 como vencimento (`diaDaAdesao(null)` → 1), e uma mora calculada sobre um
+> vencimento que ninguém contratou seria um número inventado com aparência de cobrança. O saldo é
+> facto em qualquer dos casos; a mora sai em `moraCentavos`, separada, para quem for cobrar com o
+> contrato à frente.
+>
+> **MEDIDO.** `provar-recriar-escola` **94 → 100** (três asserções da recusa nova, duas do botão, e o
+> **controlo negativo**: o mesmo mês quitado deixa o convite passar — uma guarda que nunca se viu
+> deixar passar é uma parede, não uma guarda). `provar-financeiro-da-escola` **139/146 → 146/153**
+> (secção **C3**, sete asserções; **as 7 falhas são as de antes**, de `jsdom`). E a rota verificada
+> de ponta a ponta com um acervo e um livro de mentira: `duo` (parcial) → botão **DESLIGADO** com a
+> frase na página; `paga` (quitada) → **ACESO**; HTTP **200**.

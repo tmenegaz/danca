@@ -5764,6 +5764,19 @@ async function dadosDaEscolaParaAProducao(env, kv, escola) {
   }
   const situacao = mensalidadesDoNucleo.situacaoDaEscola({
     escola, contrato, livro, ensaio, cobrancas: daEscola, contagem, ciclos: ciclosDaEscola,
+    /* O EXTRATO DA ESCOLA COMEÇA NA RELAÇÃO EM VIGOR (27/11/2026) — e é a única diferença entre
+     * este ecrã e o financeiro de controle (`danca.padd.com.br`), que continua a ver tudo.
+     *
+     * Palavras dela: «Ele não se apaga no endereço danca.padd.com.br financeiro. É lá que não se
+     * apaga. E no financeiro que é de bastidores e estúdio financeiro, esse se apaga sim. […] Para
+     * a escola, ela encerrou aquilo. Não tem mais nenhuma relação. Acabou. Ela quitou. […] É meu,
+     * é para o meu controle, não para o da escola.»
+     *
+     * Uma escola expurgada e recriada tem duas relações no mesmo slug, e o livro guarda as duas.
+     * Aqui lê-se só a de agora: a anterior foi encerrada, e apresentá-la à escola seria mostrar-lhe
+     * a contabilidade de outra pessoa. O dado não se apaga — o livro é o mesmo, e o recorte é que
+     * muda; quem quer a história inteira lê-a no painel de controle. */
+    incluirRelacoesAnteriores: false,
   });
   return {
     ok: true,

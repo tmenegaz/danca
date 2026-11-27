@@ -2612,6 +2612,29 @@ async function criarConvite({ env, escola, por }) {
         + 'três minutos) e a escola aparece nas vivas como «a nascer».',
     };
   }
+  /* A DÍVIDA TRAVA A RELAÇÃO NOVA — e o server é a porta, não o botão (27/11/2026).
+   *
+   * «Eu só posso começar um processo novo, reabilitar a escola, se ela não tiver dívida também. Eu
+   * nem posso acionar o botão se ela tiver dívida.»
+   *
+   * O botão desligado em `/escolas-apagadas` é a informação; esta guarda é a trava. Uma escola que
+   * encerrou devendo e volta a começar sem quitar deixa a dívida órfã: ela sai do monitor da
+   * inadimplência (a lista é das vivas), deixa de ser cobrável, e o mês em que ela devia volta a
+   * acontecer como se nunca tivesse existido. É a mesma família de erro que a regra de 23/11
+   * persegue — o financeiro é a prova de que ela pagou, e é também a prova de que não pagou.
+   *
+   * A CONTA É A MESMA DA LISTA (`mensalidades.dividaDaSituacao`), sobre o mesmo livro: um sítio a
+   * responder «há dívida?», e não dois a divergir no dia em que um deles mudasse. */
+  const dividaDaVez = mensalidades.dividaDaSituacao(mensalidades.situacaoDaEscola({
+    escola: slug, contrato: comercialDaVez, livro: await mensalidades.lerLivro(env && env.PADD_KV),
+  }));
+  if (dividaDaVez.tem) {
+    return {
+      ok: false, status: 409, divida: dividaDaVez,
+      erro: dividaDaVez.frase + ' Regularize no Financeiro antes de recriar a escola — a relação '
+        + 'nova começa sem dívida, e a antiga continua registada.',
+    };
+  }
 
   /* O NOME E OS DESTINATÁRIOS. O nome sai do cadastro quando ele reproduz o slug (é o mesmo
    * cuidado da recriação); sem cadastro, do slug. Os contactos saem do KV — e quando não há
@@ -4910,6 +4933,12 @@ async function fetch(request, env) {
        * preços seria uma segunda lista a divergir no dia em que o preço mudasse. */
       if (apagadas) {
         const [todas, professores] = await escolasDoIndice({ token });
+        /* O LIVRO LIDO UMA VEZ, e não uma por linha (27/11/2026). A chave é global
+         * (`financeiro/mensalidades`), e a dívida de cada escola sai dela — uma leitura para a
+         * lista inteira, como já se faz no financeiro. Sem KV, o livro é vazio e ninguém fica
+         * travado: uma trava que dispara por falta de leitura seria pior do que a dívida que ela
+         * quer apanhar. */
+        const livro = await mensalidades.lerLivro(env && env.PADD_KV);
         const escolas = [];
         for (const e of todas) {
           const c = await lerComercial(env && env.PADD_KV, e.slug);
@@ -4922,6 +4951,13 @@ async function fetch(request, env) {
             planoAnterior: (c && c.plano)
               ? { id: String(c.plano), nome: c.planoNome || null, valor: c.valor || null }
               : null,
+            /* A DÍVIDA DE CADA UMA, para o botão «Recriar» poder recusar-se (27/11/2026). «Eu nem
+             * posso acionar o botão se ela tiver dívida.» O contrato chega aqui como a lista o lê —
+             * numa escola expurgada é o esboço sem `criadoEm`, e é essa a verdade: sem contrato não
+             * há meses a cobrar, e as únicas linhas são as que estão no livro. */
+            divida: mensalidades.dividaDaSituacao(mensalidades.situacaoDaEscola({
+              escola: e.slug, contrato: c, livro,
+            })),
           }));
         }
         const ordem = url.searchParams.get('ordem');
