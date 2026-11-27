@@ -64838,3 +64838,49 @@ franquia**, tenha ela um aluno ou mil. É por isso que a oferta passou a falar d
 vende é exactamente aquilo que o contador conta. A escola que passar da franquia **não é bloqueada** —
 o excedente é **cobrado** (`situacaoDaFranquia`, quatro estados, e a `franquiaDoContrato` a somar
 pacotes). O único regime que **bloqueia** é a consultoria, onde os limites são de outra natureza.
+
+## A documentação do plano do contador estava dois degraus atrás do catálogo *(27/11/2026)*
+
+**O que motivou.** A pergunta dela — «como é que ficou definido o que cada plano oferece, e qual é o
+impacto disso no contador de aulas» — obrigou a ler os três sítios onde a resposta vive: o catálogo
+(`biblioteca/comercial/planos.json`), o §ADITIVO COMERCIAL e o `PLANO-CONTADOR-DE-AULAS.md`. Dois
+diziam a escada nova. O terceiro ainda dizia a antiga, e é o que se lê primeiro quando se quer saber
+o que conta.
+
+**O que foi corrigido, e o que NÃO tinha erro.**
+
+- O plano do contador dizia **100 · 300 · 800** em dois lugares — no cabeçalho e no §7.2. A escada
+  decidida a 25/11/2026 é **130 · 320 · 500** (`assinaturas[].aulas`), e é ela que a página, o painel
+  e as provas leem desde então. Passa a dizer a escada nova, com a nota de que o §ADITIVO registou a
+  antiga e está declarado histórico. **O §ADITIVO não se toca:** ele diz 100/300/800 de propósito,
+  declara-se substituído, e reescrevê-lo apagaria o elo — é a prova P-03/P-04 aplicada ao registo.
+- **Os «3 escolas no tamanho máximo»** — no §L9c e no §7.2 — foram calculados a **1 min por aula**
+  (`(2 000 − 522) ÷ 440 = 3,4`). A unidade hoje **medida** é **2,0 min por aula**, e a mesma conta dá
+  **1,7: uma escola**. A decisão da C25 (contar **440 aulas/mês** para a escola máxima) **não muda**;
+  o que muda é a capacidade que dela se deriva, e é menor. Os dois sítios passam a **declarar** a
+  divergência. O número antigo fica como o registo do que se pensou antes da medição.
+
+**O que foi decidido.** Declarar em vez de substituir: nenhum número antigo é apagado, e nenhum
+número novo é escrito sem a conta que o justifica. A correcção do §L9c para uma capacidade nova pede
+a sua própria medição da engenharia, e essa **não se fez** — o que se escreveu foi a divergência, não
+uma capacidade substituta.
+
+**Onde entrou.** `PLANO-CONTADOR-DE-AULAS.md` (cabeçalho e §7.2) · `PLANEJAMENTO-LASTRO.md` (a nota
+final da C25 e uma nota datada no §L9c) · `REGISTRO.md` (a contagem do índice) · este arquivo.
+
+**Com o quê.** `provar-a-oferta-em-aulas` 20/20 · `provar-pagina-publica` 80/80 ·
+`provar-cadastro-em-etapas` 51/51 · a bateria dos módulos tocados no commit anterior: 59/94 verdes,
+35 conhecidas, **0 regressões**. As quatro conferências: `check-identidade`, `check-sem-destruicao`,
+`check-github-headers`, `check-schemas`. Editar `PLANEJAMENTO-LASTRO.md` e o plano do contador
+**não** exige reancorar `.fipp` (não são fontes de ciclo).
+
+**O que ainda não está feito.** (1) O §L9c continua com a conta a 1 min/aula: a nota diz que o número
+é antigo, não o corrige — corrigi-lo exige medir a engenharia. (2) **`consultas` (7 · 14 · 46) é
+anunciada e não é medida.** O eixo existe no catálogo e na página, mas não há trava nem contador em
+`motor/`: a C5b — quais consultas em cada plano — foi declarada **não bloqueante** e não respondível
+antes de a grade de cobertura saturar (55 perguntas em 8 famílias, 54 células), e a unidade da
+decisão é o **poder** que o degrau entrega (x · x² · x³), não a contagem. Uma consulta **não se
+consome**: ela está ou não está disponível — é por isso que ela é escopo e não franquia, e é por isso
+que o contador de aulas não a toca. (3) `planos.json → teto.aulas` fica `null`, e é deliberado: o
+teto comercial é uma promessa, e a promessa é a franquia. A `_nota` do JSON ainda diz «enquanto não
+se decide a C25», e a C25 está decidida desde 17/11 — deriva de redação, não de número, e fica dita.

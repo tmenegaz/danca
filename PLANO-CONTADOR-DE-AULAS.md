@@ -7,8 +7,9 @@
 > sobre o código traz o caminho e a linha; nada foi preenchido por dedução.
 >
 > **A pergunta que ele responde.** «Quantas aulas esta escola processou neste mês?» — porque a
-> franquia é de aulas (100 · 300 · 800), a renovação é mensal e não cumulativa, e o que passar da
-> franquia é **excedente que se paga**. Sem esse número, a franquia é um número no ecrã.
+> franquia é de aulas (**130 · 320 · 500**, a escada decidida a 25/11/2026; o §ADITIVO registou
+> 100 · 300 · 800 e está declarado histórico), a renovação é mensal e não cumulativa, e o que passar
+> da franquia é **excedente que se paga**. Sem esse número, a franquia é um número no ecrã.
 
 ---
 
@@ -285,8 +286,16 @@ Ou seja: **o número não se deriva, porque depende de um modelo de negócio da 
 existe.** A conta de «5 por dia» foi construída sobre um modelo (a hora-aula), e o modelo é uma
 hipótese. Por isso a decisão certa é a prudente: **planear com o pior caso e medir com o contador**
 quando houver escolas a lançar. O `planos.json → teto.aulas` fica **null** na mesma — não por indecisão
-agora, mas porque um teto comercial é uma promessa, e a promessa é a franquia (100/300/800). O que a
-C25 decidia era a **capacidade da infraestrutura**, e essa está decidida: 3 escolas no tamanho máximo.
+agora, mas porque um teto comercial é uma promessa, e a promessa é a franquia (130/320/500, a escada
+de 25/11/2026). O que a C25 decidia era a **capacidade da infraestrutura**, e o consumo dela está
+decidido: **440 aulas/mês** para a escola no tamanho máximo.
+
+**E o número que dela se deriva está em correcção, declarada a 27/11/2026.** Os «3 escolas no tamanho
+máximo» do §L9c foram calculados a **1 min por aula** (`(2 000 − 522) ÷ 440 = 3,4`). Com a unidade
+**medida** — **2,0 min por aula** — a mesma conta dá `1 478 ÷ 880 = 1,7`: **uma escola**, e não três.
+A decisão da C25 (contar 440) não muda; o que muda é a capacidade que dela se tira, e é **menor**. O
+§L9c continua a carregar o número antigo até ter a sua própria medição da engenharia, e esta nota
+declara a divergência em vez de a esconder.
 
 ### 7.3 A inadimplência — a escada, e quem a percorre
 

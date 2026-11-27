@@ -1310,8 +1310,11 @@ do seu negócio de verdade, se ela vai pagar percentual para o professor ou se e
 aula.» O número depende de um **modelo de negócio da escola** que ainda não existe; planeia-se com o
 pior caso e mede-se com o contador quando houver escolas a lançar. *(Afeta §L9f pontos 7 e 10, §L8 e
 a receita projectada. O `planos.json → teto.aulas` continua `null`, e por outro motivo: a promessa
-comercial é a franquia — 100/300/800 —, e o teto de aulas era a capacidade da infraestrutura, que
-esta decisão fixa.)*
+comercial é a franquia — 100/300/800 à data desta decisão, **130/320/500 desde 25/11/2026** —, e o
+teto de aulas era a capacidade da infraestrutura, que esta decisão fixa na leitura conservadora de
+440 aulas/mês. Nota de 27/11/2026: a capacidade **derivada** de 440 mudou com a unidade medida de
+2,0 min/aula — de 3 escolas para 1,7, isto é, uma; ver
+[PLANO-CONTADOR-DE-AULAS.md](./PLANO-CONTADOR-DE-AULAS.md) §7.2.)*
 
 ---
 
@@ -1981,6 +1984,13 @@ decisão.
   registo do que se pensou antes da correcção, e não como a conta de hoje.)* **É por isso que
   20/500 é o teto e não um número redondo maior:** é o maior que mantém três estúdios desse tamanho
   a funcionar na conta gratuita, e a quarta é a conversa que ela já decidiu ter.
+
+  > **Nota de 27/11/2026 — os «três» eram a 1 min por aula.** Esta conta usou **1 min por
+  > lançamento**. A unidade hoje **medida** é **2,0 min por aula** (§L9f, e a correcção de 25/11 no
+  > `REGISTRO-2026.md`), e com ela `1 478 ÷ 880 = 1,7`: **uma escola no tamanho máximo**, não três.
+  > A decisão da C25 — contar **440 aulas/mês** — não muda; o que muda é a capacidade que dela se
+  > deriva, e é menor. O número antigo fica como o registo do que se pensou; a conta de hoje está no
+  > [PLANO-CONTADOR-DE-AULAS.md](./PLANO-CONTADOR-DE-AULAS.md) §7.2.
 
 - **A CONTA DO QUE CONSOME: AULAS LANÇADAS, E NÃO ALUNAS** *(declarado a 16/11/2026)*. «Eu quis
   dizer aulas.» E são **no mínimo 5 por dia**, com cada turma lançada **três vezes ou mais por
