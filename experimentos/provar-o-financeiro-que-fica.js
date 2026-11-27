@@ -246,10 +246,14 @@ const ESCOLA_EXPURGADA_SEM_HISTORICO = {
 
   /* A SEPARAÇÃO DAS ACÇÕES: o cartão da expurgada não tem nenhum dos quatro ganchos, e o da viva
    * tem-nos todos. É o controle que impede a correcção de os tirar a TODAS. */
+  /* A FRONTEIRA DO CARTÃO é o `<li>` que o embrulha, e não o `</details>` — que mudou de sítio a
+   * 27/11/2026 (entrou para dentro do condicional, e uma expurgada sem contrato deixou de ter um).
+   * Com a fronteira antiga, o cartão de uma expurgada passava a incluir o cartão SEGUINTE, e a
+   * asserção de «nenhuma acção» media os ganchos de outra escola — um falso positivo ao contrário. */
   const cartaoDe = (slug) => {
     const i = html.indexOf('data-conta="' + slug + '"');
     if (i === -1) return '';
-    const j = html.indexOf('</details>', i);
+    const j = html.indexOf('</li>', i);
     return html.slice(i, j);
   };
   const cartaoBreu = cartaoDe('breu');
@@ -263,6 +267,71 @@ const ESCOLA_EXPURGADA_SEM_HISTORICO = {
   provar('D4. o cartão da VIVA continua a ter as quatro — a correcção não tirou nada a quem existe',
     ganchos.every((g) => cartaoCalango.indexOf(g) !== -1),
     ganchos.filter((g) => cartaoCalango.indexOf(g) === -1));
+
+  console.log('');
+  console.log('D5. A EXPURGADA QUE SAIU DEVENDO — o expurgo parcial, e as duas acções que voltam');
+  {
+    /* «A gente precisa de um expurgo parcial […] o contrato, a dívida e os dados da escola não podem
+     * ser expurgados, nesse caso de inadimplência.» (27/11/2026)
+     *
+     * Com o contrato PRESERVADO, a página tem de deixar registar o pagamento: sem isso a dívida
+     * fica impossível de cobrar pelo sistema — a rota recusa «escola desconhecida» e não há
+     * caminho nenhum. O que NÃO volta são as duas que mudam o CONTRATO: um contrato novo sobre uma
+     * escola morta é exactamente o que a regra de 23/11 proibia, e continua proibido. */
+    const kvParcial = kvDeBolso({
+      [LIVRO]: JSON.stringify({ lista: HISTORICO, atualizadoEm: 'x' }),
+      /* O CONTRATO PRESERVADO: a adesão é de junho, e o expurgo foi em novembro. */
+      'bastidores/breu/comercial': JSON.stringify({
+        escola: 'breu', estado: 'suspensa', plano: 'basico', valorCentavos: 6990,
+        criadoEm: '2026-06-10T12:00:00.000Z',
+      }),
+    });
+    const extratoParcial = await raiz.extratoDasEscolas({
+      env: { PADD_KV: kvParcial },
+      escolas: [ESCOLA_EXPURGADA], agora: AGORA,
+    });
+    const breuParcial = extratoParcial.find((e) => e.escola === 'breu');
+    provar('D5. a expurgada com contrato preservado diz que TEM contrato',
+      Boolean(breuParcial) && breuParcial.temContrato === true && breuParcial.valorCentavos === 6990,
+      breuParcial && [breuParcial.temContrato, breuParcial.valorCentavos]);
+    /* O TECTO DA RELAÇÃO: a dívida para no expurgo. O extrato mostra os sete meses PAGOS (que ficam
+     * — «um mês que foi pago nunca se esconde») e os que a relação nova cobraria até sair; o que não
+     * pode existir é um mês EM ABERTO depois do expurgo, porque a relação acabou ali. Sem o tecto, o
+     * contrato preservado continuaria a gerar uma mensalidade em cada mês que passasse. */
+    const abertosDepoisDoExpurgo = (breuParcial && breuParcial.meses || [])
+      .filter((m) => m.status !== 'pago' && m.mes > '2026-11').map((m) => m.mes);
+    provar('D5. …e nenhum mês em aberto depois do expurgo — a relação acabou ali',
+      Boolean(breuParcial) && abertosDepoisDoExpurgo.length === 0,
+      { abertos: abertosDepoisDoExpurgo, meses: breuParcial && breuParcial.meses.map((m) => m.mes) });
+    /* E o CONTROLE que mostra que é o tecto que faz isso, e não o acaso do livro: a MESMA leitura
+     * sem `ate` devolve meses em aberto depois do expurgo. Sem este controlo, a asserção acima
+     * passaria numa versão do código que nunca tivesse o tecto, só porque o livro cobre o intervalo. */
+    const semTecto = mensalidades.situacaoDaEscola({
+      escola: 'breu',
+      contrato: { plano: 'basico', valorCentavos: 6990, criadoEm: '2026-06-10T12:00:00.000Z' },
+      livro: HISTORICO, agora: AGORA,
+    });
+    provar('D5. …e SEM o tecto a mesma leitura cobraria depois da saída — é o tecto que para a conta',
+      semTecto.meses.some((m) => m.status !== 'pago' && m.mes > '2026-11'),
+      semTecto.meses.filter((m) => m.status !== 'pago').map((m) => m.mes));
+    provar('D5. …e o cartão dela VOLTA a ter «Marcar pago» e «Informar um pagamento»',
+      /data-pagar="/.test(painel.paginaFinanceira({
+        pix: { chave: '000.000.000-00', titular: 'Titular' }, descontos: [],
+        escolas: [ESCOLA_VIVA], extrato: extratoParcial, catalogo,
+      })), null);
+    const htmlParcial = painel.paginaFinanceira({
+      pix: { chave: '000.000.000-00', titular: 'Titular' }, descontos: [],
+      escolas: [ESCOLA_VIVA], extrato: extratoParcial, catalogo,
+    });
+    const i = htmlParcial.indexOf('data-conta="breu"');
+    const cartaoParcial = i === -1 ? '' : htmlParcial.slice(i, htmlParcial.indexOf('</li>', i));
+    provar('D5. …as DUAS da cobrança, e nenhuma das que mudam o contrato',
+      cartaoParcial.indexOf('data-pagar=') !== -1
+        && cartaoParcial.indexOf('data-pagamento-gravar=') !== -1
+        && cartaoParcial.indexOf('data-contrato-gravar=') === -1
+        && cartaoParcial.indexOf('data-ensaio-ligar=') === -1,
+      ganchos.filter((g) => cartaoParcial.indexOf(g) !== -1));
+  }
 
   console.log('');
   console.log('E. A FUNÇÃO QUE APAGAVA O LIVRO NÃO EXISTE MAIS');

@@ -2431,6 +2431,19 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
      * se liga um ensaio. Um botão que grava sobre um registo comercial inexistente criaria um
      * contrato novo para uma escola morta. */
     const expurgada = c.expurgada === true;
+    /* A ESCOLA QUE SAIU DEVENDO CONTINUA A RECEBER (27/11/2026) — e é a excepção que a regra acima
+     * não previa, porque a regra nasceu quando o expurgo levava o contrato.
+     *
+     * «A gente precisa de um expurgo parcial […] o contrato, a dívida e os dados da escola não podem
+     * ser expurgados, nesse caso de inadimplência.» Com o contrato preservado, «Marcar pago» e
+     * «Informar um pagamento» ESCREVEM NO LIVRO — não tocam no registo comercial, e por isso não
+     * criam contrato nenhum para escola morta. Sem eles, a dívida fica impossível de cobrar pelo
+     * sistema: a rota de pagamento recusa com «escola desconhecida» e não há caminho nenhum.
+     *
+     * E a presença do contrato é o sinal, sem um campo novo: `temContrato` já diz se ele existe.
+     * As duas acções que MUDAM o contrato (gravar, ensaio) continuam fora — essas é que o
+     * ressuscitariam. */
+    const podeReceberPagamento = !expurgada || Boolean(c.temContrato);
     const seloDaEscola = expurgada
       ? '<span class="selo discreto">expurgada</span>'
       : (c.estadoComercial === 'ativa'
@@ -2596,7 +2609,7 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
        * exactamente a que a pessoa está a ler ao lado do botão. */
       const devido = Number(m.aPagarCentavos) || (m.encargos && m.encargos.totalCentavos)
         || m.faltaCentavos || m.valorCentavos || 0;
-      const campo = expurgada
+      const campo = !podeReceberPagamento
         ? ''
         : '<br><input id="' + idDoCampo + '" type="text" inputmode="decimal"'
           + ' data-pagar-valor="' + esc(c.escola) + '" data-mes="' + esc(m.mes) + '"'
@@ -2613,7 +2626,7 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
           + esc((m.excedente.precoDaAulaCentavos / 100).toFixed(2).replace('.', ','))
           + ' = R$ ' + esc((m.excedente.centavos / 100).toFixed(2).replace('.', ',')) + '</span>'
         : '';
-      const botao = expurgada
+      const botao = !podeReceberPagamento
         ? ''
         : '<button class="acao pequena" type="button" data-pagar="' + esc(c.escola) + '"'
           + ' data-mes="' + esc(m.mes) + '"'
@@ -2768,7 +2781,7 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
        * comercial, e uma escola expurgada perdeu-o no expurgo. O botão gravaria um contrato
        * novo para uma escola que já não existe — e o extrato dela passaria a ter meses a
        * cobrar sobre um pagamento que ninguém vai fazer. */
-      (expurgada ? '' :
+      (!podeReceberPagamento ? '' :
         /* INFORMAR UM PAGAMENTO — O CAMPO QUE FALTAVA (17/11/2026).
          *
          * «Pedi para parar porque você não colocou a conciliação no financeiro do
@@ -2810,7 +2823,14 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
         '<button type="button" class="acao" data-pagamento-gravar="' + esc(c.escola) + '">' +
         'Marcar como pago</button>' +
         '</div>' +
-        '<p class="aviso" data-pagamento-recado="' + esc(c.escola) + '" hidden></p>' +
+        '<p class="aviso" data-pagamento-recado="' + esc(c.escola) + '" hidden></p>') +
+        /* AS DUAS QUE MUDAM O CONTRATO FICAM FORA DA EXPURGADA — sempre (27/11/2026). O bloco acima
+         * passou a valer para ela quando o expurgo é parcial (há contrato para receber pagamento),
+         * mas LIGAR O ENSAIO e GRAVAR O CONTRATO continuam a ser actos sobre uma escola que já não
+         * existe: um contrato novo sobre ela é exactamente o que a regra de 23/11 proíbe, e um
+         * ensaio ligado num registo comercial preservado faria a escola «recomeçar» por um clique
+         * que ninguém quis dar. */
+        (expurgada ? '' :
         /* O ENSAIO — LIGAR E DESLIGAR AQUI, E NÃO NA PÁGINA DA ESCOLA (17/11/2026).
          *
          * «O botão de ativar ou desativar o ensaio deve ficar no danca.padd.com.br/financeiro e o
@@ -2880,8 +2900,13 @@ function paginaFinanceira({ pix, descontos, escolas, extrato, catalogo, dados })
         'Gravar o contrato</button></p>' +
         '<p class="aviso" data-contrato-recado hidden></p>' +
         '<p class="sub">O mês em curso não muda por isto: o extrato guarda o que foi cobrado em cada ' +
-        'mês, e o plano novo vale a partir da próxima mensalidade.</p>')
-      + '</details>';
+        'mês, e o plano novo vale a partir da próxima mensalidade.</p>' +
+        /* O `</details>` ENTRA PARA DENTRO DO CONDICIONAL (27/11/2026). Ele estava depois dele, e
+         * por isso o cartão de uma escola expurgada fechava um `<details>` que nunca abriu — um
+         * fecho a mais, que o browser tolera e que nenhuma prova via porque todas mediam os ganchos
+         * e não a estrutura. Com a expurgada a receber os blocos da cobrança, o fecho a mais deixou
+         * de ser inofensivo: ele fecharia, por engano, um bloco aberto por outra coisa. */
+        '</details>');
   };
 
   /* AS CONTAS, EMPILHADAS E PAGINADAS (16/11/2026). «A gente vai ter o Breu e depois o Calango e

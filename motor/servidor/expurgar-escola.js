@@ -286,7 +286,7 @@ async function listarChaves({ token, accountId, namespaceId, prefixo }) {
  * Sem nenhum dos dois, usa os prefixos padrão da escola — porque o silêncio, aqui, apaga
  * menos do que devia.
  */
-async function apagarChavesDeEscola({ token, accountId, namespaceId, prefixo, prefixos, slug, pausa }) {
+async function apagarChavesDeEscola({ token, accountId, namespaceId, prefixo, prefixos, slug, pausa, preservar }) {
   // A pausa é injetável para a prova correr sem dormir 2+4 s por prefixo. Em produção é o
   // `setTimeout`; nos ensaios, uma função vazia.
   const dormir = typeof pausa === 'function' ? pausa : esperar;
@@ -336,6 +336,23 @@ async function apagarChavesDeEscola({ token, accountId, namespaceId, prefixo, pr
     return { ok: false, erro: 'sem prefixos: não sei o que apagar', porPrefixo: [], apagadas: 0, total: 0, restantes: null };
   }
 
+  /* O EXPURGO PARCIAL — AS CHAVES QUE NÃO SE APAGAM (27/11/2026).
+   *
+   * «A gente precisa de um expurgo parcial para poder liberar espaço. […] o contrato, a dívida e os
+   * dados da escola não podem ser expurgados, nesse caso de inadimplência.»
+   *
+   * A lista é de CHAVES EXACTAS, e não de um prefixo: um prefixo novo aqui seria a porta para
+   * preservar uma família inteira por acidente. O que se preserva é o registo comercial — o plano, o
+   * valor e a data de adesão —, e é ele que faz a dívida ser cobrável: sem ele a rota de pagamento
+   * responde «escola desconhecida» e a escola fica bloqueada para sempre, sem caminho de pagar.
+   *
+   * As chaves preservadas NÃO entram na conferência: elas devem responder ao GET, e contá-las como
+   * «restou» faria o expurgo parcial declarar-se incompleto por ter feito o que lhe pediram. */
+  const preservadas = (Array.isArray(preservar) ? preservar : [])
+    .map((k) => String(k || '').trim())
+    .filter(Boolean);
+  const ehPreservada = (chave) => preservadas.indexOf(chave) !== -1;
+
   const porPrefixo = [];
   let apagadas = 0;
   let total = 0;
@@ -369,6 +386,9 @@ async function apagarChavesDeEscola({ token, accountId, namespaceId, prefixo, pr
   // listagens que se sobrepõem.
   const vistas = new Map(lista.map((p) => [p, new Set()]));
   const queFicaram = [];
+  /* As preservadas que EXISTIRAM de facto. Uma chave preservada que não existia (numa escola que
+   * nunca teve contrato gravado) não é erro — mas tem de ser distinguida de uma que foi guardada. */
+  const preservadasVistas = new Set();
 
   for (const p of lista) {
     let apagadasAqui = 0;
@@ -403,6 +423,10 @@ async function apagarChavesDeEscola({ token, accountId, namespaceId, prefixo, pr
         // é a mesma chave de antes. Contá-la duas vezes inflaria o relatório.
         if (vistas.get(p).has(chave)) continue;
         vistas.get(p).add(chave);
+        /* A PRESERVADA NÃO SE APAGA nem se conta como apagada (27/11/2026). O `continue` acontece
+         * antes do DELETE, e a conferência abaixo também a salta — senão o expurgo parcial declarava-
+         * se incompleto por ter guardado exactamente o que lhe mandaram guardar. */
+        if (ehPreservada(chave)) { preservadasVistas.add(chave); continue; }
         const caminho = '/accounts/' + accountId + '/storage/kv/namespaces/' + namespaceId +
           '/values/' + encodeURIComponent(chave);
         const r = await api(token, 'DELETE', caminho);
@@ -421,6 +445,7 @@ async function apagarChavesDeEscola({ token, accountId, namespaceId, prefixo, pr
     const ultimaListagem = await listarChavesSeguro({ token, accountId, namespaceId, prefixo: p });
     if (ultimaListagem.ok) {
       for (const chave of ultimaListagem.chaves) {
+        if (ehPreservada(chave)) { preservadasVistas.add(chave); continue; }
         const leitura = await lerValorSeguro({ token, accountId, namespaceId, chave });
         if (leitura.existe === true) restou.push(chave);
         else if (leitura.existe === null) semConferir += 1;
@@ -431,6 +456,7 @@ async function apagarChavesDeEscola({ token, accountId, namespaceId, prefixo, pr
       erroDeListagem = ultimaListagem.erro;
       // Sem listagem não há como conferir por leitura — e «não sei» não vira «acabou».
       for (const chave of vistas.get(p)) {
+        if (ehPreservada(chave)) continue;
         const leitura = await lerValorSeguro({ token, accountId, namespaceId, chave });
         if (leitura.existe === true) restou.push(chave);
         else if (leitura.existe === null) semConferir += 1;
@@ -484,6 +510,11 @@ async function apagarChavesDeEscola({ token, accountId, namespaceId, prefixo, pr
     apagadas,
     total,
     restantes,
+    /* AS QUE FICARAM DE PROPÓSITO (27/11/2026). Sai no relatório com nome e tudo: a página e o elo
+     * têm de poder dizer o que o expurgo guardou, e porquê — um expurgo parcial sem esta lista é
+     * indistinguível de um expurgo que falhou a meio. `existia: false` é uma chave que se pediu para
+     * preservar e nunca esteve lá (escola sem contrato gravado): não é falha, é a verdade. */
+    preservadas: preservadas.map((chave) => ({ chave, existia: preservadasVistas.has(chave) })),
     // As chaves que ainda respondem ao GET. É esta lista que a página deve mostrar — são os
     // dados que ficaram, com nome e tudo.
     ficaram: queFicaram.slice(0, 10),
@@ -589,6 +620,10 @@ async function excluirEscola({ token, accountId, slug, worker, kv, scripts, mapa
       prefixos: kv.prefixos,
       prefixo: kv.prefixo,
       slug,
+      /* O EXPURGO PARCIAL CHEGA POR AQUI (27/11/2026): quem chama decide o que não se apaga, e esta
+       * função só o entrega. Uma decisão comercial na camada do Cloudflare seria uma segunda
+       * resposta à pergunta «esta escola deve a alguém?». */
+      preservar: kv.preservar,
     });
   }
 

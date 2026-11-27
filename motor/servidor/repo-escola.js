@@ -678,7 +678,7 @@ async function lerArquivo({ token, dono, repo, ref, caminho, fetchImpl }) {
  * acrescenta. Criado se não existir (a `maria` não tem índice).
  */
 function comElo(indiceTexto, { slug, professor, ciclo, arquivos, motivo, quando, kv, proveniencia,
-  commitAntes }) {
+  commitAntes, parcial, preservado }) {
   let indice = null;
   try { indice = indiceTexto ? JSON.parse(indiceTexto) : null; } catch { indice = null; }
   if (!indice || typeof indice !== 'object') {
@@ -714,6 +714,20 @@ function comElo(indiceTexto, { slug, professor, ciclo, arquivos, motivo, quando,
     motivo: motivo || 'expurgada pela raiz',
     apagado: arquivos,
   };
+  /* O EXPURGO PARCIAL, DITO NO ELO (27/11/2026) — e o elo é o sítio certo.
+   *
+   * «A gente precisa de um expurgo parcial […] o contrato, a dívida e os dados da escola não podem
+   * ser expurgados, nesse caso de inadimplência.» O `apagado` diz o que saiu; sem esta linha, nada
+   * diria que uma chave ficou DE PROPÓSITO — e a diferença entre «o expurgo guardou o contrato
+   * porque a escola devia» e «o expurgo falhou a meio» desaparecia, que é exactamente a confusão
+   * que o `kv` abaixo existe para evitar.
+   *
+   * Só aparece quando houve parcial: um expurgo completo não ganha o campo, para não sugerir a
+   * ninguém que a escola devia. */
+  if (parcial) {
+    elo.parcial = true;
+    elo.preservado = Array.isArray(preservado) ? preservado.slice() : [];
+  }
   /* O COMMIT QUE AINDA TINHA A ESCOLA INTEIRA (16/11/2026) — a chave que faltava para o retrato.
    *
    * O ELO JÁ DIZIA O QUÊ saiu (`apagado`: os caminhos) e com que hashes estava a cadeia
@@ -868,7 +882,7 @@ async function apagarEscolaDoRepo(opcoes) {
   return { ok: false, erro: ultimo, expurgoNoRepositorio: 'não entrou depois de 3 tentativas' };
 }
 
-async function apagarEscolaDoRepoUmaVez({ token, dono, repo, ref, slug, confirmacao, motivo, quando, kv, proveniencia, fetchImpl }) {
+async function apagarEscolaDoRepoUmaVez({ token, dono, repo, ref, slug, confirmacao, motivo, quando, kv, proveniencia, parcial, preservado, fetchImpl }) {
   const f = fetchImpl || fetch;
   if (!slug) throw new Error('informe a escola');
   if (String(confirmacao) !== slug) {
@@ -952,6 +966,9 @@ async function apagarEscolaDoRepoUmaVez({ token, dono, repo, ref, slug, confirma
     /* O `commitSha` é a BASE desta árvore, e a árvore nova é a que APAGA — ou seja, o commit que
      * nasce a seguir é o expurgo, e o `commitSha` é o último estado com a escola inteira. */
     commitAntes: commitSha,
+    /* O EXPURGO PARCIAL (27/11/2026): o que ficou DE PROPÓSITO, e porquê. Só viaja quando há. */
+    parcial,
+    preservado,
   });
 
   const raizApi = 'https://api.github.com/repos/' + dono + '/' + repo;

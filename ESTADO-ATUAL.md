@@ -4,7 +4,12 @@
 > pontualmente, e classifica o que afirma. Não é promocional, não é cópia da documentação e
 > **não é gerado** — o gerado é o `HANDOFF.md`.
 >
-> **Última fotografia:** 27/11/2026 — **o extrato da escola recomeça na relação em vigor, e o da
+> **Última fotografia:** 27/11/2026 — **o expurgo parcial: a escola que sai devendo leva o contrato,
+> e só o contrato.** O expurgo apagava o registo comercial por prefixo, e sem ele a rota de pagamento
+> respondia **400 «escola desconhecida»** — a dívida ficava impossível de registar **e** a recriação
+> travada por ela. Agora, com dívida, liberta-se o espaço e preserva-se o contrato; sem dívida, o
+> expurgo é completo como sempre foi. O contrato preservado obrigou a um tecto (`ate`), senão a
+> dívida crescia um mês por mês sobre uma relação encerrada. Antes disso, no mesmo dia: **o extrato da escola recomeça na relação em vigor, e o da
 > proprietária não.** A `breu` foi expurgada e recriada, e o estúdio dela mostrava os sete meses
 > pagos da encarnação anterior — seis deles futuros. A regra de 23/11 («um mês que foi pago nunca se
 > esconde») **nomeava a recriação** como o caso que existe para cobrir, e o que faltava era **para
@@ -5030,6 +5035,19 @@ Só o que **não se pode ignorar**. O motivo completo de cada uma está no `REGI
      como vencimento, e cobrar juros sobre uma data que ninguém contratou seria inventar cobrança.
      Ver `REGISTRO.md`, 27/11/2026.
 
+194. **O EXPURGO PARCIAL — a escola que sai devendo leva o contrato, e só o contrato.**
+     «A gente precisa de um expurgo parcial para poder liberar espaço […] o contrato, a dívida e os
+     dados da escola não podem ser expurgados, nesse caso de inadimplência.» **DECIDIDO e
+     IMPLEMENTADO** 27/11/2026. Com dívida, o expurgo liberta o espaço (turmas, alunas, curadorias,
+     envelopes, pacote) e **preserva `bastidores/<slug>/comercial`** — sem ele a rota de pagamento
+     recusa «escola desconhecida» e a dívida fica órfã, com a recriação travada por ela: beco sem
+     saída nos dois sentidos. **Sem dívida, o expurgo é completo como sempre foi.** A dívida e o
+     cadastro já sobreviviam por viverem fora dos prefixos. O contrato preservado obrigou a um
+     **tecto**: `situacaoDaEscola({ ate: expurgada_em })` — a linha do tempo para na saída, senão a
+     dívida crescia uma mensalidade por mês sobre uma relação que acabou. O elo ganha `parcial` e
+     `preservado`, e a página volta a oferecer **só** «Marcar pago» e «Informar um pagamento» (as que
+     escrevem no livro); gravar contrato e ligar ensaio continuam fora. Ver `REGISTRO.md`, 27/11/2026.
+
 **A medida não é o repertório — e o objetivo 3 não tinha sujeito (03/11/2026).** Ela abriu um plano
 novo, com **dois** objetivos, e a sequência mostrou «*Port de Bras*» em três blocos e uma linha a
 nomear um **terceiro** objetivo. A hipótese dela era *mock data*, e a hipótese era razoável — mas
@@ -6015,7 +6033,25 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (27/11/2026 — o extrato da escola recomeça na relação em vigor)
+### Executado nesta fotografia (27/11/2026 — o expurgo parcial)
+
+| Verificação | Resultado |
+|:--|:--|
+| o pedido | «A gente precisa de um expurgo parcial para poder liberar espaço […] o contrato, a dívida e os dados da escola não podem ser expurgados, nesse caso de inadimplência» |
+| **o beco sem saída, medido ANTES** | o expurgo apaga `bastidores/<slug>/comercial` por prefixo; sem o contrato, `/api/financeiro/mensalidade` responde **400 «escola desconhecida»** — a dívida fica impossível de registar — **e** a recriação fica travada por ela. Três caminhos fechados ao mesmo tempo |
+| a decisão | com dívida: expurgo **parcial** — liberta o espaço e preserva o **contrato**. Sem dívida: completo, como sempre. A dívida (`financeiro/mensalidades`) e o cadastro (`cadastros/<slug>`) já sobreviviam por viverem **fora** dos prefixos |
+| **o defeito que o parcial criaria** | com o contrato preservado, `situacaoDaEscola` geraria uma mensalidade nova por mês sobre uma relação encerrada. Corrigido com `ate: expurgada_em` — corta a linha do tempo, não o «hoje»: o que venceu antes da saída continua cobrável |
+| a página | o cartão da expurgada voltou a ter **«Marcar pago»** e **«Informar um pagamento»** (escrevem no livro); gravar contrato e ligar ensaio continuam fora (escrevem no contrato) |
+| **um defeito de estrutura apanhado** | o `</details>` do bloco «Mudar o plano» estava **depois** do condicional: o cartão de uma expurgada fechava um `<details>` que nunca abriu. Entrou para dentro |
+| o elo | ganha `parcial` e `preservado` — sem isso, «guardou porque devia» e «falhou a meio» ficam indistinguíveis |
+| `provar-o-expurgo-parcial` (**nova**) | **16/16**, na rota verdadeira com Cloudflare e GitHub falsos — e o KV do fake é **o mesmo mapa** da aplicação, senão a prova mediria dois mundos. **7 de 16 reprovam contra `e9ec1d64`**, com a frase do beco sem saída no A9 |
+| `provar-expurgo-sem-listagem` (secção 6, nova) | **56/56** — a camada do KV, com a preservada a sobreviver e o expurgo a declarar-se completo |
+| `provar-o-financeiro-que-fica` (secção **D5**) | **35/35** — o tecto da relação, com controlo negativo (sem `ate`, a conta cobraria depois da saída) |
+| as vizinhas | `provar-recriar-escola` 100/100 · `provar-financeiro-da-escola` 146/153 (**as 7 de antes**, `jsdom`) · `provar-a-carencia-nao-se-burla` 49/58 — **igual ao `HEAD`**, medido num `git worktree` |
+| as conferências | `check-identidade` **23 ok** · `check-sem-destruicao` **0 violações** |
+| **PENDENTE — o efeito nas escolas de teste** | uma escola de teste que nunca teve pagamento registado passa a ter dívida (meses desde a adesão), e o parcial dispara para ela. É consistente com a regra dela, mas muda o que acontece ao expurgar uma escola de teste devendo: ela fica bloqueada até o pagamento ser marcado — o que agora é possível |
+
+### Executado nesta fotografia anterior (27/11/2026 — o extrato da escola recomeça na relação em vigor)
 
 | Verificação | Resultado |
 |:--|:--|
@@ -8121,6 +8157,15 @@ Não se muda sem ela decidir.
 
 Alterações materiais desde a fotografia anterior (não existia; a referência é o `REGISTRO.md`):
 
+- **27/11/2026** — **O expurgo parcial: a escola que sai devendo leva o contrato, e só o contrato.**
+  O expurgo apagava `bastidores/<slug>/comercial` por prefixo, e sem ele a rota de pagamento
+  respondia **400 «escola desconhecida»** — a dívida ficava impossível de registar **e** a recriação
+  travada por ela: beco sem saída nos dois sentidos. Agora, com dívida, o expurgo liberta o espaço e
+  preserva o contrato; **sem dívida, é completo como sempre foi**. O contrato preservado obrigou a um
+  tecto (`ate: expurgada_em`), senão a dívida crescia uma mensalidade por mês sobre uma relação
+  encerrada. O cartão da expurgada voltou a ter «Marcar pago» e «Informar um pagamento»; gravar
+  contrato e ligar ensaio continuam fora. `provar-o-expurgo-parcial` **16/16**, e **7 de 16
+  reprovam contra o `HEAD`**.
 - **27/11/2026** — **O extrato da escola recomeça na relação em vigor; o da proprietária não.** A
   `breu` foi expurgada e recriada, e o estúdio financeiro dela mostrava os **sete meses pagos** da
   encarnação anterior — seis deles futuros. A verificação achou o contrário da suspeita: a regra de

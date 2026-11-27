@@ -412,10 +412,16 @@ function instanteDoEnsaio({ contrato, ensaio, agora } = {}) {
  *     contrato que ela encerrou seria apresentar-lhe a contabilidade de outra pessoa — e a decisão
  *     é dela: «É meu, é para o meu controle, não para o da escola.»
  *
+ * `ate` — ATÉ QUANDO A RELAÇÃO COBRA (27/11/2026). Uma escola expurgada que devia sai do ar, e a
+ * dívida dela PARA no dia em que ela saiu: sem este tecto, o contrato preservado continuaria a
+ * gerar uma mensalidade nova a cada mês, e a dívida cresceria para sempre sobre uma relação que já
+ * não existe. O tecto é a data do expurgo (`expurgada_em`, no elo), e ele corta a LINHA DO TEMPO —
+ * não o «hoje»: os meses que já venceram antes da saída continuam vencidos, e é isso que se cobra.
+ *
  * O DADO NÃO SE PERDE em nenhum dos dois: o livro é o mesmo, e o que muda é o recorte de quem lê.
  */
 function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas,
-  cobrancas, contagem, ciclos, incluirRelacoesAnteriores } = {}) {
+  cobrancas, contagem, ciclos, incluirRelacoesAnteriores, ate } = {}) {
   /* `aulasUsadas` chega de FORA, e é opcional de propósito: quem conta as aulas tem o plano
    * próprio (PLANO-CONTADOR-DE-AULAS.md) e ainda não existe. Sem ele, a franquia é mostrada e
    * o consumo é omitido — ver o comentário no `franquia` do objecto devolvido. */
@@ -494,7 +500,14 @@ function situacaoDaEscola({ escola, contrato, livro, agora, ensaio, aulasUsadas,
    * depois de ela começar (um acerto feito já com o contrato em vigor). Gravado antes, é passado —
    * e no extrato da escola o passado não entra. Ordenada, porque a aritmética acima conta com a
    * ordem crescente. */
-  const daAdesao = inicio ? mesesEntre(inicio, hojeIso) : [];
+  const daAdesao = inicio ? mesesEntre(inicio, (function () {
+    /* O TECTO DA RELAÇÃO (27/11/2026): a linha do tempo de uma escola que saiu para no dia em que
+     * ela saiu. `ate` não mexe no «hoje» — quem diz «venceu» continua a ser o relógio de agora —, e
+     * é essa separação que faz os meses anteriores à saída continuarem cobráveis. */
+    const fimDaRelacao = ate ? Date.parse(ate) : NaN;
+    if (!Number.isFinite(fimDaRelacao)) return hojeIso;
+    return fimDaRelacao < Date.parse(hojeIso) ? new Date(fimDaRelacao).toISOString() : hojeIso;
+  })()) : [];
   const corteDaRelacao = inicio ? Date.parse(inicio) : NaN;
   const mesDaAdesao = inicio ? competencia(inicio) : null;
   /* Uma linha do livro é de uma relação anterior quando o pagamento foi gravado antes de o

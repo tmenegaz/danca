@@ -2130,3 +2130,9 @@ experimentos/modelo-formulario/*
 # como limite, e que a secção de lotes deixou de se oferecer sem que o contrato antigo perca o
 # preço.
 !experimentos/provar-a-oferta-em-aulas.js
+
+# O EXPURGO PARCIAL (27/11/2026). Décima quinta vez que a armadilha do `experimentos/*` aparece —
+# e ela é a mais fácil de não notar, porque esta prova mede uma AUSÊNCIA: que o contrato continue
+# lá. Uma prova que não corre não falha, e o defeito que ela guarda é um beco sem saída silencioso
+# (a escola expurgada devendo, sem caminho de pagar e sem caminho de voltar).
+!experimentos/provar-o-expurgo-parcial.js

@@ -2627,6 +2627,8 @@ async function criarConvite({ env, escola, por }) {
    * responder «há dívida?», e não dois a divergir no dia em que um deles mudasse. */
   const dividaDaVez = mensalidades.dividaDaSituacao(mensalidades.situacaoDaEscola({
     escola: slug, contrato: comercialDaVez, livro: await mensalidades.lerLivro(env && env.PADD_KV),
+    /* A dívida para no expurgo: é a mesma conta da lista e do extrato, com o mesmo tecto. */
+    ate: expurgadaEm,
   }));
   if (dividaDaVez.tem) {
     return {
@@ -4380,6 +4382,10 @@ async function extratoDasEscolas({ env, escolas, agora, nomes }) {
     const daEscola = cobrancasDoNucleo.cobrancasDaEscola(cobrancas, slug);
     const situacao = mensalidades.situacaoDaEscola({
       escola: slug, contrato, livro, agora, ensaio, cobrancas: daEscola, contagem,
+      /* A DÍVIDA DE UMA ESCOLA QUE SAIU PARA NO DIA EM QUE ELA SAIU (27/11/2026). Sem o tecto, o
+       * contrato que o expurgo parcial preserva continuaria a gerar uma mensalidade por mês, e a
+       * dívida cresceria sobre uma relação que já não existe. Ver `mensalidades.situacaoDaEscola`. */
+      ate: expurgada ? ((e && e.expurgada_em) || null) : null,
     });
     lista.push(Object.assign({}, situacao, {
       nome: (nomes && nomes[slug]) || (e && e.nome) || slug,
@@ -4956,7 +4962,7 @@ async function fetch(request, env) {
              * numa escola expurgada é o esboço sem `criadoEm`, e é essa a verdade: sem contrato não
              * há meses a cobrar, e as únicas linhas são as que estão no livro. */
             divida: mensalidades.dividaDaSituacao(mensalidades.situacaoDaEscola({
-              escola: e.slug, contrato: c, livro,
+              escola: e.slug, contrato: c, livro, ate: e.expurgada_em || null,
             })),
           }));
         }
@@ -6423,6 +6429,51 @@ async function fetch(request, env) {
       relatorio.cadastro = { ok: false, erro: (err && err.message) || String(err) };
     }
 
+    /* 1-quater. O EXPURGO PARCIAL, QUANDO A ESCOLA DEVE (27/11/2026).
+     *
+     * «A gente precisa de um expurgo parcial para poder liberar espaço. […] o contrato, a dívida e os
+     * dados da escola não podem ser expurgados, nesse caso de inadimplência.»
+     *
+     * A ORDEM É DELIBERADA, e ela é uma medição e não uma preferência: o expurgo apaga por prefixo,
+     * e `prefixosDaEscola` alcança `bastidores/<slug>/comercial`. Sem o contrato, a rota de pagamento
+     * (`/api/financeiro/mensalidade`) recusa com «escola desconhecida: não tem contrato» — o único
+     * caminho de registar o pagamento fecha-se, e a dívida fica IMPOSSÍVEL DE COBRAR pelo sistema.
+     * Medido a 27/11/2026: com o contrato apagado, `dividaDaSituacao` ainda vê a dívida (o registo
+     * parcial vive no livro) e a recriação fica travada por ela — beco sem saída nos dois sentidos.
+     *
+     * A DÍVIDA É CALCULADA AQUI, ANTES DE QUALQUER APAGAMENTO, e pela mesma função que a lista das
+     * apagadas usa (`mensalidades.dividaDaSituacao`): um sítio a responder «há dívida?».
+     *
+     * O QUE SE PRESERVA, e é só isto: o registo comercial — plano, valor, `criadoEm`. A dívida
+     * (`financeiro/mensalidades`) e o cadastro (`cadastros/<slug>`) já sobrevivem por construção,
+     * porque vivem FORA dos prefixos da escola. Um expurgo parcial sem dívida não existe: uma escola
+     * que saiu em dia não leva o contrato para trás, e a carta do expurgo continua a ser verdade.
+     *
+     * SE A LEITURA FALHAR, PRESERVA-SE. A dúvida, aqui, não pode custar a cobrança: guardar uma
+     * chave pequena a mais é reversível no dia seguinte; apagá-la não é. */
+    let expurgoParcial = null;
+    try {
+      let comercialDaVez = null;
+      try { comercialDaVez = await lerComercial(env && env.PADD_KV, slug); } catch (erro) { comercialDaVez = null; }
+      const livroDaVez = await mensalidades.lerLivro(env && env.PADD_KV);
+      const divida = mensalidades.dividaDaSituacao(mensalidades.situacaoDaEscola({
+        escola: slug, contrato: comercialDaVez, livro: livroDaVez,
+      }));
+      const temContrato = Boolean(comercialDaVez && comercialDaVez.plano);
+      expurgoParcial = {
+        divida,
+        preservar: divida.tem && temContrato ? [chaveComercial(slug)] : [],
+      };
+    } catch (erro) {
+      expurgoParcial = {
+        divida: null,
+        preservar: [chaveComercial(slug)],
+        erro: 'não consegui ler a dívida — o contrato foi preservado por precaução: '
+          + ((erro && erro.message) || String(erro)),
+      };
+    }
+    relatorio.parcial = expurgoParcial;
+
     // 2. ONDE A ESCOLA VIVE, antes de apagar qualquer coisa. O `wrangler.<slug>.jsonc` diz o
     // nome do script e o namespace do KV; sem ele não se limpa o KV — e apagar o Worker
     // deixando o dado é o pior dos mundos. Não se começa o que não se termina. (Se o config
@@ -6471,6 +6522,9 @@ async function fetch(request, env) {
         kv: {
           namespaceId: morada.kvNamespaceId || null,
           prefixos: prefixosDaEscola(slug),
+          /* O EXPURGO PARCIAL (27/11/2026): quando a escola sai devendo, o registo comercial fica —
+           * é ele que faz a dívida continuar cobrável. Ver o comentário do passo 1-quater. */
+          preservar: (expurgoParcial && expurgoParcial.preservar) || [],
         },
         scripts: scriptsDeConfianca(env),
         mapaKv: env && env.PADD_KV,
@@ -6506,6 +6560,11 @@ async function fetch(request, env) {
         // A PROVENIÊNCIA VAI PARA O ELO. É o que sobra das âncoras depois de apagadas: o que
         // existia, com que hashes, e a impressão do conjunto — ver `comElo`.
         proveniencia: relatorio.proveniencia,
+        /* O ELO APRENDE QUE O EXPURGO FOI PARCIAL (27/11/2026): o que ficou de propósito vai
+         * escrito ao lado do que saiu, senão «guardou porque devia» e «falhou a meio» ficam
+         * indistinguíveis. */
+        parcial: Boolean(expurgoParcial && expurgoParcial.preservar && expurgoParcial.preservar.length),
+        preservado: (expurgoParcial && expurgoParcial.preservar) || [],
       });
     } catch (err) {
       relatorio.repositorio = { erro: (err && err.message) || String(err) };

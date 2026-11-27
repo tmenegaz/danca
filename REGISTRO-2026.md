@@ -65006,3 +65006,74 @@ de justificação.
 > (secção **C3**, sete asserções; **as 7 falhas são as de antes**, de `jsdom`). E a rota verificada
 > de ponta a ponta com um acervo e um livro de mentira: `duo` (parcial) → botão **DESLIGADO** com a
 > frase na página; `paga` (quitada) → **ACESO**; HTTP **200**.
+
+## O expurgo parcial: a escola que sai devendo leva o contrato, e só o contrato *(27/11/2026)*
+
+**O que ela pediu.** «A gente precisa de um expurgo parcial para poder liberar espaço. Assim a gente
+ganha espaço e faz o registro. Mas essas informações que são importantes para fazer a cobrança, que é
+o contrato […] o contrato, a dívida e os dados da escola não podem ser expurgados, nesse caso de
+inadimplência.»
+
+**O BECO SEM SAÍDA QUE ISTO FECHA, e ele foi medido antes de mexer.** O expurgo apaga por prefixo, e
+`prefixosDaEscola(slug)` alcança `bastidores/<slug>/comercial`. Sem o contrato:
+
+1. `/api/financeiro/mensalidade` recusa com **«escola desconhecida: não tem contrato»** — a dívida
+   fica impossível de registar pelo sistema;
+2. a recriação está travada pela dívida (a regra de hoje, no mesmo dia) — e essa dívida já não tem
+   caminho de ser paga.
+
+Três caminhos fechados ao mesmo tempo. O A/B desta entrada mede-o com a frase literal do servidor:
+`{"status":400,"erro":"escola desconhecida: «breu» não tem contrato"}`.
+
+**A DECISÃO.** Quando a escola sai **devendo**, o expurgo passa a ser **parcial**: liberta o espaço
+(turmas, alunas, curadorias, envelopes, pacote e fontes) e **preserva o registo comercial** — plano,
+valor e `criadoEm`. A dívida (`financeiro/mensalidades`) e os dados da escola (`cadastros/<slug>`)
+já sobreviviam por construção, porque vivem **fora** dos prefixos; o que faltava era o contrato, e
+era ele que fazia a diferença entre uma dívida registável e uma dívida órfã.
+
+**A ESCOLA QUE SAI EM DIA NÃO LEVA O CONTRATO PARA TRÁS.** O parcial só acontece com dívida — a
+carta do expurgo continua a dizer a verdade para quem saiu em dia, e o elo não ganha o campo, para
+não sugerir a ninguém que aquela escola devia.
+
+**O TECTO DA RELAÇÃO — o defeito que o parcial criaria se ninguém olhasse.** Com o contrato
+preservado, `situacaoDaEscola` continuaria a gerar **uma mensalidade nova por mês**, sobre uma
+relação que acabou: a dívida cresceria para sempre. Passa a haver `ate` — a data do expurgo
+(`expurgada_em`, no elo) —, que corta a **linha do tempo** e não o «hoje»: os meses que venceram
+antes da saída continuam vencidos e cobráveis, e os que viriam depois nunca nascem.
+
+**O QUE VOLTA À PÁGINA, E O QUE NÃO VOLTA.** O cartão da expurgada voltou a ter **«Marcar pago»** e
+**«Informar um pagamento»** — as duas que escrevem no LIVRO. Continuam fora as duas que escrevem no
+CONTRATO (gravar o contrato, ligar o ensaio): um contrato novo sobre uma escola morta é exactamente
+o que a regra de 23/11 proíbe. E a presença do contrato é o sinal, sem um campo novo: `temContrato`
+já o dizia.
+
+**Um defeito de estrutura apanhado ao mudar isto.** O `</details>` do bloco «Mudar o plano» estava
+**depois** do condicional da expurgada, e por isso o cartão de uma escola expurgada fechava um
+`<details>` que nunca abriu. O browser tolera, e nenhuma prova o via porque todas mediam os ganchos e
+não a estrutura. Entrou para dentro do condicional, onde pertence.
+
+**Onde entrou.** `motor/servidor/expurgar-escola.js` (`apagarChavesDeEscola({ preservar })`, com a
+lista de **chaves exactas** — um prefixo novo aqui seria a porta para preservar uma família inteira
+por acidente — e a conferência a saltar as preservadas, senão o expurgo parcial declarava-se
+incompleto por ter feito o que lhe pediram) · `motor/servidor/raiz.js` (o passo **1-quater**: a
+dívida calculada **antes** de apagar, e `kv.preservar`) · `motor/servidor/repo-escola.js` (o elo
+ganha `parcial` e `preservado`) · `motor/nucleo/mensalidades.js` (`ate`) ·
+`motor/servidor/painel-html.js` (`podeReceberPagamento`) ·
+`experimentos/provar-o-expurgo-parcial.js` (**novo**, 16 asserções, na rota verdadeira com o
+Cloudflare e o GitHub falsos — e o KV do fake é **o mesmo mapa** da aplicação, senão a prova mediria
+dois mundos) · `experimentos/provar-expurgo-sem-listagem.js` (secção 6, sete asserções da camada do
+KV) · `experimentos/provar-o-financeiro-que-fica.js` (secção **D5**) · `.gitignore`.
+
+**MEDIDO.** `provar-o-expurgo-parcial` **16/16**, e **7 de 16 reprovam contra o `HEAD`**
+(`e9ec1d64`), incluindo o A9 com a frase do beco sem saída. `provar-expurgo-sem-listagem` **56/56** ·
+`provar-o-financeiro-que-fica` **35/35** · `provar-recriar-escola` 100/100 ·
+`provar-financeiro-da-escola` 146/153 (**as 7 falhas são as de antes**, de `jsdom`) ·
+`provar-a-carencia-nao-se-burla` 49/58 — **igual ao `HEAD`**, medido num `git worktree`, e portanto
+não é regressão desta frente. As conferências: `check-identidade` 23 ok, `check-sem-destruicao` 0
+violações.
+
+**O que fica por decidir, e não se infere.** Uma escola de **teste** que nunca teve pagamento
+registado passa a ter dívida (meses desde a adesão) — e, com o contrato preservado, o parcial
+dispara para ela. É consistente com a regra dela, mas muda o que acontece às escolas de teste no dia
+em que ela as expurgar devendo: elas ficam bloqueadas até ela marcar o pagamento (o que agora é
+possível). Fica dito, não escondido.

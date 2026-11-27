@@ -417,6 +417,65 @@ async function main() {
       kv.apagadas === CHAVES_FIXAS_DA_ESCOLA.length + 1, kv.apagadas);
   }
 
+  console.log('\n6. O EXPURGO PARCIAL: a chave preservada sobrevive, e o expurgo não se diz incompleto');
+  {
+    /* «A gente precisa de um expurgo parcial […] o contrato, a dívida e os dados da escola não
+     * podem ser expurgados, nesse caso de inadimplência.» (27/11/2026)
+     *
+     * O QUE SE MEDE, e cada ponto é um defeito possível:
+     *   a) a chave preservada SOBREVIVE — é o contrato, e sem ele a dívida não é cobrável;
+     *   b) as outras da MESMA família são apagadas — preservar uma não preserva o prefixo;
+     *   c) o relatório diz `ok: true` — senão o expurgo parcial declarava-se incompleto por ter
+     *      feito o que lhe pediram, e a página dizia «falhou» sobre uma operação perfeita;
+     *   d) o relatório NOMEIA o que ficou — um expurgo parcial sem esta lista é indistinguível
+     *      de um expurgo que falhou a meio;
+     *   e) uma preservada que não existia é dita como tal, e não como «guardada».
+     *
+     * A chave do contrato é `bastidores/<slug>/comercial` — a mesma que `chaveComercial` de
+     * `motor/servidor/raiz.js` constrói. */
+    const CONTRATO = 'bastidores/calango/comercial';
+    const estado = nuvemFalsa({
+      [CONTRATO]: JSON.stringify({ plano: 'basico', valorCentavos: 6990, criadoEm: '2026-06-10T12:00:00Z' }),
+      'bastidores/calango/turmas': '[]',
+      'bastidores/calango/alunos': '[]',
+      'calango/envelope/anamnese-20261019-1842.json': '{}',
+      'bastidores/outra-escola/comercial': '{"plano":"basico"}',
+    });
+    const r = await comFetch(estado, () => apagarChavesDeEscola({
+      token: 'x', accountId: 'a', namespaceId: NAMESPACE, slug: 'calango', pausa: SEM_DORMIR,
+      preservar: [CONTRATO],
+    }));
+    checar('(a) o contrato preservado SOBREVIVE ao expurgo', estado.kv.has(CONTRATO), [...estado.kv.keys()]);
+    checar('(b) o resto da família é apagado — preservar uma chave não preserva o prefixo',
+      !estado.kv.has('bastidores/calango/turmas') && !estado.kv.has('bastidores/calango/alunos')
+        && !estado.kv.has('calango/envelope/anamnese-20261019-1842.json'), [...estado.kv.keys()]);
+    checar('(b) e o que é de OUTRA escola continua intocado',
+      estado.kv.has('bastidores/outra-escola/comercial'));
+    checar('(c) o expurgo parcial declara-se COMPLETO — a preservada não conta como «restou»',
+      r.ok === true && r.restantes === 0 && r.semConferir === 0, { ok: r.ok, restantes: r.restantes });
+    checar('(d) e NOMEIA o que ficou, com o nome inteiro',
+      Array.isArray(r.preservadas) && r.preservadas.length === 1
+        && r.preservadas[0].chave === CONTRATO && r.preservadas[0].existia === true, r.preservadas);
+
+    /* (e) uma preservada que nunca existiu (escola sem contrato gravado) — não é falha nem mentira. */
+    const semContrato = nuvemFalsa({ 'bastidores/calango/turmas': '[]' });
+    const r2 = await comFetch(semContrato, () => apagarChavesDeEscola({
+      token: 'x', accountId: 'a', namespaceId: NAMESPACE, slug: 'calango', pausa: SEM_DORMIR,
+      preservar: [CONTRATO],
+    }));
+    checar('(e) a preservada que não existia é dita como tal, e o expurgo continua completo',
+      r2.ok === true && r2.preservadas[0].existia === false, r2.preservadas);
+
+    /* O CONTROLE NEGATIVO: sem `preservar`, a MESMA chave é apagada. Sem isto, uma prova verde
+     * diria só que a chave sobreviveu por acaso — e não que a lista é que a protegeu. */
+    const semLista = nuvemFalsa({ [CONTRATO]: '{"plano":"basico"}' });
+    await comFetch(semLista, () => apagarChavesDeEscola({
+      token: 'x', accountId: 'a', namespaceId: NAMESPACE, slug: 'calango', pausa: SEM_DORMIR,
+    }));
+    checar('controle: sem a lista, a mesma chave é apagada — é a lista que a protege',
+      !semLista.kv.has(CONTRATO));
+  }
+
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + n + ' asserções, 0 falha(s).'
     : 'FALHOU — ' + falhas + ' de ' + n + ' asserção(ões).'));
