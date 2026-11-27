@@ -913,6 +913,40 @@ function paginaDeLista({ recorte, escolas, ordem, professores, catalogo }) {
  * mais nada. As duas formas saem da MESMA função — a página inválida não é um erro do servidor, é
  * uma resposta, e uma resposta tem de ser tão legível como a outra.
  */
+/**
+ * A CAPACIDADE DE UM PLANO — lida do sítio certo, e o sítio mudou debaixo desta leitura (27/11/2026).
+ *
+ * O DEFEITO QUE ELA ENCONTROU, com as palavras dela: «se ontem eu tinha o plano básico e aí expurguei
+ * a escola, e agora eu recrio a escola com o plano básico, não faz sentido dizer que o plano não
+ * cobre o que a escola tinha. […] A mensagem está errada.»
+ *
+ * A MENSAGEM DIZIA «Este plano inclui 0 professores e 0 alunas». E era verdade *sobre o que a página
+ * tinha lido*: a 17/11/2026 o `catalogoDaPagina` mudou de forma — a FRANQUIA (`aulas`) é o que se
+ * apresenta, e `professores`/`alunos` foram para dentro de `referencia`, «para a controladoria»
+ * (ver `motor/nucleo/comercial.js`, §ADITIVO §2: a página não os apresenta como limite). Esta
+ * leitura ficou a pedir `p.professores` no TOPO, recebeu `undefined`, e `Number(undefined) || 0` deu
+ * zero. Com capacidade zero, QUALQUER retrato de uma escola real «não cabe» — e a página pedia
+ * confirmação para perder o que não se perde.
+ *
+ * As duas partes da correcção, e a segunda importa tanto como a primeira:
+ *
+ *   1. lê-se `referencia` PRIMEIRO, e o topo fica como reserva — um catálogo antigo, ou um chamador
+ *      que ainda passe a forma achatada, continua a ser lido;
+ *   2. os dois lados concordam ou não se afirma nada: se a capacidade vier ausente dos DOIS sítios,
+ *      o atributo fica vazio, e o cliente sabe que não pode calcular (ver `oQueSePerde`). Um zero
+ *      inventado é uma afirmação sobre o catálogo que ninguém mediu — e foi ele que mentiu.
+ */
+function capacidadeDoPlano(p, eixo) {
+  const ref = p && p.referencia;
+  const valor = (ref && ref[eixo] !== undefined && ref[eixo] !== null)
+    ? ref[eixo]
+    : (p ? p[eixo] : undefined);
+  const n = Number(valor);
+  /* SEM NÚMERO, ATRIBUTO VAZIO — e não `0`. É o que separa «este plano inclui zero» de «não sei
+   * quanto este plano inclui», e é a diferença que a mensagem dela precisava. */
+  return Number.isFinite(n) && valor !== undefined && valor !== null && valor !== '' ? String(n) : '';
+}
+
 function paginaDoConvite({ escola, nome, token, catalogo, pix, estado, retrato, identidade }) {
   const nomeDaEscola = String(nome || escola || '');
   /* O `data-centavos` VAI JUNTO DO `data-preco` (16/11/2026). O texto é o que se lê; os cêntimos
@@ -924,8 +958,8 @@ function paginaDoConvite({ escola, nome, token, catalogo, pix, estado, retrato, 
     /* A CAPACIDADE INCLUÍDA VAI EM NÚMERO, e não só em texto (16/11/2026): é ela que o aviso da
      * perda soma aos lotes para saber quantos cabem. O `data-inclui` diz o mesmo em palavras, para
      * a linha do valor; uma segunda conta da capacidade no cliente divergiria da do servidor. */
-    + ' data-professores="' + (Number(p.professores) || 0) + '"'
-    + ' data-alunos="' + (Number(p.alunos) || 0) + '"'
+    + ' data-professores="' + capacidadeDoPlano(p, 'professores') + '"'
+    + ' data-alunos="' + capacidadeDoPlano(p, 'alunos') + '"'
     /* O QUE O DEGRAU JÁ INCLUI, ao lado do nome: «+20 aulas» não diz vinte a mais do que quê, e a
      * pergunta é a primeira que quem contrata faz. A 17/11/2026 passou a ser a FRANQUIA — «inclui
      * 300 aulas» —, e não professores e alunas: são eles que já não são a unidade.
@@ -1121,14 +1155,28 @@ const SCRIPT_DO_CONVITE = '<script>(function(){' +
    * A pergunta que ela serve continua a fazer sentido — «vão perder-se 12 professores, confirma?» —,
    * e o número que a responde é o do degrau, não o de um lote. O que saiu foi a soma dos lotes
    * marcados, que já não são marcáveis. */
+  /* «NÃO SEI» E «ZERO» SÃO RESPOSTAS DIFERENTES, e o `||0` colapsava as duas. Sem atributo (o
+   * servidor não o emitiu porque não conseguiu ler o catálogo), o valor é `NaN` — e o `oQueSePerde`
+   * deixa de afirmar seja o que for. Com atributo a `"0"`, é zero a sério, e a conta faz-se. */
   'function capacidade(){' +
   '  var o=plano.options[plano.selectedIndex];' +
-  '  return {professores:Number((o&&o.getAttribute("data-professores"))||0),' +
-  '    alunos:Number((o&&o.getAttribute("data-alunos"))||0)};}' +
+  '  function le(a){var v=o?o.getAttribute(a):null;if(v===null||v==="")return NaN;return Number(v);}' +
+  '  return {professores:le("data-professores"),alunos:le("data-alunos")};}' +
   'function quantos(lista){return Array.isArray(lista)?lista.length:0;}' +
+  /* A CAPACIDADE DESCONHECIDA NÃO É CAPACIDADE ZERO (27/11/2026) — ver `capacidadeDoPlano`.
+   *
+   * Foi este `Math.max(0, ...)` sobre um zero inventado que produziu a mensagem dela: «Este plano
+   * inclui 0 professores e 0 alunas […] vão perder-se 1 professor e 1 aluna», sobre uma escola com
+   * um professor e uma aluna num plano que inclui um e dez. O cliente não sabe o que o plano inclui
+   * → não afirma perda nenhuma. Quem decide é o SERVIDOR, que tem a capacidade do catálogo e
+   * responde 409 com o número certo (ver o `perdidos` na resposta, tratado abaixo).
+   *
+   * E a razão de não se inventar um número é a de sempre: um zero é uma AFIRMAÇÃO sobre o catálogo,
+   * e afirmar exige ter lido. */
   'function oQueSePerde(){' +
   '  if(!retrato)return null;' +
   '  var c=capacidade();' +
+  '  if(!isFinite(c.professores)||!isFinite(c.alunos))return null;' +
   '  var saemP=Math.max(0,quantos(retrato.professores)-c.professores);' +
   '  var saemA=Math.max(0,quantos(retrato.alunos)-c.alunos);' +
   '  if(!saemP&&!saemA)return null;' +
@@ -1149,6 +1197,21 @@ const SCRIPT_DO_CONVITE = '<script>(function(){' +
   '    +": vão perder-se "+partes.join(" e ")+".";' +
   '  perda.hidden=false;' +
   '  return true;}' +
+  /* A RECUSA DO SERVIDOR TAMBÉM SE ACEITA (27/11/2026). O servidor é quem decide (tem a capacidade
+   * do catálogo e a contagem guardada no convite), e quando recusa responde 409 com `perdidos` e a
+   * frase já composta por `retrato.fraseDoAviso`. Aqui a página limitava-se a mostrá-la como ERRO e
+   * a reabilitar o botão — sem a caixa de confirmação, o «Sim» não existia e ela ficava sem saída:
+   * a mensagem certa, e nenhum caminho para dizer «aceito».
+   *
+   * Esta função fecha o laço: escreve a frase DO SERVIDOR na caixa (não uma segunda, calculada
+   * aqui — duas frases do mesmo facto divergem) e mostra-a, para o «Sim» poder ser carregado. */
+  'function perdaDoServidor(frase){' +
+  '  if(!perda)return;' +
+  '  var txt=document.getElementById("convite-perda-texto");' +
+  '  if(txt)txt.textContent=String(frase||"");' +
+  '  perda.hidden=false;' +
+  '  if(perda.scrollIntoView)perda.scrollIntoView();' +
+  '}' +
   'function esquecerPerda(){perdeu=false;esconderPerda();}' +
   'if(perda){' +
   /* «SIM» AUTORIZA, e deixa recado: a confirmação não desaparece sem rasto — quem carregou no «sim»
@@ -1300,7 +1363,12 @@ const SCRIPT_DO_CONVITE = '<script>(function(){' +
   '.then(function(r){return r.json().catch(function(){return {};});})' +
   '.then(function(d){' +
   'if(d&&d.ok){mostrarOFim(d);return;}' +
-  'enviar.disabled=false;liberar();dizer((d&&d.erro)||"não foi possível concluir o cadastro",true);})' +
+  'enviar.disabled=false;liberar();' +
+  /* `d.perdidos` É A RECUSA DA CARÊNCIA DE DADOS — e ela é uma PERGUNTA, não um erro: o servidor
+   * está a dizer «isto perde N registos, confirma?». Mostra-se a caixa, com a frase dele, e a
+   * pessoa responde. Sem isto, a resposta certa do servidor virava um beco. */
+  'if(d&&d.perdidos){perdaDoServidor(d.erro);dizer("",false);return;}' +
+  'dizer((d&&d.erro)||"não foi possível concluir o cadastro",true);})' +
   '.catch(function(){enviar.disabled=false;liberar();' +
   /* A FRASE DA FALHA DE REDE NÃO PODE AFIRMAR QUE NADA ACONTECEU (26/11/2026): o pedido pode ter
    * chegado e o pedido seguinte ter morrido. «Nada foi alterado» era uma promessa sobre o servidor

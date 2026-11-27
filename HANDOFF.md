@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-11-26T22:54:37-0300`
-Commit atual: `59f89008` — feat(estrutura): criar a escola breu (motor completo)
+Gerado em: `2026-11-27T07:01:01-0300`
+Commit atual: `c935fe5a` — chore(estrutura): fechar os derivados — âncoras e índices
 Para: sessão nova (retomar o diálogo)
 
 **Este arquivo EXTRAI; não julga.** O que se pode afirmar sobre o estado — o que
@@ -60,12 +60,13 @@ grand-plie
 lapis-rosa
 pe-pequeno
 pe-torto
+prova-do-shard
 rabo-gramde
 ramona-pires
 redinha-rosa
 rimel-preto
-sapatilha-de-ponta (16)
-- **Ciclos com manifesto:** 2 variante(s)
+sapatilha-de-ponta (17)
+- **Ciclos com manifesto:** 1 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -83,6 +84,12 @@ sapatilha-de-ponta (16)
 ## Últimos commits
 
 ```
+c935fe5a chore(estrutura): fechar os derivados — âncoras e índices
+5ab1aef2 chore(estrutura): expurgar a escola breu
+2c03fd44 feat(estrutura): o convite cobre a criação com um véu, e o fim dá o link da escola
+1364d8cd chore(estrutura): fechar os derivados — âncoras e índices
+91c7dc2b feat(escola): a escola breu declara o professor prova-do-shard
+114fc15c feat(schema): os schemas do ciclo na pasta de prova-do-shard
 59f89008 feat(estrutura): criar a escola breu (motor completo)
 b82c5cad docs(registro): o expurgo da breu fechou, e o que ele levou
 1e0dd6b1 chore(estrutura): fechar os derivados — âncoras e índices
@@ -97,12 +104,6 @@ a0a27690 fix(entrega): sai o manifesto que tinha o nome de uma variante e o cont
 b93b9bf1 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
 808f9530 feat(plano): o plano elicitado vira a fonte do ciclo
 16188085 feat(acervo): envelope/plano-20261126-1547.json
-38124249 feat(acervo): envelope/.indice.json
-d027be67 fix(estrutura): o «Enviar» abre o ciclo, e o validador aceita a régua na linha de base
-e2517cc4 docs(notacao): editar «Battement jeté» (8|2/4) no alfabeto bale-classico — ajuste: a versão anterior (até 2026-11-26) fica no histórico
-5b96c174 chore(estrutura): fechar os derivados — âncoras e índices
-16da54ae chore(entrega): gerar o pacote de demi-plie/01/breu-piano
-0af5bf99 feat(lancamento): a aula 01 de breu/demi-plie/breu-piano
 ```
 
 ## Por professor
@@ -117,17 +118,7 @@ e2517cc4 docs(notacao): editar «Battement jeté» (8|2/4) no alfabeto bale-clas
 
 ### dedao-aberto — 0 ciclo(s)
 
-### demi-plie — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): breu
-
-| Escola | PO | state | Marcadores [Preencher] |
-|:--|:--|:--|--:|
-| breu | (sem PO) | — | — |
-
-| Variante | .fipp | hash (12) | parentHash | po_state |
-|:--|:--|:--|:--|:--|
-| breu | ciclo-01-breu.fipp | `e81a3e1cf08c` | (vazio) | — |
+### demi-plie — 0 ciclo(s)
 
 ### fernando-franciose — 0 ciclo(s)
 
@@ -138,6 +129,8 @@ e2517cc4 docs(notacao): editar «Battement jeté» (8|2/4) no alfabeto bale-clas
 ### pe-pequeno — 0 ciclo(s)
 
 ### pe-torto — 0 ciclo(s)
+
+### prova-do-shard — 0 ciclo(s)
 
 ### rabo-gramde — 0 ciclo(s)
 
@@ -206,96 +199,91 @@ e2517cc4 docs(notacao): editar «Battement jeté» (8|2/4) no alfabeto bale-clas
 
 ## Última entrada do REGISTRO
 
-## «Estou preso nessa página» — o fim do convite não dava por onde sair *(26/11/2026, 22:14)*
+## «O plano não cobre o que a escola tinha» — e não era verdade *(27/11/2026)*
 
-**O relato:** «cliquei no botão criar a escola. Só que agora eu estou preso nessa página. Assim, não
-tem nada errado, nenhum erro. Mas ele não me mostrou um link para ir para a escola criada, não me deu
-nenhum feedback, nenhum retorno a respeito do processo.»
+**O relato:** «Ontem eu tinha o plano básico e aí expurguei a escola. E agora eu recrio a escola com o
+plano básico, não faz sentido dizer que o plano não cobre o que a escola tinha.» E a mensagem, com as
+palavras dela:
 
-**A escola FOI criada** — `59f89008 feat(estrutura): criar a escola breu (motor completo)`, escrito
-pelo `github-actions[bot]`, com o registo comercial `origem: "convite"`. O trabalho aconteceu; a tela
-é que não o disse.
+> Este plano inclui **0 professores e 0 alunas**. O retrato desta escola tem 1 professor e 1 aluna:
+> vão perder-se 1 professor e 1 aluna.
 
-### O que a página fazia, medido antes de mexer em nada
+### A causa: um campo que mudou de sítio, e um leitor que não
 
-Com o DOM da própria página e um `fetch` de mentira:
+A 17/11/2026 o `catalogoDaPagina` mudou de forma — a **franquia** (`aulas`) é o que se apresenta como
+limite, e `professores`/`alunos` desceram para dentro de **`referencia`**, «para a controladoria, e a
+página não os apresenta como limite» (§ADITIVO §2). A leitura que emite `data-professores` /
+`data-alunos` continuou a pedir `p.professores` **no topo**, recebeu `undefined`, e
+`Number(undefined) || 0` deu **zero**.
 
-| o que ela via | porquê |
+Com capacidade zero, **qualquer** retrato de uma escola real «não cabe» — e a página pedia
+confirmação para perder o que não se perde.
+
+**O servidor estava certo o tempo todo.** `validarEscolha({plano:'basico'})` devolve
+`{professores:1, alunos:10}`, e `escolhaPorNomes` com o retrato real `{1,1}` responde `cabe: true` —
+o que `provar-recriar-escola` já media (409 com «vão perder-se 3 professores e 2 alunas» no caso em
+que **não** cabe). Era a **página** que mentia, e ela recusava antes de o pedido sair.
+
+### O retrato, e o que ele conta — a segunda pergunta dela
+
+Ela disse: «Essa escola inclui zero professores e zero alunas […] eu não criei ontem nenhum aluno,
+exceto o professor principal.» **O retrato diz 1 professor e 1 aluna, e não está a mentir sobre os
+documentos:**
+
+| quem | de onde vem | quando |
+|:--|:--|:--|
+| `demi-plie` | o professor dono | a encarnação de 23/11 |
+| **`Vavá`** | `anamnese-20261123-1055.json` → `resumo.aluna` | **23/11 às 10:55**, Balé clássico, método Francesa/Cecchetti |
+
+A `Vavá` **não foi criada ontem** — foi criada a 23/11, e voltou porque a recriação de 26/11
+restaurou o retrato. Ela está certa sobre o que criou; o retrato fala dos documentos que a escola
+acumulou, e a anamnese é um deles. **Se essa anamnese deve continuar a voltar é decisão dela**, e é
+outra pergunta: o retrato existe justamente para trazer de volta o que uma escola tinha.
+
+### O fluxo inteiro, medido — o que fica e o que volta
+
+| momento | o que existe |
 |:--|:--|
-| «a criar o acesso…» num `<p class="res">` **no meio do formulário** | quem acabou de clicar está no **fim** de uma página comprida, a olhar para o botão — o recado nasce fora do campo de visão |
-| **zero** links | o endereço da escola ia **dentro de uma frase em texto puro**: «…o endereço da escola é https://breu.padd.com.br.» |
-| o botão desabilitado para sempre | e nenhum sinal de que o processo tinha dois tempos |
-
-**O processo tem dois tempos, e a página não dizia nenhum:** o Worker cria o placeholder, grava o
-registo comercial e dispara o motor — segundos; o motor (GitHub Actions) escreve a escola de verdade
-e faz o deploy — um a dois minutos. A frase antiga juntava os dois num «está a ser criada» que não se
-podia conferir.
+| **escola viva** | `escola/<slug>/envelopes/` (anamneses, planos, POs) · `professores/<prof>/ciclos/…` (o pacote) · `indices/**` · KV `bastidores/<slug>/*` |
+| **depois do expurgo** | **só** `escola/<slug>/indice.json` (o **elo** — de propósito, é a memória) · KV `cadastros/<slug>` (a identidade fiscal, fora dos prefixos da escola) · KV `financeiro/*` (o livro, história da operação) |
+| **na recriação** | o **elo** dá o `commit_antes` do último expurgo; nesse commit lê-se `envelopes/.indice.json` → o **retrato** (nomes de quem existe e quantos documentos). `cadastros/<slug>` devolve CNPJ/e-mail/telefone. O registo comercial é escrito **do zero** (`substituir: true`). O **pacote do ciclo não volta** — o scaffold é novo, e é por isso que provas que medem contra `ciclo-01-…/` continuam sem fixture |
 
 ### O que passou a valer
 
-| peça | o que faz |
+| correcção | onde |
 |:--|:--|
-| **o véu** — `.veu-de-operacao` + `data-ocupado`, a peça do catálogo | cobre a página **enquanto o pedido corre**, diz o passo («a criar a escola…»), e põe `inert` em tudo o resto — o segundo clique não abre duas criações a competir pelo mesmo `main` |
-| **o fim** — `.caixa`, a peça de «um bloco de leitura» | o formulário sai de cena, e entra o título com o nome da escola, o aviso de que o motor ainda está a subir, e **um link** — `.acao`, com o rótulo «abrir breu.padd.com.br» |
-| o erro e a falha de rede | o véu **sai** nos dois, e a frase da rede deixou de dizer «nada foi alterado» — o browser não sabe o que o servidor fez, e mandava conferir em «Escolas» |
+| a capacidade lê `referencia` **primeiro**, com o topo como reserva (catálogo antigo continua a ser lido) | `capacidadeDoPlano`, em `motor/servidor/painel-html.js` |
+| sem número, o atributo vem **vazio** — e não `"0"`: «não sei» deixou de ser «zero» | idem |
+| o cliente **não afirma** uma perda que não sabe contar (`NaN`, e não `0`); quem decide é o servidor | `capacidade()` / `oQueSePerde()` |
+| a recusa do servidor (`perdidos`) **mostra a caixa** com a frase dele, e o «Sim» volta a poder mandar | `perdaDoServidor()` |
 
-Nenhuma classe foi inventada: `veu-de-operacao`, `veu-texto`, `caixa`, `acao`, `par-botoes`, `res`,
-`aviso` — todas do catálogo, e o `check-identidade` (Peça) passou sem gancho novo.
-
-### Dois erros meus, os dois apanhados pela própria página a não funcionar
-
-1. Escrevi o bloco do fim com `innerHTML` e aspas escapadas: o JavaScript saiu com
-   `SyntaxError: Unexpected identifier 'par'`, e a página ficava com **o véu preso** — o pior dos
-   mundos, que é exactamente o que esta correcção vem resolver. Passou a ser construído pelo DOM
-   (`createElement` + `textContent`), onde a aspa não tem como quebrar nada.
-2. `url.replace(/^https?:\/\//,"")` dentro de um literal de JavaScript chegou ao browser como
-   `/^https?:///` — o regex fechava cedo e o script inteiro morria com «missing ) after argument
-   list». Duas substituições de texto fazem o mesmo sem escape nenhum.
-
-**A lição, e é a mesma dos dois:** um `provar` que não corre é a forma mais barata de «passar». A
-prova nova apanhou-os porque o primeiro caso a correr foi o de **sucesso** — e um véu que não sai
-num sucesso aparece na primeira asserção.
+A última era um **beco** que ninguém tinha medido: o servidor respondia 409 com `perdidos`, a página
+mostrava aquilo como erro e reabilitava o botão — sem caixa e sem «Sim», a resposta certa do servidor
+não tinha saída nenhuma.
 
 ### As provas
 
-`provar-o-fim-do-convite` (**nova, 29 asserções**), em cinco secções: o véu durante (diz o passo,
-tranca os irmãos, e **não** fica inerte ele próprio — um `role="status"` dentro de uma árvore inerte
-não é anunciado); o fim (link, rótulo, título, e os dois tempos do processo); sem `url` na resposta
-(não se inventa um link); o erro (o véu sai, a frase chega, o formulário fica); e a falha de rede.
+`provar-o-plano-do-convite` (**nova, 25 asserções**), em quatro secções:
 
-**Cinco mutações caem:** o véu não sobe **2** · o fim não é chamado **10** · o véu não sai no erro
-**1** · o `inert` não é posto **1** · o link é um `<span>` **2**.
+| secção | o que fixa |
+|:--|:--|
+| **A — a deriva** | o atributo emitido é o do catálogo, **nos três planos**, e **nenhum emite zero**. É a asserção que teria apanhado o defeito no dia em que nasceu |
+| **A-bis** | as duas formas do catálogo: a de hoje (`referencia`) e a antiga (achatada) continuam a ser lidas; sem capacidade, o atributo vem **vazio** |
+| **B — o caso dela** | retrato `{1,1}` + básico: **não pergunta nada**, e o pedido **parte**. Medido pelo **clique**, não pela troca de plano — o aviso nasce no clique |
+| **C — o controlo** | retrato `{5,20}` + básico: a pergunta aparece com «inclui 1 professor e 10 alunas» e «perder-se 4 professores e 10 alunas», o pedido **não** parte, e o «Sim» manda com `perderDados: true` |
+| **D — as duas defesas** | capacidade ilegível não vira afirmação; e a recusa do servidor é confirmável |
 
-**CONTROLO NEGATIVO contra o `HEAD`: 18 asserções caem.** E foi ele que apanhou uma fragilidade da
-minha própria prova: na página antiga o véu não existe, e o `TypeError` matava a prova antes de ela
-dizer «falhou». Uma prova que rebenta não distingue «o defeito está lá» de «a prova está mal
-escrita» — passou a tratar a ausência como falha.
+**Três mutações, três quedas:** voltar a ler o topo **11** · «não sei» voltar a ser zero **4** · a
+recusa do servidor voltar a ser um erro simples **2**. A primeira é o defeito original, e as 11
+asserções que derruba são a medida de quanto ele custava.
 
-### O que o expurgo expôs nas provas vizinhas: uma frase que mentia
+### O que o expurgo de hoje fez à linha de base
 
-`provar-bateria-do-shard` montava a lista das escolas que respondem (`vivas`), escrevia «e por isso
-**fora da bateria**», e depois percorria `ESCOLAS` — **todas** — nos sete laços abaixo. Enquanto as
-três estavam no ar a diferença era invisível; com a `calango` e a `batata` fora, o primeiro `fetch` a
-um host morto lançou `TypeError: fetch failed` e a bateria morreu **sem medir nada**, com a linha
-acima já a dizer que as tinha excluído. Uma frase que anuncia uma exclusão que o código não faz é
-pior do que não a anunciar: quem lê conclui que o resto foi medido.
+A `breu` foi expurgada **outra vez** (`5ab1aef2`), e `provar-estante-do-po` e `provar-o-registo-abre`
+voltaram à lista das conhecidas pelo mesmo motivo de ontem: os envelopes foram-se. **Entram e saem
+sozinhas conforme o estado do repositório** — o que é o mecanismo a funcionar, e não uma excepção.
 
-Três dependências do mesmo tipo foram encontradas na mesma prova: o PDF em `'calango'` escrito à mão,
-a secção da turma em `'batata'` (que era a que não tinha turmas — passou a escolher a escola **pelo
-estado que a secção precisa**, e a saltar com motivo quando nenhuma serve), e o isolamento em
-`['calango']`. **Agora percorre `ALVOS` — quem respondeu.** 30/30 asserções, com 4 gestos pendentes
-declarados.
-
-### O estado da bateria, e uma decisão que mudei
-
-**301 provas, 202 verdes, 99 conhecidas, 0 regressões.**
-
-A 21:51 eu escrevi aqui que **não** punha as onze provas da fixture no `provas-vermelhas.json`, «para
-não as esconder». **Mudei de opinião, e o motivo é medido:** sem elas lá, cada passagem anunciava
-«11 regressões» que não existem — e é esse ruído que esconde a regressão verdadeira. Elas passaram a
-estar registadas **com o motivo escrito** (`_nota_das_fixtures`). E a lista já se está a corrigir
-sozinha: a recriação da `breu` trouxe os envelopes de volta, e `provar-estante-do-po` e
-`provar-o-registo-abre` saíram dela por passarem — que é o mecanismo a funcionar.
+**Bateria: 302 provas, 201 verdes, 101 conhecidas, 0 regressões.**
 
 ## O que está pendente
 
@@ -829,7 +817,6 @@ mente.
 - **22/11/2026** — Uma régua só, e um plano só na escolha → `REGISTRO-2026.md` L58073
 - **22/11/2026** — O estúdio, e o modelo do painel inicial → `REGISTRO-2026.md` L58154
 - **24/11/2026** — O REGISTRO partido por ano: o índice e o arquivo anual → `REGISTRO-2026.md` L60174
-- **demi-plie · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **ramona-pires · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

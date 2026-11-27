@@ -5982,7 +5982,24 @@ recorta» como «a rota está fechada».
 
 ## 9. Validação
 
-### Executado nesta fotografia (26/11/2026, 22:14 — o fim do convite, e o véu que faltava)
+### Executado nesta fotografia (27/11/2026 — «o plano não cobre o que a escola tinha», e não era verdade)
+
+| Verificação | Resultado |
+|:--|:--|
+| a mensagem que ela viu | «Este plano inclui **0 professores e 0 alunas**. O retrato desta escola tem 1 professor e 1 aluna: vão perder-se 1 professor e 1 aluna» |
+| **a causa** | a 17/11 o `catalogoDaPagina` pôs `professores`/`alunos` dentro de **`referencia`** (a franquia é o que se apresenta); a leitura que emite `data-professores`/`data-alunos` continuou a pedir `p.professores` no topo → `undefined` → `Number(undefined) \|\| 0` → **zero**. Com capacidade zero, **qualquer** retrato real «não cabe» |
+| **o servidor estava certo** | `validarEscolha({plano:'basico'})` → `{1, 10}`; `escolhaPorNomes({1,1}, {1,10})` → `cabe: true`. Era a PÁGINA que mentia, e recusava antes de o pedido sair |
+| **o retrato não mentia** | `demi-plie` (dono) e **`Vavá`** — de `anamnese-20261123-1055.json` (`resumo.aluna`), **23/11 às 10:55**, Balé clássico, Francesa/Cecchetti. Não foi criada ontem: voltou porque a recriação de 26/11 restaurou o retrato |
+| **o fluxo, medido** | viva: `envelopes/` + o pacote + `indices/**` + KV da escola. Depois do expurgo: **só** o elo (`escola/<slug>/indice.json`), `cadastros/<slug>` e `financeiro/*`. Na recriação: o elo dá o `commit_antes` → `envelopes/.indice.json` desse commit → o retrato; `cadastros/` devolve a identidade; o comercial é escrito **do zero**; e o **pacote do ciclo não volta** |
+| as correcções | `capacidadeDoPlano` lê `referencia` primeiro (topo como reserva); sem número o atributo vem **vazio** e não `"0"`; o cliente usa `NaN` («não sei») e **não afirma** perda que não sabe contar; e a recusa do servidor (`perdidos`) **mostra a caixa** com a frase dele |
+| **o beco que ninguém tinha medido** | o servidor respondia 409 com `perdidos` e a página mostrava aquilo como erro, sem caixa e sem «Sim» — a resposta certa do servidor não tinha saída |
+| `provar-o-plano-do-convite` (**nova**) | **25/25**: a deriva (os três planos, e **nenhum emite zero**), as duas formas do catálogo, o caso dela (retrato `{1,1}` + básico → **não pergunta** e o pedido parte, medido pelo **clique**), o controlo (`{5,20}` → pergunta com os números certos e não parte) e as duas defesas |
+| as mutações — **três regras, três quedas** | voltar a ler o topo **11** · «não sei» voltar a ser zero **4** · a recusa do servidor voltar a ser erro simples **2** |
+| a `breu` foi expurgada outra vez (`5ab1aef2`) | `provar-estante-do-po` e `provar-o-registo-abre` voltaram à lista das conhecidas — os envelopes foram-se. **Entram e saem sozinhas** conforme o estado do repositório |
+| a bateria | **302 provas, 201 verdes, 101 conhecidas, 0 regressões** |
+| **decisão que fica para ela** | se a anamnese da `Vavá` (23/11) deve continuar a voltar em cada recriação. O retrato existe para trazer de volta o que a escola tinha; se aquele documento não devia voltar, é a regra do retrato que muda, não esta correcção |
+
+### Executado nesta fotografia anterior (26/11/2026, 22:14 — o fim do convite, e o véu que faltava)
 
 | Verificação | Resultado |
 |:--|:--|

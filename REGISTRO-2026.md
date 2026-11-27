@@ -64663,3 +64663,89 @@ não as esconder». **Mudei de opinião, e o motivo é medido:** sem elas lá, c
 estar registadas **com o motivo escrito** (`_nota_das_fixtures`). E a lista já se está a corrigir
 sozinha: a recriação da `breu` trouxe os envelopes de volta, e `provar-estante-do-po` e
 `provar-o-registo-abre` saíram dela por passarem — que é o mecanismo a funcionar.
+
+## «O plano não cobre o que a escola tinha» — e não era verdade *(27/11/2026)*
+
+**O relato:** «Ontem eu tinha o plano básico e aí expurguei a escola. E agora eu recrio a escola com o
+plano básico, não faz sentido dizer que o plano não cobre o que a escola tinha.» E a mensagem, com as
+palavras dela:
+
+> Este plano inclui **0 professores e 0 alunas**. O retrato desta escola tem 1 professor e 1 aluna:
+> vão perder-se 1 professor e 1 aluna.
+
+### A causa: um campo que mudou de sítio, e um leitor que não
+
+A 17/11/2026 o `catalogoDaPagina` mudou de forma — a **franquia** (`aulas`) é o que se apresenta como
+limite, e `professores`/`alunos` desceram para dentro de **`referencia`**, «para a controladoria, e a
+página não os apresenta como limite» (§ADITIVO §2). A leitura que emite `data-professores` /
+`data-alunos` continuou a pedir `p.professores` **no topo**, recebeu `undefined`, e
+`Number(undefined) || 0` deu **zero**.
+
+Com capacidade zero, **qualquer** retrato de uma escola real «não cabe» — e a página pedia
+confirmação para perder o que não se perde.
+
+**O servidor estava certo o tempo todo.** `validarEscolha({plano:'basico'})` devolve
+`{professores:1, alunos:10}`, e `escolhaPorNomes` com o retrato real `{1,1}` responde `cabe: true` —
+o que `provar-recriar-escola` já media (409 com «vão perder-se 3 professores e 2 alunas» no caso em
+que **não** cabe). Era a **página** que mentia, e ela recusava antes de o pedido sair.
+
+### O retrato, e o que ele conta — a segunda pergunta dela
+
+Ela disse: «Essa escola inclui zero professores e zero alunas […] eu não criei ontem nenhum aluno,
+exceto o professor principal.» **O retrato diz 1 professor e 1 aluna, e não está a mentir sobre os
+documentos:**
+
+| quem | de onde vem | quando |
+|:--|:--|:--|
+| `demi-plie` | o professor dono | a encarnação de 23/11 |
+| **`Vavá`** | `anamnese-20261123-1055.json` → `resumo.aluna` | **23/11 às 10:55**, Balé clássico, método Francesa/Cecchetti |
+
+A `Vavá` **não foi criada ontem** — foi criada a 23/11, e voltou porque a recriação de 26/11
+restaurou o retrato. Ela está certa sobre o que criou; o retrato fala dos documentos que a escola
+acumulou, e a anamnese é um deles. **Se essa anamnese deve continuar a voltar é decisão dela**, e é
+outra pergunta: o retrato existe justamente para trazer de volta o que uma escola tinha.
+
+### O fluxo inteiro, medido — o que fica e o que volta
+
+| momento | o que existe |
+|:--|:--|
+| **escola viva** | `escola/<slug>/envelopes/` (anamneses, planos, POs) · `professores/<prof>/ciclos/…` (o pacote) · `indices/**` · KV `bastidores/<slug>/*` |
+| **depois do expurgo** | **só** `escola/<slug>/indice.json` (o **elo** — de propósito, é a memória) · KV `cadastros/<slug>` (a identidade fiscal, fora dos prefixos da escola) · KV `financeiro/*` (o livro, história da operação) |
+| **na recriação** | o **elo** dá o `commit_antes` do último expurgo; nesse commit lê-se `envelopes/.indice.json` → o **retrato** (nomes de quem existe e quantos documentos). `cadastros/<slug>` devolve CNPJ/e-mail/telefone. O registo comercial é escrito **do zero** (`substituir: true`). O **pacote do ciclo não volta** — o scaffold é novo, e é por isso que provas que medem contra `ciclo-01-…/` continuam sem fixture |
+
+### O que passou a valer
+
+| correcção | onde |
+|:--|:--|
+| a capacidade lê `referencia` **primeiro**, com o topo como reserva (catálogo antigo continua a ser lido) | `capacidadeDoPlano`, em `motor/servidor/painel-html.js` |
+| sem número, o atributo vem **vazio** — e não `"0"`: «não sei» deixou de ser «zero» | idem |
+| o cliente **não afirma** uma perda que não sabe contar (`NaN`, e não `0`); quem decide é o servidor | `capacidade()` / `oQueSePerde()` |
+| a recusa do servidor (`perdidos`) **mostra a caixa** com a frase dele, e o «Sim» volta a poder mandar | `perdaDoServidor()` |
+
+A última era um **beco** que ninguém tinha medido: o servidor respondia 409 com `perdidos`, a página
+mostrava aquilo como erro e reabilitava o botão — sem caixa e sem «Sim», a resposta certa do servidor
+não tinha saída nenhuma.
+
+### As provas
+
+`provar-o-plano-do-convite` (**nova, 25 asserções**), em quatro secções:
+
+| secção | o que fixa |
+|:--|:--|
+| **A — a deriva** | o atributo emitido é o do catálogo, **nos três planos**, e **nenhum emite zero**. É a asserção que teria apanhado o defeito no dia em que nasceu |
+| **A-bis** | as duas formas do catálogo: a de hoje (`referencia`) e a antiga (achatada) continuam a ser lidas; sem capacidade, o atributo vem **vazio** |
+| **B — o caso dela** | retrato `{1,1}` + básico: **não pergunta nada**, e o pedido **parte**. Medido pelo **clique**, não pela troca de plano — o aviso nasce no clique |
+| **C — o controlo** | retrato `{5,20}` + básico: a pergunta aparece com «inclui 1 professor e 10 alunas» e «perder-se 4 professores e 10 alunas», o pedido **não** parte, e o «Sim» manda com `perderDados: true` |
+| **D — as duas defesas** | capacidade ilegível não vira afirmação; e a recusa do servidor é confirmável |
+
+**Três mutações, três quedas:** voltar a ler o topo **11** · «não sei» voltar a ser zero **4** · a
+recusa do servidor voltar a ser um erro simples **2**. A primeira é o defeito original, e as 11
+asserções que derruba são a medida de quanto ele custava.
+
+### O que o expurgo de hoje fez à linha de base
+
+A `breu` foi expurgada **outra vez** (`5ab1aef2`), e `provar-estante-do-po` e `provar-o-registo-abre`
+voltaram à lista das conhecidas pelo mesmo motivo de ontem: os envelopes foram-se. **Entram e saem
+sozinhas conforme o estado do repositório** — o que é o mecanismo a funcionar, e não uma excepção.
+
+**Bateria: 302 provas, 201 verdes, 101 conhecidas, 0 regressões.**

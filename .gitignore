@@ -1434,6 +1434,7 @@ experimentos/modelo-formulario/*
 # estrear-se no dia em que apaga escolas a sério.
 !experimentos/provar-expurgo-interrompido.js
 !experimentos/provar-o-fim-do-convite.js
+!experimentos/provar-o-plano-do-convite.js
 !experimentos/provar-expurgo-por-carencia.js
 
 # AS TRÊS ABAS DO PROFESSOR E A FICHA INTEIRA EDITÁVEL (16/11/2026). «Então a gente vai organizar em
