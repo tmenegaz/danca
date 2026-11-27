@@ -1,60 +1,196 @@
 {
   "aspectos": [],
   "aulas": [],
-  "ciclos": [],
-  "documentos": [],
-  "escola": {
-    "ciclos": [],
-    "contagens": {
-      "anamneses": 0,
-      "aulas": 0,
-      "ciclos": 0,
-      "ciclos_com_ancora": 0,
-      "planos": 0,
-      "pos": 0,
-      "recortes": 0,
-      "registros": 0
+  "ciclos": [
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-11-27",
+        "caminho": "professores/demi-plie/ciclos/ciclo-01-breu.fipp",
+        "cobertura": [
+          "professores/demi-plie/ciclos/ciclo-01-breu.conf",
+          "professores/demi-plie/ciclos/ciclo-01.conf"
+        ],
+        "hash": "e81a3e1cf08cacc8cb0e0ba9009d1c8b999012c558f948d006d5ddbe32da95f2",
+        "hash_conteudo": "358a972a00f35293286172e6baca7b2ca68b931f87d3e15eec06ab24adf75953",
+        "id": "ciclo-01-breu",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": [],
+      "documentos": [
+        "professores/demi-plie/ciclos/ciclo-01-breu.conf",
+        "professores/demi-plie/ciclos/ciclo-01-breu.fipp",
+        "professores/demi-plie/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "breu",
+      "estado": "ancorado",
+      "id": "ciclo:demi-plie/01/breu",
+      "numero": "01",
+      "pacote": null,
+      "professor": "demi-plie",
+      "sem_ancora": false,
+      "tipos": [
+        "ancora",
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": "ciclo-01-breu",
+      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu.fipp",
+      "ciclo_id": "ciclo:demi-plie/01/breu",
+      "escola": "breu",
+      "id": "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu.fipp",
+      "professor": "demi-plie",
+      "tipo": "ancora"
     },
-    "criada_em": "2026-11-23T10:26:27.415407+00:00",
-    "expurgada": true,
+    {
+      "ancora_id": "ciclo-01-breu",
+      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu.conf",
+      "ciclo_id": "ciclo:demi-plie/01/breu",
+      "escola": "breu",
+      "id": "documento:manifesto:professores/demi-plie/ciclos/ciclo-01-breu.conf",
+      "professor": "demi-plie",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-breu",
+      "caminho": "professores/demi-plie/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:demi-plie/01/breu",
+      "escola": "breu",
+      "id": "documento:schema:professores/demi-plie/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "demi-plie",
+      "tipo": "schema"
+    }
+  ],
+  "escola": {
+    "ciclos": [
+      "ciclo:demi-plie/01/breu"
+    ],
+    "contagens": {
+      "anamneses": 1,
+      "aulas": 0,
+      "ciclos": 1,
+      "ciclos_com_ancora": 1,
+      "planos": 3,
+      "pos": 3,
+      "recortes": 0,
+      "registros": 7
+    },
+    "criada_em": "2026-11-27T01:11:53.614328+00:00",
+    "expurgada": false,
     "expurgada_em": "2026-11-27T00:51:17.592Z",
     "expurgos": 15,
-    "habilitada": false,
+    "habilitada": true,
     "id": "escola:breu",
     "nome": "breu",
     "professor": "demi-plie",
     "professores": [
-      "ana-diag",
-      "brise-volet",
-      "cafe-no-bule",
-      "colo-de-pe",
-      "coqui-de-redinha",
-      "dedao-aberto",
-      "demi-plie",
-      "grand-plie",
-      "luz-azul",
-      "pe-torto",
-      "redinha-rosa",
-      "rimel-preto",
-      "sapo-bailarino",
-      "tiago-menegaz",
-      "vaso-bonito"
+      "demi-plie"
     ],
-    "registros": [],
+    "registros": [
+      "anamnese:anamnese-20261123-1055",
+      "plano:plano-20261124-0811",
+      "plano:plano-20261125-0627",
+      "plano:plano-20261126-1547",
+      "po:po-20261124-0815",
+      "po:po-20261125-0627",
+      "po:po-20261126-1548"
+    ],
     "slug": "breu"
   },
   "filtros": {
-    "anos": [],
+    "anos": [
+      {
+        "contagem": 7,
+        "ids": [
+          "anamnese:anamnese-20261123-1055",
+          "plano:plano-20261124-0811",
+          "plano:plano-20261125-0627",
+          "plano:plano-20261126-1547",
+          "po:po-20261124-0815",
+          "po:po-20261125-0627",
+          "po:po-20261126-1548"
+        ],
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
     "aspectos": [],
-    "estados": [],
-    "professores": [],
-    "tipos": []
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:demi-plie/01/breu"
+        ],
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 8,
+        "ids": [
+          "anamnese:anamnese-20261123-1055",
+          "ciclo:demi-plie/01/breu",
+          "plano:plano-20261124-0811",
+          "plano:plano-20261125-0627",
+          "plano:plano-20261126-1547",
+          "po:po-20261124-0815",
+          "po:po-20261125-0627",
+          "po:po-20261126-1548"
+        ],
+        "rotulo": "demi-plie",
+        "valor": "demi-plie"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261123-1055"
+        ],
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:demi-plie/01/breu"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      },
+      {
+        "contagem": 3,
+        "ids": [
+          "plano:plano-20261124-0811",
+          "plano:plano-20261125-0627",
+          "plano:plano-20261126-1547"
+        ],
+        "rotulo": "Plano de ensino",
+        "valor": "plano"
+      },
+      {
+        "contagem": 3,
+        "ids": [
+          "po:po-20261124-0815",
+          "po:po-20261125-0627",
+          "po:po-20261126-1548"
+        ],
+        "rotulo": "Plano de observação",
+        "valor": "po"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "81aaae1"
+    "commit": "b82c5ca"
   },
-  "gerado_em": "2026-11-27T00:51",
+  "gerado_em": "2026-11-27T01:12",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -78,6 +214,83 @@
     }
   ],
   "recortes": [],
-  "registros": [],
+  "registros": [
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "anamnese-20261123-1055",
+      "ciclo": null,
+      "data": "2026-11-23T10:55",
+      "id": "anamnese:anamnese-20261123-1055",
+      "professor": "demi-plie",
+      "tipo": "anamnese"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "plano-20261124-0811",
+      "ciclo": "01",
+      "data": "2026-11-24T08:11",
+      "id": "plano:plano-20261124-0811",
+      "objetivo": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
+      "professor": "demi-plie",
+      "tipo": "plano",
+      "turma": "Piano"
+    },
+    {
+      "ajuste_de": "plano-20261124-0811",
+      "ano": "2026",
+      "carimbo": "plano-20261125-0627",
+      "ciclo": "01",
+      "data": "2026-11-25T06:27",
+      "id": "plano:plano-20261125-0627",
+      "objetivo": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
+      "professor": "demi-plie",
+      "tipo": "plano",
+      "turma": "Piano"
+    },
+    {
+      "ajuste_de": "plano-20261125-0627",
+      "ano": "2026",
+      "carimbo": "plano-20261126-1547",
+      "ciclo": "01",
+      "data": "2026-11-26T15:47",
+      "id": "plano:plano-20261126-1547",
+      "objetivo": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
+      "professor": "demi-plie",
+      "tipo": "plano",
+      "turma": "Piano"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "po-20261124-0815",
+      "ciclo": "01",
+      "data": "2026-11-24T08:15",
+      "id": "po:po-20261124-0815",
+      "professor": "demi-plie",
+      "tipo": "po"
+    },
+    {
+      "ajuste_de": "po-20261124-0815",
+      "ano": "2026",
+      "carimbo": "po-20261125-0627",
+      "ciclo": "01",
+      "data": "2026-11-25T06:27",
+      "id": "po:po-20261125-0627",
+      "professor": "demi-plie",
+      "tipo": "po"
+    },
+    {
+      "ajuste_de": "po-20261125-0627",
+      "ano": "2026",
+      "carimbo": "po-20261126-1548",
+      "ciclo": "01",
+      "data": "2026-11-26T15:48",
+      "id": "po:po-20261126-1548",
+      "professor": "demi-plie",
+      "tipo": "po"
+    }
+  ],
   "versao": 7
 }

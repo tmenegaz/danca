@@ -13,7 +13,7 @@
     "arquivo": "Worker (secret)"
   },
   "estado": {
-    "habilitada": false
+    "habilitada": true
   },
   "expurgo": [
     {
@@ -1581,6 +1581,16 @@
           "desde": "2026-11-19T12:46:48.032Z"
         }
       ]
+    },
+    {
+      "em": "2026-11-27T01:11:53.614328+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "demi-plie",
+        "nome": "Demi Plié"
+      },
+      "responsavel": "Demi Plié",
+      "ciclo": "01"
     }
   ],
   "professores": [],

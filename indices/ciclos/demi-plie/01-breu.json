@@ -1,0 +1,52 @@
+{
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-11-27",
+    "caminho": "professores/demi-plie/ciclos/ciclo-01-breu.fipp",
+    "cobertura": [
+      "professores/demi-plie/ciclos/ciclo-01-breu.conf",
+      "professores/demi-plie/ciclos/ciclo-01.conf"
+    ],
+    "hash": "e81a3e1cf08cacc8cb0e0ba9009d1c8b999012c558f948d006d5ddbe32da95f2",
+    "hash_conteudo": "358a972a00f35293286172e6baca7b2ca68b931f87d3e15eec06ab24adf75953",
+    "id": "ciclo-01-breu",
+    "lida": true,
+    "parent_hash": ""
+  },
+  "aulas": [],
+  "ciclo": "01",
+  "documentos": [
+    "documento:ancora:professores/demi-plie/ciclos/ciclo-01-breu.fipp",
+    "documento:manifesto:professores/demi-plie/ciclos/ciclo-01-breu.conf",
+    "documento:schema:professores/demi-plie/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
+  ],
+  "escola": "breu",
+  "estado": "ancorado",
+  "filtros": {
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "manifesto",
+        "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "schema",
+        "valor": "schema"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "b82c5ca"
+  },
+  "gerado_em": "2026-11-27T01:12",
+  "id": "ciclo:demi-plie/01/breu",
+  "professor": "demi-plie",
+  "versao": 7
+}
