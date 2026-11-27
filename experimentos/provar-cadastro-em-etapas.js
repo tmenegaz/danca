@@ -361,24 +361,24 @@ async function medirComportamento() {
   conferir('o resumo do plano mostra o valor mensal do plano escolhido',
     /Intermediário: R\$ 99,90/.test(resumo) && /R\$ 99,90 por mês/.test(resumo), resumo);
 
-  // 8. Um lote de alunos soma-se ao valor — e o total muda.
+  /* 8. NENHUM LOTE DE GENTE SE OFERECE, E O VALOR É O DO PLANO (27/11/2026).
+   *
+   * Aqui esteve o contrário: marcar um lote de +30 alunas e exigir que o total subisse de 99,90
+   * para 149,90. Era o comportamento do código, e o código estava errado desde 17/11 — o
+   * §ADITIVO §2 do `PLANEJAMENTO-LASTRO.md` diz «Não usar essas quantidades para calcular a
+   * mensalidade». A prova estava a exigir a violação, e por isso passava. */
   const lotes = [...doc.querySelectorAll('#lotes-lista input')];
-  const loteAlunos30 = lotes.find((c) => /\+30 aluna/.test(
-    (c.parentNode.textContent || '').replace(/\s+/g, ' ')));
-  if (loteAlunos30) {
-    loteAlunos30.checked = true;
-    loteAlunos30.dispatchEvent(new win.Event('change', { bubbles: true }));
-    await new Promise((r) => setTimeout(r, 40));
-  }
   const resumoComLote = texto('resumo-do-plano');
-  conferir('um lote de capacidade entra na mensalidade (99,90 + 50 = 149,90)',
-    /R\$ 149,90 por mês/.test(resumoComLote), { resumoComLote, achouLote: Boolean(loteAlunos30) });
+  conferir('nenhum lote de capacidade é oferecido no cadastro',
+    lotes.length === 0, lotes.length);
+  conferir('…e a mensalidade é a do plano, sem professores nem alunas somados (99,90)',
+    /R\$ 99,90 por mês/.test(resumoComLote) && !/149,90/.test(resumoComLote), resumoComLote);
 
   // 9. A etapa 4 mostra o valor fechado e diz que a conciliação é manual.
   clicar('btn-continuar');
   await new Promise((r) => setTimeout(r, 40));
   conferir('a ETAPA 4 abre com o valor da primeira mensalidade',
-    ligado(doc.getElementById('etapa-4')) && /149,90/.test(valor('pix-valor')),
+    ligado(doc.getElementById('etapa-4')) && /99,90/.test(valor('pix-valor')),
     valor('pix-valor'));
   conferir('…e diz que a conciliação é manual, em até 24 horas',
     /24 horas/.test(texto('pix-conciliacao')), null);
@@ -393,8 +393,12 @@ async function medirComportamento() {
   const pedido = pedidos[0] || null;
   conferir('o pedido de criação leva a escola, o professor e o plano escolhido',
     Boolean(pedido) && pedido.nome === 'Escola Nova' && pedido.professorNome === 'Ana' &&
-    pedido.cpf === '123.456.789-01' && pedido.plano === 'intermediario' &&
-    JSON.stringify(pedido.lotesAlunos) === '[30]' && pedido.modalidade !== '',
+    pedido.cpf === '123.456.789-01' && pedido.plano === 'intermediario' && pedido.modalidade !== ''
+    /* O PEDIDO NÃO LEVA LOTE (27/11/2026): a página deixou de os oferecer, e um campo que já não
+     * se escolhe não deve viajar. Vazio é o certo — e o servidor continua a aceitar um contrato
+     * antigo com lotes, porque `validarEscolha` lê o catálogo e não a oferta. */
+    && JSON.stringify(pedido.lotesAlunos) === '[]'
+    && JSON.stringify(pedido.lotesProfessores) === '[]',
     pedido);
   conferir('…e a tela diz que o acesso ainda não está aberto (aguarda conciliação)',
     /não está aberto/i.test(texto('res')) &&
@@ -418,6 +422,18 @@ async function medirRemocao() {
    * dois «sobreviventes» que eram duas frases. */
   const restos = (removido.match(/<[a-zA-Z][^>]*\sdata-dono\b[^>]*>/g) || []).length;
   conferir('nenhum ELEMENTO com `data-dono` sobrevive à remoção', restos === 0, restos);
+  /* MEDE-SE O ELEMENTO, NÃO O TEXTO DA PÁGINA (27/11/2026) — e a diferença não é preciosismo.
+   *
+   * ««Ver só as vivas»» estava a reprovar com `removido.indexOf('/escolas-vivas') !== -1`, e a
+   * ocorrência que sobrava não era um link à vista: era a linha do `<script>` que constrói esse
+   * link quando se abre a aba de apagar, no painel. O script não é removido — e não deve ser, é
+   * ele que faz o painel funcionar. A asserção media o texto do ficheiro e chamava-lhe «o público
+   * tem»; o público não tinha link nenhum, e a prova dizia que sim.
+   *
+   * Agora procura-se uma TAG que leve a agulha. É a mesma família do `restos` acima, que já
+   * contava elementos e por isso não se deixava enganar. */
+  const elementosCom = (agulha) => (removido.match(/<[a-zA-Z][^>]*>/g) || [])
+    .filter((tag) => tag.indexOf(agulha) !== -1);
   for (const [rotulo, agulha] of [
     ['«Apagar escola»', 'id="btn-apagar"'],
     ['«Ver só as apagadas»', '/escolas-apagadas'],
@@ -425,7 +441,8 @@ async function medirRemocao() {
     ['«Professores»', 'href="/professores"'],
     ['a nota das escolas de teste (é do painel)', 'id="nota-teste"'],
   ]) {
-    conferir('o público deixa de ter ' + rotulo, removido.indexOf(agulha) === -1, agulha);
+    const achados = elementosCom(agulha);
+    conferir('o público deixa de ter ' + rotulo, achados.length === 0, achados.slice(0, 1));
   }
   /* A ESCOLHA DO PROFESSOR É DO PAINEL, E SÓ DELE (16/11/2026).
    *

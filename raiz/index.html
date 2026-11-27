@@ -1297,8 +1297,22 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
               mi.appendChild(document.createElement("br"));
               mi.appendChild(document.createTextNode(pl.resumo || ""));
               mi.appendChild(document.createElement("br"));
-              mi.appendChild(document.createTextNode("Inclui " + pl.professores + " professor(es) e "
-                + pl.alunos + " aluna(s) · " + pl.consultas + " consultas"));
+              /* A OFERTA DIZ A FRANQUIA DE AULAS — e não professores e alunas (27/11/2026).
+               *
+               * Duas coisas estavam erradas nesta linha, e a segunda é a grave:
+               *
+               *  1. mostrava `undefined` — «Inclui undefined professor(es) e undefined aluna(s)».
+               *     O `catalogoDaPagina` passou a aninhar esses números em `referencia` a 17/11
+               *     (a franquia é que se apresenta como limite), e esta linha continuou a lê-los no
+               *     topo. É a MESMA deriva do convite, corrigida horas antes noutro ficheiro.
+               *  2. mesmo que lesse bem, estaria a violar o §ADITIVO §2 do PLANEJAMENTO-LASTRO, que
+               *     é explícito: «Não exibir limites comerciais de professores e alunos na oferta.
+               *     Não usar essas quantidades para calcular a mensalidade nem para bloquear a
+               *     escola por ter mais pessoas cadastradas.»
+               *
+               * O que se mostra é o que se vende: a franquia mensal de aulas e as consultas. */
+              mi.appendChild(document.createTextNode("Inclui " + (Number(pl.aulas) || 0)
+                + " aulas por mês · " + pl.consultas + " consultas"));
               texto.appendChild(mi);
               rotulo.appendChild(r);
               rotulo.appendChild(texto);
@@ -1359,42 +1373,32 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
           function pintarLotes() {
             var caixa = document.getElementById("lotes-lista");
             if (!caixa) return;
-            var catalogo = (PAGINA && PAGINA.planos) || null;
-            var legenda = caixa.querySelector("legend");
+            /* OS LOTES DE GENTE NÃO SE OFERECEM (27/11/2026) — e a regra está escrita desde 17/11.
+             *
+             * §ADITIVO §2 do `PLANEJAMENTO-LASTRO.md`, nas palavras da proprietária: «Não exibir
+             * limites comerciais de professores e alunos na oferta. **Não usar essas quantidades
+             * para calcular a mensalidade** nem para bloquear a escola por ter mais pessoas
+             * cadastradas.»
+             *
+             * A tabela `lotes` continua no catálogo, e de propósito: ela é LEGADO DE LEITURA. Há
+             * contratos já escritos que compraram lotes e mensalidades pagas a esse preço, e apagar
+             * a tabela deixaria esses contratos sem forma de se reconstruírem (ver a `_nota` do
+             * `planos.json`). O que se corrige aqui é o outro lado: a OFERTA deixar de a ler.
+             *
+             * A secção fica escondida e vazia. A legenda também se limpa, senão ficaria um título
+             * «Capacidade a mais (por lote, na mensalidade)» sobre uma caixa sem nada — o mesmo
+             * silêncio com ar de resposta que esta casa persegue. */
             caixa.innerHTML = "";
-            if (legenda) caixa.appendChild(legenda);
-            if (!catalogo || !catalogo.lotes) { caixa.hidden = true; return; }
-            var eixos = [["professores", "professor(es)"], ["alunos", "aluna(s)"]];
-            var algum = false;
-            eixos.forEach(function (par) {
-              var eixo = par[0], rotulo = par[1];
-              (catalogo.lotes[eixo] || []).forEach(function (lote, i) {
-                algum = true;
-                var id = "lote-" + eixo + "-" + i;
-                var rotuloEl = document.createElement("label");
-                rotuloEl.className = "escolha";
-                var c = document.createElement("input");
-                c.type = "checkbox";
-                c.id = id;
-                c.checked = LOTES[eixo].indexOf(lote.qtd) !== -1;
-                var texto = document.createElement("span");
-                texto.appendChild(document.createTextNode("+" + lote.qtd + " " + rotulo
-                  + " — R$ " + String(lote.preco).replace(".", ",") + "/mês"));
-                rotuloEl.appendChild(c);
-                rotuloEl.appendChild(texto);
-                c.addEventListener("change", function () {
-                  if (c.checked) {
-                    if (LOTES[eixo].indexOf(lote.qtd) === -1) LOTES[eixo].push(lote.qtd);
-                  } else {
-                    LOTES[eixo] = LOTES[eixo].filter(function (q) { return q !== lote.qtd; });
-                  }
-                  pintarResumo();
-                  pintarPix();
-                });
-                caixa.appendChild(rotuloEl);
-              });
-            });
-            caixa.hidden = !algum;
+            caixa.hidden = true;
+            /* O CONSTRUTOR DAS CHECKBOXES AQUI ESTEVE, e saiu inteiro — não ficou desligado por um
+             * `return`, que deixaria código morto à espera de ser ressuscitado por engano. Ele lia
+             * `catalogo.lotes`, criava uma caixa por lote e somava os escolhidos à mensalidade em
+             * `calcularAqui`. Quem o quiser ler tem-no no histórico:
+             *
+             *   git log -S 'lote-" + eixo + "-' -- raiz/index.html
+             *
+             * O que a função faz agora é o que a regra manda: esconder a secção, com a legenda
+             * dentro (`innerHTML` leva-a), para não ficar um título de oferta sobre uma caixa vazia. */
           }
 
           /** Os lotes que deixaram de existir quando o plano mudou saem — a tabela é a mesma. */

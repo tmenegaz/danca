@@ -25,7 +25,7 @@ datada **dentro da própria entrada** (ver `.github/instructions/registro-md.ins
 
 | arquivo | entradas | período | peso |
 |:--|--:|:--|--:|
-| [REGISTRO-2026.md](REGISTRO-2026.md) | **812** | 18/09/2026 → 24/11/2026 | 4,2 MB |
+| [REGISTRO-2026.md](REGISTRO-2026.md) | **865** | 18/09/2026 → 27/11/2026 | 4,6 MB |
 
 ### Por que a partição, e o que ela custa
 

@@ -2123,3 +2123,10 @@ experimentos/modelo-formulario/*
 # medem o desenho dos campos e a leitura da página. Esta preenche, clica, e exige o `POST` com a
 # aula lá dentro — no ciclo dela, o que tem o bloco da linha de base com itens no PO.
 !experimentos/provar-o-envio-da-aula.js
+
+# A OFERTA VENDE A AULA, E NÃO A GENTE (27/11/2026). Décima quarta vez que a armadilha do
+# `experimentos/*` aparece: a prova nasceu ignorada. Ela mede o §ADITIVO §2 na página pública —
+# que a franquia de aulas é o que se apresenta, que nenhum plano oferece professores ou alunas
+# como limite, e que a secção de lotes deixou de se oferecer sem que o contrato antigo perca o
+# preço.
+!experimentos/provar-a-oferta-em-aulas.js

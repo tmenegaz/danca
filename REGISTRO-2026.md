@@ -64749,3 +64749,92 @@ voltaram à lista das conhecidas pelo mesmo motivo de ontem: os envelopes foram-
 sozinhas conforme o estado do repositório** — o que é o mecanismo a funcionar, e não uma excepção.
 
 **Bateria: 302 provas, 201 verdes, 101 conhecidas, 0 regressões.**
+
+## A oferta vendia professores e alunas — e o §ADITIVO §2 proíbe-o desde 17/11 *(27/11/2026)*
+
+**O pedido:** «Eu preciso que você busque na documentação como é que ficou definido o que cada plano
+oferece. Eu também quero saber qual é o impacto disso no contador de aulas e quais foram os limites
+que a gente colocou em cada um deles. […] me parece que mesmo assim a gente manteve quantidade de
+professor e quantidade de alunos. E eu quero entender por quê, onde é que está registrado a
+fundamentação de por que manter isso e se a gente registrou ou não.»
+
+### A resposta estava escrita, e a página não a cumpria
+
+A fundamentação **foi registada**, e nas palavras dela. Está no `PLANEJAMENTO-LASTRO.md`, §ADITIVO
+COMERCIAL, de **17/11/2026** — §1 fixa a unidade em **aula processada**, §2 é a proibição, §3 a
+escada, §4 a renovação não cumulativa, §5 as extensões, §6 a instrumentação:
+
+> **Não exibir limites comerciais de professores e alunos na oferta. Não usar essas quantidades para
+> calcular a mensalidade nem para bloquear a escola por ter mais pessoas cadastradas.** Isso não
+> elimina a necessidade de telemetria interna: medir separadamente operações de cadastro/manutenção e
+> operações ligadas às aulas permite identificar abuso, regressões e mudanças no perfil de custo.
+
+**Por que professores e alunas ficaram no catálogo, então.** Porque o §2 tem duas metades, e a
+segunda manda **medir**. A primeira metade é o que sai da vitrine; a segunda é o que fica no
+instrumento. A razão está no mesmo aditivo, e é dela: não é correcto afirmar que fichas de alunos ou
+registos de professores não custam nada — custam, e o que os distingue não é o preço por cabeça, é a
+**intensidade e a frequência** com que se escrevem. Por isso os números continuam no catálogo, sob
+`referencia`, como **custo interno a monitorar**; e por isso deixam de estar no topo, onde a oferta os
+lia como limite. `planos.json → teto.aulas` fica **`null`** de propósito: o tecto comercial é uma
+promessa, e a promessa é a franquia.
+
+### O defeito, e o segundo que ele escondia
+
+A linha do plano na página pública dizia, literalmente:
+
+> Inclui **undefined** professor(es) e **undefined** aluna(s) · 14 consultas
+
+A mesma deriva do convite, corrigida horas antes noutro ficheiro: o `catalogoDaPagina` passou a
+aninhar esses números em `referencia` a 17/11, e este leitor continuou a procurá-los no topo. Mas o
+defeito não era só o `undefined` — **mesmo que lesse bem, estaria a violar o §2**. É a diferença
+entre consertar a leitura e consertar a regra, e a primeira sozinha teria deixado a violação de pé,
+com números bonitos.
+
+O segundo, encontrado a seguir: a secção **«Capacidade a mais (por lote, na mensalidade)»** estava
+`hidden:false`, oferecia «+1 professor(es) — R$ 30/mês» e **somava ao total**. O §2 diz «não usar
+essas quantidades para calcular a mensalidade», e a página usava. A tabela `lotes` do catálogo está
+declarada como **LEGADO DE LEITURA** desde 17/11 — «RETIRADO DO COMERCIAL, NÃO APAGADO» —, para que
+os contratos já escritos possam ser reconstruídos; a página lia-a como se fosse oferta.
+
+### O que passou a valer
+
+| correcção | onde |
+|:--|:--|
+| a linha do plano diz a **franquia de aulas** e as consultas — e nunca professores ou alunas | `pintarPlanos`, em `raiz/index.html` |
+| a secção dos lotes **não se oferece**: escondida, vazia, e sem a legenda de pé sobre uma caixa vazia | `pintarLotes`, idem |
+| o pedido de criação **não leva lote** (`[]`), e o servidor continua a dar preço a um contrato antigo **com** lotes | `api/criar-escola` + `validarEscolha` |
+| o construtor das checkboxes saiu **inteiro**, e não ficou desligado por um `return` — código morto à espera de ser ressuscitado por engano é a armadilha seguinte | idem |
+
+**O que NÃO se tocou, e é deliberado:** a tabela `lotes` do catálogo e o ramo de `validarEscolha`
+que a lê. Deixar de **oferecer** não é deixar de **reconhecer**. Há escolas cuja mensalidade foi
+fechada com capacidade a mais; se o servidor recusasse os lotes, o contrato antigo perdia o preço, e
+a correcção de hoje apagaria o passado em vez de corrigir a vitrine.
+
+### As provas
+
+`provar-a-oferta-em-aulas` (**nova, 20 asserções**), em três secções: **A** o que se vende (a
+franquia, e nenhum `undefined`), **B** o que se cobra (a conta da página e a do servidor dão o mesmo,
+e o legado com lotes ainda tem preço), **C** a escada (as franquias vêm do catálogo, e não de uma
+cópia escrita à mão na página).
+
+**Sete asserções caem contra o `HEAD`**, e três mutações foram medidas a cair — voltar a ler o topo
+(**6**) · voltar a oferecer os lotes (**6**) · escrever 100/300 à mão (**4**).
+
+E duas provas vizinhas estavam a **exigir a violação**, o que é a parte incómoda e a que mais vale:
+`provar-pagina-publica` afirmava «a capacidade a mais continua a ser uma escolha, com o preço de cada
+lote», e `provar-cadastro-em-etapas` marcava um lote de +30 alunas e exigia que o total subisse de
+99,90 para 149,90. **Passavam porque o código estava errado.** As asserções mudaram de sinal — de «é
+oferecida» para «não é oferecida» —, com o mesmo rigor e sem baixar o número.
+
+`provar-pagina-publica` trazia ainda um **falso positivo**: «o público deixa de ter «Ver só as
+vivas»» reprovava porque media o **texto do ficheiro**, e a ocorrência que sobrava era a linha do
+`<script>` que constrói esse link no painel — não um link à vista. Passou a medir **elementos**, como
+a asserção irmã do `data-dono` já fazia.
+
+### E o contador
+
+A relação é directa, e é a do §1: **uma aula registada e processada consome uma unidade da
+franquia**, tenha ela um aluno ou mil. É por isso que a oferta passou a falar de aulas: o que se
+vende é exactamente aquilo que o contador conta. A escola que passar da franquia **não é bloqueada** —
+o excedente é **cobrado** (`situacaoDaFranquia`, quatro estados, e a `franquiaDoContrato` a somar
+pacotes). O único regime que **bloqueia** é a consultoria, onde os limites são de outra natureza.

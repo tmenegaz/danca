@@ -567,21 +567,30 @@ console.log('\nI. O plano inclui uma lista; o que se contrata a mais é capacida
         alvo.textContent.slice(0, 60));
     }
 
-    /* A CAPACIDADE É QUE SE CONTRATA, e o preço dela soma à mensalidade. */
+    /* A CAPACIDADE NÃO SE CONTRATA (27/11/2026).
+     *
+     * Aqui esteve, até hoje, o contrário: «a capacidade a mais continua a ser uma escolha, com o
+     * preço de cada lote», e uma asserção a marcar um lote e a exigir que o total subisse. Parecia
+     * certo porque a tabela `lotes` existe no catálogo e tem preços. Mas o §ADITIVO §2 do
+     * `PLANEJAMENTO-LASTRO.md` — escrito pela proprietária a 17/11/2026 — é explícito: «Não usar
+     * essas quantidades para calcular a mensalidade.» A prova estava a exigir a violação.
+     *
+     * As duas asserções mudam de sinal, e não de rigor: a secção não oferece nenhum lote, e a
+     * mensalidade não muda por causa de gente. O que continua a mudar o valor é a aula. */
     const lotes = d.getElementById('lotes-lista');
-    conferir('e a capacidade a mais continua a ser uma escolha, com o preço de cada lote',
-      Boolean(lotes) && lotes.querySelectorAll('input[type="checkbox"]').length
-        === catalogo.lotes.professores.length + catalogo.lotes.alunos.length,
-      lotes && lotes.querySelectorAll('input[type="checkbox"]').length);
+    conferir('e a capacidade a mais NÃO é oferecida — nenhum lote de gente a escolher',
+      Boolean(lotes) && lotes.querySelectorAll('input[type="checkbox"]').length === 0
+        && lotes.hidden === true,
+      lotes && { caixas: lotes.querySelectorAll('input[type="checkbox"]').length,
+        escondida: lotes.hidden });
+
+    conferir('…e a secção não fica com a legenda de pé sobre uma caixa vazia',
+      !lotes || lotes.querySelector('legend') === null,
+      lotes && lotes.querySelector('legend') && lotes.querySelector('legend').textContent.trim());
 
     const antes = d.getElementById('resumo-do-plano').textContent;
-    const primeiro = lotes.querySelector('input[type="checkbox"]');
-    primeiro.checked = true;
-    primeiro.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
-    await new Promise((r) => setTimeout(r, 60));
-    const depois = d.getElementById('resumo-do-plano').textContent;
-    conferir('…e marcar um lote muda o total, e diz de onde vem a diferença',
-      depois !== antes && /por mês/.test(depois), { antes, depois });
+    conferir('…e o resumo continua a dizer um valor por mês, vindo do plano e não de gente',
+      /por mês/.test(antes) && !/lote/i.test(antes), antes.replace(/\s+/g, ' ').trim());
 
     conferir('…e nada disto faz a página pública lançar', erros.length === 0, erros.slice(0, 1));
     dom.window.close();
